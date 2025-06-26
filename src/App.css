@@ -1,0 +1,33 @@
+.App {
+  width: 100%;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure all page containers are full width */
+.page-container {
+  width: 100vw;
+  min-height: 100vh;
+}
+
+/* Override any max-width constraints */
+.container, .max-w-6xl, .max-w-4xl, .max-w-2xl {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Full width utility class */
+.full-width {
+  width: 100vw !important;
+  max-width: none !important;
+}
