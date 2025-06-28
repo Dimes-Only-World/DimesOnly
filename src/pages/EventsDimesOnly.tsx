@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
+import ReferrerDisplay from "@/components/ReferrerDisplay";
 import {
   Search,
   MapPin,
@@ -322,6 +323,8 @@ const EventsDimesOnly: React.FC = () => {
 
   useEffect(() => {
     if (canViewPage) {
+      console.log("referrer", referrer);
+      console.log("user?.username", user?.username);
       fetchEvents();
     }
   }, [canViewPage]);
@@ -727,11 +730,9 @@ const EventsDimesOnly: React.FC = () => {
             <p className="text-gray-300 text-sm md:text-base">
               Choose which events you want to attend
             </p>
-            {referrer && (
-              <p className="text-yellow-300 text-sm mt-2">
-                Referred by: @{referrer}
-              </p>
-            )}
+            {/* {referrer && referrer !== user?.username && ( */}
+            <ReferrerDisplay referrerUsername={referrer} />
+            {/* )} */}
             {isDiamondPlus && (
               <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 rounded-lg border border-yellow-400/30">
                 <p className="text-yellow-300 font-semibold text-sm">

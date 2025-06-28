@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
+import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { Search, MapPin, User } from "lucide-react";
 
 interface Performer {
@@ -36,13 +37,11 @@ const EventsDimes: React.FC = () => {
   // Get ref parameter from URL
   const refParam = searchParams.get("ref") || user?.username || "";
 
-  // Check access control - only males and normal females (not strippers/exotics)
+  // Check access control - only users without user_type (normal people)
   const canViewPage =
     !userLoading &&
     user &&
-    (user.gender === "male" ||
-      user.userType === "normal" ||
-      user.userType === "female");
+    (!user.userType || user.userType === "" || user.userType === "normal");
 
   console.log("EventsDimes access control check:", {
     userLoading,
@@ -134,7 +133,8 @@ const EventsDimes: React.FC = () => {
                 Access Restricted
               </h2>
               <p className="text-white">
-                This page is only available to Male and Female users.
+                This page is only available to normal users (not strippers or
+                exotic dancers).
               </p>
 
               {/* Debug information - remove in production */}
@@ -178,10 +178,8 @@ const EventsDimes: React.FC = () => {
             <p className="text-gray-300 text-sm md:text-base">
               Select a stripper or exotic dancer to attend events with
             </p>
-            {refParam && (
-              <p className="text-yellow-300 text-sm mt-2">
-                Referred by: @{refParam}
-              </p>
+            {refParam && refParam !== user?.username && (
+              <ReferrerDisplay referrerUsername={refParam} />
             )}
           </div>
 

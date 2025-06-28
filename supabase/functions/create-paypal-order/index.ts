@@ -151,6 +151,10 @@ serve(async (req) => {
         cancel_url: cancel_url,
         brand_name: "Dancers Events Network",
         user_action: "PAY_NOW",
+        landing_page: "BILLING",
+        payment_method: {
+          payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
+        },
       },
     };
 
