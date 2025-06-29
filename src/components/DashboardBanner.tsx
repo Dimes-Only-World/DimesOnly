@@ -62,7 +62,11 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
   };
 
   const handleRate = () => {
-    window.open("https://dimesonly.world/rate-girls", "_blank");
+    const username = userData.username || "demo";
+    window.open(
+      `https://dimesonly.world/rate-girls/?ref=${username}`,
+      "_blank"
+    );
   };
 
   return (

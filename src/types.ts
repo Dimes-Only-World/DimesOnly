@@ -34,6 +34,108 @@ export type Database = {
   };
   public: {
     Tables: {
+      commission_payouts: {
+        Row: {
+          amount: number;
+          commission_type: string;
+          created_at: string | null;
+          id: string;
+          payment_id: string | null;
+          payout_status: string | null;
+          paypal_payout_batch_id: string | null;
+          paypal_payout_item_id: string | null;
+          updated_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          amount: number;
+          commission_type: string;
+          created_at?: string | null;
+          id?: string;
+          payment_id?: string | null;
+          payout_status?: string | null;
+          paypal_payout_batch_id?: string | null;
+          paypal_payout_item_id?: string | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          amount?: number;
+          commission_type?: string;
+          created_at?: string | null;
+          id?: string;
+          payment_id?: string | null;
+          payout_status?: string | null;
+          paypal_payout_batch_id?: string | null;
+          paypal_payout_item_id?: string | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "commission_payouts_payment_id_fkey";
+            columns: ["payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "commission_payouts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      direct_messages: {
+        Row: {
+          created_at: string | null;
+          expires_at: string | null;
+          id: string;
+          is_admin_message: boolean | null;
+          is_read: boolean | null;
+          message: string;
+          recipient_id: string | null;
+          sender_id: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          is_admin_message?: boolean | null;
+          is_read?: boolean | null;
+          message: string;
+          recipient_id?: string | null;
+          sender_id?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          is_admin_message?: boolean | null;
+          is_read?: boolean | null;
+          message?: string;
+          recipient_id?: string | null;
+          sender_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey";
+            columns: ["recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       entries: {
         Row: {
           amount: number | null;
@@ -69,38 +171,421 @@ export type Database = {
           }
         ];
       };
-      jackpot: {
+      events: {
         Row: {
+          additional_photos: string[] | null;
+          address: string | null;
+          city: string | null;
           created_at: string | null;
-          current_amount: number | null;
-          drawing_date: string | null;
+          date: string;
+          description: string | null;
+          end_time: string | null;
+          free_spots_exotics: number | null;
+          free_spots_strippers: number | null;
+          genre: string | null;
           id: string;
-          status: string | null;
-          user_Id: string | null;
-          weekly_limit: number | null;
+          location: string;
+          max_attendees: number | null;
+          name: string;
+          photo_url: string | null;
+          price: number | null;
+          start_time: string | null;
+          state: string | null;
+          video_urls: string[] | null;
         };
         Insert: {
+          additional_photos?: string[] | null;
+          address?: string | null;
+          city?: string | null;
           created_at?: string | null;
-          current_amount?: number | null;
-          drawing_date?: string | null;
+          date: string;
+          description?: string | null;
+          end_time?: string | null;
+          free_spots_exotics?: number | null;
+          free_spots_strippers?: number | null;
+          genre?: string | null;
           id?: string;
-          status?: string | null;
-          user_Id?: string | null;
-          weekly_limit?: number | null;
+          location: string;
+          max_attendees?: number | null;
+          name: string;
+          photo_url?: string | null;
+          price?: number | null;
+          start_time?: string | null;
+          state?: string | null;
+          video_urls?: string[] | null;
         };
         Update: {
+          additional_photos?: string[] | null;
+          address?: string | null;
+          city?: string | null;
           created_at?: string | null;
-          current_amount?: number | null;
-          drawing_date?: string | null;
+          date?: string;
+          description?: string | null;
+          end_time?: string | null;
+          free_spots_exotics?: number | null;
+          free_spots_strippers?: number | null;
+          genre?: string | null;
           id?: string;
-          status?: string | null;
-          user_Id?: string | null;
-          weekly_limit?: number | null;
+          location?: string;
+          max_attendees?: number | null;
+          name?: string;
+          photo_url?: string | null;
+          price?: number | null;
+          start_time?: string | null;
+          state?: string | null;
+          video_urls?: string[] | null;
+        };
+        Relationships: [];
+      };
+      jackpot: {
+        Row: {
+          amount: number;
+          created_at: string | null;
+          id: string;
+          is_active: boolean | null;
+          updated_at: string | null;
+          week_end: string;
+          week_start: string;
+          winner_id: string | null;
+        };
+        Insert: {
+          amount?: number;
+          created_at?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          updated_at?: string | null;
+          week_end: string;
+          week_start: string;
+          winner_id?: string | null;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          updated_at?: string | null;
+          week_end?: string;
+          week_start?: string;
+          winner_id?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "jackpot_user_Id_fkey";
-            columns: ["user_Id"];
+            foreignKeyName: "jackpot_winner_id_fkey";
+            columns: ["winner_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      jackpot_tickets: {
+        Row: {
+          created_at: string | null;
+          draw_date: string;
+          id: string;
+          is_winner: boolean | null;
+          tickets_count: number;
+          tip_id: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          draw_date: string;
+          id?: string;
+          is_winner?: boolean | null;
+          tickets_count?: number;
+          tip_id?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          draw_date?: string;
+          id?: string;
+          is_winner?: boolean | null;
+          tickets_count?: number;
+          tip_id?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "jackpot_tickets_tip_id_fkey";
+            columns: ["tip_id"];
+            isOneToOne: false;
+            referencedRelation: "tips";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jackpot_tickets_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      jackpot_winners: {
+        Row: {
+          amount_won: number;
+          created_at: string | null;
+          draw_date: string;
+          id: string;
+          profile_photo: string | null;
+          user_id: string | null;
+          username: string;
+          year: number;
+        };
+        Insert: {
+          amount_won: number;
+          created_at?: string | null;
+          draw_date: string;
+          id?: string;
+          profile_photo?: string | null;
+          user_id?: string | null;
+          username: string;
+          year: number;
+        };
+        Update: {
+          amount_won?: number;
+          created_at?: string | null;
+          draw_date?: string;
+          id?: string;
+          profile_photo?: string | null;
+          user_id?: string | null;
+          username?: string;
+          year?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "jackpot_winners_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      messages: {
+        Row: {
+          content: string;
+          created_at: string | null;
+          expires_at: string | null;
+          id: string;
+          is_direct_message: boolean | null;
+          is_notification: boolean | null;
+          media_type: string | null;
+          media_url: string | null;
+          read_at: string | null;
+          recipient_id: string;
+          sender_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          content: string;
+          created_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          is_direct_message?: boolean | null;
+          is_notification?: boolean | null;
+          media_type?: string | null;
+          media_url?: string | null;
+          read_at?: string | null;
+          recipient_id: string;
+          sender_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          content?: string;
+          created_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          is_direct_message?: boolean | null;
+          is_notification?: boolean | null;
+          media_type?: string | null;
+          media_url?: string | null;
+          read_at?: string | null;
+          recipient_id?: string;
+          sender_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_recipient_id_fkey";
+            columns: ["recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      notifications: {
+        Row: {
+          created_at: string | null;
+          expires_at: string | null;
+          id: string;
+          is_read: boolean | null;
+          media_type: string | null;
+          media_url: string | null;
+          message: string;
+          recipient_id: string | null;
+          title: string;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          is_read?: boolean | null;
+          media_type?: string | null;
+          media_url?: string | null;
+          message: string;
+          recipient_id?: string | null;
+          title: string;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          is_read?: boolean | null;
+          media_type?: string | null;
+          media_url?: string | null;
+          message?: string;
+          recipient_id?: string | null;
+          title?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey";
+            columns: ["recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      payments: {
+        Row: {
+          amount: number;
+          created_at: string | null;
+          currency: string | null;
+          event_host_commission: number | null;
+          event_id: string | null;
+          id: string;
+          payment_status: string | null;
+          payment_type: string;
+          paypal_order_id: string | null;
+          paypal_payment_id: string | null;
+          platform_fee: number | null;
+          referred_by: string | null;
+          referrer_commission: number | null;
+          updated_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string | null;
+          currency?: string | null;
+          event_host_commission?: number | null;
+          event_id?: string | null;
+          id?: string;
+          payment_status?: string | null;
+          payment_type: string;
+          paypal_order_id?: string | null;
+          paypal_payment_id?: string | null;
+          platform_fee?: number | null;
+          referred_by?: string | null;
+          referrer_commission?: number | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string | null;
+          currency?: string | null;
+          event_host_commission?: number | null;
+          event_id?: string | null;
+          id?: string;
+          payment_status?: string | null;
+          payment_type?: string;
+          paypal_order_id?: string | null;
+          paypal_payment_id?: string | null;
+          platform_fee?: number | null;
+          referred_by?: string | null;
+          referrer_commission?: number | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      ratings: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          rater_id: string | null;
+          rating: number;
+          updated_at: string | null;
+          user_id: string | null;
+          year: number;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          rater_id?: string | null;
+          rating: number;
+          updated_at?: string | null;
+          user_id?: string | null;
+          year?: number;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          rater_id?: string | null;
+          rating?: number;
+          updated_at?: string | null;
+          user_id?: string | null;
+          year?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ratings_rater_id_fkey";
+            columns: ["rater_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey";
+            columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";
             referencedColumns: ["id"];
@@ -196,6 +681,114 @@ export type Database = {
           }
         ];
       };
+      user_events: {
+        Row: {
+          created_at: string | null;
+          event_id: string;
+          guest_name: string | null;
+          id: string;
+          payment_id: string | null;
+          payment_status: string | null;
+          referred_by: string | null;
+          user_id: string;
+          username: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          event_id: string;
+          guest_name?: string | null;
+          id?: string;
+          payment_id?: string | null;
+          payment_status?: string | null;
+          referred_by?: string | null;
+          user_id: string;
+          username: string;
+        };
+        Update: {
+          created_at?: string | null;
+          event_id?: string;
+          guest_name?: string | null;
+          id?: string;
+          payment_id?: string | null;
+          payment_status?: string | null;
+          referred_by?: string | null;
+          user_id?: string;
+          username?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_events_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_events_payment_id_fkey";
+            columns: ["payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      user_media: {
+        Row: {
+          created_at: string | null;
+          file_size: number | null;
+          filename: string | null;
+          flagged: boolean | null;
+          id: string;
+          media_type: string;
+          media_url: string;
+          storage_path: string | null;
+          updated_at: string | null;
+          user_id: string;
+          warning_message: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          file_size?: number | null;
+          filename?: string | null;
+          flagged?: boolean | null;
+          id?: string;
+          media_type: string;
+          media_url: string;
+          storage_path?: string | null;
+          updated_at?: string | null;
+          user_id: string;
+          warning_message?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          file_size?: number | null;
+          filename?: string | null;
+          flagged?: boolean | null;
+          id?: string;
+          media_type?: string;
+          media_url?: string;
+          storage_path?: string | null;
+          updated_at?: string | null;
+          user_id?: string;
+          warning_message?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_media_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       users: {
         Row: {
           about_me: string | null;
@@ -214,11 +807,13 @@ export type Database = {
           is_ranked: boolean | null;
           last_name: string | null;
           lottery_tickets: number | null;
+          membership_tier: string | null;
           membership_type: string | null;
           mobile_number: string | null;
           occupation: string | null;
           overrides: number | null;
           password_hash: string;
+          paypal_email: string | null;
           profile_photo: string | null;
           rank_number: number | null;
           referral_fees: number | null;
@@ -252,11 +847,13 @@ export type Database = {
           is_ranked?: boolean | null;
           last_name?: string | null;
           lottery_tickets?: number | null;
+          membership_tier?: string | null;
           membership_type?: string | null;
           mobile_number?: string | null;
           occupation?: string | null;
           overrides?: number | null;
           password_hash: string;
+          paypal_email?: string | null;
           profile_photo?: string | null;
           rank_number?: number | null;
           referral_fees?: number | null;
@@ -290,11 +887,13 @@ export type Database = {
           is_ranked?: boolean | null;
           last_name?: string | null;
           lottery_tickets?: number | null;
+          membership_tier?: string | null;
           membership_type?: string | null;
           mobile_number?: string | null;
           occupation?: string | null;
           overrides?: number | null;
           password_hash?: string;
+          paypal_email?: string | null;
           profile_photo?: string | null;
           rank_number?: number | null;
           referral_fees?: number | null;
@@ -313,6 +912,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      weekly_earnings: {
+        Row: {
+          amount: number | null;
+          bonus_earnings: number | null;
+          created_at: string | null;
+          id: string;
+          referral_earnings: number | null;
+          tip_earnings: number | null;
+          updated_at: string | null;
+          user_id: string;
+          week_end: string;
+          week_start: string;
+        };
+        Insert: {
+          amount?: number | null;
+          bonus_earnings?: number | null;
+          created_at?: string | null;
+          id?: string;
+          referral_earnings?: number | null;
+          tip_earnings?: number | null;
+          updated_at?: string | null;
+          user_id: string;
+          week_end: string;
+          week_start: string;
+        };
+        Update: {
+          amount?: number | null;
+          bonus_earnings?: number | null;
+          created_at?: string | null;
+          id?: string;
+          referral_earnings?: number | null;
+          tip_earnings?: number | null;
+          updated_at?: string | null;
+          user_id?: string;
+          week_end?: string;
+          week_start?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weekly_earnings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -321,6 +967,10 @@ export type Database = {
       check_user_exists: {
         Args: { username: string };
         Returns: boolean;
+      };
+      delete_expired_notifications: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
       };
     };
     Enums: {
