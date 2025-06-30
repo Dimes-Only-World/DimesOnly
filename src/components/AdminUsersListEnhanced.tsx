@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, UserX } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
-import AdminUserFiltersEnhanced from './AdminUserFiltersEnhanced';
-import AdminUserDetailsEnhanced from './AdminUserDetailsEnhanced';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Eye, UserX } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import AdminUserFiltersEnhanced from "./AdminUserFiltersEnhanced";
+import AdminUserDetailsEnhanced from "./AdminUserDetailsEnhanced";
 
 interface User {
   id: string;
@@ -33,14 +33,14 @@ const AdminUsersListEnhanced: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  
+
   // Filter states
-  const [userTypeFilter, setUserTypeFilter] = useState('all');
-  const [genderFilter, setGenderFilter] = useState('all');
-  const [usernameFilter, setUsernameFilter] = useState('');
-  const [cityFilter, setCityFilter] = useState('');
-  const [stateFilter, setStateFilter] = useState('');
-  
+  const [userTypeFilter, setUserTypeFilter] = useState("all");
+  const [genderFilter, setGenderFilter] = useState("all");
+  const [usernameFilter, setUsernameFilter] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,23 +49,30 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter]);
+  }, [
+    users,
+    userTypeFilter,
+    genderFilter,
+    usernameFilter,
+    cityFilter,
+    stateFilter,
+  ]);
 
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers((data as unknown as User[]) || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load users',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -76,26 +83,35 @@ const AdminUsersListEnhanced: React.FC = () => {
     let filtered = [...users];
 
     // User type filter
-    if (userTypeFilter !== 'all') {
-      filtered = filtered.filter(user => {
-        const userType = user.user_type?.toLowerCase() || '';
-        if (userTypeFilter === 'female') {
-          return userType === 'female' || userType === 'normal' || userType === '';
+    if (userTypeFilter !== "all") {
+      filtered = filtered.filter((user) => {
+        const userType = user.user_type?.toLowerCase() || "";
+        if (userTypeFilter === "female") {
+          return (
+            userType === "female" || userType === "normal" || userType === ""
+          );
         }
         return userType === userTypeFilter;
       });
     }
 
     // Gender filter
-    if (genderFilter !== 'all') {
-      filtered = filtered.filter(user => {
-        const gender = user.gender?.toLowerCase() || '';
-        const userType = user.user_type?.toLowerCase() || '';
-        
-        if (genderFilter === 'male') {
-          return gender === 'male' || userType === 'male';
-        } else if (genderFilter === 'female') {
-          return gender === 'female' || userType === 'female' || userType === 'normal' || userType === 'stripper' || userType === 'exotic' || (!gender && !userType);
+    if (genderFilter !== "all") {
+      filtered = filtered.filter((user) => {
+        const gender = user.gender?.toLowerCase() || "";
+        const userType = user.user_type?.toLowerCase() || "";
+
+        if (genderFilter === "male") {
+          return gender === "male" || userType === "male";
+        } else if (genderFilter === "female") {
+          return (
+            gender === "female" ||
+            userType === "female" ||
+            userType === "normal" ||
+            userType === "stripper" ||
+            userType === "exotic" ||
+            (!gender && !userType)
+          );
         }
         return true;
       });
@@ -103,21 +119,21 @@ const AdminUsersListEnhanced: React.FC = () => {
 
     // Username filter
     if (usernameFilter) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter((user) =>
         user.username?.toLowerCase().includes(usernameFilter.toLowerCase())
       );
     }
 
     // City filter
     if (cityFilter) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter((user) =>
         user.city?.toLowerCase().includes(cityFilter.toLowerCase())
       );
     }
 
     // State filter
     if (stateFilter) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter((user) =>
         user.state?.toLowerCase().includes(stateFilter.toLowerCase())
       );
     }
@@ -126,59 +142,75 @@ const AdminUsersListEnhanced: React.FC = () => {
   };
 
   const getGenderDisplay = (user: User) => {
-    const gender = user.gender?.toLowerCase() || '';
-    const userType = user.user_type?.toLowerCase() || '';
-    
-    if (gender === 'male' || userType === 'male') {
-      return 'Male';
-    } else if (gender === 'female' || userType === 'female' || userType === 'normal' || userType === 'stripper' || userType === 'exotic' || (!gender && !userType)) {
-      return 'Female';
+    const gender = user.gender?.toLowerCase() || "";
+    const userType = user.user_type?.toLowerCase() || "";
+
+    if (gender === "male" || userType === "male") {
+      return "Male";
+    } else if (
+      gender === "female" ||
+      userType === "female" ||
+      userType === "normal" ||
+      userType === "stripper" ||
+      userType === "exotic" ||
+      (!gender && !userType)
+    ) {
+      return "Female";
     }
-    return 'Unknown';
+    return "Unknown";
   };
 
   const getUserTypeDisplay = (userType: string) => {
     switch (userType?.toLowerCase()) {
-      case 'stripper': return 'Stripper';
-      case 'exotic': return 'Exotic';
-      case 'male': return 'Male';
-      case 'female':
-      case 'normal':
-      case '': return 'Female';
-      default: return userType || 'Female';
+      case "stripper":
+        return "Stripper";
+      case "exotic":
+        return "Exotic";
+      case "male":
+        return "Male";
+      case "female":
+      case "normal":
+      case "":
+        return "Female";
+      default:
+        return userType || "Female";
     }
   };
 
   const getUserTypeBadgeVariant = (userType: string) => {
     switch (userType?.toLowerCase()) {
-      case 'stripper': return 'destructive';
-      case 'exotic': return 'secondary';
-      case 'male': return 'outline';
-      default: return 'default';
+      case "stripper":
+        return "destructive";
+      case "exotic":
+        return "secondary";
+      case "male":
+        return "outline";
+      default:
+        return "default";
     }
   };
 
   const handleDeactivateUser = async (userId: string) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .update({ is_active: false })
-        .eq('id', userId);
+        .eq("id", userId);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'User deactivated successfully',
+        title: "Success",
+        description: "User deactivated successfully",
       });
 
       fetchUsers();
     } catch (error) {
-      console.error('Error deactivating user:', error);
+      console.error("Error deactivating user:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to deactivate user',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to deactivate user",
+        variant: "destructive",
       });
     }
   };
@@ -215,7 +247,7 @@ const AdminUsersListEnhanced: React.FC = () => {
             stateFilter={stateFilter}
             setStateFilter={setStateFilter}
           />
-          
+
           <div className="text-sm text-gray-600 mb-4">
             Showing {filteredUsers.length} of {users.length} users
           </div>
@@ -232,32 +264,44 @@ const AdminUsersListEnhanced: React.FC = () => {
                           {user.username?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold">{user.username}</h3>
-                          <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
+                          <Badge
+                            variant={getUserTypeBadgeVariant(user.user_type)}
+                          >
                             {getUserTypeDisplay(user.user_type)}
                           </Badge>
                           <Badge variant="outline">
                             {getGenderDisplay(user)}
                           </Badge>
-                          {!user.is_active && (
-                            <Badge variant="destructive">Inactive</Badge>
-                          )}
                         </div>
-                        
+
                         <div className="text-sm text-gray-600 space-y-1">
-                          <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
-                          <p><strong>Email:</strong> {user.email}</p>
-                          <p><strong>Phone:</strong> {user.mobile_number || 'N/A'}</p>
-                          <p><strong>Location:</strong> {user.city}, {user.state}</p>
-                          <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                          <p>
+                            <strong>Name:</strong> {user.first_name}{" "}
+                            {user.last_name}
+                          </p>
+                          <p>
+                            <strong>Email:</strong> {user.email}
+                          </p>
+                          <p>
+                            <strong>Phone:</strong>{" "}
+                            {user.mobile_number || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Location:</strong> {user.city}, {user.state}
+                          </p>
+                          <p>
+                            <strong>Joined:</strong>{" "}
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex flex-col gap-2">
+
+                    <div className="flex flex-col gap-3">
                       <Button
                         variant="outline"
                         size="sm"
@@ -266,7 +310,7 @@ const AdminUsersListEnhanced: React.FC = () => {
                         <Eye className="w-4 h-4 mr-1" />
                         Details
                       </Button>
-                      
+
                       {user.is_active && (
                         <Button
                           variant="destructive"
@@ -283,10 +327,12 @@ const AdminUsersListEnhanced: React.FC = () => {
               </Card>
             ))}
           </div>
-          
+
           {filteredUsers.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500">No users found matching the current filters</p>
+              <p className="text-gray-500">
+                No users found matching the current filters
+              </p>
             </div>
           )}
         </CardContent>

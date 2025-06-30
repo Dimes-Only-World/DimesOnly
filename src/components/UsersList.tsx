@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MapPin } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface User {
   id: string;
@@ -17,9 +17,11 @@ interface UsersListProps {
   searchName: string;
   searchCity: string;
   searchState: string;
-  onUserSelect?: (user: User) => void;
-  actionType: 'tip' | 'rate';
-  noDataMessage: string;
+  onUserSelect: (user: User) => void;
+  actionType: "tip" | "rate";
+  noDataMessage?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
 }
 
 const UsersList: React.FC<UsersListProps> = ({
@@ -28,38 +30,56 @@ const UsersList: React.FC<UsersListProps> = ({
   searchState,
   onUserSelect,
   actionType,
-  noDataMessage
+  noDataMessage,
+  orderBy = "username",
+  orderDirection = "asc",
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [orderBy, orderDirection]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('users')
-        .select('id, username, profile_photo, city, state, user_type')
-        .in('user_type', ['stripper', 'exotic'])
-        .order('username');
+        .from("users")
+        .select("id, username, profile_photo, city, state, user_type")
+        .in("user_type", ["stripper", "exotic"])
+        .order(orderBy, { ascending: orderDirection === "asc" });
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers(
+        (data || []).map((user) => ({
+          id: String(user.id),
+          username: String(user.username),
+          profile_photo: String(user.profile_photo || ""),
+          city: String(user.city || ""),
+          state: String(user.state || ""),
+          user_type: String(user.user_type),
+        }))
+      );
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const nameMatch = !searchName || user.username.toLowerCase().includes(searchName.toLowerCase());
-    const cityMatch = !searchCity || (user.city && user.city.toLowerCase().includes(searchCity.toLowerCase()));
-    const stateMatch = !searchState || (user.state && user.state.toLowerCase().includes(searchState.toLowerCase()));
+  const filteredUsers = users.filter((user) => {
+    const nameMatch =
+      !searchName ||
+      user.username.toLowerCase().includes(searchName.toLowerCase());
+    const cityMatch =
+      !searchCity ||
+      (user.city && user.city.toLowerCase().includes(searchCity.toLowerCase()));
+    const stateMatch =
+      !searchState ||
+      (user.state &&
+        user.state.toLowerCase().includes(searchState.toLowerCase()));
     return nameMatch && cityMatch && stateMatch;
   });
 
@@ -67,7 +87,10 @@ const UsersList: React.FC<UsersListProps> = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="bg-white/10 backdrop-blur border-white/20 animate-pulse">
+          <Card
+            key={i}
+            className="bg-white/10 backdrop-blur border-white/20 animate-pulse"
+          >
             <CardContent className="p-4">
               <div className="w-full h-48 bg-gray-700 rounded-lg mb-4"></div>
               <div className="h-4 bg-gray-700 rounded mb-2"></div>
@@ -82,51 +105,60 @@ const UsersList: React.FC<UsersListProps> = ({
 
   if (filteredUsers.length === 0) {
     return (
-      <div className="text-center py-16">
-        <Card className="bg-white/10 backdrop-blur border-white/20 max-w-md mx-auto">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-yellow-400 mb-4">
-              {noDataMessage}
-            </h3>
-            <p className="text-white">
-              {users.length === 0 
-                ? "No dancers or exotics have joined yet. Be the first to discover amazing performers!"
-                : "No profiles match your search criteria. Try adjusting your filters."}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="bg-white/10 backdrop-blur border-white/20">
+        <CardContent className="p-8 text-center">
+          <h3 className="text-white font-bold text-xl mb-2">
+            {noDataMessage || "No users found"}
+          </h3>
+          <p className="text-gray-300">
+            {searchName || searchCity || searchState
+              ? "Try adjusting your search criteria."
+              : "Check back later for updates."}
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
       {filteredUsers.map((user) => (
-        <Card key={user.id} className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300">
-          <CardContent className="p-4 text-center">
-            <img
-              src={user.profile_photo || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop'}
-              alt={user.username}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop';
-              }}
-            />
-            <h3 className="text-white font-semibold mb-2">@{user.username}</h3>
-            <p className="text-gray-300 text-sm mb-4 flex items-center justify-center gap-1">
-              <MapPin size={12} />
-              {user.city || 'Unknown'}, {user.state || 'Unknown'}
-            </p>
+        <Card
+          key={user.id}
+          className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 group"
+        >
+          <CardContent className="p-4">
+            <div className="relative mb-4">
+              <img
+                src={user.profile_photo || "/placeholder.svg"}
+                alt={user.username}
+                className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute top-2 right-2">
+                <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
+                  {user.user_type}
+                </span>
+              </div>
+            </div>
+
+            <h3 className="text-white font-bold text-lg mb-2 truncate">
+              @{user.username}
+            </h3>
+
+            {user.city && user.state && (
+              <div className="flex items-center text-gray-300 text-sm mb-4">
+                <MapPin size={14} className="mr-1" />
+                <span className="truncate">
+                  {user.city}, {user.state}
+                </span>
+              </div>
+            )}
+
             <Button
-              onClick={() => onUserSelect?.(user)}
-              className={`w-full font-semibold ${
-                actionType === 'tip'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-                  : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
-              } text-white`}
+              onClick={() => onUserSelect(user)}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold"
             >
-              {actionType === 'tip' ? 'TIP NOW' : 'RATE'}
+              {actionType === "tip" ? "💎 Tip Now" : "⭐ Rate Now"}
             </Button>
           </CardContent>
         </Card>

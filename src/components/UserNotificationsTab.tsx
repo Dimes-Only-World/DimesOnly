@@ -1,21 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Bell } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
-import { useAppContext } from '@/contexts/AppContext';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Bell } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { useAppContext } from "@/contexts/AppContext";
+import { Tables } from "@/types";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  media_url?: string;
-  media_type?: 'photo' | 'video';
-  created_at: string;
-  read: boolean;
-}
+type Notification = Tables<"notifications">;
 
 const UserNotificationsTab: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -26,6 +19,28 @@ const UserNotificationsTab: React.FC = () => {
   useEffect(() => {
     if (user?.id) {
       fetchNotifications();
+
+      // Set up real-time subscription for new notifications
+      const subscription = supabase
+        .channel("notifications")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `recipient_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log("New notification received:", payload);
+            fetchNotifications(); // Refresh notifications when new one arrives
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
     }
   }, [user?.id]);
 
@@ -37,19 +52,19 @@ const UserNotificationsTab: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("notifications")
+        .select("*")
+        .eq("recipient_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []) as Notification[]);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load notifications',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -59,40 +74,40 @@ const UserNotificationsTab: React.FC = () => {
   const markAsRead = async (notificationId: string) => {
     try {
       const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId);
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notificationId);
 
       if (error) throw error;
-      
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
       );
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
   const deleteNotification = async (notificationId: string) => {
     try {
       const { error } = await supabase
-        .from('notifications')
+        .from("notifications")
         .delete()
-        .eq('id', notificationId);
+        .eq("id", notificationId);
 
       if (error) throw error;
-      
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
       toast({
-        title: 'Success',
-        description: 'Notification deleted',
+        title: "Success",
+        description: "Notification deleted",
       });
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      console.error("Error deleting notification:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete notification',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete notification",
+        variant: "destructive",
       });
     }
   };
@@ -120,7 +135,9 @@ const UserNotificationsTab: React.FC = () => {
       <div className="flex items-center gap-2 mb-4">
         <Bell className="w-5 h-5" />
         <h2 className="text-xl font-semibold">Notifications</h2>
-        <Badge variant="secondary">{notifications.filter(n => !n.read).length} unread</Badge>
+        <Badge variant="secondary">
+          {notifications.filter((n) => !n.is_read).length} unread
+        </Badge>
       </div>
 
       {notifications.length === 0 ? (
@@ -132,18 +149,29 @@ const UserNotificationsTab: React.FC = () => {
         </Card>
       ) : (
         notifications.map((notification) => (
-          <Card key={notification.id} className={`${!notification.read ? 'border-blue-200 bg-blue-50' : ''}`}>
+          <Card
+            key={notification.id}
+            className={`${
+              !notification.is_read ? "border-blue-200 bg-blue-50" : ""
+            }`}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{notification.title}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {notification.title}
+                  </CardTitle>
                   <p className="text-sm text-gray-500 mt-1">
-                    {new Date(notification.created_at).toLocaleString()}
+                    {notification.created_at
+                      ? new Date(notification.created_at).toLocaleString()
+                      : "Unknown time"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!notification.read && (
-                    <Badge variant="default" className="text-xs">New</Badge>
+                  {!notification.is_read && (
+                    <Badge variant="default" className="text-xs">
+                      New
+                    </Badge>
                   )}
                   <Button
                     variant="ghost"
@@ -157,28 +185,28 @@ const UserNotificationsTab: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 mb-4">{notification.message}</p>
-              
+
               {notification.media_url && (
                 <div className="mb-4">
-                  {notification.media_type === 'photo' ? (
-                    <img 
-                      src={notification.media_url} 
-                      alt="Notification media" 
+                  {notification.media_type === "photo" ? (
+                    <img
+                      src={notification.media_url}
+                      alt="Notification media"
                       className="max-w-sm rounded-lg"
                     />
                   ) : (
-                    <video 
-                      src={notification.media_url} 
-                      controls 
+                    <video
+                      src={notification.media_url}
+                      controls
                       className="max-w-sm rounded-lg"
                     />
                   )}
                 </div>
               )}
-              
-              {!notification.read && (
-                <Button 
-                  variant="outline" 
+
+              {!notification.is_read && (
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => markAsRead(notification.id)}
                 >

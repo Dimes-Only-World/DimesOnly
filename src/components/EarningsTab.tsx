@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, DollarSign, Ticket, TrendingUp } from "lucide-react";
 import { Tables } from "@/types";
 import { supabaseAdmin } from "@/lib/supabase";
+import { useMobileLayout } from "@/hooks/use-mobile";
 
 type UserData = Tables<"users">;
 
@@ -35,6 +36,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
     recentTips: [],
   });
   const [loading, setLoading] = useState(true);
+  const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
   useEffect(() => {
     fetchEarningsData();
@@ -129,8 +131,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-          <CardContent className="p-4">
+        <Card
+          className={`${getCardClasses(
+            "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+          )} ${isMobile ? "border-none" : ""}`}
+        >
+          <CardContent className={getPaddingClasses("p-4")}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-600 text-sm font-medium">
@@ -145,8 +151,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-          <CardContent className="p-4">
+        <Card
+          className={`${getCardClasses(
+            "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200"
+          )} ${isMobile ? "border-none" : ""}`}
+        >
+          <CardContent className={getPaddingClasses("p-4")}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">
@@ -161,8 +171,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
-          <CardContent className="p-4">
+        <Card
+          className={`${getCardClasses(
+            "bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200"
+          )} ${isMobile ? "border-none" : ""}`}
+        >
+          <CardContent className={getPaddingClasses("p-4")}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-600 text-sm font-medium">
@@ -177,8 +191,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-          <CardContent className="p-4">
+        <Card
+          className={`${getCardClasses(
+            "bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
+          )} ${isMobile ? "border-none" : ""}`}
+        >
+          <CardContent className={getPaddingClasses("p-4")}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-600 text-sm font-medium">
@@ -195,7 +213,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
       </div>
 
       {/* User Earnings Breakdown */}
-      <Card className="shadow-lg">
+      <Card className={getCardClasses("shadow-lg")}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-green-600" />
@@ -227,7 +245,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
       </Card>
 
       {/* Recent Tips */}
-      <Card className="shadow-lg">
+      <Card className={getCardClasses("shadow-lg")}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-green-600" />
@@ -277,7 +295,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
 
       {/* Jackpot Info */}
       {earnings.jackpotAmount > 0 && (
-        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-lg">
+        <Card
+          className={`${getCardClasses(
+            "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-lg"
+          )} ${isMobile ? "border-none" : ""}`}
+        >
           <CardHeader>
             <CardTitle className="text-yellow-700 flex items-center gap-2">
               <Trophy className="w-5 h-5" />
@@ -317,12 +339,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
                 </div>
               </div>
 
-              <div className="text-center text-yellow-700 text-sm">
-                <p>
-                  Your tickets:{" "}
-                  <span className="font-bold">{earnings.ticketsOwned}</span>
+              <div className="text-center p-3 bg-yellow-100 rounded-lg">
+                <p className="text-yellow-700 font-semibold">
+                  Your tickets: {earnings.ticketsOwned}
                 </p>
-                <p>Drawing every Friday when jackpot reaches $1,000+</p>
+                <p className="text-yellow-600 text-sm">
+                  Drawing every Friday when jackpot reaches $1,000+
+                </p>
               </div>
             </div>
           </CardContent>

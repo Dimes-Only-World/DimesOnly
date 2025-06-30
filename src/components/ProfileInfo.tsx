@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/types";
+import { useMobileLayout } from "@/hooks/use-mobile";
 
 type UserData = Tables<"users">;
 
@@ -36,6 +37,7 @@ interface ProfileInfoProps {
 const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
   // Use a ref to store form data to prevent re-renders
   const formDataRef = useRef<Partial<UserData>>({});
@@ -198,7 +200,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
   };
 
   return (
-    <Card className="shadow-lg border-0">
+    <Card className={getCardClasses("shadow-lg border-0")}>
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -215,38 +217,49 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
             </div>
           </div>
 
-          {!isEditing ? (
-            <Button
-              onClick={handleStartEditing}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-          ) : (
-            <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {userData.user_type && (
+              <Badge variant="secondary" className="capitalize">
+                {userData.user_type}
+              </Badge>
+            )}
+            {!isEditing ? (
               <Button
-                onClick={handleSave}
-                disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                onClick={handleCancel}
+                onClick={handleStartEditing}
+                size="sm"
                 variant="outline"
-                disabled={isLoading}
+                className="flex items-center gap-2"
               >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
+                <Edit className="w-4 h-4" />
+                Edit
               </Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSave}
+                  size="sm"
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {isLoading ? "Saving..." : "Save"}
+                </Button>
+                <Button
+                  onClick={handleCancel}
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className={`${getPaddingClasses("p-6")} space-y-6`}>
         {/* Personal Information Section */}
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -357,13 +370,22 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
               label="User Type"
               fieldName="user_type"
               type="text"
-              options={[
-                { value: "normal", label: "Normal" },
-                { value: "dancer", label: "Dancer" },
-                { value: "exotic", label: "Exotic Dancer" },
-                { value: "stripper", label: "Stripper" },
-                { value: "model", label: "Model" },
-              ]}
+              options={
+                userData.gender === "male"
+                  ? [{ value: "male", label: "Male" }]
+                  : userData.gender === "female"
+                  ? [
+                      { value: "normal", label: "Normal" },
+                      { value: "exotic", label: "Exotic" },
+                      { value: "stripper", label: "Stripper" },
+                    ]
+                  : [
+                      { value: "male", label: "Male" },
+                      { value: "normal", label: "Normal" },
+                      { value: "exotic", label: "Exotic" },
+                      { value: "stripper", label: "Stripper" },
+                    ]
+              }
             />
 
             <ControlledField

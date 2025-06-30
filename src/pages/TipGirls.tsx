@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Search, MapPin, Flag, User, Heart } from 'lucide-react';
-import AuthGuard from '@/components/AuthGuard';
-import JackpotDisplay from '@/components/JackpotDisplay';
-import PayPalTipButton from '@/components/PayPalTipButton';
-import TipAmountSelector from '@/components/TipAmountSelector';
-import UserProfileCard from '@/components/UserProfileCard';
-import UsersList from '@/components/UsersList';
-import TipStatusChecker from '@/components/TipStatusChecker';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search, MapPin, Flag, User, Heart } from "lucide-react";
+import AuthGuard from "@/components/AuthGuard";
+import JackpotDisplay from "@/components/JackpotDisplay";
+import PayPalTipButton from "@/components/PayPalTipButton";
+import TipAmountSelector from "@/components/TipAmountSelector";
+import UserProfileCard from "@/components/UserProfileCard";
+import UsersList from "@/components/UsersList";
+import TipStatusChecker from "@/components/TipStatusChecker";
+import { supabase } from "@/lib/supabase";
+import { getReferralUsername } from "@/lib/utils";
 
 interface User {
   id: string;
@@ -24,15 +25,20 @@ interface User {
 
 const TipGirls: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const tipUsername = searchParams.get('tip');
-  const refUsername = searchParams.get('ref') || 'demo';
-  const [searchName, setSearchName] = useState('');
-  const [searchCity, setSearchCity] = useState('');
-  const [searchState, setSearchState] = useState('');
+  const tipUsername = searchParams.get("tip");
+  const refUsername = getReferralUsername(searchParams) || "demo";
+  const [searchName, setSearchName] = useState("");
+  const [searchCity, setSearchCity] = useState("");
+  const [searchState, setSearchState] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [tipAmount, setTipAmount] = useState<number>(0);
-  const [message, setMessage] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [message, setMessage] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    email?: string;
+    username?: string;
+  } | null>(null);
 
   useEffect(() => {
     getCurrentUser();
@@ -46,33 +52,59 @@ const TipGirls: React.FC = () => {
 
   const getCurrentUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        // Get username from database
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && userData) {
+          setCurrentUser({
+            id: user.id,
+            email: user.email,
+            username: String(userData.username),
+          });
+        } else {
+          setCurrentUser(user);
+        }
+      }
     } catch (error) {
-      console.error('Error getting current user:', error);
+      console.error("Error getting current user:", error);
     }
   };
 
   const fetchUserByUsername = async (username: string) => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('id, username, profile_photo, city, state, user_type')
-        .eq('username', username)
-        .in('user_type', ['stripper', 'exotic'])
+        .from("users")
+        .select("id, username, profile_photo, city, state, user_type")
+        .eq("username", username)
+        .in("user_type", ["stripper", "exotic"])
         .single();
 
       if (error) throw error;
       if (data) {
-        setSelectedUser(data);
+        setSelectedUser({
+          id: String(data.id),
+          username: String(data.username),
+          profile_photo: String(data.profile_photo || ""),
+          city: String(data.city || ""),
+          state: String(data.state || ""),
+          user_type: String(data.user_type),
+        });
       }
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error("Error fetching user:", error);
     }
   };
 
   const handleUserSelect = (user: User) => {
-    const currentUserUsername = currentUser?.user_metadata?.username || 'guest';
+    const currentUserUsername = currentUser?.username || "guest";
     const url = `/tip/?tip=${user.username}&ref=${currentUserUsername}`;
     window.location.href = url;
   };
@@ -93,15 +125,23 @@ const TipGirls: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <UserProfileCard user={selectedUser} />
-                    
+                    <UserProfileCard
+                      username={selectedUser.username}
+                      profileImage={selectedUser.profile_photo}
+                      location={`${selectedUser.city}, ${selectedUser.state}`}
+                    />
+
                     <TipAmountSelector
                       selectedAmount={tipAmount}
                       onAmountChange={setTipAmount}
+                      customAmount={customAmount}
+                      onCustomAmountChange={setCustomAmount}
                     />
-                    
+
                     <div>
-                      <label className="block text-white mb-2">Message (Optional)</label>
+                      <label className="block text-white mb-2">
+                        Message (Optional)
+                      </label>
                       <textarea
                         placeholder="Leave a nice message..."
                         value={message}
@@ -111,7 +151,7 @@ const TipGirls: React.FC = () => {
                         maxLength={200}
                       />
                     </div>
-                    
+
                     {tipAmount > 0 && (
                       <PayPalTipButton
                         tipAmount={tipAmount}
@@ -120,7 +160,7 @@ const TipGirls: React.FC = () => {
                         tipperUsername="current_user"
                       />
                     )}
-                    
+
                     <Button
                       onClick={() => setSelectedUser(null)}
                       variant="outline"
@@ -131,13 +171,9 @@ const TipGirls: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
-              
+
               <div className="lg:col-span-1">
-                <JackpotDisplay
-                  currentJackpot={2450}
-                  nextDrawDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()}
-                  totalTickets={1250}
-                />
+                <JackpotDisplay />
               </div>
             </div>
           </div>
@@ -150,12 +186,39 @@ const TipGirls: React.FC = () => {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+        {/* Video Banner */}
+        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+          <video
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
+          >
+            <source
+              src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+              type="video/mp4"
+            />
+          </video>
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
+                💎 Tip & Win 💎
+              </h1>
+              <p className="text-xl text-gray-300">
+                Support your favorite dancers and enter the jackpot!
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="max-w-7xl mx-auto p-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-3">
-              <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-yellow-400 mb-4">💎 Tip Amazing Dimes 💎</h1>
-                <p className="text-gray-300">Support your favorite dancers and enter the jackpot!</p>
+              {/* Jackpot Results Section */}
+              <div className="mb-8">
+                <JackpotDisplay />
               </div>
 
               {/* Search Section */}
@@ -163,7 +226,10 @@ const TipGirls: React.FC = () => {
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
                       <Input
                         type="text"
                         placeholder="Search by name..."
@@ -173,7 +239,10 @@ const TipGirls: React.FC = () => {
                       />
                     </div>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <MapPin
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
                       <Input
                         type="text"
                         placeholder="Search by city..."
@@ -183,7 +252,10 @@ const TipGirls: React.FC = () => {
                       />
                     </div>
                     <div className="relative">
-                      <Flag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <Flag
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
                       <Input
                         type="text"
                         placeholder="Search by state..."
@@ -208,7 +280,8 @@ const TipGirls: React.FC = () => {
                               NO TIPS YET MADE IN 2025. BE THE 1ST!
                             </h3>
                             <p className="text-yellow-300 text-sm">
-                              Start tipping your favorite dancers to enter the jackpot!
+                              Start tipping your favorite dancers to enter the
+                              jackpot!
                             </p>
                           </CardContent>
                         </Card>
@@ -227,15 +300,13 @@ const TipGirls: React.FC = () => {
                 onUserSelect={handleUserSelect}
                 actionType="tip"
                 noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
+                orderBy="created_at"
+                orderDirection="desc"
               />
             </div>
 
             <div className="lg:col-span-1">
-              <JackpotDisplay
-                currentJackpot={2450}
-                nextDrawDate={new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()}
-                totalTickets={1250}
-              />
+              {/* Additional content can go here if needed */}
             </div>
           </div>
         </div>

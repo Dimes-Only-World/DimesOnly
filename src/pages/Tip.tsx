@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { MapPin, User, Calendar, Star } from 'lucide-react';
-import AuthGuard from '@/components/AuthGuard';
-import TipAmountSelector from '@/components/TipAmountSelector';
-import PayPalTipButton from '@/components/PayPalTipButton';
-import JackpotCountdown from '@/components/JackpotCountdown';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { MapPin, User, Calendar, Star, Heart, Play } from "lucide-react";
+import AuthGuard from "@/components/AuthGuard";
+import TipAmountSelector from "@/components/TipAmountSelector";
+import PayPalTipButton from "@/components/PayPalTipButton";
+import { supabase } from "@/lib/supabase";
 
 interface UserData {
   id: string;
@@ -22,33 +28,68 @@ interface UserData {
   created_at: string;
 }
 
+interface MediaFile {
+  id: string;
+  media_url: string;
+  media_type: "photo" | "video";
+  created_at: string;
+}
+
 const Tip: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const tipUsername = searchParams.get('tip');
-  const refUsername = searchParams.get('ref') || '';
+  const tipUsername = searchParams.get("tip");
+  const refUsername = searchParams.get("ref") || "";
   const [tipAmount, setTipAmount] = useState(0);
+  const [customAmount, setCustomAmount] = useState("");
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [jackpotAmount, setJackpotAmount] = useState(0);
+  const [recentPhotos, setRecentPhotos] = useState<MediaFile[]>([]);
+  const [recentVideos, setRecentVideos] = useState<MediaFile[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [digitalTicket, setDigitalTicket] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [digitalTicket, setDigitalTicket] = useState("");
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    email?: string;
+    username?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const [likes, setLikes] = useState(0);
+  const [hasLiked, setHasLiked] = useState(false);
 
   useEffect(() => {
     if (tipUsername) {
       fetchUserData();
-      fetchJackpotData();
+      fetchUserMedia();
+      fetchLikes();
     }
     getCurrentUser();
   }, [tipUsername]);
 
   const getCurrentUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        // Get username from database
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && userData) {
+          setCurrentUser({
+            id: user.id,
+            email: user.email,
+            username: String(userData.username),
+          });
+        } else {
+          setCurrentUser(user);
+        }
+      }
     } catch (error) {
-      console.error('Error getting current user:', error);
+      console.error("Error getting current user:", error);
     }
   };
 
@@ -56,86 +97,199 @@ const Tip: React.FC = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', tipUsername)
-        .in('user_type', ['stripper', 'exotic'])
+        .from("users")
+        .select("*")
+        .eq("username", tipUsername)
+        .in("user_type", ["stripper", "exotic"])
         .single();
 
       if (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
         return;
       }
 
-      setUserData(data);
+      if (data) {
+        setUserData({
+          id: String(data.id),
+          username: String(data.username),
+          profile_photo: String(data.profile_photo || ""),
+          banner_photo: data.banner_photo
+            ? String(data.banner_photo)
+            : undefined,
+          city: String(data.city || ""),
+          state: String(data.state || ""),
+          bio: data.bio ? String(data.bio) : undefined,
+          user_type: String(data.user_type),
+          created_at: String(data.created_at),
+        });
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchJackpotData = async () => {
-    try {
-      // Calculate 25% of total tips as jackpot
-      const { data: tipsData } = await supabase
-        .from('tips')
-        .select('amount')
-        .gte('created_at', '2025-01-01');
+  const fetchUserMedia = async () => {
+    if (!tipUsername) return;
 
-      if (tipsData) {
-        const totalTips = tipsData.reduce((sum, tip) => sum + (tip.amount || 0), 0);
-        const jackpot = Math.min(totalTips * 0.25, 250000); // Max $250k
-        setJackpotAmount(jackpot);
+    try {
+      // Get user ID first
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("username", tipUsername)
+        .single();
+
+      if (userError || !user) return;
+
+      // Fetch recent photos (3 most recent)
+      const { data: photos, error: photosError } = await supabase
+        .from("user_media")
+        .select("id, media_url, media_type, created_at")
+        .eq("user_id", user.id)
+        .eq("media_type", "photo")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (!photosError && photos) {
+        setRecentPhotos(
+          photos.map((photo) => ({
+            id: String(photo.id),
+            media_url: String(photo.media_url),
+            media_type: photo.media_type as "photo" | "video",
+            created_at: String(photo.created_at),
+          }))
+        );
+      }
+
+      // Fetch recent videos (2 most recent)
+      const { data: videos, error: videosError } = await supabase
+        .from("user_media")
+        .select("id, media_url, media_type, created_at")
+        .eq("user_id", user.id)
+        .eq("media_type", "video")
+        .order("created_at", { ascending: false })
+        .limit(2);
+
+      if (!videosError && videos) {
+        setRecentVideos(
+          videos.map((video) => ({
+            id: String(video.id),
+            media_url: String(video.media_url),
+            media_type: video.media_type as "photo" | "video",
+            created_at: String(video.created_at),
+          }))
+        );
       }
     } catch (error) {
-      console.error('Error fetching jackpot data:', error);
+      console.error("Error fetching user media:", error);
     }
   };
 
-  const getNextFriday = () => {
-    const now = new Date();
-    const friday = new Date(now);
-    const daysUntilFriday = (5 - now.getDay() + 7) % 7;
-    friday.setDate(now.getDate() + (daysUntilFriday === 0 ? 7 : daysUntilFriday));
-    friday.setHours(18, 0, 0, 0);
-    return friday.toISOString();
+  const fetchLikes = async () => {
+    if (!tipUsername || !currentUser) return;
+
+    try {
+      // Get user ID
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("username", tipUsername)
+        .single();
+
+      if (userError || !user) return;
+
+      // Count total likes for this user
+      const { count, error: countError } = await supabase
+        .from("user_likes")
+        .select("*", { count: "exact" })
+        .eq("liked_user_id", user.id);
+
+      if (!countError) {
+        setLikes(count || 0);
+      }
+
+      // Check if current user has liked this profile
+      const { data: userLike, error: likeError } = await supabase
+        .from("user_likes")
+        .select("id")
+        .eq("liked_user_id", user.id)
+        .eq("liker_user_id", currentUser.id)
+        .single();
+
+      if (!likeError && userLike) {
+        setHasLiked(true);
+      }
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+    }
   };
 
-  const handlePaymentSuccess = async (details: any) => {
+  const handleLike = async () => {
+    if (!currentUser || !userData) return;
+
+    try {
+      if (hasLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from("user_likes")
+          .delete()
+          .eq("liked_user_id", userData.id)
+          .eq("liker_user_id", currentUser.id);
+
+        if (!error) {
+          setHasLiked(false);
+          setLikes((prev) => prev - 1);
+        }
+      } else {
+        // Like
+        const { error } = await supabase.from("user_likes").insert({
+          liked_user_id: userData.id,
+          liker_user_id: currentUser.id,
+        });
+
+        if (!error) {
+          setHasLiked(true);
+          setLikes((prev) => prev + 1);
+        }
+      }
+    } catch (error) {
+      console.error("Error handling like:", error);
+    }
+  };
+
+  const handlePaymentSuccess = async (details: { id: string }) => {
     try {
       const tickets = generateTickets(tipAmount);
       setDigitalTicket(tickets[0]);
-      
+
       // Record tip in database
-      const { error } = await supabase
-        .from('tips')
-        .insert({
-          tipper_id: currentUser?.id,
-          tipped_user_id: userData?.id,
-          amount: tipAmount,
-          message: message || null,
-          referred_by: refUsername || null,
-          paypal_transaction_id: details.id
-        });
+      const { error } = await supabase.from("tips").insert({
+        tipper_id: currentUser?.id,
+        tipped_user_id: userData?.id,
+        amount: tipAmount,
+        message: message || null,
+        referred_by: refUsername || null,
+        paypal_transaction_id: details.id,
+      });
 
       if (error) {
-        console.error('Error recording tip:', error);
+        console.error("Error recording tip:", error);
       }
 
       setShowSuccessDialog(true);
-      fetchJackpotData(); // Refresh jackpot
     } catch (error) {
-      console.error('Error processing tip:', error);
+      console.error("Error processing tip:", error);
     }
   };
 
   const generateTickets = (amount: number) => {
     const tickets = [];
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
     for (let i = 0; i < amount; i++) {
-      let ticket = '';
+      let ticket = "";
       for (let j = 0; j < 7; j++) {
         ticket += chars.charAt(Math.floor(Math.random() * chars.length));
       }
@@ -157,10 +311,14 @@ const Tip: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <Card className="bg-red-900/20 border-red-500">
           <CardContent className="p-8 text-center">
-            <h2 className="text-red-400 font-bold text-xl mb-2">User Not Found</h2>
-            <p className="text-red-300">The requested user could not be found.</p>
-            <Button 
-              onClick={() => window.location.href = '/tip-girls'}
+            <h2 className="text-red-400 font-bold text-xl mb-2">
+              User Not Found
+            </h2>
+            <p className="text-red-300">
+              The requested user could not be found.
+            </p>
+            <Button
+              onClick={() => (window.location.href = "/tip-girls")}
               className="mt-4 bg-red-500 hover:bg-red-600"
             >
               Back to Tip Girls
@@ -174,17 +332,6 @@ const Tip: React.FC = () => {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        {/* Jackpot at Top */}
-        <div className="w-full bg-gradient-to-r from-yellow-600 to-yellow-800 py-4">
-          <div className="max-w-4xl mx-auto px-4">
-            <JackpotCountdown
-              currentJackpot={jackpotAmount}
-              targetAmount={1000}
-              nextDrawDate={jackpotAmount >= 1000 ? getNextFriday() : undefined}
-            />
-          </div>
-        </div>
-
         {/* Banner Photo */}
         {userData.banner_photo && (
           <div className="w-full h-64 relative overflow-hidden">
@@ -205,11 +352,13 @@ const Tip: React.FC = () => {
                 <CardContent className="p-6">
                   <div className="text-center mb-6">
                     <img
-                      src={userData.profile_photo || '/placeholder.svg'}
+                      src={userData.profile_photo || "/placeholder.svg"}
                       alt={userData.username}
                       className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-yellow-400 shadow-lg object-cover"
                     />
-                    <h2 className="text-2xl font-bold text-white mb-2">@{userData.username}</h2>
+                    <h2 className="text-2xl font-bold text-white mb-2">
+                      @{userData.username}
+                    </h2>
                     <div className="flex items-center justify-center gap-2 text-gray-300 mb-2">
                       <User size={16} />
                       <span className="capitalize">{userData.user_type}</span>
@@ -217,19 +366,92 @@ const Tip: React.FC = () => {
                     {userData.city && userData.state && (
                       <div className="flex items-center justify-center gap-2 text-gray-300 mb-2">
                         <MapPin size={16} />
-                        <span>{userData.city}, {userData.state}</span>
+                        <span>
+                          {userData.city}, {userData.state}
+                        </span>
                       </div>
                     )}
-                    <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
+                    <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
                       <Calendar size={14} />
-                      <span>Joined {new Date(userData.created_at).toLocaleDateString()}</span>
+                      <span>
+                        Joined{" "}
+                        {new Date(userData.created_at).toLocaleDateString()}
+                      </span>
                     </div>
+
+                    {/* Like Button */}
+                    <Button
+                      onClick={handleLike}
+                      variant={hasLiked ? "default" : "outline"}
+                      className={`w-full mb-4 ${
+                        hasLiked
+                          ? "bg-red-600 hover:bg-red-700 text-white"
+                          : "border-red-500 text-red-400 hover:bg-red-600 hover:text-white"
+                      }`}
+                    >
+                      <Heart
+                        className={`w-4 h-4 mr-2 ${
+                          hasLiked ? "fill-current" : ""
+                        }`}
+                      />
+                      {hasLiked ? "Liked" : "Like"} ({likes})
+                    </Button>
                   </div>
-                  
+
                   {userData.bio && (
                     <div className="mb-4">
                       <h3 className="text-white font-semibold mb-2">About</h3>
                       <p className="text-gray-300 text-sm">{userData.bio}</p>
+                    </div>
+                  )}
+
+                  {/* Recent Photos */}
+                  {recentPhotos.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-white font-semibold mb-3">
+                        Recent Photos
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {recentPhotos.map((photo) => (
+                          <div
+                            key={photo.id}
+                            className="aspect-square overflow-hidden rounded-lg"
+                          >
+                            <img
+                              src={photo.media_url}
+                              alt="Recent photo"
+                              className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recent Videos */}
+                  {recentVideos.length > 0 && (
+                    <div className="mb-4">
+                      <h3 className="text-white font-semibold mb-3">
+                        Recent Videos
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {recentVideos.map((video) => (
+                          <div
+                            key={video.id}
+                            className="aspect-video overflow-hidden rounded-lg relative"
+                          >
+                            <video
+                              src={video.media_url}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <Play className="w-6 h-6 text-white ml-1" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -251,10 +473,14 @@ const Tip: React.FC = () => {
                   <TipAmountSelector
                     selectedAmount={tipAmount}
                     onAmountChange={setTipAmount}
+                    customAmount={customAmount}
+                    onCustomAmountChange={setCustomAmount}
                   />
 
                   <div>
-                    <label className="block text-white mb-2 font-semibold">Message (Optional)</label>
+                    <label className="block text-white mb-2 font-semibold">
+                      Message (Optional)
+                    </label>
                     <textarea
                       placeholder="Leave a nice message..."
                       value={message}
@@ -267,12 +493,18 @@ const Tip: React.FC = () => {
 
                   {tipAmount > 0 && currentUser && (
                     <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 rounded-xl p-6 border border-yellow-500/30">
-                      <h3 className="text-white font-bold mb-4 text-center">Complete Your Tip</h3>
+                      <h3 className="text-white font-bold mb-4 text-center">
+                        Complete Your Tip
+                      </h3>
                       <PayPalTipButton
                         tipAmount={tipAmount}
                         tippedUsername={userData.username}
                         referrerUsername={refUsername}
-                        tipperUsername={currentUser.email || 'anonymous'}
+                        tipperUsername={
+                          currentUser.username ||
+                          currentUser.email ||
+                          "anonymous"
+                        }
                         onSuccess={handlePaymentSuccess}
                       />
                       <p className="text-yellow-200 text-sm text-center mt-3">
@@ -290,7 +522,9 @@ const Tip: React.FC = () => {
         <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <DialogContent className="bg-gray-900 border-yellow-500">
             <DialogHeader>
-              <DialogTitle className="text-yellow-500 text-center">🎉 Tip Successful!</DialogTitle>
+              <DialogTitle className="text-yellow-500 text-center">
+                🎉 Tip Successful!
+              </DialogTitle>
               <DialogDescription className="text-white text-center">
                 Thank you for your tip of ${tipAmount} to @{userData.username}!
               </DialogDescription>
@@ -299,12 +533,16 @@ const Tip: React.FC = () => {
               <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-2xl p-4 rounded-lg mb-4 shadow-lg">
                 🎟️ {digitalTicket}
               </div>
-              <p className="text-white font-semibold mb-2">You received {tipAmount} lottery tickets!</p>
-              <p className="text-gray-300 text-sm">Check your dashboard for all tickets</p>
+              <p className="text-white font-semibold mb-2">
+                You received {tipAmount} lottery tickets!
+              </p>
+              <p className="text-gray-300 text-sm">
+                Check your dashboard for all tickets
+              </p>
             </div>
             <DialogFooter>
-              <Button 
-                onClick={() => setShowSuccessDialog(false)} 
+              <Button
+                onClick={() => setShowSuccessDialog(false)}
                 className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black hover:from-yellow-500 hover:to-yellow-600 w-full"
               >
                 Awesome!

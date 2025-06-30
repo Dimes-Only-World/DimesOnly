@@ -10,6 +10,7 @@ import {
   Camera,
   Share2,
   Trophy,
+  LogOut,
 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
@@ -25,45 +26,25 @@ import UserJackpotTab from "./UserJackpotTab";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useMobileLayout } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
+import { Tables } from "@/types";
 
-interface UserData {
-  id: string;
-  username: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  user_type?: string;
-  profile_photo?: string;
-  banner_photo?: string;
-  front_page_photo?: string;
-  mobile_number?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  gender?: string;
-  membership_type?: string;
-  tips_earned?: number;
-  referral_fees?: number;
-  overrides?: number;
-  weekly_hours?: number;
-  is_ranked?: boolean;
-  rank_number?: number;
-  lottery_tickets?: number;
-  bio?: string;
-  occupation?: string;
-  about_me?: string;
-  description?: string;
-  referred_by?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+type UserData = Tables<"users">;
 
 const UserDashboard: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAppContext();
+  const { user, setUser } = useAppContext();
   const { toast } = useToast();
+  const {
+    isMobile,
+    getContainerClasses,
+    getContentClasses,
+    getCardClasses,
+    getPaddingClasses,
+  } = useMobileLayout();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.id) {
@@ -75,11 +56,11 @@ const UserDashboard: React.FC = () => {
 
   const getCurrentUser = async () => {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser) {
-        fetchUserDataById(authUser.id);
-      } else {
-        setLoading(false);
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+      if (currentUser?.id) {
+        await fetchUserDataById(currentUser.id);
       }
     } catch (error) {
       console.error("Error getting current user:", error);
@@ -87,7 +68,7 @@ const UserDashboard: React.FC = () => {
     }
   };
 
-  const fetchUserDataById = async (userId: string) => {
+  const fetchUserDataById = async (userId: string): Promise<boolean> => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -98,38 +79,129 @@ const UserDashboard: React.FC = () => {
 
       if (error) {
         console.error("Error fetching user data:", error);
-        return;
+        return false;
       }
 
       if (data) {
-        setUserData(data);
+        setUserData(data as UserData);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Error fetching user data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load user data",
+        variant: "destructive",
+      });
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateUserData = async (updatedData: Partial<UserData>) => {
-    if (!userData) return false;
+  const testUserUpdate = async () => {
+    if (!userData?.id) return;
 
+    console.log("Testing simple update with minimal data...");
     try {
-      const { error } = await supabase
+      // Test with just one field
+      const { data, error } = await supabase
         .from("users")
-        .update({ ...updatedData, updated_at: new Date().toISOString() })
-        .eq("id", userData.id);
+        .update({ bio: "Test update - " + new Date().toISOString() })
+        .eq("id", userData.id)
+        .select();
+
+      console.log("Test update result:", { data, error });
 
       if (error) {
-        console.error("Error updating user data:", error);
+        console.error("Test update failed:", error);
+        // Try with admin client
+        console.log("Trying with admin client...");
+        const { createClient } = await import("@supabase/supabase-js");
+        const adminClient = createClient(
+          "https://qkcuykpndrolrewwnkwb.supabase.co",
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTM4MjA3MCwiZXhwIjoyMDY0OTU4MDcwfQ.ayaH1xWQQU-KzPkS5Zufk_Ss6wHns95u6DBhtdLKFN8"
+        );
+
+        const { data: adminData, error: adminError } = await adminClient
+          .from("users")
+          .update({ bio: "Admin test update - " + new Date().toISOString() })
+          .eq("id", userData.id)
+          .select();
+
+        console.log("Admin update result:", { adminData, adminError });
+      }
+    } catch (error) {
+      console.error("Test update exception:", error);
+    }
+  };
+
+  const updateUserData = async (updatedData: Partial<UserData>) => {
+    if (!userData?.id) {
+      console.error("No user ID available for update");
+      return false;
+    }
+
+    console.log("Attempting to update user data:", {
+      userId: userData.id,
+      updatedData,
+      originalData: userData,
+    });
+
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .update(updatedData)
+        .eq("id", userData.id)
+        .select();
+
+      console.log("Supabase update response:", { data, error });
+
+      if (error) {
+        console.error("Supabase error updating user data:", error);
+        toast({
+          title: "Error",
+          description: `Failed to update profile: ${error.message}`,
+          variant: "destructive",
+        });
         return false;
       }
 
-      setUserData({ ...userData, ...updatedData });
-      toast({ title: "Success", description: "Profile updated successfully" });
-      return true;
+      if (data && data.length > 0) {
+        console.log("Update successful, new data:", data[0]);
+        setUserData(data[0] as UserData);
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+        return true;
+      } else {
+        console.log("No data returned from update, refetching...");
+        // If no data returned, refetch the user data
+        const refetchedData = await fetchUserDataById(userData.id);
+        if (refetchedData) {
+          toast({
+            title: "Success",
+            description: "Profile updated successfully",
+          });
+          return true;
+        } else {
+          toast({
+            title: "Warning",
+            description: "Profile may have been updated, but couldn't verify",
+            variant: "destructive",
+          });
+          return false;
+        }
+      }
     } catch (error) {
-      console.error("Error updating user data:", error);
+      console.error("Exception updating user data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
       return false;
     }
   };
@@ -138,29 +210,67 @@ const UserDashboard: React.FC = () => {
     file: File,
     imageType: "profile" | "banner" | "front_page"
   ) => {
-    if (!userData) return;
+    if (!userData?.username) return;
 
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `profiles/${userData.username}/${imageType}.${fileExt}`;
-      
+
       const { data, error } = await supabase.storage
         .from("user-photos")
         .upload(fileName, file, { cacheControl: "3600", upsert: true });
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("user-photos")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("user-photos").getPublicUrl(fileName);
 
-      const updateField = imageType === "profile" ? "profile_photo" : 
-                         imageType === "banner" ? "banner_photo" : "front_page_photo";
+      const updateField =
+        imageType === "profile"
+          ? "profile_photo"
+          : imageType === "banner"
+          ? "banner_photo"
+          : "front_page_photo";
 
       await updateUserData({ [updateField]: publicUrl });
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+
+      // Clear local storage and session storage
+      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("userData");
+      sessionStorage.removeItem("currentUser");
+
+      // Clear app context
+      setUser(null);
+
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+
+      // Redirect to login
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Error",
+        description: "Failed to logout properly",
+        variant: "destructive",
+      });
     }
   };
 
@@ -188,21 +298,43 @@ const UserDashboard: React.FC = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
+          <div className={getContainerClasses()}>
+            <div
+              className={`flex justify-between items-center py-4 ${getContentClasses()}`}
+            >
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <span className="text-sm text-gray-600">Welcome back, {userData.username || 'User'}</span>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600">
+                  Welcome back, {userData.username || "User"}
+                </span>
+
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          className={`${getContainerClasses()} ${isMobile ? "py-4" : "py-8"}`}
+        >
           <DashboardVideoHeader
             videoUrl="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
             thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           />
-          
-          <Card className="mb-8 overflow-hidden">
+
+          <Card
+            className={`${
+              isMobile ? "mb-4 mx-0 rounded-none" : "mb-8"
+            } overflow-hidden`}
+          >
             <DashboardBanner
               bannerPhoto={userData.banner_photo}
               userData={userData}
@@ -210,46 +342,79 @@ const UserDashboard: React.FC = () => {
             />
           </Card>
 
-          <Card className="shadow-lg">
+          <Card className={getCardClasses()}>
             <Tabs defaultValue="profile" className="w-full">
               <div className="border-b bg-gray-50">
                 <TabsList className="w-full justify-start bg-transparent p-0 h-auto flex-wrap">
-                  <TabsTrigger value="profile" className="flex items-center gap-2 px-4 py-3">
-                    <User className="w-4 h-4" />Profile
+                  <TabsTrigger
+                    value="profile"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
                   </TabsTrigger>
-                  <TabsTrigger value="makemoney" className="flex items-center gap-2 px-4 py-3">
-                    <Share2 className="w-4 h-4" />Make Money
+                  <TabsTrigger
+                    value="makemoney"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Make Money
                   </TabsTrigger>
-                  <TabsTrigger value="notifications" className="flex items-center gap-2 px-4 py-3">
-                    <Bell className="w-4 h-4" />Notifications
+                  <TabsTrigger
+                    value="notifications"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Notifications
                   </TabsTrigger>
-                  <TabsTrigger value="earnings" className="flex items-center gap-2 px-4 py-3">
-                    <DollarSign className="w-4 h-4" />Earnings
+                  <TabsTrigger
+                    value="earnings"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    Earnings
                   </TabsTrigger>
-                  <TabsTrigger value="messages" className="flex items-center gap-2 px-4 py-3">
-                    <MessageCircle className="w-4 h-4" />Messages
+                  <TabsTrigger
+                    value="messages"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Messages
                   </TabsTrigger>
-                  <TabsTrigger value="media" className="flex items-center gap-2 px-4 py-3">
-                    <Camera className="w-4 h-4" />Media
+                  <TabsTrigger
+                    value="media"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Media
                   </TabsTrigger>
-                  <TabsTrigger value="jackpot" className="flex items-center gap-2 px-4 py-3">
-                    <Trophy className="w-4 h-4" />Jackpot
+                  <TabsTrigger
+                    value="jackpot"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Jackpot
                   </TabsTrigger>
                 </TabsList>
               </div>
 
-              <CardContent className="p-6">
+              <CardContent className={getPaddingClasses()}>
                 <TabsContent value="profile" className="mt-0">
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div className="lg:col-span-1">
                       <ProfileSidebar
                         userData={userData}
                         referrerData={null}
-                        onImageUpload={(file) => handleImageUpload(file, "profile")}
+                        onImageUpload={(file) =>
+                          handleImageUpload(file, "profile")
+                        }
                       />
                     </div>
                     <div className="lg:col-span-3">
-                      <ProfileInfo userData={userData} onUpdate={updateUserData} />
+                      <ProfileInfo
+                        userData={userData}
+                        onUpdate={updateUserData}
+                      />
                     </div>
                   </div>
                 </TabsContent>
@@ -267,11 +432,14 @@ const UserDashboard: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="media" className="mt-0">
-                  <UserMediaUploadTab userData={userData} onUpdate={updateUserData} />
+                  <UserMediaUploadTab
+                    userData={userData}
+                    onUpdate={updateUserData}
+                  />
                 </TabsContent>
 
                 <TabsContent value="makemoney" className="mt-0">
-                  <UserMakeMoneyTab userData={userData} />
+                  <UserMakeMoneyTab />
                 </TabsContent>
 
                 <TabsContent value="jackpot" className="mt-0">

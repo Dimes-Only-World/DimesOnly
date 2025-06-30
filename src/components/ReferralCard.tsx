@@ -126,7 +126,7 @@ const ReferralCard: React.FC<ReferralCardProps> = ({
             className="w-full"
           >
             <MessageCircle className="w-4 h-4 mr-2" />
-            View Details
+            Send Message!
           </Button>
         </div>
       </CardContent>

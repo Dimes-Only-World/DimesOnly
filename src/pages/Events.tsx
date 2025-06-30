@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
   Eye,
   Play,
   Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   Dialog,
@@ -69,6 +71,28 @@ interface UserProfile {
   user_type: string;
 }
 
+// Memoized Attendee Card Component
+const AttendeeCard = React.memo(({ attendee }: { attendee: EventAttendee }) => (
+  <div className="text-center">
+    <img
+      src={attendee.users.profile_photo || "/placeholder.svg"}
+      alt={attendee.users.username}
+      className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-yellow-400 mx-auto mb-2"
+      loading="lazy"
+      onError={(e) => {
+        const target = e.target as HTMLImageElement;
+        target.src = "/placeholder.svg";
+      }}
+    />
+    <p className="text-xs text-yellow-400 truncate font-medium">
+      @{attendee.users.username}
+    </p>
+    <p className="text-xs text-gray-400 mt-1">{attendee.users.user_type}</p>
+  </div>
+));
+
+AttendeeCard.displayName = "AttendeeCard";
+
 const Events: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -82,10 +106,27 @@ const Events: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [attendeeSearch, setAttendeeSearch] = useState("");
   const [attendeeTypeFilter, setAttendeeTypeFilter] = useState("all");
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     location: "",
     date: "",
   });
+
+  // Constants for pagination
+  const ATTENDEES_PER_PAGE = 24;
+
+  // Debounced search to prevent excessive filtering
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(attendeeSearch);
+      setCurrentPage(1); // Reset to first page on search
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [attendeeSearch]);
 
   useEffect(() => {
     if (username) {
@@ -94,7 +135,16 @@ const Events: React.FC = () => {
     }
   }, [username]);
 
-  const fetchUserProfile = async () => {
+  // Cleanup function to cancel ongoing requests
+  useEffect(() => {
+    return () => {
+      // Cleanup any ongoing operations
+      setLoading(false);
+      setAttendeesLoading(false);
+    };
+  }, []);
+
+  const fetchUserProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("users")
@@ -107,9 +157,9 @@ const Events: React.FC = () => {
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
-  };
+  }, [username]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       // Get user's event attendance first
       const { data: userEvents, error: userEventsError } = await supabase
@@ -164,14 +214,19 @@ const Events: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username, toast]);
 
-  const fetchEventAttendees = async (eventId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("user_events")
-        .select(
-          `
+  const fetchEventAttendees = useCallback(
+    async (eventId: string) => {
+      if (!eventId) return [];
+
+      setAttendeesLoading(true);
+      try {
+        // Use pagination and limit to prevent overwhelming the browser
+        const { data, error } = await supabase
+          .from("user_events")
+          .select(
+            `
           user_id,
           users (
             username,
@@ -181,37 +236,67 @@ const Events: React.FC = () => {
             state
           )
         `
-        )
-        .eq("event_id", eventId);
+          )
+          .eq("event_id", eventId)
+          .limit(200); // Limit to 200 attendees max to prevent crashes
 
-      if (error) throw error;
+        if (error) throw error;
 
-      return (data as unknown as EventAttendee[]) || [];
-    } catch (error) {
-      console.error("Error fetching attendees:", error);
-      return [];
-    }
-  };
+        return (data as unknown as EventAttendee[]) || [];
+      } catch (error) {
+        console.error("Error fetching attendees:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load attendees. Please try again.",
+          variant: "destructive",
+        });
+        return [];
+      } finally {
+        setAttendeesLoading(false);
+      }
+    },
+    [toast]
+  );
 
-  const handleViewAttendees = async (event: Event) => {
-    const attendees = await fetchEventAttendees(event.id);
-    setSelectedEvent({ ...event, attendees });
-    setShowAttendeesDialog(true);
-  };
+  const handleViewAttendees = useCallback(
+    async (event: Event) => {
+      if (!event?.id) return;
 
-  const getFilteredAttendees = (attendees: EventAttendee[]) => {
-    return attendees.filter((attendee) => {
+      try {
+        setSelectedEvent(event);
+        setShowAttendeesDialog(true);
+        setCurrentPage(1);
+        setAttendeeSearch("");
+        setAttendeeTypeFilter("all");
+
+        const attendees = await fetchEventAttendees(event.id);
+        setSelectedEvent((prev) => (prev ? { ...prev, attendees } : null));
+      } catch (error) {
+        console.error("Error handling view attendees:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load event details",
+          variant: "destructive",
+        });
+      }
+    },
+    [fetchEventAttendees, toast]
+  );
+
+  // Memoized filtered attendees with debounced search
+  const filteredAttendees = useMemo(() => {
+    if (!selectedEvent?.attendees) return [];
+
+    const searchTerm = debouncedSearch.toLowerCase().trim();
+
+    return selectedEvent.attendees.filter((attendee) => {
+      if (!attendee?.users) return false;
+
       const matchesSearch =
-        !attendeeSearch ||
-        attendee.users.username
-          .toLowerCase()
-          .includes(attendeeSearch.toLowerCase()) ||
-        attendee.users.city
-          ?.toLowerCase()
-          .includes(attendeeSearch.toLowerCase()) ||
-        attendee.users.state
-          ?.toLowerCase()
-          .includes(attendeeSearch.toLowerCase());
+        !searchTerm ||
+        attendee.users.username?.toLowerCase().includes(searchTerm) ||
+        attendee.users.city?.toLowerCase().includes(searchTerm) ||
+        attendee.users.state?.toLowerCase().includes(searchTerm);
 
       const matchesType =
         attendeeTypeFilter === "all" ||
@@ -219,27 +304,48 @@ const Events: React.FC = () => {
 
       return matchesSearch && matchesType;
     });
-  };
+  }, [selectedEvent?.attendees, debouncedSearch, attendeeTypeFilter]);
 
-  const filteredEvents = events.filter((event) => {
-    const matchesLocation =
-      !filters.location ||
-      event.city.toLowerCase().includes(filters.location.toLowerCase()) ||
-      event.state.toLowerCase().includes(filters.location.toLowerCase()) ||
-      event.address.toLowerCase().includes(filters.location.toLowerCase());
-    const matchesDate = !filters.date || event.date.includes(filters.date);
-    return matchesLocation && matchesDate;
-  });
+  // Memoized paginated attendees
+  const paginatedAttendees = useMemo(() => {
+    const startIndex = (currentPage - 1) * ATTENDEES_PER_PAGE;
+    const endIndex = startIndex + ATTENDEES_PER_PAGE;
+    return filteredAttendees.slice(startIndex, endIndex);
+  }, [filteredAttendees, currentPage]);
 
-  const getAvailableSpots = (event: Event | null) => {
+  const totalPages = Math.ceil(filteredAttendees.length / ATTENDEES_PER_PAGE);
+
+  // Memoized filtered events
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const matchesLocation =
+        !filters.location ||
+        event.city.toLowerCase().includes(filters.location.toLowerCase()) ||
+        event.state.toLowerCase().includes(filters.location.toLowerCase()) ||
+        event.address.toLowerCase().includes(filters.location.toLowerCase());
+      const matchesDate = !filters.date || event.date.includes(filters.date);
+      return matchesLocation && matchesDate;
+    });
+  }, [events, filters]);
+
+  const getAvailableSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
     return Math.max(0, event.max_attendees - event.current_attendees);
-  };
+  }, []);
 
-  const getFreeSpots = (event: Event | null) => {
+  const getFreeSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
     return (event.free_spots_strippers || 0) + (event.free_spots_exotics || 0);
-  };
+  }, []);
+
+  // Handle dialog close with cleanup
+  const handleCloseDialog = useCallback(() => {
+    setShowAttendeesDialog(false);
+    setSelectedEvent(null);
+    setAttendeeSearch("");
+    setAttendeeTypeFilter("all");
+    setCurrentPage(1);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -498,8 +604,8 @@ const Events: React.FC = () => {
         </div>
       </div>
 
-      {/* Event Details Dialog - Improved UX */}
-      <Dialog open={showAttendeesDialog} onOpenChange={setShowAttendeesDialog}>
+      {/* Event Details Dialog - Optimized Performance */}
+      <Dialog open={showAttendeesDialog} onOpenChange={handleCloseDialog}>
         <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-5xl max-h-[95vh] overflow-hidden p-0">
           <div className="p-4 md:p-6 border-b border-gray-700">
             <DialogHeader>
@@ -507,6 +613,12 @@ const Events: React.FC = () => {
                 {selectedEvent?.name}
               </DialogTitle>
             </DialogHeader>
+            {attendeesLoading && (
+              <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                Loading attendees...
+              </div>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-6">
@@ -664,52 +776,77 @@ const Events: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Attendees Grid - Responsive */}
-                {selectedEvent?.attendees &&
-                selectedEvent.attendees.length > 0 ? (
-                  <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-4">
-                    {getFilteredAttendees(selectedEvent.attendees)
-                      .slice(0, 24)
-                      .map((attendee) => (
-                        <div key={attendee.user_id} className="text-center">
-                          <img
-                            src={
-                              attendee.users.profile_photo || "/placeholder.svg"
-                            }
-                            alt={attendee.users.username}
-                            className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-yellow-400 mx-auto mb-2"
-                          />
-                          <p className="text-xs text-yellow-400 truncate font-medium">
-                            @{attendee.users.username}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {attendee.users.user_type}
-                          </p>
-                        </div>
-                      ))}
+                {/* Attendees Grid - Optimized with Pagination */}
+                {attendeesLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading attendees...</p>
                   </div>
+                ) : filteredAttendees.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-4">
+                      {paginatedAttendees.map((attendee) => (
+                        <AttendeeCard
+                          key={attendee.user_id}
+                          attendee={attendee}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-4 mt-6 p-4 bg-white/5 rounded-lg">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
+                          disabled={currentPage === 1}
+                          className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          Previous
+                        </Button>
+
+                        <span className="text-gray-400 text-sm">
+                          Page {currentPage} of {totalPages} (
+                          {filteredAttendees.length} total)
+                        </span>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1)
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                          className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-12">
                     <div className="bg-white/5 rounded-lg p-8">
                       <p className="text-gray-400 text-lg mb-2">
-                        No attendees yet
+                        {attendeeSearch || attendeeTypeFilter !== "all"
+                          ? "No attendees match your search"
+                          : "No attendees yet"}
                       </p>
                       <p className="text-gray-500 text-sm">
-                        Be the first to join this event!
+                        {attendeeSearch || attendeeTypeFilter !== "all"
+                          ? "Try adjusting your search filters"
+                          : "Be the first to join this event!"}
                       </p>
                     </div>
                   </div>
                 )}
-
-                {selectedEvent?.attendees &&
-                  getFilteredAttendees(selectedEvent.attendees).length > 24 && (
-                    <p className="text-center text-gray-400 text-sm mt-4 p-3 bg-white/5 rounded-lg">
-                      +
-                      {getFilteredAttendees(selectedEvent.attendees).length -
-                        24}{" "}
-                      more attendees
-                    </p>
-                  )}
               </div>
             </div>
           </div>

@@ -6,6 +6,8 @@ import RegistrationFormFields from "@/components/RegistrationFormFields";
 import RotatingBackground from "@/components/RotatingBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { useMobileLayout } from "@/hooks/use-mobile";
+import { getReferralUsername } from "@/lib/utils";
 import bcrypt from "bcryptjs";
 
 interface FormData {
@@ -23,6 +25,9 @@ interface FormData {
   gender: string;
   userType: string;
   referredBy: string;
+  profilePhoto?: string;
+  bannerPhoto?: string;
+  frontPagePhoto?: string;
 }
 
 const backgroundImages = [
@@ -84,6 +89,7 @@ export const Register: React.FC = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {}
   );
+  const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -99,8 +105,15 @@ export const Register: React.FC = () => {
     zip: "",
     gender: "",
     userType: "",
-    referredBy: searchParams.get("ref") || "",
+    referredBy: getReferralUsername(searchParams),
   });
+
+  const generateMaleUsername = (firstName: string, lastName: string) => {
+    const cleanFirst = firstName.toLowerCase().replace(/[^a-z]/g, "");
+    const cleanLast = lastName.toLowerCase().replace(/[^a-z]/g, "");
+    const randomNum = Math.floor(Math.random() * 999) + 1;
+    return `${cleanFirst}${cleanLast}${randomNum}male`;
+  };
 
   const handleInputChange = (field: keyof FormData) => (value: string) => {
     // Convert username to lowercase automatically
@@ -109,11 +122,39 @@ export const Register: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: processedValue }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
 
-    if (field === "gender" && value === "male") {
-      setFormData((prev) => ({ ...prev, userType: "" }));
-      setShowVideo(false);
+    if (field === "gender") {
+      if (value === "male") {
+        // Auto-generate username for males
+        const generatedUsername = generateMaleUsername(
+          formData.firstName || "user",
+          formData.lastName || "name"
+        );
+        setFormData((prev) => ({
+          ...prev,
+          [field]: processedValue,
+          userType: "",
+          username: generatedUsername,
+        }));
+        setShowVideo(false);
+      } else if (value === "female") {
+        setFormData((prev) => ({ ...prev, [field]: processedValue }));
+      }
     } else if (field === "userType") {
       setShowVideo(value === "exotic" || value === "stripper");
+    } else if (field === "firstName" || field === "lastName") {
+      // Update username if gender is male and name fields change
+      if (formData.gender === "male") {
+        const firstName = field === "firstName" ? value : formData.firstName;
+        const lastName = field === "lastName" ? value : formData.lastName;
+        const generatedUsername = generateMaleUsername(firstName, lastName);
+        setFormData((prev) => ({
+          ...prev,
+          [field]: processedValue,
+          username: generatedUsername,
+        }));
+      } else {
+        setFormData((prev) => ({ ...prev, [field]: processedValue }));
+      }
     }
   };
 
@@ -213,6 +254,12 @@ export const Register: React.FC = () => {
     if (!formData.gender) newErrors.gender = "Gender is required";
     if (formData.gender === "female" && !formData.userType)
       newErrors.userType = "User type is required";
+
+    // Check if all photos are uploaded (mandatory)
+    if (!profilePhotoUrl) newErrors.profilePhoto = "Profile photo is required";
+    if (!bannerPhotoUrl) newErrors.bannerPhoto = "Banner photo is required";
+    if (!frontPagePhotoUrl)
+      newErrors.frontPagePhoto = "Front page photo is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -351,10 +398,18 @@ export const Register: React.FC = () => {
       <RotatingBackground images={backgroundImages} interval={3000} />
 
       <div className="relative z-10 w-full min-h-screen py-8">
-        <div className="w-full px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-lg">
-              <div className="text-center py-6 px-8 border-b border-white/20">
+        <div className={`w-full ${isMobile ? "px-0" : "px-4"}`}>
+          <div className={isMobile ? "w-full" : "max-w-4xl mx-auto"}>
+            <div
+              className={`${getCardClasses(
+                "bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
+              )} ${isMobile ? "rounded-none" : "rounded-lg"}`}
+            >
+              <div
+                className={`text-center ${getPaddingClasses(
+                  "py-6 px-8"
+                )} border-b border-white/20`}
+              >
                 <h1 className="text-4xl font-bold text-white font-inter tracking-tight">
                   Join Dimes Only
                 </h1>
@@ -363,7 +418,7 @@ export const Register: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-8">
+              <div className={getPaddingClasses("p-8")}>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <RegistrationFormFields
                     formData={formData}

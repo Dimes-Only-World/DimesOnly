@@ -8,7 +8,8 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
-import { Search, MapPin, User } from "lucide-react";
+import { getReferralUsername } from "@/lib/utils";
+import { Search, MapPin, User, ArrowLeft } from "lucide-react";
 
 interface Performer {
   id: string;
@@ -17,6 +18,7 @@ interface Performer {
   city: string;
   state: string;
   user_type: "stripper" | "exotic";
+  created_at: string; // Add registration date
 }
 
 const EventsDimes: React.FC = () => {
@@ -34,8 +36,8 @@ const EventsDimes: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const performersPerPage = 30;
 
-  // Get ref parameter from URL
-  const refParam = searchParams.get("ref") || user?.username || "";
+  // Get ref parameter from URL with proper decoding
+  const refParam = getReferralUsername(searchParams) || user?.username || "";
 
   // Check access control - only users without user_type (normal people)
   const canViewPage =
@@ -67,9 +69,11 @@ const EventsDimes: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("id, username, profile_photo, city, state, user_type")
+        .select(
+          "id, username, profile_photo, city, state, user_type, created_at"
+        )
         .in("user_type", ["stripper", "exotic"])
-        .order("username");
+        .order("created_at", { ascending: false }); // Latest registered first
 
       if (error) throw error;
       setPerformers((data as Performer[]) || []);
@@ -105,6 +109,10 @@ const EventsDimes: React.FC = () => {
   const handleLetsGo = (performerUsername: string) => {
     // Navigate to events page with performer's username and ref parameter
     navigate(`/events?events=${performerUsername}&ref=${refParam}`);
+  };
+
+  const handleGoBack = () => {
+    navigate(-1); // Go back to previous page
   };
 
   // Show loading state while user data is being fetched
@@ -168,23 +176,49 @@ const EventsDimes: React.FC = () => {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-        {/* Mobile-first full width design */}
-        <div className="w-full px-4 py-6 md:px-8">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-4">
-              Choose Your Event Partner
-            </h1>
-            <p className="text-gray-300 text-sm md:text-base">
-              Select a stripper or exotic dancer to attend events with
-            </p>
-            {refParam && refParam !== user?.username && (
-              <ReferrerDisplay referrerUsername={refParam} />
-            )}
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+        {/* Video Banner - Match TipGirls styling */}
+        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+          <video
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
+          >
+            <source
+              src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+              type="video/mp4"
+            />
+            Your browser does not support the video tag.
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+          {/* Overlay Content */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center px-4">
+              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+                Choose Your Event Partner
+              </h1>
+              <p className="text-lg md:text-xl text-gray-200 drop-shadow-md">
+                Select a stripper or exotic dancer to attend events with
+              </p>
+            </div>
           </div>
+        </div>
+
+        {/* Main Content Container - Match TipGirls layout */}
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Referrer Display */}
+          {refParam && refParam !== user?.username && (
+            <div className="mb-6 text-center">
+              <ReferrerDisplay referrerUsername={refParam} />
+            </div>
+          )}
 
           {/* Filters - Mobile optimized */}
-          <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
+          <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
             <CardContent className="p-4 md:p-6">
               <h2 className="text-lg md:text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
                 <Search className="h-5 w-5" />
@@ -239,30 +273,45 @@ const EventsDimes: React.FC = () => {
               <Card className="bg-white/10 backdrop-blur border-white/20 max-w-md mx-auto">
                 <CardContent className="p-8">
                   <h3 className="text-xl font-bold text-yellow-400 mb-4">
-                    No Performers Found
+                    No Events Available
                   </h3>
-                  <p className="text-gray-300">
-                    No performers match your search criteria.
+                  <p className="text-gray-300 mb-4">
+                    Baddie hasn't selected any events yet.
                   </p>
+                  <p className="text-gray-400 text-sm mb-6">
+                    CHECK BACK TOMORROW
+                  </p>
+                  <Button
+                    onClick={handleGoBack}
+                    variant="outline"
+                    className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-400 bg-transparent"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Go Back
+                  </Button>
                 </CardContent>
               </Card>
             </div>
           ) : (
             <>
-              {/* Performers Grid - Mobile optimized */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8">
+              {/* Performers Grid - Match TipGirls container sizing */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8">
                 {paginatedPerformers.map((performer) => (
                   <Card
                     key={performer.id}
                     className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 group"
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-6">
                       <div className="text-center">
                         <div className="relative mb-4">
                           <img
                             src={performer.profile_photo || "/placeholder.svg"}
                             alt={performer.username}
-                            className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover mx-auto border-3 border-yellow-400 group-hover:border-yellow-300 transition-colors"
+                            className="w-24 h-24 rounded-full object-cover mx-auto border-3 border-yellow-400 group-hover:border-yellow-300 transition-colors"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/placeholder.svg";
+                            }}
                           />
                           <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
                             <span
@@ -277,7 +326,7 @@ const EventsDimes: React.FC = () => {
                           </div>
                         </div>
 
-                        <h3 className="text-lg md:text-xl font-bold text-yellow-400 mb-2">
+                        <h3 className="text-lg font-bold text-yellow-400 mb-2">
                           @{performer.username}
                         </h3>
 

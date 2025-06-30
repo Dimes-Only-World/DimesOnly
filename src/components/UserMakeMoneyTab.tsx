@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,8 +6,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Share2, Facebook, Instagram, Phone, Copy } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Share2, Facebook, Instagram, Phone, Copy, Send } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -37,16 +40,29 @@ const UserMakeMoneyTab: React.FC = () => {
   const [stateFilter, setStateFilter] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [actualUsername, setActualUsername] = useState<string>("");
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [messageText, setMessageText] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
   const itemsPerPage = 100;
 
   // Use the actual username from database instead of context
   const referralUsername = actualUsername;
 
-  const shareMessage = `Click this link \nhttps://youtu.be/iQGC7QzIp5g\nWatch the video and click my link if you are interested.\ndimesonly.world/?ref=${referralUsername}`;
-  const shareLink = `dimesonly.world/?ref=${referralUsername}`;
+  // Memoize share messages to prevent unnecessary re-renders
+  const shareMessage = useMemo(
+    () =>
+      `Click this link \nhttps://youtu.be/iQGC7QzIp5g\nWatch the video and click my link if you are interested.\ndimesonly.world/?ref=${referralUsername}`,
+    [referralUsername]
+  );
 
-  // Fetch actual user data from database
-  const fetchActualUserData = async () => {
+  const shareLink = useMemo(
+    () => `dimesonly.world/?ref=${referralUsername}`,
+    [referralUsername]
+  );
+
+  // Fetch actual user data from database with useCallback to prevent re-renders
+  const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -61,44 +77,17 @@ const UserMakeMoneyTab: React.FC = () => {
         return;
       }
 
-      if (data?.username) {
+      if (data?.username && data.username !== actualUsername) {
         console.log("Actual username from database:", data.username);
         setActualUsername(String(data.username));
       }
     } catch (error) {
       console.error("Error fetching actual user data:", error);
     }
-  };
+  }, [user?.id, actualUsername]);
 
-  // Fetch actual username first, then referrals
-  useEffect(() => {
-    if (user?.id) {
-      fetchActualUserData();
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (referralUsername) {
-      fetchReferrals();
-    }
-  }, [referralUsername]);
-
-  // Force refresh on component mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (referralUsername && referrals.length === 0 && !loading) {
-        fetchReferrals();
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [referralUsername, referrals.length, loading]);
-
-  useEffect(() => {
-    filterReferrals();
-  }, [referrals, usernameFilter, cityFilter, stateFilter]);
-
-  const fetchReferrals = async () => {
+  // Memoize fetchReferrals to prevent unnecessary re-renders
+  const fetchReferrals = useCallback(async () => {
     if (!referralUsername) {
       setLoading(false);
       return;
@@ -161,9 +150,10 @@ const UserMakeMoneyTab: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [referralUsername, toast]);
 
-  const filterReferrals = () => {
+  // Memoize filter function to prevent unnecessary re-renders
+  const filterReferrals = useCallback(() => {
     let filtered = referrals;
 
     if (usernameFilter) {
@@ -186,27 +176,56 @@ const UserMakeMoneyTab: React.FC = () => {
 
     setFilteredReferrals(filtered);
     setCurrentPage(1);
-  };
+  }, [referrals, usernameFilter, cityFilter, stateFilter]);
 
-  const handleCopyMessage = () => {
+  // Fetch actual username first, then referrals
+  useEffect(() => {
+    if (user?.id) {
+      fetchActualUserData();
+    }
+  }, [user?.id, fetchActualUserData]);
+
+  useEffect(() => {
+    if (referralUsername) {
+      fetchReferrals();
+    }
+  }, [referralUsername, fetchReferrals]);
+
+  // Reduce the frequency of force refresh to prevent glitching
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (referralUsername && referrals.length === 0 && !loading) {
+        fetchReferrals();
+      }
+    }, 2000); // Increased from 1000ms to 2000ms
+
+    return () => clearTimeout(timer);
+  }, [referralUsername, referrals.length, loading, fetchReferrals]);
+
+  useEffect(() => {
+    filterReferrals();
+  }, [filterReferrals]);
+
+  // Memoize handlers to prevent re-renders
+  const handleCopyMessage = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
     toast({ title: "Message copied to clipboard!" });
-  };
+  }, [shareMessage, toast]);
 
-  const handleFacebookShare = () => {
+  const handleFacebookShare = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
     const facebookUrl = `https://www.facebook.com/`;
     window.open(facebookUrl, "_blank");
     toast({ title: "Message copied! Paste it on Facebook" });
-  };
+  }, [shareMessage, toast]);
 
-  const handleInstagramShare = () => {
+  const handleInstagramShare = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
     window.open("https://www.instagram.com/", "_blank");
     toast({ title: "Message copied! Paste it on Instagram" });
-  };
+  }, [shareMessage, toast]);
 
-  const handleContactsShare = () => {
+  const handleContactsShare = useCallback(() => {
     if (navigator.share) {
       navigator.share({
         title: "Check out DimesOnly",
@@ -216,22 +235,93 @@ const UserMakeMoneyTab: React.FC = () => {
       navigator.clipboard.writeText(shareMessage);
       toast({ title: "Message copied to share with contacts!" });
     }
-  };
+  }, [shareMessage, toast]);
 
-  const handleImageClick = (imageUrl: string) => {
+  const handleImageClick = useCallback((imageUrl: string) => {
     setSelectedImage(imageUrl);
-  };
+  }, []);
 
-  const handleMessage = (userId: string) => {
-    toast({ title: "Message feature coming soon!" });
-  };
-
-  const paginatedReferrals = filteredReferrals.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const handleMessage = useCallback(
+    (userId: string) => {
+      const userToMessage = referrals.find((r) => r.id === userId);
+      if (userToMessage) {
+        setSelectedUser(userToMessage);
+        setShowMessageDialog(true);
+        setMessageText("");
+      }
+    },
+    [referrals]
   );
 
-  const totalPages = Math.ceil(filteredReferrals.length / itemsPerPage);
+  const handleSendMessage = useCallback(async () => {
+    if (!selectedUser || !messageText.trim() || !user?.id) return;
+
+    setSendingMessage(true);
+    try {
+      // Send direct message
+      const { error: messageError } = await supabase
+        .from("direct_messages")
+        .insert({
+          sender_id: user.id,
+          recipient_id: selectedUser.id,
+          message: messageText.trim(),
+          is_read: false,
+        });
+
+      if (messageError) throw messageError;
+
+      // Send notification
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
+          user_id: selectedUser.id,
+          recipient_id: selectedUser.id,
+          title: "New Message",
+          message: `You have a new message from ${actualUsername}`,
+          is_read: false,
+        });
+
+      if (notificationError) throw notificationError;
+
+      toast({
+        title: "Message sent!",
+        description: `Your message has been sent to ${selectedUser.username}`,
+      });
+
+      setShowMessageDialog(false);
+      setSelectedUser(null);
+      setMessageText("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  }, [selectedUser, messageText, user?.id, actualUsername, toast]);
+
+  const handleRefresh = useCallback(() => {
+    fetchActualUserData();
+    fetchReferrals();
+  }, [fetchActualUserData, fetchReferrals]);
+
+  // Memoize paginated referrals to prevent unnecessary calculations
+  const paginatedReferrals = useMemo(
+    () =>
+      filteredReferrals.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      ),
+    [filteredReferrals, currentPage, itemsPerPage]
+  );
+
+  const totalPages = useMemo(
+    () => Math.ceil(filteredReferrals.length / itemsPerPage),
+    [filteredReferrals.length, itemsPerPage]
+  );
 
   if (!user) {
     return (
@@ -317,14 +407,7 @@ const UserMakeMoneyTab: React.FC = () => {
               </p>
             )}
           </div>
-          <Button
-            onClick={() => {
-              fetchActualUserData();
-              fetchReferrals();
-            }}
-            variant="outline"
-            disabled={loading}
-          >
+          <Button onClick={handleRefresh} variant="outline" disabled={loading}>
             {loading ? "Loading..." : "Refresh"}
           </Button>
         </div>
@@ -390,6 +473,7 @@ const UserMakeMoneyTab: React.FC = () => {
         </>
       )}
 
+      {/* Image Preview Dialog */}
       <Dialog
         open={!!selectedImage}
         onOpenChange={() => setSelectedImage(null)}
@@ -405,6 +489,45 @@ const UserMakeMoneyTab: React.FC = () => {
               className="w-full h-auto max-h-96 object-contain"
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Dialog */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Message to {selectedUser?.username}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="message">Your Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Type your message here..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                rows={4}
+                className="mt-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowMessageDialog(false)}
+              disabled={sendingMessage}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={!messageText.trim() || sendingMessage}
+              className="flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              {sendingMessage ? "Sending..." : "Send Message"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

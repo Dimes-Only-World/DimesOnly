@@ -2,9 +2,18 @@ import React, { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, User, Camera, Award, DollarSign } from "lucide-react";
+import {
+  Calendar,
+  User,
+  Camera,
+  Award,
+  DollarSign,
+  MapPin,
+} from "lucide-react";
 import { Tables } from "@/types";
 import ReferrerInfo from "./ReferrerInfo";
+import { Button } from "@/components/ui/button";
+import { useMobileLayout } from "@/hooks/use-mobile";
 
 type UserData = Tables<"users">;
 
@@ -26,6 +35,8 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isExoticOrDancer =
     userData.user_type === "exotic" || userData.user_type === "stripper";
+  const [isUploading, setIsUploading] = useState(false);
+  const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
   const handlePhotoChange = () => {
     fileInputRef.current?.click();
@@ -55,7 +66,10 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     );
   };
 
-  const safeToFixed = (value: any, decimals: number = 2) => {
+  const safeToFixed = (
+    value: number | null | undefined,
+    decimals: number = 2
+  ) => {
     const num = Number(value) || 0;
     return num.toFixed(decimals);
   };
@@ -68,55 +82,63 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       )}
 
       {/* Professional User Profile */}
-      <Card className="shadow-lg border-0">
-        <CardContent className="p-6 text-center">
-          <div
-            className="relative inline-block mb-4 cursor-pointer"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={handlePhotoChange}
-          >
-            <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-              <AvatarImage
-                src={userData.profile_photo || undefined}
-                alt={userData.username}
+      <Card
+        className={getCardClasses(
+          "shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50"
+        )}
+      >
+        <CardContent className={getPaddingClasses("p-6")}>
+          <div className="text-center">
+            <div className="relative w-32 h-32 mx-auto mb-4">
+              <img
+                src={userData.profile_photo || "/placeholder.svg"}
+                alt="Profile"
+                className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
               />
-              <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {userData.username?.charAt(0).toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
+              <Button
+                onClick={handlePhotoChange}
+                disabled={isUploading}
+                className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0"
+              >
+                {isUploading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4 text-white" />
+                )}
+              </Button>
+            </div>
 
-            {isHovered && (
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
-                <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg flex items-center gap-1">
-                  <Camera className="w-3 h-3" />
-                  <span className="text-xs font-medium">Change</span>
-                </div>
-              </div>
-            )}
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              @{userData.username}
+            </h3>
+
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <MapPin className="w-4 h-4 text-gray-500" />
+              <span className="text-gray-600 text-sm">
+                {userData.city && userData.state
+                  ? `${userData.city}, ${userData.state}`
+                  : "Location not set"}
+              </span>
+            </div>
+
+            <Badge
+              variant="outline"
+              className="bg-blue-100 text-blue-800 border-blue-300"
+            >
+              {userData.user_type || "User"}
+            </Badge>
           </div>
-
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            @{userData.username}
-          </h3>
-
-          <div className="mb-4">{getMembershipBadge()}</div>
-
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
         </CardContent>
       </Card>
 
       {/* Financial Summary for Exotic/Dancers */}
       {isExoticOrDancer && (
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
-          <CardContent className="p-6">
+        <Card
+          className={getCardClasses(
+            "shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50"
+          )}
+        >
+          <CardContent className={getPaddingClasses("p-6")}>
             <h4 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-green-600" />
               Earnings Summary
@@ -143,7 +165,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                     $
                     {safeToFixed(
                       (userData.tips_earned || 0) +
-                      (userData.referral_fees || 0)
+                        (userData.referral_fees || 0)
                     )}
                   </span>
                 </div>
@@ -157,29 +179,24 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       )}
 
       {/* Member Since */}
-      {userData.created_at && (
-        <Card className="shadow-lg border-0">
-          <CardContent className="p-6">
-            <h4 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              Member Since
-            </h4>
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-blue-900 font-medium">
-                {new Date(userData.created_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card className={getCardClasses("shadow-lg border-0")}>
+        <CardContent className={getPaddingClasses("p-6")}>
+          <div className="flex items-center gap-3 mb-3">
+            <Calendar className="w-5 h-5 text-gray-500" />
+            <span className="text-gray-700 font-medium">Member Since</span>
+          </div>
+          <p className="text-gray-900 font-semibold">
+            {new Date(userData.created_at || "").toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+            })}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Additional User Info */}
-      <Card className="shadow-lg border-0">
-        <CardContent className="p-6">
+      <Card className={getCardClasses("shadow-lg border-0")}>
+        <CardContent className={getPaddingClasses("p-6")}>
           <h4 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
             <User className="w-4 h-4 text-blue-600" />
             Profile Stats

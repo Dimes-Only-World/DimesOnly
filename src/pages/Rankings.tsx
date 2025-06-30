@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { Trophy, Medal, Award, Star, MapPin, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useMobileLayout } from "@/hooks/use-mobile";
 
 interface RatingData {
   user_id: string;
@@ -50,6 +51,8 @@ const Rankings: React.FC = () => {
     "all" | "stripper" | "exotic"
   >("all");
   const navigate = useNavigate();
+  const { isMobile, getContainerClasses, getPaddingClasses } =
+    useMobileLayout();
 
   useEffect(() => {
     fetchRankings();
@@ -171,7 +174,7 @@ const Rankings: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className={getContainerClasses("max-w-6xl mx-auto px-4 py-8")}>
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-4">
             🏆 2025 RANKINGS 🏆
@@ -217,8 +220,12 @@ const Rankings: React.FC = () => {
 
         {/* Rankings List */}
         {rankings.length === 0 ? (
-          <Card className="bg-white/10 backdrop-blur border-white/20 max-w-md mx-auto">
-            <CardContent className="p-8 text-center">
+          <Card
+            className={`bg-white/10 backdrop-blur border-white/20 ${
+              isMobile ? "mx-4" : "max-w-md mx-auto"
+            }`}
+          >
+            <CardContent className={`${getPaddingClasses("p-8")} text-center`}>
               <h3 className="text-xl font-bold text-yellow-400 mb-4">
                 No Rankings Yet
               </h3>
@@ -234,7 +241,7 @@ const Rankings: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className={`space-y-4 ${isMobile ? "px-4" : ""}`}>
             {rankings.map((user, index) => (
               <Card
                 key={user.id}
@@ -246,9 +253,10 @@ const Rankings: React.FC = () => {
                       ? "border-2 border-yellow-400/50 shadow-lg"
                       : ""
                   }
+                  ${isMobile ? "rounded-none mx-0" : ""}
                 `}
               >
-                <CardContent className="p-6">
+                <CardContent className={getPaddingClasses()}>
                   <div className="flex items-center gap-6">
                     {/* Rank */}
                     <div className="flex-shrink-0 text-center">
@@ -311,7 +319,7 @@ const Rankings: React.FC = () => {
         )}
 
         {/* Back to Rating Button */}
-        <div className="text-center mt-12">
+        <div className={`text-center mt-12 ${isMobile ? "px-4" : ""}`}>
           <Button
             onClick={() => navigate("/rate-girls")}
             className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"

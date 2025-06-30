@@ -1230,11 +1230,21 @@ const EventsDimesOnly: React.FC = () => {
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="stripper">Strippers</SelectItem>
-                    <SelectItem value="exotic">Exotics</SelectItem>
-                    <SelectItem value="male">Males</SelectItem>
-                    <SelectItem value="female">Females</SelectItem>
+                    <SelectItem value="all" className="text-white">
+                      All Types
+                    </SelectItem>
+                    <SelectItem value="stripper" className="text-white">
+                      Strippers
+                    </SelectItem>
+                    <SelectItem value="exotic" className="text-white">
+                      Exotics
+                    </SelectItem>
+                    <SelectItem value="male" className="text-white">
+                      Males
+                    </SelectItem>
+                    <SelectItem value="female" className="text-white">
+                      Females
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1252,7 +1262,7 @@ const EventsDimesOnly: React.FC = () => {
                             attendee.users.profile_photo || "/placeholder.svg"
                           }
                           alt={attendee.users.username}
-                          className="w-12 h-12 rounded-full object-cover border border-yellow-400 mx-auto mb-1"
+                          className="w-16 h-16 rounded-full object-cover border border-yellow-400 mx-auto mb-1"
                         />
                         <p className="text-xs text-yellow-400 truncate">
                           @{attendee.users.username}
