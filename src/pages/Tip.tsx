@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +14,41 @@ import { Button } from "@/components/ui/button";
 import { MapPin, User, Calendar, Star, Heart, Play } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
-import PayPalTipButton from "@/components/PayPalTipButton";
 import { supabase } from "@/lib/supabase";
+
+// PayPal SDK types
+declare global {
+  interface Window {
+    paypal?: {
+      Buttons: (config: {
+        createOrder: (
+          data: unknown,
+          actions: {
+            order: {
+              create: (order: {
+                purchase_units: Array<{
+                  amount: { value: string };
+                  custom_id?: string;
+                }>;
+              }) => Promise<string>;
+            };
+          }
+        ) => Promise<string>;
+        onApprove: (
+          data: unknown,
+          actions: {
+            order: {
+              capture: () => Promise<unknown>;
+            };
+          }
+        ) => Promise<void>;
+        onError: (err: unknown) => void;
+      }) => {
+        render: (container: HTMLElement) => Promise<void>;
+      };
+    };
+  }
+}
 
 interface UserData {
   id: string;
@@ -55,6 +89,8 @@ const Tip: React.FC = () => {
   const [message, setMessage] = useState("");
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
+  const [paypalError, setPaypalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (tipUsername) {
@@ -63,6 +99,7 @@ const Tip: React.FC = () => {
       fetchLikes();
     }
     getCurrentUser();
+    initializePayPal();
   }, [tipUsername]);
 
   const getCurrentUser = async () => {
@@ -92,6 +129,95 @@ const Tip: React.FC = () => {
       console.error("Error getting current user:", error);
     }
   };
+
+  const initializePayPal = () => {
+    if (window.paypal) {
+      setPaypalLoaded(true);
+      return;
+    }
+
+    const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb";
+    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    const script = document.createElement("script");
+    script.src = scriptUrl;
+    script.async = true;
+    script.onload = () => {
+      setPaypalLoaded(true);
+    };
+    script.onerror = () => {
+      setPaypalError("Failed to load PayPal SDK");
+    };
+
+    if (!document.querySelector('script[src*="paypal.com/sdk"]')) {
+      document.body.appendChild(script);
+    }
+  };
+
+  const renderPayPalButton = (containerId: string, amount: number) => {
+    if (!window.paypal || amount <= 0) return;
+
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Clear any existing buttons
+    container.innerHTML = "";
+
+    window.paypal
+      .Buttons({
+        createOrder: (data: unknown, actions: unknown) => {
+          const orderActions = actions as {
+            order: {
+              create: (order: {
+                purchase_units: Array<{
+                  amount: { value: string };
+                  custom_id?: string;
+                }>;
+              }) => Promise<string>;
+            };
+          };
+          return orderActions.order.create({
+            purchase_units: [
+              {
+                amount: {
+                  value: amount.toFixed(2),
+                },
+                custom_id: JSON.stringify({
+                  tipped_username: userData?.username,
+                  referrer_username: refUsername,
+                  tipper_username:
+                    currentUser?.username || currentUser?.email || "anonymous",
+                  tip_amount: amount,
+                  tip_message: (message || "").slice(0, 60),
+                }),
+              },
+            ],
+          });
+        },
+        onApprove: (data: unknown, actions: unknown) => {
+          const captureActions = actions as {
+            order: {
+              capture: () => Promise<unknown>;
+            };
+          };
+          return captureActions.order.capture().then((details: unknown) => {
+            handlePaymentSuccess(details as { id: string });
+          });
+        },
+        onError: (err: unknown) => {
+          console.error("PayPal error:", err);
+          setPaypalError("Payment failed. Please try again.");
+        },
+      })
+      .render(container);
+  };
+
+  // Re-render PayPal button when amount changes
+  useEffect(() => {
+    if (paypalLoaded && tipAmount > 0 && currentUser && userData) {
+      const containerId = `paypal-button-container-${tipAmount}`;
+      setTimeout(() => renderPayPalButton(containerId, tipAmount), 100);
+    }
+  }, [paypalLoaded, tipAmount, currentUser, userData]);
 
   const fetchUserData = async () => {
     try {
@@ -261,41 +387,32 @@ const Tip: React.FC = () => {
 
   const handlePaymentSuccess = async (details: { id: string }) => {
     try {
-      const tickets = generateTickets(tipAmount);
-      setDigitalTicket(tickets[0]);
-
-      // Record tip in database
-      const { error } = await supabase.from("tips").insert({
-        tipper_id: currentUser?.id,
-        tipped_user_id: userData?.id,
-        amount: tipAmount,
-        message: message || null,
-        referred_by: refUsername || null,
-        paypal_transaction_id: details.id,
-      });
+      // Call backend function to record tip and generate tickets
+      const { data: resp, error } = await supabase.functions.invoke(
+        "process-tip",
+        {
+          body: {
+            tipper_id: currentUser?.id,
+            tipper_username: currentUser?.username || currentUser?.email,
+            tipped_username: userData?.username,
+            amount: tipAmount,
+            message: message || null,
+            referrer_username: refUsername || null,
+            paypal_capture_id: details.id,
+          },
+        }
+      );
 
       if (error) {
-        console.error("Error recording tip:", error);
+        console.error("process-tip error", error);
       }
 
+      const ticketCodes: string[] = (resp as any)?.ticket_codes || [];
+      setDigitalTicket(ticketCodes[0] || "");
       setShowSuccessDialog(true);
     } catch (error) {
       console.error("Error processing tip:", error);
     }
-  };
-
-  const generateTickets = (amount: number) => {
-    const tickets = [];
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-    for (let i = 0; i < amount; i++) {
-      let ticket = "";
-      for (let j = 0; j < 7; j++) {
-        ticket += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      tickets.push(ticket);
-    }
-    return tickets;
   };
 
   if (loading) {
@@ -496,17 +613,34 @@ const Tip: React.FC = () => {
                       <h3 className="text-white font-bold mb-4 text-center">
                         Complete Your Tip
                       </h3>
-                      <PayPalTipButton
-                        tipAmount={tipAmount}
-                        tippedUsername={userData.username}
-                        referrerUsername={refUsername}
-                        tipperUsername={
-                          currentUser.username ||
-                          currentUser.email ||
-                          "anonymous"
-                        }
-                        onSuccess={handlePaymentSuccess}
-                      />
+
+                      {paypalError ? (
+                        <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200 mb-4">
+                          <p className="text-red-600">{paypalError}</p>
+                          <Button
+                            onClick={() => {
+                              setPaypalError(null);
+                              initializePayPal();
+                            }}
+                            variant="outline"
+                            className="mt-2"
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      ) : !paypalLoaded ? (
+                        <div className="flex items-center justify-center p-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-500"></div>
+                          <span className="ml-2 text-white">
+                            Loading PayPal...
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-full">
+                          <div id={`paypal-button-container-${tipAmount}`} />
+                        </div>
+                      )}
+
                       <p className="text-yellow-200 text-sm text-center mt-3">
                         🎟️ You'll receive {tipAmount} lottery tickets!
                       </p>

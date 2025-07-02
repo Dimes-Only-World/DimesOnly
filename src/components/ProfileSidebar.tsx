@@ -50,6 +50,39 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   const getMembershipBadge = () => {
+    // Check for membership_tier first, then fall back to user_type logic
+    const membershipTier = userData.membership_tier || userData.membership_type;
+
+    if (membershipTier) {
+      switch (membershipTier.toLowerCase()) {
+        case "diamond":
+        case "diamond_plus":
+          return (
+            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
+              <Award className="w-3 h-3 mr-1" />
+              Diamond Member
+            </Badge>
+          );
+        case "gold":
+          return (
+            <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0">
+              <Award className="w-3 h-3 mr-1" />
+              Gold Member
+            </Badge>
+          );
+        case "silver":
+          return (
+            <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
+              <Award className="w-3 h-3 mr-1" />
+              Silver Member
+            </Badge>
+          );
+        default:
+          break;
+      }
+    }
+
+    // Fall back to user_type logic for strippers/exotics
     if (isExoticOrDancer) {
       return (
         <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
@@ -58,6 +91,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
         </Badge>
       );
     }
+
     return (
       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
         <User className="w-3 h-3 mr-1" />
@@ -111,6 +145,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               @{userData.username}
             </h3>
+
+            {/* Add membership display here */}
+            <div className="mb-3">{getMembershipBadge()}</div>
 
             <div className="flex items-center justify-center gap-2 mb-3">
               <MapPin className="w-4 h-4 text-gray-500" />

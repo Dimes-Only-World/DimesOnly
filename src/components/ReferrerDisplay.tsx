@@ -146,13 +146,11 @@ const ReferrerDisplay: React.FC<ReferrerDisplayProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-4 mt-6 p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur border border-purple-400/30 rounded-xl max-w-md mx-auto shadow-lg">
-        <div className="w-16 h-16 rounded-full bg-gray-700 animate-pulse ring-2 ring-purple-400/50"></div>
-        <div className="text-left space-y-2">
-          <div className="h-5 w-32 bg-gray-700 animate-pulse rounded"></div>
-          <div className="text-xs text-gray-400">
-            Loading {referrerUsername}...
-          </div>
+      <div className="flex items-center justify-center gap-3 mt-4 p-3 bg-gradient-to-r from-purple-600/15 to-pink-600/15 backdrop-blur border border-purple-400/20 rounded-lg max-w-xs mx-auto shadow-md">
+        <div className="w-10 h-10 rounded-full bg-gray-700 animate-pulse ring-1 ring-purple-400/30"></div>
+        <div className="text-left space-y-1">
+          <div className="h-4 w-24 bg-gray-700 animate-pulse rounded"></div>
+          <div className="text-xs text-gray-400">Loading...</div>
         </div>
       </div>
     );
@@ -160,45 +158,32 @@ const ReferrerDisplay: React.FC<ReferrerDisplayProps> = ({
 
   if (!referrerData) {
     return (
-      <div className="flex items-center justify-center gap-4 mt-6 p-4 bg-red-600/20 backdrop-blur border border-red-400/30 rounded-xl max-w-md mx-auto shadow-lg">
+      <div className="flex items-center justify-center gap-3 mt-4 p-3 bg-red-600/15 backdrop-blur border border-red-400/20 rounded-lg max-w-xs mx-auto shadow-md">
         <div className="text-left">
-          <p className="text-white font-bold text-sm">
+          <p className="text-white font-semibold text-xs">
             Referrer not found: @{referrerUsername}
           </p>
-          <pre className="text-xs text-gray-300 mt-2 whitespace-pre-wrap max-w-sm overflow-x-auto">
-            {debugInfo}
-          </pre>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center gap-4 mt-6 p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur border border-purple-400/30 rounded-xl max-w-md mx-auto shadow-lg">
+    <div className="flex items-center justify-center gap-3 mt-4 p-3 bg-gradient-to-r from-purple-600/15 to-pink-600/15 backdrop-blur border border-purple-400/20 rounded-lg max-w-xs mx-auto shadow-md">
       <img
         src={referrerData.front_page_photo || "/placeholder.svg"}
         alt={referrerData.username}
-        className="w-16 h-16 rounded-full object-cover border-3 border-gradient-to-r from-yellow-400 to-pink-400 shadow-xl ring-2 ring-purple-400/50"
+        className="w-10 h-10 rounded-full object-cover border-2 border-gradient-to-r from-yellow-400 to-pink-400 shadow-lg ring-1 ring-purple-400/30"
         onError={(e) => {
           const target = e.target as HTMLImageElement;
           target.src = "/placeholder.svg";
         }}
       />
       <div className="text-left">
-        <p className="text-white font-bold text-lg bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
+        <p className="text-white font-semibold text-sm bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
           @{referrerData.username}
         </p>
-        <div className="text-xs text-gray-300 mt-1">
-          Found via:{" "}
-          {debugInfo.includes("Exact match: Found")
-            ? "Exact"
-            : debugInfo.includes("Case insensitive: Found")
-            ? "Case-insensitive"
-            : debugInfo.includes("Original match: Found")
-            ? "Original"
-            : "Unknown"}{" "}
-          match
-        </div>
+        <div className="text-xs text-gray-400 mt-0.5">Referrer</div>
       </div>
     </div>
   );

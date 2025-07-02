@@ -71,6 +71,12 @@ const ReferralCard: React.FC<ReferralCardProps> = ({
     });
   };
 
+  // Handle message click without showing "coming soon" toast
+  const handleMessageClick = () => {
+    // Simply call the onMessage handler - let parent component handle the logic
+    onMessage(user.id);
+  };
+
   // Combine profile images and user media
   const allImages = [
     ...(user.profile_photo
@@ -104,7 +110,7 @@ const ReferralCard: React.FC<ReferralCardProps> = ({
           </div>
         )}
         <div className="space-y-2">
-          <div className="cursor-pointer" onClick={() => onMessage(user.id)}>
+          <div className="cursor-pointer" onClick={handleMessageClick}>
             <h3 className="font-semibold text-lg hover:text-blue-600 transition-colors">
               {user.username}
             </h3>
@@ -120,11 +126,7 @@ const ReferralCard: React.FC<ReferralCardProps> = ({
               </p>
             )}
           </div>
-          <Button
-            onClick={() => onMessage(user.id)}
-            size="sm"
-            className="w-full"
-          >
+          <Button onClick={handleMessageClick} size="sm" className="w-full">
             <MessageCircle className="w-4 h-4 mr-2" />
             Send Message!
           </Button>

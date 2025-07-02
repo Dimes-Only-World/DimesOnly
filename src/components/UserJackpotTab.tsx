@@ -191,9 +191,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
               <img
                 src="https://d64gsuwffb70l.cloudfront.net/6817a577df177dddd3e65fb0_1750790609745_e251903d.jpg"
                 alt="Tip & Win"
-                className="w-48 h-48 object-cover rounded-lg shadow-lg border-2 border-yellow-400"
+                className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
               />
-              <p className="text-sm text-center">
+              <p className="text-sm text-center max-w-md">
                 View winners and live drawings on YouTube Live{" "}
                 <a
                   href="https://www.youtube.com/@DimesOnlyWorld"

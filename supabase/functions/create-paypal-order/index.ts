@@ -35,76 +35,112 @@ serve(async (req) => {
       frontendUrl: frontendUrl ? "✓ Set" : "✗ Missing",
     });
 
+    // Determine payment type: 'event' or 'membership'
+    const payment_type = requestBody.payment_type || "event";
+
     // Support both camelCase and snake_case parameter names
     const event_id = requestBody.event_id || requestBody.eventId;
     const user_id = requestBody.user_id || requestBody.userId;
     const payment_id = requestBody.payment_id || requestBody.paymentId;
-    const description = requestBody.description || `Event Ticket Purchase`;
+    const description = requestBody.description;
     const return_url = requestBody.return_url || requestBody.returnUrl;
     const cancel_url = requestBody.cancel_url || requestBody.cancelUrl;
-    const amount = requestBody.amount; // Optional, we'll get from the event if not provided
-    const guest_name = requestBody.guest_name || requestBody.guestName; // Guest name for the event
+    const amount = requestBody.amount;
+    const guest_name = requestBody.guest_name || requestBody.guestName;
 
-    // Validate required fields
-    const missingFields = {};
-    if (!event_id) missingFields.eventId = undefined;
-    if (!user_id) missingFields.userId = undefined;
-    if (!amount && !event_id) missingFields.amount = undefined; // Either amount or event_id is required
-
-    if (Object.keys(missingFields).length > 0) {
-      console.error("Missing required fields:", missingFields);
-      throw new Error(
-        `Missing required fields: ${JSON.stringify(missingFields)}`
-      );
-    }
-
-    console.log("Validating input:", {
-      eventId: event_id,
-      userId: user_id,
-      amount,
-      referrer: requestBody.referrer,
-    });
+    // Diamond Plus specific fields
+    const membership_upgrade_id = requestBody.membership_upgrade_id;
+    const installment_number = requestBody.installment_number || 1;
 
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch current event details including pricing
-    const { data: event, error: eventError } = await supabase
-      .from("events")
-      .select("id, name, price, max_attendees")
-      .eq("id", event_id)
-      .single();
+    let finalAmount: number;
+    let orderDescription: string;
+    let customId: string;
 
-    if (eventError || !event) {
-      throw new Error(`Event not found: ${eventError?.message}`);
+    if (payment_type === "membership") {
+      // Handle Diamond Plus membership payment
+      if (!membership_upgrade_id || !user_id || !amount) {
+        throw new Error(
+          "Missing required fields for membership payment: membership_upgrade_id, user_id, amount"
+        );
+      }
+
+      // Fetch membership upgrade details
+      const { data: upgrade, error: upgradeError } = await supabase
+        .from("membership_upgrades")
+        .select("*")
+        .eq("id", membership_upgrade_id)
+        .single();
+
+      if (upgradeError || !upgrade) {
+        throw new Error(
+          `Membership upgrade not found: ${upgradeError?.message}`
+        );
+      }
+
+      finalAmount = amount;
+      orderDescription = upgrade.installment_plan
+        ? `Diamond Plus Membership - Installment ${installment_number}/2`
+        : "Diamond Plus Membership - Full Payment";
+      customId = `membership_${membership_upgrade_id}_user_${user_id}_installment_${installment_number}`;
+
+      console.log("=== Diamond Plus Payment Creation Started ===");
+      console.log("Membership upgrade details:", {
+        id: upgrade.id,
+        upgrade_type: upgrade.upgrade_type,
+        payment_amount: upgrade.payment_amount,
+        installment_plan: upgrade.installment_plan,
+        current_installment: installment_number,
+      });
+    } else {
+      // Handle event ticket payment (existing logic)
+      if (!event_id || !user_id) {
+        throw new Error(
+          "Missing required fields for event payment: event_id, user_id"
+        );
+      }
+
+      // Fetch current event details including pricing
+      const { data: event, error: eventError } = await supabase
+        .from("events")
+        .select("id, name, price, max_attendees")
+        .eq("id", event_id)
+        .single();
+
+      if (eventError || !event) {
+        throw new Error(`Event not found: ${eventError?.message}`);
+      }
+
+      // Calculate current_attendees by counting entries in user_events table
+      const { count: currentAttendees, error: countError } = await supabase
+        .from("user_events")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", event_id);
+
+      if (countError) {
+        throw new Error(`Failed to count attendees: ${countError.message}`);
+      }
+
+      // Check if event is sold out
+      if (currentAttendees >= event.max_attendees) {
+        throw new Error("Event is sold out");
+      }
+
+      finalAmount = amount || event.price;
+      orderDescription = description || `Event Ticket Purchase - ${event.name}`;
+      customId = `event_${event_id}_user_${user_id}`;
+
+      console.log("=== PayPal Event Order Creation Started ===");
+      console.log("Event details:", {
+        id: event.id,
+        name: event.name,
+        price: event.price,
+        max_attendees: event.max_attendees,
+        current_attendees: currentAttendees,
+      });
     }
-
-    // Calculate current_attendees by counting entries in user_events table
-    const { count: currentAttendees, error: countError } = await supabase
-      .from("user_events")
-      .select("*", { count: "exact", head: true })
-      .eq("event_id", event_id);
-
-    if (countError) {
-      throw new Error(`Failed to count attendees: ${countError.message}`);
-    }
-
-    // Use provided amount or fall back to event price
-    const finalAmount = amount || event.price;
-
-    // Check if event is sold out
-    if (currentAttendees >= event.max_attendees) {
-      throw new Error("Event is sold out");
-    }
-
-    console.log("=== PayPal Order Creation Started ===");
-    console.log("Event details:", {
-      id: event.id,
-      name: event.name,
-      price: event.price,
-      max_attendees: event.max_attendees,
-      current_attendees: currentAttendees,
-    });
 
     // PayPal API credentials
     const PAYPAL_BASE_URL =
@@ -132,24 +168,27 @@ serve(async (req) => {
     const { access_token } = await tokenResponse.json();
     console.log("PayPal access token obtained");
 
-    // Create PayPal order with live pricing
+    // Create PayPal order
     const orderData = {
       intent: "CAPTURE",
       purchase_units: [
         {
-          reference_id: payment_id,
-          description: description,
+          reference_id: payment_id || membership_upgrade_id,
+          description: orderDescription,
           amount: {
             currency_code: "USD",
             value: finalAmount.toFixed(2),
           },
-          custom_id: `event_${event_id}_user_${user_id}`,
+          custom_id: customId,
         },
       ],
       application_context: {
         return_url: return_url,
         cancel_url: cancel_url,
-        brand_name: "Dancers Events Network",
+        brand_name:
+          payment_type === "membership"
+            ? "Dimes Only World - Diamond Plus"
+            : "Dancers Events Network",
         user_action: "PAY_NOW",
         landing_page: "BILLING",
         payment_method: {
@@ -162,6 +201,7 @@ serve(async (req) => {
       intent: orderData.intent,
       amount: orderData.purchase_units[0].amount.value,
       description: orderData.purchase_units[0].description,
+      payment_type,
     });
 
     const orderResponse = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
@@ -183,6 +223,7 @@ serve(async (req) => {
     console.log("PayPal order created:", {
       id: order.id,
       status: order.status,
+      type: payment_type,
     });
 
     // Find the approval URL
@@ -194,8 +235,43 @@ serve(async (req) => {
       throw new Error("No approval URL found in PayPal response");
     }
 
-    // Update payment record with PayPal order ID and current price
-    if (payment_id) {
+    // Update payment record based on type
+    if (payment_type === "membership" && membership_upgrade_id) {
+      // Update membership upgrade record with PayPal order ID
+      const { error: updateError } = await supabase
+        .from("membership_upgrades")
+        .update({
+          paypal_order_id: order.id,
+          status: "pending_payment",
+        })
+        .eq("id", membership_upgrade_id);
+
+      if (updateError) {
+        console.error("Failed to update membership upgrade:", updateError);
+      }
+
+      // If installment plan, create installment payment record
+      if (installment_number) {
+        const { error: installmentError } = await supabase
+          .from("installment_payments")
+          .insert({
+            membership_upgrade_id: membership_upgrade_id,
+            installment_number: installment_number,
+            amount: finalAmount,
+            due_date: new Date().toISOString(),
+            paypal_order_id: order.id,
+            status: "pending",
+          });
+
+        if (installmentError) {
+          console.error(
+            "Failed to create installment payment record:",
+            installmentError
+          );
+        }
+      }
+    } else if (payment_id) {
+      // Update event payment record (existing logic)
       const { error: updateError } = await supabase
         .from("payments")
         .update({
@@ -215,10 +291,11 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
+        success: true,
         order_id: order.id,
         approval_url: approvalUrl,
         amount: finalAmount,
-        event_name: event.name,
+        event_name: event?.name || "Diamond Plus Membership",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -229,6 +306,7 @@ serve(async (req) => {
     console.error("Error creating PayPal order:", error);
     return new Response(
       JSON.stringify({
+        success: false,
         error: error.message || "Failed to create PayPal order",
       }),
       {

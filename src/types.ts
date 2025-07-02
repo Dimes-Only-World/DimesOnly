@@ -284,6 +284,9 @@ export type Database = {
           draw_date: string;
           id: string;
           is_winner: boolean | null;
+          source: string | null;
+          source_transaction_id: string | null;
+          ticket_code: string | null;
           tickets_count: number;
           tip_id: string | null;
           user_id: string | null;
@@ -293,6 +296,9 @@ export type Database = {
           draw_date: string;
           id?: string;
           is_winner?: boolean | null;
+          source?: string | null;
+          source_transaction_id?: string | null;
+          ticket_code?: string | null;
           tickets_count?: number;
           tip_id?: string | null;
           user_id?: string | null;
@@ -302,6 +308,9 @@ export type Database = {
           draw_date?: string;
           id?: string;
           is_winner?: boolean | null;
+          source?: string | null;
+          source_transaction_id?: string | null;
+          ticket_code?: string | null;
           tickets_count?: number;
           tip_id?: string | null;
           user_id?: string | null;
@@ -490,6 +499,7 @@ export type Database = {
           payment_type: string;
           paypal_order_id: string | null;
           paypal_payment_id: string | null;
+          paypal_transaction_id: string | null;
           platform_fee: number | null;
           referred_by: string | null;
           referrer_commission: number | null;
@@ -507,6 +517,7 @@ export type Database = {
           payment_type: string;
           paypal_order_id?: string | null;
           paypal_payment_id?: string | null;
+          paypal_transaction_id?: string | null;
           platform_fee?: number | null;
           referred_by?: string | null;
           referrer_commission?: number | null;
@@ -524,6 +535,7 @@ export type Database = {
           payment_type?: string;
           paypal_order_id?: string | null;
           paypal_payment_id?: string | null;
+          paypal_transaction_id?: string | null;
           platform_fee?: number | null;
           referred_by?: string | null;
           referrer_commission?: number | null;
@@ -540,6 +552,110 @@ export type Database = {
           },
           {
             foreignKeyName: "payments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      payout_requests: {
+        Row: {
+          amount: number;
+          cashapp_cashtag: string | null;
+          cashapp_email: string | null;
+          cashapp_phone: string | null;
+          check_address_line1: string | null;
+          check_address_line2: string | null;
+          check_city: string | null;
+          check_country: string | null;
+          check_full_name: string | null;
+          check_state: string | null;
+          check_zip_code: string | null;
+          created_at: string | null;
+          id: string;
+          notes: string | null;
+          payout_method: string;
+          paypal_email: string | null;
+          processed_date: string | null;
+          request_date: string | null;
+          request_status: string | null;
+          scheduled_payout_date: string | null;
+          updated_at: string | null;
+          user_id: string;
+          wire_account_holder_name: string | null;
+          wire_account_number: string | null;
+          wire_account_type: string | null;
+          wire_bank_address: string | null;
+          wire_bank_name: string | null;
+          wire_routing_number: string | null;
+          wire_swift_code: string | null;
+        };
+        Insert: {
+          amount: number;
+          cashapp_cashtag?: string | null;
+          cashapp_email?: string | null;
+          cashapp_phone?: string | null;
+          check_address_line1?: string | null;
+          check_address_line2?: string | null;
+          check_city?: string | null;
+          check_country?: string | null;
+          check_full_name?: string | null;
+          check_state?: string | null;
+          check_zip_code?: string | null;
+          created_at?: string | null;
+          id?: string;
+          notes?: string | null;
+          payout_method: string;
+          paypal_email?: string | null;
+          processed_date?: string | null;
+          request_date?: string | null;
+          request_status?: string | null;
+          scheduled_payout_date?: string | null;
+          updated_at?: string | null;
+          user_id: string;
+          wire_account_holder_name?: string | null;
+          wire_account_number?: string | null;
+          wire_account_type?: string | null;
+          wire_bank_address?: string | null;
+          wire_bank_name?: string | null;
+          wire_routing_number?: string | null;
+          wire_swift_code?: string | null;
+        };
+        Update: {
+          amount?: number;
+          cashapp_cashtag?: string | null;
+          cashapp_email?: string | null;
+          cashapp_phone?: string | null;
+          check_address_line1?: string | null;
+          check_address_line2?: string | null;
+          check_city?: string | null;
+          check_country?: string | null;
+          check_full_name?: string | null;
+          check_state?: string | null;
+          check_zip_code?: string | null;
+          created_at?: string | null;
+          id?: string;
+          notes?: string | null;
+          payout_method?: string;
+          paypal_email?: string | null;
+          processed_date?: string | null;
+          request_date?: string | null;
+          request_status?: string | null;
+          scheduled_payout_date?: string | null;
+          updated_at?: string | null;
+          user_id?: string;
+          wire_account_holder_name?: string | null;
+          wire_account_number?: string | null;
+          wire_account_type?: string | null;
+          wire_bank_address?: string | null;
+          wire_bank_name?: string | null;
+          wire_routing_number?: string | null;
+          wire_swift_code?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payout_requests_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";
@@ -675,6 +791,100 @@ export type Database = {
           {
             foreignKeyName: "tips_user_id_fkey";
             columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      tips_transactions: {
+        Row: {
+          card_brand: string | null;
+          card_last_four: string | null;
+          card_payment_intent_id: string | null;
+          completed_at: string | null;
+          created_at: string | null;
+          id: string;
+          is_anonymous: boolean | null;
+          message: string | null;
+          payment_id: string | null;
+          payment_method: string;
+          payment_status: string | null;
+          paypal_order_id: string | null;
+          paypal_payment_id: string | null;
+          referrer_commission: number | null;
+          referrer_username: string | null;
+          tickets_generated: number | null;
+          tip_amount: number;
+          tipped_user_id: string | null;
+          tipped_username: string;
+          tipper_user_id: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          card_brand?: string | null;
+          card_last_four?: string | null;
+          card_payment_intent_id?: string | null;
+          completed_at?: string | null;
+          created_at?: string | null;
+          id?: string;
+          is_anonymous?: boolean | null;
+          message?: string | null;
+          payment_id?: string | null;
+          payment_method: string;
+          payment_status?: string | null;
+          paypal_order_id?: string | null;
+          paypal_payment_id?: string | null;
+          referrer_commission?: number | null;
+          referrer_username?: string | null;
+          tickets_generated?: number | null;
+          tip_amount: number;
+          tipped_user_id?: string | null;
+          tipped_username: string;
+          tipper_user_id?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          card_brand?: string | null;
+          card_last_four?: string | null;
+          card_payment_intent_id?: string | null;
+          completed_at?: string | null;
+          created_at?: string | null;
+          id?: string;
+          is_anonymous?: boolean | null;
+          message?: string | null;
+          payment_id?: string | null;
+          payment_method?: string;
+          payment_status?: string | null;
+          paypal_order_id?: string | null;
+          paypal_payment_id?: string | null;
+          referrer_commission?: number | null;
+          referrer_username?: string | null;
+          tickets_generated?: number | null;
+          tip_amount?: number;
+          tipped_user_id?: string | null;
+          tipped_username?: string;
+          tipper_user_id?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tips_transactions_payment_id_fkey";
+            columns: ["payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tips_transactions_tipped_user_id_fkey";
+            columns: ["tipped_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tips_transactions_tipper_user_id_fkey";
+            columns: ["tipper_user_id"];
             isOneToOne: false;
             referencedRelation: "users";
             referencedColumns: ["id"];
@@ -829,6 +1039,13 @@ export type Database = {
           weekly_earnings: number | null;
           weekly_hours: number | null;
           zip: string | null;
+          diamond_plus_active: boolean | null;
+          diamond_plus_signed_at: string | null;
+          diamond_plus_payment_id: string | null;
+          membership_count_position: number | null;
+          phone_number: string | null;
+          agreement_signed: boolean | null;
+          notarization_completed: boolean | null;
         };
         Insert: {
           about_me?: string | null;
@@ -869,6 +1086,13 @@ export type Database = {
           weekly_earnings?: number | null;
           weekly_hours?: number | null;
           zip?: string | null;
+          diamond_plus_active?: boolean | null;
+          diamond_plus_signed_at?: string | null;
+          diamond_plus_payment_id?: string | null;
+          membership_count_position?: number | null;
+          phone_number?: string | null;
+          agreement_signed?: boolean | null;
+          notarization_completed?: boolean | null;
         };
         Update: {
           about_me?: string | null;
@@ -909,6 +1133,13 @@ export type Database = {
           weekly_earnings?: number | null;
           weekly_hours?: number | null;
           zip?: string | null;
+          diamond_plus_active?: boolean | null;
+          diamond_plus_signed_at?: string | null;
+          diamond_plus_payment_id?: string | null;
+          membership_count_position?: number | null;
+          phone_number?: string | null;
+          agreement_signed?: boolean | null;
+          notarization_completed?: boolean | null;
         };
         Relationships: [];
       };
@@ -964,6 +1195,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      calculate_next_payout_date: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
       check_user_exists: {
         Args: { username: string };
         Returns: boolean;

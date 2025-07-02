@@ -25,6 +25,7 @@ import Upgrade from "@/pages/Upgrade";
 import AdminDashboard from "@/pages/AdminDashboard";
 import TestLogin from "@/pages/TestLogin";
 import NotFound from "@/pages/NotFound";
+import PaymentStatusHandler from "./components/PaymentStatusHandler";
 import "./App.css";
 
 function AppContent() {
@@ -48,6 +49,7 @@ function AppContent() {
       <Route path="/tip" element={<Tip />} />
       <Route path="/tip-girls" element={<TipGirls />} />
       <Route path="/upgrade" element={<Upgrade />} />
+      <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

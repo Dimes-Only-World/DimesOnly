@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -496,7 +498,7 @@ const EventsDimesOnly: React.FC = () => {
         setGuestName("");
         fetchEvents();
       } else {
-        // Paid attendance - redirect to PayPal
+        // Paid attendance - create PayPal order and redirect
         await handlePayPalPayment();
       }
     } catch (error) {
@@ -560,7 +562,9 @@ const EventsDimesOnly: React.FC = () => {
       const { approval_url } = paypalData;
 
       if (approval_url) {
-        // Redirect to PayPal
+        // Close dialog and redirect to PayPal
+        setShowAttendDialog(false);
+        setGuestName("");
         window.location.href = approval_url;
       } else {
         throw new Error("No approval URL received from PayPal");

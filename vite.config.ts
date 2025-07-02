@@ -7,7 +7,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    allowedHosts: ["localhost", ".ngrok.io", ".ngrok-free.app", ".ngrok.app"],
+    allowedHosts: [
+      "localhost",
+      ".ngrok.io",
+      ".ngrok-free.app",
+      ".ngrok.app",
+      ".trycloudflare.com",
+    ],
   },
   plugins: [react()].filter(Boolean),
   resolve: {

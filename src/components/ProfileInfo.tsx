@@ -302,6 +302,38 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
               fieldName="mobile_number"
               type="tel"
             />
+
+            {/* User Type Display - Always visible for male users, editable for others */}
+            {userData.gender === "male" ? (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-gray-500" />
+                  User Type
+                </Label>
+                <div className="p-3 bg-gray-50 rounded-lg border">
+                  <p className="text-gray-900">
+                    {userData.user_type ? (
+                      <Badge variant="secondary" className="capitalize">
+                        {userData.user_type}
+                      </Badge>
+                    ) : (
+                      <span className="text-gray-400 italic">Not set</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <ControlledField
+                icon={Briefcase}
+                label="User Type"
+                fieldName="user_type"
+                options={[
+                  { value: "normal", label: "Normal" },
+                  { value: "exotic", label: "Exotic" },
+                  { value: "stripper", label: "Stripper" },
+                ]}
+              />
+            )}
           </div>
         </div>
 

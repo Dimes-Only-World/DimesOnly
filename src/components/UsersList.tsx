@@ -22,6 +22,11 @@ interface UsersListProps {
   noDataMessage?: string;
   orderBy?: string;
   orderDirection?: "asc" | "desc";
+  onImageClick?: (
+    imageUrl: string,
+    username: string,
+    event: React.MouseEvent
+  ) => void;
 }
 
 const UsersList: React.FC<UsersListProps> = ({
@@ -33,6 +38,7 @@ const UsersList: React.FC<UsersListProps> = ({
   noDataMessage,
   orderBy = "username",
   orderDirection = "asc",
+  onImageClick,
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,7 +138,17 @@ const UsersList: React.FC<UsersListProps> = ({
               <img
                 src={user.profile_photo || "/placeholder.svg"}
                 alt={user.username}
-                className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                onClick={
+                  onImageClick
+                    ? (e) =>
+                        onImageClick(
+                          user.profile_photo || "/placeholder.svg",
+                          user.username,
+                          e
+                        )
+                    : undefined
+                }
               />
               <div className="absolute top-2 right-2">
                 <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">

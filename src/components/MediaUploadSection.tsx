@@ -227,7 +227,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {photos.length === 25 && (
             <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-yellow-600" />
@@ -237,16 +237,47 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
             </div>
           )}
           {photos.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No photos uploaded yet. Click "Upload Photos" to add some!</p>
+            <div className="text-center py-12 text-gray-400">
+              <Image className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No photos uploaded yet</p>
+              <p className="text-sm">
+                Click "Upload Photos" to add your first photo!
+              </p>
             </div>
           ) : (
-            <MediaGrid
-              files={photos}
-              onDelete={handleDelete}
-              onReplace={handleReplace}
-            />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {photos.map((photo) => (
+                <div key={photo.id} className="group relative">
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                    <img
+                      src={photo.media_url}
+                      alt="User photo"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 rounded-lg flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleReplace(photo.id)}
+                        className="text-xs px-2 py-1 h-auto bg-white/90 hover:bg-white text-gray-700"
+                      >
+                        Replace
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(photo.id)}
+                        className="text-xs px-2 py-1 h-auto"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -268,7 +299,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {videos.length === 25 && (
             <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-yellow-600" />
@@ -278,16 +309,46 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
             </div>
           )}
           {videos.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No videos uploaded yet. Click "Upload Videos" to add some!</p>
+            <div className="text-center py-12 text-gray-400">
+              <Video className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No videos uploaded yet</p>
+              <p className="text-sm">
+                Click "Upload Videos" to add your first video!
+              </p>
             </div>
           ) : (
-            <MediaGrid
-              files={videos}
-              onDelete={handleDelete}
-              onReplace={handleReplace}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {videos.map((video) => (
+                <div key={video.id} className="group relative">
+                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                    <video
+                      src={video.media_url}
+                      className="w-full h-full object-cover"
+                      controls
+                      preload="metadata"
+                    />
+                  </div>
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleReplace(video.id)}
+                      className="text-xs px-2 py-1 h-auto bg-white/90 hover:bg-white text-gray-700"
+                    >
+                      Replace
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(video.id)}
+                      className="text-xs px-2 py-1 h-auto"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

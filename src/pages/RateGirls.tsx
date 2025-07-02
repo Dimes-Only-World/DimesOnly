@@ -3,11 +3,17 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, User, MapPin, Flag, Trophy, Crown } from "lucide-react";
+import { Search, User, MapPin, Flag, Trophy, Crown, X } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import { supabase } from "@/lib/supabase";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface User {
   id: string;
@@ -41,6 +47,11 @@ const RateGirls: React.FC = () => {
     email?: string;
   } | null>(null);
   const [topRanked, setTopRanked] = useState<RankedUser[]>([]);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    username: string;
+  } | null>(null);
 
   useEffect(() => {
     getCurrentUser();
@@ -138,10 +149,22 @@ const RateGirls: React.FC = () => {
   };
 
   const handleUserSelect = (user: User) => {
-    const url = `/rate/?rate=${user.username}${
+    // Trim the username to remove any spaces
+    const trimmedUsername = user.username.trim();
+    const url = `/rate/?rate=${trimmedUsername}${
       refUsername ? `&ref=${refUsername}` : ""
     }`;
     window.location.href = url;
+  };
+
+  const handleImageClick = (
+    imageUrl: string,
+    username: string,
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation(); // Prevent card click from firing
+    setSelectedImage({ url: imageUrl, username });
+    setShowImageModal(true);
   };
 
   const clearFilters = () => {
@@ -196,19 +219,26 @@ const RateGirls: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-8">
                 {topRanked.map((user) => (
                   <Card
                     key={user.id}
-                    className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 backdrop-blur border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 group cursor-pointer"
+                    className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 backdrop-blur border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 group cursor-pointer overflow-hidden"
                     onClick={() => handleUserSelect(user)}
                   >
-                    <CardContent className="p-4">
-                      <div className="relative mb-4">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="relative mb-3 sm:mb-4">
                         <img
                           src={user.profile_photo || "/placeholder.svg"}
                           alt={user.username}
-                          className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          onClick={(e) =>
+                            handleImageClick(
+                              user.profile_photo || "/placeholder.svg",
+                              user.username,
+                              e
+                            )
+                          }
                         />
                         <div className="absolute top-2 left-2">
                           <div className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
@@ -222,24 +252,28 @@ const RateGirls: React.FC = () => {
                         </div>
                       </div>
 
-                      <h3 className="text-yellow-400 font-bold text-lg mb-2 truncate">
-                        @{user.username}
-                      </h3>
+                      <div className="space-y-2">
+                        <h3 className="text-yellow-400 font-bold text-sm sm:text-base md:text-lg truncate">
+                          @{user.username}
+                        </h3>
 
-                      {user.city && user.state && (
-                        <div className="flex items-center text-gray-300 text-sm mb-2">
-                          <MapPin size={14} className="mr-1" />
-                          <span className="truncate">
-                            {user.city}, {user.state}
-                          </span>
-                        </div>
-                      )}
+                        {user.city && user.state && (
+                          <div className="flex items-center text-gray-900 text-xs sm:text-sm">
+                            <MapPin size={12} className="mr-1 flex-shrink-0" />
+                            <span className="truncate">
+                              {user.city}, {user.state}
+                            </span>
+                          </div>
+                        )}
 
-                      <div className="text-center">
-                        <div className="text-yellow-400 font-bold text-lg">
-                          {user.total_score.toLocaleString()} pts
+                        <div className="text-center pt-2 border-t border-white/10">
+                          <div className="text-yellow-400 font-bold text-sm sm:text-base md:text-lg">
+                            {user.total_score.toLocaleString()}
+                          </div>
+                          <div className="text-gray-900 text-xs">
+                            Total Score
+                          </div>
                         </div>
-                        <div className="text-gray-400 text-xs">Total Score</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -378,9 +412,36 @@ const RateGirls: React.FC = () => {
             noDataMessage="NO RATES YET IN 2025. BE THE 1ST!"
             orderBy="created_at"
             orderDirection="desc"
+            onImageClick={handleImageClick}
           />
         </div>
       </div>
+
+      {/* Image Modal */}
+      <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+        <DialogContent className="bg-gray-800 border-yellow-500 max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400 flex items-center gap-2">
+              Photo - @{selectedImage?.username}
+            </DialogTitle>
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </DialogHeader>
+          <div className="flex items-center justify-center max-h-[70vh]">
+            {selectedImage && (
+              <img
+                src={selectedImage.url}
+                alt={`${selectedImage.username} photo`}
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AuthGuard>
   );
 };

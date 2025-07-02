@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import ReferrerDisplay from "@/components/ReferrerDisplay";
+import { useMobileLayout } from "@/hooks/use-mobile";
 import {
   Calendar,
   MapPin,
@@ -96,6 +96,8 @@ AttendeeCard.displayName = "AttendeeCard";
 const Events: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { getContainerClasses, getContentClasses, getCardClasses } =
+    useMobileLayout();
   const username = searchParams.get("events") || "";
   const ref = searchParams.get("ref") || "";
 
@@ -161,7 +163,16 @@ const Events: React.FC = () => {
 
   const fetchEvents = useCallback(async () => {
     try {
-      // Get user's event attendance first
+      // Get ALL events in the system
+      const { data: allEvents, error: eventsError } = await supabase
+        .from("events")
+        .select("*")
+        .gte("date", new Date().toISOString().split("T")[0])
+        .order("date");
+
+      if (eventsError) throw eventsError;
+
+      // Get user's event attendance to mark which ones they're attending
       const { data: userEvents, error: userEventsError } = await supabase
         .from("user_events")
         .select("event_id")
@@ -171,25 +182,9 @@ const Events: React.FC = () => {
 
       const attendingEventIds = userEvents?.map((ue) => ue.event_id) || [];
 
-      if (attendingEventIds.length === 0) {
-        setEvents([]);
-        setLoading(false);
-        return;
-      }
-
-      // Only get events that the user is attending
-      const { data: userAttendingEvents, error: eventsError } = await supabase
-        .from("events")
-        .select("*")
-        .in("id", attendingEventIds)
-        .gte("date", new Date().toISOString().split("T")[0])
-        .order("date");
-
-      if (eventsError) throw eventsError;
-
-      // Get attendee counts for each event
+      // Get attendee counts for each event and mark attendance
       const eventsWithAttendance = await Promise.all(
-        (userAttendingEvents || []).map(async (event) => {
+        (allEvents || []).map(async (event) => {
           const { count } = await supabase
             .from("user_events")
             .select("*", { count: "exact", head: true })
@@ -198,7 +193,7 @@ const Events: React.FC = () => {
           return {
             ...event,
             current_attendees: count || 0,
-            is_attending: true, // All events here are ones the user is attending
+            is_attending: attendingEventIds.includes(event.id),
           };
         })
       );
@@ -315,14 +310,21 @@ const Events: React.FC = () => {
 
   const totalPages = Math.ceil(filteredAttendees.length / ATTENDEES_PER_PAGE);
 
-  // Memoized filtered events
+  // Memoized filtered events with proper null checks
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
       const matchesLocation =
         !filters.location ||
-        event.city.toLowerCase().includes(filters.location.toLowerCase()) ||
-        event.state.toLowerCase().includes(filters.location.toLowerCase()) ||
-        event.address.toLowerCase().includes(filters.location.toLowerCase());
+        (event.city &&
+          event.city.toLowerCase().includes(filters.location.toLowerCase())) ||
+        (event.state &&
+          event.state.toLowerCase().includes(filters.location.toLowerCase())) ||
+        (event.address &&
+          event.address
+            .toLowerCase()
+            .includes(filters.location.toLowerCase())) ||
+        (event.name &&
+          event.name.toLowerCase().includes(filters.location.toLowerCase()));
       const matchesDate = !filters.date || event.date.includes(filters.date);
       return matchesLocation && matchesDate;
     });
@@ -350,7 +352,7 @@ const Events: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
       {/* Mobile-first full width design */}
-      <div className="w-full">
+      <div className={getContainerClasses()}>
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
@@ -377,12 +379,14 @@ const Events: React.FC = () => {
                     alt={userProfile.username}
                     className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-yellow-400 bg-white/10"
                   />
-                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-10">
                     <span
-                      className={`px-3 py-1 text-xs font-bold rounded-full text-white ${
+                      className={`px-2 py-1 text-xs font-bold rounded-full text-white shadow-lg ${
                         userProfile.user_type === "stripper"
                           ? "bg-pink-500"
-                          : "bg-purple-500"
+                          : userProfile.user_type === "exotic"
+                          ? "bg-purple-500"
+                          : "bg-blue-500"
                       }`}
                     >
                       {userProfile.user_type}
@@ -401,8 +405,28 @@ const Events: React.FC = () => {
                         {userProfile.city}, {userProfile.state}
                       </span>
                     </div>
-                    {/* Referrer Display Component */}
-                    {ref && <ReferrerDisplay referrerUsername={ref} />}
+                  </div>
+
+                  {/* User Profile Info Display */}
+                  <div className="flex items-center justify-center md:justify-start gap-3 mt-4 p-3 bg-white/10 backdrop-blur rounded-lg border border-white/20">
+                    <img
+                      src={userProfile.profile_photo || "/placeholder.svg"}
+                      alt={userProfile.username}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-yellow-400"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/placeholder.svg";
+                      }}
+                    />
+                    <div className="text-center md:text-left">
+                      <p className="font-semibold text-white text-sm">
+                        @{userProfile.username}
+                      </p>
+                      <p className="text-xs text-gray-300">
+                        {userProfile.user_type} • {userProfile.city},{" "}
+                        {userProfile.state}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -410,19 +434,29 @@ const Events: React.FC = () => {
           </div>
         )}
 
-        <div className="px-4 md:px-8 pb-8">
+        <div className={getContentClasses()}>
           <div className="text-center mb-6">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {username ? `${username}'s Event Schedule` : "Events"}
+              {username ? `Upcoming Events` : "Events"}
             </h2>
             <p className="text-gray-300 text-sm md:text-base">
-              Events this performer will be attending
+              All upcoming events - purchase tickets from any event page
             </p>
+            {userProfile && (
+              <div className="mt-2">
+                <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
+                  Events attending:{" "}
+                  {events.filter((event) => event.is_attending).length}
+                </Badge>
+              </div>
+            )}
           </div>
 
           {/* Filters - Mobile optimized */}
-          <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
-            <CardContent className="p-4 md:p-6">
+          <Card
+            className={`bg-white/10 backdrop-blur border-white/20 mb-6 ${getCardClasses()}`}
+          >
+            <CardContent className={getContentClasses()}>
               <h3 className="text-lg md:text-xl font-bold text-yellow-400 mb-4">
                 Filter Events
               </h3>
@@ -430,7 +464,7 @@ const Events: React.FC = () => {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Filter by location"
+                    placeholder="Filter by event name or location"
                     value={filters.location}
                     onChange={(e) =>
                       setFilters((prev) => ({
@@ -464,26 +498,32 @@ const Events: React.FC = () => {
             </div>
           ) : filteredEvents.length === 0 ? (
             <div className="text-center py-12">
-              <Card className="bg-white/10 backdrop-blur border-white/20 max-w-md mx-auto">
-                <CardContent className="p-8">
+              <Card
+                className={`bg-white/10 backdrop-blur border-white/20 max-w-md mx-auto ${getCardClasses()}`}
+              >
+                <CardContent className={getContentClasses()}>
                   <h3 className="text-xl font-bold text-yellow-400 mb-4">
                     No Events Available
                   </h3>
                   <p className="text-gray-300 mb-4">
-                    {username
-                      ? `${username} hasn't selected any events yet.`
-                      : "No events match your filters."}
+                    {filters.location || filters.date
+                      ? "No events match your filters."
+                      : "No upcoming events found."}
                   </p>
-                  <p className="text-gray-400 text-sm">CHECK BACK TOMORROW</p>
+                  <p className="text-gray-400 text-sm">
+                    {filters.location || filters.date
+                      ? "Try adjusting your filters"
+                      : "CHECK BACK TOMORROW"}
+                  </p>
                 </CardContent>
               </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {filteredEvents.map((event) => (
                 <Card
                   key={event.id}
-                  className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden"
+                  className={`bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden ${getCardClasses()}`}
                 >
                   <div className="relative">
                     <img
@@ -544,7 +584,7 @@ const Events: React.FC = () => {
                     </div>
                   </div>
 
-                  <CardContent className="p-4">
+                  <CardContent className={getContentClasses()}>
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-lg font-bold text-yellow-400 line-clamp-2">
                         {event.name}
@@ -606,8 +646,10 @@ const Events: React.FC = () => {
 
       {/* Event Details Dialog - Optimized Performance */}
       <Dialog open={showAttendeesDialog} onOpenChange={handleCloseDialog}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-5xl max-h-[95vh] overflow-hidden p-0">
-          <div className="p-4 md:p-6 border-b border-gray-700">
+        <DialogContent
+          className={`bg-gray-900 border-gray-700 text-white max-w-5xl max-h-[95vh] overflow-hidden p-0 ${getCardClasses()}`}
+        >
+          <div className={`border-b border-gray-700 ${getContentClasses()}`}>
             <DialogHeader>
               <DialogTitle className="text-yellow-400 text-xl md:text-2xl">
                 {selectedEvent?.name}
@@ -621,7 +663,7 @@ const Events: React.FC = () => {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className={`flex-1 overflow-y-auto ${getContentClasses()}`}>
             <div className="space-y-6">
               {/* Event Details - Mobile Optimized */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

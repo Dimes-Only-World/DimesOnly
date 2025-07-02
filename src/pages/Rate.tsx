@@ -11,17 +11,43 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, User, Trophy, Lock } from "lucide-react";
+import {
+  MapPin,
+  User,
+  Trophy,
+  Lock,
+  Eye,
+  Play,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserData {
   id: string;
   username: string;
   profile_photo: string;
+  banner_photo: string;
+  front_page_photo: string;
   city: string;
   state: string;
   bio?: string;
   user_type: string;
+}
+
+interface UserMedia {
+  id: string;
+  media_url: string;
+  media_type: string;
+  created_at: string;
+}
+
+interface CurrentStanding {
+  rank: number;
+  totalScore: number;
+  totalRatings: number;
 }
 
 interface UserRating {
@@ -93,6 +119,14 @@ const RatePage: React.FC = () => {
     photo: string;
   } | null>(null);
   const [isAllNumbersUsed, setIsAllNumbersUsed] = useState(false);
+  const [currentStanding, setCurrentStanding] =
+    useState<CurrentStanding | null>(null);
+  const [userMedia, setUserMedia] = useState<UserMedia[]>([]);
+  const [showPhotosDialog, setShowPhotosDialog] = useState(false);
+  const [showVideosDialog, setShowVideosDialog] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [likes, setLikes] = useState(0);
+  const [hasLiked, setHasLiked] = useState(false);
 
   useEffect(() => {
     if (rateUsername) {
@@ -129,7 +163,9 @@ const RatePage: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("id, username, profile_photo, city, state, bio, user_type")
+        .select(
+          "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+        )
         .eq("username", rateUsername)
         .in("user_type", ["stripper", "exotic"])
         .single();
@@ -144,15 +180,135 @@ const RatePage: React.FC = () => {
           id: String(data.id),
           username: String(data.username),
           profile_photo: String(data.profile_photo || ""),
+          banner_photo: String(data.banner_photo || ""),
+          front_page_photo: String(data.front_page_photo || ""),
           city: String(data.city || ""),
           state: String(data.state || ""),
           bio: data.bio ? String(data.bio) : undefined,
           user_type: String(data.user_type),
         };
         setUserData(userData);
+
+        // Fetch current standing, media, and likes
+        await Promise.all([
+          fetchCurrentStanding(userData.id),
+          fetchUserMedia(userData.id),
+          fetchLikes(userData.id),
+        ]);
       }
     } catch (error) {
       console.error("Error:", error);
+    }
+  };
+
+  const fetchCurrentStanding = async (userId: string) => {
+    try {
+      const currentYear = new Date().getFullYear();
+
+      // Get all ratings for this user this year
+      const { data: userRatingsData, error: ratingsError } = await supabase
+        .from("ratings")
+        .select("rating")
+        .eq("user_id", userId)
+        .eq("year", currentYear);
+
+      if (ratingsError) {
+        console.error("Error fetching user ratings:", ratingsError);
+        return;
+      }
+
+      // Get all users with ratings to calculate ranking
+      const { data: allRatingsData, error: allRatingsError } = await supabase
+        .from("ratings")
+        .select("user_id, rating")
+        .eq("year", currentYear);
+
+      if (allRatingsError) {
+        console.error("Error fetching all ratings:", allRatingsError);
+        return;
+      }
+
+      if (userRatingsData && allRatingsData) {
+        const totalScore = userRatingsData.reduce(
+          (sum, r) => sum + Number(r.rating),
+          0
+        );
+        const totalRatings = userRatingsData.length;
+
+        // Calculate ranking
+        const userScores: { [userId: string]: number } = {};
+        allRatingsData.forEach((rating) => {
+          const uid = String(rating.user_id);
+          if (!userScores[uid]) userScores[uid] = 0;
+          userScores[uid] += Number(rating.rating);
+        });
+
+        const sortedUsers = Object.entries(userScores).sort(
+          ([, scoreA], [, scoreB]) => scoreB - scoreA
+        );
+
+        const rank = sortedUsers.findIndex(([uid]) => uid === userId) + 1;
+
+        setCurrentStanding({
+          rank: rank || 0,
+          totalScore,
+          totalRatings,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching current standing:", error);
+    }
+  };
+
+  const fetchUserMedia = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_media")
+        .select("id, media_url, media_type, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching user media:", error);
+        return;
+      }
+
+      if (data) {
+        const media: UserMedia[] = data.map((item) => ({
+          id: String(item.id),
+          media_url: String(item.media_url),
+          media_type: String(item.media_type),
+          created_at: String(item.created_at),
+        }));
+        setUserMedia(media);
+      }
+    } catch (error) {
+      console.error("Error fetching user media:", error);
+    }
+  };
+
+  const fetchLikes = async (userId: string) => {
+    try {
+      // Get the user's current likes count and liked_by data
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("likes, liked_by")
+        .eq("id", userId)
+        .single();
+
+      if (!userError && userData) {
+        setLikes(Number(userData.likes) || 0);
+
+        // Check if current user has already liked this profile
+        if (currentUser && userData.liked_by) {
+          const likedByUsers = Array.isArray(userData.liked_by)
+            ? userData.liked_by
+            : [userData.liked_by];
+          setHasLiked(likedByUsers.includes(currentUser.id));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching likes:", error);
     }
   };
 
@@ -160,20 +316,10 @@ const RatePage: React.FC = () => {
     try {
       const currentYear = new Date().getFullYear();
 
-      // Get all ratings made by current user this year
+      // Get all ratings made by current user this year (without join to avoid relation issues)
       const { data: ratings, error } = await supabase
         .from("ratings")
-        .select(
-          `
-          id,
-          rater_id,
-          user_id,
-          rating,
-          year,
-          created_at,
-          users!ratings_user_id_fkey (username, profile_photo)
-        `
-        )
+        .select("id, rater_id, user_id, rating, year, created_at")
         .eq("rater_id", userId)
         .eq("year", currentYear);
 
@@ -184,37 +330,132 @@ const RatePage: React.FC = () => {
 
       if (ratings && Array.isArray(ratings)) {
         // Transform the data to match our UserRating interface
-        const transformedRatings: UserRating[] = ratings.map(
-          (rating: DatabaseRating) => ({
-            id: String(rating.id),
-            rater_id: String(rating.rater_id),
-            user_id: String(rating.user_id),
-            rating: Number(rating.rating),
-            year: Number(rating.year),
-            created_at: String(rating.created_at),
-          })
-        );
+        const transformedRatings: UserRating[] = ratings.map((rating) => ({
+          id: String(rating.id),
+          rater_id: String(rating.rater_id),
+          user_id: String(rating.user_id),
+          rating: Number(rating.rating),
+          year: Number(rating.year),
+          created_at: String(rating.created_at),
+        }));
 
         setUserRatings(transformedRatings);
 
-        // Build number assignments map
+        // Build number assignments map by fetching user data separately
         const assignments: { [key: number]: NumberAssignment } = {};
-        ratings.forEach((rating: DatabaseRating) => {
-          if (rating.users) {
-            assignments[Number(rating.rating)] = {
-              number: Number(rating.rating),
-              assigned_to_username: String(rating.users.username),
-              assigned_to_photo: String(rating.users.profile_photo || ""),
-              is_current_page: String(rating.users.username) === rateUsername,
-            };
+
+        // Get unique user IDs from ratings
+        const userIds = [...new Set(ratings.map((r) => String(r.user_id)))];
+
+        if (userIds.length > 0) {
+          const { data: usersData } = await supabase
+            .from("users")
+            .select("id, username, profile_photo")
+            .in("id", userIds);
+
+          if (usersData) {
+            const userMap: Record<
+              string,
+              { id: string; username: string; profile_photo: string | null }
+            > = usersData.reduce((acc, user) => {
+              acc[String(user.id)] = user;
+              return acc;
+            }, {});
+
+            ratings.forEach((rating) => {
+              const user = userMap[String(rating.user_id)];
+              if (user) {
+                assignments[Number(rating.rating)] = {
+                  number: Number(rating.rating),
+                  assigned_to_username: String(user.username),
+                  assigned_to_photo: String(user.profile_photo || ""),
+                  is_current_page: String(user.username) === rateUsername,
+                };
+              }
+            });
           }
-        });
+        }
 
         setNumberAssignments(assignments);
         setIsAllNumbersUsed(Object.keys(assignments).length >= 100);
       }
     } catch (error) {
       console.error("Error fetching ratings:", error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!currentUser || !userData) return;
+
+    try {
+      // First, get current state to ensure we have latest data
+      const { data: currentUserData, error: fetchError } = await supabase
+        .from("users")
+        .select("likes, liked_by")
+        .eq("id", userData.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching current user data:", fetchError);
+        return;
+      }
+
+      const currentLikes = Number(currentUserData.likes) || 0;
+      const currentLikedBy = currentUserData.liked_by;
+
+      // Check if user has already liked
+      let userHasLiked = false;
+      if (currentLikedBy) {
+        const likedByUsers = Array.isArray(currentLikedBy)
+          ? currentLikedBy
+          : [currentLikedBy];
+        userHasLiked = likedByUsers.includes(currentUser.id);
+      }
+
+      if (userHasLiked) {
+        // Unlike - remove like
+        const { error } = await supabase
+          .from("users")
+          .update({
+            likes: Math.max(0, currentLikes - 1),
+            liked_by: null, // Simplified for now
+          })
+          .eq("id", userData.id);
+
+        if (!error) {
+          setHasLiked(false);
+          setLikes(Math.max(0, currentLikes - 1));
+          toast({
+            title: "Unliked",
+            description: `You unliked ${userData.username}`,
+          });
+        }
+      } else {
+        // Like - add like
+        const { error } = await supabase
+          .from("users")
+          .update({
+            likes: currentLikes + 1,
+            liked_by: currentUser.id, // Simplified for now
+          })
+          .eq("id", userData.id);
+
+        if (!error) {
+          setHasLiked(true);
+          setLikes(currentLikes + 1);
+          toast({
+            title: "Liked",
+            description: `You liked ${userData.username}!`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error handling like:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update like. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -396,6 +637,26 @@ const RatePage: React.FC = () => {
     }
   };
 
+  const getPhotos = () => {
+    const photos = [
+      userData?.profile_photo,
+      userData?.banner_photo,
+      userData?.front_page_photo,
+    ].filter(Boolean) as string[];
+
+    const uploadedPhotos = userMedia
+      .filter((item) => item.media_type === "photo")
+      .map((item) => item.media_url);
+
+    return [...photos, ...uploadedPhotos];
+  };
+
+  const getVideos = () => {
+    return userMedia
+      .filter((item) => item.media_type === "video")
+      .map((item) => item.media_url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
@@ -461,12 +722,82 @@ const RatePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Banner Photo */}
+        {userData.banner_photo && (
+          <div className="relative w-full h-48 md:h-64 rounded-lg overflow-hidden mb-6">
+            <img
+              src={userData.banner_photo}
+              alt={`${userData.username} banner`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          </div>
+        )}
+
         <div className="text-center mb-8">
-          <img
-            src={userData.profile_photo || "/placeholder.svg"}
-            alt={userData.username}
-            className="w-48 h-48 md:w-72 md:h-72 rounded-lg object-cover mx-auto mb-4 border-4 border-yellow-400 shadow-2xl"
-          />
+          {/* Current Standing */}
+          {currentStanding && currentStanding.rank > 0 && (
+            <div className="mb-6">
+              <Card className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-yellow-500/50 inline-block">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="w-8 h-8 text-yellow-400" />
+                    <div className="text-left">
+                      <div className="text-2xl font-bold text-yellow-400">
+                        Ranked #{currentStanding.rank}
+                      </div>
+                      <div className="text-sm text-gray-900">
+                        {currentStanding.totalScore} points •{" "}
+                        {currentStanding.totalRatings} ratings
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Profile Photos - All 3 photos */}
+          <div className="flex justify-center gap-4 mb-6">
+            {userData.profile_photo && (
+              <img
+                src={userData.profile_photo}
+                alt={`${userData.username} profile`}
+                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-4 border-yellow-400 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => {
+                  setSelectedPhotoIndex(0);
+                  setShowPhotosDialog(true);
+                }}
+              />
+            )}
+            {userData.banner_photo && (
+              <img
+                src={userData.banner_photo}
+                alt={`${userData.username} banner`}
+                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-4 border-blue-400 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => {
+                  setSelectedPhotoIndex(1);
+                  setShowPhotosDialog(true);
+                }}
+              />
+            )}
+            {userData.front_page_photo && (
+              <img
+                src={userData.front_page_photo}
+                alt={`${userData.username} front page`}
+                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-4 border-green-400 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => {
+                  setSelectedPhotoIndex(2);
+                  setShowPhotosDialog(true);
+                }}
+              />
+            )}
+          </div>
+
           <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
             Rate @{userData.username}
           </h1>
@@ -489,6 +820,36 @@ const RatePage: React.FC = () => {
               {userData.bio}
             </p>
           )}
+
+          {/* View Photos/Videos Links */}
+          <div className="flex justify-center gap-4 mb-8">
+            <Button
+              onClick={() => setShowPhotosDialog(true)}
+              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              View Photos ({getPhotos().length})
+            </Button>
+            <Button
+              onClick={() => setShowVideosDialog(true)}
+              className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              View Videos ({getVideos().length})
+            </Button>
+            <Button
+              onClick={handleLike}
+              variant={hasLiked ? "default" : "outline"}
+              className={`flex items-center gap-2 ${
+                hasLiked
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "border-red-500 text-red-400 hover:bg-red-600 hover:text-white"
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${hasLiked ? "fill-current" : ""}`} />
+              {hasLiked ? "Liked" : "Like"} ({likes})
+            </Button>
+          </div>
         </div>
 
         {/* Rating Grid */}
@@ -513,8 +874,8 @@ const RatePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20">
-            <div className="grid grid-cols-10 gap-2 max-w-4xl mx-auto">
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-4 sm:p-6 border border-white/20">
+            <div className="grid grid-cols-10 gap-1 sm:gap-2 max-w-4xl mx-auto justify-items-center">
               {numbers.map((number) => {
                 const colorClass = getNumberColor(number);
                 const assignment = numberAssignments[number];
@@ -524,7 +885,7 @@ const RatePage: React.FC = () => {
                     key={number}
                     onClick={() => handleNumberClick(number)}
                     className={`
-                      w-12 h-12 rounded-lg font-bold text-sm transition-all duration-200 
+                      w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 
                       ${colorClass}
                       ${
                         assignment?.is_current_page ? "scale-110 shadow-lg" : ""
@@ -647,6 +1008,126 @@ const RatePage: React.FC = () => {
               Yes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Photos Modal */}
+      <Dialog open={showPhotosDialog} onOpenChange={setShowPhotosDialog}>
+        <DialogContent className="bg-gray-800 border-blue-500 max-w-7xl max-h-[95vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-blue-400 flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Photos - @{userData?.username} ({selectedPhotoIndex + 1} of{" "}
+              {getPhotos().length})
+            </DialogTitle>
+            <button
+              onClick={() => setShowPhotosDialog(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-white z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </DialogHeader>
+
+          {getPhotos().length > 0 ? (
+            <div className="relative h-[85vh] flex items-center justify-center">
+              {/* Main large image display */}
+              <div className="relative w-full h-full flex items-center justify-center">
+                <img
+                  src={getPhotos()[selectedPhotoIndex]}
+                  alt={`Photo ${selectedPhotoIndex + 1}`}
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                />
+
+                {/* Navigation arrows */}
+                {getPhotos().length > 1 && (
+                  <>
+                    <button
+                      onClick={() =>
+                        setSelectedPhotoIndex((prev) =>
+                          prev === 0 ? getPhotos().length - 1 : prev - 1
+                        )
+                      }
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setSelectedPhotoIndex((prev) =>
+                          prev === getPhotos().length - 1 ? 0 : prev + 1
+                        )
+                      }
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Thumbnail strip at bottom */}
+              {getPhotos().length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 rounded-lg p-2">
+                  <div className="flex gap-2 max-w-md overflow-x-auto">
+                    {getPhotos().map((photo, index) => (
+                      <img
+                        key={index}
+                        src={photo}
+                        alt={`Thumbnail ${index + 1}`}
+                        className={`w-16 h-16 object-cover rounded cursor-pointer transition-all duration-200 ${
+                          index === selectedPhotoIndex
+                            ? "ring-2 ring-blue-400 opacity-100"
+                            : "opacity-60 hover:opacity-80"
+                        }`}
+                        onClick={() => setSelectedPhotoIndex(index)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400 h-64 flex items-center justify-center">
+              No photos available
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Videos Modal */}
+      <Dialog open={showVideosDialog} onOpenChange={setShowVideosDialog}>
+        <DialogContent className="bg-gray-800 border-purple-500 max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-purple-400 flex items-center gap-2">
+              <Play className="w-5 h-5" />
+              Videos - @{userData?.username}
+            </DialogTitle>
+            <button
+              onClick={() => setShowVideosDialog(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </DialogHeader>
+          <div className="overflow-y-auto max-h-[70vh]">
+            {getVideos().length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                {getVideos().map((video, index) => (
+                  <video
+                    key={index}
+                    src={video}
+                    className="w-full h-48 object-cover rounded-lg"
+                    controls
+                    preload="metadata"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                No videos available
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
