@@ -271,6 +271,22 @@ CREATE TRIGGER update_tips_transactions_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+-- Create function to increment membership count
+CREATE OR REPLACE FUNCTION increment_membership_count(
+  membership_type_param VARCHAR(50),
+  user_type_param VARCHAR(50)
+) RETURNS void AS $$
+BEGIN
+  UPDATE membership_limits 
+  SET 
+    current_count = current_count + 1,
+    updated_at = NOW()
+  WHERE 
+    membership_type = membership_type_param 
+    AND user_type = user_type_param;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Verify the setup
 SELECT 'Database setup completed successfully!' as status;
 

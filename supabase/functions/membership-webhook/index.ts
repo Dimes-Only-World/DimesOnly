@@ -97,9 +97,9 @@ serve(async (req) => {
         const { error: installmentUpdateError } = await supabase
           .from("installment_payments")
           .update({
-            status: "completed",
+            payment_status: "completed",
             paid_at: new Date().toISOString(),
-            paypal_capture_id: webhookBody.resource?.id,
+            paypal_payment_id: webhookBody.resource?.id,
           })
           .eq("paypal_order_id", orderId);
 
@@ -113,12 +113,12 @@ serve(async (req) => {
         // Check if all installments are paid
         const { data: installments, error: installmentsError } = await supabase
           .from("installment_payments")
-          .select("status")
+          .select("payment_status")
           .eq("membership_upgrade_id", upgrade.id);
 
         if (!installmentsError && installments) {
           const allPaid = installments.every(
-            (inst) => inst.status === "completed"
+            (inst) => inst.payment_status === "completed"
           );
 
           if (allPaid) {
@@ -129,7 +129,7 @@ serve(async (req) => {
             await supabase
               .from("membership_upgrades")
               .update({
-                status: "partially_paid",
+                payment_status: "partially_paid",
                 updated_at: new Date().toISOString(),
               })
               .eq("id", upgrade.id);
@@ -173,8 +173,8 @@ async function activateDiamondPlus(supabase: any, upgrade: any) {
     const { error: upgradeUpdateError } = await supabase
       .from("membership_upgrades")
       .update({
-        status: "completed",
-        activated_at: new Date().toISOString(),
+        payment_status: "completed",
+        upgrade_status: "completed",
         updated_at: new Date().toISOString(),
       })
       .eq("id", upgrade.id);
@@ -185,15 +185,31 @@ async function activateDiamondPlus(supabase: any, upgrade: any) {
       );
     }
 
-    // Update membership limits
-    const { error: limitsError } = await supabase
-      .from("membership_limits")
-      .update({ current_count: supabase.raw("current_count + 1") })
-      .eq("membership_type", "diamond_plus")
-      .eq("user_type", upgrade.user_type || "stripper");
+    // Update membership limits - increment current_count for the user's type
+    const userType = upgrade.user_type || "stripper";
+    const { error: limitsError } = await supabase.rpc(
+      "increment_membership_count",
+      {
+        membership_type_param: "diamond_plus",
+        user_type_param: userType,
+      }
+    );
 
     if (limitsError) {
-      console.error("Failed to update membership limits:", limitsError);
+      console.error("RPC failed, trying direct update:", limitsError);
+      // Fallback to direct update if RPC doesn't exist
+      const { error: fallbackError } = await supabase
+        .from("membership_limits")
+        .update({
+          current_count: supabase.raw("current_count + 1"),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("membership_type", "diamond_plus")
+        .eq("user_type", userType);
+
+      if (fallbackError) {
+        console.error("Failed to update membership limits:", fallbackError);
+      }
     }
 
     // Create quarterly requirements tracking

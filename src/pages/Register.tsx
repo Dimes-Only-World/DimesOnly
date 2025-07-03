@@ -108,13 +108,6 @@ export const Register: React.FC = () => {
     referredBy: getReferralUsername(searchParams),
   });
 
-  const generateMaleUsername = (firstName: string, lastName: string) => {
-    const cleanFirst = firstName.toLowerCase().replace(/[^a-z]/g, "");
-    const cleanLast = lastName.toLowerCase().replace(/[^a-z]/g, "");
-    const randomNum = Math.floor(Math.random() * 999) + 1;
-    return `${cleanFirst}${cleanLast}${randomNum}male`;
-  };
-
   const handleInputChange = (field: keyof FormData) => (value: string) => {
     // Convert username to lowercase automatically
     const processedValue = field === "username" ? value.toLowerCase() : value;
@@ -123,38 +116,11 @@ export const Register: React.FC = () => {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
 
     if (field === "gender") {
-      if (value === "male") {
-        // Auto-generate username for males
-        const generatedUsername = generateMaleUsername(
-          formData.firstName || "user",
-          formData.lastName || "name"
-        );
-        setFormData((prev) => ({
-          ...prev,
-          [field]: processedValue,
-          userType: "",
-          username: generatedUsername,
-        }));
-        setShowVideo(false);
-      } else if (value === "female") {
-        setFormData((prev) => ({ ...prev, [field]: processedValue }));
-      }
+      setFormData((prev) => ({ ...prev, [field]: processedValue }));
     } else if (field === "userType") {
       setShowVideo(value === "exotic" || value === "stripper");
-    } else if (field === "firstName" || field === "lastName") {
-      // Update username if gender is male and name fields change
-      if (formData.gender === "male") {
-        const firstName = field === "firstName" ? value : formData.firstName;
-        const lastName = field === "lastName" ? value : formData.lastName;
-        const generatedUsername = generateMaleUsername(firstName, lastName);
-        setFormData((prev) => ({
-          ...prev,
-          [field]: processedValue,
-          username: generatedUsername,
-        }));
-      } else {
-        setFormData((prev) => ({ ...prev, [field]: processedValue }));
-      }
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: processedValue }));
     }
   };
 
@@ -209,9 +175,19 @@ export const Register: React.FC = () => {
       }
 
       if (result.success && result.url) {
-        if (field === "profilePhoto") setProfilePhotoUrl(result.url);
-        else if (field === "bannerPhoto") setBannerPhotoUrl(result.url);
-        else if (field === "frontPagePhoto") setFrontPagePhotoUrl(result.url);
+        if (field === "profilePhoto") {
+          setProfilePhotoUrl(result.url);
+          // Clear the error for profile photo
+          setErrors((prev) => ({ ...prev, profilePhoto: undefined }));
+        } else if (field === "bannerPhoto") {
+          setBannerPhotoUrl(result.url);
+          // Clear the error for banner photo
+          setErrors((prev) => ({ ...prev, bannerPhoto: undefined }));
+        } else if (field === "frontPagePhoto") {
+          setFrontPagePhotoUrl(result.url);
+          // Clear the error for front page photo
+          setErrors((prev) => ({ ...prev, frontPagePhoto: undefined }));
+        }
 
         toast({
           title: "Upload Successful",
@@ -351,7 +327,7 @@ export const Register: React.FC = () => {
             state: formData.state,
             zip: formData.zip,
             gender: formData.gender,
-            user_type: formData.userType,
+            user_type: formData.userType ? formData.userType : "normal",
             referred_by: formData.referredBy,
             profile_photo: profilePhotoUrl,
             banner_photo: bannerPhotoUrl,
@@ -365,6 +341,23 @@ export const Register: React.FC = () => {
 
       if (createError) {
         throw new Error(`Failed to create user: ${createError.message}`);
+      }
+
+      // Increment membership limits current_count based on new user
+      try {
+        const userTypeInserted = formData.userType
+          ? formData.userType
+          : "normal";
+
+        const membershipTypeForLimit =
+          userTypeInserted === "normal" ? "silver" : "diamond";
+
+        await supabaseAdmin.rpc("increment_membership_count", {
+          membership_type_param: membershipTypeForLimit,
+          user_type_param: userTypeInserted,
+        });
+      } catch (incrementError) {
+        console.error("Failed to increment membership limits:", incrementError);
       }
 
       // Store authentication info

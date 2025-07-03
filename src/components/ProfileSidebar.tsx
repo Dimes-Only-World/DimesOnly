@@ -50,13 +50,25 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   const getMembershipBadge = () => {
+    // Check for Diamond Plus first
+    if (
+      userData.diamond_plus_active ||
+      userData.membership_tier === "diamond_plus"
+    ) {
+      return (
+        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black border-0 font-bold">
+          <Award className="w-3 h-3 mr-1" />
+          Diamond Plus
+        </Badge>
+      );
+    }
+
     // Check for membership_tier first, then fall back to user_type logic
     const membershipTier = userData.membership_tier || userData.membership_type;
 
     if (membershipTier) {
       switch (membershipTier.toLowerCase()) {
         case "diamond":
-        case "diamond_plus":
           return (
             <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
               <Award className="w-3 h-3 mr-1" />

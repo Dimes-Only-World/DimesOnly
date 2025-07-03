@@ -58,6 +58,7 @@ serve(async (req) => {
     let finalAmount: number;
     let orderDescription: string;
     let customId: string;
+    let event: any = null;
 
     if (payment_type === "membership") {
       // Handle Diamond Plus membership payment
@@ -103,15 +104,17 @@ serve(async (req) => {
       }
 
       // Fetch current event details including pricing
-      const { data: event, error: eventError } = await supabase
+      const { data: eventData, error: eventError } = await supabase
         .from("events")
         .select("id, name, price, max_attendees")
         .eq("id", event_id)
         .single();
 
-      if (eventError || !event) {
+      if (eventError || !eventData) {
         throw new Error(`Event not found: ${eventError?.message}`);
       }
+
+      event = eventData;
 
       // Calculate current_attendees by counting entries in user_events table
       const { count: currentAttendees, error: countError } = await supabase
@@ -242,7 +245,7 @@ serve(async (req) => {
         .from("membership_upgrades")
         .update({
           paypal_order_id: order.id,
-          status: "pending_payment",
+          payment_status: "pending_payment",
         })
         .eq("id", membership_upgrade_id);
 
@@ -295,7 +298,10 @@ serve(async (req) => {
         order_id: order.id,
         approval_url: approvalUrl,
         amount: finalAmount,
-        event_name: event?.name || "Diamond Plus Membership",
+        event_name:
+          payment_type === "membership"
+            ? "Diamond Plus Membership"
+            : event?.name || "Event Ticket",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

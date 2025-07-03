@@ -25,6 +25,7 @@ import UserMediaUploadTab from "./UserMediaUploadTab";
 import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserJackpotTab from "./UserJackpotTab";
 import DiamondPlusDashboard from "./DiamondPlusDashboard";
+import DiamondPlusButton from "./DiamondPlusButton";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -334,6 +335,9 @@ const UserDashboard: React.FC = () => {
             thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           />
 
+          {/* Diamond Plus Button - placed under video banner, above banner photo */}
+          <DiamondPlusButton userData={userData} />
+
           <Card
             className={`${
               isMobile ? "mb-4 mx-0 rounded-none" : "mb-8"
@@ -399,26 +403,6 @@ const UserDashboard: React.FC = () => {
                     <Trophy className="w-4 h-4" />
                     Jackpot
                   </TabsTrigger>
-                  {userData.diamond_plus_active && (
-                    <TabsTrigger
-                      value="diamond-plus"
-                      className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-semibold rounded-md mx-1"
-                    >
-                      <Crown className="w-4 h-4" />
-                      Diamond Plus
-                    </TabsTrigger>
-                  )}
-                  {(userData.user_type === "stripper" ||
-                    userData.user_type === "exotic") &&
-                    !userData.diamond_plus_active && (
-                      <TabsTrigger
-                        value="upgrade"
-                        className="flex items-center gap-2 px-4 py-3 text-yellow-600"
-                      >
-                        <Crown className="w-4 h-4" />
-                        Upgrade
-                      </TabsTrigger>
-                    )}
                 </TabsList>
               </div>
 
@@ -469,36 +453,6 @@ const UserDashboard: React.FC = () => {
                 <TabsContent value="jackpot" className="mt-0">
                   <UserJackpotTab userData={userData} />
                 </TabsContent>
-
-                {userData.diamond_plus_active && (
-                  <TabsContent value="diamond-plus" className="mt-0">
-                    <DiamondPlusDashboard userData={userData} />
-                  </TabsContent>
-                )}
-
-                {(userData.user_type === "stripper" ||
-                  userData.user_type === "exotic") &&
-                  !userData.diamond_plus_active && (
-                    <TabsContent value="upgrade" className="mt-0">
-                      <div className="text-center py-8">
-                        <Crown className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                          Upgrade to Diamond Plus
-                        </h2>
-                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                          Join the elite $25,000/year guarantee program. Only
-                          available for 300 Stripper/Exotic members.
-                        </p>
-                        <Button
-                          className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold"
-                          onClick={() => (window.location.href = "/upgrade")}
-                        >
-                          <Crown className="w-4 h-4 mr-2" />
-                          Learn More & Upgrade
-                        </Button>
-                      </div>
-                    </TabsContent>
-                  )}
               </CardContent>
             </Tabs>
           </Card>

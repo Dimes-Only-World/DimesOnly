@@ -20,6 +20,8 @@ const PaymentStatusHandler: React.FC = () => {
       const paymentType = searchParams.get("payment");
       const upgradeId = searchParams.get("upgrade_id");
       const eventPaymentId = searchParams.get("payment_id");
+      const paypalToken = searchParams.get("token");
+      const payerId = searchParams.get("PayerID");
 
       // Handle Diamond Plus upgrade
       if (paymentType === "success" && upgradeId) {
@@ -35,7 +37,7 @@ const PaymentStatusHandler: React.FC = () => {
             throw new Error("Failed to verify upgrade");
           }
 
-          if (upgrade.status === "completed") {
+          if (upgrade.upgrade_status === "completed") {
             setStatus("success");
             setMessage(
               "Diamond Plus membership activated successfully! Welcome to the elite tier."
@@ -55,7 +57,7 @@ const PaymentStatusHandler: React.FC = () => {
             setTimeout(() => {
               navigate("/dashboard");
             }, 3000);
-          } else if (upgrade.status === "partially_paid") {
+          } else if (upgrade.payment_status === "partially_paid") {
             setStatus("success");
             setMessage(
               "First installment payment successful! Complete your second payment to activate Diamond Plus."
@@ -71,12 +73,50 @@ const PaymentStatusHandler: React.FC = () => {
               navigate("/upgrade");
             }, 3000);
           } else {
+            // Payment is still pending, try to manually trigger the webhook logic
             setStatus("processing");
             setMessage("Payment is being processed. Please wait a moment...");
 
-            // Check again in 5 seconds
-            setTimeout(handlePaymentReturn, 5000);
-            return; // Don't set processing to false yet
+            // If we have PayPal token and PayerID, the payment was successful
+            // Let's manually trigger the membership activation
+            if (paypalToken && payerId) {
+              try {
+                console.log("Manually triggering membership activation...");
+
+                // Call the membership-webhook function directly
+                const { data: webhookResult, error: webhookError } =
+                  await supabase.functions.invoke("membership-webhook", {
+                    body: {
+                      event_type: "CHECKOUT.ORDER.APPROVED",
+                      resource: {
+                        id: upgrade.paypal_order_id,
+                      },
+                    },
+                  });
+
+                if (webhookError) {
+                  console.error("Webhook trigger error:", webhookError);
+                  // If webhook fails, wait a bit and check again
+                  setTimeout(handlePaymentReturn, 5000);
+                  return;
+                }
+
+                console.log("Webhook triggered successfully:", webhookResult);
+
+                // Check upgrade status again after webhook
+                setTimeout(handlePaymentReturn, 2000);
+                return;
+              } catch (error) {
+                console.error("Error triggering webhook:", error);
+                // Fall back to periodic checking
+                setTimeout(handlePaymentReturn, 5000);
+                return;
+              }
+            } else {
+              // No PayPal tokens, just wait and check again
+              setTimeout(handlePaymentReturn, 5000);
+              return;
+            }
           }
         } catch (error) {
           console.error("Payment verification error:", error);
