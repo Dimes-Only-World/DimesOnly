@@ -6,6 +6,15 @@ import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { toast } from "@/hooks/use-toast";
 
+// Helper to format membership tier into Title Case (e.g. "diamond_plus" -> "Diamond Plus")
+const formatTierName = (tier: string | null | undefined) => {
+  if (!tier) return "Membership";
+  return tier
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+};
+
 const PaymentStatusHandler: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -38,19 +47,20 @@ const PaymentStatusHandler: React.FC = () => {
           }
 
           if (upgrade.upgrade_status === "completed") {
+            const tierLabel = formatTierName(upgrade.upgrade_type as string);
+
             setStatus("success");
             setMessage(
-              "Diamond Plus membership activated successfully! Welcome to the elite tier."
+              `${tierLabel} membership activated successfully! Redirecting...`
             );
 
             // Clean up session storage
-            sessionStorage.removeItem("diamond_plus_upgrade");
+            sessionStorage.removeItem("membership_upgrade");
 
             // Show success toast
             toast({
-              title: "Diamond Plus Activated!",
-              description:
-                "Your membership has been activated. Redirecting to dashboard...",
+              title: `${tierLabel} Activated!`,
+              description: `Your ${tierLabel} membership has been activated. Redirecting to dashboard...`,
             });
 
             // Redirect to dashboard after 3 seconds
@@ -58,15 +68,17 @@ const PaymentStatusHandler: React.FC = () => {
               navigate("/dashboard");
             }, 3000);
           } else if (upgrade.payment_status === "partially_paid") {
+            const tierLabel = formatTierName(upgrade.upgrade_type as string);
+
             setStatus("success");
             setMessage(
-              "First installment payment successful! Complete your second payment to activate Diamond Plus."
+              `First installment payment successful! Complete remaining payments to activate ${tierLabel}.`
             );
 
             toast({
               title: "Payment Received",
               description:
-                "First installment paid. Complete second payment to activate.",
+                "Installment paid. Complete remaining payments to activate your membership.",
             });
 
             setTimeout(() => {

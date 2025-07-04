@@ -89,6 +89,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
               Silver Member
             </Badge>
           );
+        case "elite":
+          return (
+            <Badge className="bg-gradient-to-r from-red-600 to-yellow-500 text-white border-0">
+              <Award className="w-3 h-3 mr-1" />
+              Elite Member
+            </Badge>
+          );
         default:
           break;
       }

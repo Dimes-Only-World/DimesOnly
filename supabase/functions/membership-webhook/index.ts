@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -52,7 +53,7 @@ serve(async (req) => {
       // Capture the PayPal payment if approved
       if (eventType === "CHECKOUT.ORDER.APPROVED") {
         const PAYPAL_BASE_URL =
-          paypalEnvironment === "production"
+          paypalEnvironment === "production" || paypalEnvironment === "live"
             ? "https://api-m.paypal.com"
             : "https://api-m.sandbox.paypal.com";
 
@@ -122,8 +123,8 @@ serve(async (req) => {
           );
 
           if (allPaid) {
-            // Activate Diamond Plus membership
-            await activateDiamondPlus(supabase, upgrade);
+            // Activate membership based on upgrade type
+            await activateMembership(supabase, upgrade);
           } else {
             // Mark upgrade as partially paid
             await supabase
@@ -137,7 +138,7 @@ serve(async (req) => {
         }
       } else {
         // Full payment - activate immediately
-        await activateDiamondPlus(supabase, upgrade);
+        await activateMembership(supabase, upgrade);
       }
 
       return new Response("Webhook processed successfully", { status: 200 });
@@ -150,19 +151,31 @@ serve(async (req) => {
   }
 });
 
-async function activateDiamondPlus(supabase: any, upgrade: any) {
-  console.log("Activating Diamond Plus for user:", upgrade.user_id);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function activateMembership(supabase: any, upgrade: any) {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  const tier = upgrade.upgrade_type || "silver";
+  console.log(
+    `Activating membership tier '${tier}' for user:`,
+    upgrade.user_id
+  );
 
   try {
-    // Update user to Diamond Plus
+    // Base user update payload
+    const userPayload: Record<string, any> = {
+      membership_tier: tier,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Special handling for diamond_plus
+    if (tier === "diamond_plus") {
+      userPayload.diamond_plus_active = true;
+      userPayload.agreement_signed = true;
+    }
+
     const { error: userUpdateError } = await supabase
       .from("users")
-      .update({
-        membership_tier: "diamond_plus",
-        diamond_plus_active: true,
-        agreement_signed: true,
-        updated_at: new Date().toISOString(),
-      })
+      .update(userPayload)
       .eq("id", upgrade.user_id);
 
     if (userUpdateError) {
@@ -185,76 +198,73 @@ async function activateDiamondPlus(supabase: any, upgrade: any) {
       );
     }
 
-    // Update membership limits - increment current_count for the user's type
-    const userType = upgrade.user_type || "stripper";
-    const { error: limitsError } = await supabase.rpc(
+    // Increment membership limits for all tiers
+
+    // Fetch the user's current user_type to ensure we increment the correct limit row
+    const { data: userRow, error: userTypeError } = await supabase
+      .from("users")
+      .select("user_type")
+      .eq("id", upgrade.user_id)
+      .single();
+
+    if (userTypeError) {
+      console.error(
+        "Failed to fetch user_type for membership increment:",
+        userTypeError
+      );
+    }
+
+    const userType = (userRow?.user_type as string) || "normal";
+
+    const { error: genericLimitsError } = await supabase.rpc(
       "increment_membership_count",
       {
-        membership_type_param: "diamond_plus",
+        membership_type_param: tier,
         user_type_param: userType,
       }
     );
 
-    if (limitsError) {
-      console.error("RPC failed, trying direct update:", limitsError);
-      // Fallback to direct update if RPC doesn't exist
-      const { error: fallbackError } = await supabase
+    if (genericLimitsError) {
+      console.error(
+        "RPC failed to increment membership count:",
+        genericLimitsError
+      );
+      // Fallback: perform direct update (row must exist beforehand)
+      const { error: genericFallbackError } = await supabase
         .from("membership_limits")
         .update({
           current_count: supabase.raw("current_count + 1"),
           updated_at: new Date().toISOString(),
         })
-        .eq("membership_type", "diamond_plus")
+        .eq("membership_type", tier)
         .eq("user_type", userType);
 
-      if (fallbackError) {
-        console.error("Failed to update membership limits:", fallbackError);
+      if (genericFallbackError) {
+        console.error(
+          "Failed to update membership limits via fallback:",
+          genericFallbackError
+        );
       }
     }
 
-    // Create quarterly requirements tracking
-    const currentYear = new Date().getFullYear();
-    const quarters = [
-      {
-        quarter: 1,
-        start_date: `${currentYear}-01-01`,
-        end_date: `${currentYear}-03-31`,
-      },
-      {
-        quarter: 2,
-        start_date: `${currentYear}-04-01`,
-        end_date: `${currentYear}-06-30`,
-      },
-      {
-        quarter: 3,
-        start_date: `${currentYear}-07-01`,
-        end_date: `${currentYear}-09-30`,
-      },
-      {
-        quarter: 4,
-        start_date: `${currentYear}-10-01`,
-        end_date: `${currentYear}-12-31`,
-      },
-    ];
-
-    for (const q of quarters) {
-      await supabase.from("quarterly_requirements").insert({
-        user_id: upgrade.user_id,
-        year: currentYear,
-        quarter: q.quarter,
-        start_date: q.start_date,
-        end_date: q.end_date,
-        weekly_referrals_required: 7,
-        weekly_content_required: 7,
-        events_required: 1,
-        weekly_messages_required: 7,
-        guaranteed_payout: 6250.0,
-      });
+    // Handle additional logic exclusive to diamond_plus
+    if (tier === "diamond_plus") {
+      // Quarterly requirements tracking
+      const currentYear = new Date().getFullYear();
+      const quarters = [1, 2, 3, 4];
+      for (const q of quarters) {
+        await supabase.from("quarterly_requirements").insert({
+          user_id: upgrade.user_id,
+          year: currentYear,
+          quarter: q,
+          guaranteed_payout: 6250.0,
+        });
+      }
     }
 
-    console.log("Diamond Plus activation completed successfully");
+    console.log(`${tier} activation completed successfully`);
   } catch (error) {
-    console.error("Error activating Diamond Plus:", error);
+    console.error(`Error activating ${tier}:`, error);
     throw error;
   }
 }

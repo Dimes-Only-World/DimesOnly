@@ -92,7 +92,7 @@ serve(async (req) => {
 
     // PayPal API setup
     const PAYPAL_BASE_URL =
-      paypalEnvironment === "production"
+      paypalEnvironment === "production" || paypalEnvironment === "live"
         ? "https://api-m.paypal.com"
         : "https://api-m.sandbox.paypal.com";
 
