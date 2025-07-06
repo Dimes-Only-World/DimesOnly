@@ -21,6 +21,13 @@ import {
 } from "@tanstack/react-query";
 import AuthGuard from "@/components/AuthGuard";
 import { CreditCard, Phone, Calendar, ArrowLeft } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 // ----------------------------
 // Types & Constants
@@ -150,6 +157,132 @@ const UpgradePageInner: React.FC = () => {
     "full"
   );
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
+
+  // Agreement modal visibility
+  const [showAgreement, setShowAgreement] = useState(false);
+
+  // Agreement modal component
+  const AgreementModal = () => (
+    <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
+      <DialogContent className="max-h-[80vh] overflow-y-auto bg-gray-900 text-white border-pink-500">
+        <DialogHeader>
+          <DialogTitle className="text-pink-400 text-xl">
+            HOUSING ANGELS, LLC
+          </DialogTitle>
+          <DialogDescription className="text-white">
+            STRIPPER & EXOTIC FEMALE PARTICIPATION AGREEMENT
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 text-sm">
+          <p className="font-semibold">
+            Annual Compensation Guarantee Program – Diamond Plus Membership
+          </p>
+          <p>
+            Housing Angels, LLC offers a guaranteed{" "}
+            <strong>$25,000 annual compensation</strong> to the first 300
+            approved Strippers and Exotic Females who meet all program
+            requirements. Payments are issued quarterly in the amount of{" "}
+            <strong>$6,250.00</strong>.
+          </p>
+          <p>
+            The guarantee begins once the platform DimesOnly.World has reached a
+            verified user base of <strong>1,000 Female Stripper/Exotic</strong>
+            profiles, and <strong>3,000 Male or Female "Normal"</strong>
+            profiles.
+          </p>
+
+          <h3 className="font-bold text-pink-400">1. Program Overview</h3>
+          <p className="ml-4">
+            See above description of the annual compensation guarantee.
+          </p>
+
+          <h3 className="font-bold text-pink-400">2. Membership Fee</h3>
+          <ul className="list-disc ml-6 space-y-2">
+            <li>
+              Participant must enroll in{" "}
+              <strong>Diamond Plus Membership</strong>.
+            </li>
+            <li>
+              Diamond Plus Membership Fee: <strong>$349.00</strong> (includes
+              online notary fee) &nbsp;— one-time, non-refundable.
+            </li>
+            <li>
+              Payment confirms commitment and eligibility for quarterly payments
+              upon meeting all requirements.
+            </li>
+          </ul>
+
+          <h3 className="font-bold text-pink-400">
+            3. Participant Requirements (Per Quarter)
+          </h3>
+          <ul className="list-disc ml-6 space-y-2">
+            <li>
+              <strong>Weekly Referrals:</strong> 7 new verified referrals per
+              week (84 per quarter) — Deduction: <strong>$28.27</strong> per
+              missing referral per week.
+            </li>
+            <li>
+              <strong>Weekly Content Uploads:</strong> 7 new photos/videos per
+              week (168 total) — Deduction: <strong>$14.14</strong> per missing
+              upload.
+            </li>
+            <li>
+              <strong>Event Participation:</strong> 1 event per month (3 per
+              quarter) — Deduction: <strong>$500</strong> per missed event.
+            </li>
+            <li>
+              <strong>New User Engagement:</strong> Send 7 weekly messages to
+              new users not referred by you (84 per quarter) — Deduction:
+              <strong>$28.27</strong> per missing message per week.
+            </li>
+          </ul>
+
+          <h3 className="font-bold text-pink-400">4. Compensation Terms</h3>
+          <p>
+            If all quarterly requirements are met, Participant will receive
+            <strong>$6,250</strong> every 3 months (<strong>$25,000</strong>
+            annually). Proportional deductions apply for missed items.
+          </p>
+
+          <h3 className="font-bold text-pink-400">
+            5. Diamond Membership Plus Clause
+          </h3>
+          <p>
+            If Participant earns <strong>$12,000</strong> or more in platform
+            income during any quarter, the $6,250 guarantee becomes void
+            permanently and future income will be based solely on earned
+            revenue.
+          </p>
+
+          <h3 className="font-bold text-pink-400">6. Terms & Termination</h3>
+          <p>
+            Agreement remains in effect as long as the Participant is one of the
+            first 300 approved Stripper/Exotic members, complies with all
+            requirements, and remains in good standing. Failure to meet
+            obligations or community standards may result in termination.
+          </p>
+
+          <h3 className="font-bold text-pink-400">
+            7. Notarization & Activation
+          </h3>
+          <p>
+            This agreement must be digitally signed and notarized. Once
+            notarized and the <strong>$349</strong> payment is received, Diamond
+            Plus Membership will be activated.
+          </p>
+
+          <h3 className="font-bold text-pink-400">
+            8. Signature & Acknowledgment
+          </h3>
+          <p>
+            By signing, Participant acknowledges and agrees to all terms and
+            confirms enrollment in the Diamond Plus Membership tier.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   // ----------------------------
   // Handlers
@@ -364,6 +497,23 @@ const UpgradePageInner: React.FC = () => {
                 </Card>
               ))}
             </div>
+
+            {/* Agreement button for Strippers & Exotics */}
+            {userData &&
+              ["stripper", "exotic"].includes(userData.user_type) && (
+                <div className="text-center mt-12">
+                  <Button
+                    variant="outline"
+                    className="border-pink-500 text-pink-400 hover:bg-pink-500/20"
+                    onClick={() => setShowAgreement(true)}
+                  >
+                    View Agreement
+                  </Button>
+                </div>
+              )}
+
+            {/* Agreement Modal */}
+            <AgreementModal />
           </div>
         </div>
       </AppLayout>
@@ -515,6 +665,22 @@ const UpgradePageInner: React.FC = () => {
                 ).toFixed(2)} – Upgrade Now`}
           </Button>
         </div>
+
+        {/* Agreement button for Strippers & Exotics */}
+        {userData && ["stripper", "exotic"].includes(userData.user_type) && (
+          <div className="text-center mt-12">
+            <Button
+              variant="outline"
+              className="border-pink-500 text-pink-400 hover:bg-pink-500/20"
+              onClick={() => setShowAgreement(true)}
+            >
+              View Agreement
+            </Button>
+          </div>
+        )}
+
+        {/* Agreement Modal */}
+        <AgreementModal />
       </div>
     </div>
   );

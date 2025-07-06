@@ -745,9 +745,9 @@ const RatePage: React.FC = () => {
               <Card className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-yellow-500/50 inline-block">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <Trophy className="w-8 h-8 text-yellow-400" />
+                    <Trophy className="w-8 h-8 text-violet-600" />
                     <div className="text-left">
-                      <div className="text-2xl font-bold text-yellow-400">
+                      <div className="text-2xl font-bold text-violet-600">
                         Ranked #{currentStanding.rank}
                       </div>
                       <div className="text-sm text-gray-900">
@@ -822,7 +822,7 @@ const RatePage: React.FC = () => {
           )}
 
           {/* View Photos/Videos Links */}
-          <div className="flex justify-center gap-4 mb-8">
+          <div className="flex justify-center flex-wrap gap-4 mb-8">
             <Button
               onClick={() => setShowPhotosDialog(true)}
               className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"

@@ -253,7 +253,7 @@ const RateGirls: React.FC = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <h3 className="text-yellow-400 font-bold text-sm sm:text-base md:text-lg truncate">
+                        <h3 className="text-violet-600 font-bold text-sm sm:text-base md:text-lg truncate">
                           @{user.username}
                         </h3>
 
@@ -267,7 +267,7 @@ const RateGirls: React.FC = () => {
                         )}
 
                         <div className="text-center pt-2 border-t border-white/10">
-                          <div className="text-yellow-400 font-bold text-sm sm:text-base md:text-lg">
+                          <div className="text-violet-600 font-bold text-sm sm:text-base md:text-lg">
                             {user.total_score.toLocaleString()}
                           </div>
                           <div className="text-gray-900 text-xs">

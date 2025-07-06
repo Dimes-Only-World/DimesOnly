@@ -121,7 +121,7 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
   };
 
   const handleUpgrade = () => {
-    window.location.href = "/upgrade";
+    window.location.href = "/upgrade-diamond";
   };
 
   // Don't show if user is not eligible or already has Diamond Plus

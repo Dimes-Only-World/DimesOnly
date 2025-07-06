@@ -28,6 +28,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     Array<{ date: string; tickets: number }>
   >([]);
   const [winners, setWinners] = useState<JackpotWinner[]>([]);
+  const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [currentJackpot, setCurrentJackpot] = useState(0);
   const [showArchive, setShowArchive] = useState(false);
   const { toast } = useToast();
@@ -37,6 +38,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       fetchJackpotData();
       fetchWinners();
       fetchArchivedTickets();
+      fetchUserTickets();
     }
   }, [userData?.id]);
 
@@ -106,6 +108,28 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       }
     } catch (error) {
       console.error("Error fetching archived tickets:", error);
+    }
+  };
+
+  const fetchUserTickets = async () => {
+    try {
+      const { data: ticketsData, error } = await supabase
+        .from("tickets")
+        .select("ticket_number")
+        .eq("user_Id", userData.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      if (ticketsData) {
+        const numbers = ticketsData
+          .map((t) => t.ticket_number)
+          .filter((n): n is string => Boolean(n));
+        setTicketNumbers(numbers);
+        setCurrentTickets(numbers.length);
+      }
+    } catch (error) {
+      console.error("Error fetching user ticket numbers:", error);
     }
   };
 
@@ -227,6 +251,32 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
               1 tip = 1 ticket (rounded down)
             </Badge>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Ticket Numbers */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Ticket className="w-5 h-5" />
+            Your Ticket Numbers
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ticketNumbers.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {ticketNumbers.map((num, idx) => (
+                <Badge key={idx} variant="secondary" className="justify-center">
+                  {num}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">
+              <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No tickets yet. Tip to earn your first ticket!</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

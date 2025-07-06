@@ -211,9 +211,9 @@ const Tip: React.FC = () => {
       .render(container);
   };
 
-  // Re-render PayPal button when amount changes
+  // Re-render PayPal button when amount changes (minimum $5)
   useEffect(() => {
-    if (paypalLoaded && tipAmount > 0 && currentUser && userData) {
+    if (paypalLoaded && tipAmount >= 5 && currentUser && userData) {
       const containerId = `paypal-button-container-${tipAmount}`;
       setTimeout(() => renderPayPalButton(containerId, tipAmount), 100);
     }
@@ -608,7 +608,7 @@ const Tip: React.FC = () => {
                     />
                   </div>
 
-                  {tipAmount > 0 && currentUser && (
+                  {tipAmount >= 5 && currentUser && (
                     <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 rounded-xl p-6 border border-yellow-500/30">
                       <h3 className="text-white font-bold mb-4 text-center">
                         Complete Your Tip
