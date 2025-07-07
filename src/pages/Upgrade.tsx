@@ -56,27 +56,23 @@ interface UserData {
   email: string;
 }
 
-{
+const packages: Package[] = [
+  {
     id: "silver",
     name: "SILVER PACKAGE",
     price: 49.99,
     badge: "POSITIONS LIMITED",
     savings: "SAVE 50% ON ALL PACKAGES",
-    warnings: [
-      "PRICE GOING UP SOON!",
-      "MALES AND FEMALE NORMAL",
-      "STRIPPERS AND EXOTICS"
-    ],
+    warning: "STRIPPERS AND EXOTICS!",
     benefits: [
-      // Normal members
       "20% override on all the free people that join under your link in phase 2.",
       "10% of all subscriptions/memberships sold through your link now.",
-      // Strippers and exotics
+      "MALES AND FEMALES NORMAL BELOW",
       "30% of tips designated to you through your link.",
-      "10% of tips if designated to you through someone else's link.",
+      "20% of tips if designated to you through someone else's link.",
       "20% of tips if they choose you to tip.",
-      "View nude photos and videos from strippers and exotics.",
-      "Do not wait to get sponsored and pay for a profit-sharing position."
+      "View nudes photos and videos from strippers and exotics.",
+      "Do not wait to get sponsored and pay for a profit-sharing position.",
     ],
   },
   {
