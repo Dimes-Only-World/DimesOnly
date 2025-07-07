@@ -63,11 +63,11 @@ const packages: Package[] = [
     price: 49.99,
     badge: "POSITIONS LIMITED",
     savings: "SAVE 50% ON ALL PACKAGES",
-    warning: "STRIPPERS AND EXOTICS!",
+    warning: "STRIPPERS & EXOTICS!",
     benefits: [
       "20% override on all the free people that join under your link in phase 2.",
       "10% of all subscriptions/memberships sold through your link now.",
-      "MALES AND FEMALES NORMAL BELOW",
+      "MALES & FEMALES NORMAL BELOW",
       "30% of tips designated to you through your link.",
       "20% of tips if designated to you through someone else's link.",
       "20% of tips if they choose you to tip.",
