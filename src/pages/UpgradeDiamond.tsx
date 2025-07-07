@@ -583,11 +583,11 @@ const UpgradeDiamondPage: React.FC = () => {
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
-                        Up to $74,985.00 a year from adding photo and video nudes
+                        Up to $74,985 a year adding photo and video nudes
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
-                        Up to $112,500.00 a year from adding photo and video x-rated content
+                        Up to $112,500 a year adding x-rated photos and videos
                       </li>
                     </ul>
                   </CardContent>
