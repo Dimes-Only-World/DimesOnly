@@ -111,7 +111,7 @@ const packages: Package[] = [
   {
     id: "elite",
     name: "ELITE PACKAGE",
-    price: 10,000.0,
+    price: 10000.0,
     benefits: [
       "GET ALL THE BENEFITS OF FREE, SILVER AND GOLD",
       "VIP Access & VIP Section 4 times a year + 3 people you can bring FREE.",
