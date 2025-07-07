@@ -99,7 +99,6 @@ const packages: Package[] = [
     benefits: [
       "GET ALL THE BENEFITS OF FREE, SILVER AND GOLD",
       "VIP Access & VIP Section 4 times a year + 1 person you can bring FREE.",
-      "Profit share 10% of companies gross sales FOREVER split among the first 300 dancers.",
       "Get featured on our Instagram page along with cast members.",
       "Get featured on the opening page of the App every day for 3 years.",
     ],
