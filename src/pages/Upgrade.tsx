@@ -70,7 +70,7 @@ const packages: Package[] = [
       "40% of tips designated to you through your link.",
       "20% of tips if designated to you through someone else's link.",
       "20% of tips if they choose you to tip.",
-      "Do not share any of your profit with the sponsors.",
+      "View nudes from strippers and exotics.",
       "Do not wait to get sponsored and pay for a profit-sharing position.",
     ],
   },
