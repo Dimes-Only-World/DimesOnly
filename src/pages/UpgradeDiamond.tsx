@@ -466,7 +466,7 @@ const UpgradeDiamondPage: React.FC = () => {
               <Crown className="w-12 h-12 text-yellow-400" />
             </div>
             <p className="text-xl text-gray-300 mb-4">
-              Join the elite $25,000/year guarantee program</br>Plus</br>Equality Opportunity: Make up to $74,985.00 a year from adding nudes to your profile view by silver members</br>Plus</br>Make up to $112,500.00 a year from adding x-rated content to your profile view by gold members.</br>Plus</br> Equality Opportunity: Make up to $74,985.00 a year from adding nudes to your profile view by silver members<br>Plus<br>Make up to $112,500.00 a year from adding x-rated content to your profile view by gold members.</br>Compensation from Silver and Gold purchases is equally distributed amongst the first 1,000 Dimes.
+              Join the elite $25,000/year guarantee program
             </p>
             {spotsLeft > 0 && isEligible && (
               <Badge variant="destructive" className="text-lg px-4 py-2">
@@ -580,6 +580,14 @@ const UpgradeDiamondPage: React.FC = () => {
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
                         Direct support channel
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Up to $74,985.00 a yr from adding nudes
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Up to $112,500.00 a year from adding x-rated content
                       </li>
                     </ul>
                   </CardContent>
