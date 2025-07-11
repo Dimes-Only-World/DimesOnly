@@ -1,14 +1,57 @@
-import React, { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import RegistrationFormFields from "@/components/RegistrationFormFields";
-import RotatingBackground from "@/components/RotatingBackground";
-import { useToast } from "@/hooks/use-toast";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
-import { useMobileLayout } from "@/hooks/use-mobile";
-import { getReferralUsername } from "@/lib/utils";
-import bcrypt from "bcryptjs";
+Register
+aDD ALL FIELD TO DATABASE Dimes Only in Supabase
+Registration Form
+successful registration redirects new user to /dashboard/?ref=username
+Due not allow username or email address to be reinputted
+firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    mobileNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    gender: Male or Female
+If female is selected open usertype
+
+    userType: Exotic or Stripper or Normal
+if exotic or stripper is selected show video
+https://dimesonlyworld.s3.us-east-2.amazonaws.com/Explain+form+confirm+(1).mp4
+    referredBy: Hide this field and prefill from url /?ref=username
+banner_photo upload
+front_page_photo upload
+profile_photo upload
+when profile photo is upload show in the background of the transparent form
+
+Use code as reference for style and structure
+
+   const newErrors: Partial<Record<keyof FormData, string>> = {};
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
+    if (!formData.username) newErrors.username = 'Username is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email';
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!formData.mobileNumber) newErrors.mobileNumber = 'Phone number is required';
+    if (!formData.address) newErrors.address = 'Address is required';
+    if (!formData.city) newErrors.city = 'City is required';
+    if (!formData.state) newErrors.state = 'State is required';
+    if (!formData.zip) newErrors.zip = 'Zip code is required';
+    if (!formData.gender) newErrors.gender = 'Gender is required';
+    if (formData.gender === 'female' && !formData.userType) newErrors.userType = 'User type is required';
+
+    setErrors(newErrors);
+
+import React from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import FileUploadField from '@/components/FileUploadField';
 
 interface FormData {
   firstName: string;
@@ -24,450 +67,494 @@ interface FormData {
   zip: string;
   gender: string;
   userType: string;
-  referredBy: string;
-  profilePhoto?: string;
-  bannerPhoto?: string;
-  frontPagePhoto?: string;
+  referredByUsername: string;
 }
 
-const backgroundImages = [
+interface RegistrationFormFieldsProps {
+  formData: FormData;
+  errors: Partial<Record<keyof FormData, string>>;
+  showUserType: boolean;
+  handleInputChange: (field: keyof FormData) => (value: string) => void;
+  handleFileChange: (field: string) => (file: File | null) => void;
+}
+
+const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
+  formData,
+  errors,
+  showUserType,
+  handleInputChange,
+  handleFileChange,
+}) => {
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+            First Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="firstName"
+            type="text"
+            value={formData.firstName}
+            onChange={(e) => handleInputChange('firstName')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Enter your first name"
+          />
+          {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+            Last Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="lastName"
+            type="text"
+            value={formData.lastName}
+            onChange={(e) => handleInputChange('lastName')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Enter your last name"
+          />
+          {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+          Username <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="username"
+          type="text"
+          value={formData.username}
+          onChange={(e) => handleInputChange('username')(e.target.value)}
+          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Choose a username"
+        />
+        {errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+          Email <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => handleInputChange('email')(e.target.value)}
+          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Enter your email"
+        />
+        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+            Password <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            value={formData.password}
+            onChange={(e) => handleInputChange('password')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Create a password"
+          />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+            Confirm Password <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={(e) => handleInputChange('confirmPassword')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Confirm your password"
+          />
+          {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="mobileNumber" className="text-sm font-medium text-gray-700">
+          Mobile Number <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="mobileNumber"
+          type="tel"
+          value={formData.mobileNumber}
+          onChange={(e) => handleInputChange('mobileNumber')(e.target.value)}
+          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Enter your phone number"
+        />
+        {errors.mobileNumber && <p className="text-red-500 text-sm">{errors.mobileNumber}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="address" className="text-sm font-medium text-gray-700">
+          Address <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="address"
+          type="text"
+          value={formData.address}
+          onChange={(e) => handleInputChange('address')(e.target.value)}
+          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Enter your street address"
+        />
+        {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="city" className="text-sm font-medium text-gray-700">
+            City <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="city"
+            type="text"
+            value={formData.city}
+            onChange={(e) => handleInputChange('city')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="City"
+          />
+          {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="state" className="text-sm font-medium text-gray-700">
+            State <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="state"
+            type="text"
+            value={formData.state}
+            onChange={(e) => handleInputChange('state')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="State"
+          />
+          {errors.state && <p className="text-red-500 text-sm">{errors.state}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="zip" className="text-sm font-medium text-gray-700">
+            Zip Code <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="zip"
+            type="text"
+            value={formData.zip}
+            onChange={(e) => handleInputChange('zip')(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Zip"
+          />
+          {errors.zip && <p className="text-red-500 text-sm">{errors.zip}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-gray-700">
+          Gender <span className="text-red-500">*</span>
+        </Label>
+        <RadioGroup
+          value={formData.gender}
+          onValueChange={handleInputChange('gender')}
+          className="flex gap-6"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="male" id="male" />
+            <Label htmlFor="male">Male</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="female" id="female" />
+            <Label htmlFor="female">Female</Label>
+          </div>
+        </RadioGroup>
+        {errors.gender && <p className="text-red-500 text-sm">{errors.gender}</p>}
+      </div>
+
+      {showUserType && (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-700">
+            User Type <span className="text-red-500">*</span>
+          </Label>
+          <RadioGroup
+            value={formData.userType}
+            onValueChange={handleInputChange('userType')}
+            className="flex gap-6"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="exotic" id="exotic" />
+              <Label htmlFor="exotic">Exotic</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="dancer" id="dancer" />
+              <Label htmlFor="dancer">Dancer</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="normal" id="normal" />
+              <Label htmlFor="normal">Normal</Label>
+            </div>
+          </RadioGroup>
+          {errors.userType && <p className="text-red-500 text-sm">{errors.userType}</p>}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="referredByUsername" className="text-sm font-medium text-gray-700">
+          Referred By
+        </Label>
+        <Input
+          id="referredByUsername"
+          type="text"
+          value={formData.referredByUsername}
+          onChange={(e) => handleInputChange('referredByUsername')(e.target.value)}
+          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Who referred you?"
+        />
+      </div>
+
+      <div className="space-y-4">
+        <FileUploadField
+          label="Profile Photo"
+          accept="image/*"
+          onChange={handleFileChange('profilePhoto')}
+        />
+        <FileUploadField
+          label="Banner Photo"
+          accept="image/*"
+          onChange={handleFileChange('bannerPhoto')}
+        />
+        <FileUploadField
+          label="Front Page Photo"
+          accept="image/*"
+          onChange={handleFileChange('frontPagePhoto')}
+        />
+      </div>
+    </>
+  );
+};
+
+export default RegistrationFormFields;
+
+import React from 'react';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+
+interface RegistrationFormPart2Props {
+  formData: any;
+  errors: Record<string, string>;
+  isLoading: boolean;
+  message: string;
+  showUserType: boolean;
+  showVideo: boolean;
+  handleInputChange: (field: string) => (value: string) => void;
+  handleSubmit: (e: React.FormEvent) => void;
+}
+
+const RegistrationFormPart2: React.FC<RegistrationFormPart2Props> = ({
+  formData,
+  errors,
+  isLoading,
+  message,
+  showUserType,
+  showVideo,
+  handleInputChange,
+  handleSubmit
+}) => {
+  return (
+    <>
+      {showUserType && (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-700">
+            User Type <span className="text-red-500">*</span>
+          </Label>
+          <RadioGroup
+            value={formData.userType}
+            onValueChange={handleInputChange('userType')}
+            className="flex gap-6"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="exotic" id="exotic" />
+              <Label htmlFor="exotic">Exotic</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="dancer" id="dancer" />
+              <Label htmlFor="dancer">Dancer</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="normal" id="normal" />
+              <Label htmlFor="normal">Normal</Label>
+            </div>
+          </RadioGroup>
+          {errors.userType && <p className="text-red-500 text-sm">{errors.userType}</p>}
+        </div>
+      )}
+
+      {showVideo && (
+        <div className="mt-4">
+          <video controls className="w-full rounded-lg">
+            <source src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Explain+form+confirm.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )}
+
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Registering...
+          </>
+        ) : (
+          'Register'
+        )}
+      </Button>
+
+      {message && (
+        <div className={`mt-4 p-3 rounded text-center font-bold ${
+          message.includes('SUCCESSFUL') 
+            ? 'bg-green-50 border border-green-200 text-green-700' 
+            : 'bg-red-50 border border-red-200 text-red-700'
+        }`}>
+          {message}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default RegistrationFormPart2;
+
+Put photos rotating in the background of the form in mobile view and tablet view
+Put photo on the right side on desktop view
+import React, { useState, useEffect } from 'react';
+
+const images = [
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_c50e34bf-23ac-46dd-9dd5-85b5b7279fdd.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_cce445b5-329a-4140-82d0-111f1ba6fc7e.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d49d90de-b2af-4870-9632-41b929d49efe.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d836d056-6ce5-4a36-ba3e-879622fba498.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d83e24cd-671a-4515-94fc-0973bd54ece5.png",
-  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_c2328b2a-bc64-4eab-82ef-a8af1f237d6e-1320x811.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_c2328b2a-bc64-4eab-82ef-a8af1f237d6e-1320x811.png"
 ];
 
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+const RegistrationImageCarousel: React.FC = () => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-const validatePassword = (password: string): boolean => {
-  return password.length >= 6;
-};
-
-const validateRequired = (data: FormData): string[] => {
-  const errors: string[] = [];
-  const requiredFields: (keyof FormData)[] = [
-    "firstName",
-    "lastName",
-    "username",
-    "email",
-    "password",
-    "mobileNumber",
-    "address",
-    "city",
-    "state",
-    "zip",
-    "gender",
-  ];
-
-  requiredFields.forEach((field) => {
-    if (!data[field]) {
-      errors.push(`${field} is required`);
-    }
-  });
-
-  if (data.gender === "female" && !data.userType) {
-    errors.push("userType is required for female users");
-  }
-
-  return errors;
-};
-
-export const Register: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>("");
-  const [bannerPhotoUrl, setBannerPhotoUrl] = useState<string>("");
-  const [frontPagePhotoUrl, setFrontPagePhotoUrl] = useState<string>("");
-  const [showVideo, setShowVideo] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
-    {}
-  );
-  const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
-
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    mobileNumber: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    gender: "",
-    userType: "",
-    referredBy: getReferralUsername(searchParams),
-  });
-
-  const handleInputChange = (field: keyof FormData) => (value: string) => {
-    // Convert username to lowercase automatically
-    const processedValue = field === "username" ? value.toLowerCase() : value;
-
-    setFormData((prev) => ({ ...prev, [field]: processedValue }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-
-    if (field === "gender") {
-      setFormData((prev) => ({ ...prev, [field]: processedValue }));
-    } else if (field === "userType") {
-      setShowVideo(value === "exotic" || value === "stripper");
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: processedValue }));
-    }
-  };
-
-  const handleFileChange = (field: string) => async (file: File | null) => {
-    if (!file) return;
-    if (!formData.username) {
-      toast({
-        title: "Username Required",
-        description: "Please enter a username before uploading photos",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const MAX_FILE_SIZE_MB = 50;
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: `Max file size is ${MAX_FILE_SIZE_MB}MB.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const uploadFormData = new FormData();
-    uploadFormData.append("file", file);
-    uploadFormData.append("username", formData.username);
-    uploadFormData.append("photoType", field.replace("Photo", ""));
-
-    try {
-      const response = await fetch(
-        "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/5c970590-4f98-420e-8352-e90ae4b99fd6",
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTc5NzMsImV4cCI6MjA2NDk3Mzk3M30.Uh-sEGCgMZKzCLLGOPLCVEJMWvG-YFKvxRPEr5mMJvI",
-          },
-          body: uploadFormData,
-        }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        (prevIndex + 1) % images.length
       );
+    }, 4000);
 
-      const responseText = await response.text();
-      if (!response.ok)
-        throw new Error(`Upload failed: ${response.status} - ${responseText}`);
-
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        throw new Error(`Invalid JSON: ${responseText}`);
-      }
-
-      if (result.success && result.url) {
-        if (field === "profilePhoto") {
-          setProfilePhotoUrl(result.url);
-          // Clear the error for profile photo
-          setErrors((prev) => ({ ...prev, profilePhoto: undefined }));
-        } else if (field === "bannerPhoto") {
-          setBannerPhotoUrl(result.url);
-          // Clear the error for banner photo
-          setErrors((prev) => ({ ...prev, bannerPhoto: undefined }));
-        } else if (field === "frontPagePhoto") {
-          setFrontPagePhotoUrl(result.url);
-          // Clear the error for front page photo
-          setErrors((prev) => ({ ...prev, frontPagePhoto: undefined }));
-        }
-
-        toast({
-          title: "Upload Successful",
-          description: `${field} uploaded successfully`,
-        });
-      } else {
-        throw new Error(result.error || "Upload failed without error message");
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Unexpected upload error";
-      toast({
-        title: "Upload Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof FormData, string>> = {};
-    if (!formData.firstName) newErrors.firstName = "First name is required";
-    if (!formData.lastName) newErrors.lastName = "Last name is required";
-    if (!formData.username) newErrors.username = "Username is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
-      newErrors.email = "Invalid email";
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
-    if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match";
-    if (!formData.mobileNumber)
-      newErrors.mobileNumber = "Phone number is required";
-    if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.city) newErrors.city = "City is required";
-    if (!formData.state) newErrors.state = "State is required";
-    if (!formData.zip) newErrors.zip = "Zip code is required";
-    if (!formData.gender) newErrors.gender = "Gender is required";
-    if (formData.gender === "female" && !formData.userType)
-      newErrors.userType = "User type is required";
-
-    // Check if all photos are uploaded (mandatory)
-    if (!profilePhotoUrl) newErrors.profilePhoto = "Profile photo is required";
-    if (!bannerPhotoUrl) newErrors.bannerPhoto = "Banner photo is required";
-    if (!frontPagePhotoUrl)
-      newErrors.frontPagePhoto = "Front page photo is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      // Validate required fields
-      const validationErrors = validateRequired(formData);
-      if (validationErrors.length > 0) {
-        throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
-      }
-
-      // Validate password match
-      if (formData.password !== formData.confirmPassword) {
-        throw new Error("Passwords do not match");
-      }
-
-      // Validate email format
-      if (!validateEmail(formData.email)) {
-        throw new Error("Invalid email format");
-      }
-
-      // Validate password strength
-      if (!validatePassword(formData.password)) {
-        throw new Error("Password must be at least 6 characters long");
-      }
-
-      // Check if username exists
-      const { data: existingUser } = await supabaseAdmin
-        .from("users")
-        .select("username")
-        .eq("username", formData.username)
-        .single();
-
-      if (existingUser) {
-        throw new Error("Username already exists");
-      }
-
-      // Check if email exists
-      const { data: existingEmail } = await supabaseAdmin
-        .from("users")
-        .select("email")
-        .eq("email", formData.email)
-        .single();
-
-      if (existingEmail) {
-        throw new Error("Email already registered");
-      }
-
-      // Create auth session first
-      const { data: session, error: sessionError } = await supabase.auth.signUp(
-        {
-          email: formData.email,
-          password: formData.password,
-        }
-      );
-
-      if (sessionError) {
-        throw new Error(`Failed to create session: ${sessionError.message}`);
-      }
-
-      if (!session.user) {
-        throw new Error("Failed to create auth user");
-      }
-
-      // Hash password
-      const passwordHash = await bcrypt.hash(formData.password, 10);
-
-      // Create user record with auth user ID
-      const { data: newUser, error: createError } = await supabaseAdmin
-        .from("users")
-        .insert([
-          {
-            id: session.user.id, // Link to auth.users id
-            username: formData.username,
-            email: formData.email,
-            password_hash: passwordHash,
-            hash_type: "bcrypt",
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            mobile_number: formData.mobileNumber,
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            zip: formData.zip,
-            gender: formData.gender,
-            user_type: formData.userType ? formData.userType : "normal",
-            referred_by: formData.referredBy,
-            profile_photo: profilePhotoUrl,
-            banner_photo: bannerPhotoUrl,
-            front_page_photo: frontPagePhotoUrl,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
-
-      if (createError) {
-        throw new Error(`Failed to create user: ${createError.message}`);
-      }
-
-      // Increment membership limits current_count based on new user
-      try {
-        const userTypeInserted = formData.userType
-          ? formData.userType
-          : "normal";
-
-        const membershipTypeForLimit =
-          userTypeInserted === "normal" ? "silver" : "diamond";
-
-        await supabaseAdmin.rpc("increment_membership_count", {
-          membership_type_param: membershipTypeForLimit,
-          user_type_param: userTypeInserted,
-        });
-      } catch (incrementError) {
-        console.error("Failed to increment membership limits:", incrementError);
-      }
-
-      // Store authentication info
-      localStorage.setItem("authToken", session.user?.id || "authenticated");
-      sessionStorage.setItem("currentUser", formData.username);
-
-      toast({
-        title: "Registration Successful!",
-        description: "Welcome to Dimes Only!",
-      });
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Registration error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Registration failed";
-      toast({
-        title: "Registration Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const showUserType = formData.gender === "female";
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="w-full min-h-screen relative">
-      <RotatingBackground images={backgroundImages} interval={3000} />
+    <div className="relative w-full h-full overflow-hidden">
+      {images.map((image, index) => (
+        <div
+          key={index}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <img
+            src={image}
+            alt={`Carousel ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ))}
+      
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-purple-500/20 to-blue-600/30" />
+    </div>
+  );
+};
 
-      <div className="relative z-10 w-full min-h-screen py-8">
-        <div className={`w-full ${isMobile ? "px-0" : "px-4"}`}>
-          <div className={isMobile ? "w-full" : "max-w-4xl mx-auto"}>
-            <div
-              className={`${getCardClasses(
-                "bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
-              )} ${isMobile ? "rounded-none" : "rounded-lg"}`}
-            >
-              <div
-                className={`text-center ${getPaddingClasses(
-                  "py-6 px-8"
-                )} border-b border-white/20`}
-              >
-                <h1 className="text-4xl font-bold text-white font-inter tracking-tight">
-                  Join Dimes Only
-                </h1>
-                <p className="text-white/80 mt-2 font-inter">
-                  Create your account and start your journey
-                </p>
-              </div>
+export default RegistrationImageCarousel;
 
-              <div className={getPaddingClasses("p-8")}>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <RegistrationFormFields
-                    formData={formData}
-                    errors={errors}
-                    showUserType={showUserType}
-                    handleInputChange={handleInputChange}
-                    handleFileChange={handleFileChange}
-                    profilePhotoUrl={profilePhotoUrl}
-                  />
+import React, { useState, useEffect } from 'react';
+import RegistrationForm from './RegistrationForm';
+import RegistrationImageCarousel from './RegistrationImageCarousel';
 
-                  {showVideo && (
-                    <div className="mt-6">
-                      <video controls className="w-full rounded-lg shadow-lg">
-                        <source
-                          src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Explain+form+confirm+(1).mp4"
-                          type="video/mp4"
-                        />
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  )}
+interface RegistrationPageProps {
+  onRegistrationSuccess?: (username: string) => void;
+}
 
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-lg"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Creating Account...
-                      </>
-                    ) : (
-                      "Create Account"
-                    )}
-                  </Button>
-                </form>
+const RegistrationPage: React.FC<RegistrationPageProps> = ({ onRegistrationSuccess }) => {
+  const [backgroundImage, setBackgroundImage] = useState<string>('');
 
-                <div className="text-center pt-4">
-                  <p className="text-sm text-white/80">
-                    Already have an account?{" "}
-                    <a
-                      href="/login"
-                      className="text-blue-300 hover:text-blue-200 hover:underline font-medium"
-                    >
-                      Sign In
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </div>
+  // Handle profile photo background change
+  useEffect(() => {
+    const handleProfilePhotoChange = (event: CustomEvent) => {
+      if (event.detail?.imageUrl) {
+        setBackgroundImage(event.detail.imageUrl);
+      }
+    };
+
+    window.addEventListener('profilePhotoChanged', handleProfilePhotoChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('profilePhotoChanged', handleProfilePhotoChange as EventListener);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Dynamic background */}
+      <div 
+        className="fixed inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 transition-all duration-1000"
+        style={{
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundBlendMode: backgroundImage ? 'overlay' : 'normal'
+        }}
+      />
+      
+      {/* Overlay for better readability */}
+      <div className="fixed inset-0 bg-black/20" />
+      
+      {/* Animated background shapes */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col lg:flex-row min-h-screen">
+        {/* Form section */}
+        <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
+          <div className="w-full max-w-2xl">
+            <RegistrationForm onRegistrationSuccess={onRegistrationSuccess} />
           </div>
+        </div>
+        
+        {/* Image section - hidden on mobile, visible on large screens */}
+        <div className="hidden lg:block lg:flex-1 relative">
+          <RegistrationImageCarousel />
         </div>
       </div>
     </div>
   );
 };
 
-export default Register;
+export default RegistrationPage;
+
