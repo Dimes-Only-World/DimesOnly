@@ -14,11 +14,12 @@ import { useToast } from "@/hooks/use-toast";
 import bcrypt from "bcryptjs";
 
 const backgroundImages = [
-  'https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_ea2691d7-25a7-4cd7-8d4e-cf4826e6c1c3.png',
-  'https://dimesonly.s3.us-east-2.amazonaws.com/Kennadie+45.png',
-  'https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_96184858-4dad-438e-8884-105f6c880251.png'
-  'https://dimesonly.s3.us-east-2.amazonaws.com/eroticgirl_7dd2dfc3-d1ef-4f54-af34-f5ea901d4125-768x1250.png'
-  'https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d83e24cd-671a-4515-94fc-0973bd54ece5.png'
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_c50e34bf-23ac-46dd-9dd5-85b5b7279fdd.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_cce445b5-329a-4140-82d0-111f1ba6fc7e.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d49d90de-b2af-4870-9632-41b929d49efe.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d836d056-6ce5-4a36-ba3e-879622fba498.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d83e24cd-671a-4515-94fc-0973bd54ece5.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_c2328b2a-bc64-4eab-82ef-a8af1f237d6e-1320x811.png"
 ];
 
 const Login: React.FC = () => {
