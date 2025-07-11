@@ -5,7 +5,7 @@ const images = [
   'https://dimesonly.s3.us-east-2.amazonaws.com/Kennadie+45.png',
   'https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_96184858-4dad-438e-8884-105f6c880251.png',
   'https://dimesonly.s3.us-east-2.amazonaws.com/eroticgirl_7dd2dfc3-d1ef-4f54-af34-f5ea901d4125-768x1250.png',
-  'https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d83e24cd-671a-4515-94fc-0973bd54ece5.png',
+  'https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d83e24cd-671a-4515-94fc-0973bd54ece5.png'
 ];
 
 const RegistrationImageCarousel: React.FC = () => {
