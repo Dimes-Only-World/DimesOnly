@@ -1,8 +1,16 @@
-Register
-aDD ALL FIELD TO DATABASE Dimes Only in Supabase
-Registration Form
-successful registration redirects new user to /dashboard/?ref=username
-Due not allow username or email address to be reinputted
+import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import RegistrationFormFields from "@/components/RegistrationFormFields";
+import RotatingBackground from "@/components/RotatingBackground";
+import { useToast } from "@/hooks/use-toast";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { useMobileLayout } from "@/hooks/use-mobile";
+import { getReferralUsername } from "@/lib/utils";
+import bcrypt from "bcryptjs";
+
+interface FormData {
 firstName: '',
     lastName: '',
     username: '',
