@@ -331,7 +331,7 @@ const UserDashboard: React.FC = () => {
           className={`${getContainerClasses()} ${isMobile ? "py-4" : "py-8"}`}
         >
           <DashboardVideoHeader
-            videoUrl="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+            videoUrl="https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4"
             thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           />
 
