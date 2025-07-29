@@ -17,7 +17,7 @@ const backgroundImages = [
   "https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_45c765ef-2fe4-4658-8281-ff6cae9e2618.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/eroticgirl_77f16c72-f054-4fcd-a954-208021412fb9-768x1250.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d49d90de-b2af-4870-9632-41b929d49efe.png",
-  "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d836d056-6ce5-4a36-ba3e-879622fba498.png",
+  "https://dimesonly.s3.us-east-2.amazonaws.com/image-27-1.jpg",
   "https://dimesonly.s3.us-east-2.amazonaws.com/realorgasm_d83e24cd-671a-4515-94fc-0973bd54ece5.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/eroticgirl_7dd2dfc3-d1ef-4f54-af34-f5ea901d4125-768x1250.png"
 ];
