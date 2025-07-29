@@ -71,7 +71,7 @@ const packages: Package[] = [
       "20% of tips from all your strippers & exotics.",
       "20% minus fees returned to you if you tip.",
       "10% override from your referrals purchases of all products & services.",
-      "View nudes photos & videos from strippers & exotics.",
+      "View nude photos & videos from strippers & exotics.",
     ],
   },
   {
