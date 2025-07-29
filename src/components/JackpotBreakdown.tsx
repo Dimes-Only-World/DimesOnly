@@ -33,15 +33,15 @@ const JackpotBreakdown: React.FC = () => {
               <h4 className="font-semibold text-yellow-800 mb-2">1st Place Winner</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="text-center">
-                  <div className="font-bold text-2xl text-yellow-600">Max $250,000</div>
+                  <div className="font-bold text-2xl text-yellow-600">Max $2,950,000</div>
                   <div className="text-gray-600">Starts at $1,000</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-lg text-green-600">$30 - $7,500</div>
+                  <div className="font-bold text-lg text-green-600">$30 - $90,000</div>
                   <div className="text-gray-600">Referrer Pay</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-lg text-green-600">$20 - $5,000</div>
+                  <div className="font-bold text-lg text-green-600">$20 - $60,000</div>
                   <div className="text-gray-600">Stripper or Exotic Pay</div>
                 </div>
               </div>
