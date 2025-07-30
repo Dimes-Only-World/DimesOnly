@@ -407,7 +407,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
           />
         </div>
         <p className="text-white text-lg mt-6 font-semibold">
-          Featured Profile
+          Welcome to the Ultimate Experience
         </p>
         {process.env.NODE_ENV === "development" && (
           <div className="mt-4 p-4 bg-green-900/50 rounded text-left text-xs text-gray-300 max-w-md mx-auto">
