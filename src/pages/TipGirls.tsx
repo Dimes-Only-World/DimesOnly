@@ -56,7 +56,6 @@ const TipGirls: React.FC = () => {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        // Get username from database
         const { data: userData, error } = await supabase
           .from("users")
           .select("username")
@@ -115,66 +114,63 @@ const TipGirls: React.FC = () => {
       <AuthGuard>
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-16">
           <div className="container mx-auto px-4 max-w-4xl">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <Card className="bg-white/10 backdrop-blur border-white/20">
-                  <CardHeader className="text-center">
-                    <CardTitle className="text-white text-3xl mb-4">
-                      <Heart className="w-8 h-8 inline-block mr-2 text-red-500" />
-                      Tip @{selectedUser.username}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <UserProfileCard
-                      username={selectedUser.username}
-                      profileImage={selectedUser.profile_photo}
-                      location={`${selectedUser.city}, ${selectedUser.state}`}
-                    />
+            {/* Removed grid layout */}
+            <Card className="bg-white/10 backdrop-blur border-white/20">
+              <CardHeader className="text-center">
+                <CardTitle className="text-white text-3xl mb-4">
+                  <Heart className="w-8 h-8 inline-block mr-2 text-red-500" />
+                  Tip @{selectedUser.username}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <UserProfileCard
+                  username={selectedUser.username}
+                  profileImage={selectedUser.profile_photo}
+                  location={`${selectedUser.city}, ${selectedUser.state}`}
+                />
 
-                    <TipAmountSelector
-                      selectedAmount={tipAmount}
-                      onAmountChange={setTipAmount}
-                      customAmount={customAmount}
-                      onCustomAmountChange={setCustomAmount}
-                    />
+                <TipAmountSelector
+                  selectedAmount={tipAmount}
+                  onAmountChange={setTipAmount}
+                  customAmount={customAmount}
+                  onCustomAmountChange={setCustomAmount}
+                />
 
-                    <div>
-                      <label className="block text-white mb-2">
-                        Message (Optional)
-                      </label>
-                      <textarea
-                        placeholder="Leave a nice message..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 resize-none"
-                        rows={3}
-                        maxLength={200}
-                      />
-                    </div>
+                <div>
+                  <label className="block text-white mb-2">
+                    Message (Optional)
+                  </label>
+                  <textarea
+                    placeholder="Leave a nice message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 resize-none"
+                    rows={3}
+                    maxLength={200}
+                  />
+                </div>
 
-                    {tipAmount > 0 && (
-                      <PayPalTipButton
-                        tipAmount={tipAmount}
-                        tippedUsername={selectedUser.username}
-                        referrerUsername={refUsername}
-                        tipperUsername="current_user"
-                      />
-                    )}
+                {tipAmount > 0 && (
+                  <PayPalTipButton
+                    tipAmount={tipAmount}
+                    tippedUsername={selectedUser.username}
+                    referrerUsername={refUsername}
+                    tipperUsername="current_user"
+                  />
+                )}
 
-                    <Button
-                      onClick={() => setSelectedUser(null)}
-                      variant="outline"
-                      className="w-full border-white/30 text-white hover:bg-white/20"
-                    >
-                      Back to Directory
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="lg:col-span-1">
-                <JackpotDisplay />
-              </div>
+                <Button
+                  onClick={() => setSelectedUser(null)}
+                  variant="outline"
+                  className="w-full border-white/30 text-white hover:bg-white/20"
+                >
+                  Back to Directory
+                </Button>
+              </CardContent>
+            </Card>
+            {/* Moved JackpotDisplay below, full width */}
+            <div className="mt-6">
+              <JackpotDisplay />
             </div>
           </div>
         </div>
@@ -214,101 +210,94 @@ const TipGirls: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
-              {/* Jackpot Results Section */}
-              <div className="mb-8">
-                <JackpotDisplay />
-              </div>
-
-              {/* Search Section */}
-              <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="relative">
-                      <User
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                      <Input
-                        type="text"
-                        placeholder="Search by name..."
-                        value={searchName}
-                        onChange={(e) => setSearchName(e.target.value)}
-                        className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300"
-                      />
-                    </div>
-                    <div className="relative">
-                      <MapPin
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                      <Input
-                        type="text"
-                        placeholder="Search by city..."
-                        value={searchCity}
-                        onChange={(e) => setSearchCity(e.target.value)}
-                        className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300"
-                      />
-                    </div>
-                    <div className="relative">
-                      <Flag
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                      <Input
-                        type="text"
-                        placeholder="Search by state..."
-                        value={searchState}
-                        onChange={(e) => setSearchState(e.target.value)}
-                        className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Status Message */}
-              {currentUser && (
-                <TipStatusChecker userId={currentUser.id}>
-                  {(hasTips, hasBeenTipped) => {
-                    if (!hasTips && !hasBeenTipped) {
-                      return (
-                        <Card className="bg-yellow-900/20 border-yellow-500 mb-6">
-                          <CardContent className="p-4 text-center">
-                            <h3 className="text-yellow-400 font-bold text-lg mb-2">
-                              NO TIPS YET MADE IN 2025. BE THE 1ST!
-                            </h3>
-                            <p className="text-yellow-300 text-sm">
-                              Start tipping your favorite dancers to enter the
-                              jackpot!
-                            </p>
-                          </CardContent>
-                        </Card>
-                      );
-                    }
-                    return null;
-                  }}
-                </TipStatusChecker>
-              )}
-
-              {/* Users List */}
-              <UsersList
-                searchName={searchName}
-                searchCity={searchCity}
-                searchState={searchState}
-                onUserSelect={handleUserSelect}
-                actionType="tip"
-                noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
-                orderBy="created_at"
-                orderDirection="desc"
-              />
-            </div>
-
-            <div className="lg:col-span-1">
-              {/* Additional content can go here if needed */}
-            </div>
+          {/* Removed grid layout */}
+          {/* Jackpot Results Section */}
+          <div className="mb-8">
+            <JackpotDisplay />
           </div>
+
+          {/* Search Section */}
+          <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
+            <CardContent className="p-6">
+              <div className="space-y-4 md:space-y-0 md:flex md:space-x-4">
+                <div className="relative flex-1">
+                  <User
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300 w-full"
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <MapPin
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Search by city..."
+                    value={searchCity}
+                    onChange={(e) => setSearchCity(e.target.value)}
+                    className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300 w-full"
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <Flag
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Search by state..."
+                    value={searchState}
+                    onChange={(e) => setSearchState(e.target.value)}
+                    className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300 w-full"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Message */}
+          {currentUser && (
+            <TipStatusChecker userId={currentUser.id}>
+              {(hasTips, hasBeenTipped) => {
+                if (!hasTips && !hasBeenTipped) {
+                  return (
+                    <Card className="bg-yellow-900/20 border-yellow-500 mb-6">
+                      <CardContent className="p-4 text-center">
+                        <h3 className="text-yellow-400 font-bold text-lg mb-2">
+                          NO TIPS YET MADE IN 2025. BE THE 1ST!
+                        </h3>
+                        <p className="text-yellow-300 text-sm">
+                          Start tipping your favorite dancers to enter the
+                          jackpot!
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              }}
+            </TipStatusChecker>
+          )}
+
+          {/* Users List */}
+          <UsersList
+            searchName={searchName}
+            searchCity={searchCity}
+            searchState={searchState}
+            onUserSelect={handleUserSelect}
+            actionType="tip"
+            noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
+            orderBy="created_at"
+            orderDirection="desc"
+          />
         </div>
       </div>
     </AuthGuard>
