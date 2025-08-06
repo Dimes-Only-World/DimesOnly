@@ -26,9 +26,9 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import TestLogin from "@/pages/TestLogin";
 import NotFound from "@/pages/NotFound";
 import PaymentStatusHandler from "./components/PaymentStatusHandler";
-import "./App.css";
-import UpgradeDiamondPage from "./pages/UpgradeDiamond";
+import UpgradeDiamond from "./pages/UpgradeDiamond";
 import UpgradeSilverPlus from "./pages/UpgradeSilverPlus";
+import "./App.css";
 
 function AppContent() {
   const location = useLocation();
@@ -51,7 +51,7 @@ function AppContent() {
       <Route path="/tip" element={<Tip />} />
       <Route path="/tip-girls" element={<TipGirls />} />
       <Route path="/upgrade" element={<Upgrade />} />
-      <Route path="/upgrade-diamond" element={<UpgradeDiamondPage />} />
+      <Route path="/upgrade-diamond" element={<UpgradeDiamond />} />
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/admin" element={<AdminDashboard />} />
