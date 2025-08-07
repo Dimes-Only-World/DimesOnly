@@ -28,10 +28,7 @@ import NotFound from "@/pages/NotFound";
 import PaymentStatusHandler from "./components/PaymentStatusHandler";
 import "./App.css";
 import UpgradeDiamondPage from "./pages/UpgradeDiamond";
-<<<<<<< HEAD
-=======
 import UpgradeSilverPlus from "./pages/UpgradeSilverPlus";
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
 
 function AppContent() {
   const location = useLocation();
