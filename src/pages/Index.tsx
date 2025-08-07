@@ -7,6 +7,10 @@ import ImageCarousel from '@/components/ImageCarousel';
 import RefAwareActionButtons from '@/components/RefAwareActionButtons';
 import PositionCounter from '@/components/PositionCounter';
 import SecuritySection from '@/components/SecuritySection';
+<<<<<<< HEAD
+=======
+import SilverPlusCounter from '@/components/SilverPlusCounter';
+>>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
 import Footer from '@/components/Footer';
 
 const Index: React.FC = () => {
@@ -20,6 +24,10 @@ const Index: React.FC = () => {
       <VideoWithEmbed className="-mt-4" />
       <ProfileVideoSection className="-mt-4" />
       <ImageCarousel className="-mt-4" />
+<<<<<<< HEAD
+=======
+      <SilverPlusCounter className="-mt-4" />
+>>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
       <RefAwareActionButtons className="-mt-4" />
       <PositionCounter className="-mt-4" />
       <SecuritySection className="-mt-4" />
