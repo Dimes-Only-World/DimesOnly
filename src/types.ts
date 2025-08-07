@@ -1046,13 +1046,6 @@ export type Database = {
           phone_number: string | null;
           agreement_signed: boolean | null;
           notarization_completed: boolean | null;
-<<<<<<< HEAD
-=======
-          silver_plus_active: boolean | null;
-          silver_plus_purchased_at: string | null;
-          silver_plus_payment_id: string | null;
-          silver_plus_membership_number: number | null;
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
         };
         Insert: {
           about_me?: string | null;
@@ -1147,13 +1140,6 @@ export type Database = {
           phone_number?: string | null;
           agreement_signed?: boolean | null;
           notarization_completed?: boolean | null;
-<<<<<<< HEAD
-=======
-          silver_plus_active?: boolean | null;
-          silver_plus_purchased_at?: string | null;
-          silver_plus_payment_id?: string | null;
-          silver_plus_membership_number?: number | null;
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
         };
         Relationships: [];
       };

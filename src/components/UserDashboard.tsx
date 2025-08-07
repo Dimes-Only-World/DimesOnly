@@ -26,10 +26,6 @@ import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserJackpotTab from "./UserJackpotTab";
 import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
-<<<<<<< HEAD
-=======
-import SilverPlusMembership from "./SilverPlusMembership";
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -354,17 +350,6 @@ const UserDashboard: React.FC = () => {
             />
           </Card>
 
-<<<<<<< HEAD
-=======
-          {/* Silver Plus Membership - for males and normal females */}
-          <div className="my-6">
-            <SilverPlusMembership 
-              userData={userData} 
-              onMembershipUpdate={updateUserData}
-            />
-          </div>
-
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
           {/* Universal Upgrade Membership Button – appears below banner for all users */}
           <div className="my-6 flex justify-center">
             <Button

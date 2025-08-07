@@ -309,22 +309,6 @@ export const Register: React.FC = () => {
       // Hash password
       const passwordHash = await bcrypt.hash(formData.password, 10);
 
-<<<<<<< HEAD
-=======
-      // Determine membership tier based on user type
-      let membershipTier = "standard";
-      let membershipType = "Free";
-      
-      // Set membership tier for males and normal females to "free"
-      if (formData.gender === "male" || (formData.gender === "female" && formData.userType === "normal")) {
-        membershipTier = "free";
-        membershipType = "Free";
-      } else if (formData.userType === "stripper" || formData.userType === "exotic") {
-        membershipTier = "diamond";
-        membershipType = "Diamond";
-      }
-
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
       // Create user record with auth user ID
       const { data: newUser, error: createError } = await supabaseAdmin
         .from("users")
@@ -348,11 +332,6 @@ export const Register: React.FC = () => {
             profile_photo: profilePhotoUrl,
             banner_photo: bannerPhotoUrl,
             front_page_photo: frontPagePhotoUrl,
-<<<<<<< HEAD
-=======
-            membership_tier: membershipTier,
-            membership_type: membershipType,
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -370,21 +349,8 @@ export const Register: React.FC = () => {
           ? formData.userType
           : "normal";
 
-<<<<<<< HEAD
         const membershipTypeForLimit =
           userTypeInserted === "normal" ? "silver" : "diamond";
-=======
-        let membershipTypeForLimit = "silver";
-        
-        // Update membership limits based on user type
-        if (formData.gender === "male") {
-          membershipTypeForLimit = "silver_plus";
-        } else if (userTypeInserted === "normal") {
-          membershipTypeForLimit = "silver";
-        } else if (userTypeInserted === "stripper" || userTypeInserted === "exotic") {
-          membershipTypeForLimit = "diamond";
-        }
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
 
         await supabaseAdmin.rpc("increment_membership_count", {
           membership_type_param: membershipTypeForLimit,
