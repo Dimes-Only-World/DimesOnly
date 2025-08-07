@@ -52,10 +52,7 @@ function AppContent() {
       <Route path="/tip-girls" element={<TipGirls />} />
       <Route path="/upgrade" element={<Upgrade />} />
       <Route path="/upgrade-diamond" element={<UpgradeDiamondPage />} />
-<<<<<<< HEAD
-=======
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
->>>>>>> a047ae6 (feat: Add Silver+ membership with real-time counter and fix user eligibility)
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
