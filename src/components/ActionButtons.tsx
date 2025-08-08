@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 const ActionButtons: React.FC = () => {
   const handleStartFree = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref') || 'default';
+    const ref = urlParams.get('ref') || 'The Company';
     window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
   };
 
