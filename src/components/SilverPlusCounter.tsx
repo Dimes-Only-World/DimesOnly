@@ -130,11 +130,12 @@ const SilverPlusCounter: React.FC = () => {
         <div className="mt-6 text-left w-full max-w-md mx-auto">
           <h4 className="font-semibold text-blue-700 mb-2">Silver Plus Referral & Compensation</h4>
           <ul className="list-disc ml-6 text-sm text-blue-800 space-y-1">
-            <li>Earn <b>30%</b> of all Silver Plus memberships sold through your link.</li>
-            <li>Earn <b>20%</b> override on all free users who join under your link in Phase 2.</li>
-            <li>Earn <b>40%</b> of tips designated to you through your link.</li>
-            <li>Earn <b>20%</b> of tips if designated to you through someone else's link.</li>
-            <li>Earn <b>20%</b> of tips if they choose you to tip.</li>
+            <li>One Year of Flame Flix Subscription in Phase 6</li>
+            <li><b>10%</b> discount site wide forever from all Dimes Only related products and serices.</li>
+            <li>Get Overrides from Strippers and Exotics</li>
+            <li>Earn <b>20%</b> of tips from all your strippers & exotics.</li>
+            <li>Earn <b>10%</b> override from your referrals' purchases of all products & services</li>
+            <li>View nude photos & videos from strippers & exotics</li>
           </ul>
         </div>
 
