@@ -37,7 +37,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
         
         if (error) throw error;
         
-        if (data && data.length > 0) {
+        if (data && Array.isArray(data) && data.length > 0) {
           const counterInfo = data[0];
           setAvailability({
             available: counterInfo.available,
@@ -55,8 +55,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
   }, []);
 
   // Check if user is eligible for Silver Plus (males and normal females)
-  const isEligible = userData.gender === "male" || 
-    (userData.gender === "female" && (userData.user_type === "normal" || userData.userType === "normal"));
+  const isEligible = userData.gender === "male" || (userData.gender === "female" && userData.user_type === "normal");
 
   // Check if user already has Silver Plus
   const hasSilverPlus = userData.silver_plus_active === true;
@@ -125,6 +124,57 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
     return null; // Don't show for strippers/exotics
   }
 
+  // If all lifetime memberships are sold out, show subscription options
+  if (availability && !availability.available) {
+    return (
+      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <CardHeader className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Crown className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-purple-800">Silver Plus Subscription</CardTitle>
+          </div>
+          <Badge variant="secondary" className="bg-purple-600 text-white">
+            Now Available: Annual or Monthly
+          </Badge>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center text-center">
+          <p className="text-purple-700 mb-4">
+            All 3,000 lifetime Silver Plus memberships have been claimed.<br />
+            You can now join as a Silver Plus subscriber!
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm w-full max-w-md mx-auto">
+            <div className="flex flex-col items-center p-4 border rounded-lg bg-white/80">
+              <span className="font-bold text-lg text-purple-700 mb-1">Annual</span>
+              <span className="text-2xl font-bold text-purple-800 mb-1">$39.99/year</span>
+              <span className="text-xs text-gray-500">Billed yearly, cancel anytime</span>
+            </div>
+            <div className="flex flex-col items-center p-4 border rounded-lg bg-white/80">
+              <span className="font-bold text-lg text-purple-700 mb-1">Monthly</span>
+              <span className="text-2xl font-bold text-purple-800 mb-1">$4.99/month</span>
+              <span className="text-xs text-gray-500">Billed monthly, cancel anytime</span>
+            </div>
+          </div>
+          <div className="w-full flex flex-col gap-2 max-w-xs">
+            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold px-8 py-3 text-lg shadow-lg w-full rounded-full mb-2" disabled>
+              Subscribe (Coming Soon)
+            </Button>
+            <span className="text-xs text-gray-400">Subscription payments will be available soon.</span>
+          </div>
+          <div className="mt-6 text-left w-full max-w-md mx-auto">
+            <h4 className="font-semibold text-purple-700 mb-2">Silver Plus Referral & Compensation</h4>
+            <ul className="list-disc ml-6 text-sm text-purple-800 space-y-1">
+              <li>Earn <b>30%</b> of all Silver Plus subscriptions/memberships sold through your link.</li>
+              <li>Earn <b>20%</b> override on all free users who join under your link in Phase 2.</li>
+              <li>Earn <b>40%</b> of tips designated to you through your link.</li>
+              <li>Earn <b>20%</b> of tips if designated to you through someone else's link.</li>
+              <li>Earn <b>20%</b> of tips if they choose you to tip.</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (hasSilverPlus) {
     return (
       <Card className="bg-gradient-to-r from-slate-100 to-slate-200 border-slate-300">
@@ -171,36 +221,36 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
           Limited Time: Only {availability?.remaining.toLocaleString() || '3,000'} Available
         </Badge>
       </CardHeader>
-      <CardContent className="text-center">
+      <CardContent className="flex flex-col items-center text-center">
         <p className="text-blue-700 mb-4">
           Join the exclusive Silver Plus membership for a one-time fee and unlock premium features for life!
         </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-sm w-full max-w-md mx-auto">
+          <div className="flex items-center gap-2 justify-center">
             <Star className="w-4 h-4 text-blue-600" />
             <span>Lifetime Access</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-center">
             <Users className="w-4 h-4 text-blue-600" />
             <span>Exclusive Content</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-center">
             <Zap className="w-4 h-4 text-blue-600" />
             <span>Priority Support</span>
           </div>
         </div>
-
-        <Button
-          onClick={handleGetSilverPlus}
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
-        >
-          {loading ? "Checking Availability..." : "Get Silver Plus Membership"}
-        </Button>
+        <div className="w-full flex justify-center">
+          <Button
+            onClick={handleGetSilverPlus}
+            disabled={loading}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg w-full max-w-xs rounded-full"
+          >
+            {loading ? "Checking Availability..." : "Get Silver Plus Membership"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-export default SilverPlusMembership; 
+export default SilverPlusMembership;

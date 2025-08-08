@@ -14,8 +14,13 @@ import { Tables } from "@/types";
 import ReferrerInfo from "./ReferrerInfo";
 import { Button } from "@/components/ui/button";
 import { useMobileLayout } from "@/hooks/use-mobile";
+import SilverPlusCounter from "./SilverPlusCounter";
+import SilverPlusMembership from "./SilverPlusMembership";
 
-type UserData = Tables<"users">;
+type UserData = Tables<"users"> & {
+  diamond_plus_active?: boolean;
+  silver_plus_active?: boolean;
+};
 
 interface ProfileSidebarProps {
   userData: UserData;
@@ -50,7 +55,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   const getMembershipBadge = () => {
-    // Check for Diamond Plus first
+    // Diamond Plus always takes priority
     if (
       userData.diamond_plus_active ||
       userData.membership_tier === "diamond_plus"
@@ -63,9 +68,18 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       );
     }
 
-    // Check for membership_tier first, then fall back to user_type logic
-    const membershipTier = userData.membership_tier || userData.membership_type;
+    // Silver Plus Member
+    if (userData.silver_plus_active) {
+      return (
+        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 font-bold">
+          <Award className="w-3 h-3 mr-1" />
+          Silver Plus Member
+        </Badge>
+      );
+    }
 
+    // Membership tier logic
+    const membershipTier = userData.membership_tier || userData.membership_type;
     if (membershipTier) {
       switch (membershipTier.toLowerCase()) {
         case "diamond":
@@ -86,7 +100,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
           return (
             <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
               <Award className="w-3 h-3 mr-1" />
-              Silver Member
+              Normal Member
             </Badge>
           );
         case "elite":
@@ -101,7 +115,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       }
     }
 
-    // Fall back to user_type logic for strippers/exotics
+    // Exotic/Stripper fallback
     if (isExoticOrDancer) {
       return (
         <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
@@ -111,10 +125,11 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       );
     }
 
+    // Default: Normal Member for new users
     return (
       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
         <User className="w-3 h-3 mr-1" />
-        Silver Member
+        Normal Member
       </Badge>
     );
   };
@@ -127,8 +142,50 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     return num.toFixed(decimals);
   };
 
+  // Determine Silver Plus eligibility
+  const isSilverPlusEligible =
+    (userData.gender === "male" ||
+      (userData.gender === "female" && userData.user_type === "normal")) &&
+    !userData.silver_plus_active &&
+    !userData.diamond_plus_active &&
+    userData.membership_tier !== "diamond_plus";
+
   return (
     <div className="space-y-6">
+      {/* Silver Plus Counter & Upgrade Option for eligible users */}
+      {isSilverPlusEligible && (
+        <div className="space-y-2">
+          <SilverPlusCounter />
+          <SilverPlusMembership userData={userData} />
+          {/* Compensation/Referral Info for dashboard/profile */}
+          <div className="mt-4 text-left w-full max-w-md mx-auto">
+            <h4 className="font-semibold text-blue-700 mb-2">
+              Silver Plus Referral & Compensation
+            </h4>
+            <ul className="list-disc ml-6 text-sm text-blue-800 space-y-1">
+              <li>
+                Earn <b>30%</b> of all Silver Plus memberships sold through your
+                link.
+              </li>
+              <li>
+                Earn <b>20%</b> override on all free users who join under your
+                link in Phase 2.
+              </li>
+              <li>
+                Earn <b>40%</b> of tips designated to you through your link.
+              </li>
+              <li>
+                Earn <b>20%</b> of tips if designated to you through someone
+                else's link.
+              </li>
+              <li>
+                Earn <b>20%</b> of tips if they choose you to tip.
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Referrer Information */}
       {userData.referred_by && (
         <ReferrerInfo referredBy={userData.referred_by} />

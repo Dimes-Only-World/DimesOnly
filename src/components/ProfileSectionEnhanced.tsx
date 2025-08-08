@@ -9,6 +9,64 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Edit, Save, X, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import SilverPlusCounter from "./SilverPlusCounter";
+import SilverPlusMembership from "./SilverPlusMembership";
+import { Tables } from "@/types";
+
+// Convert local UserData to Tables<"users"> shape for SilverPlusMembership
+function toTablesUser(userData: any): Tables<"users"> {
+  return {
+    id: userData.id,
+    username: userData.username,
+    email: userData.email,
+    first_name: userData.first_name ?? null,
+    last_name: userData.last_name ?? null,
+    bio: userData.bio ?? null,
+    profile_photo: userData.profile_photo ?? null,
+    banner_photo: userData.banner_photo ?? null,
+    user_type: userData.user_type ?? null,
+    gender: userData.gender ?? null,
+    mobile_number: userData.mobile_number ?? null,
+    created_at: userData.created_at ?? null,
+    updated_at: userData.updated_at ?? null,
+    description: userData.description ?? null,
+    occupation: userData.occupation ?? null,
+    about_me: userData.about_me ?? null,
+    membership_type: userData.membership_type ?? null,
+    referred_by: userData.referred_by ?? null,
+    diamond_plus_active: userData.diamond_plus_active ?? null,
+    address: userData.address ?? null,
+    city: userData.city ?? null,
+    front_page_photo: userData.front_page_photo ?? null,
+    hash_type: userData.hash_type ?? null,
+    is_ranked: userData.is_ranked ?? null,
+    lottery_tickets: userData.lottery_tickets ?? null,
+    membership_tier: userData.membership_tier ?? null,
+    overrides: userData.overrides ?? null,
+    password_hash: userData.password_hash ?? '',
+    paypal_email: userData.paypal_email ?? null,
+    rank_number: userData.rank_number ?? null,
+    referral_fees: userData.referral_fees ?? null,
+    referred_by_photo: userData.referred_by_photo ?? null,
+    register_order: userData.register_order ?? null,
+    state: userData.state ?? null,
+    tips_earned: userData.tips_earned ?? null,
+    user_rank: userData.user_rank ?? null,
+    weekly_earnings: userData.weekly_earnings ?? null,
+    weekly_hours: userData.weekly_hours ?? null,
+    zip: userData.zip ?? null,
+    diamond_plus_signed_at: userData.diamond_plus_signed_at ?? null,
+    diamond_plus_payment_id: userData.diamond_plus_payment_id ?? null,
+    membership_count_position: userData.membership_count_position ?? null,
+    phone_number: userData.phone_number ?? null,
+    agreement_signed: userData.agreement_signed ?? null,
+    notarization_completed: userData.notarization_completed ?? null,
+    silver_plus_active: userData.silver_plus_active ?? null,
+    silver_plus_joined_at: userData.silver_plus_joined_at ?? null,
+    silver_plus_payment_id: userData.silver_plus_payment_id ?? null,
+    silver_plus_membership_number: userData.silver_plus_membership_number ?? null
+  };
+}
 
 interface UserData {
   id: string;
@@ -29,6 +87,9 @@ interface UserData {
   about_me?: string;
   membership_type?: string;
   referred_by?: string;
+  diamond_plus_active?: boolean; // For badge logic
+  silver_plus_active?: boolean; // For Silver Plus logic
+  // Optionally add other Silver Plus fields if needed
 }
 
 interface ProfileSectionProps {
@@ -99,33 +160,52 @@ const ProfileSectionEnhanced: React.FC<ProfileSectionProps> = ({ userData, setUs
     }
   };
 
+  // Determine Silver Plus eligibility
+  const isSilverPlusEligible =
+    (userData?.gender === "male" ||
+      (userData?.gender === "female" && userData?.user_type === "normal")) &&
+    !userData?.silver_plus_active &&
+    !userData?.diamond_plus_active &&
+    userData?.membership_type !== "diamond_plus";
+
+  // Determine badge label
+  let badgeLabel = "";
+  if (userData.silver_plus_active) {
+    badgeLabel = "Silver Plus Member";
+  } else if (userData.diamond_plus_active) {
+    badgeLabel = "Diamond Plus Member";
+  } else {
+    badgeLabel = "Free Member";
+  }
+
   if (!userData) return null;
 
   return (
     <div className="space-y-6">
       <Card className="bg-white/10 backdrop-blur border-white/20">
         <CardContent className="p-0">
-          <div className="relative h-48 rounded-t-lg overflow-hidden">
-            <img src={editData?.banner_photo || userData.banner_photo} alt="Banner" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-              <label className="cursor-pointer">
-                <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" />
-                <Button type="button" className="bg-white/20 backdrop-blur hover:bg-white/30">
-                  <Camera className="w-4 h-4 mr-2" />Change Banner
-                </Button>
-              </label>
-            </div>
+          {/* Upgrade Membership Button */}
+          <div className="flex justify-center py-4">
+            <Button className="bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold px-8 py-2 rounded-full text-lg shadow-lg">
+              Upgrade Membership
+            </Button>
           </div>
+          {/* Silver Plus Counter & Upgrade Option for eligible users (moved below Upgrade button) */}
+          {isSilverPlusEligible && (
+            <div className="space-y-2 mt-2">
+              <SilverPlusCounter />
+              <SilverPlusMembership userData={toTablesUser(userData)} />
+            </div>
+          )}
         </CardContent>
       </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-white/10 backdrop-blur border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Camera className="w-5 h-5" />Profile Picture
-            </CardTitle>
-          </CardHeader>
           <CardContent className="text-center space-y-4">
+            <div className="flex flex-col items-center gap-2">
+              <Badge className="text-xs px-3 py-1" variant="secondary">{badgeLabel}</Badge>
+              <div className="text-gray-400 text-xs">{userData.user_type === "normal" ? "Normal Member" : userData.user_type?.charAt(0).toUpperCase() + userData.user_type?.slice(1)}</div>
+            </div>
             <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white/30">
               <img src={editData?.profile_photo || userData.profile_photo} alt="Profile" className="w-full h-full object-cover" />
             </div>
@@ -145,10 +225,6 @@ const ProfileSectionEnhanced: React.FC<ProfileSectionProps> = ({ userData, setUs
             {userData.occupation && <p className="text-gray-300 text-sm">Occupation: {userData.occupation}</p>}
             {userData.about_me && <p className="text-white text-sm">{userData.about_me}</p>}
             <div className="space-y-2">
-              <Badge className="bg-purple-600 text-white">
-                <Crown className="w-3 h-3 mr-1" />
-                {userData.membership_type || 'Free'}
-              </Badge>
               <Button onClick={() => navigate('/upgrade')} className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700">
                 UPGRADE
               </Button>

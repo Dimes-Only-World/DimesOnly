@@ -54,7 +54,7 @@ const SilverPlusCounter: React.FC = () => {
         return;
       }
 
-      if (data && data.length > 0) {
+      if (data && Array.isArray(data) && data.length > 0) {
         const counterInfo = data[0];
         setCounterData({
           current_count: counterInfo.current_count,
@@ -126,6 +126,18 @@ const SilverPlusCounter: React.FC = () => {
           <span>{counterData.current_count.toLocaleString()} members joined</span>
         </div>
 
+        {/* Compensation/Referral Info */}
+        <div className="mt-6 text-left w-full max-w-md mx-auto">
+          <h4 className="font-semibold text-blue-700 mb-2">Silver Plus Referral & Compensation</h4>
+          <ul className="list-disc ml-6 text-sm text-blue-800 space-y-1">
+            <li>Earn <b>30%</b> of all Silver Plus memberships sold through your link.</li>
+            <li>Earn <b>20%</b> override on all free users who join under your link in Phase 2.</li>
+            <li>Earn <b>40%</b> of tips designated to you through your link.</li>
+            <li>Earn <b>20%</b> of tips if designated to you through someone else's link.</li>
+            <li>Earn <b>20%</b> of tips if they choose you to tip.</li>
+          </ul>
+        </div>
+
         {!counterData.available && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-700 text-sm font-medium">
@@ -139,4 +151,4 @@ const SilverPlusCounter: React.FC = () => {
   );
 };
 
-export default SilverPlusCounter; 
+export default SilverPlusCounter;

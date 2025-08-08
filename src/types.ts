@@ -1046,6 +1046,10 @@ export type Database = {
           phone_number: string | null;
           agreement_signed: boolean | null;
           notarization_completed: boolean | null;
+          silver_plus_active: boolean | null;
+          silver_plus_joined_at: string | null;
+          silver_plus_payment_id: string | null;
+          silver_plus_membership_number: number | null;
         };
         Insert: {
           about_me?: string | null;
@@ -1093,6 +1097,10 @@ export type Database = {
           phone_number?: string | null;
           agreement_signed?: boolean | null;
           notarization_completed?: boolean | null;
+          silver_plus_active?: boolean | null;
+          silver_plus_joined_at?: string | null;
+          silver_plus_payment_id?: string | null;
+          silver_plus_membership_number?: number | null;
         };
         Update: {
           about_me?: string | null;
@@ -1140,6 +1148,10 @@ export type Database = {
           phone_number?: string | null;
           agreement_signed?: boolean | null;
           notarization_completed?: boolean | null;
+          silver_plus_active?: boolean | null;
+          silver_plus_joined_at?: string | null;
+          silver_plus_payment_id?: string | null;
+          silver_plus_membership_number?: number | null;
         };
         Relationships: [];
       };
@@ -1219,32 +1231,8 @@ export type Database = {
 
 type DefaultSchema = Database[Extract<keyof Database, "public">];
 
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
-  }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R;
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R;
-    }
-    ? R
-    : never
-  : never;
+// Simplified Tables type for default schema usage
+export type Tables<TableName extends keyof DefaultSchema["Tables"]> = DefaultSchema["Tables"][TableName]["Row"];
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
