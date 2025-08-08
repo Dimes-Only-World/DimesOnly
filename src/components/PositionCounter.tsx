@@ -57,10 +57,10 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
               EXOTIC FEMALES AND STRIPPERS
             </p>
             <p className="text-white text-base md:text-lg font-bold">
-              FREE DIAMOND MEMBERSHIPS
+              DIAMOND PLUS MEMBERSHIPS
             </p>
             <p className="text-white text-base md:text-lg font-bold">
-              POSITIONS LEFT: {exoticCount}
+              LIFETIME POSITIONS LEFT: {exoticCount}
             </p>
           </div>
 
@@ -69,10 +69,10 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
               NORMAL FEMALES AND MALE
             </p>
             <p className="text-white text-base md:text-lg font-bold">
-              FREE SILVER MEMBERSHIP
+              SILVER PLUS MEMBERSHIP
             </p>
             <p className="text-white text-base md:text-lg font-bold">
-              POSITIONS LEFT: {generalCount}
+              LIFETIME POSITIONS LEFT: {generalCount}
             </p>
           </div>
         </div>
