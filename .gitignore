@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .cursorrules
 .env
+.# package-lock.json is ignored to avoid Vercel build errors
+package-lock.json
 
 # Editor directories and files
 .vscode/*

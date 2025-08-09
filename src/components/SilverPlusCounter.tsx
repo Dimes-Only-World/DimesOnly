@@ -94,61 +94,36 @@ const SilverPlusCounter: React.FC = () => {
   const percentage = (counterData.current_count / counterData.max_count) * 100;
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-      <CardHeader className="text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Crown className="w-6 h-6 text-blue-600" />
-          <CardTitle className="text-blue-800">Silver Plus Memberships</CardTitle>
-        </div>
-        <Badge variant="secondary" className="bg-blue-600 text-white">
-          Limited Time Offer
-        </Badge>
-      </CardHeader>
-      <CardContent className="text-center">
-        <div className="mb-4">
-          <div className="text-3xl font-bold text-blue-800 mb-2">
-            {remaining.toLocaleString()} of {counterData.max_count.toLocaleString()}
-          </div>
-          <p className="text-blue-700 text-sm">
-            Silver Plus memberships remaining
+    <div className="w-full">
+      <div className="text-center mb-2">
+        <p className="text-2xl font-bold text-blue-700">
+          {remaining.toLocaleString()}
+          <span className="text-base font-normal text-blue-600"> of {counterData.max_count.toLocaleString()}</span>
+        </p>
+        <p className="text-blue-700 text-sm">
+          Silver Plus memberships remaining
+        </p>
+      </div>
+      {/* Progress bar */}
+      <div className="w-full bg-blue-200 rounded-full h-2.5 mb-2">
+        <div 
+          className="bg-gradient-to-r from-blue-600 to-purple-600 h-2.5 rounded-full transition-all duration-300"
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+      <div className="flex items-center justify-center gap-2 text-xs text-blue-700">
+        <Users className="w-3.5 h-3.5" />
+        <span>{counterData.current_count.toLocaleString()} members joined</span>
+      </div>
+      {!counterData.available && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700 text-sm font-medium">
+            All Silver Plus memberships have been claimed! 
+            It will become an annual subscription soon.
           </p>
         </div>
-        {/* Progress bar */}
-        <div className="w-full bg-blue-200 rounded-full h-3 mb-4">
-          <div 
-            className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-300"
-            style={{ width: `${percentage}%` }}
-          ></div>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 text-sm text-blue-700">
-          <Users className="w-4 h-4" />
-          <span>{counterData.current_count.toLocaleString()} members joined</span>
-        </div>
-
-        {/* Compensation/Referral Info */}
-        <div className="mt-6 text-left w-full max-w-md mx-auto">
-          <h4 className="font-semibold text-blue-700 mb-2">Silver Plus Referral & Compensation</h4>
-          <ul className="list-disc ml-6 text-sm text-blue-800 space-y-1">
-            <li>One Year of Flame Flix Subscription in Phase 6</li>
-            <li><b>10%</b> discount site wide forever from all Dimes Only related products and serices.</li>
-            <li>Get Overrides from Strippers and Exotics</li>
-            <li>Earn <b>20%</b> of tips from all your strippers & exotics.</li>
-            <li>Earn <b>10%</b> override from your referrals' purchases of all products & services</li>
-            <li>View nude photos & videos from strippers & exotics</li>
-          </ul>
-        </div>
-
-        {!counterData.available && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">
-              All Silver Plus memberships have been claimed! 
-              It will become an annual subscription soon.
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
 

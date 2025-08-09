@@ -328,7 +328,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                 label="User Type"
                 fieldName="user_type"
                 options={[
-                  { value: "normal", label: "Normal" },
+                  { value: "normal", label: "Normal female" },
                   { value: "exotic", label: "Exotic" },
                   { value: "stripper", label: "Stripper" },
                 ]}
@@ -407,7 +407,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                   ? [{ value: "male", label: "Male" }]
                   : userData.gender === "female"
                   ? [
-                      { value: "normal", label: "Normal" },
+                      { value: "normal", label: "Normal female" },
                       { value: "exotic", label: "Exotic" },
                       { value: "stripper", label: "Stripper" },
                     ]

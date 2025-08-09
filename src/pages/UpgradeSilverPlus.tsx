@@ -106,7 +106,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       const paymentRecord = {
         id: paymentResponse.paymentId, // Use the generated UUID as the primary key
         user_id: effectiveUserId,
-        amount: 49.99,
+        amount: 74.99,
         currency: 'USD',
         payment_type: 'silver_plus_upgrade',
         payment_status: 'completed',
@@ -201,7 +201,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
               
               <div className="bg-gray-50 p-6 rounded-lg border">
                 <div className="text-center mb-6">
-                  <div className="text-4xl font-bold text-blue-600">$49.99</div>
+                  <div className="text-4xl font-bold text-blue-600">$74.99</div>
                   <p className="text-muted-foreground">One-time payment</p>
                 </div>
                 

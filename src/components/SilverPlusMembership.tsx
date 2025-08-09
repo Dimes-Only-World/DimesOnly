@@ -205,7 +205,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
               <Zap className="w-4 h-4 text-slate-600" />
               <span>Priority Support</span>
             </div>
-          </div>
+          </div>e
         </CardContent>
       </Card>
     );
@@ -218,7 +218,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
           <Crown className="w-6 h-6 text-blue-600" />
           <CardTitle className="text-blue-800">Get Silver Plus Membership</CardTitle>
         </div>
-        <Badge variant="secondary" className="bg-blue-600 text-white">
+        <Badge variant="secondary" className="bg-blue-600 hover:bg-blue-600 text-white">
           Limited Time: Only {availability?.remaining.toLocaleString() || '3,000'} Available
         </Badge>
       </CardHeader>

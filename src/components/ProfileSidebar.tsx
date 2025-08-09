@@ -100,7 +100,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
           return (
             <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
               <Award className="w-3 h-3 mr-1" />
-              Normal Member
+              Free member
             </Badge>
           );
         case "elite":
@@ -129,7 +129,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     return (
       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
         <User className="w-3 h-3 mr-1" />
-        Normal Member
+        Free member
       </Badge>
     );
   };
@@ -152,39 +152,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Silver Plus Counter & Upgrade Option for eligible users */}
-      {isSilverPlusEligible && (
-        <div className="space-y-2">
-          <SilverPlusCounter />
-          <SilverPlusMembership userData={userData} />
-          {/* Compensation/Referral Info for dashboard/profile */}
-          <div className="mt-4 text-left w-full max-w-md mx-auto">
-            <h4 className="font-semibold text-blue-700 mb-2">
-              Silver Plus Referral & Compensation
-            </h4>
-            <ul className="list-disc ml-6 text-sm text-blue-800 space-y-1">
-              <li>
-                Earn <b>30%</b> of all Silver Plus memberships sold through your
-                link.
-              </li>
-              <li>
-                Earn <b>20%</b> override on all free users who join under your
-                link in Phase 2.
-              </li>
-              <li>
-                Earn <b>40%</b> of tips designated to you through your link.
-              </li>
-              <li>
-                Earn <b>20%</b> of tips if designated to you through someone
-                else's link.
-              </li>
-              <li>
-                Earn <b>20%</b> of tips if they choose you to tip.
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+      {/* Silver Plus section removed as per design update */}
 
       {/* Referrer Information */}
       {userData.referred_by && (
@@ -318,7 +286,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">User Type:</span>
               <span className="font-medium text-gray-900 capitalize">
-                {userData.user_type || "Normal"}
+                {userData.user_type || "male"}
               </span>
             </div>
             <div className="flex justify-between items-center">

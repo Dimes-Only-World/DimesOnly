@@ -204,7 +204,7 @@ const ProfileSectionEnhanced: React.FC<ProfileSectionProps> = ({ userData, setUs
           <CardContent className="text-center space-y-4">
             <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs px-3 py-1" variant="secondary">{badgeLabel}</Badge>
-              <div className="text-gray-400 text-xs">{userData.user_type === "normal" ? "Normal Member" : userData.user_type?.charAt(0).toUpperCase() + userData.user_type?.slice(1)}</div>
+              <div className="text-gray-400 text-xs">{userData.user_type === "normal" ? "Free member" : userData.user_type?.charAt(0).toUpperCase() + userData.user_type?.slice(1)}</div>
             </div>
             <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white/30">
               <img src={editData?.profile_photo || userData.profile_photo} alt="Profile" className="w-full h-full object-cover" />

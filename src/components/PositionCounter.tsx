@@ -5,17 +5,57 @@ interface PositionCounterProps {
   className?: string;
 }
 
+interface CounterData {
+  current_count: number;
+  max_count: number;
+  available: boolean;
+  remaining: number;
+}
+
 const PositionCounter: React.FC<PositionCounterProps> = ({
   className = "",
 }) => {
   const [exoticCount, setExoticCount] = useState(1000);
-  const [generalCount, setGeneralCount] = useState(3000);
+  const [silverPlusData, setSilverPlusData] = useState<CounterData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Initial fetch
     fetchCounts();
+
+    // Set up real-time subscription for Silver Plus counter
+    const subscription = supabase
+      .channel('silver_plus_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+          filter: 'silver_plus_active=eq.true'
+        },
+        () => {
+          // When a user's silver_plus_active changes, refetch the counter
+          fetchSilverPlusCounter();
+        }
+      )
+      .subscribe();
+
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
   const fetchCounts = async () => {
+    await Promise.all([
+      fetchExoticCount(),
+      fetchSilverPlusCounter()
+    ]);
+    setLoading(false);
+  };
+
+  const fetchExoticCount = async () => {
     try {
       // Query exotic/dancer users with proper count query
       const { count: exoticUsersCount, error: exoticError } = await supabase
@@ -23,21 +63,35 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
         .select("id", { count: "exact", head: true })
         .in("user_type", ["exotic", "dancer", "stripper"]);
 
-      // Query male/female users with proper count query
-      const { count: generalUsersCount, error: generalError } = await supabase
-        .from("users")
-        .select("id", { count: "exact", head: true })
-        .in("gender", ["male", "female", "normal"]);
-
       if (!exoticError && exoticUsersCount !== null) {
         setExoticCount(Math.max(0, 1000 - exoticUsersCount));
       }
-      if (!generalError && generalUsersCount !== null) {
-        setGeneralCount(Math.max(0, 3000 - generalUsersCount));
+    } catch (error) {
+      console.error("Error fetching exotic count:", error);
+    }
+  };
+
+  const fetchSilverPlusCounter = async () => {
+    try {
+      const { data, error } = await supabase
+        .rpc('check_silver_plus_availability');
+
+      if (error) {
+        console.error("Error fetching Silver Plus counter:", error);
+        return;
+      }
+
+      if (data && Array.isArray(data) && data.length > 0) {
+        const counterInfo = data[0];
+        setSilverPlusData({
+          current_count: counterInfo.current_count,
+          max_count: counterInfo.max_count,
+          available: counterInfo.available,
+          remaining: counterInfo.max_count - counterInfo.current_count
+        });
       }
     } catch (error) {
-      console.error("Error fetching counts:", error);
-      // Keep default values on error
+      console.error("Error fetching Silver Plus counter:", error);
     }
   };
 
@@ -72,7 +126,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
               SILVER PLUS MEMBERSHIP
             </p>
             <p className="text-white text-base md:text-lg font-bold">
-              LIFETIME POSITIONS LEFT: {generalCount}
+              LIFETIME POSITIONS LEFT: {loading ? '...' : (silverPlusData?.remaining ?? 'N/A')}
             </p>
           </div>
         </div>
