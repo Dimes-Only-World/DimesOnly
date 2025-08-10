@@ -162,6 +162,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showPayoutForm, setShowPayoutForm] = useState(false);
+  const [submittingPayout, setSubmittingPayout] = useState(false);
   const [payoutFormData, setPayoutFormData] = useState<PayoutFormData>({
     payoutMethod: "",
     paypalEmail: "",
@@ -183,7 +184,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     checkZipCode: "",
     checkCountry: "United States",
   });
-  const [submittingPayout, setSubmittingPayout] = useState(false);
+  const [totalReferrals, setTotalReferrals] = useState(0);
+  const [recentActivity, setRecentActivity] = useState({
+    tips: 0,
+    referrals: 0,
+    photos: 0,
+    videos: 0,
+    messages: 0,
+    events: 0,
+  });
+  const [recentEarnings, setRecentEarnings] = useState(0);
   const { toast } = useToast();
   const { user } = useAppContext();
   const { getContainerClasses, getContentClasses } = useMobileLayout();
@@ -213,11 +223,55 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     },
   });
 
+  // Calculate recent earnings (last 7 days)
+  const calculateRecentEarnings = (days: number) => {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const recentTips = tipsReceived.filter(
+      (tip) => new Date(tip.created_at) >= cutoffDate
+    );
+    const recentReferrals = referralCommissions.filter(
+      (ref) => new Date(ref.created_at) >= cutoffDate
+    );
+
+    const tipsAmount = recentTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
+    const referralAmount = recentReferrals.reduce(
+      (sum, ref) => sum + (ref.referrer_commission || 0),
+      0
+    );
+
+    return tipsAmount + referralAmount;
+  };
+
+  // Update recent earnings when tips or referrals change
+  useEffect(() => {
+    if (tipsReceived.length > 0 || referralCommissions.length > 0) {
+      setRecentEarnings(getRecentEarnings(7));
+    }
+  }, [tipsReceived, referralCommissions]);
+
   useEffect(() => {
     if (userData?.id) {
       fetchAllEarningsData();
+      fetchTotalReferrals();
     }
   }, [userData?.id]);
+
+  // Fetch total number of users referred by this user
+  const fetchTotalReferrals = async () => {
+    if (!userData?.username) return;
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("count")
+      .eq("referred_by", userData.username)
+      .single();
+
+    if (!error && data) {
+      setTotalReferrals(data.count || 0);
+    }
+  };
 
   const fetchAllEarningsData = async () => {
     if (!userData?.id || !userData?.username) {
@@ -754,7 +808,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">
-              {formatCurrency(getRecentEarnings(7))}
+              {formatCurrency(recentEarnings)}
             </div>
             <p className="text-xs text-gray-500">Recent earnings</p>
           </CardContent>
@@ -784,7 +838,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">
-              {referralCommissions.length}
+              {totalReferrals}
             </div>
             <p className="text-xs text-gray-500">Total referrals</p>
           </CardContent>

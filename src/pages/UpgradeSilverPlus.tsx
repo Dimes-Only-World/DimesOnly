@@ -3,13 +3,16 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CheckCircle, Loader2, ArrowLeft, CreditCard } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface PaymentResponse {
   success: boolean;
   paymentId: string;
+  approval_url?: string;
   error?: string;
 }
 
@@ -30,6 +33,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const userIdFromUrl = searchParams.get('user_id');
   const effectiveUserId = userId || userIdFromUrl;
   const [loading, setLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const { toast } = useToast();
 
   const handleUpgrade = async () => {
@@ -42,7 +46,18 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       return;
     }
 
+    // Validate phone number
+    if (!phoneNumber) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide your phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
+
     try {
       // 1. Check availability
       const { data: availability, error: availabilityError } = await supabase
@@ -54,92 +69,73 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
         throw new Error("No more lifetime Silver+ memberships available. It will be available as a monthly subscription soon.");
       }
 
-      // 2. Process payment (simulated for now - replace with actual payment processing)
-      const paymentResponse = await processPayment();
-      
-      if (!paymentResponse.success) {
-        throw new Error(paymentResponse.error || "Payment processing failed");
-      }
-
-      // 3. Get the next membership number
-      const { count: currentMembersCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .eq('silver_plus_active', true);
-      
-      const membershipNumber = (currentMembersCount || 0) + 1;
-
-      // 4. Update user's membership in the database
-      const updates = {
-        silver_plus_active: true,
-        silver_plus_joined_at: new Date().toISOString(),
-        silver_plus_membership_number: membershipNumber,
-        silver_plus_payment_id: paymentResponse.paymentId,
-        membership_tier: 'silver_plus',
-        membership_type: 'Silver+',
-        updated_at: new Date().toISOString()
-      };
-
-      // First try with the standard case
-      const { error: updateError } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', effectiveUserId);
-
-      // If update failed, try with RPC function as fallback
-      if (updateError) {
-        console.warn("Standard update failed, trying RPC fallback:", updateError);
-        const { error: rpcError } = await supabase
-          .rpc('update_user_silver_plus', {
-            user_id: effectiveUserId,
-            payment_id: paymentResponse.paymentId,
-            membership_number: membershipNumber
-          });
-        
-        if (rpcError) {
-          console.error("RPC update error:", rpcError);
-          throw new Error("Failed to update user membership");
-        }
-      }
-
-      // 4. Record the payment in the payments table
-      const paymentRecord = {
-        id: paymentResponse.paymentId, // Use the generated UUID as the primary key
+      // 2. Create membership upgrade record
+      const upgradePayload = {
         user_id: effectiveUserId,
-        amount: 74.99,
-        currency: 'USD',
-        payment_type: 'silver_plus_upgrade',
-        payment_status: 'completed',
-        paypal_payment_id: `pay_${paymentResponse.paymentId.substring(0, 8)}`, // Shorter ID for PayPal reference
-        platform_fee: 0, // Adjust as needed
-        created_at: new Date().toISOString()
+        upgrade_type: 'silver_plus',
+        payment_amount: 74.99,
+        payment_method: 'paypal_full',
+        installment_plan: false,
+        installment_count: 1,
+        phone_number: phoneNumber,
+        payment_status: 'pending',
+        upgrade_status: 'pending',
       };
 
-      const { error: paymentRecordError } = await supabase
-        .from('payments')
-        .insert(paymentRecord);
+      const { data: upgrade, error: upgradeError } = await supabase
+        .from("membership_upgrades")
+        .insert(upgradePayload)
+        .select()
+        .single();
 
-      if (paymentRecordError) {
-        console.error("Payment record error:", paymentRecordError);
-        // Don't fail the upgrade if payment recording fails
-      }
+      if (upgradeError) throw upgradeError;
 
-      // 5. Update user context/state
-      if (onMembershipUpdate) {
-        onMembershipUpdate({
-          silver_plus_active: true,
-          silver_plus_joined_at: new Date().toISOString(),
-          membership_tier: 'silver_plus'
-        });
-      }
+      // 3. Update phone number on user profile
+      await supabase
+        .from("users")
+        .update({ phone_number: phoneNumber })
+        .eq("id", effectiveUserId);
 
-      toast({ 
-        title: "Success!", 
-        description: "You've been upgraded to Silver+ membership!" 
+      // 4. Create PayPal order via edge function
+      const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
+
+      const { data: orderData, error: orderError } = await supabase.functions.invoke(
+        "create-paypal-order",
+        {
+          body: {
+            payment_type: "membership",
+            membership_upgrade_id: upgrade.id,
+            user_id: effectiveUserId,
+            amount: 74.99,
+            installment_number: 1,
+            return_url: returnUrl,
+            cancel_url: cancelUrl,
+            description: "Silver+ Lifetime Membership - One-time Payment",
+          },
+        }
+      );
+
+      if (orderError) throw orderError;
+      if (!orderData?.success) throw new Error("Failed to create PayPal order");
+
+      toast({
+        title: "Redirecting to PayPal",
+        description: "Please complete your payment...",
       });
-      
-      // 6. Redirect to dashboard after a short delay
-      setTimeout(() => navigate('/dashboard'), 2000);
+
+      // Store upgrade info in session storage for the return page
+      sessionStorage.setItem(
+        "membership_upgrade",
+        JSON.stringify({
+          upgrade_id: upgrade.id,
+          payment_option: "full",
+          amount: 74.99,
+        })
+      );
+
+      // Redirect to PayPal
+      window.location.href = orderData.approval_url;
       
     } catch (error: any) {
       console.error("Upgrade error:", error);
@@ -151,24 +147,6 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
     } finally {
       setLoading(false);
     }
-  };
-  
-  // Simulated payment processing - replace with actual payment integration
-  const processPayment = async (): Promise<PaymentResponse> => {
-    // Generate a UUID v4
-    const generateUUID = () => {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    };
-
-    // For now, simulate a successful payment
-    return {
-      success: true,
-      paymentId: generateUUID() // Now this will be a valid UUID
-    };
   };
 
   return (
@@ -199,27 +177,53 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
                 </ul>
               </div>
               
-              <div className="bg-gray-50 p-6 rounded-lg border">
-                <div className="text-center mb-6">
+              <div className="bg-gray-50 p-6 rounded-lg border space-y-6">
+                <div className="text-center">
                   <div className="text-4xl font-bold text-blue-600">$74.99</div>
                   <p className="text-muted-foreground">One-time payment</p>
                 </div>
-                
-                <Button 
-                  className="w-full py-6 text-lg" 
-                  size="lg"
-                  onClick={handleUpgrade}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    'Complete Upgrade Now'
-                  )}
-                </Button>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Required for payment verification
+                    </p>
+                  </div>
+
+                  <Button 
+                    className="w-full py-6 text-lg" 
+                    size="lg"
+                    onClick={handleUpgrade}
+                    disabled={loading || !phoneNumber}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Pay with PayPal
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="text-center text-xs text-muted-foreground">
+                  <p>Secure payment processed by PayPal</p>
+                  <p className="mt-1">Cancel anytime</p>
+                </div>
               </div>
             </div>
           </CardContent>
