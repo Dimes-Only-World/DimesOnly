@@ -205,7 +205,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
               <Zap className="w-4 h-4 text-slate-600" />
               <span>Priority Support</span>
             </div>
-          </div>e
+          </div>
         </CardContent>
       </Card>
     );

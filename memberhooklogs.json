@@ -1,0 +1,154 @@
+[
+  {
+    "event_message": "shutdown",
+    "event_type": "Shutdown",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "f376639a-6212-451a-a063-94e0ba466985",
+    "level": "log",
+    "timestamp": 1755016649352000
+  },
+  {
+    "event_message": "shutdown",
+    "event_type": "Shutdown",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "88b90c68-8dcc-4e45-95d2-25395667b1b0",
+    "level": "log",
+    "timestamp": 1755016649059000
+  },
+  {
+    "event_message": "silver_plus activation completed successfully\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "f7513af2-ff96-4c16-8265-0c2081013747",
+    "level": "log",
+    "timestamp": 1755016455345000
+  },
+  {
+    "event_message": "Successfully updated weekly referral earnings\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "2336b528-398f-4556-9ba5-36f589ff8c2a",
+    "level": "log",
+    "timestamp": 1755016454267000
+  },
+  {
+    "event_message": "Successfully created referral commission: {\n  id: \"e54439be-a73a-4232-b0b2-68785cf0e688\",\n  user_id: \"2f772096-4d51-44ce-909d-a649ab83c86e\",\n  event_id: null,\n  paypal_order_id: \"3K7338381G903160T\",\n  paypal_payment_id: null,\n  amount: 14.67,\n  currency: \"USD\",\n  payment_type: \"referral_commission\",\n  payment_status: \"completed\",\n  referred_by: \"rinky\",\n  referrer_commission: 14.67,\n  event_host_commission: 0,\n  platform_fee: 0,\n  created_at: \"2025-08-12T16:34:12.817+00:00\",\n  updated_at: \"2025-08-12T16:34:12.817+00:00\",\n  paypal_transaction_id: null\n}\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "a87a6a6e-b0ba-4f35-a312-525e14f538b3",
+    "level": "log",
+    "timestamp": 1755016453297000
+  },
+  {
+    "event_message": "Creating referral commission of $14.673029999999999 (20% of $73.36515) for rinky\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "c072f720-ab42-486e-9932-92fba6af719c",
+    "level": "log",
+    "timestamp": 1755016452817000
+  },
+  {
+    "event_message": "User was referred by: rinky\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "793419e4-11c8-4647-acb3-9d855e785453",
+    "level": "log",
+    "timestamp": 1755016452327000
+  },
+  {
+    "event_message": "Updating user with Silver Plus details: {\n  membership_tier: \"silver_plus\",\n  updated_at: \"2025-08-12T16:34:11.636Z\",\n  silver_plus_active: true,\n  membership_type: \"silver_plus\",\n  silver_plus_payment_id: \"3K7338381G903160T\",\n  silver_plus_joined_at: \"2025-08-12T16:34:12.134Z\",\n  silver_plus_membership_number: 15\n}\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "f31b8e25-8a1a-4aa5-a239-f20792aa62b5",
+    "level": "log",
+    "timestamp": 1755016452134000
+  },
+  {
+    "event_message": "Activating membership tier 'silver_plus' for user: 82a3eec9-6f6e-4f86-9ea6-29418ed9cee5\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "660d79af-8385-4d0b-8f80-dc6cadbdaad0",
+    "level": "log",
+    "timestamp": 1755016451636000
+  },
+  {
+    "event_message": "Payment captured: 3K7338381G903160T\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "ea3e1ac8-b1ca-46d1-8257-b4b0be599774",
+    "level": "log",
+    "timestamp": 1755016451636000
+  },
+  {
+    "event_message": "Found membership upgrade: f1cbf172-4b9d-47eb-868a-1a5ff426de90\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "b8b2ea34-494e-4617-af61-17cb7bacee12",
+    "level": "log",
+    "timestamp": 1755016449884000
+  },
+  {
+    "event_message": "Processing webhook event: { eventType: \"CHECKOUT.ORDER.APPROVED\", orderId: \"3K7338381G903160T\" }\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "8965e999-801f-4f57-8003-3dc737230d57",
+    "level": "log",
+    "timestamp": 1755016449345000
+  },
+  {
+    "event_message": "Diamond Plus webhook received: {\n  event_type: \"CHECKOUT.ORDER.APPROVED\",\n  resource: { id: \"3K7338381G903160T\" }\n}\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "386ca394-1db5-4e16-b49d-fb69c714ecb9",
+    "level": "log",
+    "timestamp": 1755016449342000
+  },
+  {
+    "event_message": "Request body: {\"event_type\":\"CHECKOUT.ORDER.APPROVED\",\"resource\":{\"id\":\"3K7338381G903160T\"}}\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "99875e22-2240-424e-92bf-41fb83f24116",
+    "level": "log",
+    "timestamp": 1755016449342000
+  },
+  {
+    "event_message": "Request received: {\n  method: \"POST\",\n  url: \"http://qkcuykpndrolrewwnkwb.supabase.co/membership-webhook\",\n  headers: {\n    accept: \"*/*\",\n    \"accept-encoding\": \"gzip\",\n    \"accept-language\": \"en-US,en;q=0.9\",\n    apikey: \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs\",\n    authorization: \"Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IjQzYndjYnM4R0UzZjF1dy8iLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3FrY3V5a3BuZHJvbHJld3dua3diLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI4MmEzZWVjOS02ZjZlLTRmODYtOWVhNi0yOTQxOGVkOWNlZTUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU1MDE5ODM5LCJpYXQiOjE3NTUwMTYyMzksImVtYWlsIjoibGFzdHRlc3RAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6Imxhc3R0ZXN0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInN1YiI6IjgyYTNlZWM5LTZmNmUtNGY4Ni05ZWE2LTI5NDE4ZWQ5Y2VlNSJ9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzU1MDE2MjM5fV0sInNlc3Npb25faWQiOiIxMmJmZjM2OC0zNDY5LTQ0YTUtODQ1Ny0zOGY0NzljNjM2OGYiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.FjMSZrIOgStzenTP9aRLNEHqfKk6P_G_Rl09lkGPHt4\",\n    baggage: \"sb-request-id=01989f21-ccda-7eff-b5ab-8c2e46415d32\",\n    \"cdn-loop\": \"cloudflare; loops=1; subreqs=1\",\n    \"cf-connecting-ip\": \"169.150.197.210\",\n    \"cf-ew-via\": \"15\",\n    \"cf-ray\": \"96e160e7c299bb0f-ZRH\",\n    \"cf-visitor\": '{\"scheme\":\"https\"}',\n    \"cf-worker\": \"supabase.co\",\n    \"content-length\": \"78\",\n    \"content-type\": \"application/json\",\n    host: \"edge-runtime.supabase.com\",\n    origin: \"http://localhost:8080\",\n    priority: \"u=1, i\",\n    referer: \"http://localhost:8080/\",\n    \"sb-request-id\": \"01989f21-ccda-7eff-b5ab-8c2e46415d32\",\n    \"sec-ch-ua\": '\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"',\n    \"sec-ch-ua-mobile\": \"?0\",\n    \"sec-ch-ua-platform\": '\"Windows\"',\n    \"sec-fetch-dest\": \"empty\",\n    \"sec-fetch-mode\": \"cors\",\n    \"sec-fetch-site\": \"cross-site\",\n    \"user-agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\",\n    \"x-amzn-trace-id\": \"Root=1-689b6d01-282c34b9103cc5e2718f6b4f\",\n    \"x-client-info\": \"supabase-js-web/2.54.0\",\n    \"x-forwarded-for\": \"169.150.197.210,169.150.197.210, 13.248.118.73\",\n    \"x-forwarded-port\": \"443\",\n    \"x-forwarded-proto\": \"https\"\n  }\n}\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "c212563b-1e63-474b-befc-74587dd56686",
+    "level": "log",
+    "timestamp": 1755016449341000
+  },
+  {
+    "event_message": "Listening on http://localhost:9999/\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "8b761d1e-c9c2-48a6-b6bb-249bda580265",
+    "level": "log",
+    "timestamp": 1755016449335000
+  },
+  {
+    "event_message": "booted (time: 30ms)",
+    "event_type": "Boot",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "ed43d9ff-ec27-42c7-9a6b-f218b5eb1e34",
+    "level": "log",
+    "timestamp": 1755016449329000
+  },
+  {
+    "event_message": "Listening on http://localhost:9999/\n",
+    "event_type": "Log",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "712f03bf-f895-40a5-9d89-634f9851acce",
+    "level": "log",
+    "timestamp": 1755016449036000
+  },
+  {
+    "event_message": "booted (time: 29ms)",
+    "event_type": "Boot",
+    "function_id": "bad6c011-d51f-4cbc-b9b0-d60cba306463",
+    "id": "108e3c0e-eef6-458a-a9f3-defa396acabd",
+    "level": "log",
+    "timestamp": 1755016449031000
+  }
+]

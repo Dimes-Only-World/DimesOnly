@@ -132,7 +132,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
           payment_option: "full",
           amount: 74.99,
         })
-      );
+      ); 
 
       // Redirect to PayPal
       window.location.href = orderData.approval_url;
