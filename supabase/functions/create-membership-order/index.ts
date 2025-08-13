@@ -120,7 +120,7 @@ serve(async (req) => {
     const isInstallment = upgrade.installment_plan && installment_number > 1;
     const orderDescription = isInstallment
       ? `Diamond Plus Membership - Installment ${installment_number}/2`
-      : "Diamond Plus Membership - Full Payment ($349)";
+      : "Diamond Plus Membership - Full Payment ($349.99)";
 
     // Create PayPal order
     const orderData = {

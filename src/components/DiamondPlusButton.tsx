@@ -31,12 +31,12 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
     userData.user_type === "stripper" || userData.user_type === "exotic";
   const alreadyDiamondPlus = userData.diamond_plus_active;
 
-  // Calculate remaining spots (shared cap of 300 across stripper + exotic)
+  // Calculate remaining spots (shared cap of 1000 across stripper + exotic)
   const totalCurrentCount = membershipLimits.reduce(
     (sum, limit) => sum + limit.current_count,
     0
   );
-  const overallMaxCount = 300; // shared cap
+  const overallMaxCount = 1000; // shared cap - client requested 1000 total spots
   const spotsLeft = overallMaxCount - totalCurrentCount;
 
   // Debug logging
@@ -57,62 +57,48 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
 
   const fetchMembershipLimits = async () => {
     try {
-      console.log("Fetching membership limits for Diamond Plus...");
+      console.log("Fetching actual Diamond Plus user count...");
 
-      const { data, error } = await supabase
-        .from("membership_limits")
-        .select("*")
-        .eq("membership_type", "diamond_plus")
-        .in("user_type", ["stripper", "exotic"]);
+      // Count actual diamond plus users (same as PositionCounter)
+      const { count: diamondPlusCount, error: countError } = await supabase
+        .from("users")
+        .select("id", { count: "exact", head: true })
+        .eq("diamond_plus_active", true)
+        .in("user_type", ["exotic", "stripper"]);
 
-      console.log("Membership limits query result:", { data, error });
+      console.log("Diamond Plus user count result:", { diamondPlusCount, countError });
 
-      if (error) {
-        console.error("Error fetching membership limits:", error);
-        // If table doesn't exist, set default values
-        if (
-          error.message.includes("relation") &&
-          error.message.includes("does not exist")
-        ) {
-          console.log(
-            "membership_limits table doesn't exist, using default values"
-          );
-          setMembershipLimits([
-            {
-              membership_type: "diamond_plus",
-              user_type: "stripper",
-              current_count: 0,
-              max_count: 300,
-            } as MembershipLimits,
-            {
-              membership_type: "diamond_plus",
-              user_type: "exotic",
-              current_count: 0,
-              max_count: 300,
-            } as MembershipLimits,
-          ]);
-        } else {
-          throw error;
-        }
+      if (countError) {
+        console.error("Error fetching Diamond Plus user count:", countError);
+        // Set default values if there's any error
+        setMembershipLimits([
+          {
+            membership_type: "diamond_plus",
+            user_type: "combined",
+            current_count: 0,
+            max_count: 1000,
+          } as MembershipLimits,
+        ]);
       } else {
-        // @ts-expect-error - Supabase returns any, casting to MembershipLimits[]
-        setMembershipLimits(data as MembershipLimits[]);
+        // Use actual count from database
+        setMembershipLimits([
+          {
+            membership_type: "diamond_plus",
+            user_type: "combined",
+            current_count: diamondPlusCount || 0,
+            max_count: 1000,
+          } as MembershipLimits,
+        ]);
       }
     } catch (error) {
-      console.error("Error fetching membership limits:", error);
+      console.error("Error fetching Diamond Plus user count:", error);
       // Set default values if there's any error
       setMembershipLimits([
         {
           membership_type: "diamond_plus",
-          user_type: "stripper",
+          user_type: "combined",
           current_count: 0,
-          max_count: 300,
-        } as MembershipLimits,
-        {
-          membership_type: "diamond_plus",
-          user_type: "exotic",
-          current_count: 0,
-          max_count: 300,
+          max_count: 1000,
         } as MembershipLimits,
       ]);
     } finally {
@@ -148,7 +134,7 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-3xl font-bold">$349.00</div>
+          <div className="text-3xl font-bold">$349.99</div>
           <div className="text-right">
             <div className="text-sm font-medium">
               Only {Math.max(0, spotsLeft)} spots left!

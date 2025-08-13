@@ -204,7 +204,7 @@ const UpgradePageInner: React.FC = () => {
               <strong>Diamond Plus Membership</strong>.
             </li>
             <li>
-              Diamond Plus Membership Fee: <strong>$349.00</strong> (includes
+              Diamond Plus Membership Fee: <strong>$349.99</strong> (includes
               online notary fee) &nbsp;— one-time, non-refundable.
             </li>
             <li>
@@ -268,7 +268,7 @@ const UpgradePageInner: React.FC = () => {
           </h3>
           <p>
             This agreement must be digitally signed and notarized. Once
-            notarized and the <strong>$349</strong> payment is received, Diamond
+            notarized and the <strong>$349.99</strong> payment is received, Diamond
             Plus Membership will be activated.
           </p>
 

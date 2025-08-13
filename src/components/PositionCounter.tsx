@@ -15,7 +15,7 @@ interface CounterData {
 const PositionCounter: React.FC<PositionCounterProps> = ({
   className = "",
 }) => {
-  const [exoticCount, setExoticCount] = useState(1000);
+  const [diamondPlusSpotsLeft, setDiamondPlusSpotsLeft] = useState(1000);
   const [silverPlusData, setSilverPlusData] = useState<CounterData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -49,25 +49,26 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
 
   const fetchCounts = async () => {
     await Promise.all([
-      fetchExoticCount(),
+      fetchDiamondPlusCount(),
       fetchSilverPlusCounter()
     ]);
     setLoading(false);
   };
 
-  const fetchExoticCount = async () => {
+  const fetchDiamondPlusCount = async () => {
     try {
-      // Query exotic/dancer users with proper count query
-      const { count: exoticUsersCount, error: exoticError } = await supabase
+      // Count active diamond plus users directly (client wants 1000 total cap)
+      const { count: diamondPlusCount, error: countError } = await supabase
         .from("users")
         .select("id", { count: "exact", head: true })
-        .in("user_type", ["exotic", "dancer", "stripper"]);
+        .eq("diamond_plus_active", true)
+        .in("user_type", ["exotic", "stripper"]);
 
-      if (!exoticError && exoticUsersCount !== null) {
-        setExoticCount(Math.max(0, 1000 - exoticUsersCount));
+      if (!countError && diamondPlusCount !== null) {
+        setDiamondPlusSpotsLeft(Math.max(0, 1000 - diamondPlusCount)); // Use 1000 cap as client requested
       }
     } catch (error) {
-      console.error("Error fetching exotic count:", error);
+      console.error("Error fetching Diamond Plus count:", error);
     }
   };
 
@@ -114,7 +115,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
               DIAMOND PLUS MEMBERSHIPS
             </p>
             <p className="text-white text-base md:text-lg font-bold">
-              LIFETIME POSITIONS LEFT: {exoticCount}
+              LIFETIME POSITIONS LEFT: {diamondPlusSpotsLeft}
             </p>
           </div>
 

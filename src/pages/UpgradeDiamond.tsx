@@ -98,7 +98,7 @@ const DiamondPlusAgreement = () => {
             enroll in Diamond Plus Membership.
           </p>
           <p>
-            <strong>Diamond Plus Membership Fee: $349.00</strong> (includes
+            <strong>Diamond Plus Membership Fee: $349.99</strong> (includes
             online notary fee)
           </p>
           <p>This is a one-time, non-refundable fee.</p>
@@ -213,7 +213,7 @@ const DiamondPlusAgreement = () => {
             for your records.
           </p>
           <p>
-            Once notarized and the $349 payment is received, your Diamond Plus
+            Once notarized and the $349.99 payment is received, your Diamond Plus
             Membership will be active.
           </p>
         </div>
@@ -333,7 +333,7 @@ const UpgradeDiamondPage: React.FC = () => {
       const upgradeData = {
         user_id: userData.id,
         upgrade_type: "diamond_plus",
-        payment_amount: paymentOption === "full" ? 349.0 : 111.73,
+        payment_amount: paymentOption === "full" ? 349.99 : 111.73,
         payment_method:
           paymentOption === "full" ? "paypal_full" : "paypal_installment",
         installment_plan: paymentOption === "installment",
@@ -358,7 +358,7 @@ const UpgradeDiamondPage: React.FC = () => {
         .eq("id", userData.id);
 
       // Create PayPal order
-      const paymentAmount = paymentOption === "full" ? 349.0 : 111.73;
+      const paymentAmount = paymentOption === "full" ? 349.99 : 111.73;
       const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
@@ -375,7 +375,7 @@ const UpgradeDiamondPage: React.FC = () => {
             cancel_url: cancelUrl,
             description:
               paymentOption === "full"
-                ? "Diamond Plus Membership - Full Payment ($349)"
+                ? "Diamond Plus Membership - Full Payment ($349.99)"
                 : "Diamond Plus Membership - Installment 1/2 ($111.73)",
           },
         });
@@ -618,7 +618,7 @@ const UpgradeDiamondPage: React.FC = () => {
                           Full Payment
                         </h3>
                         <div className="text-3xl font-bold text-yellow-400 mb-2">
-                          $349.00
+                          $349.99
                         </div>
                         <p className="text-gray-300 text-sm">
                           One-time payment, immediate activation
@@ -738,7 +738,7 @@ const UpgradeDiamondPage: React.FC = () => {
                     <>
                       <Crown className="w-5 h-5 mr-2" />
                       {paymentOption === "full"
-                        ? "Pay $349.00 - Upgrade Now"
+                        ? "Pay $349.99 - Upgrade Now"
                         : "Pay First Installment $111.73"}
                     </>
                   )}

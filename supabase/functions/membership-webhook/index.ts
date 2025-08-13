@@ -254,10 +254,10 @@ async function activateMembership(supabase: any, upgrade: any) {
       
       console.log('Updating user with Silver Plus details:', userPayload);
       
-      // Check if user was referred by someone
+      // Check if user was referred by someone and validate Silver Plus eligibility
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('referred_by')
+        .select('referred_by, gender, user_type')
         .eq('id', upgrade.user_id)
         .single();
         
@@ -265,6 +265,16 @@ async function activateMembership(supabase: any, upgrade: any) {
         console.error('Error fetching user data:', userError);
       } else if (userData?.referred_by) {
         console.log(`User was referred by: ${userData.referred_by}`);
+        
+        // Validate Silver Plus eligibility: males and normal females only
+        const isEligibleForSilverPlus = userData.gender === "male" || (userData.gender === "female" && userData.user_type === "normal");
+        
+        if (!isEligibleForSilverPlus) {
+          console.log(`User is not eligible for Silver Plus (gender: ${userData.gender}, user_type: ${userData.user_type}). Skipping referral commission.`);
+          return; // Skip referral commission creation
+        }
+        
+        console.log(`User is eligible for Silver Plus (gender: ${userData.gender}, user_type: ${userData.user_type}). Processing referral commission.`);
         
         // Get referral fee percentage (default to 20% if not set)
         const { data: referrerData, error: feeError } = await supabase
@@ -581,6 +591,242 @@ async function activateMembership(supabase: any, upgrade: any) {
           quarter: q,
           guaranteed_payout: 6250.0,
         });
+      }
+      
+      // Diamond Plus referral commission logic (same as Silver Plus)
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('referred_by')
+        .eq('id', upgrade.user_id)
+        .single();
+        
+      if (userError) {
+        console.error('Error fetching user data for Diamond Plus referral:', userError);
+      } else if (userData?.referred_by) {
+        console.log(`Diamond Plus user was referred by: ${userData.referred_by}`);
+        
+        // Get referral fee percentage (default to 20% if not set)
+        const { data: referrerData, error: feeError } = await supabase
+          .from('users')
+          .select('id, referral_fees, referred_by')
+          .eq('username', userData.referred_by)
+          .single();
+          
+        if (feeError) {
+          console.error('Error fetching Diamond Plus referrer data:', feeError);
+        } else if (referrerData) {
+          const referralPercentage = referrerData.referral_fees?.diamond_plus || 20; // Default 20%
+          const grossAmount = parseFloat(upgrade.payment_amount || upgrade.amount_paid || '0');
+          
+          // Calculate PayPal fees: $0.50 flat + 1.5% of gross
+          const paypalFlatFee = 0.50;
+          const paypalPercentageFee = grossAmount * 0.015;
+          const totalPaypalFees = paypalFlatFee + paypalPercentageFee;
+          const netAmount = grossAmount - totalPaypalFees;
+          
+          // Calculate commission on net amount (after PayPal fees)
+          const commissionAmount = Number(((netAmount * referralPercentage) / 100).toFixed(2));
+          
+          console.log(`Creating Diamond Plus referral commission of $${commissionAmount} (${referralPercentage}% of net $${netAmount}) for ${userData.referred_by}`);
+          
+          // Create payment record for the referrer
+          const { data: paymentData, error: paymentError } = await supabase
+            .from('payments')
+            .insert({
+              user_id: referrerData.id,
+              amount: commissionAmount,
+              payment_type: 'diamond_plus_referral_commission',
+              payment_status: 'completed',
+              paypal_order_id: upgrade.paypal_order_id,
+              referred_by: userData.referred_by,
+              referrer_commission: commissionAmount,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+          
+          if (paymentError) {
+            console.error('Failed to create Diamond Plus referral commission:', paymentError);
+          } else {
+            console.log('Successfully created Diamond Plus referral commission:', paymentData);
+            
+            // Update referrer's weekly earnings
+            try {
+              // Calculate week boundaries (Monday to Sunday)
+              const now = new Date();
+              const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+              const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days to subtract to get to Monday
+              
+              const weekStart = new Date(now);
+              weekStart.setDate(now.getDate() - daysToMonday);
+              weekStart.setHours(0, 0, 0, 0);
+              
+              const weekEnd = new Date(weekStart);
+              weekEnd.setDate(weekStart.getDate() + 6);
+              weekEnd.setHours(23, 59, 59, 999);
+              
+              const weekStartStr = weekStart.toISOString().split('T')[0];
+              const weekEndStr = weekEnd.toISOString().split('T')[0];
+              
+              // Check if weekly_earnings record exists for referrer
+              const { data: existingRecord, error: checkError } = await supabase
+                .from('weekly_earnings')
+                .select('id, referral_earnings, amount')
+                .eq('user_id', referrerData.id)
+                .eq('week_start', weekStartStr)
+                .single();
+              
+              if (checkError && checkError.code !== 'PGRST116') {
+                console.error('Error checking Diamond Plus weekly earnings:', checkError);
+              } else if (existingRecord) {
+                // Update existing record
+                const { error: updateError } = await supabase
+                  .from('weekly_earnings')
+                  .update({
+                    referral_earnings: (existingRecord.referral_earnings || 0) + commissionAmount,
+                    amount: (existingRecord.amount || 0) + commissionAmount,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', existingRecord.id);
+                
+                if (updateError) {
+                  console.error('Failed to update Diamond Plus weekly earnings:', updateError);
+                } else {
+                  console.log('Successfully updated Diamond Plus weekly referral earnings');
+                }
+              } else {
+                // Create new record
+                const { error: insertError } = await supabase
+                  .from('weekly_earnings')
+                  .insert({
+                    user_id: referrerData.id,
+                    week_start: weekStartStr,
+                    week_end: weekEndStr,
+                    amount: commissionAmount,
+                    tip_earnings: 0,
+                    referral_earnings: commissionAmount,
+                    bonus_earnings: 0
+                  });
+                
+                if (insertError) {
+                  console.error('Failed to create Diamond Plus weekly earnings record:', insertError);
+                } else {
+                  console.log('Successfully created Diamond Plus weekly referral earnings record');
+                }
+              }
+            } catch (error) {
+              console.error('Error updating Diamond Plus weekly earnings:', error);
+            }
+            
+            // Check for downline referral (referrer's referrer) - 2nd level commission
+            const uplineUsername = String(referrerData.referred_by || '').trim();
+            let uplineReferrerData: any | null = null;
+            if (uplineUsername) {
+              const { data: uplineCandidates, error: uplineFetchError } = await supabase
+                .from('users')
+                .select('id, username, referral_fees')
+                .ilike('username', uplineUsername)
+                .limit(2);
+
+              if (uplineFetchError) {
+                console.log('No Diamond Plus upline referrer found or error:', uplineFetchError.message);
+              } else if (Array.isArray(uplineCandidates) && uplineCandidates.length > 0) {
+                if (uplineCandidates.length > 1) {
+                  console.warn(`Multiple users found for Diamond Plus upline username '${uplineUsername}', using the first match with id ${uplineCandidates[0].id}`);
+                }
+                uplineReferrerData = uplineCandidates[0];
+              } else {
+                console.log(`No Diamond Plus upline user matched username '${uplineUsername}'`);
+              }
+            }
+
+            if (uplineReferrerData) {
+              console.log(`Found Diamond Plus upline referrer: ${uplineReferrerData.username} (referred ${userData.referred_by})`);
+              
+              // Calculate 10% commission for upline referrer
+              const uplinePercentage = 10; // Fixed 10% for second level
+              const uplineCommissionAmount = Number(((netAmount * uplinePercentage) / 100).toFixed(2));
+              
+              console.log(`Creating Diamond Plus upline referral commission of $${uplineCommissionAmount} (${uplinePercentage}% of net $${netAmount}) for ${uplineReferrerData.username}`);
+              
+              // Create payment record for upline referrer
+              const { data: uplinePaymentData, error: uplinePaymentError } = await supabase
+                .from('payments')
+                .insert({
+                  user_id: uplineReferrerData.id,
+                  amount: uplineCommissionAmount,
+                  payment_type: 'diamond_plus_upline_referral_commission',
+                  payment_status: 'completed',
+                  paypal_order_id: upgrade.paypal_order_id,
+                  referred_by: uplineReferrerData.username,
+                  referrer_commission: uplineCommissionAmount,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .select()
+                .single();
+              
+              if (uplinePaymentError) {
+                console.error('Failed to create Diamond Plus upline referral commission:', uplinePaymentError);
+              } else {
+                console.log('Successfully created Diamond Plus upline referral commission:', uplinePaymentData);
+                
+                // Update upline referrer's weekly earnings
+                try {
+                  // Check if weekly_earnings record exists for upline referrer
+                  const { data: uplineExistingRecord, error: uplineCheckError } = await supabase
+                    .from('weekly_earnings')
+                    .select('id, referral_earnings, amount')
+                    .eq('user_id', uplineReferrerData.id)
+                    .eq('week_start', weekStartStr)
+                    .single();
+                  
+                  if (uplineCheckError && uplineCheckError.code !== 'PGRST116') {
+                    console.error('Error checking Diamond Plus upline weekly earnings:', uplineCheckError);
+                  } else if (uplineExistingRecord) {
+                    // Update existing upline record
+                    const { error: uplineUpdateError } = await supabase
+                      .from('weekly_earnings')
+                      .update({
+                        referral_earnings: (uplineExistingRecord.referral_earnings || 0) + uplineCommissionAmount,
+                        amount: (uplineExistingRecord.amount || 0) + uplineCommissionAmount,
+                        updated_at: new Date().toISOString()
+                      })
+                      .eq('id', uplineExistingRecord.id);
+                    
+                    if (uplineUpdateError) {
+                      console.error('Failed to update Diamond Plus upline weekly earnings:', uplineUpdateError);
+                    } else {
+                      console.log('Successfully updated Diamond Plus upline weekly referral earnings');
+                    }
+                  } else {
+                    // Create new upline record
+                    const { error: uplineInsertError } = await supabase
+                      .from('weekly_earnings')
+                      .insert({
+                        user_id: uplineReferrerData.id,
+                        week_start: weekStartStr,
+                        week_end: weekEndStr,
+                        amount: uplineCommissionAmount,
+                        tip_earnings: 0,
+                        referral_earnings: uplineCommissionAmount,
+                        bonus_earnings: 0
+                      });
+                    
+                    if (uplineInsertError) {
+                      console.error('Failed to create Diamond Plus upline weekly earnings record:', uplineInsertError);
+                    } else {
+                      console.log('Successfully created Diamond Plus upline weekly referral earnings record');
+                    }
+                  }
+                } catch (uplineWeeklyError) {
+                  console.error('Error updating Diamond Plus upline weekly earnings:', uplineWeeklyError);
+                }
+              }
+            }
+          }
+        }
       }
     }
 
