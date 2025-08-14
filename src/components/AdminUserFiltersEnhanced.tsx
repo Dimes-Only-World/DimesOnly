@@ -40,8 +40,8 @@ const AdminUserFiltersEnhanced: React.FC<AdminUserFiltersEnhancedProps> = ({
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="stripper">Stripper</SelectItem>
             <SelectItem value="exotic">Exotic</SelectItem>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="normal">Female</SelectItem>
+            <SelectItem value="male">Normal Male</SelectItem>
+            <SelectItem value="female">Normal Female</SelectItem>
           </SelectContent>
         </Select>
       </div>

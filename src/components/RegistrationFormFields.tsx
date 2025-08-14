@@ -101,19 +101,15 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             value={formData.username}
             onChange={(e) => handleInputChange("username")(e.target.value)}
             className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
-            placeholder={
-              formData.gender === "male"
-                ? "Auto-generated for males"
-                : "Choose a unique username"
-            }
-            disabled={formData.gender === "male"}
+            placeholder="Choose a unique username"
+            disabled={false}
           />
           {errors.username && (
             <p className="text-red-400 text-sm">{errors.username}</p>
           )}
           {formData.gender === "male" && (
-            <p className="text-yellow-300 text-xs">
-              Username is automatically generated for male users
+            <p className="text-blue-300 text-xs">
+              Choose your preferred username
             </p>
           )}
         </div>

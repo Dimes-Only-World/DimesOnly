@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import AdminUserFiltersEnhanced from "./AdminUserFiltersEnhanced";
 import AdminUserDetailsEnhanced from "./AdminUserDetailsEnhanced";
 
@@ -60,7 +60,7 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("users")
         .select("*")
         .order("created_at", { ascending: false });
@@ -145,18 +145,29 @@ const AdminUsersListEnhanced: React.FC = () => {
     const gender = user.gender?.toLowerCase() || "";
     const userType = user.user_type?.toLowerCase() || "";
 
-    if (gender === "male" || userType === "male") {
+    // Prioritize gender field first
+    if (gender === "male") {
+      return "Male";
+    } else if (gender === "female") {
+      return "Female";
+    }
+    
+    // Fall back to user_type only if gender is not set
+    if (userType === "male") {
       return "Male";
     } else if (
-      gender === "female" ||
       userType === "female" ||
-      userType === "normal" ||
       userType === "stripper" ||
-      userType === "exotic" ||
-      (!gender && !userType)
+      userType === "exotic"
     ) {
       return "Female";
     }
+    
+    // Default for normal users without gender
+    if (userType === "normal") {
+      return "Unknown";
+    }
+    
     return "Unknown";
   };
 
@@ -166,14 +177,16 @@ const AdminUsersListEnhanced: React.FC = () => {
         return "Stripper";
       case "exotic":
         return "Exotic";
+      case "normal":
+        return "Normal";
       case "male":
         return "Male";
       case "female":
-      case "normal":
-      case "":
         return "Female";
+      case "":
+        return "Unknown";
       default:
-        return userType || "Female";
+        return userType || "Unknown";
     }
   };
 
@@ -192,7 +205,7 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const handleDeactivateUser = async (userId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("users")
         .update({ is_active: false })
         .eq("id", userId);

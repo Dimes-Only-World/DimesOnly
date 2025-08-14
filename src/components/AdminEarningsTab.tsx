@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -7,20 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Search,
-  DollarSign,
-  TrendingUp,
-  Calendar,
-  Award,
-  Users,
-  CreditCard,
-} from "lucide-react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { DollarSign, Search, TrendingUp, Users, Calendar } from "lucide-react";
+import { supabaseAdmin } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id: string;
@@ -32,35 +33,26 @@ interface User {
 }
 
 interface DetailedEarningsData {
-  // Current earnings summary
   totalEarnings: number;
   availableForWithdrawal: number;
-
-  // Tips breakdown
   tipsReceived: {
     total: number;
     count: number;
     thisWeek: number;
     thisMonth: number;
   };
-
-  // Referral earnings
   referralEarnings: {
     total: number;
     count: number;
     thisWeek: number;
     thisMonth: number;
   };
-
-  // Event commissions
   eventCommissions: {
     total: number;
     count: number;
     thisWeek: number;
     thisMonth: number;
   };
-
-  // Jackpot data
   jackpotData: {
     currentTickets: number;
     totalTickets: number;
@@ -70,8 +62,6 @@ interface DetailedEarningsData {
       draw_date: string;
     }>;
   };
-
-  // Weekly breakdown
   weeklyEarnings: Array<{
     week_start: string;
     week_end: string;
@@ -80,8 +70,6 @@ interface DetailedEarningsData {
     bonus_earnings: number;
     total: number;
   }>;
-
-  // Commission payouts
   commissionPayouts: Array<{
     id: string;
     amount: number;
@@ -98,9 +86,7 @@ const AdminEarningsTab: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [earnings, setEarnings] = useState<DetailedEarningsData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"summary" | "weekly" | "payouts">(
-    "summary"
-  );
+  const [activeTab, setActiveTab] = useState<"summary" | "weekly" | "payouts">("summary");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -120,16 +106,24 @@ const AdminEarningsTab: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("users")
-        .select(
-          "id, username, user_type, tips_earned, referral_fees, weekly_earnings"
-        )
+        .select("id, username, user_type, tips_earned, referral_fees, weekly_earnings")
         .order("username");
 
       if (error) throw error;
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      
+      const typedData = (data || []).map(user => ({
+        id: String(user.id),
+        username: String(user.username),
+        user_type: String(user.user_type),
+        tips_earned: Number(user.tips_earned) || 0,
+        referral_fees: Number(user.referral_fees) || 0,
+        weekly_earnings: Number(user.weekly_earnings) || 0
+      }));
+      
+      setUsers(typedData);
+      setFilteredUsers(typedData);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -143,142 +137,167 @@ const AdminEarningsTab: React.FC = () => {
   const fetchUserEarnings = async (userId: string) => {
     setLoading(true);
     try {
-      // Get date ranges for calculations
       const now = new Date();
       const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const selectedUser = users.find((u) => u.id === userId);
 
-      // Fetch tips received by this user
-      const { data: tipsReceived, error: tipsError } = await supabase
+      console.log("=== ADMIN EARNINGS DEBUG ===");
+      console.log("Selected User:", { userId, username: selectedUser?.username });
+
+      // 1. Fetch tips received by this user
+      const { data: tipsReceived, error: tipsError } = await supabaseAdmin
         .from("tips")
         .select("tip_amount, created_at, status")
-        .eq("tipped_username", users.find((u) => u.id === userId)?.username)
+        .eq("tipped_username", selectedUser?.username)
         .eq("status", "completed");
 
       if (tipsError) throw tipsError;
 
-      // Fetch referral commissions for this user
-      const { data: referralCommissions, error: referralError } = await supabase
+      console.log("Tips Data:", {
+        tipsReceived,
+        tipsCount: tipsReceived?.length || 0
+      });
+
+      // 2. Fetch referral commissions - EXACT SAME AS UserEarningsTab
+      console.log("🔍 QUERYING REFERRAL COMMISSIONS FOR:", selectedUser?.username);
+      
+      // Use ONLY the UserEarningsTab query (not user_id query)
+      const referralResult = await supabaseAdmin
         .from("payments")
-        .select("referrer_commission, created_at, referred_by")
-        .eq("referred_by", users.find((u) => u.id === userId)?.username)
-        .not("referrer_commission", "is", null);
+        .select("*")
+        .eq("referred_by", selectedUser?.username)
+        .not("referrer_commission", "is", null)
+        .order("created_at", { ascending: false });
+      
+      const referralCommissions = referralResult.data;
+      console.log("🔍 REFERRAL QUERY RESULT:", { referralCommissions, error: referralResult.error });
 
-      if (referralError) throw referralError;
+      if (referralResult.error) throw referralResult.error;
 
-      // Fetch event host commissions
-      const { data: eventCommissions, error: eventError } = await supabase
+      console.log("Referral Commissions Data:", {
+        referralCommissions,
+        referralCount: referralCommissions?.length || 0,
+        totalAmount: referralCommissions?.reduce((sum, r) => sum + Number(r.referrer_commission || 0), 0) || 0
+      });
+
+      // 3. Fetch tips payments (separate from tips table)
+      const { data: tipPayments, error: tipPaymentsError } = await supabaseAdmin
+        .from("payments")
+        .select("amount, created_at, payment_type, payment_status")
+        .eq("user_id", userId)
+        .eq("payment_type", "tip")
+        .eq("payment_status", "completed");
+
+      if (tipPaymentsError) throw tipPaymentsError;
+
+      console.log("Tip Payments Data:", {
+        tipPayments,
+        tipPaymentsCount: tipPayments?.length || 0,
+        totalTipAmount: tipPayments?.reduce((sum, t) => sum + Number(t.amount || 0), 0) || 0
+      });
+
+      // 4. Fetch event host commissions
+      const { data: eventCommissions, error: eventError } = await supabaseAdmin
         .from("payments")
         .select("event_host_commission, created_at, event_id")
         .eq("user_id", userId)
-        .not("event_host_commission", "is", null);
+        .not("event_host_commission", "is", null)
+        .eq("payment_status", "completed");
 
       if (eventError) throw eventError;
 
-      // Fetch jackpot tickets and winnings
-      const { data: jackpotTickets, error: jackpotError } = await supabase
-        .from("jackpot_tickets")
-        .select("tickets_count, created_at, is_winner")
-        .eq("user_id", userId);
-
-      if (jackpotError) throw jackpotError;
-
-      const { data: jackpotWinnings, error: winningsError } = await supabase
-        .from("jackpot_winners")
-        .select("amount_won, draw_date, created_at")
-        .eq("user_id", userId);
-
-      if (winningsError) throw winningsError;
-
-      // Fetch weekly earnings breakdown
-      const { data: weeklyEarnings, error: weeklyError } = await supabase
+      // 4. Fetch weekly earnings - EXACT SAME AS UserEarningsTab
+      console.log("🔍 QUERYING WEEKLY EARNINGS FOR USER_ID:", userId);
+      const weeklyResult = await supabaseAdmin
         .from("weekly_earnings")
         .select("*")
         .eq("user_id", userId)
-        .order("week_start", { ascending: false })
-        .limit(12); // Last 12 weeks
+        .order("week_start", { ascending: false });
 
-      if (weeklyError) throw weeklyError;
+      if (weeklyResult.error) throw weeklyResult.error;
 
-      // Fetch commission payouts
-      const { data: commissionPayouts, error: payoutsError } = await supabase
+      const weeklyEarnings = weeklyResult.data;
+      console.log("🔍 WEEKLY EARNINGS RESULT:", { weeklyEarnings, error: weeklyResult.error });
+      console.log("Weekly Earnings Data:", {
+        weeklyEarnings,
+        weeklyCount: weeklyEarnings?.length || 0,
+        totalWeeklyAmount: weeklyEarnings?.reduce((sum, w) => sum + Number(w.amount || 0), 0) || 0
+      });
+
+      // 6. Fetch commission payouts
+      const { data: commissionPayouts, error: payoutError } = await supabaseAdmin
         .from("commission_payouts")
-        .select("*")
+        .select("id, amount, commission_type, payout_status, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (payoutsError) throw payoutsError;
+      if (payoutError) throw payoutError;
 
-      // Calculate tips breakdown
-      const tipsTotal = (tipsReceived || []).reduce(
-        (sum, tip) => sum + tip.tip_amount,
-        0
+      // === CALCULATIONS ===
+
+      // Tips calculations (use tips from payments table for consistency)
+      const tipsTotal = (tipPayments || []).reduce(
+        (sum, tip) => sum + Number(tip.amount || 0), 0
       );
-      const tipsThisWeek = (tipsReceived || [])
-        .filter((tip) => new Date(tip.created_at) >= weekStart)
-        .reduce((sum, tip) => sum + tip.tip_amount, 0);
-      const tipsThisMonth = (tipsReceived || [])
-        .filter((tip) => new Date(tip.created_at) >= monthStart)
-        .reduce((sum, tip) => sum + tip.tip_amount, 0);
+      const tipsThisWeek = (tipPayments || [])
+        .filter((tip) => new Date(tip.created_at as string) >= weekStart)
+        .reduce((sum, tip) => sum + Number(tip.amount || 0), 0);
+      const tipsThisMonth = (tipPayments || [])
+        .filter((tip) => new Date(tip.created_at as string) >= monthStart)
+        .reduce((sum, tip) => sum + Number(tip.amount || 0), 0);
 
-      // Calculate referral earnings breakdown
+      // Referral earnings calculations (from payments table using referrer_commission field)
       const referralTotal = (referralCommissions || []).reduce(
-        (sum, commission) => sum + (commission.referrer_commission || 0),
-        0
+        (sum, commission) => sum + Number(commission.referrer_commission || 0), 0
       );
       const referralThisWeek = (referralCommissions || [])
-        .filter((commission) => new Date(commission.created_at) >= weekStart)
-        .reduce(
-          (sum, commission) => sum + (commission.referrer_commission || 0),
-          0
-        );
+        .filter((commission) => new Date(commission.created_at as string) >= weekStart)
+        .reduce((sum, commission) => sum + Number(commission.referrer_commission || 0), 0);
       const referralThisMonth = (referralCommissions || [])
-        .filter((commission) => new Date(commission.created_at) >= monthStart)
-        .reduce(
-          (sum, commission) => sum + (commission.referrer_commission || 0),
-          0
-        );
+        .filter((commission) => new Date(commission.created_at as string) >= monthStart)
+        .reduce((sum, commission) => sum + Number(commission.referrer_commission || 0), 0);
 
-      // Calculate event commissions breakdown
+      // Event commissions calculations
       const eventTotal = (eventCommissions || []).reduce(
-        (sum, commission) => sum + (commission.event_host_commission || 0),
-        0
+        (sum, commission) => sum + Number(commission.event_host_commission || 0), 0
       );
       const eventThisWeek = (eventCommissions || [])
-        .filter((commission) => new Date(commission.created_at) >= weekStart)
-        .reduce(
-          (sum, commission) => sum + (commission.event_host_commission || 0),
-          0
-        );
+        .filter((commission) => new Date(commission.created_at as string) >= weekStart)
+        .reduce((sum, commission) => sum + Number(commission.event_host_commission || 0), 0);
       const eventThisMonth = (eventCommissions || [])
-        .filter((commission) => new Date(commission.created_at) >= monthStart)
-        .reduce(
-          (sum, commission) => sum + (commission.event_host_commission || 0),
-          0
-        );
+        .filter((commission) => new Date(commission.created_at as string) >= monthStart)
+        .reduce((sum, commission) => sum + Number(commission.event_host_commission || 0), 0);
 
-      // Calculate jackpot data
-      const currentTickets = (jackpotTickets || [])
-        .filter((ticket) => !ticket.is_winner)
-        .reduce((sum, ticket) => sum + ticket.tickets_count, 0);
-      const totalTickets = (jackpotTickets || []).reduce(
-        (sum, ticket) => sum + ticket.tickets_count,
-        0
-      );
+      // Calculate earnings using EXACT SAME logic as UserEarningsTab
+      const weeklyTotal = weeklyEarnings?.reduce((sum, earning) => sum + Number(earning.amount || 0), 0) || 0;
+      const paymentsTotal = referralTotal + tipsTotal;
+      const totalEarnings = Math.max(paymentsTotal, weeklyTotal);
 
-      // Calculate total earnings
-      const totalEarnings = tipsTotal + referralTotal + eventTotal;
+      // Payouts calculation
       const paidOut = (commissionPayouts || [])
         .filter((payout) => payout.payout_status === "completed")
-        .reduce((sum, payout) => sum + payout.amount, 0);
+        .reduce((sum, payout) => sum + Number(payout.amount || 0), 0);
+
+      // Available for withdrawal = Total earnings - Paid out
       const availableForWithdrawal = totalEarnings - paidOut;
+
+      console.log("=== FINAL CALCULATIONS ===");
+      console.log({
+        tipsTotal,
+        referralTotal,
+        eventTotal,
+        totalEarnings,
+        paidOut,
+        availableForWithdrawal
+      });
 
       const detailedEarnings: DetailedEarningsData = {
         totalEarnings,
         availableForWithdrawal,
         tipsReceived: {
           total: tipsTotal,
-          count: (tipsReceived || []).length,
+          count: (tipPayments || []).length,
           thisWeek: tipsThisWeek,
           thisMonth: tipsThisMonth,
         },
@@ -295,28 +314,24 @@ const AdminEarningsTab: React.FC = () => {
           thisMonth: eventThisMonth,
         },
         jackpotData: {
-          currentTickets,
-          totalTickets,
-          winnings: (jackpotWinnings || []).map((win) => ({
-            date: win.created_at,
-            amount: win.amount_won,
-            draw_date: win.draw_date,
-          })),
+          currentTickets: 0,
+          totalTickets: 0,
+          winnings: [],
         },
-        weeklyEarnings: (weeklyEarnings || []).map((week) => ({
-          week_start: week.week_start,
-          week_end: week.week_end,
-          tip_earnings: week.tip_earnings || 0,
-          referral_earnings: week.referral_earnings || 0,
-          bonus_earnings: week.bonus_earnings || 0,
-          total: week.amount || 0,
+        weeklyEarnings: (weeklyEarnings || []).map(week => ({
+          week_start: String(week.week_start),
+          week_end: String(week.week_end),
+          tip_earnings: Number(week.tip_earnings) || 0,
+          referral_earnings: Number(week.referral_earnings) || 0,
+          bonus_earnings: Number(week.bonus_earnings) || 0,
+          total: Number(week.amount) || 0
         })),
-        commissionPayouts: (commissionPayouts || []).map((payout) => ({
-          id: payout.id,
-          amount: payout.amount,
-          commission_type: payout.commission_type,
-          payout_status: payout.payout_status || "pending",
-          created_at: payout.created_at,
+        commissionPayouts: (commissionPayouts || []).map(payout => ({
+          id: String(payout.id),
+          amount: Number(payout.amount) || 0,
+          commission_type: String(payout.commission_type),
+          payout_status: String(payout.payout_status),
+          created_at: String(payout.created_at)
         })),
       };
 
@@ -407,28 +422,28 @@ const AdminEarningsTab: React.FC = () => {
                 <Card className="border-green-200 bg-green-50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-green-700">
-                      Total Earnings
+                      Total Earnings (Lifetime)
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-green-800">
                       {formatCurrency(earnings.totalEarnings)}
                     </div>
-                    <p className="text-xs text-green-600">All time earnings</p>
+                    <p className="text-xs text-green-600 mt-1">All time earnings</p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-blue-200 bg-blue-50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-blue-700">
-                      Available
+                      Available for Withdrawal
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-blue-800">
                       {formatCurrency(earnings.availableForWithdrawal)}
                     </div>
-                    <p className="text-xs text-blue-600">For withdrawal</p>
+                    <p className="text-xs text-blue-600 mt-1">Ready to payout</p>
                   </CardContent>
                 </Card>
 
@@ -442,9 +457,7 @@ const AdminEarningsTab: React.FC = () => {
                     <div className="text-2xl font-bold text-purple-800">
                       {formatCurrency(earnings.tipsReceived.total)}
                     </div>
-                    <p className="text-xs text-purple-600">
-                      {earnings.tipsReceived.count} tips
-                    </p>
+                    <p className="text-xs text-purple-600 mt-1">{earnings.tipsReceived.count} tips</p>
                   </CardContent>
                 </Card>
 
@@ -458,245 +471,177 @@ const AdminEarningsTab: React.FC = () => {
                     <div className="text-2xl font-bold text-orange-800">
                       {formatCurrency(earnings.referralEarnings.total)}
                     </div>
-                    <p className="text-xs text-orange-600">
-                      {earnings.referralEarnings.count} referrals
-                    </p>
+                    <p className="text-xs text-orange-600 mt-1">10% & 20% commissions</p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Tabs for detailed view */}
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-                <Button
-                  variant={activeTab === "summary" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("summary")}
-                >
-                  Summary
-                </Button>
-                <Button
-                  variant={activeTab === "weekly" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("weekly")}
-                >
-                  Weekly History
-                </Button>
-                <Button
-                  variant={activeTab === "payouts" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("payouts")}
-                >
-                  Payouts
-                </Button>
-              </div>
+              {/* Detailed Tabs */}
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "summary" | "weekly" | "payouts")}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="summary">Summary</TabsTrigger>
+                  <TabsTrigger value="weekly">Weekly History</TabsTrigger>
+                  <TabsTrigger value="payouts">Payouts</TabsTrigger>
+                </TabsList>
 
-              {/* Tab Content */}
-              {activeTab === "summary" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Recent Performance */}
+                <TabsContent value="summary" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Tips Breakdown</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>Total:</span>
+                          <span className="font-semibold">{formatCurrency(earnings.tipsReceived.total)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>This Week:</span>
+                          <span>{formatCurrency(earnings.tipsReceived.thisWeek)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>This Month:</span>
+                          <span>{formatCurrency(earnings.tipsReceived.thisMonth)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Count:</span>
+                          <span>{earnings.tipsReceived.count}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Referral Commissions</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>Total:</span>
+                          <span className="font-semibold">{formatCurrency(earnings.referralEarnings.total)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>This Week:</span>
+                          <span>{formatCurrency(earnings.referralEarnings.thisWeek)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>This Month:</span>
+                          <span>{formatCurrency(earnings.referralEarnings.thisMonth)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Count:</span>
+                          <span>{earnings.referralEarnings.count}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Event Commissions</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>Total:</span>
+                          <span className="font-semibold">{formatCurrency(earnings.eventCommissions.total)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>This Week:</span>
+                          <span>{formatCurrency(earnings.eventCommissions.thisWeek)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>This Month:</span>
+                          <span>{formatCurrency(earnings.eventCommissions.thisMonth)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Count:</span>
+                          <span>{earnings.eventCommissions.count}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="weekly" className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        Recent Performance
-                      </CardTitle>
+                      <CardTitle>Weekly Earnings History</CardTitle>
+                      <p className="text-sm text-gray-600">From weekly_earnings table</p>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                        <span className="text-sm font-medium">This Week</span>
-                        <div className="text-right">
-                          <div className="font-semibold">
-                            {formatCurrency(
-                              earnings.tipsReceived.thisWeek +
-                                earnings.referralEarnings.thisWeek +
-                                earnings.eventCommissions.thisWeek
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Total earned
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                        <span className="text-sm font-medium">This Month</span>
-                        <div className="text-right">
-                          <div className="font-semibold">
-                            {formatCurrency(
-                              earnings.tipsReceived.thisMonth +
-                                earnings.referralEarnings.thisMonth +
-                                earnings.eventCommissions.thisMonth
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Total earned
-                          </div>
-                        </div>
-                      </div>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Week Period</TableHead>
+                            <TableHead>Tips</TableHead>
+                            <TableHead>Referrals</TableHead>
+                            <TableHead>Bonuses</TableHead>
+                            <TableHead>Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {earnings.weeklyEarnings.map((week, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                {new Date(week.week_start).toLocaleDateString()} - {new Date(week.week_end).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell>{formatCurrency(week.tip_earnings)}</TableCell>
+                              <TableCell>{formatCurrency(week.referral_earnings)}</TableCell>
+                              <TableCell>{formatCurrency(week.bonus_earnings)}</TableCell>
+                              <TableCell className="font-semibold">{formatCurrency(week.total)}</TableCell>
+                            </TableRow>
+                          ))}
+                          {earnings.weeklyEarnings.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center text-gray-500">
+                                No weekly earnings data found
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
                     </CardContent>
                   </Card>
+                </TabsContent>
 
-                  {/* Jackpot Information */}
+                <TabsContent value="payouts" className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Award className="w-5 h-5" />
-                        Jackpot Status
-                      </CardTitle>
+                      <CardTitle>Commission Payouts</CardTitle>
+                      <p className="text-sm text-gray-600">Requested payouts and their status</p>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-yellow-50 rounded">
-                        <span className="text-sm font-medium">
-                          Current Tickets
-                        </span>
-                        <div className="text-right">
-                          <div className="font-semibold text-yellow-700">
-                            {earnings.jackpotData.currentTickets}
-                          </div>
-                          <div className="text-xs text-yellow-600">
-                            Active tickets
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-yellow-50 rounded">
-                        <span className="text-sm font-medium">
-                          Total Winnings
-                        </span>
-                        <div className="text-right">
-                          <div className="font-semibold text-yellow-700">
-                            {formatCurrency(
-                              earnings.jackpotData.winnings.reduce(
-                                (sum, win) => sum + win.amount,
-                                0
-                              )
-                            )}
-                          </div>
-                          <div className="text-xs text-yellow-600">
-                            {earnings.jackpotData.winnings.length} wins
-                          </div>
-                        </div>
-                      </div>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {earnings.commissionPayouts.map((payout) => (
+                            <TableRow key={payout.id}>
+                              <TableCell>
+                                {new Date(payout.created_at).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell>{payout.commission_type}</TableCell>
+                              <TableCell>{formatCurrency(payout.amount)}</TableCell>
+                              <TableCell>{getStatusBadge(payout.payout_status)}</TableCell>
+                            </TableRow>
+                          ))}
+                          {earnings.commissionPayouts.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center text-gray-500">
+                                No payouts requested yet
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
                     </CardContent>
                   </Card>
-                </div>
-              )}
-
-              {activeTab === "weekly" && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5" />
-                      Weekly Earnings History
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {earnings.weeklyEarnings.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">
-                          No weekly earnings data available
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {earnings.weeklyEarnings.map((week, index) => (
-                          <div key={index} className="border rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <p className="font-medium">
-                                  Week of{" "}
-                                  {new Date(
-                                    week.week_start
-                                  ).toLocaleDateString()}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {new Date(
-                                    week.week_start
-                                  ).toLocaleDateString()}{" "}
-                                  -{" "}
-                                  {new Date(week.week_end).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-bold">
-                                  {formatCurrency(week.total)}
-                                </p>
-                                <Badge variant="default">Total</Badge>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4 text-sm">
-                              <div>
-                                <span className="text-gray-500">Tips:</span>
-                                <span className="ml-1 font-medium">
-                                  {formatCurrency(week.tip_earnings)}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">
-                                  Referrals:
-                                </span>
-                                <span className="ml-1 font-medium">
-                                  {formatCurrency(week.referral_earnings)}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Bonus:</span>
-                                <span className="ml-1 font-medium">
-                                  {formatCurrency(week.bonus_earnings)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {activeTab === "payouts" && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CreditCard className="w-5 h-5" />
-                      Commission Payouts
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {earnings.commissionPayouts.length === 0 ? (
-                      <div className="text-center py-8">
-                        <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">
-                          No payout history available
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {earnings.commissionPayouts.map((payout) => (
-                          <div
-                            key={payout.id}
-                            className="flex items-center justify-between p-3 border rounded-lg"
-                          >
-                            <div>
-                              <p className="font-medium">
-                                {formatCurrency(payout.amount)}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {payout.commission_type} •{" "}
-                                {new Date(
-                                  payout.created_at
-                                ).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              {getStatusBadge(payout.payout_status)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </CardContent>

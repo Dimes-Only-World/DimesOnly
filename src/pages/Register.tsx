@@ -328,6 +328,8 @@ export const Register: React.FC = () => {
             zip: formData.zip,
             gender: formData.gender,
             user_type: formData.userType ? formData.userType : "normal",
+            membership_tier: "free",
+            membership_type: "free",
             referred_by: formData.referredBy,
             profile_photo: profilePhotoUrl,
             banner_photo: bannerPhotoUrl,

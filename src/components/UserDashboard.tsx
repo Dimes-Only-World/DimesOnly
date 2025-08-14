@@ -341,52 +341,54 @@ const UserDashboard: React.FC = () => {
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
           <DiamondPlusButton userData={userData} />
 
-          {/* Silver Plus Counter and Benefits Section */}
-          <Card className="bg-gradient-to-br from-blue-900 to-blue-700 text-white mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-8 items-center">
-                {/* Left side - Counter */}
-                <div className="w-full md:w-1/3">
-                  <h3 className="text-2xl font-bold mb-4 text-center md:text-left">Silver Plus Memberships</h3>
-                  <div className="text-yellow-300 text-sm mb-4 text-center md:text-left">Limited Time Offer</div>
-                  <div className="bg-black/30 p-4 rounded-lg">
-                    <SilverPlusCounter />
+          {/* Silver Plus Counter and Benefits Section - Only show for eligible users who don't have Silver Plus */}
+          {userData && (userData.gender === "male" || (userData.gender === "female" && userData.user_type === "normal")) && !userData.silver_plus_active && (
+            <Card className="bg-gradient-to-br from-blue-900 to-blue-700 text-white mb-6">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  {/* Left side - Counter */}
+                  <div className="w-full md:w-1/3">
+                    <h3 className="text-2xl font-bold mb-4 text-center md:text-left">Silver Plus Memberships</h3>
+                    <div className="text-yellow-300 text-sm mb-4 text-center md:text-left">Limited Time Offer</div>
+                    <div className="bg-black/30 p-4 rounded-lg">
+                      <SilverPlusCounter />
+                    </div>
+                  </div>
+                  
+                  {/* Right side - Benefits */}
+                  <div className="w-full md:w-2/3">
+                    <h4 className="font-semibold text-yellow-300 text-lg mb-3">Silver Plus Referral & Compensation</h4>
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                        <span>One Year of Flame Flix Subscription in Phase 6</span>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                        <span><b>10%</b> discount site wide forever from all Dimes Only related products and services.</span>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                        <span>Get Overrides from Strippers and Exotics</span>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                        <span>Earn <b>20%</b> of tips from all your strippers & exotics.</span>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                        <span>Earn <b>10%</b> override from your referrals' purchases of all products & services</span>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                        <span>View nude photos & videos from strippers & exotics</span>
+                      </li>
+                    </ul>
                   </div>
                 </div>
-                
-                {/* Right side - Benefits */}
-                <div className="w-full md:w-2/3">
-                  <h4 className="font-semibold text-yellow-300 text-lg mb-3">Silver Plus Referral & Compensation</h4>
-                  <ul className="space-y-3 text-sm">
-                    <li className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                      <span>One Year of Flame Flix Subscription in Phase 6</span>
-                    </li>
-                    <li className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                      <span><b>10%</b> discount site wide forever from all Dimes Only related products and services.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                      <span>Get Overrides from Strippers and Exotics</span>
-                    </li>
-                    <li className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                      <span>Earn <b>20%</b> of tips from all your strippers & exotics.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                      <span>Earn <b>10%</b> override from your referrals' purchases of all products & services</span>
-                    </li>
-                    <li className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                      <span>View nude photos & videos from strippers & exotics</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Silver Plus Membership Section */}
           {userData && (

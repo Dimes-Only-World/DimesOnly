@@ -37,7 +37,7 @@ const AdminUserFilters: React.FC<AdminUserFiltersProps> = ({
             <SelectItem value="stripper">Stripper</SelectItem>
             <SelectItem value="exotic">Exotic</SelectItem>
             <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="normal">Female</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
           </SelectContent>
         </Select>
       </div>
