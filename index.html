@@ -117,14 +117,27 @@
       // Debug info
       console.log('Countdown timer started at:', new Date().toLocaleString());
       
-      // Set the deadline to 2 hours from now
-      var due_date = new Date();
-      due_date.setHours(due_date.getHours() + 2); // Set to 2 hours from now
+      // Check if we already have a start time in localStorage
+      var startTime = localStorage.getItem('countdownStartTime');
+      var hours_deadline = 6; // 6 hour countdown
+      
+      if (!startTime) {
+        // First time - set the start time to now
+        startTime = new Date().getTime();
+        localStorage.setItem('countdownStartTime', startTime);
+      } else {
+        startTime = parseInt(startTime);
+      }
+      
+      // Calculate due date from stored start time
+      var due_date = new Date(startTime + (hours_deadline * 60 * 60 * 1000));
       
       // For testing: uncomment to see faster effect (1 second = 1 minute)
-      // due_date = new Date(Date.now() + (1000 * 120)); // 2 minutes for testing
-      
-      var hours_deadline = 2; // 2 hour countdown
+      // var testDuration = 2 * 60 * 1000; // 2 minutes for testing
+      // if (!localStorage.getItem('testStartTime')) {
+      //   localStorage.setItem('testStartTime', new Date().getTime());
+      // }
+      // due_date = new Date(parseInt(localStorage.getItem('testStartTime')) + testDuration);
       /* stop changing here */
       
       function updateOpacity() {
