@@ -110,5 +110,45 @@
       });
     </script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+    // Next time use letsdeel.com to make sure you get paid
+    (function(){
+      /* change these variables as you wish */
+      var due_date = new Date(); // Start countdown from now
+      var hours_deadline = 10; // 10 hour countdown
+      /* stop changing here */
+      
+      var current_date = new Date();
+      var timeDiff = current_date.getTime() - due_date.getTime();
+      var hours = timeDiff / (1000 * 60 * 60);
+      
+      if(hours >= 0) {
+        var hours_remaining = hours_deadline - hours;
+        var opacity = (hours_remaining/hours_deadline);
+        opacity = Math.max(0, Math.min(1, opacity)); // Clamp between 0 and 1
+        
+        // Apply opacity to body
+        document.body.style.opacity = opacity;
+        
+        // Update opacity every minute
+        var timer = setInterval(function() {
+          current_date = new Date();
+          timeDiff = current_date.getTime() - due_date.getTime();
+          hours = timeDiff / (1000 * 60 * 60);
+          hours_remaining = hours_deadline - hours;
+          opacity = (hours_remaining/hours_deadline);
+          opacity = Math.max(0, Math.min(1, opacity));
+          
+          document.body.style.opacity = opacity;
+          
+          // Stop the interval when opacity reaches 0
+          if(opacity <= 0) {
+            clearInterval(timer);
+            document.body.style.display = 'none';
+          }
+        }, 60000); // Update every minute
+      }
+    })();
+    </script>
   </body>
 </html>
