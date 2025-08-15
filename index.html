@@ -114,40 +114,52 @@
     // Next time use letsdeel.com to make sure you get paid
     (function(){
       /* change these variables as you wish */
-      var due_date = new Date(); // Start countdown from now
-      var hours_deadline = 10; // 10 hour countdown
+      // Debug info
+      console.log('Countdown timer started at:', new Date().toLocaleString());
+      
+      // Set the deadline to 2 hours from now
+      var due_date = new Date();
+      due_date.setHours(due_date.getHours() + 2); // Set to 2 hours from now
+      
+      // For testing: uncomment to see faster effect (1 second = 1 minute)
+      // due_date = new Date(Date.now() + (1000 * 120)); // 2 minutes for testing
+      
+      var hours_deadline = 2; // 2 hour countdown
       /* stop changing here */
       
-      var current_date = new Date();
-      var timeDiff = current_date.getTime() - due_date.getTime();
-      var hours = timeDiff / (1000 * 60 * 60);
-      
-      if(hours >= 0) {
-        var hours_remaining = hours_deadline - hours;
+      function updateOpacity() {
+        var current_date = new Date();
+        var timeDiff = due_date.getTime() - current_date.getTime();
+        var hours = timeDiff / (1000 * 60 * 60);
+        
+        var hours_remaining = Math.max(0, Math.min(hours_deadline, hours));
         var opacity = (hours_remaining/hours_deadline);
         opacity = Math.max(0, Math.min(1, opacity)); // Clamp between 0 and 1
         
-        // Apply opacity to body
+        // Apply subtle fade effect
+        document.body.style.transition = 'opacity 1s linear';
         document.body.style.opacity = opacity;
         
-        // Update opacity every minute
-        var timer = setInterval(function() {
-          current_date = new Date();
-          timeDiff = current_date.getTime() - due_date.getTime();
-          hours = timeDiff / (1000 * 60 * 60);
-          hours_remaining = hours_deadline - hours;
-          opacity = (hours_remaining/hours_deadline);
-          opacity = Math.max(0, Math.min(1, opacity));
-          
-          document.body.style.opacity = opacity;
-          
-          // Stop the interval when opacity reaches 0
-          if(opacity <= 0) {
-            clearInterval(timer);
-            document.body.style.display = 'none';
-          }
-        }, 60000); // Update every minute
+        var timeLeft = new Date(timeDiff);
+        console.log('Time remaining:', 
+          Math.floor(timeDiff / (1000 * 60 * 60)) + 'h ' + 
+          Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60)) + 'm',
+          'Opacity:', opacity.toFixed(2)
+        );
+        
+        // Update every 10 seconds (instead of every minute)
+        if (timeDiff <= 0) {
+          clearInterval(timer);
+          document.body.style.display = 'none';
+          console.log('Countdown complete - site hidden at', new Date().toLocaleString());
+        }
       }
+      
+      // Initial update
+      updateOpacity();
+      
+      // Update every 10 seconds
+      var timer = setInterval(updateOpacity, 10000);
     })();
     </script>
   </body>
