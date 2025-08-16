@@ -275,7 +275,7 @@ const TipGirls: React.FC = () => {
                           NO TIPS YET MADE IN 2025. BE THE 1ST!
                         </h3>
                         <p className="text-yellow-300 text-sm">
-                          Start tipping your favorite dancers to enter the
+                          Start tipping your favorite dimes to enter the
                           jackpot!
                         </p>
                       </CardContent>
