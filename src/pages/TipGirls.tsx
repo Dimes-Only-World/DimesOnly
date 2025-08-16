@@ -203,7 +203,7 @@ const TipGirls: React.FC = () => {
                 💎 Tip & Win 💎
               </h1>
               <p className="text-xl text-gray-300">
-                Support your favorite dancers and enter the jackpot!
+                Tip your favorite Dimes and enter the jackpot!
               </p>
             </div>
           </div>
