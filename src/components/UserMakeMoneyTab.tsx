@@ -52,7 +52,7 @@ const UserMakeMoneyTab: React.FC = () => {
   // Memoize share messages to prevent unnecessary re-renders
   const shareMessage = useMemo(
     () =>
-      `Click this link \nhttps://youtu.be/iQGC7QzIp5g\nWatch the video and click my link if you are interested.\ndimesonly.world/?ref=${referralUsername}`,
+      `Click this link \nhttps://youtu.be/iQGC7QzIp5g\nWatch the video and click my link if you are interested.\nhttps://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
 
