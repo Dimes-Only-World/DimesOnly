@@ -200,7 +200,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             <p className="text-xl font-bold">Countdown begins!</p>
             <p className="text-sm mt-2">
               ${(1000 - currentJackpot).toLocaleString()} to go • max jackpot
-              $250,000 a week
+              $2,900,000 a week
             </p>
           </div>
 
