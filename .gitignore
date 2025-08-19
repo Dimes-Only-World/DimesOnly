@@ -26,3 +26,6 @@ package-lock.json
 *.njsproj
 *.sln
 *.sw?
+phase2.txt
+phase 2.md
+Database scheme.txt

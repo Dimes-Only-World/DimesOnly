@@ -1,0 +1,82 @@
+[
+    {
+      "username": "tonysnow74",
+      "membership_tier": "free",
+      "membership_type": "free",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-18 00:33:22.386+00"
+    },
+    {
+      "username": "madamsparkle",
+      "membership_tier": "diamond",
+      "membership_type": "diamond",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-16 21:17:27.958+00"
+    },
+    {
+      "username": "lil dread",
+      "membership_tier": "free",
+      "membership_type": "free",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-16 02:05:34.084+00"
+    },
+    {
+      "username": "livetest",
+      "membership_tier": "free",
+      "membership_type": "free",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-15 20:02:39.194+00"
+    },
+    {
+      "username": "gendercheck",
+      "membership_tier": "free",
+      "membership_type": "free",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-14 08:29:59.618+00"
+    },
+    {
+      "username": "wonderwoman",
+      "membership_tier": "free",
+      "membership_type": "free",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-13 16:04:52.573+00"
+    },
+    {
+      "username": "hdunphy",
+      "membership_tier": "free",
+      "membership_type": "free",
+      "silver_plus_active": false,
+      "diamond_plus_active": false,
+      "created_at": "2025-08-13 15:36:48.876+00"
+    },
+    {
+      "username": "spicey",
+      "membership_tier": "diamond_plus",
+      "membership_type": "silver",
+      "silver_plus_active": false,
+      "diamond_plus_active": true,
+      "created_at": "2025-08-13 01:29:48.526+00"
+    },
+    {
+      "username": "barbie",
+      "membership_tier": "diamond_plus",
+      "membership_type": "silver",
+      "silver_plus_active": false,
+      "diamond_plus_active": true,
+      "created_at": "2025-08-13 00:35:27.803+00"
+    },
+    {
+      "username": "diamondgirl",
+      "membership_tier": "diamond_plus",
+      "membership_type": "silver",
+      "silver_plus_active": false,
+      "diamond_plus_active": true,
+      "created_at": "2025-08-12 21:01:56.05+00"
+    }
+  ]

@@ -351,11 +351,12 @@ export const Register: React.FC = () => {
           ? formData.userType
           : "normal";
 
-        const membershipTypeForLimit =
+        // This is for LIMIT COUNTING only, NOT the user's actual membership tier
+        const limitCategoryForCounting =
           userTypeInserted === "normal" ? "silver" : "diamond";
 
         await supabaseAdmin.rpc("increment_membership_count", {
-          membership_type_param: membershipTypeForLimit,
+          membership_type_param: limitCategoryForCounting,
           user_type_param: userTypeInserted,
         });
       } catch (incrementError) {

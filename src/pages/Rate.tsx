@@ -24,6 +24,8 @@ import {
   Heart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import MediaGrid from "@/components/MediaGrid";
+import ContentAccessControl from "@/components/ContentAccessControl";
 
 interface UserData {
   id: string;
@@ -42,6 +44,10 @@ interface UserMedia {
   media_url: string;
   media_type: string;
   created_at: string;
+  content_tier?: string;
+  is_nude?: boolean;
+  is_xrated?: boolean;
+  upload_date?: string;
 }
 
 interface CurrentStanding {
@@ -264,7 +270,7 @@ const RatePage: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("user_media")
-        .select("id, media_url, media_type, created_at")
+        .select("id, media_url, media_type, created_at, content_tier, is_nude, is_xrated, upload_date")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
@@ -279,6 +285,10 @@ const RatePage: React.FC = () => {
           media_url: String(item.media_url),
           media_type: String(item.media_type),
           created_at: String(item.created_at),
+          content_tier: item.content_tier || 'free',
+          is_nude: Boolean(item.is_nude),
+          is_xrated: Boolean(item.is_xrated),
+          upload_date: item.upload_date ? String(item.upload_date) : undefined,
         }));
         setUserMedia(media);
       }
@@ -821,22 +831,8 @@ const RatePage: React.FC = () => {
             </p>
           )}
 
-          {/* View Photos/Videos Links */}
-          <div className="flex justify-center flex-wrap gap-4 mb-8">
-            <Button
-              onClick={() => setShowPhotosDialog(true)}
-              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              View Photos ({getPhotos().length})
-            </Button>
-            <Button
-              onClick={() => setShowVideosDialog(true)}
-              className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
-            >
-              <Play className="w-4 h-4" />
-              View Videos ({getVideos().length})
-            </Button>
+          {/* Profile Like Button */}
+          <div className="flex justify-center mb-8">
             <Button
               onClick={handleLike}
               variant={hasLiked ? "default" : "outline"}
@@ -850,6 +846,24 @@ const RatePage: React.FC = () => {
               {hasLiked ? "Liked" : "Like"} ({likes})
             </Button>
           </div>
+
+          {/* User Media Grid with Likes and Comments */}
+          {userMedia.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-white mb-4 text-center">
+                Photos & Videos
+              </h3>
+              <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20">
+                <MediaGrid
+                  media={userMedia}
+                  onDelete={() => {}} // Read-only for Rate page
+                  showContentTier={true}
+                  currentUserId={currentUser?.id}
+                  showLikesAndComments={true}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Rating Grid */}
