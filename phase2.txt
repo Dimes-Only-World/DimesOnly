@@ -1,0 +1,150 @@
+Membership Upload Rules
+Free Members
+Dimes can upload photos only (no videos).
+Limit: 25 photos 25 Videos.
+UI Text:“Upload for FREE Members”
+“Upload Photos and Videos – CURRENTLY 25 max photos and videos.”
+
+
+
+Silver Members
+Dimes can upload nude photos and videos (not x-rated).
+Limit: 260 photos + 48 videos.
+UI Text:
+“Upload for Silver Members.”
+“Upload nude photos and videos (not x-rated content preferred).”
+
+
+
+Gold, Diamond, Elite Members
+Dimes can upload photos and x-rated content (preferred).
+Limit: 260 photos + 48 videos.
+Must show upload date for each file.
+UI Text:
+“Upload for Gold, Diamond and Elite Members.”
+“Upload X-Rated content: upload x-rated to get your profit sharing active.”
+
+
+
+Upgrade Buttons
+Show upgrade options inside the Media Tab:
+Silver
+Silver+
+Gold
+Diamond
+Diamond+
+Elite
+
+
+
+Paid Viewer Access
+Nude Photos & Videos (Silver Content)
+Access requires:
+
+
+One-time fee $74.99 OR monthly $4.99 (Silver+).
+
+
+On payment success:
+
+
+Show countdown of 3,000 spots left on homepage.
+Redirect to PayPal (Silver Payment Link).
+
+
+Button Text:
+
+
+“To see Nude Photos and Videos – Limited Time Offer – Click Here – Send to Silver PayPal.”
+
+
+
+X-Rated Photos & Videos (Gold Content)
+Access requires:
+
+
+One-time fee $149.99 (Gold).
+
+
+On payment success:
+
+
+Redirect to PayPal (Gold Payment Link).
+
+
+Button Text:
+
+
+“To see X-Rated Photos and Videos – One Time Fee $149.99 – Limited Time Offer – Click Here.”
+
+
+
+Engagement Features
+Allow comments on photos/videos.
+Allow replies to comments.
+Allow likes.
+Show all photos/videos based on visitor’s access level.
+
+
+
+Visibility Rules
+Free members → Can only see free uploads.
+Silver members → Can see free + Silver uploads, but not Gold.
+Gold+ members → Can see everything (Free + Silver + Gold).
+
+
+
+Admin Dashboard
+Admin must see all uploaded media in the related user’s profile.
+
+
+
+Supabase Storage Rules
+Storage Path
+Each user’s files are stored in folders by username + membership tier. Example:
+/storage
+   /<username>
+      /free
+         /photos
+         /videos
+      /silver
+         /photos
+         /videos
+      /gold
+         /photos
+         /videos
+
+Free members → files saved in /username/free/photos.
+Silver members → files saved in /username/silver/photos and /username/silver/videos.
+Gold members (and higher) → files saved in /username/gold/photos and /username/gold/videos.
+
+
+⚠ Example: Check the existing syviat folder in Supabase. Files should appear under the correct folder, 
+and photos/videos must load on her public profile page.
+
+GitHub (Frontend Code)
+Page: rate.tsx
+Update rate.tsx to allow:
+
+
+Rendering photos/videos based on user’s access level.
+Restricting visibility based on membership rules above.
+
+
+Output requirement:
+
+
+“Silver or better can access photos and videos in the rate section.”
+
+
+
+Deliverables for Phase 2
+✅ Media tab with tier-based upload rules.
+ ✅ Supabase storage structure for free, silver, gold uploads.
+ ✅ Upgrade/payment buttons integrated (PayPal links).
+ ✅ Comments, replies, and likes for media.
+ ✅ Visibility logic in rate.tsx (access control by membership).
+ ✅ Admin dashboard view of all user media.
+ ✅ Display upload date for Gold/Diamond/Elite.
+
+

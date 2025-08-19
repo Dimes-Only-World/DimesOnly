@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { Play, Flag, X, UserX } from 'lucide-react';
 
 interface User {
@@ -64,14 +64,26 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('user_media')
-        .select('*')
+        .select('id, media_url, media_type, content_tier, flagged, warning_message, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMedia(data || []);
+      
+      // Transform data to match expected format
+      const transformedMedia = (data || []).map(item => ({
+        id: item.id as string,
+        url: item.media_url as string,
+        type: item.media_type as 'photo' | 'video',
+        flagged: item.flagged as boolean,
+        warning_message: item.warning_message as string,
+        content_tier: item.content_tier as string,
+        created_at: item.created_at as string
+      }));
+      
+      setMedia(transformedMedia);
     } catch (error) {
       console.error('Error fetching media:', error);
     }
@@ -88,7 +100,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('user_media')
         .update({ 
           flagged: true, 
@@ -120,7 +132,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
 
     setDeactivating(true);
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('users')
         .update({ status: 'deactivated' })
         .eq('id', user.id);
