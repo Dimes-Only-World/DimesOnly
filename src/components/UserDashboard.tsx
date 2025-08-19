@@ -29,6 +29,7 @@ import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
 import SilverPlusMembership from "./SilverPlusMembership";
 import SilverPlusCounter from "./SilverPlusCounter";
+import DimesDirectory from "./DimesDirectory";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -434,6 +435,13 @@ const UserDashboard: React.FC = () => {
                     Profile
                   </TabsTrigger>
                   <TabsTrigger
+                    value="profiles"
+                    className="flex items-center gap-2 px-4 py-3"
+                  >
+                    <User className="w-4 h-4" />
+                    Profiles
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="makemoney"
                     className="flex items-center gap-2 px-4 py-3"
                   >
@@ -496,6 +504,16 @@ const UserDashboard: React.FC = () => {
                         onUpdate={updateUserData}
                       />
                     </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="profiles" className="mt-0">
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold mb-4">Browse Dimes</h2>
+                      <p className="text-gray-600 mb-6">Search and discover other dimes profiles</p>
+                    </div>
+                    <DimesDirectory />
                   </div>
                 </TabsContent>
 

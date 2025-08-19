@@ -28,6 +28,7 @@ import NotFound from "@/pages/NotFound";
 import PaymentStatusHandler from "./components/PaymentStatusHandler";
 import UpgradeDiamond from "./pages/UpgradeDiamond";
 import UpgradeSilverPlus from "./pages/UpgradeSilverPlus";
+import Profile from "./pages/Profile";
 import "./App.css";
 
 function AppContent() {
@@ -53,6 +54,7 @@ function AppContent() {
       <Route path="/upgrade" element={<Upgrade />} />
       <Route path="/upgrade-diamond" element={<UpgradeDiamond />} />
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
+      <Route path="/profile/:username" element={<Profile />} />
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
