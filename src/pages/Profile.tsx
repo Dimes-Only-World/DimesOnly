@@ -88,7 +88,7 @@ const Profile: React.FC = () => {
       // Use supabaseAdmin like the admin dashboard does to bypass RLS
       const { data, error } = await supabaseAdmin
         .from('user_media')
-        .select('id, media_url, media_type, content_tier, flagged, created_at')
+        .select('id, media_url, media_type, content_tier, flagged, created_at, storage_path')
         .eq('user_id', userId)
         .eq('flagged', false)
         .order('created_at', { ascending: false });
@@ -97,13 +97,31 @@ const Profile: React.FC = () => {
 
       console.log('Profile media fetched:', data); // Debug log
 
-      const transformedMedia = (data || []).map(item => ({
-        id: item.id,
-        url: item.media_url,
-        type: item.media_type as 'photo' | 'video',
-        content_tier: item.content_tier,
-        flagged: item.flagged,
-        created_at: item.created_at
+      const transformedMedia = await Promise.all((data || []).map(async (item) => {
+        let effectiveUrl = item.media_url as string;
+        // Videos are stored in the private bucket; generate a signed URL
+        if (item.media_type === 'video' && item.storage_path) {
+          try {
+            const { data: signed, error: signErr } = await supabaseAdmin
+              .storage
+              .from('private-media')
+              .createSignedUrl(item.storage_path, 60 * 60); // 1 hour
+            if (!signErr && signed?.signedUrl) {
+              effectiveUrl = signed.signedUrl;
+            }
+          } catch (e) {
+            console.warn('Failed to create signed URL for video', item.id, e);
+          }
+        }
+
+        return {
+          id: item.id,
+          url: effectiveUrl,
+          type: item.media_type as 'photo' | 'video',
+          content_tier: item.content_tier,
+          flagged: item.flagged,
+          created_at: item.created_at,
+        };
       }));
 
       console.log('Transformed media:', transformedMedia); // Debug log
@@ -115,25 +133,45 @@ const Profile: React.FC = () => {
 
   const fetchUserMembership = async () => {
     if (!user?.id) return;
-    
     try {
-      const { data, error } = await supabase
+      // 1) Trust the users table first (updated by webhook)
+      const { data: userRow, error: userErr } = await supabase
+        .from('users')
+        .select('membership_tier, membership_type, silver_plus_active, diamond_plus_active')
+        .eq('id', user.id)
+        .single();
+
+      if (!userErr && userRow) {
+        const tier = (userRow.membership_tier || userRow.membership_type || '').toString();
+        if (userRow.diamond_plus_active || tier === 'diamond_plus') {
+          setUserMembership('diamond_plus');
+          return;
+        }
+        if (userRow.silver_plus_active || tier === 'silver_plus') {
+          setUserMembership('silver_plus');
+          return;
+        }
+      }
+
+      // 2) Fallback to completed upgrades in membership_upgrades
+      const { data: upgrades, error: upgErr } = await supabase
         .from('membership_upgrades')
-        .select('membership_type, status')
+        .select('upgrade_type, upgrade_status')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .eq('upgrade_status', 'completed')
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (data && data.length > 0) {
-        setUserMembership(data[0].membership_type);
-      } else {
-        // Ensure default is 'free' if no active membership found
-        setUserMembership('free');
+      if (!upgErr && upgrades && upgrades.length > 0) {
+        setUserMembership(upgrades[0].upgrade_type);
+        return;
       }
+
+      // Default
+      setUserMembership('free');
     } catch (error) {
       console.error('Error fetching membership:', error);
-      setUserMembership('free'); // Default to free on error
+      setUserMembership('free');
     }
   };
 
@@ -198,7 +236,7 @@ const Profile: React.FC = () => {
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Banner Section */}
         <Card className="mb-4 sm:mb-6 overflow-hidden">
-          <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
+          <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {profile.banner_photo && (
               <img 
                 src={profile.banner_photo} 
@@ -209,9 +247,9 @@ const Profile: React.FC = () => {
             <div className="absolute inset-0 bg-black bg-opacity-30" />
             
             {/* Profile Picture & Info */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6">
+            <div className="absolute bottom-0 left-0 right-0 p-3 pt-8 sm:p-6 sm:pt-10">
               <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6">
-                <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0">
+                <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg mt-6 sm:mt-0">
                   <img 
                     src={profile.profile_photo || '/placeholder.svg'} 
                     alt={profile.username}
@@ -323,7 +361,7 @@ const Profile: React.FC = () => {
               <div className="text-center py-8 sm:py-12 px-4">
                 <Lock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
                 <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                  {activeTab === 'silver' ? 'Silver Plus' : 'Diamond Plus'} Required
+                  {activeTab === 'silver' ? 'Silver Plus' : 'Gold'} Required
                 </h3>
                 <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
                   Upgrade your membership to access this exclusive content
@@ -333,7 +371,7 @@ const Profile: React.FC = () => {
                   className="bg-purple-600 hover:bg-purple-700 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
                   size="sm"
                 >
-                  Upgrade to {activeTab === 'silver' ? 'Silver Plus' : 'Diamond Plus'}
+                  Upgrade to {activeTab === 'silver' ? 'Silver Plus' : 'Gold'}
                 </Button>
               </div>
             )}
