@@ -117,11 +117,11 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         setPhotos(mediaFiles.filter((f) => f.media_type === "photo"));
         setVideos(mediaFiles.filter((f) => f.media_type === "video"));
         
-        // Update current counts
+        // Update current counts by content tier
         setUploadLimits(prev => ({
           ...prev,
-          photos: mediaFiles.filter(f => f.media_type === "photo").length,
-          videos: mediaFiles.filter(f => f.media_type === "video").length
+          photos: mediaFiles.filter(f => f.media_type === "photo" && f.content_tier === selectedContentTier).length,
+          videos: mediaFiles.filter(f => f.media_type === "video" && f.content_tier === selectedContentTier).length
         }));
       }
     } catch (error) {
@@ -138,25 +138,6 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
   const handleFileUpload = async (files: FileList, type: "photo" | "video") => {
     if (!userData?.id) return;
-
-    // Validate content tier selection
-    if (selectedContentTier === "silver" && !userData.silver_plus_active && userData.membership_tier !== "silver") {
-      toast({
-        title: "Access Denied",
-        description: "Silver content requires Silver+ membership. Upgrade to upload nude content.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (selectedContentTier === "gold" && !userData.diamond_plus_active && !["gold", "diamond"].includes(userData.membership_tier)) {
-      toast({
-        title: "Access Denied",
-        description: "Gold content requires Gold+ membership. Upgrade to upload x-rated content.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     const currentCount = type === "photo" ? uploadLimits.photos : uploadLimits.videos;
     const maxFiles = type === "photo" ? uploadLimits.maxPhotos : uploadLimits.maxVideos;
@@ -421,15 +402,9 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
                 selectedContentTier === "silver" 
                   ? "border-yellow-500 bg-yellow-50 shadow-lg" 
-                  : userData.silver_plus_active || userData.membership_tier === "silver"
-                    ? "border-gray-200 bg-white hover:border-yellow-300"
-                    : "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                  : "border-gray-200 bg-white hover:border-yellow-300"
               }`}
-              onClick={() => {
-                if (userData.silver_plus_active || userData.membership_tier === "silver") {
-                  setSelectedContentTier("silver");
-                }
-              }}
+              onClick={() => setSelectedContentTier("silver")}
             >
               <div className="text-center">
                 <div className="w-12 h-12 mx-auto mb-3 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -437,13 +412,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">Silver Content</h3>
                 <p className="text-sm text-gray-600 mb-3">Nude photos & videos</p>
-                {userData.silver_plus_active || userData.membership_tier === "silver" ? (
-                  <div className="text-xs text-yellow-600 font-medium">✓ Available</div>
-                ) : (
-                  <div className="text-xs text-red-500 font-medium flex items-center justify-center gap-1">
-                    <Lock className="w-3 h-3" /> Requires Silver+
-                  </div>
-                )}
+                <div className="text-xs text-yellow-600 font-medium">✓ Available</div>
               </div>
               {selectedContentTier === "silver" && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
@@ -457,15 +426,9 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
                 selectedContentTier === "gold" 
                   ? "border-orange-500 bg-orange-50 shadow-lg" 
-                  : userData.diamond_plus_active || ["gold", "diamond"].includes(userData.membership_tier)
-                    ? "border-gray-200 bg-white hover:border-orange-300"
-                    : "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                  : "border-gray-200 bg-white hover:border-orange-300"
               }`}
-              onClick={() => {
-                if (userData.diamond_plus_active || ["gold", "diamond"].includes(userData.membership_tier)) {
-                  setSelectedContentTier("gold");
-                }
-              }}
+              onClick={() => setSelectedContentTier("gold")}
             >
               <div className="text-center">
                 <div className="w-12 h-12 mx-auto mb-3 bg-orange-100 rounded-full flex items-center justify-center">
@@ -473,13 +436,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">Gold Content</h3>
                 <p className="text-sm text-gray-600 mb-3">X-rated photos & videos</p>
-                {userData.diamond_plus_active || ["gold", "diamond"].includes(userData.membership_tier) ? (
-                  <div className="text-xs text-orange-600 font-medium">✓ Available</div>
-                ) : (
-                  <div className="text-xs text-red-500 font-medium flex items-center justify-center gap-1">
-                    <Lock className="w-3 h-3" /> Requires Gold+
-                  </div>
-                )}
+                <div className="text-xs text-orange-600 font-medium">✓ Available</div>
               </div>
               {selectedContentTier === "gold" && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
@@ -658,17 +615,15 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Image className="w-5 h-5" />
-              Photos ({photos.length})
+              Photos ({photos.filter(p => p.content_tier === selectedContentTier).length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {photos.length > 0 ? (
+            {photos.filter(p => p.content_tier === selectedContentTier).length > 0 ? (
               <MediaGrid
-                media={photos}
-                onDelete={async (id) => {
-                  // Handle delete logic
-                  await fetchMedia();
-                }}
+                media={photos.filter(p => p.content_tier === selectedContentTier)}
+                onDelete={handleDelete}
+                onReplace={handleReplace}
                 showContentTier={true}
                 currentUserId={userData.id}
                 showLikesAndComments={true}
@@ -687,17 +642,15 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Video className="w-5 h-5" />
-                Videos ({videos.length})
+                Videos ({videos.filter(v => v.content_tier === selectedContentTier).length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {videos.length > 0 ? (
+              {videos.filter(v => v.content_tier === selectedContentTier).length > 0 ? (
                 <MediaGrid
-                  media={videos}
-                  onDelete={async (id) => {
-                    // Handle delete logic
-                    await fetchMedia();
-                  }}
+                  media={videos.filter(v => v.content_tier === selectedContentTier)}
+                  onDelete={handleDelete}
+                  onReplace={handleReplace}
                   showContentTier={true}
                   currentUserId={userData.id}
                   showLikesAndComments={true}

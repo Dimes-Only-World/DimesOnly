@@ -16,6 +16,8 @@ interface DimeProfile {
   user_type: string;
   gender: string;
   bio: string;
+  city: string;
+  state: string;
 }
 
 const DimesDirectory: React.FC = () => {
@@ -38,7 +40,7 @@ const DimesDirectory: React.FC = () => {
       // First, let's see what user_types exist in the database
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, first_name, last_name, profile_photo, user_type, gender, bio')
+        .select('id, username, first_name, last_name, profile_photo, user_type, gender, bio, city, state')
         .not('user_type', 'is', null)
         .order('created_at', { ascending: false });
 
@@ -57,7 +59,9 @@ const DimesDirectory: React.FC = () => {
         profile_photo: user.profile_photo as string,
         user_type: user.user_type as string,
         gender: user.gender as string,
-        bio: user.bio as string
+        bio: user.bio as string,
+        city: user.city as string || '',
+        state: user.state as string || ''
       }));
       setProfiles(femaleUsers);
     } catch (error) {
@@ -76,7 +80,9 @@ const DimesDirectory: React.FC = () => {
     const filtered = profiles.filter(profile =>
       profile.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       profile.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profile.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+      profile.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profile.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profile.state.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     setFilteredProfiles(filtered);
@@ -138,11 +144,16 @@ const DimesDirectory: React.FC = () => {
                     />
                   </div>
 
-                  {/* Name & Username */}
+                  {/* Username & Location */}
                   <h3 className="font-semibold text-lg mb-1">
-                    {profile.first_name} {profile.last_name}
+                    @{profile.username}
                   </h3>
-                  <p className="text-gray-600 mb-2">@{profile.username}</p>
+                  <p className="text-gray-600 mb-2">
+                    {profile.city && profile.state ? `${profile.city}, ${profile.state}` : 
+                     profile.city ? profile.city : 
+                     profile.state ? profile.state : 
+                     'Location not specified'}
+                  </p>
 
                   {/* Badges */}
                   <div className="flex justify-center gap-2 mb-3">
