@@ -194,10 +194,10 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Banner Section */}
-        <Card className="mb-6 overflow-hidden">
-          <div className="relative h-64 bg-gradient-to-r from-purple-600 to-blue-600">
+        <Card className="mb-4 sm:mb-6 overflow-hidden">
+          <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {profile.banner_photo && (
               <img 
                 src={profile.banner_photo} 
@@ -208,9 +208,9 @@ const Profile: React.FC = () => {
             <div className="absolute inset-0 bg-black bg-opacity-30" />
             
             {/* Profile Picture & Info */}
-            <div className="absolute bottom-0 left-0 right-0 p-6">
-              <div className="flex items-end gap-6">
-                <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-white">
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6">
+                <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0">
                   <img 
                     src={profile.profile_photo || '/placeholder.svg'} 
                     alt={profile.username}
@@ -218,40 +218,48 @@ const Profile: React.FC = () => {
                   />
                 </div>
                 
-                <div className="flex-1 text-white">
-                  <h1 className="text-3xl font-bold">@{profile.username}</h1>
-                  <p className="text-xl opacity-90">
+                <div className="flex-1 text-white text-center sm:text-left">
+                  <h1 className="text-xl sm:text-3xl font-bold">@{profile.username}</h1>
+                  <p className="text-sm sm:text-xl opacity-90 break-words">
                     {profile.city && profile.state ? `${profile.city}, ${profile.state}` : 
                      profile.city ? profile.city : 
                      profile.state ? profile.state : 
                      'Location not specified'}
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="secondary" className="bg-white/20 text-white">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
+                    <Badge variant="secondary" className="bg-white/20 text-white text-xs">
                       {profile.gender}
                     </Badge>
-                    <Badge variant="secondary" className="bg-white/20 text-white">
+                    <Badge variant="secondary" className="bg-white/20 text-white text-xs">
                       {profile.user_type}
                     </Badge>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button onClick={handleTip} className="bg-green-600 hover:bg-green-700">
-                    <DollarSign className="w-4 h-4 mr-2" />
+                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                  <Button 
+                    onClick={handleTip} 
+                    className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
+                    size="sm"
+                  >
+                    <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Tip
                   </Button>
-                  <Button onClick={handleRate} className="bg-yellow-600 hover:bg-yellow-700">
-                    <Star className="w-4 h-4 mr-2" />
+                  <Button 
+                    onClick={handleRate} 
+                    className="bg-yellow-600 hover:bg-yellow-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
+                    size="sm"
+                  >
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Rate
                   </Button>
                 </div>
               </div>
               
               {profile.bio && (
-                <div className="mt-4 text-white/90">
-                  <p>{profile.bio}</p>
+                <div className="mt-3 sm:mt-4 text-white/90 text-center sm:text-left">
+                  <p className="text-sm sm:text-base">{profile.bio}</p>
                 </div>
               )}
             </div>
@@ -260,13 +268,14 @@ const Profile: React.FC = () => {
 
         {/* Content Tiers */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             {/* Tier Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
               <Button
                 variant={activeTab === 'free' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('free')}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
+                size="sm"
               >
                 Free Content
               </Button>
@@ -274,23 +283,25 @@ const Profile: React.FC = () => {
               <Button
                 variant={activeTab === 'silver' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('silver')}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
                 disabled={!canAccessTier('silver')}
+                size="sm"
               >
-                <Crown className="w-4 h-4" />
+                <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
                 Silver Content
-                {!canAccessTier('silver') && <Lock className="w-4 h-4" />}
+                {!canAccessTier('silver') && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
               
               <Button
                 variant={activeTab === 'gold' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('gold')}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
                 disabled={!canAccessTier('gold')}
+                size="sm"
               >
-                <Crown className="w-4 h-4 text-yellow-500" />
+                <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
                 Gold Content
-                {!canAccessTier('gold') && <Lock className="w-4 h-4" />}
+                {!canAccessTier('gold') && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
             </div>
 
@@ -304,23 +315,24 @@ const Profile: React.FC = () => {
                     showLikesAndComments={true}
                   />
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <p>No {activeTab} content available</p>
+                  <div className="text-center py-8 sm:py-12 text-gray-500">
+                    <p className="text-sm sm:text-base">No {activeTab} content available</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
+              <div className="text-center py-8 sm:py-12 px-4">
+                <Lock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">
                   {activeTab === 'silver' ? 'Silver Plus' : 'Diamond Plus'} Required
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
                   Upgrade your membership to access this exclusive content
                 </p>
                 <Button 
                   onClick={() => handleUpgrade(activeTab)}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-purple-600 hover:bg-purple-700 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
+                  size="sm"
                 >
                   Upgrade to {activeTab === 'silver' ? 'Silver Plus' : 'Diamond Plus'}
                 </Button>
