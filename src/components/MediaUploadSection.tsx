@@ -521,6 +521,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                   </div>
                   {uploadLimits.photos < uploadLimits.maxPhotos && (
                     <Button 
+                      type="button"
+                      onClick={() => document.getElementById('photo-upload')?.click()}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
                       disabled={uploading}
                     >
@@ -582,6 +584,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                     </div>
                     {uploadLimits.videos < uploadLimits.maxVideos && (
                       <Button 
+                        type="button"
+                        onClick={() => document.getElementById('video-upload')?.click()}
                         className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
                         disabled={uploading}
                       >
