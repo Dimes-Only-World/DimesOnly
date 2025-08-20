@@ -27,5 +27,5 @@ package-lock.json
 *.sln
 *.sw?
 #phase2.txt
-phase 2.md
+#phase 2.md
 #Database scheme.txt

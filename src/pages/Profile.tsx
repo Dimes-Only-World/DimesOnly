@@ -145,9 +145,10 @@ const Profile: React.FC = () => {
       return false;
     });
 
-    // Transform media URLs to include proper Supabase storage URLs
+    // Transform for MediaGrid: ensure media_type is set and URLs are absolute
     return filtered.map(item => ({
       ...item,
+      media_type: item.type, // required by MediaGrid
       media_url: item.url.startsWith('http') ? item.url : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
       url: item.url.startsWith('http') ? item.url : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`
     }));
@@ -284,7 +285,6 @@ const Profile: React.FC = () => {
                 variant={activeTab === 'silver' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('silver')}
                 className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
-                disabled={!canAccessTier('silver')}
                 size="sm"
               >
                 <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -296,7 +296,6 @@ const Profile: React.FC = () => {
                 variant={activeTab === 'gold' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('gold')}
                 className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
-                disabled={!canAccessTier('gold')}
                 size="sm"
               >
                 <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />

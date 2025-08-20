@@ -35,6 +35,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   showLikesAndComments = false,
 }) => {
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
+  const [playingMap, setPlayingMap] = useState<Record<string, boolean>>({});
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
 
   const getContentTierInfo = (tier: string) => {
@@ -67,11 +68,14 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 <video
                   src={file.media_url}
                   className="w-full h-full object-cover"
-                  controls={false}
+                  controls
                   muted
+                  playsInline
                   preload="metadata"
+                  onPlay={() => setPlayingMap((m) => ({ ...m, [file.id]: true }))}
+                  onPause={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <div className={`absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none ${playingMap[file.id] ? 'hidden' : ''}`}>
                   <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
                     <Video className="w-8 h-8 text-gray-700" />
                   </div>
