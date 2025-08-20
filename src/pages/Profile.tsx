@@ -19,6 +19,8 @@ interface UserProfile {
   banner_photo: string;
   user_type: string;
   gender: string;
+  city: string;
+  state: string;
 }
 
 interface UserMedia {
@@ -53,7 +55,7 @@ const Profile: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender')
+        .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
         .eq('username', username)
         .single();
 
@@ -125,9 +127,13 @@ const Profile: React.FC = () => {
 
       if (data && data.length > 0) {
         setUserMembership(data[0].membership_type);
+      } else {
+        // Ensure default is 'free' if no active membership found
+        setUserMembership('free');
       }
     } catch (error) {
       console.error('Error fetching membership:', error);
+      setUserMembership('free'); // Default to free on error
     }
   };
 
@@ -155,7 +161,7 @@ const Profile: React.FC = () => {
   };
 
   const handleTip = () => {
-    navigate(`/tip?user=${username}`);
+    navigate(`/tip?tip=${username}`);
   };
 
   const handleRate = () => {
@@ -213,8 +219,13 @@ const Profile: React.FC = () => {
                 </div>
                 
                 <div className="flex-1 text-white">
-                  <h1 className="text-3xl font-bold">{profile.first_name} {profile.last_name}</h1>
-                  <p className="text-xl opacity-90">@{profile.username}</p>
+                  <h1 className="text-3xl font-bold">@{profile.username}</h1>
+                  <p className="text-xl opacity-90">
+                    {profile.city && profile.state ? `${profile.city}, ${profile.state}` : 
+                     profile.city ? profile.city : 
+                     profile.state ? profile.state : 
+                     'Location not specified'}
+                  </p>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="secondary" className="bg-white/20 text-white">
                       {profile.gender}
