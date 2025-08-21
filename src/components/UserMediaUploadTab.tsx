@@ -20,9 +20,13 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
   };
 
   const getMembershipStatus = () => {
-    if (userData?.diamond_plus_active) {
-      return { tier: 'Gold Plus', icon: <Crown className="w-5 h-5 text-yellow-500" />, color: 'from-yellow-400 to-orange-500' };
-    } else if (userData?.silver_plus_active || userData?.membership_tier === 'silver') {
+    const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
+    const isDiamond = Boolean(userData?.diamond_plus_active) || rawTier === 'diamond_plus' || rawTier === 'gold' || rawTier === 'diamond';
+    const isSilver = Boolean(userData?.silver_plus_active) || rawTier === 'silver' || rawTier === 'silver_plus';
+
+    if (isDiamond) {
+      return { tier: 'Diamond Plus', icon: <Crown className="w-5 h-5 text-yellow-500" />, color: 'from-yellow-400 to-orange-500' };
+    } else if (isSilver) {
       return { tier: 'Silver Plus', icon: <Star className="w-5 h-5 text-yellow-400" />, color: 'from-yellow-500 to-yellow-600' };
     } else {
       return { tier: 'Free', icon: <Lock className="w-5 h-5 text-gray-400" />, color: 'from-gray-500 to-gray-600' };
@@ -97,7 +101,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
             
             <div className="text-center">
               <Crown className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
-              <h4 className="font-semibold text-gray-900 mb-2">Gold Plus</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Diamond Plus</h4>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• Unlimited uploads</li>
                 <li>• Access to all content tiers</li>
@@ -108,7 +112,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
                 onClick={() => navigate('/upgrade-diamond')}
                 className="mt-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
               >
-                Upgrade to Gold Plus
+                Upgrade to Diamond Plus
               </Button>
             </div>
           </div>

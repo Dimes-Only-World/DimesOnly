@@ -51,6 +51,13 @@ const Profile: React.FC = () => {
     }
   }, [username]);
 
+  // Ensure membership is fetched when auth session becomes available/changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserMembership();
+    }
+  }, [user?.id]);
+
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
@@ -142,12 +149,16 @@ const Profile: React.FC = () => {
         .single();
 
       if (!userErr && userRow) {
-        const tier = (userRow.membership_tier || userRow.membership_type || '').toString();
-        if (userRow.diamond_plus_active || tier === 'diamond_plus') {
+        const rawTier = (userRow.membership_tier || userRow.membership_type || '').toString().toLowerCase();
+        const normalizedTier = rawTier === 'gold' || rawTier === 'diamond' ? 'diamond_plus'
+          : rawTier === 'silver' ? 'silver_plus'
+          : rawTier;
+
+        if (userRow.diamond_plus_active || normalizedTier === 'diamond_plus') {
           setUserMembership('diamond_plus');
           return;
         }
-        if (userRow.silver_plus_active || tier === 'silver_plus') {
+        if (userRow.silver_plus_active || normalizedTier === 'silver_plus') {
           setUserMembership('silver_plus');
           return;
         }
@@ -163,7 +174,11 @@ const Profile: React.FC = () => {
         .limit(1);
 
       if (!upgErr && upgrades && upgrades.length > 0) {
-        setUserMembership(upgrades[0].upgrade_type);
+        const rawUpgrade = String(upgrades[0].upgrade_type || '').toLowerCase();
+        const normalizedUpgrade = rawUpgrade === 'gold' || rawUpgrade === 'diamond' ? 'diamond_plus'
+          : rawUpgrade === 'silver' ? 'silver_plus'
+          : rawUpgrade;
+        setUserMembership(normalizedUpgrade);
         return;
       }
 
@@ -349,8 +364,9 @@ const Profile: React.FC = () => {
                   <MediaGrid 
                     media={getFilteredMedia()}
                     currentUserId={user?.id || ''}
-                    showLikesAndComments={true}
-                  />
+                    showLikesAndComments={true} onDelete={function (id: string): void {
+                      throw new Error('Function not implemented.');
+                    } }                  />
                 ) : (
                   <div className="text-center py-8 sm:py-12 text-gray-500">
                     <p className="text-sm sm:text-base">No {activeTab} content available</p>
