@@ -82,7 +82,8 @@ const ContentAccessControl: React.FC<ContentAccessControlProps> = ({
             if (contentTier === 'silver') {
               navigate('/upgrade-silver-plus');
             } else if (contentTier === 'gold') {
-              navigate('/upgrade-diamond');
+              // Send users to the general upgrade page for Gold
+              navigate('/upgrade');
             }
           }}
           className={`bg-gradient-to-r ${tierInfo.color} hover:${tierInfo.hoverColor} text-white font-semibold px-6 py-2`}

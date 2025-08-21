@@ -226,7 +226,7 @@ const Profile: React.FC = () => {
     if (tier === 'silver') {
       navigate('/upgrade-silver-plus');
     } else if (tier === 'gold') {
-      navigate('/upgrade-diamond');
+      navigate('/upgrade');
     }
   };
 

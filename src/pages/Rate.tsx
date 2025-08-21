@@ -24,8 +24,7 @@ import {
   Heart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import MediaGrid from "@/components/MediaGrid";
-import ContentAccessControl from "@/components/ContentAccessControl";
+// Removed media display on Rate page to keep exclusive content on Profile
 
 interface UserData {
   id: string;
@@ -127,10 +126,7 @@ const RatePage: React.FC = () => {
   const [isAllNumbersUsed, setIsAllNumbersUsed] = useState(false);
   const [currentStanding, setCurrentStanding] =
     useState<CurrentStanding | null>(null);
-  const [userMedia, setUserMedia] = useState<UserMedia[]>([]);
-  const [showPhotosDialog, setShowPhotosDialog] = useState(false);
-  const [showVideosDialog, setShowVideosDialog] = useState(false);
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  // Removed media state: no photos/videos on Rate page
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
 
@@ -195,10 +191,9 @@ const RatePage: React.FC = () => {
         };
         setUserData(userData);
 
-        // Fetch current standing, media, and likes
+        // Fetch current standing and likes only (no media on Rate page)
         await Promise.all([
           fetchCurrentStanding(userData.id),
-          fetchUserMedia(userData.id),
           fetchLikes(userData.id),
         ]);
       }
@@ -266,36 +261,7 @@ const RatePage: React.FC = () => {
     }
   };
 
-  const fetchUserMedia = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("user_media")
-        .select("id, media_url, media_type, created_at, content_tier, is_nude, is_xrated, upload_date")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching user media:", error);
-        return;
-      }
-
-      if (data) {
-        const media: UserMedia[] = data.map((item) => ({
-          id: String(item.id),
-          media_url: String(item.media_url),
-          media_type: String(item.media_type),
-          created_at: String(item.created_at),
-          content_tier: item.content_tier || 'free',
-          is_nude: Boolean(item.is_nude),
-          is_xrated: Boolean(item.is_xrated),
-          upload_date: item.upload_date ? String(item.upload_date) : undefined,
-        }));
-        setUserMedia(media);
-      }
-    } catch (error) {
-      console.error("Error fetching user media:", error);
-    }
-  };
+  // Removed fetchUserMedia(): no media fetched for Rate page
 
   const fetchLikes = async (userId: string) => {
     try {
@@ -647,25 +613,7 @@ const RatePage: React.FC = () => {
     }
   };
 
-  const getPhotos = () => {
-    const photos = [
-      userData?.profile_photo,
-      userData?.banner_photo,
-      userData?.front_page_photo,
-    ].filter(Boolean) as string[];
-
-    const uploadedPhotos = userMedia
-      .filter((item) => item.media_type === "photo")
-      .map((item) => item.media_url);
-
-    return [...photos, ...uploadedPhotos];
-  };
-
-  const getVideos = () => {
-    return userMedia
-      .filter((item) => item.media_type === "video")
-      .map((item) => item.media_url);
-  };
+  // Removed helpers for photos/videos
 
   if (loading) {
     return (
@@ -732,21 +680,7 @@ const RatePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Banner Photo */}
-        {userData.banner_photo && (
-          <div className="relative w-full h-48 md:h-64 rounded-lg overflow-hidden mb-6">
-            <img
-              src={userData.banner_photo}
-              alt={`${userData.username} banner`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-          </div>
-        )}
+        {/* Optional: keep banner minimal or remove entirely. Keeping minimal header without media. */}
 
         <div className="text-center mb-8">
           {/* Current Standing */}
@@ -771,42 +705,7 @@ const RatePage: React.FC = () => {
             </div>
           )}
 
-          {/* Profile Photos - All 3 photos */}
-          <div className="flex justify-center gap-4 mb-6">
-            {userData.profile_photo && (
-              <img
-                src={userData.profile_photo}
-                alt={`${userData.username} profile`}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-4 border-yellow-400 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => {
-                  setSelectedPhotoIndex(0);
-                  setShowPhotosDialog(true);
-                }}
-              />
-            )}
-            {userData.banner_photo && (
-              <img
-                src={userData.banner_photo}
-                alt={`${userData.username} banner`}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-4 border-blue-400 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => {
-                  setSelectedPhotoIndex(1);
-                  setShowPhotosDialog(true);
-                }}
-              />
-            )}
-            {userData.front_page_photo && (
-              <img
-                src={userData.front_page_photo}
-                alt={`${userData.username} front page`}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover border-4 border-green-400 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => {
-                  setSelectedPhotoIndex(2);
-                  setShowPhotosDialog(true);
-                }}
-              />
-            )}
-          </div>
+          {/* Removed profile media thumbnails to keep Rate page media-free */}
 
           <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
             Rate @{userData.username}
@@ -847,23 +746,17 @@ const RatePage: React.FC = () => {
             </Button>
           </div>
 
-          {/* User Media Grid with Likes and Comments */}
-          {userMedia.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-white mb-4 text-center">
-                Photos & Videos
-              </h3>
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20">
-                <MediaGrid
-                  media={userMedia}
-                  onDelete={() => {}} // Read-only for Rate page
-                  showContentTier={true}
-                  currentUserId={currentUser?.id}
-                  showLikesAndComments={true}
-                />
-              </div>
-            </div>
-          )}
+          {/* Removed Photos & Videos section from Rate page */}
+
+          {/* View Profile Button */}
+          <div className="flex justify-center mb-8">
+            <Button
+              onClick={() => navigate(`/profile/${userData.username}`)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              View Profile
+            </Button>
+          </div>
         </div>
 
         {/* Rating Grid */}
@@ -1025,125 +918,6 @@ const RatePage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Photos Modal */}
-      <Dialog open={showPhotosDialog} onOpenChange={setShowPhotosDialog}>
-        <DialogContent className="bg-gray-800 border-blue-500 max-w-7xl max-h-[95vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-blue-400 flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              Photos - @{userData?.username} ({selectedPhotoIndex + 1} of{" "}
-              {getPhotos().length})
-            </DialogTitle>
-            <button
-              onClick={() => setShowPhotosDialog(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-white z-10"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </DialogHeader>
-
-          {getPhotos().length > 0 ? (
-            <div className="relative h-[85vh] flex items-center justify-center">
-              {/* Main large image display */}
-              <div className="relative w-full h-full flex items-center justify-center">
-                <img
-                  src={getPhotos()[selectedPhotoIndex]}
-                  alt={`Photo ${selectedPhotoIndex + 1}`}
-                  className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                />
-
-                {/* Navigation arrows */}
-                {getPhotos().length > 1 && (
-                  <>
-                    <button
-                      onClick={() =>
-                        setSelectedPhotoIndex((prev) =>
-                          prev === 0 ? getPhotos().length - 1 : prev - 1
-                        )
-                      }
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        setSelectedPhotoIndex((prev) =>
-                          prev === getPhotos().length - 1 ? 0 : prev + 1
-                        )
-                      }
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {/* Thumbnail strip at bottom */}
-              {getPhotos().length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 rounded-lg p-2">
-                  <div className="flex gap-2 max-w-md overflow-x-auto">
-                    {getPhotos().map((photo, index) => (
-                      <img
-                        key={index}
-                        src={photo}
-                        alt={`Thumbnail ${index + 1}`}
-                        className={`w-16 h-16 object-cover rounded cursor-pointer transition-all duration-200 ${
-                          index === selectedPhotoIndex
-                            ? "ring-2 ring-blue-400 opacity-100"
-                            : "opacity-60 hover:opacity-80"
-                        }`}
-                        onClick={() => setSelectedPhotoIndex(index)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400 h-64 flex items-center justify-center">
-              No photos available
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Videos Modal */}
-      <Dialog open={showVideosDialog} onOpenChange={setShowVideosDialog}>
-        <DialogContent className="bg-gray-800 border-purple-500 max-w-4xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-purple-400 flex items-center gap-2">
-              <Play className="w-5 h-5" />
-              Videos - @{userData?.username}
-            </DialogTitle>
-            <button
-              onClick={() => setShowVideosDialog(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-white"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </DialogHeader>
-          <div className="overflow-y-auto max-h-[70vh]">
-            {getVideos().length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                {getVideos().map((video, index) => (
-                  <video
-                    key={index}
-                    src={video}
-                    className="w-full h-48 object-cover rounded-lg"
-                    controls
-                    preload="metadata"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                No videos available
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

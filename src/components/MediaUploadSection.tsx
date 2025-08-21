@@ -26,6 +26,7 @@ interface MediaUploadSectionProps {
     membership_tier: string;
     silver_plus_active: boolean;
     diamond_plus_active: boolean;
+    user_type?: string;
     [key: string]: unknown;
   };
   onUpdate: (data: Record<string, unknown>) => Promise<boolean>;
@@ -56,6 +57,9 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
   });
   const { toast } = useToast();
 
+  // Only Dimes (Strippers/Exotics) can upload Silver/Gold
+  const isPerformer = ["stripper", "exotic"].includes(String(userData?.user_type || '').toLowerCase());
+
   useEffect(() => {
     if (userData?.id) {
       fetchMedia();
@@ -67,11 +71,22 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
     calculateUploadLimits();
   }, [selectedContentTier, photos, videos, userData?.membership_tier, userData?.silver_plus_active, userData?.diamond_plus_active]);
 
+  // Guard: Non-performers must stay on Free tier
+  useEffect(() => {
+    if (!isPerformer && selectedContentTier !== "free") {
+      setSelectedContentTier("free");
+      toast({
+        title: "Restricted",
+        description: "Only Dimes (Strippers/Exotics) can upload to Silver or Gold.",
+      });
+    }
+  }, [isPerformer, selectedContentTier]);
+
   // Calculate upload limits based on selected content tier (not global membership)
   const calculateUploadLimits = () => {
     const isFree = selectedContentTier === "free";
     const maxPhotos = isFree ? 25 : 260;
-    const maxVideos = isFree ? 0 : 48;
+    const maxVideos = isFree ? 25 : 48;
 
     const photosCount = photos.filter(f => f.media_type === "photo" && f.content_tier === selectedContentTier).length;
     const videosCount = videos.filter(f => f.media_type === "video" && f.content_tier === selectedContentTier).length;
@@ -282,7 +297,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
   const getContentTierDescription = () => {
     switch (selectedContentTier) {
       case "free":
-        return "Clean content only - no nudes or x-rated material";
+        return "Clean content only (photos & videos) - no nudes or x-rated material";
       case "silver":
         return "Nude content allowed (not x-rated) - requires Silver+ membership";
       case "gold":
@@ -351,7 +366,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
           <div className="mt-4 p-3 bg-white rounded-lg border-l-4 border-blue-500">
             <p className="text-sm font-medium text-gray-700">
               {uploadLimits.maxPhotos === 25 
-                ? "🆓 Free Tier: Upload up to 25 photos to get started!" 
+                ? "🆓 Free Tier: Upload up to 25 photos and 25 videos to get started!" 
                 : `⭐ Premium Tier: Enjoy ${uploadLimits.maxPhotos} photos + ${uploadLimits.maxVideos} videos`
               }
             </p>
@@ -385,7 +400,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                   <Lock className="w-6 h-6 text-green-600" />
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">Free Content</h3>
-                <p className="text-sm text-gray-600 mb-3">Clean photos only</p>
+                <p className="text-sm text-gray-600 mb-3">Clean photos & videos</p>
                 <div className="text-xs text-green-600 font-medium">✓ Always Available</div>
               </div>
               {selectedContentTier === "free" && (
@@ -402,7 +417,15 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                   ? "border-yellow-500 bg-yellow-50 shadow-lg" 
                   : "border-gray-200 bg-white hover:border-yellow-300"
               }`}
-              onClick={() => setSelectedContentTier("silver")}
+              onClick={() => {
+                if (!isPerformer) {
+                  return toast({
+                    title: "Dimes Only",
+                    description: "Only Strippers and Exotics can upload Silver content.",
+                  });
+                }
+                setSelectedContentTier("silver");
+              }}
             >
               <div className="text-center">
                 <div className="w-12 h-12 mx-auto mb-3 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -410,7 +433,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">Silver Content</h3>
                 <p className="text-sm text-gray-600 mb-3">Nude photos & videos</p>
-                <div className="text-xs text-yellow-600 font-medium">✓ Available</div>
+                <div className="text-xs text-yellow-600 font-medium">{isPerformer ? "✓ Available" : "Dimes Only"}</div>
               </div>
               {selectedContentTier === "silver" && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
@@ -426,7 +449,15 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                   ? "border-orange-500 bg-orange-50 shadow-lg" 
                   : "border-gray-200 bg-white hover:border-orange-300"
               }`}
-              onClick={() => setSelectedContentTier("gold")}
+              onClick={() => {
+                if (!isPerformer) {
+                  return toast({
+                    title: "Dimes Only",
+                    description: "Only Strippers and Exotics can upload Gold content.",
+                  });
+                }
+                setSelectedContentTier("gold");
+              }}
             >
               <div className="text-center">
                 <div className="w-12 h-12 mx-auto mb-3 bg-orange-100 rounded-full flex items-center justify-center">
@@ -434,7 +465,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">Gold Content</h3>
                 <p className="text-sm text-gray-600 mb-3">X-rated photos & videos</p>
-                <div className="text-xs text-orange-600 font-medium">✓ Available</div>
+                <div className="text-xs text-orange-600 font-medium">{isPerformer ? "✓ Available" : "Dimes Only"}</div>
               </div>
               {selectedContentTier === "gold" && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
@@ -554,30 +585,31 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 )}
               </div>
               
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors duration-300 bg-gray-50 hover:bg-purple-50">
+              <div className={`border-2 border-dashed border-gray-300 rounded-xl p-8 text-center transition-colors duration-300 ${(!isPerformer && selectedContentTier !== 'free') ? 'bg-gray-100' : 'hover:border-purple-400 bg-gray-50 hover:bg-purple-50'}`}>
                 <input
                   type="file"
                   multiple
                   accept="video/*"
                   onChange={(e) => e.target.files && handleFileUpload(e.target.files, "video")}
-                  disabled={uploading || uploadLimits.videos >= uploadLimits.maxVideos}
+                  disabled={uploading || uploadLimits.videos >= uploadLimits.maxVideos || (!isPerformer && selectedContentTier !== 'free')}
                   className="hidden"
                   id="video-upload"
                 />
-                <label htmlFor="video-upload" className="cursor-pointer">
+                <label htmlFor="video-upload" className={`cursor-pointer ${(!isPerformer && selectedContentTier !== 'free') ? 'pointer-events-none opacity-60' : ''}`}>
                   <div className="flex flex-col items-center gap-3">
                     <div className="p-4 bg-purple-100 rounded-full">
                       <Video className="w-8 h-8 text-purple-600" />
                     </div>
                     <div>
                       <p className="text-lg font-semibold text-gray-700 mb-1">
-                        {uploadLimits.videos >= uploadLimits.maxVideos ? "Storage Full" : "Drop videos here or click to browse"}
+                        {(!isPerformer && selectedContentTier !== 'free') ? "Dimes Only (Strippers/Exotics)" : (uploadLimits.videos >= uploadLimits.maxVideos ? "Storage Full" : "Drop videos here or click to browse")}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {uploadLimits.videos >= uploadLimits.maxVideos 
-                          ? "Delete some videos to upload more" 
-                          : "Supports MP4, MOV, AVI up to 100MB each"
-                        }
+                        {(!isPerformer && selectedContentTier !== 'free') 
+                          ? "Only Dimes can upload to Silver or Gold"
+                          : (uploadLimits.videos >= uploadLimits.maxVideos 
+                            ? "Delete some videos to upload more" 
+                            : "Supports MP4, MOV, AVI up to 100MB each")}
                       </p>
                     </div>
                     {uploadLimits.videos < uploadLimits.maxVideos && (
@@ -585,7 +617,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                         type="button"
                         onClick={() => document.getElementById('video-upload')?.click()}
                         className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
-                        disabled={uploading}
+                        disabled={uploading || (!isPerformer && selectedContentTier !== 'free')}
                       >
                         <Upload className="w-4 h-4 mr-2" />
                         Choose Videos
