@@ -59,30 +59,29 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
   useEffect(() => {
     if (userData?.id) {
       fetchMedia();
-      calculateUploadLimits();
     }
-  }, [userData?.id, userData?.membership_tier]);
+  }, [userData?.id]);
 
-  // Calculate upload limits based on membership tier
+  // Recalculate limits and per-tier counts whenever tier or media lists change
+  useEffect(() => {
+    calculateUploadLimits();
+  }, [selectedContentTier, photos, videos, userData?.membership_tier, userData?.silver_plus_active, userData?.diamond_plus_active]);
+
+  // Calculate upload limits based on selected content tier (not global membership)
   const calculateUploadLimits = () => {
-    const { membership_tier, silver_plus_active, diamond_plus_active } = userData;
-    
-    let maxPhotos = 25; // Free tier
-    let maxVideos = 0;  // Free tier
+    const isFree = selectedContentTier === "free";
+    const maxPhotos = isFree ? 25 : 260;
+    const maxVideos = isFree ? 0 : 48;
 
-    if (membership_tier === "silver" || silver_plus_active) {
-      maxPhotos = 260;
-      maxVideos = 48;
-    } else if (membership_tier === "gold" || membership_tier === "diamond" || diamond_plus_active) {
-      maxPhotos = 260;
-      maxVideos = 48;
-    }
+    const photosCount = photos.filter(f => f.media_type === "photo" && f.content_tier === selectedContentTier).length;
+    const videosCount = videos.filter(f => f.media_type === "video" && f.content_tier === selectedContentTier).length;
 
-    setUploadLimits(prev => ({
-      ...prev,
+    setUploadLimits({
+      photos: photosCount,
+      videos: videosCount,
       maxPhotos,
       maxVideos
-    }));
+    });
   };
 
   const fetchMedia = async () => {
@@ -117,12 +116,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         setPhotos(mediaFiles.filter((f) => f.media_type === "photo"));
         setVideos(mediaFiles.filter((f) => f.media_type === "video"));
         
-        // Update current counts by content tier
-        setUploadLimits(prev => ({
-          ...prev,
-          photos: mediaFiles.filter(f => f.media_type === "photo" && f.content_tier === selectedContentTier).length,
-          videos: mediaFiles.filter(f => f.media_type === "video" && f.content_tier === selectedContentTier).length
-        }));
+        // Counts are recalculated in calculateUploadLimits effect
       }
     } catch (error) {
       console.error("Error fetching media:", error);
