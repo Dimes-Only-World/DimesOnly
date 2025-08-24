@@ -28,7 +28,12 @@ import NotFound from "@/pages/NotFound";
 import PaymentStatusHandler from "./components/PaymentStatusHandler";
 import UpgradeDiamond from "./pages/UpgradeDiamond";
 import UpgradeSilverPlus from "./pages/UpgradeSilverPlus";
+import UpgradeSilver from "./pages/UpgradeSilver";
+import UpgradeGold from "./pages/UpgradeGold";
+import UpgradeSilverSubscribe from "./pages/UpgradeSilverSubscribe";
+import UpgradeDiamondMonthly from "./pages/UpgradeDiamondMonthly";
 import Profile from "./pages/Profile";
+import SubscriptionsDebug from "./pages/SubscriptionsDebug";
 import "./App.css";
 
 function AppContent() {
@@ -54,8 +59,13 @@ function AppContent() {
       <Route path="/upgrade" element={<Upgrade />} />
       <Route path="/upgrade-diamond" element={<UpgradeDiamond />} />
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
+      <Route path="/upgrade-silver" element={<UpgradeSilver />} />
+      <Route path="/upgrade-silver-subscribe" element={<UpgradeSilverSubscribe />} />
+      <Route path="/upgrade-gold" element={<UpgradeGold />} />
+      <Route path="/upgrade-diamond-monthly" element={<UpgradeDiamondMonthly />} />
       <Route path="/profile/:username" element={<Profile />} />
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
+      <Route path="/debug-subscription" element={<SubscriptionsDebug />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

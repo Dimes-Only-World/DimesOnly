@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+
 import {
   Card,
   CardContent,
@@ -142,11 +143,23 @@ const UpgradePageInner: React.FC = () => {
   });
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [cadence, setCadence] = useState<"monthly" | "yearly">("monthly");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [paymentOption, setPaymentOption] = useState<"full" | "installment">("full");
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
 
   const [showAgreement, setShowAgreement] = useState(false);
+
+  // Calculate display prices based on selected cadence. Must be before any early returns.
+  const displayPrice = useMemo(() => {
+    return (id: string) => {
+      if (id === "silver") return cadence === "yearly" ? 49.99 : 4.99;
+      if (id === "gold") return cadence === "yearly" ? 99.99 : 11.99;
+      if (id === "diamond") return cadence === "yearly" ? 150.0 : 14.99;
+      if (id === "elite") return 10000.0; // yearly only
+      return 0;
+    };
+  }, [cadence]);
 
   const AgreementModal = () => (
     <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
@@ -217,6 +230,20 @@ const UpgradePageInner: React.FC = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-white mb-4">UPGRADE YOUR MEMBERSHIP</h1>
+              <div className="inline-flex bg-black/50 border border-pink-500 rounded-full overflow-hidden">
+                <button
+                  className={`px-4 py-2 text-sm font-semibold transition ${cadence === 'monthly' ? 'bg-pink-500 text-white' : 'text-pink-300 hover:text-white'}`}
+                  onClick={() => setCadence('monthly')}
+                >
+                  Monthly
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-semibold transition ${cadence === 'yearly' ? 'bg-pink-500 text-white' : 'text-pink-300 hover:text-white'}`}
+                  onClick={() => setCadence('yearly')}
+                >
+                  Yearly
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {packages.map((pkg) => (
@@ -224,8 +251,9 @@ const UpgradePageInner: React.FC = () => {
                   key={pkg.id}
                   className="bg-black/80 border-2 border-pink-500 text-white cursor-pointer hover:scale-105 transition-transform"
                   onClick={() => {
-                    if (pkg.id === 'silver') return navigate('/upgrade-silver-plus');
-                    if (pkg.id === 'diamond') return navigate('/upgrade-diamond');
+                    if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
+                    if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
+                    if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
                     // fallback to original behavior for other packages
                     setSelectedPackage(pkg);
                     setPaymentOption('full');
@@ -234,12 +262,18 @@ const UpgradePageInner: React.FC = () => {
                 >
                   <CardHeader>
                     <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
-                    <CardDescription className="text-3xl font-bold text-white">${pkg.price.toFixed(2)}</CardDescription>
+                    <CardDescription className="text-3xl font-bold text-white">
+                      ${displayPrice(pkg.id).toFixed(2)}
+                      <span className="block text-xs text-gray-300 mt-1">
+                        {pkg.id === 'elite' ? 'per year' : cadence === 'yearly' ? 'per year' : 'per month'}
+                      </span>
+                    </CardDescription>
                     {pkg.badge && <Badge className="bg-red-600 text-white">{pkg.badge}</Badge>}
                     {pkg.savings && <Badge className="bg-green-600 text-white">{pkg.savings}</Badge>}
                     {pkg.warning && <p className="text-red-400 font-bold">{pkg.warning}</p>}
-                    {pkg.subtitle && <p className="text-yellow-400 font-bold">{pkg.subtitle}</p>}
-                    {pkg.monthly && <p className="text-sm text-gray-300">{pkg.monthly}</p>}
+                    {pkg.id === 'diamond' && cadence === 'yearly' && (
+                      <p className="text-yellow-300 text-sm font-semibold">Billed as $53.25 every 4 months (3x per year)</p>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 mb-6">

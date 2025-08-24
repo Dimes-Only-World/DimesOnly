@@ -28,4 +28,14 @@ package-lock.json
 *.sw?
 #phase2.txt
 #phase 2.md
-#Database scheme.txt
+Database scheme.txt
+#users_rows.csv
+supabase/migrations/20250823_add_subscriptions_rls_policies.sql
+.gitignore
+supabase/migrations/20250822_create_subscriptions_table.sql
+supabase/migrations/20250823_add_paypal_webhook_events_table.sql
+supabase/migrations/20250823_add_subscriptions_indexes.sql
+users_rows.csv
+PAYPAL_WEBHOOK_TEST_CHECKLIST.md
+PAYPAL_SECRETS_CHECKLIST.md
+

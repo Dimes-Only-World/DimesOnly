@@ -282,16 +282,19 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
   const getMembershipBadge = () => {
     const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
-    const isDiamond = Boolean(userData?.diamond_plus_active) || ["gold", "diamond", "diamond_plus"].includes(rawTier);
-    const isSilver = Boolean(userData?.silver_plus_active) || ["silver", "silver_plus"].includes(rawTier);
+    const isDiamondPlus = Boolean(userData?.diamond_plus_active) || rawTier === 'diamond_plus';
+    const isSilverPlus = Boolean(userData?.silver_plus_active) || rawTier === 'silver_plus';
 
-    if (isDiamond) {
+    if (isDiamondPlus) {
       return <Badge className="bg-yellow-500"><Crown className="w-3 h-3 mr-1" />Diamond+</Badge>;
-    } else if (isSilver) {
-      return <Badge className="bg-gray-500"><Star className="w-3 h-3 mr-1" />Silver+</Badge>;
-    } else {
-      return <Badge variant="outline">Free</Badge>;
     }
+    if (isSilverPlus) {
+      return <Badge className="bg-gray-500"><Star className="w-3 h-3 mr-1" />Silver+</Badge>;
+    }
+    if (rawTier === 'silver') {
+      return <Badge className="bg-gray-500"><Star className="w-3 h-3 mr-1" />Silver</Badge>;
+    }
+    return <Badge variant="outline">Free</Badge>;
   };
 
   const getContentTierDescription = () => {

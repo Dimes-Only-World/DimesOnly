@@ -170,10 +170,13 @@ const ProfileSectionEnhanced: React.FC<ProfileSectionProps> = ({ userData, setUs
 
   // Determine badge label
   let badgeLabel = "";
-  if (userData.silver_plus_active) {
-    badgeLabel = "Silver Plus Member";
-  } else if (userData.diamond_plus_active) {
+  const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
+  if (userData.diamond_plus_active || rawTier === 'diamond_plus') {
     badgeLabel = "Diamond Plus Member";
+  } else if (userData.silver_plus_active || rawTier === 'silver_plus') {
+    badgeLabel = "Silver Plus Member";
+  } else if (rawTier === 'silver') {
+    badgeLabel = "Silver Member";
   } else {
     badgeLabel = "Free Member";
   }
@@ -204,7 +207,11 @@ const ProfileSectionEnhanced: React.FC<ProfileSectionProps> = ({ userData, setUs
           <CardContent className="text-center space-y-4">
             <div className="flex flex-col items-center gap-2">
               <Badge className="text-xs px-3 py-1" variant="secondary">{badgeLabel}</Badge>
-              <div className="text-gray-400 text-xs">{userData.user_type === "normal" ? "Free member" : userData.user_type?.charAt(0).toUpperCase() + userData.user_type?.slice(1)}</div>
+              <div className="text-gray-400 text-xs">
+                {badgeLabel === 'Free Member'
+                  ? 'Free member'
+                  : badgeLabel}
+              </div>
             </div>
             <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white/30">
               <img src={editData?.profile_photo || userData.profile_photo} alt="Profile" className="w-full h-full object-cover" />

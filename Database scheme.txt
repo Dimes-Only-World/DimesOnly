@@ -141,8 +141,8 @@ CREATE TABLE public.media_comments (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT media_comments_pkey PRIMARY KEY (id),
-  CONSTRAINT media_comments_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id),
-  CONSTRAINT media_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT media_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT media_comments_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id)
 );
 CREATE TABLE public.media_likes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -150,8 +150,8 @@ CREATE TABLE public.media_likes (
   user_id uuid NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT media_likes_pkey PRIMARY KEY (id),
-  CONSTRAINT media_likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT media_likes_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id)
+  CONSTRAINT media_likes_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id),
+  CONSTRAINT media_likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.media_replies (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -228,8 +228,8 @@ CREATE TABLE public.notifications (
   expires_at timestamp with time zone DEFAULT (now() + '3 days'::interval),
   user_id uuid,
   CONSTRAINT notifications_pkey PRIMARY KEY (id),
-  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT notifications_recipient_id_fkey FOREIGN KEY (recipient_id) REFERENCES public.users(id)
+  CONSTRAINT notifications_recipient_id_fkey FOREIGN KEY (recipient_id) REFERENCES public.users(id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.payments (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -330,6 +330,23 @@ CREATE TABLE public.silver_plus_counter (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT silver_plus_counter_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.subscriptions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  subscription_id text NOT NULL UNIQUE,
+  tier text NOT NULL,
+  cadence text NOT NULL,
+  billing_option text,
+  cycles_paid integer NOT NULL DEFAULT 0,
+  total_cycles integer,
+  status text,
+  next_billing_time timestamp with time zone,
+  membership_expires_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
 CREATE TABLE public.tickets (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   ticket_number text NOT NULL UNIQUE,
@@ -338,8 +355,8 @@ CREATE TABLE public.tickets (
   created_at timestamp with time zone DEFAULT now(),
   user_Id uuid,
   CONSTRAINT tickets_pkey PRIMARY KEY (id),
-  CONSTRAINT tickets_user_Id_fkey FOREIGN KEY (user_Id) REFERENCES public.users(id),
-  CONSTRAINT tickets_tip_id_fkey FOREIGN KEY (tip_id) REFERENCES public.tips(id)
+  CONSTRAINT tickets_tip_id_fkey FOREIGN KEY (tip_id) REFERENCES public.tips(id),
+  CONSTRAINT tickets_user_Id_fkey FOREIGN KEY (user_Id) REFERENCES public.users(id)
 );
 CREATE TABLE public.tips (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -378,9 +395,9 @@ CREATE TABLE public.tips_transactions (
   updated_at timestamp with time zone DEFAULT now(),
   completed_at timestamp with time zone,
   CONSTRAINT tips_transactions_pkey PRIMARY KEY (id),
-  CONSTRAINT tips_transactions_tipped_user_id_fkey FOREIGN KEY (tipped_user_id) REFERENCES public.users(id),
   CONSTRAINT tips_transactions_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payments(id),
-  CONSTRAINT tips_transactions_tipper_user_id_fkey FOREIGN KEY (tipper_user_id) REFERENCES public.users(id)
+  CONSTRAINT tips_transactions_tipper_user_id_fkey FOREIGN KEY (tipper_user_id) REFERENCES public.users(id),
+  CONSTRAINT tips_transactions_tipped_user_id_fkey FOREIGN KEY (tipped_user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.user_events (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -393,8 +410,8 @@ CREATE TABLE public.user_events (
   payment_id uuid,
   guest_name text,
   CONSTRAINT user_events_pkey PRIMARY KEY (id),
-  CONSTRAINT user_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT user_events_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payments(id),
+  CONSTRAINT user_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT user_events_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id)
 );
 CREATE TABLE public.user_media (

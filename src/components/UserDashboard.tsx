@@ -30,6 +30,7 @@ import DiamondPlusButton from "./DiamondPlusButton";
 import SilverPlusMembership from "./SilverPlusMembership";
 import SilverPlusCounter from "./SilverPlusCounter";
 import DimesDirectory from "./DimesDirectory";
+import SubscriptionProgress from "./SubscriptionProgress";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -341,6 +342,9 @@ const UserDashboard: React.FC = () => {
 
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
           <DiamondPlusButton userData={userData} />
+
+          {/* Subscription Progress (Diamond Yearly Split) */}
+          <SubscriptionProgress userId={userData.id} />
 
           {/* Silver Plus Counter and Benefits Section - Only show for eligible users who don't have Silver Plus */}
           {userData && (userData.gender === "male" || (userData.gender === "female" && userData.user_type === "normal")) && !userData.silver_plus_active && (

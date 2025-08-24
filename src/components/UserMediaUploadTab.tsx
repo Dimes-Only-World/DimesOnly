@@ -21,16 +21,19 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
 
   const getMembershipStatus = () => {
     const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
-    const isDiamond = Boolean(userData?.diamond_plus_active) || rawTier === 'diamond_plus' || rawTier === 'gold' || rawTier === 'diamond';
-    const isSilver = Boolean(userData?.silver_plus_active) || rawTier === 'silver' || rawTier === 'silver_plus';
+    const isDiamondPlus = Boolean(userData?.diamond_plus_active) || rawTier === 'diamond_plus';
+    const isSilverPlus = Boolean(userData?.silver_plus_active) || rawTier === 'silver_plus';
 
-    if (isDiamond) {
+    if (isDiamondPlus) {
       return { tier: 'Diamond Plus', icon: <Crown className="w-5 h-5 text-yellow-500" />, color: 'from-yellow-400 to-orange-500' };
-    } else if (isSilver) {
-      return { tier: 'Silver Plus', icon: <Star className="w-5 h-5 text-yellow-400" />, color: 'from-yellow-500 to-yellow-600' };
-    } else {
-      return { tier: 'Free', icon: <Lock className="w-5 h-5 text-gray-400" />, color: 'from-gray-500 to-gray-600' };
     }
+    if (isSilverPlus) {
+      return { tier: 'Silver Plus', icon: <Star className="w-5 h-5 text-yellow-400" />, color: 'from-yellow-500 to-yellow-600' };
+    }
+    if (rawTier === 'silver') {
+      return { tier: 'Silver', icon: <Star className="w-5 h-5 text-gray-200" />, color: 'from-gray-500 to-gray-600' };
+    }
+    return { tier: 'Free', icon: <Lock className="w-5 h-5 text-gray-400" />, color: 'from-gray-500 to-gray-600' };
   };
 
   const membershipStatus = getMembershipStatus();

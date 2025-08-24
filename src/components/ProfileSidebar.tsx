@@ -100,7 +100,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
           return (
             <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
               <Award className="w-3 h-3 mr-1" />
-              Free member
+              Silver Member
             </Badge>
           );
         case "elite":

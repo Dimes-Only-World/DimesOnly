@@ -53,7 +53,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 lg:gap-8">
       {media.map((file) => (
-        <div key={file.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden max-w-sm mx-auto">
+        <div key={file.id} className="relative group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
           {/* Main media container */}
           <div className="aspect-square bg-gray-100 overflow-hidden relative group">
             {file.media_type === "photo" ? (
@@ -86,7 +86,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
 
             {/* Delete/Replace overlay - only show on hover */}
             {(onDelete || onReplace) && (
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1 z-30">
+              <div className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex gap-1 z-30">
                 <Button
                   onClick={() => onDelete(file.id)}
                   size="sm"
