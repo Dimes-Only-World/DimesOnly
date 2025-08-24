@@ -36,7 +36,32 @@ const MediaGrid: React.FC<MediaGridProps> = ({
 }) => {
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
   const [playingMap, setPlayingMap] = useState<Record<string, boolean>>({});
+  const [landscapeHintMap, setLandscapeHintMap] = useState<Record<string, boolean>>({});
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
+
+  const playVideoInLandscape = async (video: HTMLVideoElement, id: string) => {
+    // Try fullscreen
+    try {
+      if (video.requestFullscreen) {
+        await video.requestFullscreen();
+      // @ts-ignore - iOS Safari
+      } else if (video.webkitEnterFullscreen) {
+        // @ts-ignore
+        video.webkitEnterFullscreen();
+      }
+    } catch {}
+
+    // Try orientation lock to landscape (not on iOS Safari)
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+      } else {
+        setLandscapeHintMap((m) => ({ ...m, [id]: true }));
+      }
+    } catch {
+      setLandscapeHintMap((m) => ({ ...m, [id]: true }));
+    }
+  };
 
   const getContentTierInfo = (tier: string) => {
     switch (tier) {
@@ -72,9 +97,18 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                   muted
                   playsInline
                   preload="metadata"
-                  onPlay={() => setPlayingMap((m) => ({ ...m, [file.id]: true }))}
+                  onPlay={(e) => {
+                    setPlayingMap((m) => ({ ...m, [file.id]: true }));
+                    playVideoInLandscape(e.currentTarget, file.id);
+                  }}
+                  onClick={(e) => playVideoInLandscape(e.currentTarget as HTMLVideoElement, file.id)}
                   onPause={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
                 />
+                {landscapeHintMap[file.id] && (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-4 bg-black/70 text-white text-[10px] px-2 py-1 rounded-md">
+                    Rotate device or use 3-dot menu to switch to <b>Landscape</b>.
+                  </div>
+                )}
                 <div className={`absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none ${playingMap[file.id] ? 'hidden' : ''}`}>
                   <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
                     <Video className="w-8 h-8 text-gray-700" />
