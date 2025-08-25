@@ -156,7 +156,7 @@ const UpgradePageInner: React.FC = () => {
       if (id === "silver") return cadence === "yearly" ? 49.99 : 4.99;
       if (id === "gold") return cadence === "yearly" ? 99.99 : 11.99;
       if (id === "diamond") return cadence === "yearly" ? 150.0 : 14.99;
-      if (id === "elite") return 10000.0; // yearly only
+      if (id === "elite") return cadence === "yearly" ? 10000.0 : 846.33; // monthly shows per-month amount
       return 0;
     };
   }, [cadence]);
@@ -254,6 +254,7 @@ const UpgradePageInner: React.FC = () => {
                     if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                     if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                     if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
+                    if (pkg.id === 'elite') return navigate(`/elite?cadence=${cadence}`);
                     // fallback to original behavior for other packages
                     setSelectedPackage(pkg);
                     setPaymentOption('full');
@@ -265,7 +266,7 @@ const UpgradePageInner: React.FC = () => {
                     <CardDescription className="text-3xl font-bold text-white">
                       ${displayPrice(pkg.id).toFixed(2)}
                       <span className="block text-xs text-gray-300 mt-1">
-                        {pkg.id === 'elite' ? 'per year' : cadence === 'yearly' ? 'per year' : 'per month'}
+                        {cadence === 'yearly' ? 'per year' : 'per month'}
                       </span>
                     </CardDescription>
                     {pkg.badge && <Badge className="bg-red-600 text-white">{pkg.badge}</Badge>}

@@ -291,6 +291,94 @@ serve(async (req) => {
           console.log("Updated subscription cycles to", newCycles);
         }
 
+        // Elite specific handling for monthly cadence
+        try {
+          if ((sub.tier || parsed.tier) === "elite" && (sub.cadence || parsed.cadence) === "monthly") {
+            const userId = sub.user_id || parsed.user_id;
+            if (userId) {
+              // Fetch current elite membership (active/lifetime)
+              const { data: eliteActive, error: eliteErr } = await supabase
+                .from("elite_memberships")
+                .select("id, status, months_paid_count, seat_number")
+                .eq("user_id", userId)
+                .in("status", ["monthly_active", "lifetime"]) as any;
+
+              if (eliteErr) {
+                console.error("elite_memberships fetch error:", eliteErr);
+              }
+
+              if (!eliteActive || eliteActive.length === 0) {
+                // New monthly start: ensure seats available (<50)
+                const { data: seatStats } = await supabase
+                  .from("elite_seat_stats")
+                  .select("seats_available, seats_taken")
+                  .single();
+
+                if (!seatStats || seatStats.seats_available <= 0) {
+                  console.warn("Elite seats are full. Not assigning seat.");
+                } else {
+                  // Find smallest available seat_number 1..50
+                  const { data: currentSeats } = await supabase
+                    .from("elite_memberships")
+                    .select("seat_number")
+                    .in("status", ["monthly_active", "lifetime"]); 
+
+                  const taken = new Set<number>((currentSeats || []).map((r: any) => r.seat_number).filter((n: number) => !!n));
+                  let seat = 1;
+                  while (seat <= 50 && taken.has(seat)) seat++;
+                  if (seat > 50) {
+                    console.warn("No free seat found despite availability count");
+                  } else {
+                    const { error: insErr } = await supabase
+                      .from("elite_memberships")
+                      .insert({
+                        user_id: userId,
+                        status: "monthly_active",
+                        months_paid_count: 1,
+                        last_payment_at: new Date().toISOString(),
+                        seat_number: seat,
+                      });
+                    if (insErr) console.error("elite_memberships insert error:", insErr);
+                  }
+                }
+              } else {
+                const membership = eliteActive[0];
+                const months = (membership.months_paid_count || 0) + 1;
+                const updates: any = { months_paid_count: months, last_payment_at: new Date().toISOString() };
+                let grantLifetime = false;
+                if (months >= 12 && membership.status !== "lifetime") {
+                  updates.status = "lifetime";
+                  updates.lifetime_granted_at = new Date().toISOString();
+                  grantLifetime = true;
+                }
+                const { error: updEliteErr } = await supabase
+                  .from("elite_memberships")
+                  .update(updates)
+                  .eq("id", membership.id);
+                if (updEliteErr) console.error("elite_memberships update error:", updEliteErr);
+
+                // If granted lifetime at 12, optionally cancel PayPal subscription to stop future charges
+                if (grantLifetime) {
+                  try {
+                    const token = await getPayPalAccessToken();
+                    const base = getPayPalBaseUrl();
+                    await fetch(`${base}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+                      method: "POST",
+                      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                      body: JSON.stringify({ reason: "Lifetime granted after 12 payments" }),
+                    });
+                    console.log("Cancelled PayPal subscription after lifetime grant:", subscriptionId);
+                  } catch (e) {
+                    console.error("Failed to cancel PayPal subscription after lifetime:", e);
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Elite monthly handling error:", e);
+        }
+
         // Optional: also reflect membership status in users table
         if (sub.user_id && sub.tier) {
           const userUpdate: any = { membership_tier: sub.tier, updated_at: new Date().toISOString() };
@@ -313,6 +401,35 @@ serve(async (req) => {
           .update({ status, updated_at: new Date().toISOString() })
           .eq("subscription_id", subscriptionId);
         if (updErr) console.error("Failed to update subscription status:", updErr);
+
+        // Elite monthly: on cancel/suspend/expire before lifetime, free the seat and reset
+        try {
+          // Load subscription to identify user and tier
+          const { data: sub } = await supabase
+            .from("subscriptions")
+            .select("user_id, tier, cadence")
+            .eq("subscription_id", subscriptionId)
+            .single();
+          if (sub && sub.user_id && sub.tier === "elite" && sub.cadence === "monthly") {
+            const { data: eliteActive } = await supabase
+              .from("elite_memberships")
+              .select("id, status, months_paid_count")
+              .eq("user_id", sub.user_id)
+              .in("status", ["monthly_active", "lifetime"]) as any;
+            if (eliteActive && eliteActive.length > 0) {
+              const m = eliteActive[0];
+              if (m.status === "monthly_active" && (m.months_paid_count || 0) < 12) {
+                const { error: updElite } = await supabase
+                  .from("elite_memberships")
+                  .update({ status: "canceled", seat_number: null })
+                  .eq("id", m.id);
+                if (updElite) console.error("Failed to cancel/free elite seat:", updElite);
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Elite cancel handling error:", e);
+        }
         break;
       }
       default: {

@@ -122,23 +122,95 @@ serve(async (req) => {
 
       console.log("Payment updated successfully:", payment);
 
-      // Add user to event
-      console.log("Adding user to event...");
-      const { error: eventError } = await supabaseClient
-        .from("user_events")
-        .insert({
-          user_id: payment.user_id,
-          event_id: payment.event_id,
-          payment_status: "paid",
-          payment_id: payment.id,
-          referred_by: payment.referred_by,
-        });
+      // Elite Yearly handling (one-time): when payment_type indicates elite yearly, grant lifetime and consume a seat
+      try {
+        if ((payment?.payment_type || "").toLowerCase() === "elite_yearly") {
+          // Check seats availability
+          const { data: seatStats } = await supabaseClient
+            .from("elite_seat_stats")
+            .select("seats_available, seats_taken")
+            .single();
+          if (!seatStats || seatStats.seats_available <= 0) {
+            console.error("Elite seats full at capture time; cannot assign seat for yearly purchase");
+          } else {
+            // See if user already has elite
+            const { data: existing } = await supabaseClient
+              .from("elite_memberships")
+              .select("id, status, seat_number")
+              .eq("user_id", payment.user_id)
+              .in("status", ["monthly_active", "lifetime"]);
 
-      if (eventError) {
-        console.error("Failed to add user to event:", eventError);
-        // Don't return error, continue processing
-      } else {
-        console.log("User added to event successfully");
+            let seatNumber: number | null = null;
+            if (existing && existing.length > 0) {
+              seatNumber = existing[0].seat_number || null;
+            } else {
+              // find smallest available seat 1..50
+              const { data: currentSeats } = await supabaseClient
+                .from("elite_memberships")
+                .select("seat_number")
+                .in("status", ["monthly_active", "lifetime"]);
+              const taken = new Set<number>((currentSeats || []).map((r: any) => r.seat_number).filter((n: number) => !!n));
+              let s = 1;
+              while (s <= 50 && taken.has(s)) s++;
+              seatNumber = s <= 50 ? s : null;
+            }
+
+            if (seatNumber == null) {
+              console.error("No seat available to assign for elite yearly");
+            } else {
+              if (existing && existing.length > 0) {
+                // upgrade to lifetime
+                const { error: upd } = await supabaseClient
+                  .from("elite_memberships")
+                  .update({ status: "lifetime", lifetime_granted_at: new Date().toISOString(), seat_number: seatNumber })
+                  .eq("id", existing[0].id);
+                if (upd) console.error("Failed to upgrade existing elite to lifetime:", upd);
+              } else {
+                const { error: ins } = await supabaseClient
+                  .from("elite_memberships")
+                  .insert({
+                    user_id: payment.user_id,
+                    status: "lifetime",
+                    months_paid_count: 12,
+                    lifetime_granted_at: new Date().toISOString(),
+                    seat_number: seatNumber,
+                    last_payment_at: new Date().toISOString(),
+                  });
+                if (ins) console.error("Failed to insert elite lifetime membership:", ins);
+              }
+
+              // Reflect elite tier on user
+              const { error: userErr } = await supabaseClient
+                .from("users")
+                .update({ membership_tier: "elite", updated_at: new Date().toISOString() })
+                .eq("id", payment.user_id);
+              if (userErr) console.error("Failed to set user elite tier:", userErr);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Elite yearly handling error:", e);
+      }
+
+      // Add user to event only if this payment is for an event
+      if (payment.event_id) {
+        console.log("Adding user to event...");
+        const { error: eventError } = await supabaseClient
+          .from("user_events")
+          .insert({
+            user_id: payment.user_id,
+            event_id: payment.event_id,
+            payment_status: "paid",
+            payment_id: payment.id,
+            referred_by: payment.referred_by,
+          });
+
+        if (eventError) {
+          console.error("Failed to add user to event:", eventError);
+          // Don't return error, continue processing
+        } else {
+          console.log("User added to event successfully");
+        }
       }
 
       // Process commissions

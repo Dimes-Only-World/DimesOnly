@@ -29,7 +29,6 @@ import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
 import SilverPlusMembership from "./SilverPlusMembership";
 import SilverPlusCounter from "./SilverPlusCounter";
-import DimesDirectory from "./DimesDirectory";
 import SubscriptionProgress from "./SubscriptionProgress";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
@@ -53,6 +52,7 @@ const UserDashboard: React.FC = () => {
     getPaddingClasses,
   } = useMobileLayout();
   const navigate = useNavigate();
+  const [hasActiveDiamond, setHasActiveDiamond] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -61,6 +61,38 @@ const UserDashboard: React.FC = () => {
       getCurrentUser();
     }
   }, [user?.id]);
+
+  // Default to profile tab; no URL-hash based tab switching
+
+  // Check for active Diamond subscription (any cadence)
+  useEffect(() => {
+    const checkDiamond = async () => {
+      if (!userData?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from("subscriptions")
+          .select("tier,status")
+          .eq("user_id", userData.id)
+          .order("updated_at", { ascending: false });
+        if (error) {
+          console.warn("Failed to read subscriptions:", error.message);
+          setHasActiveDiamond(false);
+          return;
+        }
+        const active = (data || []).some((r: any) => {
+          const tierOk = r.tier === "diamond";
+          const st = (r.status || "").toString().toUpperCase();
+          const inactive = st.includes("CANCEL") || st.includes("EXPIRE") || st.includes("SUSPEND");
+          return tierOk && !inactive;
+        });
+        setHasActiveDiamond(active);
+      } catch (e) {
+        console.warn("Subscriptions check failed:", e);
+        setHasActiveDiamond(false);
+      }
+    };
+    checkDiamond();
+  }, [userData?.id]);
 
   const getCurrentUser = async () => {
     try {
@@ -415,15 +447,17 @@ const UserDashboard: React.FC = () => {
           </Card>
 
           {/* Universal Upgrade Membership Button – appears below banner for all users */}
-          <div className="my-6 flex justify-center">
-            <Button
-              asChild
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
-              aria-label="Upgrade Membership"
-            >
-              <a href="/upgrade">Upgrade Membership</a>
-            </Button>
-          </div>
+          {!(userData.diamond_plus_active || hasActiveDiamond) && (
+            <div className="my-6 flex justify-center">
+              <Button
+                asChild
+                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
+                aria-label="Upgrade Membership"
+              >
+                <a href="/upgrade">Upgrade Membership</a>
+              </Button>
+            </div>
+          )}
 
           {/* Rest of dashboard content */}
 
@@ -438,13 +472,7 @@ const UserDashboard: React.FC = () => {
                     <User className="w-4 h-4" />
                     Profile
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="profiles"
-                    className="flex items-center gap-2 px-4 py-3"
-                  >
-                    <User className="w-4 h-4" />
-                    Profiles
-                  </TabsTrigger>
+                  
                   <TabsTrigger
                     value="makemoney"
                     className="flex items-center gap-2 px-4 py-3"
@@ -511,15 +539,7 @@ const UserDashboard: React.FC = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="profiles" className="mt-0">
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <h2 className="text-2xl font-bold mb-4">Browse Dimes</h2>
-                      <p className="text-gray-600 mb-6">Search and discover other dimes profiles</p>
-                    </div>
-                    <DimesDirectory />
-                  </div>
-                </TabsContent>
+                
 
                 <TabsContent value="notifications" className="mt-0">
                   <UserNotificationsTab />

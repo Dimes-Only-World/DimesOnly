@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Trophy, Calendar, Star, Edit } from "lucide-react";
+import { Trophy, Calendar, Star, Edit, Heart } from "lucide-react";
 
 interface DashboardActionButtonsProps {
   userData?: {
@@ -43,8 +43,14 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
     );
   };
 
+  const handleDimesDirectory = () => {
+    const username = userData?.username || "demo";
+    // Navigate to dedicated Dimes page
+    window.location.href = `/dimes?ref=${username}`;
+  };
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-6">
       <Button
         onClick={handleTipWin}
         className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-2"
@@ -67,6 +73,14 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       >
         <Star className="w-6 h-6" />
         RATE
+      </Button>
+
+      <Button
+        onClick={handleDimesDirectory}
+        className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-2"
+      >
+        <Heart className="w-6 h-6" />
+        DIMES
       </Button>
 
       <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-2">

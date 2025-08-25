@@ -35,7 +35,7 @@ serve(async (req) => {
       frontendUrl: frontendUrl ? "✓ Set" : "✗ Missing",
     });
 
-    // Determine payment type: 'event' or 'membership'
+    // Determine payment type: 'event' | 'membership' | 'elite_yearly'
     const payment_type = requestBody.payment_type || "event";
 
     // Support both camelCase and snake_case parameter names
@@ -66,7 +66,9 @@ serve(async (req) => {
         throw new Error(
           "Missing required fields for membership payment: membership_upgrade_id, user_id, amount"
         );
-      }
+      } else if (payment_type === "elite_yearly") {
+      // No DB side-effects here; webhook will handle granting lifetime on capture
+    }
 
       // Fetch membership upgrade details
       const { data: upgrade, error: upgradeError } = await supabase
@@ -95,6 +97,15 @@ serve(async (req) => {
         installment_plan: upgrade.installment_plan,
         current_installment: installment_number,
       });
+    } else if (payment_type === "elite_yearly") {
+      // Elite lifetime one-time payment
+      if (!user_id) {
+        throw new Error("Missing required field for elite_yearly: user_id");
+      }
+      finalAmount = Number(amount) || 10000.0;
+      orderDescription = "Elite Membership - Lifetime";
+      customId = `elite_yearly_user_${user_id}`;
+      console.log("=== Elite Yearly Order Creation Started ===");
     } else {
       // Handle event ticket payment (existing logic)
       if (!event_id || !user_id) {
@@ -191,6 +202,8 @@ serve(async (req) => {
         brand_name:
           payment_type === "membership"
             ? "Dimes Only World - Diamond Plus"
+            : payment_type === "elite_yearly"
+            ? "Dimes Only World - Elite"
             : "Dancers Events Network",
         user_action: "PAY_NOW",
         landing_page: "BILLING",
@@ -301,6 +314,8 @@ serve(async (req) => {
         event_name:
           payment_type === "membership"
             ? "Diamond Plus Membership"
+            : payment_type === "elite_yearly"
+            ? "Elite Lifetime"
             : event?.name || "Event Ticket",
       }),
       {

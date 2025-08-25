@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload, Heart } from "lucide-react";
 import { supabase } from "@/lib/supabase"; // Import your Supabase client
 import { useToast } from "@/hooks/use-toast"; // For error notifications
 
@@ -85,6 +85,12 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
   const handleButtonClick = (path: string) => {
     const username = userData?.username || "demo";
     window.location.href = `${path}?ref=${username}`;
+  };
+
+  const handleDimesClick = () => {
+    const username = userData?.username || "demo";
+    // Navigate to dedicated Dimes page
+    window.location.href = `/dimes?ref=${username}`;
   };
 
   const generateTicketNumber = () => {
@@ -313,7 +319,7 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
             <CardTitle className="text-white">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <Button
                 onClick={() => handleButtonClick("/tip-girls")}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 h-auto"
@@ -325,6 +331,13 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
                 className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-4 h-auto"
               >
                 RATE DIMES
+              </Button>
+              <Button
+                onClick={handleDimesClick}
+                className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold py-3 px-4 h-auto flex items-center gap-2"
+              >
+                <Heart className="w-4 h-4" />
+                DIMES
               </Button>
               <Button
                 onClick={() => handleButtonClick("/events-girls")}

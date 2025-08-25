@@ -26,6 +26,8 @@ serve(async (req) => {
     // Diamond yearly options: Full (once per year) or Split every 4 months (3 cycles)
     const diamondYearlySplit = Deno.env.get("PAYPAL_DIAMOND_YEARLY_SPLIT_PLAN_ID") || Deno.env.get("DIAMOND_YEARLY_SPLIT_PLAN_ID");
     const diamondYearlyFull  = Deno.env.get("PAYPAL_DIAMOND_YEARLY_FULL_PLAN_ID")  || Deno.env.get("DIAMOND_YEARLY_FULL_PLAN_ID");
+    // Elite monthly (yearly handled by one-time order path)
+    const eliteMonthly = Deno.env.get("PAYPAL_ELITE_MONTHLY_PLAN_ID") || Deno.env.get("ELITE_MONTHLY_PLAN_ID");
 
     if (!paypalClientId || !paypalClientSecret) {
       throw new Error("Missing PayPal credentials");
@@ -45,8 +47,15 @@ serve(async (req) => {
       } else {
         planId = diamondMonthly;
       }
+    } else if (tier === "elite") {
+      if (cadence !== "monthly") {
+        return new Response(
+          JSON.stringify({ success: false, error: "Elite yearly is not a subscription. Use one-time order path." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+        );
+      }
+      planId = eliteMonthly;
     } else {
-      // unsupported here (e.g., elite not implemented)
       return new Response(
         JSON.stringify({ success: false, error: `Unsupported tier '${tier}'` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
@@ -62,6 +71,8 @@ serve(async (req) => {
         } else {
           which = "PAYPAL_DIAMOND_MONTHLY_PLAN_ID/DIAMOND_MONTHLY_PLAN_ID";
         }
+      } else if (tier === "elite") {
+        which = "PAYPAL_ELITE_MONTHLY_PLAN_ID/ELITE_MONTHLY_PLAN_ID";
       }
       return new Response(
         JSON.stringify({ success: false, error: `${which} is not set in Supabase Function secrets` }),

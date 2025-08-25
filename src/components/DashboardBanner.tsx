@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, Gift, Star, Calendar, Car, Shirt } from "lucide-react";
+import { Camera, Gift, Star, Calendar, Car, Shirt, Heart } from "lucide-react";
 import { Tables } from "@/types";
 
 type UserData = Tables<"users">;
@@ -69,6 +69,12 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
     );
   };
 
+  const handleDimes = () => {
+    const username = userData.username || "demo";
+    // Navigate to dedicated Dimes page
+    window.location.href = `/dimes?ref=${username}`;
+  };
+
   return (
     <div className="w-full">
       <div
@@ -107,7 +113,7 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
         className="hidden"
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">
         <Button
           onClick={handleTipWin}
           className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-green-300 hover:text-green-700 group"
@@ -125,6 +131,16 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
           <div className="flex flex-col items-center gap-1">
             <Star className="w-5 h-5 text-red-600 group-hover:text-red-700" />
             <span>RATE</span>
+          </div>
+        </Button>
+
+        <Button
+          onClick={handleDimes}
+          className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-pink-300 hover:text-pink-700 group"
+        >
+          <div className="flex flex-col items-center gap-1">
+            <Heart className="w-5 h-5 text-pink-600 group-hover:text-pink-700" />
+            <span>DIMES</span>
           </div>
         </Button>
 

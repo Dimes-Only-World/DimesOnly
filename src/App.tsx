@@ -32,8 +32,10 @@ import UpgradeSilver from "./pages/UpgradeSilver";
 import UpgradeGold from "./pages/UpgradeGold";
 import UpgradeSilverSubscribe from "./pages/UpgradeSilverSubscribe";
 import UpgradeDiamondMonthly from "./pages/UpgradeDiamondMonthly";
+import DimesPage from "./pages/Dimes";
 import Profile from "./pages/Profile";
 import SubscriptionsDebug from "./pages/SubscriptionsDebug";
+import Elite from "./pages/Elite";
 import "./App.css";
 
 function AppContent() {
@@ -56,6 +58,7 @@ function AppContent() {
       <Route path="/rankings" element={<Rankings />} />
       <Route path="/tip" element={<Tip />} />
       <Route path="/tip-girls" element={<TipGirls />} />
+      <Route path="/dimes" element={<DimesPage />} />
       <Route path="/upgrade" element={<Upgrade />} />
       <Route path="/upgrade-diamond" element={<UpgradeDiamond />} />
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
@@ -63,6 +66,7 @@ function AppContent() {
       <Route path="/upgrade-silver-subscribe" element={<UpgradeSilverSubscribe />} />
       <Route path="/upgrade-gold" element={<UpgradeGold />} />
       <Route path="/upgrade-diamond-monthly" element={<UpgradeDiamondMonthly />} />
+      <Route path="/elite" element={<Elite />} />
       <Route path="/profile/:username" element={<Profile />} />
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/debug-subscription" element={<SubscriptionsDebug />} />
