@@ -36,10 +36,20 @@ const MediaGrid: React.FC<MediaGridProps> = ({
 }) => {
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
   const [playingMap, setPlayingMap] = useState<Record<string, boolean>>({});
-  const [landscapeHintMap, setLandscapeHintMap] = useState<Record<string, boolean>>({});
+  const [orientationHintMap, setOrientationHintMap] = useState<Record<string, boolean>>({});
+  const [detectedOrientationMap, setDetectedOrientationMap] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
 
-  const playVideoInLandscape = async (video: HTMLVideoElement, id: string) => {
+  const playVideoWithDetectedOrientation = async (video: HTMLVideoElement, id: string) => {
+    // Determine aspect ratio at click time in case metadata map isn't ready
+    try {
+      const vw = (video as HTMLVideoElement).videoWidth;
+      const vh = (video as HTMLVideoElement).videoHeight;
+      if (vw && vh) {
+        const o = vw >= vh ? 'landscape' : 'portrait';
+        setDetectedOrientationMap((m) => ({ ...m, [id]: o }));
+      }
+    } catch {}
     // Try fullscreen
     try {
       if (video.requestFullscreen) {
@@ -51,15 +61,16 @@ const MediaGrid: React.FC<MediaGridProps> = ({
       }
     } catch {}
 
-    // Try orientation lock to landscape (not on iOS Safari)
+    // Try orientation lock to detected aspect (not on iOS Safari)
     try {
       if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape');
+        const target = detectedOrientationMap[id] || ((video.videoWidth && video.videoHeight) ? (video.videoWidth >= video.videoHeight ? 'landscape' : 'portrait') : 'landscape');
+        await screen.orientation.lock(target === 'landscape' ? 'landscape' : 'portrait');
       } else {
-        setLandscapeHintMap((m) => ({ ...m, [id]: true }));
+        setOrientationHintMap((m) => ({ ...m, [id]: true }));
       }
     } catch {
-      setLandscapeHintMap((m) => ({ ...m, [id]: true }));
+      setOrientationHintMap((m) => ({ ...m, [id]: true }));
     }
   };
 
@@ -80,33 +91,41 @@ const MediaGrid: React.FC<MediaGridProps> = ({
       {media.map((file) => (
         <div key={file.id} className="relative group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
           {/* Main media container */}
-          <div className="aspect-square bg-gray-100 overflow-hidden relative group">
-            {file.media_type === "photo" ? (
+          {file.media_type === "photo" ? (
+            <div className="aspect-square bg-gray-100 overflow-hidden relative group">
               <img
                 src={file.media_url}
                 alt="User media"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
-            ) : (
-              <div className="relative w-full h-full">
+            </div>
+          ) : (
+            <div className="aspect-square bg-gray-100 overflow-hidden relative group">
                 <video
                   src={file.media_url}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full ${playingMap[file.id] ? 'object-contain bg-black' : 'object-cover'}`}
                   controls
                   muted
                   playsInline
                   preload="metadata"
+                  onLoadedMetadata={(e) => {
+                    const el = e.currentTarget as HTMLVideoElement;
+                    const vw = el.videoWidth;
+                    const vh = el.videoHeight;
+                    setDetectedOrientationMap((m) => ({ ...m, [file.id]: vw && vh ? (vw >= vh ? 'landscape' : 'portrait') : 'landscape' }));
+                  }}
                   onPlay={(e) => {
                     setPlayingMap((m) => ({ ...m, [file.id]: true }));
-                    playVideoInLandscape(e.currentTarget, file.id);
+                    playVideoWithDetectedOrientation(e.currentTarget, file.id);
                   }}
-                  onClick={(e) => playVideoInLandscape(e.currentTarget as HTMLVideoElement, file.id)}
+                  onClick={(e) => playVideoWithDetectedOrientation(e.currentTarget as HTMLVideoElement, file.id)}
                   onPause={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
+                  onEnded={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
                 />
-                {landscapeHintMap[file.id] && (
+                {orientationHintMap[file.id] && (
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-4 bg-black/70 text-white text-[10px] px-2 py-1 rounded-md">
-                    Rotate device or use 3-dot menu to switch to <b>Landscape</b>.
+                    Rotate device to <b>{detectedOrientationMap[file.id] === 'portrait' ? 'Portrait' : 'Landscape'}</b> or use the 3-dot menu to switch.
                   </div>
                 )}
                 <div className={`absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none ${playingMap[file.id] ? 'hidden' : ''}`}>
@@ -114,9 +133,8 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                     <Video className="w-8 h-8 text-gray-700" />
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
             {/* Delete/Replace overlay - only show on hover */}
             {(onDelete || onReplace) && (

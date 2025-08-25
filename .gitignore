@@ -31,7 +31,7 @@ phase 2.md
 Database scheme.txt
 users_rows.csv
 supabase/migrations/20250823_add_subscriptions_rls_policies.sql
-
+#.gitignore
 supabase/migrations/20250822_create_subscriptions_table.sql
 supabase/migrations/20250823_add_paypal_webhook_events_table.sql
 supabase/migrations/20250823_add_subscriptions_indexes.sql

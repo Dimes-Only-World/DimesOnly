@@ -11,12 +11,23 @@ interface VideoPlayerProps {
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, title, onLike, likes }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [showLandscapeHint, setShowLandscapeHint] = useState(false);
+  const [showOrientationHint, setShowOrientationHint] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [detectedOrientation, setDetectedOrientation] = useState<"portrait" | "landscape" | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const playVideoInLandscape = async () => {
+  const playVideoWithDetectedOrientation = async () => {
     const video = videoRef.current;
     if (!video) return;
+
+    // Detect aspect ratio from metadata
+    try {
+      const vw = (video as HTMLVideoElement).videoWidth;
+      const vh = (video as HTMLVideoElement).videoHeight;
+      if (vw && vh) {
+        setDetectedOrientation(vw >= vh ? 'landscape' : 'portrait');
+      }
+    } catch {}
 
     // Try fullscreen first
     try {
@@ -30,18 +41,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, title, onLike, l
       }
     } catch {}
 
-    // Try to lock orientation to landscape (not supported on iOS Safari)
+    // Try to lock orientation to the video's aspect (not supported on iOS Safari)
     try {
       // Only works while in fullscreen on most browsers
       // Some environments throw if not allowed
       if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape');
+        const target = detectedOrientation || 'landscape';
+        await screen.orientation.lock(target === 'landscape' ? 'landscape' : 'portrait');
       } else {
-        setShowLandscapeHint(true);
+        setShowOrientationHint(true);
       }
     } catch {
-      setShowLandscapeHint(true);
+      setShowOrientationHint(true);
     }
+
+    // Ensure playback starts after fullscreen/orientation attempts
+    try {
+      await video.play();
+      setIsPlaying(true);
+    } catch {}
   };
 
   const handleLike = () => {
@@ -57,16 +75,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, title, onLike, l
           ref={videoRef}
           controls
           poster={poster}
-          className="w-full h-64 object-cover"
-          onPlay={playVideoInLandscape}
-          onClick={playVideoInLandscape}
+          className={`w-full h-64 ${isPlaying ? 'object-contain bg-black' : 'object-cover'}`}
+          onLoadedMetadata={(e) => {
+            const el = e.currentTarget as HTMLVideoElement;
+            const vw = el.videoWidth;
+            const vh = el.videoHeight;
+            setDetectedOrientation(vw && vh ? (vw >= vh ? 'landscape' : 'portrait') : null);
+          }}
+          onPlay={playVideoWithDetectedOrientation}
+          onClick={playVideoWithDetectedOrientation}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
         >
           <source src={src} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        {showLandscapeHint && (
+        {showOrientationHint && (
           <div className="absolute left-1/2 -translate-x-1/2 bottom-16 bg-black/70 text-white text-xs px-3 py-1 rounded-md">
-            For the best view, rotate your device or use the 3-dot menu to switch to <b>Landscape</b>.
+            For the best view, rotate your device to <b>{detectedOrientation === 'portrait' ? 'Portrait' : 'Landscape'}</b> or use the 3-dot menu to switch.
           </div>
         )}
         <div className="absolute bottom-4 right-4 flex items-center gap-2">
