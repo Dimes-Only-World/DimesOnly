@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle } from "lucide-react";
@@ -39,6 +39,25 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   const [orientationHintMap, setOrientationHintMap] = useState<Record<string, boolean>>({});
   const [detectedOrientationMap, setDetectedOrientationMap] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+
+  // Close zoom overlay on ESC and lock body scroll while open
+  useEffect(() => {
+    if (!zoomImageUrl) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setZoomImageUrl(null);
+      }
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [zoomImageUrl]);
 
   const playVideoWithDetectedOrientation = async (video: HTMLVideoElement, id: string) => {
     // Determine aspect ratio at click time in case metadata map isn't ready
@@ -92,7 +111,10 @@ const MediaGrid: React.FC<MediaGridProps> = ({
         <div key={file.id} className="relative group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
           {/* Main media container */}
           {file.media_type === "photo" ? (
-            <div className="aspect-square bg-gray-100 overflow-hidden relative group">
+            <div
+              className="aspect-square bg-gray-100 overflow-hidden relative group cursor-zoom-in"
+              onClick={() => setZoomImageUrl(file.media_url)}
+            >
               <img
                 src={file.media_url}
                 alt="User media"
@@ -234,6 +256,28 @@ const MediaGrid: React.FC<MediaGridProps> = ({
         </div>
       ))}
       </div>
+
+      {/* Image Zoom Overlay */}
+      {zoomImageUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center cursor-zoom-out"
+          onClick={() => setZoomImageUrl(null)}
+        >
+          {/* Close button */}
+          <button
+            aria-label="Close"
+            onClick={(e) => { e.stopPropagation(); setZoomImageUrl(null); }}
+            className="absolute top-4 right-4 text-white/90 hover:text-white focus:outline-none"
+          >
+            <X className="w-7 h-7" />
+          </button>
+          <img
+            src={zoomImageUrl}
+            alt="Zoomed"
+            className="max-w-[100vw] max-h-[100vh] object-contain"
+          />
+        </div>
+      )}
 
       {/* Comments Dialog */}
     <Dialog open={showCommentsDialog} onOpenChange={setShowCommentsDialog}>

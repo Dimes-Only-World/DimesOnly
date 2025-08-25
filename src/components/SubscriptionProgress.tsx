@@ -103,24 +103,9 @@ export default function SubscriptionProgress({ userId }: Props) {
   }
 
   if (!diamondYearly) {
-    return (
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Subscription Progress</CardTitle>
-          <CardDescription>No Diamond yearly subscription found.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3">
-            <div className="text-sm text-slate-600">Upgrade to Diamond to track your yearly progress here.</div>
-            <div>
-              <a href="/upgrade">
-                <Button size="sm">Upgrade Options</Button>
-              </a>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    // Hide the card entirely when there is no Diamond yearly subscription,
+    // to avoid confusion and duplicate upgrade buttons on the dashboard.
+    return null;
   }
 
   const progressLabel = diamondYearly.total_cycles
