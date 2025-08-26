@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -23,17 +24,21 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsLoading(true);
 
     try {
-      // Simulate password reset email
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) throw error;
+
       setSuccess(true);
       toast({
         title: "Password Reset Email Sent",
-        description: "Check your email for password reset instructions.",
+        description: "Check your inbox for the reset link.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to send password reset email. Please try again.",
+        description: "Failed to send reset email. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { normalizeRefParam } from '@/lib/utils';
 
 interface RefAwareActionButtonsProps {
   className?: string;
@@ -8,7 +9,7 @@ interface RefAwareActionButtonsProps {
 const RefAwareActionButtons: React.FC<RefAwareActionButtonsProps> = ({ className = '' }) => {
   const getRefParam = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('ref') || 'default';
+    return normalizeRefParam(urlParams.get('ref')) || 'company';
   };
 
   const handleStartFree = () => {

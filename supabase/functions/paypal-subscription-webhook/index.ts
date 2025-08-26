@@ -42,6 +42,41 @@ function addMonths(date: Date, months: number): Date {
   return d;
 }
 
+// Map a PayPal plan_id to our tier/cadence/billing_option based on env vars
+function mapPlanToTierCadence(planId: string | undefined): { tier?: string; cadence?: string; billing_option?: string } {
+  if (!planId) return {};
+  const env = (name: string) => Deno.env.get(name) || undefined;
+  const maps: Array<{ id?: string; tier: string; cadence: string; billing_option?: string }> = [
+    { id: env("PAYPAL_SILVER_MONTHLY_PLAN_ID") || env("SILVER_MONTHLY_PLAN_ID"), tier: "silver", cadence: "monthly" },
+    { id: env("PAYPAL_SILVER_YEARLY_PLAN_ID") || env("SILVER_YEARLY_PLAN_ID"), tier: "silver", cadence: "yearly" },
+    { id: env("PAYPAL_GOLD_MONTHLY_PLAN_ID") || env("GOLD_MONTHLY_PLAN_ID"), tier: "gold", cadence: "monthly" },
+    { id: env("PAYPAL_GOLD_YEARLY_PLAN_ID") || env("GOLD_YEARLY_PLAN_ID"), tier: "gold", cadence: "yearly" },
+    { id: env("PAYPAL_DIAMOND_MONTHLY_PLAN_ID") || env("DIAMOND_MONTHLY_PLAN_ID"), tier: "diamond", cadence: "monthly" },
+    { id: env("PAYPAL_DIAMOND_YEARLY_FULL_PLAN_ID") || env("DIAMOND_YEARLY_FULL_PLAN_ID"), tier: "diamond", cadence: "yearly", billing_option: "full" },
+    { id: env("PAYPAL_DIAMOND_YEARLY_SPLIT_PLAN_ID") || env("DIAMOND_YEARLY_SPLIT_PLAN_ID"), tier: "diamond", cadence: "yearly", billing_option: "split" },
+    { id: env("PAYPAL_ELITE_MONTHLY_PLAN_ID") || env("ELITE_MONTHLY_PLAN_ID"), tier: "elite", cadence: "monthly" },
+  ];
+  const found = maps.find((m) => m.id === planId);
+  if (!found) return {};
+  return { tier: found.tier, cadence: found.cadence, billing_option: found.billing_option };
+}
+
+async function fetchSubscriptionDetails(subId: string): Promise<{ plan_id?: string; custom_id?: string } | null> {
+  try {
+    const token = await getPayPalAccessToken();
+    const base = getPayPalBaseUrl();
+    const r = await fetch(`${base}/v1/billing/subscriptions/${subId}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return { plan_id: j?.plan_id, custom_id: j?.custom_id };
+  } catch (_) {
+    return null;
+  }
+}
+
 // --- PayPal verification helpers ---
 function getPayPalBaseUrl() {
   const env = (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox").toLowerCase();
@@ -198,18 +233,45 @@ serve(async (req) => {
     const subscriber = res.subscriber;
 
     // Parse our custom id for mapping
-    const parsed = parseCustomId(customId);
+    const parsed: any = parseCustomId(customId);
 
     // Handle important events
     switch (evt) {
       case "BILLING.SUBSCRIPTION.ACTIVATED":
       case "BILLING.SUBSCRIPTION.CREATED": {
         if (!subscriptionId) break;
-        // Upsert subscriptions row
-        const tier = parsed.tier || (res.plan_id ? "" : "");
-        const cadence = parsed.cadence || "";
-        const billing_option = parsed.billing_option;
-        const user_id = parsed.user_id;
+        // Resolve tier/cadence/user_id as robustly as possible
+        let tier: string = (parsed?.tier as string) || "";
+        let cadence: string = (parsed?.cadence as string) || "";
+        let billing_option: string | undefined = (parsed?.billing_option as string | undefined);
+        let user_id: string | undefined = (parsed?.user_id as string | undefined);
+
+        let planIdFromEvent: string | undefined = res.plan_id;
+        if ((!tier || !cadence) && planIdFromEvent) {
+          const mapped = mapPlanToTierCadence(planIdFromEvent);
+          tier = tier || mapped.tier || "";
+          cadence = cadence || mapped.cadence || "";
+          billing_option = billing_option || mapped.billing_option;
+        }
+
+        if ((!user_id || !tier || !cadence) && subscriptionId) {
+          const details: any = await fetchSubscriptionDetails(subscriptionId);
+          if (details) {
+            if (!planIdFromEvent && details.plan_id) {
+              const mapped = mapPlanToTierCadence(details.plan_id);
+              tier = tier || mapped.tier || "";
+              cadence = cadence || mapped.cadence || "";
+              billing_option = billing_option || mapped.billing_option;
+            }
+            if (!user_id && details.custom_id) {
+              const p: any = parseCustomId(details.custom_id);
+              user_id = p.user_id || user_id;
+              tier = tier || p.tier || tier;
+              cadence = cadence || p.cadence || cadence;
+              billing_option = billing_option || p.billing_option || billing_option;
+            }
+          }
+        }
 
         // total cycles for diamond yearly split = 3 else null
         const total_cycles = tier === "diamond" && cadence === "yearly" && billing_option === "split" ? 3 : null;
@@ -235,6 +297,105 @@ serve(async (req) => {
         } else {
           console.log("subscriptions upsert ok:", upsertData?.id);
         }
+
+        // If ACTIVATED event includes a last_payment, treat this as an initial successful payment
+        // Some Sandbox accounts emit ACTIVATED with billing_info.last_payment but do not emit PAYMENT.SUCCEEDED
+        try {
+          const hasInitialPayment = !!(billingInfo && billingInfo.last_payment);
+          if (hasInitialPayment) {
+            // Load subscription row
+            const { data: sub, error: subErr } = await supabase
+              .from("subscriptions")
+              .select("*")
+              .eq("subscription_id", subscriptionId)
+              .single();
+
+            if (!sub || subErr) {
+              console.error("Subscription not found to update initial payment (ACTIVATED):", subErr);
+              break;
+            }
+
+            // Backfill tier/cadence/user_id if missing
+            let subTier = (sub as any).tier as string | null;
+            let subCadence = (sub as any).cadence as string | null;
+            let subBillingOption = (sub as any).billing_option as string | null;
+            let subUserId = (sub as any).user_id as string | null;
+            if (!subTier || !subCadence || !subUserId) {
+              const details: any = await fetchSubscriptionDetails(subscriptionId);
+              if (details) {
+                const mapped = mapPlanToTierCadence(details.plan_id);
+                const p: any = parseCustomId(details.custom_id);
+                subTier = subTier || p.tier || mapped.tier || subTier;
+                subCadence = subCadence || p.cadence || mapped.cadence || subCadence;
+                subBillingOption = subBillingOption || p.billing_option || mapped.billing_option || subBillingOption;
+                subUserId = subUserId || p.user_id || subUserId;
+              }
+              if (subTier || subCadence || subBillingOption || subUserId) {
+                await supabase
+                  .from("subscriptions")
+                  .update({
+                    tier: subTier || sub.tier,
+                    cadence: subCadence || sub.cadence,
+                    billing_option: subBillingOption || sub.billing_option,
+                    user_id: subUserId || sub.user_id,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", sub.id);
+              }
+            }
+
+            // Compute cycles and expiration like PAYMENT.SUCCEEDED
+            let newCycles = (sub.cycles_paid || 0) + 1;
+            let newExpiresAt: string | null = sub.membership_expires_at;
+            const now = new Date();
+            const tierToUse = (subTier || sub.tier);
+            const cadenceToUse = (subCadence || sub.cadence);
+            const billingToUse = (subBillingOption || sub.billing_option);
+
+            if (tierToUse === "diamond" && cadenceToUse === "yearly" && billingToUse === "split") {
+              const base = sub.membership_expires_at ? new Date(sub.membership_expires_at) : now;
+              const extended = addMonths(base > now ? base : now, 4);
+              newExpiresAt = extended.toISOString();
+            } else if (cadenceToUse === "monthly") {
+              const base = sub.membership_expires_at ? new Date(sub.membership_expires_at) : now;
+              const extended = addMonths(base > now ? base : now, 1);
+              newExpiresAt = extended.toISOString();
+            } else if (cadenceToUse === "yearly") {
+              const base = sub.membership_expires_at ? new Date(sub.membership_expires_at) : now;
+              const extended = addMonths(base > now ? base : now, 12);
+              newExpiresAt = extended.toISOString();
+            }
+
+            const nextBilling = nextBillingTimeStr ? new Date(nextBillingTimeStr).toISOString() : null;
+            const { error: updErr } = await supabase
+              .from("subscriptions")
+              .update({
+                cycles_paid: newCycles,
+                next_billing_time: nextBilling,
+                membership_expires_at: newExpiresAt,
+                status: "active",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", sub.id);
+            if (updErr) {
+              console.error("Failed to update cycles_paid for subscription (ACTIVATED):", updErr);
+            }
+
+            // Update user membership immediately
+            const effectiveUserId = subUserId || sub.user_id;
+            const effectiveTier = subTier || sub.tier;
+            if (effectiveUserId && effectiveTier) {
+              const userUpdate: any = { membership_tier: effectiveTier, updated_at: new Date().toISOString() };
+              const { error: userErr } = await supabase
+                .from("users")
+                .update(userUpdate)
+                .eq("id", effectiveUserId);
+              if (userErr) console.error("Failed to update user membership tier (ACTIVATED):", userErr);
+            }
+          }
+        } catch (e) {
+          console.error("ACTIVATED initial payment handling error:", e);
+        }
         break;
       }
       case "BILLING.SUBSCRIPTION.PAYMENT.SUCCEEDED": {
@@ -252,21 +413,55 @@ serve(async (req) => {
           break;
         }
 
+        // Backfill missing tier/cadence/user_id if needed (ensures user membership update works)
+        let subTier = (sub as any).tier as string | null;
+        let subCadence = (sub as any).cadence as string | null;
+        let subBillingOption = (sub as any).billing_option as string | null;
+        let subUserId = (sub as any).user_id as string | null;
+        if (!subTier || !subCadence || !subUserId) {
+          const details: any = await fetchSubscriptionDetails(subscriptionId);
+          if (details) {
+            const mapped = mapPlanToTierCadence(details.plan_id);
+            const p: any = parseCustomId(details.custom_id);
+            subTier = subTier || p.tier || mapped.tier || subTier;
+            subCadence = subCadence || p.cadence || mapped.cadence || subCadence;
+            subBillingOption = subBillingOption || p.billing_option || mapped.billing_option || subBillingOption;
+            subUserId = subUserId || p.user_id || subUserId;
+          }
+          // Persist backfill if we resolved anything
+          if (subTier || subCadence || subBillingOption || subUserId) {
+            await supabase
+              .from("subscriptions")
+              .update({
+                tier: subTier || sub.tier,
+                cadence: subCadence || sub.cadence,
+                billing_option: subBillingOption || sub.billing_option,
+                user_id: subUserId || sub.user_id,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", sub.id);
+          }
+        }
+
         // Determine increment and membership extension rules
         let newCycles = (sub.cycles_paid || 0) + 1;
         let newExpiresAt: string | null = sub.membership_expires_at;
         const now = new Date();
 
-        if (sub.tier === "diamond" && sub.cadence === "yearly" && sub.billing_option === "split") {
+        const tierToUse = (subTier || sub.tier);
+        const cadenceToUse = (subCadence || sub.cadence);
+        const billingToUse = (subBillingOption || sub.billing_option);
+
+        if (tierToUse === "diamond" && cadenceToUse === "yearly" && billingToUse === "split") {
           // Each successful split cycle extends membership by 4 months
           const base = sub.membership_expires_at ? new Date(sub.membership_expires_at) : now;
           const extended = addMonths(base > now ? base : now, 4);
           newExpiresAt = extended.toISOString();
-        } else if (sub.cadence === "monthly") {
+        } else if (cadenceToUse === "monthly") {
           const base = sub.membership_expires_at ? new Date(sub.membership_expires_at) : now;
           const extended = addMonths(base > now ? base : now, 1);
           newExpiresAt = extended.toISOString();
-        } else if (sub.cadence === "yearly") {
+        } else if (cadenceToUse === "yearly") {
           const base = sub.membership_expires_at ? new Date(sub.membership_expires_at) : now;
           const extended = addMonths(base > now ? base : now, 12);
           newExpiresAt = extended.toISOString();
@@ -293,8 +488,8 @@ serve(async (req) => {
 
         // Elite specific handling for monthly cadence
         try {
-          if ((sub.tier || parsed.tier) === "elite" && (sub.cadence || parsed.cadence) === "monthly") {
-            const userId = sub.user_id || parsed.user_id;
+          if ((tierToUse || parsed.tier) === "elite" && (cadenceToUse || parsed.cadence) === "monthly") {
+            const userId = subUserId || sub.user_id || parsed.user_id;
             if (userId) {
               // Fetch current elite membership (active/lifetime)
               const { data: eliteActive, error: eliteErr } = await supabase
@@ -380,13 +575,15 @@ serve(async (req) => {
         }
 
         // Optional: also reflect membership status in users table
-        if (sub.user_id && sub.tier) {
-          const userUpdate: any = { membership_tier: sub.tier, updated_at: new Date().toISOString() };
+        const effectiveUserId = subUserId || sub.user_id;
+        const effectiveTier = subTier || sub.tier;
+        if (effectiveUserId && effectiveTier) {
+          const userUpdate: any = { membership_tier: effectiveTier, updated_at: new Date().toISOString() };
           // If you want to set boolean flags, handle per tier here
           const { error: userErr } = await supabase
             .from("users")
             .update(userUpdate)
-            .eq("id", sub.user_id);
+            .eq("id", effectiveUserId);
           if (userErr) console.error("Failed to update user membership tier:", userErr);
         }
         break;

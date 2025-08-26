@@ -7,7 +7,6 @@ import RotatingBackground from "@/components/RotatingBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
-import { getReferralUsername } from "@/lib/utils";
 import bcrypt from "bcryptjs";
 
 interface FormData {
@@ -330,7 +329,10 @@ export const Register: React.FC = () => {
             user_type: formData.userType ? formData.userType : "normal",
             membership_tier: "free",
             membership_type: "free",
-            referred_by: formData.referredBy,
+            referred_by:
+              formData.referredBy && formData.referredBy.trim() !== ""
+                ? formData.referredBy
+                : "Company",
             profile_photo: profilePhotoUrl,
             banner_photo: bannerPhotoUrl,
             front_page_photo: frontPagePhotoUrl,

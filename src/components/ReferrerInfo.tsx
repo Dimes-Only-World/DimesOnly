@@ -21,7 +21,7 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (referredBy) {
+    if (referredBy && referredBy !== 'Company') {
       fetchReferrerData();
     }
   }, [referredBy]);
@@ -47,11 +47,9 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
     }
   };
 
-  if (!referredBy) {
-    return null;
-  }
+  const isCompany = !referredBy || referredBy.trim() === '' || referredBy === 'Company';
 
-  if (loading) {
+  if (!isCompany && loading) {
     return (
       <Card className="mb-6">
         <CardContent className="p-4">
@@ -60,6 +58,39 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
             <div className="space-y-2">
               <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
               <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isCompany) {
+    return (
+      <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
+            <UserCheck className="w-4 h-4" />
+            Referred By
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex items-center space-x-4">
+            <Avatar className="w-16 h-16 border-2 border-blue-200">
+              <AvatarImage src={undefined} alt="Company" />
+              <AvatarFallback className="bg-blue-100 text-blue-700 text-lg font-semibold">
+                C
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-gray-900">@Company</h3>
+                <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">Official</Badge>
+              </div>
+              <p className="text-sm text-gray-600 flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                Your referrer
+              </p>
             </div>
           </div>
         </CardContent>

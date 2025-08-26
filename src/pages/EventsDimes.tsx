@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
-import { getReferralUsername } from "@/lib/utils";
+import { normalizeRefParam } from "@/lib/utils";
 import { Search, MapPin, User, ArrowLeft } from "lucide-react";
 
 interface Performer {
@@ -36,8 +36,8 @@ const EventsDimes: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const performersPerPage = 30;
 
-  // Get ref parameter from URL with proper decoding
-  const refParam = getReferralUsername(searchParams) || user?.username || "";
+  // Get ref parameter from URL with proper decoding and normalization
+  const refParam = normalizeRefParam(searchParams.get("ref"));
 
   // Check access control - only users without user_type (normal people)
   const canViewPage =

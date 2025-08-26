@@ -83,12 +83,12 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
   }, [userData?.username, toast]);
 
   const handleButtonClick = (path: string) => {
-    const username = userData?.username || "demo";
+    const username = userData?.username || "company";
     window.location.href = `${path}?ref=${username}`;
   };
 
   const handleDimesClick = () => {
-    const username = userData?.username || "demo";
+    const username = userData?.username || "company";
     // Navigate to dedicated Dimes page
     window.location.href = `/dimes?ref=${username}`;
   };

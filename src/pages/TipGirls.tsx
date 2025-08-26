@@ -12,7 +12,7 @@ import UserProfileCard from "@/components/UserProfileCard";
 import UsersList from "@/components/UsersList";
 import TipStatusChecker from "@/components/TipStatusChecker";
 import { supabase } from "@/lib/supabase";
-import { getReferralUsername } from "@/lib/utils";
+import { normalizeRefParam } from "@/lib/utils";
 
 interface User {
   id: string;
@@ -26,7 +26,7 @@ interface User {
 const TipGirls: React.FC = () => {
   const [searchParams] = useSearchParams();
   const tipUsername = searchParams.get("tip");
-  const refUsername = getReferralUsername(searchParams) || "demo";
+  const refUsername = normalizeRefParam(searchParams.get("ref"));
   const [searchName, setSearchName] = useState("");
   const [searchCity, setSearchCity] = useState("");
   const [searchState, setSearchState] = useState("");

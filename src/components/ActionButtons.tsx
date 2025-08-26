@@ -1,16 +1,17 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { normalizeRefParam } from '@/lib/utils';
 
 const ActionButtons: React.FC = () => {
   const handleStartFree = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref') || 'The Company';
+    const ref = normalizeRefParam(urlParams.get('ref'));
     window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
   };
 
   const handleLogin = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref') || 'default';
+    const ref = normalizeRefParam(urlParams.get('ref'));
     window.location.href = `/login?ref=${encodeURIComponent(ref)}`;
   };
 

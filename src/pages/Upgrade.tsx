@@ -246,51 +246,61 @@ const UpgradePageInner: React.FC = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {packages.map((pkg) => (
-                <Card
-                  key={pkg.id}
-                  className="bg-black/80 border-2 border-pink-500 text-white cursor-pointer hover:scale-105 transition-transform"
-                  onClick={() => {
-                    if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
-                    if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
-                    if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
-                    if (pkg.id === 'elite') return navigate(`/elite?cadence=${cadence}`);
-                    // fallback to original behavior for other packages
-                    setSelectedPackage(pkg);
-                    setPaymentOption('full');
-                    if (userData) setPhoneNumber(userData.phone_number ?? '');
-                  }}
-                >
-                  <CardHeader>
-                    <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
-                    <CardDescription className="text-3xl font-bold text-white">
-                      ${displayPrice(pkg.id).toFixed(2)}
-                      <span className="block text-xs text-gray-300 mt-1">
-                        {cadence === 'yearly' ? 'per year' : 'per month'}
-                      </span>
-                    </CardDescription>
-                    {pkg.badge && <Badge className="bg-red-600 text-white">{pkg.badge}</Badge>}
-                    {pkg.savings && <Badge className="bg-green-600 text-white">{pkg.savings}</Badge>}
-                    {pkg.warning && <p className="text-red-400 font-bold">{pkg.warning}</p>}
-                    {pkg.id === 'diamond' && cadence === 'yearly' && (
-                      <p className="text-yellow-300 text-sm font-semibold">Billed as $53.25 every 4 months (3x per year)</p>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.benefits.map((benefit, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
-                      UPGRADE NOW
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+              {packages.map((pkg) => {
+                const isCurrent = userData?.membership_tier?.toLowerCase() === pkg.id;
+                return (
+                  <Card
+                    key={pkg.id}
+                    className={`bg-black/80 border-2 border-pink-500 text-white transition-transform ${isCurrent ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}`}
+                    onClick={() => {
+                      if (isCurrent) return; // disable navigation for current plan
+                      if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
+                      if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
+                      if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
+                      if (pkg.id === 'elite') return navigate(`/elite?cadence=${cadence}`);
+                      // fallback to original behavior for other packages
+                      setSelectedPackage(pkg);
+                      setPaymentOption('full');
+                      if (userData) setPhoneNumber(userData.phone_number ?? '');
+                    }}
+                  >
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
+                        {isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>}
+                      </div>
+                      <CardDescription className="text-3xl font-bold text-white">
+                        ${displayPrice(pkg.id).toFixed(2)}
+                        <span className="block text-xs text-gray-300 mt-1">
+                          {cadence === 'yearly' ? 'per year' : 'per month'}
+                        </span>
+                      </CardDescription>
+                      {pkg.badge && <Badge className="bg-red-600 text-white">{pkg.badge}</Badge>}
+                      {pkg.savings && <Badge className="bg-green-600 text-white">{pkg.savings}</Badge>}
+                      {pkg.warning && <p className="text-red-400 font-bold">{pkg.warning}</p>}
+                      {pkg.id === 'diamond' && cadence === 'yearly' && (
+                        <p className="text-yellow-300 text-sm font-semibold">Billed as $53.25 every 4 months (3x per year)</p>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2 mb-6">
+                        {pkg.benefits.map((benefit, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                        disabled={isCurrent}
+                      >
+                        {isCurrent ? 'Current plan' : 'UPGRADE NOW'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {userData && ["stripper", "exotic"].includes(userData.user_type) && (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { getReferralUsername } from "@/lib/utils";
+import { normalizeRefParam } from "@/lib/utils";
 
 interface ProfileData {
   name: string;
@@ -22,7 +22,8 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = getReferralUsername(urlParams);
+    const rawRef = urlParams.get("ref");
+    const ref = normalizeRefParam(rawRef);
 
     console.log("🏠 INDEX PAGE - ProfileVideoSection Debug:");
     console.log("🏠 Original URL:", window.location.href);
@@ -30,14 +31,17 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
     console.log("🏠 Raw ref param:", urlParams.get("ref"));
     console.log("🏠 Processed ref param:", ref);
 
-    if (ref) {
-      console.log("🏠 Setting ref value and fetching profile for:", ref);
-      setRefValue(ref);
-      fetchProfile(ref);
-    } else {
-      console.log("🏠 No ref parameter found, showing default video");
+    // IMPORTANT: treat 'company' (default) or missing ref as no referral
+    if (!rawRef || ref === "company") {
+      console.log("🏠 No specific user ref provided. Showing default hero.");
+      setRefValue(null);
       setLoading(false);
+      return;
     }
+
+    console.log("🏠 Setting ref value and fetching profile for:", ref);
+    setRefValue(ref);
+    fetchProfile(ref);
   }, []);
 
   const fetchProfile = async (username: string) => {

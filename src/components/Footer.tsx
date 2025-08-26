@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { normalizeRefParam } from '@/lib/utils';
 
 const Footer: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -8,7 +9,7 @@ const Footer: React.FC = () => {
 
   const getRefUrl = (baseUrl: string) => {
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref') || 'default';
+    const ref = normalizeRefParam(urlParams.get('ref'));
     return `${baseUrl}?ref=${encodeURIComponent(ref)}`;
   };
 

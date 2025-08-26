@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { normalizeRefParam } from '@/lib/utils';
 
 const images = [
   'https://dimesonly.s3.us-east-2.amazonaws.com/eroticgirl_77f16c72-f054-4fcd-a954-208021412fb9-768x1250.png',
@@ -21,7 +22,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ className = '' }) => {
 
   const getRefParam = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('ref') || 'default';
+    return normalizeRefParam(urlParams.get('ref'));
   };
 
   const handleImageClick = () => {

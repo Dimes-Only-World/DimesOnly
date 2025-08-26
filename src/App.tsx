@@ -36,6 +36,7 @@ import DimesPage from "./pages/Dimes";
 import Profile from "./pages/Profile";
 import SubscriptionsDebug from "./pages/SubscriptionsDebug";
 import Elite from "./pages/Elite";
+import ResetPassword from "./pages/ResetPassword";
 import "./App.css";
 
 function AppContent() {
@@ -70,6 +71,7 @@ function AppContent() {
       <Route path="/profile/:username" element={<Profile />} />
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/debug-subscription" element={<SubscriptionsDebug />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

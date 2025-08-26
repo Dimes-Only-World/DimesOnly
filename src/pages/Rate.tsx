@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { normalizeRefParam } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -103,7 +104,7 @@ const RatePage: React.FC = () => {
   const { toast } = useToast();
 
   const rateUsername = searchParams.get("rate");
-  const refUsername = searchParams.get("ref") || "";
+  const refUsername = normalizeRefParam(searchParams.get("ref"));
 
   const [userData, setUserData] = useState<UserData | null>(null);
   const [currentUser, setCurrentUser] = useState<{
@@ -706,6 +707,15 @@ const RatePage: React.FC = () => {
           )}
 
           {/* Removed profile media thumbnails to keep Rate page media-free */}
+
+          {/* Profile Image */}
+          <div className="flex justify-center mb-4">
+            <img
+              src={userData.profile_photo || "/placeholder.svg"}
+              alt={`@${userData.username}`}
+              className="w-24 h-24 rounded-full object-cover border-4 border-yellow-400 shadow-lg"
+            />
+          </div>
 
           <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
             Rate @{userData.username}

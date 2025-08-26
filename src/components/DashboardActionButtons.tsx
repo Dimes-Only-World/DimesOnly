@@ -14,12 +14,12 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
   userData,
 }) => {
   const handleTipWin = () => {
-    const username = userData?.username || "demo";
+    const username = userData?.username || "company";
     window.open(`https://dimesonly.world/tip-girls?ref=${username}`, "_blank");
   };
 
   const handleEvents = () => {
-    const username = userData?.username || "demo";
+    const username = userData?.username || "company";
     const userType = userData?.user_type;
 
     if (userType === "stripper" || userType === "exotic") {
@@ -36,7 +36,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
   };
 
   const handleRate = () => {
-    const username = userData?.username || "demo";
+    const username = userData?.username || "company";
     window.open(
       `https://dimesonly.world/rate-girls/?ref=${username}`,
       "_blank"
@@ -44,7 +44,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
   };
 
   const handleDimesDirectory = () => {
-    const username = userData?.username || "demo";
+    const username = userData?.username || "company";
     // Navigate to dedicated Dimes page
     window.location.href = `/dimes?ref=${username}`;
   };

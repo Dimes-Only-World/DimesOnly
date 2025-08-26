@@ -37,3 +37,17 @@ export function getReferralUsername(searchParams: URLSearchParams): string {
   const ref = searchParams.get("ref");
   return decodeUrlParam(ref);
 }
+
+/**
+ * Normalize a referral parameter for URL usage.
+ * - Default empty/missing to 'company'
+ * - Map 'default' and 'the company' (any casing) to 'company'
+ * - Preserve other values as-is (still decoded and trimmed)
+ */
+export function normalizeRefParam(raw: string | null): string {
+  const decoded = decodeUrlParam(raw).trim();
+  if (!decoded) return "company";
+  const lower = decoded.toLowerCase();
+  if (lower === "default" || lower === "the company") return "company";
+  return decoded;
+}
