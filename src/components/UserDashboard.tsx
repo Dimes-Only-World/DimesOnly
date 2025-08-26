@@ -340,26 +340,25 @@ const UserDashboard: React.FC = () => {
         <div className="bg-white shadow-sm border-b">
           <div className={getContainerClasses()}>
             <div
-              className={`relative flex flex-col items-center py-4 ${getContentClasses()}`}
+              className={`relative flex justify-between items-center py-4 ${getContentClasses()}`}
             >
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                Dimes Only World
+              <h1 className="text-2xl font-bold text-red-500">
+                ❤ Dimes
               </h1>
-              <p className="text-lg text-gray-600">
-                Welcome Back {userData.username || "User"}
-              </p>
-
-              <div className="absolute top-2 right-2">
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </Button>
+              <div className="flex flex-col items-center">
+                <p className="text-lg text-gray-600">
+                  Welcome Back {userData.username || "User"}
+                </p>
               </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
