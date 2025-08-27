@@ -340,25 +340,41 @@ const UserDashboard: React.FC = () => {
         <div className="bg-white shadow-sm border-b">
           <div className={getContainerClasses()}>
             <div
-              className={`relative flex justify-between items-center py-4 ${getContentClasses()}`}
+              className={`flex justify-between items-center py-4 px-4 ${getContentClasses()}`}
             >
-              <h1 className="text-2xl font-bold text-red-500">
-                ❤ Dimes
-              </h1>
-              <div className="flex flex-col items-center">
-                <p className="text-lg text-gray-600">
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/placeholder.svg" 
+                  alt="Dimes Logo" 
+                  className="w-8 h-8 md:w-10 md:h-10"
+                />
+                <h1 className="text-xl md:text-2xl font-bold text-red-600">
+                  Dimes
+                </h1>
+              </div>
+              
+              <div className="hidden md:flex items-center">
+                <p className="text-sm text-gray-600">
                   Welcome Back {userData.username || "User"}
                 </p>
               </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
+              
+              <div className="flex items-center gap-2">
+                <div className="md:hidden">
+                  <p className="text-xs text-gray-600 text-right">
+                    Welcome {userData.username || "User"}
+                  </p>
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
