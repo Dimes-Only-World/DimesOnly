@@ -127,9 +127,9 @@ const RatePage: React.FC = () => {
   const [isAllNumbersUsed, setIsAllNumbersUsed] = useState(false);
   const [currentStanding, setCurrentStanding] =
     useState<CurrentStanding | null>(null);
-  // Removed media state: no photos/videos on Rate page
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (rateUsername) {
@@ -681,7 +681,17 @@ const RatePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Optional: keep banner minimal or remove entirely. Keeping minimal header without media. */}
+        {/* Banner Photo */}
+        {userData.banner_photo && (
+          <div className="mb-8">
+            <img
+              src={userData.banner_photo}
+              alt={`${userData.username} banner`}
+              className="w-full h-48 md:h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setExpandedImage(userData.banner_photo)}
+            />
+          </div>
+        )}
 
         <div className="text-center mb-8">
           {/* Current Standing */}
@@ -706,15 +716,46 @@ const RatePage: React.FC = () => {
             </div>
           )}
 
-          {/* Removed profile media thumbnails to keep Rate page media-free */}
+          {/* Three Photos Row */}
+          <div className="grid grid-cols-3 gap-4 mb-6 max-w-2xl mx-auto">
+            {/* Profile Photo */}
+            <div className="text-center">
+              <div className="border-2 border-yellow-400 rounded-lg overflow-hidden mb-2">
+                <img
+                  src={userData.profile_photo || "/placeholder.svg"}
+                  alt="Profile"
+                  className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setExpandedImage(userData.profile_photo)}
+                />
+              </div>
+              <p className="text-sm text-gray-300">Profile</p>
+            </div>
 
-          {/* Profile Image */}
-          <div className="flex justify-center mb-4">
-            <img
-              src={userData.profile_photo || "/placeholder.svg"}
-              alt={`@${userData.username}`}
-              className="w-24 h-24 rounded-full object-cover border-4 border-yellow-400 shadow-lg"
-            />
+            {/* Banner Photo */}
+            <div className="text-center">
+              <div className="border-2 border-blue-400 rounded-lg overflow-hidden mb-2">
+                <img
+                  src={userData.banner_photo || "/placeholder.svg"}
+                  alt="Banner"
+                  className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setExpandedImage(userData.banner_photo)}
+                />
+              </div>
+              <p className="text-sm text-gray-300">Banner</p>
+            </div>
+
+            {/* Front Page Photo */}
+            <div className="text-center">
+              <div className="border-2 border-green-400 rounded-lg overflow-hidden mb-2">
+                <img
+                  src={userData.front_page_photo || "/placeholder.svg"}
+                  alt="Front Page"
+                  className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setExpandedImage(userData.front_page_photo)}
+                />
+              </div>
+              <p className="text-sm text-gray-300">Front Page</p>
+            </div>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
@@ -927,6 +968,34 @@ const RatePage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Image Expansion Dialog */}
+      {expandedImage && (
+        <Dialog open={!!expandedImage} onOpenChange={() => setExpandedImage(null)}>
+          <DialogContent className="max-w-4xl bg-gray-900 border-gray-700">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-white">Image Preview</DialogTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setExpandedImage(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </DialogHeader>
+            <div className="flex justify-center">
+              <img 
+                src={expandedImage} 
+                alt="Expanded view" 
+                className="max-w-full max-h-[70vh] object-contain rounded-lg"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
     </div>
   );
