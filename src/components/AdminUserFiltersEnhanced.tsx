@@ -14,6 +14,8 @@ interface AdminUserFiltersEnhancedProps {
   setStateFilter: (value: string) => void;
   genderFilter: string;
   setGenderFilter: (value: string) => void;
+  referredByFilter: string;
+  setReferredByFilter: (value: string) => void;
 }
 
 const AdminUserFiltersEnhanced: React.FC<AdminUserFiltersEnhancedProps> = ({
@@ -27,9 +29,11 @@ const AdminUserFiltersEnhanced: React.FC<AdminUserFiltersEnhancedProps> = ({
   setStateFilter,
   genderFilter,
   setGenderFilter,
+  referredByFilter,
+  setReferredByFilter,
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
       <div>
         <Label htmlFor="userType">User Type</Label>
         <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
@@ -87,6 +91,16 @@ const AdminUserFiltersEnhanced: React.FC<AdminUserFiltersEnhancedProps> = ({
           placeholder="Filter by state"
           value={stateFilter}
           onChange={(e) => setStateFilter(e.target.value)}
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="referredBy">Referred By</Label>
+        <Input
+          id="referredBy"
+          placeholder="Filter by referrer"
+          value={referredByFilter}
+          onChange={(e) => setReferredByFilter(e.target.value)}
         />
       </div>
     </div>

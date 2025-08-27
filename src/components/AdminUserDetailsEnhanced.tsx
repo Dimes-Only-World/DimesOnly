@@ -22,6 +22,8 @@ interface User {
   front_page_photo?: string;
   created_at: string;
   status?: string;
+  referred_by?: string;
+  referred_by_photo?: string;
 }
 
 interface Media {
@@ -252,6 +254,11 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                   <p><strong>Phone:</strong> {user.mobile_number || 'N/A'}</p>
                   <p><strong>Location:</strong> {user.city}, {user.state}</p>
                   <p><strong>Type:</strong> <Badge>{getUserTypeDisplay(user.user_type)}</Badge></p>
+                  {user.referred_by && (
+                    <p><strong>Referred by:</strong> 
+                      <span className="ml-2 font-medium text-blue-600">@{user.referred_by}</span>
+                    </p>
+                  )}
                   <p><strong>Status:</strong> 
                     <Badge 
                       variant={user.status === 'deactivated' ? 'destructive' : 'default'}
@@ -270,22 +277,27 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               {media.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No media uploaded</p>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {media.map((item) => (
                     <div key={item.id} className="relative border rounded-lg overflow-hidden">
                       {item.type === 'photo' ? (
                         <img 
                           src={item.url} 
                           alt="User media" 
-                          className="w-full h-32 object-cover cursor-pointer hover:opacity-80"
+                          className="w-full h-40 md:h-48 object-cover cursor-pointer hover:opacity-80"
                           onClick={() => setExpandedImage(item.url)}
                         />
                       ) : (
                         <div className="relative">
                           <video 
                             src={item.url} 
-                            className="w-full h-32 object-cover"
-                            poster={item.url}
+                            className="w-full h-40 md:h-48 object-cover"
+                            preload="metadata"
+                            muted
+                            onLoadedMetadata={(e) => {
+                              const video = e.target as HTMLVideoElement;
+                              video.currentTime = 1;
+                            }}
                           />
                           <Button
                             size="sm"
@@ -322,7 +334,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                               onChange={(e) => setFlagMessage(e.target.value)}
                               rows={2}
                               className="text-xs"
-                            />
+                                            />
                             <Button
                               size="sm"
                               onClick={() => handleFlagMedia(item.id)}

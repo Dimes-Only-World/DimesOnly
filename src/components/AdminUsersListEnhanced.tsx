@@ -25,6 +25,8 @@ interface User {
   front_page_photo?: string;
   created_at: string;
   is_active: boolean;
+  referred_by?: string;
+  referred_by_photo?: string;
 }
 
 const AdminUsersListEnhanced: React.FC = () => {
@@ -40,6 +42,7 @@ const AdminUsersListEnhanced: React.FC = () => {
   const [usernameFilter, setUsernameFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [stateFilter, setStateFilter] = useState("");
+  const [referredByFilter, setReferredByFilter] = useState("");
 
   const { toast } = useToast();
 
@@ -56,6 +59,7 @@ const AdminUsersListEnhanced: React.FC = () => {
     usernameFilter,
     cityFilter,
     stateFilter,
+    referredByFilter,
   ]);
 
   const fetchUsers = async () => {
@@ -135,6 +139,13 @@ const AdminUsersListEnhanced: React.FC = () => {
     if (stateFilter) {
       filtered = filtered.filter((user) =>
         user.state?.toLowerCase().includes(stateFilter.toLowerCase())
+      );
+    }
+
+    // Referred by filter
+    if (referredByFilter) {
+      filtered = filtered.filter((user) =>
+        user.referred_by?.toLowerCase().includes(referredByFilter.toLowerCase())
       );
     }
 
@@ -259,6 +270,8 @@ const AdminUsersListEnhanced: React.FC = () => {
             setCityFilter={setCityFilter}
             stateFilter={stateFilter}
             setStateFilter={setStateFilter}
+            referredByFilter={referredByFilter}
+            setReferredByFilter={setReferredByFilter}
           />
 
           <div className="text-sm text-gray-600 mb-4">
@@ -306,6 +319,11 @@ const AdminUsersListEnhanced: React.FC = () => {
                           <p>
                             <strong>Location:</strong> {user.city}, {user.state}
                           </p>
+                          {user.referred_by && (
+                            <p>
+                              <strong>Referred by:</strong> {user.referred_by}
+                            </p>
+                          )}
                           <p>
                             <strong>Joined:</strong>{" "}
                             {new Date(user.created_at).toLocaleDateString()}
