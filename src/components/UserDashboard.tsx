@@ -13,6 +13,7 @@ import {
   LogOut,
   Crown,
   CheckCircle2,
+  Heart,
 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
@@ -343,11 +344,7 @@ const UserDashboard: React.FC = () => {
               className={`flex justify-between items-center py-4 px-4 ${getContentClasses()}`}
             >
               <div className="flex items-center gap-3">
-                <img 
-                  src="/placeholder.svg" 
-                  alt="Dimes Logo" 
-                  className="w-8 h-8 md:w-10 md:h-10"
-                />
+                <Heart className="w-8 h-8 md:w-10 md:h-10 text-red-600 fill-current" />
                 <h1 className="text-xl md:text-2xl font-bold text-red-600">
                   Dimes
                 </h1>
