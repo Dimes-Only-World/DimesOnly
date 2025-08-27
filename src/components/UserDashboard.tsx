@@ -458,18 +458,16 @@ const UserDashboard: React.FC = () => {
             />
           </Card>
 
-          {/* Universal Upgrade Membership Button – appears below banner for all users */}
-          {!(userData.diamond_plus_active || hasActiveDiamond) && (
-            <div className="my-6 flex justify-center">
-              <Button
-                asChild
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
-                aria-label="Upgrade Membership"
-              >
-                <a href="/upgrade">Upgrade Membership</a>
-              </Button>
-            </div>
-          )}
+          {/* Upgrade Membership Button – always visible */}
+          <div className="my-6 flex justify-center">
+            <Button
+              asChild
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
+              aria-label="Upgrade Membership"
+            >
+              <a href="/upgrade">Upgrade Membership</a>
+            </Button>
+          </div>
 
           {/* Rest of dashboard content */}
 
