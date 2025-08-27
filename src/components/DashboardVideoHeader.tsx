@@ -28,7 +28,9 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
   };
 
   return (
-    <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg mb-6">
+    <div className="relative w-full mb-6">
+      {/* Aspect ratio container - 16:9 for consistent video display */}
+      <div className="relative w-full aspect-video overflow-hidden rounded-lg">
       {!showVideo ? (
         <div className="relative w-full h-full">
           <img
@@ -61,6 +63,7 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
           </video>
         </div>
       )}
+      </div>
     </div>
   );
 };

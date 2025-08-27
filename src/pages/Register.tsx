@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import bcrypt from "bcryptjs";
+import { getReferralUsername } from "@/lib/utils";
 
 interface FormData {
   firstName: string;
