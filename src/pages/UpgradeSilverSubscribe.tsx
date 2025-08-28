@@ -68,9 +68,7 @@ export default function UpgradeSilverSubscribe() {
             <CardTitle className="text-3xl font-bold text-gray-900">Upgrade to Silver</CardTitle>
             <CardDescription>{cadence === 'yearly' ? 'Annual' : 'Monthly'} subscription. Immediate activation after approval.</CardDescription>
           </CardHeader>
-          <div className="mx-6 mb-2 rounded-md bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm p-3">
-            <b>Tip:</b> For the best video experience, rotate your device to <b>Landscape</b>. On some devices, open the video’s 3‑dot menu to switch to Landscape.
-          </div>
+          
 
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">

@@ -309,6 +309,11 @@ export const Register: React.FC = () => {
       // Hash password
       const passwordHash = await bcrypt.hash(formData.password, 10);
 
+      // Determine initial membership based on gender and user type
+      const isFemaleDiamond =
+        formData.gender === "female" &&
+        (formData.userType === "exotic" || formData.userType === "stripper");
+
       // Create user record with auth user ID
       const { data: newUser, error: createError } = await supabaseAdmin
         .from("users")
@@ -328,8 +333,8 @@ export const Register: React.FC = () => {
             zip: formData.zip,
             gender: formData.gender,
             user_type: formData.userType ? formData.userType : "normal",
-            membership_tier: "free",
-            membership_type: "free",
+            membership_tier: isFemaleDiamond ? "diamond" : "free",
+            membership_type: isFemaleDiamond ? "diamond" : "free",
             referred_by:
               formData.referredBy && formData.referredBy.trim() !== ""
                 ? formData.referredBy
