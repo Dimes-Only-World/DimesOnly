@@ -247,13 +247,19 @@ const UpgradePageInner: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {packages.map((pkg) => {
-                const isCurrent = userData?.membership_tier?.toLowerCase() === pkg.id;
+                const tier = userData?.membership_tier?.toLowerCase() || '';
+                const isCurrent = tier === pkg.id;
+                const isSilverPlusLock = tier === 'silver_plus' && pkg.id === 'silver';
+                const isDiamondPlusLock = tier === 'diamond_plus' && pkg.id === 'diamond';
+                const isLocked = isCurrent || isSilverPlusLock || isDiamondPlusLock;
                 return (
                   <Card
                     key={pkg.id}
-                    className={`bg-black/80 border-2 border-pink-500 text-white transition-transform ${isCurrent ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}`}
+                    className={`bg-black/80 border-2 border-pink-500 text-white transition-transform ${
+                      isLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:scale-105'
+                    }`}
                     onClick={() => {
-                      if (isCurrent) return; // disable navigation for current plan
+                      if (isLocked) return; // disable navigation for current or lifetime plus
                       if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                       if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                       if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
@@ -268,6 +274,7 @@ const UpgradePageInner: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
                         {isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>}
+                        {(isSilverPlusLock || isDiamondPlusLock) && <Badge variant="secondary" className="bg-gray-700 text-white">Lifetime Plus</Badge>}
                       </div>
                       <CardDescription className="text-3xl font-bold text-white">
                         ${displayPrice(pkg.id).toFixed(2)}
@@ -292,10 +299,16 @@ const UpgradePageInner: React.FC = () => {
                         ))}
                       </ul>
                       <Button
-                        className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                        disabled={isCurrent}
+                        className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 disabled:bg-gray-700 disabled:text-gray-300"
+                        disabled={isLocked}
                       >
-                        {isCurrent ? 'Current plan' : 'UPGRADE NOW'}
+                        {isCurrent
+                          ? 'Current plan'
+                          : isSilverPlusLock
+                            ? 'You are Silver Plus member (lifetime)'
+                            : isDiamondPlusLock
+                              ? 'You are Diamond Plus member (lifetime)'
+                              : 'UPGRADE NOW'}
                       </Button>
                     </CardContent>
                   </Card>

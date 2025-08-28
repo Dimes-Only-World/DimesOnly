@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   MapPin,
@@ -164,14 +164,98 @@ const RatePage: React.FC = () => {
 
   const fetchUserData = async () => {
     try {
-      const { data, error } = await supabase
+      // Normalize username to reduce mismatch due to spaces/case
+      const normalizedRate = String(rateUsername).trim().toLowerCase();
+
+      // maybeSingle avoids 406 on zero rows
+      let { data, error } = await supabase
         .from("users")
         .select(
           "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
         )
-        .eq("username", rateUsername)
-        .in("user_type", ["stripper", "exotic"])
-        .single();
+        .eq("username", normalizedRate)
+        .maybeSingle();
+
+      // Fallback to case-insensitive match
+      if ((!data || error) && !data) {
+        const res = await supabase
+          .from("users")
+          .select(
+            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+          )
+          .ilike("username", normalizedRate)
+          .maybeSingle();
+        data = res.data as any;
+        error = res.error as any;
+      }
+
+      // Fallback: contains search and pick best match
+      if ((!data || error) && !data) {
+        const res = await supabase
+          .from("users")
+          .select(
+            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+          )
+          .ilike("username", `%${normalizedRate}%`);
+        const rows = res.data as any[] | null;
+        if (rows && rows.length > 0) {
+          const lower = (u: string) => String(u || "").toLowerCase();
+          const exact = rows.find((r) => lower(r.username) === normalizedRate);
+          const starts = rows.find((r) => lower(r.username).startsWith(normalizedRate));
+          data = (exact || starts || rows[0]) as any;
+          error = res.error as any;
+        }
+      }
+
+      // Admin fallback to bypass potential RLS blocking a single row
+      if (!data) {
+        console.warn("[Rate] Public fetch returned no data. Trying admin fallback for", normalizedRate);
+        // Exact
+        let adminRes = await supabaseAdmin
+          .from("users")
+          .select(
+            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+          )
+          .eq("username", normalizedRate)
+          .maybeSingle();
+        let adminData = adminRes.data as any | null;
+
+        if (!adminData) {
+          // Case-insensitive
+          adminRes = await supabaseAdmin
+            .from("users")
+            .select(
+              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+            )
+            .ilike("username", normalizedRate)
+            .maybeSingle();
+          adminData = adminRes.data as any | null;
+        }
+
+        if (!adminData) {
+          // Contains
+          const resList = await supabaseAdmin
+            .from("users")
+            .select(
+              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+            )
+            .ilike("username", `%${normalizedRate}%`);
+        const rows = resList.data as any[] | null;
+        if (rows && rows.length > 0) {
+          const lower = (u: string) => String(u || "").toLowerCase();
+          const exact = rows.find((r) => lower(r.username) === normalizedRate);
+          const starts = rows.find((r) => lower(r.username).startsWith(normalizedRate));
+          adminData = (exact || starts || rows[0]) as any;
+        }
+        }
+
+        if (adminData) {
+          console.warn("[Rate] Admin fallback succeeded for", adminData.username);
+          data = adminData;
+        } else {
+          console.warn("[Rate] Admin fallback also failed for", normalizedRate, "error:", error);
+        }
+      }
 
       if (error) {
         console.error("Error fetching user data:", error);

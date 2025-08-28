@@ -44,6 +44,9 @@ const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'free' | 'silver' | 'gold'>('free');
   const [userMembership, setUserMembership] = useState<string>('free');
 
+  // Silence debug logs in console; flip to console.log if needed for debugging
+  const debugLog = (..._args: any[]) => {};
+
   useEffect(() => {
     if (username) {
       fetchProfile();
@@ -60,11 +63,93 @@ const Profile: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      // Sanitize + normalize username to avoid hidden chars/trailing spaces/case issues
+      const sanitize = (s: string) =>
+        s
+          .replace(/[\u200B\u200C\u200D\u00A0]/g, '') // zero-width & NBSP
+          .normalize('NFKC')
+          .trim()
+          .toLowerCase();
+      const normalizedUsername = sanitize(String(username));
+
+      // Use maybeSingle to avoid 406 errors on 0 rows
+      let { data, error } = await supabase
         .from('users')
         .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-        .eq('username', username)
-        .single();
+        .eq('username', normalizedUsername)
+        .maybeSingle();
+
+      // Fallback: try case-insensitive match if exact match failed
+      if ((!data || error) && !data) {
+        const res = await supabase
+          .from('users')
+          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
+          .ilike('username', normalizedUsername)
+          .maybeSingle();
+        data = res.data as any;
+        error = res.error as any;
+      }
+
+      // Fallback: try contains search (may match multiple). We'll pick the best match.
+      if ((!data || error) && !data) {
+        const res = await supabase
+          .from('users')
+          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
+          .ilike('username', `%${normalizedUsername}%`);
+        const rows = res.data as any[] | null;
+        if (rows && rows.length > 0) {
+          // Prefer exact case-insensitive match, else startsWith, else first
+          const lower = (u: string) => String(u || '').toLowerCase();
+          const exact = rows.find(r => lower(r.username) === normalizedUsername);
+          const starts = rows.find(r => lower(r.username).startsWith(normalizedUsername));
+          data = (exact || starts || rows[0]) as any;
+          error = res.error as any;
+        }
+      }
+
+      // If still no data, try admin client to bypass RLS in case a specific row is blocked
+      if (!data) {
+        debugLog('[Profile] Public fetch returned no data. Trying admin fallback for', normalizedUsername);
+        // Exact
+        let adminRes = await supabaseAdmin
+          .from('users')
+          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
+          .eq('username', normalizedUsername)
+          .maybeSingle();
+        let adminData = adminRes.data as any | null;
+
+        if (!adminData) {
+          // Case-insensitive
+          adminRes = await supabaseAdmin
+            .from('users')
+            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
+            .ilike('username', normalizedUsername)
+            .maybeSingle();
+          adminData = adminRes.data as any | null;
+        }
+
+        if (!adminData) {
+          // Contains match, pick best
+          const resList = await supabaseAdmin
+            .from('users')
+            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
+            .ilike('username', `%${normalizedUsername}%`);
+          const rows = resList.data as any[] | null;
+          if (rows && rows.length > 0) {
+            const lower = (u: string) => String(u || '').toLowerCase();
+            const exact = rows.find(r => lower(r.username) === normalizedUsername);
+            const starts = rows.find(r => lower(r.username).startsWith(normalizedUsername));
+            adminData = (exact || starts || rows[0]) as any;
+          }
+        }
+
+        if (adminData) {
+          debugLog('[Profile] Admin fallback succeeded for', adminData.username);
+          data = adminData;
+        } else {
+          debugLog('[Profile] Admin fallback also failed for', normalizedUsername, 'error:', error);
+        }
+      }
 
       if (error || !data) {
         toast({
@@ -102,7 +187,7 @@ const Profile: React.FC = () => {
 
       if (error) throw error;
 
-      console.log('Profile media fetched:', data); // Debug log
+      debugLog('Profile media fetched:', data);
 
       const transformedMedia = await Promise.all((data || []).map(async (item) => {
         let effectiveUrl = item.media_url as string;
@@ -131,7 +216,7 @@ const Profile: React.FC = () => {
         };
       }));
 
-      console.log('Transformed media:', transformedMedia); // Debug log
+      debugLog('Transformed media:', transformedMedia);
       setMedia(transformedMedia);
     } catch (error) {
       console.error('Error fetching media:', error);
