@@ -42,6 +42,173 @@ function addMonths(date: Date, months: number): Date {
   return d;
 }
 
+// --- Referral helpers for subscription commissions ---
+function calculateNetAfterFees(gross: number): number {
+  const paypalFlat = 0.5;
+  const paypalPct = 0.015;
+  const net = gross - (paypalFlat + gross * paypalPct);
+  return Number(Math.max(0, net).toFixed(2));
+}
+
+// Format a Date as local YYYY-MM-DD (avoid UTC shift from toISOString)
+function formatLocalYMD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Compute current week as Monday (start) to Sunday (end) in LOCAL time
+function getCurrentWeekRange(): { weekStartStr: string; weekEndStr: string } {
+  // Normalize to local midnight
+  const now = new Date();
+  const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // JS getDay(): 0=Sun..6=Sat. Convert to Monday-based index
+  const day = localMidnight.getDay();
+  const diffToMonday = (day + 6) % 7; // 0 if Monday, 6 if Sunday
+  const weekStart = new Date(localMidnight);
+  weekStart.setDate(localMidnight.getDate() - diffToMonday);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const weekStartStr = formatLocalYMD(weekStart);
+  const weekEndStr = formatLocalYMD(weekEnd);
+  return { weekStartStr, weekEndStr };
+}
+
+async function upsertWeeklyReferralEarnings(supabase: any, userId: string, amount: number) {
+  const { weekStartStr, weekEndStr } = getCurrentWeekRange();
+  const { data: existing } = await supabase
+    .from('weekly_earnings')
+    .select('id, amount, referral_earnings')
+    .eq('user_id', userId)
+    .eq('week_start', weekStartStr)
+    .maybeSingle();
+  if (existing) {
+    await supabase
+      .from('weekly_earnings')
+      .update({
+        amount: (existing.amount || 0) + amount,
+        referral_earnings: (existing.referral_earnings || 0) + amount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id);
+  } else {
+    await supabase.from('weekly_earnings').insert({
+      user_id: userId,
+      week_start: weekStartStr,
+      week_end: weekEndStr,
+      amount,
+      tip_earnings: 0,
+      referral_earnings: amount,
+      bonus_earnings: 0,
+    });
+  }
+}
+
+// Pay 20% to direct referrer and 10% to upline for the first subscription payment only
+async function awardSubscriptionReferralOnce(
+  supabase: any,
+  referredUserId: string,
+  tier: string,
+  grossAmount: number,
+  subscriptionId: string,
+) {
+  try {
+    if (!referredUserId || !grossAmount || grossAmount <= 0) return;
+    // Load paying user
+    const { data: payingUser, error: payingErr } = await supabase
+      .from('users')
+      .select('id, username, referred_by')
+      .eq('id', referredUserId)
+      .single();
+    if (payingErr || !payingUser || !payingUser.referred_by) return;
+
+    // Find direct referrer
+    const referrerUsername = String(payingUser.referred_by).trim();
+    const { data: referrer } = await supabase
+      .from('users')
+      .select('id, username, referred_by')
+      .ilike('username', referrerUsername)
+      .limit(1)
+      .maybeSingle();
+    if (!referrer) return;
+
+    // Check if already paid once for this referred user (idempotency via paypal_transaction_id)
+    const { data: existingDirect } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('user_id', referrer.id)
+      .eq('payment_type', 'subscription_referral_commission')
+      .eq('paypal_transaction_id', referredUserId)
+      .limit(1)
+      .maybeSingle();
+
+    const net = calculateNetAfterFees(Number(grossAmount) || 0);
+    if (!existingDirect) {
+      const directAmt = Number(((net * 20) / 100).toFixed(2));
+      const { data: ins } = await supabase
+        .from('payments')
+        .insert({
+          user_id: referrer.id,
+          amount: directAmt,
+          payment_type: 'subscription_referral_commission',
+          payment_status: 'completed',
+          paypal_order_id: subscriptionId,
+          paypal_transaction_id: referredUserId,
+          referred_by: referrer.username,
+          referrer_commission: directAmt,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (ins) await upsertWeeklyReferralEarnings(supabase, referrer.id, directAmt);
+    }
+
+    // Upline (referrer of referrer)
+    const uplineUsername = String(referrer.referred_by || '').trim();
+    if (!uplineUsername) return;
+    const { data: upline } = await supabase
+      .from('users')
+      .select('id, username')
+      .ilike('username', uplineUsername)
+      .limit(1)
+      .maybeSingle();
+    if (!upline) return;
+
+    const { data: existingUpline } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('user_id', upline.id)
+      .eq('payment_type', 'subscription_upline_referral_commission')
+      .eq('paypal_transaction_id', referredUserId)
+      .limit(1)
+      .maybeSingle();
+    if (!existingUpline) {
+      const uplineAmt = Number(((net * 10) / 100).toFixed(2));
+      const { data: insUp } = await supabase
+        .from('payments')
+        .insert({
+          user_id: upline.id,
+          amount: uplineAmt,
+          payment_type: 'subscription_upline_referral_commission',
+          payment_status: 'completed',
+          paypal_order_id: subscriptionId,
+          paypal_transaction_id: referredUserId,
+          referred_by: upline.username,
+          referrer_commission: uplineAmt,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (insUp) await upsertWeeklyReferralEarnings(supabase, upline.id, uplineAmt);
+    }
+  } catch (e) {
+    console.error('awardSubscriptionReferralOnce error:', e);
+  }
+}
+
 // Map a PayPal plan_id to our tier/cadence/billing_option based on env vars
 function mapPlanToTierCadence(planId: string | undefined): { tier?: string; cadence?: string; billing_option?: string } {
   if (!planId) return {};
@@ -381,6 +548,20 @@ serve(async (req) => {
               console.error("Failed to update cycles_paid for subscription (ACTIVATED):", updErr);
             }
 
+            // On true initial payment (cycles previously 0), award one-time referral commissions
+            try {
+              const wasZero = (sub.cycles_paid || 0) === 0;
+              const effectiveUserId = subUserId || sub.user_id;
+              const effectiveTier = subTier || sub.tier;
+              const grossStr = (billingInfo?.last_payment?.amount?.value ?? "0").toString();
+              const gross = parseFloat(grossStr) || 0;
+              if (wasZero && effectiveUserId && effectiveTier && gross > 0) {
+                await awardSubscriptionReferralOnce(supabase, effectiveUserId, effectiveTier, gross, subscriptionId);
+              }
+            } catch (e) {
+              console.error("Failed to award referral on ACTIVATED initial payment:", e);
+            }
+
             // Update user membership immediately
             const effectiveUserId = subUserId || sub.user_id;
             const effectiveTier = subTier || sub.tier;
@@ -488,6 +669,20 @@ serve(async (req) => {
 
         // Elite specific handling for monthly cadence
         try {
+          // If this was the very first successful payment, award one-time referral now
+          try {
+            const wasZero = (sub.cycles_paid || 0) === 0;
+            const payGrossStr = (res?.amount?.value ?? "0").toString();
+            const payGross = parseFloat(payGrossStr) || 0;
+            const effectiveUserId = subUserId || sub.user_id;
+            const effectiveTier = tierToUse || parsed.tier;
+            if (wasZero && effectiveUserId && effectiveTier && payGross > 0) {
+              await awardSubscriptionReferralOnce(supabase, effectiveUserId, effectiveTier, payGross, subscriptionId);
+            }
+          } catch (e) {
+            console.error("Failed to award referral on PAYMENT.SUCCEEDED first cycle:", e);
+          }
+
           if ((tierToUse || parsed.tier) === "elite" && (cadenceToUse || parsed.cadence) === "monthly") {
             const userId = subUserId || sub.user_id || parsed.user_id;
             if (userId) {
