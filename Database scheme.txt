@@ -155,8 +155,8 @@ CREATE TABLE public.media_comments (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT media_comments_pkey PRIMARY KEY (id),
-  CONSTRAINT media_comments_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id),
-  CONSTRAINT media_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT media_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT media_comments_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id)
 );
 CREATE TABLE public.media_likes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -164,8 +164,8 @@ CREATE TABLE public.media_likes (
   user_id uuid NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT media_likes_pkey PRIMARY KEY (id),
-  CONSTRAINT media_likes_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id),
-  CONSTRAINT media_likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT media_likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT media_likes_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.user_media(id)
 );
 CREATE TABLE public.media_replies (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -418,9 +418,9 @@ CREATE TABLE public.tips_transactions (
   updated_at timestamp with time zone DEFAULT now(),
   completed_at timestamp with time zone,
   CONSTRAINT tips_transactions_pkey PRIMARY KEY (id),
-  CONSTRAINT tips_transactions_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payments(id),
   CONSTRAINT tips_transactions_tipper_user_id_fkey FOREIGN KEY (tipper_user_id) REFERENCES public.users(id),
-  CONSTRAINT tips_transactions_tipped_user_id_fkey FOREIGN KEY (tipped_user_id) REFERENCES public.users(id)
+  CONSTRAINT tips_transactions_tipped_user_id_fkey FOREIGN KEY (tipped_user_id) REFERENCES public.users(id),
+  CONSTRAINT tips_transactions_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payments(id)
 );
 CREATE TABLE public.user_events (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

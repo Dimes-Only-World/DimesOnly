@@ -4,12 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 let globalSupabaseInstance: ReturnType<typeof createClient> | null = null;
 let globalSupabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 
+// Exported constants for use across the app (e.g., calling Edge Functions)
+export const SUPABASE_URL = 'https://qkcuykpndrolrewwnkwb.supabase.co';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs';
+
 const getSupabaseClient = () => {
   if (!globalSupabaseInstance) {
-    const supabaseUrl = 'https://qkcuykpndrolrewwnkwb.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs';
-
-    globalSupabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    globalSupabaseInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -24,10 +25,9 @@ const getSupabaseClient = () => {
 
 const getSupabaseAdminClient = () => {
   if (!globalSupabaseAdminInstance) {
-    const supabaseUrl = 'https://qkcuykpndrolrewwnkwb.supabase.co';
     const supabaseServiceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTM4MjA3MCwiZXhwIjoyMDY0OTU4MDcwfQ.ayaH1xWQQU-KzPkS5Zufk_Ss6wHns95u6DBhtdLKFN8';
 
-    globalSupabaseAdminInstance = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    globalSupabaseAdminInstance = createClient(SUPABASE_URL, supabaseServiceRoleKey, {
       auth: {
         storageKey: 'dimes-only-admin-auth'
       }

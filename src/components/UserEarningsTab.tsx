@@ -34,9 +34,10 @@ import {
   MapPin,
   Smartphone,
   CheckCircle,
+  Download,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import PaymentStatus from "@/components/PaymentStatus";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
@@ -69,6 +70,30 @@ interface ReferralCommission {
   payment_type: string;
   created_at: string;
   referred_by: string;
+}
+
+interface EarningsItem {
+  id: string;
+  created_at: string;
+  amount: number;
+  currency: string;
+  payment_type: string;
+  payment_status: string | null;
+  buyer_id: string | null;
+  buyer_username: string | null;
+  // Optional referred-user profile fields (if backend provides)
+  buyer_avatar_url?: string | null;
+  buyer_location?: string | null; // e.g. "Los Angeles, CA"
+  buyer_joined_at?: string | null; // ISO date
+  buyer_membership_tier: string | null;
+  plan_tier: string | null;
+  cadence: string | null;
+  billing_option: string | null;
+  subscription_id: string | null;
+  source_label: string;
+  override_badge: boolean;
+  // New: show who directly referred the buyer (used for Upline commissions)
+  referrer_username?: string | null;
 }
 
 interface JackpotData {
@@ -158,6 +183,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     winnings: [],
   });
   const [currentEarnings, setCurrentEarnings] = useState(0);
+  // Controlled tab for jumping between sections
+  const [tabValue, setTabValue] = useState("weekly");
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -198,6 +225,119 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const { user } = useAppContext();
   const { getContainerClasses, getContentClasses } = useMobileLayout();
 
+  // Earnings-query state (Referrals tab)
+  const [earningsItems, setEarningsItems] = useState<EarningsItem[]>([]);
+  const [earningsTotal, setEarningsTotal] = useState(0);
+  const [earningsLoading, setEarningsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [q, setQ] = useState("");
+  // Use a non-empty sentinel value for "All tiers" to avoid Radix Select error
+  const [membershipType, setMembershipType] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [commissionTypes, setCommissionTypes] = useState<string[]>([]); // empty -> server defaults
+
+  // Helpers: commission-type toggles
+  const toggleCommissionType = (t: string) => {
+    setCommissionTypes((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+    );
+  };
+
+  // Helpers: pay-period ranges (1st-14th, 15th-end)
+  const getCurrentPayPeriod = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const d = now.getDate();
+    const start = new Date(y, m, d <= 15 ? 1 : 15);
+    const end = new Date(y, m, d <= 15 ? 15 : new Date(y, m + 1, 0).getDate());
+    return {
+      start: start.toISOString().slice(0, 10),
+      end: end.toISOString().slice(0, 10),
+    };
+  };
+
+  const getPreviousPayPeriod = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const d = now.getDate();
+    if (d <= 15) {
+      // previous is 15th -> end of previous month
+      const prevMonth = new Date(y, m - 1, 1);
+      const start = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 15);
+      const end = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
+      return {
+        start: start.toISOString().slice(0, 10),
+        end: end.toISOString().slice(0, 10),
+      };
+    } else {
+      // previous is 1st -> 15th of current month
+      const start = new Date(y, m, 1);
+      const end = new Date(y, m, 15);
+      return {
+        start: start.toISOString().slice(0, 10),
+        end: end.toISOString().slice(0, 10),
+      };
+    }
+  };
+
+  // Quick apply pay periods
+  const applyCurrentPayPeriod = () => {
+    const { start, end } = getCurrentPayPeriod();
+    setStartDate(start);
+    setEndDate(end);
+    fetchReferralEarnings(1, pageSize);
+  };
+  const applyPreviousPayPeriod = () => {
+    const { start, end } = getPreviousPayPeriod();
+    setStartDate(start);
+    setEndDate(end);
+    fetchReferralEarnings(1, pageSize);
+  };
+  const clearDateFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    fetchReferralEarnings(1, pageSize);
+  };
+
+  // Pay-period objects for display and export
+  const currentPeriod = getCurrentPayPeriod();
+  const previousPeriod = getPreviousPayPeriod();
+
+  // CSV export for a specific date range (ignores UI filters for full period export)
+  const exportCsvForRange = async (start: string, end: string, name = "period") => {
+    try {
+      const params = new URLSearchParams();
+      params.set("user_id", userData.id);
+      params.set("start_date", start);
+      params.set("end_date", end);
+      params.set("page", "1");
+      params.set("page_size", "10000");
+      params.set("format", "csv");
+      const url = `${SUPABASE_URL}/functions/v1/earnings-query?${params.toString()}`;
+      const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    });
+      if (!res.ok) throw new Error("CSV export failed");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `earnings_${name}_${start}_${end}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "CSV export failed", variant: "destructive" });
+    }
+  };
+
   // Mock data for payment program tracking
   const [paymentData] = useState({
     weeklyProgress: {
@@ -223,27 +363,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     },
   });
 
-  // Calculate recent earnings (last 7 days)
-  const calculateRecentEarnings = (days: number) => {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-
-    const recentTips = tipsReceived.filter(
-      (tip) => new Date(tip.created_at) >= cutoffDate
-    );
-    const recentReferrals = referralCommissions.filter(
-      (ref) => new Date(ref.created_at) >= cutoffDate
-    );
-
-    const tipsAmount = recentTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
-    const referralAmount = recentReferrals.reduce(
-      (sum, ref) => sum + (ref.referrer_commission || 0),
-      0
-    );
-
-    return tipsAmount + referralAmount;
-  };
-
   // Update recent earnings when tips or referrals change
   useEffect(() => {
     if (tipsReceived.length > 0 || referralCommissions.length > 0) {
@@ -255,8 +374,85 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     if (userData?.id) {
       fetchAllEarningsData();
       fetchTotalReferrals();
+      fetchReferralEarnings(1, pageSize);
     }
   }, [userData?.id]);
+
+  const buildEarningsUrl = (p: number, ps: number, format: "json" | "csv" = "json") => {
+    const params = new URLSearchParams();
+    params.set("user_id", userData.id);
+    if (startDate) params.set("start_date", startDate);
+    if (endDate) params.set("end_date", endDate);
+    if (q) params.set("q", q);
+    if (membershipType && membershipType !== "all") params.set("membership_type", membershipType);
+    if (commissionTypes.length > 0) params.set("commission_type", commissionTypes.join(","));
+    params.set("page", String(p));
+    params.set("page_size", String(ps));
+    params.set("format", format);
+    return `${SUPABASE_URL}/functions/v1/earnings-query?${params.toString()}`;
+  };
+
+  const fetchReferralEarnings = async (p = page, ps = pageSize) => {
+    if (!userData?.id) return;
+    try {
+      setEarningsLoading(true);
+      const url = buildEarningsUrl(p, ps, "json");
+      const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    });
+      if (!res.ok) throw new Error(`earnings-query failed: ${res.status}`);
+      const body = await res.json();
+      const items = (body.items || []) as EarningsItem[];
+      setEarningsItems(items);
+      setEarningsTotal(Number(body.total || items.length));
+      setPage(p);
+      setPageSize(ps);
+
+      // Maintain backward-compatible state for existing summaries
+      setReferralCommissions(
+        items.map((r) => ({
+          id: r.id,
+          amount: r.amount,
+          referrer_commission: r.amount,
+          payment_type: r.payment_type,
+          created_at: r.created_at,
+          referred_by: "",
+        }))
+      );
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "Failed to load referral earnings", variant: "destructive" });
+    } finally {
+      setEarningsLoading(false);
+    }
+  };
+
+  const exportReferralCsv = async () => {
+    try {
+      const url = buildEarningsUrl(page, pageSize, "csv");
+      const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    });
+      if (!res.ok) throw new Error("CSV export failed");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `earnings_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "CSV export failed", variant: "destructive" });
+    }
+  };
 
   // Fetch total number of users referred by this user
   const fetchTotalReferrals = async () => {
@@ -705,17 +901,47 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     const recentTips = tipsReceived.filter(
       (tip) => new Date(tip.created_at) >= cutoffDate
     );
-    const recentReferrals = referralCommissions.filter(
+    const recentReferrals = earningsItems.filter(
       (ref) => new Date(ref.created_at) >= cutoffDate
     );
 
     const tipsAmount = recentTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
-    const referralAmount = recentReferrals.reduce(
-      (sum, ref) => sum + (ref.referrer_commission || 0),
-      0
-    );
+    const referralAmount = recentReferrals.reduce((sum, ref) => sum + (ref.amount || 0), 0);
 
     return tipsAmount + referralAmount;
+  };
+
+  // Derived filters and summaries for Referrals tab
+  const commissionOptions = Array.from(
+    new Set(
+      earningsItems
+        .map((i) => i.source_label)
+        .filter((s): s is string => Boolean(s))
+    )
+  );
+  const overridesTotal = earningsItems
+    .filter((i) => i.override_badge)
+    .reduce((sum, i) => sum + (i.amount || 0), 0);
+
+  // DM dialog state (for messaging a buyer from referrals table)
+  const [dmOpen, setDmOpen] = useState(false);
+  const [dmRecipient, setDmRecipient] = useState<string>("");
+  const [dmBody, setDmBody] = useState<string>("");
+
+  const openDm = (username: string | null) => {
+    setDmRecipient(username || "");
+    setDmBody("");
+    setDmOpen(true);
+  };
+  const sendDm = async () => {
+    // Stub: integrate with messaging backend later
+    if (!dmRecipient || !dmBody.trim()) {
+      toast({ title: "Message", description: "Enter a recipient and a message.", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Message sent", description: `Your message to @${dmRecipient} was queued.` });
+    setDmOpen(false);
+    setDmBody("");
   };
 
   if (!userData) {
@@ -846,31 +1072,31 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       </div>
 
       {/* Detailed Earnings Tabs */}
-      <Tabs defaultValue="weekly" className="w-full">
+      <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
         <TabsList
-          className={`grid grid-cols-2 sm:grid-cols-4 w-full gap-2 h-auto bg-white/10 backdrop-blur border-white/20 p-2 rounded-lg ${getContentClasses()}`}
+          className={`grid grid-cols-2 sm:grid-cols-4 w-full gap-2 h-auto bg-gray-50 border border-gray-200 p-2 rounded-lg ${getContentClasses()}`}
         >
           <TabsTrigger
             value="weekly"
-            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-white/5 data-[state=inactive]:text-white border border-white/20 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
           >
             Weekly History
           </TabsTrigger>
           <TabsTrigger
             value="tips"
-            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-white/5 data-[state=inactive]:text-white border border-white/20 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
           >
             Tips Received
           </TabsTrigger>
           <TabsTrigger
             value="referrals"
-            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-white/5 data-[state=inactive]:text-white border border-white/20 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
           >
             Referrals
           </TabsTrigger>
           <TabsTrigger
             value="jackpot"
-            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-white/5 data-[state=inactive]:text-white border border-white/20 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
           >
             Jackpot
           </TabsTrigger>
@@ -897,33 +1123,44 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       key={earning.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-medium">
-                          Week of{" "}
-                          {new Date(earning.week_start).toLocaleDateString()}
+                          Week of {new Date(earning.week_start).toLocaleDateString()}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
-                          {new Date(earning.week_end).toLocaleDateString()}
+                          {new Date(earning.week_start).toLocaleDateString()} - {new Date(earning.week_end).toLocaleDateString()}
                         </p>
-                        <div className="flex gap-4 mt-2 text-xs text-gray-600">
+                        <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-600">
                           <span>
                             Tips: {formatCurrency(earning.tip_earnings || 0)}
                           </span>
                           <span>
-                            Referrals:{" "}
-                            {formatCurrency(earning.referral_earnings || 0)}
+                            Referrals: {formatCurrency(earning.referral_earnings || 0)}
                           </span>
                           <span>
-                            Bonus: {formatCurrency(earning.bonus_earnings || 0)}
+                            Jackpot: {formatCurrency(earning.bonus_earnings || 0)}
                           </span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold">
-                          {formatCurrency(earning.amount || 0)}
-                        </p>
-                        <Badge variant="default">Total</Badge>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="secondary"
+                          className="bg-yellow-400 text-black hover:bg-yellow-300"
+                          onClick={() => {
+                            setStartDate(String(earning.week_start).slice(0,10));
+                            setEndDate(String(earning.week_end).slice(0,10));
+                            setTabValue("referrals");
+                            fetchReferralEarnings(1, pageSize);
+                          }}
+                        >
+                          View Referrals
+                        </Button>
+                        <div className="text-right">
+                          <p className="text-lg font-bold">
+                            {formatCurrency(earning.amount || 0)}
+                          </p>
+                          <Badge variant="default">Total</Badge>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -991,48 +1228,188 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Referral Commissions ({referralCommissions.length})
+                Referral Earnings
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {referralCommissions.length === 0 ? (
+            <CardContent className="space-y-3">
+              {/* Current Pay Period Label */}
+              <div className="text-xs text-gray-600">Current pay period: {currentPeriod.start} – {currentPeriod.end}</div>
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+                <Input placeholder="Search buyer username" value={q} onChange={(e) => setQ(e.target.value)} />
+                <Select value={membershipType} onValueChange={setMembershipType}>
+                  <SelectTrigger><SelectValue placeholder="Membership tier" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All tiers</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="silver_plus">Silver Plus</SelectItem>
+                    <SelectItem value="diamond_plus">Diamond Plus</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+                  <SelectTrigger><SelectValue placeholder="Page size" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="secondary" onClick={() => fetchReferralEarnings(1, pageSize)}>Apply</Button>
+              </div>
+
+              {/* Commission Types multi-select */}
+              {commissionOptions.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs text-gray-600">Commission types</div>
+                  <div className="flex flex-wrap gap-2">
+                    {commissionOptions.map((opt) => {
+                      const active = commissionTypes.includes(opt);
+                      return (
+                        <Button
+                          key={opt}
+                          variant={active ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => toggleCommissionType(opt)}
+                          className="capitalize"
+                        >
+                          {opt.replaceAll('_',' ')}
+                        </Button>
+                      );
+                    })}
+                    {commissionTypes.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCommissionTypes([])}
+                      >
+                        Clear types
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={() => fetchReferralEarnings(1, pageSize)}>Apply types</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Pay-period quick filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-xs text-gray-600 mr-2">Pay period</div>
+                <Button size="sm" variant="outline" onClick={applyCurrentPayPeriod}>Current period</Button>
+                <Button size="sm" variant="outline" onClick={applyPreviousPayPeriod}>Previous period</Button>
+                <Button size="sm" variant="ghost" onClick={clearDateFilters}>Clear dates</Button>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600 flex items-center gap-3">
+                  <span>Total: {earningsTotal}</span>
+                  <span className="flex items-center gap-1">
+                    <Badge variant="secondary">Overrides</Badge>
+                    <span className="font-medium text-green-700">{formatCurrency(overridesTotal)}</span>
+                  </span>
+                </div>
+                <Button size="sm" onClick={exportReferralCsv}>
+                  <Download className="w-4 h-4 mr-2" /> Export CSV
+                </Button>
+              </div>
+
+              {/* Previous Pay Period - Downloadable */}
+              <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2 mt-2">
+                <div className="text-xs text-gray-600">
+                  Previous pay period: {previousPeriod.start} – {previousPeriod.end}
+                </div>
+                <Button size="sm" variant="outline" onClick={() => exportCsvForRange(previousPeriod.start, previousPeriod.end, "previous_period")}>
+                  <Download className="w-4 h-4 mr-2" /> Download CSV
+                </Button>
+              </div>
+
+              {/* Current Pay Period - Downloadable */}
+              <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
+                <div className="text-xs text-gray-600">
+                  Current pay period: {currentPeriod.start} – {currentPeriod.end}
+                </div>
+                <Button size="sm" variant="outline" onClick={() => exportCsvForRange(currentPeriod.start, currentPeriod.end, "current_period")}>
+                  <Download className="w-4 h-4 mr-2" /> Download CSV
+                </Button>
+              </div>
+
+              {/* Card list (client style) */}
+              {earningsLoading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : earningsItems.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No referral commissions yet</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Start referring users to earn commissions!
-                  </p>
+                  <p className="text-gray-500">No referral earnings yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {referralCommissions.slice(0, 10).map((commission) => (
-                    <div
-                      key={commission.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">
-                          {commission.payment_type} Commission
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(commission.created_at).toLocaleDateString()}
-                        </p>
+                  {earningsItems.map((row) => (
+                    <div key={row.id} className="flex items-stretch justify-between gap-3 p-3 border rounded-xl bg-white">
+                      {/* Left: avatar + info */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-16 w-16 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden">
+                          {row.buyer_avatar_url ? (
+                            <img src={row.buyer_avatar_url} alt={row.buyer_username || "avatar"} className="h-full w-full object-cover" />
+                          ) : null}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                            <span>Tips: {formatCurrency(0)}</span>
+                            <span>Referrals: {formatCurrency(row.amount || 0)}</span>
+                            <span>Bonus: {formatCurrency(0)}</span>
+                          </div>
+                          <div className="mt-1">
+                            <p className="font-semibold truncate">{row.buyer_username || "User"}</p>
+                            <p className="text-sm text-gray-500 truncate">
+                              {(row.plan_tier || row.buyer_membership_tier)
+                                ? `${(row.plan_tier || row.buyer_membership_tier || "").toUpperCase()}${row.cadence ? ` • ${row.cadence}` : ""}`
+                                : "Membership"}
+                            </p>
+                            <p className="text-xs text-gray-600 truncate">
+                              {row.buyer_location ? `${row.buyer_location}` : null}
+                              {row.buyer_joined_at ? `${row.buyer_location ? " • " : ""}Joined: ${new Date(row.buyer_joined_at).toLocaleDateString()}` : null}
+                            </p>
+                            {row.override_badge && row.referrer_username ? (
+                              <p className="text-xs text-gray-700"><span className="font-semibold">Referred by:</span> {row.referrer_username}</p>
+                            ) : null}
+                            {row.override_badge && (
+                              <p className="text-xs text-gray-700"><span className="font-semibold">Overrides:</span> {formatCurrency(row.amount || 0)}</p>
+                            )}
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <Badge className="bg-purple-700 text-white">{(row.plan_tier || row.buyer_membership_tier || "").toUpperCase() || "PACKAGE"}</Badge>
+                            <Badge variant="secondary" className={row.override_badge ? "bg-orange-100 text-orange-800 border-orange-200" : "bg-green-100 text-green-800 border-green-200"}>
+                              {row.override_badge ? "Upline" : "Direct"}
+                            </Badge>
+                          </div>
+                          <div className="mt-2">
+                            <Button className="bg-slate-900 text-white hover:bg-slate-800" size="sm" onClick={() => openDm(row.buyer_username)}>
+                              <Mail className="w-4 h-4 mr-2" /> Send Message!
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-orange-600">
-                          {formatCurrency(commission.referrer_commission || 0)}
-                        </p>
-                        <Badge variant="outline">Commission</Badge>
+
+                      {/* Right: commission */}
+                      <div className="ml-auto flex flex-col items-end justify-center">
+                        <div className="text-lg font-semibold text-green-700">{formatCurrency(row.amount || 0)}</div>
+                        <Badge variant="outline" className="mt-1">{row.override_badge ? "Upline Commission" : "Direct Commission"}</Badge>
+                        <div className="text-xs text-gray-500 mt-2">{new Date(row.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
                   ))}
-                  {referralCommissions.length > 10 && (
-                    <p className="text-center text-sm text-gray-500 py-2">
-                      Showing 10 of {referralCommissions.length} commissions
-                    </p>
-                  )}
                 </div>
               )}
+
+              {/* Pagination */}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => fetchReferralEarnings(page - 1, pageSize)}>Prev</Button>
+                <div className="text-xs text-gray-600">Page {page}</div>
+                <Button variant="outline" size="sm" disabled={(page * pageSize) >= earningsTotal} onClick={() => fetchReferralEarnings(page + 1, pageSize)}>Next</Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1106,6 +1483,24 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Direct Message Dialog */}
+      <Dialog open={dmOpen} onOpenChange={setDmOpen}>
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Message {dmRecipient ? `@${dmRecipient}` : "user"}</DialogTitle>
+            <DialogDescription>Send a quick message to this buyer.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="dmBody">Message</Label>
+            <Textarea id="dmBody" value={dmBody} onChange={(e) => setDmBody(e.target.value)} rows={4} placeholder="Type your message..." />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDmOpen(false)}>Cancel</Button>
+            <Button onClick={sendDm}>Send</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Payout Request Button */}
       {availableForWithdrawal > 0 && (

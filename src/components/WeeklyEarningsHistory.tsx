@@ -143,7 +143,7 @@ const WeeklyEarningsHistory: React.FC<WeeklyEarningsHistoryProps> = ({ onBack })
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="w-4 h-4 text-purple-600" />
-                    <span className="font-medium text-purple-800">Bonus Earnings</span>
+                    <span className="font-medium text-purple-800">Jackpot Earnings</span>
                   </div>
                   <div className="text-xl font-bold text-purple-600">
                     ${week.bonusEarnings.toFixed(2)}

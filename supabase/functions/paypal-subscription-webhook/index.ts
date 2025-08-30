@@ -127,7 +127,7 @@ async function awardSubscriptionReferralOnce(
     const referrerUsername = String(payingUser.referred_by).trim();
     const { data: referrer } = await supabase
       .from('users')
-      .select('id, username, referred_by')
+      .select('id, username, referred_by, membership_tier')
       .ilike('username', referrerUsername)
       .limit(1)
       .maybeSingle();
@@ -144,8 +144,14 @@ async function awardSubscriptionReferralOnce(
       .maybeSingle();
 
     const net = calculateNetAfterFees(Number(grossAmount) || 0);
+    // Commission rates: default 20% direct / 10% upline.
+    // If the DIRECT referrer is a FREE member, use 10% direct / 5% upline.
+    const isDirectFree = (String((referrer as any).membership_tier || '').toLowerCase() === 'free');
+    const directRate = isDirectFree ? 10 : 20;
+    const uplineRate = isDirectFree ? 5 : 10;
+
     if (!existingDirect) {
-      const directAmt = Number(((net * 20) / 100).toFixed(2));
+      const directAmt = Number(((net * directRate) / 100).toFixed(2));
       const { data: ins } = await supabase
         .from('payments')
         .insert({
@@ -185,7 +191,7 @@ async function awardSubscriptionReferralOnce(
       .limit(1)
       .maybeSingle();
     if (!existingUpline) {
-      const uplineAmt = Number(((net * 10) / 100).toFixed(2));
+      const uplineAmt = Number(((net * uplineRate) / 100).toFixed(2));
       const { data: insUp } = await supabase
         .from('payments')
         .insert({
