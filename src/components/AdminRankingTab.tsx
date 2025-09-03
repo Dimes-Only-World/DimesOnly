@@ -10,8 +10,8 @@ interface RankedUser {
   username: string;
   profile_photo?: string;
   user_type: string;
-  average_rating: number;
-  total_ratings: number;
+  total_score: number;
+  rating_count: number;
   rank: number;
 }
 
@@ -26,7 +26,10 @@ const AdminRankingTab: React.FC = () => {
 
   const fetchRankings = async () => {
     try {
-      // Fetch users with their ratings (stripper and exotic only)
+      // Year scope to match public page
+      const currentYear = new Date().getFullYear();
+
+      // Fetch users (stripper and exotic only)
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select(`
@@ -39,41 +42,41 @@ const AdminRankingTab: React.FC = () => {
 
       if (usersError) throw usersError;
 
-      // Fetch ratings for these users
+      // Fetch ratings for these users in current year
       const userIds = users?.map(u => u.id) || [];
       const { data: ratings, error: ratingsError } = await supabase
         .from('ratings')
-        .select('user_id, rating')
-        .in('user_id', userIds);
+        .select('user_id, rating, year')
+        .in('user_id', userIds)
+        .eq('year', currentYear);
 
       if (ratingsError) throw ratingsError;
 
-      // Calculate average ratings
-      const userRatings: { [key: string]: { total: number; count: number } } = {};
-      
-      ratings?.forEach(rating => {
-        if (!userRatings[rating.user_id]) {
-          userRatings[rating.user_id] = { total: 0, count: 0 };
-        }
-        userRatings[rating.user_id].total += rating.rating;
-        userRatings[rating.user_id].count += 1;
+      // Aggregate total scores and counts per user (match public Rankings.tsx)
+      const userScores: { [key: string]: { total_score: number; rating_count: number } } = {};
+      ratings?.forEach(r => {
+        const uid = String(r.user_id);
+        if (!userScores[uid]) userScores[uid] = { total_score: 0, rating_count: 0 };
+        userScores[uid].total_score += Number(r.rating);
+        userScores[uid].rating_count += 1;
       });
 
       // Create ranked list
-      const rankedList: RankedUser[] = users?.map(user => {
-        const userRating = userRatings[user.id];
-        const averageRating = userRating ? userRating.total / userRating.count : 0;
-        
+      const rankedList: RankedUser[] = (users || []).map(user => {
+        const agg = userScores[user.id] || { total_score: 0, rating_count: 0 };
         return {
-          ...user,
-          average_rating: averageRating,
-          total_ratings: userRating?.count || 0,
-          rank: 0 // Will be set after sorting
-        };
-      }) || [];
+          id: user.id,
+          username: user.username,
+          profile_photo: user.profile_photo,
+          user_type: user.user_type,
+          total_score: agg.total_score,
+          rating_count: agg.rating_count,
+          rank: 0,
+        } as RankedUser;
+      }).filter(u => u.rating_count > 0);
 
-      // Sort by average rating (highest first) and assign ranks
-      rankedList.sort((a, b) => b.average_rating - a.average_rating);
+      // Sort by total_score (highest first) and assign ranks
+      rankedList.sort((a, b) => b.total_score - a.total_score);
       rankedList.forEach((user, index) => {
         user.rank = index + 1;
       });
@@ -106,7 +109,7 @@ const AdminRankingTab: React.FC = () => {
       <CardHeader>
         <CardTitle>User Rankings - Top 50 Strippers & Exotic Dancers</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Ranked by average rating (highest to lowest)
+          Ranked by total score (current year)
         </p>
       </CardHeader>
       <CardContent>
@@ -132,20 +135,12 @@ const AdminRankingTab: React.FC = () => {
               </div>
               
               <div className="text-right">
-                {user.total_ratings > 0 ? (
-                  <>
-                    <div className="text-lg font-bold">
-                      {user.average_rating.toFixed(1)}/5.0
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {user.total_ratings} rating{user.total_ratings !== 1 ? 's' : ''}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-sm text-muted-foreground">
-                    No ratings yet!
-                  </div>
-                )}
+                <div className="text-lg font-bold">
+                  {user.total_score.toLocaleString()} Total Score
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {user.rating_count} rating{user.rating_count !== 1 ? 's' : ''}
+                </div>
               </div>
             </div>
           ))}

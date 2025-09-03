@@ -28,15 +28,15 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
   };
 
   return (
-    <div className="relative w-full mb-6">
-      {/* Aspect ratio container - 16:9 for consistent video display */}
-      <div className="relative w-full aspect-video overflow-hidden rounded-lg">
+    <div className="relative w-screen mb-6 bg-black">
+      {/* Aspect ratio container - 16:9 for consistent video display without cropping */}
+      <div className="relative w-screen aspect-video">
       {!showVideo ? (
         <div className="relative w-full h-full">
           <img
             src={thumbnailUrl}
             alt="Video Thumbnail"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-black"
           />
           <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
             <Button
@@ -51,7 +51,7 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
       ) : (
         <div className="relative w-full h-full">
           <video
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-black"
             controls
             autoPlay
             onPlay={handlePlay}

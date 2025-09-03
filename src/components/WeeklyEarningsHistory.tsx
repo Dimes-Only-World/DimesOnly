@@ -70,8 +70,8 @@ const WeeklyEarningsHistory: React.FC<WeeklyEarningsHistoryProps> = ({ onBack })
           Back to Earnings
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Weekly Earnings History</h2>
-          <p className="text-gray-600">View your past earnings performance</p>
+          <h2 className="text-2xl font-bold text-gray-900">Pay Earnings History</h2>
+          <p className="text-gray-600">View your past pay period performance</p>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ const WeeklyEarningsHistory: React.FC<WeeklyEarningsHistoryProps> = ({ onBack })
         </CardContent>
       </Card>
 
-      {/* Weekly History */}
+      {/* Pay Period History */}
       <div className="space-y-4">
         {weeklyHistory.map((week, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow">
@@ -108,7 +108,7 @@ const WeeklyEarningsHistory: React.FC<WeeklyEarningsHistoryProps> = ({ onBack })
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Calendar className="w-5 h-5 text-gray-600" />
-                  {formatDateRange(week.weekStart, week.weekEnd)}
+                  Pay period {formatDateRange(week.weekStart, week.weekEnd)}
                 </CardTitle>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">

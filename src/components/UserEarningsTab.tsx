@@ -245,6 +245,32 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     );
   };
 
+  // Static options for commission types (do not depend on current results)
+  // Client request: Diamond Plus falls under Membership, so we present only two filters.
+  const defaultCommissionOptions = ["subscription", "membership"] as const;
+
+  // Map UI labels -> backend payment_type values expected by earnings-query
+  const expandCommissionLabels = (labels: string[]): string[] => {
+    const set = new Set<string>();
+    for (const label of labels) {
+      const l = label.toLowerCase();
+      if (l === "subscription") {
+        set.add("subscription_referral_commission");
+        set.add("subscription_upline_referral_commission");
+      } else if (l === "membership") {
+        // Include both standard and Diamond Plus commissions under Membership
+        set.add("referral_commission");
+        set.add("upline_referral_commission");
+        set.add("diamond_plus_referral_commission");
+        set.add("diamond_plus_upline_referral_commission");
+      } else {
+        // Allow passing through exact payment_type values if provided
+        set.add(label);
+      }
+    }
+    return Array.from(set);
+  };
+
   // Helpers: pay-period ranges (1st-14th, 15th-end)
   const getCurrentPayPeriod = () => {
     const now = new Date();
@@ -385,7 +411,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     if (endDate) params.set("end_date", endDate);
     if (q) params.set("q", q);
     if (membershipType && membershipType !== "all") params.set("membership_type", membershipType);
-    if (commissionTypes.length > 0) params.set("commission_type", commissionTypes.join(","));
+    if (commissionTypes.length > 0) {
+      const expanded = expandCommissionLabels(commissionTypes);
+      if (expanded.length > 0) params.set("commission_type", expanded.join(","));
+    }
     params.set("page", String(p));
     params.set("page_size", String(ps));
     params.set("format", format);
@@ -912,15 +941,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   };
 
   // Derived filters and summaries for Referrals tab
-  const commissionOptions = Array.from(
-    new Set(
-      earningsItems
-        .map((i) => i.source_label)
-        .filter((s): s is string => Boolean(s))
-    )
-  );
+  const commissionOptions = [...defaultCommissionOptions];
   const overridesTotal = earningsItems
     .filter((i) => i.override_badge)
+    .reduce((sum, i) => sum + (i.amount || 0), 0);
+  const totalReferralAmount = earningsItems.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const directTotalAmount = earningsItems
+    .filter((i) => !i.override_badge)
     .reduce((sum, i) => sum + (i.amount || 0), 0);
 
   // DM dialog state (for messaging a buyer from referrals table)
@@ -934,14 +961,64 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     setDmOpen(true);
   };
   const sendDm = async () => {
-    // Stub: integrate with messaging backend later
-    if (!dmRecipient || !dmBody.trim()) {
-      toast({ title: "Message", description: "Enter a recipient and a message.", variant: "destructive" });
-      return;
+    try {
+      if (!dmRecipient || !dmBody.trim()) {
+        toast({ title: "Message", description: "Enter a recipient and a message.", variant: "destructive" });
+        return;
+      }
+      if (!user?.id) {
+        toast({ title: "Sign in required", description: "Log in to send messages.", variant: "destructive" });
+        return;
+      }
+
+      // Look up recipient by username
+      const { data: recipientUser, error: recipientErr } = await supabase
+        .from("users")
+        .select("id, username")
+        .ilike("username", dmRecipient)
+        .single();
+      if (recipientErr || !recipientUser?.id) {
+        toast({ title: "User not found", description: `Could not find @${dmRecipient}.`, variant: "destructive" });
+        return;
+      }
+      if (recipientUser.id === user.id) {
+        toast({ title: "Cannot message yourself", description: "Choose a different recipient.", variant: "destructive" });
+        return;
+      }
+
+      // Insert direct message
+      const { error: dmErr } = await supabase.from("direct_messages").insert({
+        sender_id: user.id,
+        recipient_id: recipientUser.id,
+        message: dmBody.trim(),
+        is_read: false,
+      });
+      if (dmErr) throw dmErr;
+
+      // Fetch current user's username for notification context
+      const { data: currentUser, error: curErr } = await supabase
+        .from("users")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+      if (curErr) throw curErr;
+
+      // Create notification for recipient
+      const { error: notifErr } = await supabase.from("notifications").insert({
+        recipient_id: recipientUser.id,
+        title: "New Message",
+        message: `You have a new message from ${currentUser?.username || "a user"}`,
+        is_read: false,
+      });
+      if (notifErr) throw notifErr;
+
+      toast({ title: "Message sent", description: `Your message to @${recipientUser.username} was sent.` });
+      setDmOpen(false);
+      setDmBody("");
+    } catch (e) {
+      console.error("sendDm error", e);
+      toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
     }
-    toast({ title: "Message sent", description: `Your message to @${dmRecipient} was queued.` });
-    setDmOpen(false);
-    setDmBody("");
   };
 
   if (!userData) {
@@ -1080,7 +1157,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             value="weekly"
             className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
           >
-            Weekly History
+            Pay Period History
           </TabsTrigger>
           <TabsTrigger
             value="tips"
@@ -1107,7 +1184,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                Weekly Earnings History
+                Pay Earnings History
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -1125,9 +1202,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                     >
                       <div className="min-w-0">
                         <p className="font-medium">
-                          Week of {new Date(earning.week_start).toLocaleDateString()}
+                          Pay period {new Date(earning.week_start).toLocaleDateString()} - {new Date(earning.week_end).toLocaleDateString()}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 hidden">
                           {new Date(earning.week_start).toLocaleDateString()} - {new Date(earning.week_end).toLocaleDateString()}
                         </p>
                         <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-600">
@@ -1307,6 +1384,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 <div className="text-sm text-gray-600 flex items-center gap-3">
                   <span>Total: {earningsTotal}</span>
                   <span className="flex items-center gap-1">
+                    <Badge variant="secondary">Sum</Badge>
+                    <span className="font-medium">{formatCurrency(totalReferralAmount)}</span>
+                  </span>
+                  <span className="hidden sm:flex items-center gap-1">
+                    <Badge variant="secondary">Direct</Badge>
+                    <span className="font-medium">{formatCurrency(directTotalAmount)}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
                     <Badge variant="secondary">Overrides</Badge>
                     <span className="font-medium text-green-700">{formatCurrency(overridesTotal)}</span>
                   </span>
@@ -1359,10 +1444,18 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                           <div className="flex flex-wrap gap-4 text-xs text-gray-600">
                             <span>Tips: {formatCurrency(0)}</span>
                             <span>Referrals: {formatCurrency(row.amount || 0)}</span>
-                            <span>Bonus: {formatCurrency(0)}</span>
+                            <span>Jackpot: {formatCurrency(0)}</span>
                           </div>
                           <div className="mt-1">
-                            <p className="font-semibold truncate">{row.buyer_username || "User"}</p>
+                            <p className="font-semibold truncate flex items-center gap-2">
+                              {row.buyer_username || "User"}
+                              {row.source_label === 'diamond_plus' ? (
+                                <Badge variant="secondary">Jackpot</Badge>
+                              ) : null}
+                              {row.override_badge ? (
+                                <Badge variant="outline">Override</Badge>
+                              ) : null}
+                            </p>
                             <p className="text-sm text-gray-500 truncate">
                               {(row.plan_tier || row.buyer_membership_tier)
                                 ? `${(row.plan_tier || row.buyer_membership_tier || "").toUpperCase()}${row.cadence ? ` • ${row.cadence}` : ""}`
@@ -1382,7 +1475,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                           <div className="mt-2 flex items-center gap-2">
                             <Badge className="bg-purple-700 text-white">{(row.plan_tier || row.buyer_membership_tier || "").toUpperCase() || "PACKAGE"}</Badge>
                             <Badge variant="secondary" className={row.override_badge ? "bg-orange-100 text-orange-800 border-orange-200" : "bg-green-100 text-green-800 border-green-200"}>
-                              {row.override_badge ? "Upline" : "Direct"}
+                              {row.override_badge ? "Override" : "Direct"}
                             </Badge>
                           </div>
                           <div className="mt-2">
@@ -1396,7 +1489,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       {/* Right: commission */}
                       <div className="ml-auto flex flex-col items-end justify-center">
                         <div className="text-lg font-semibold text-green-700">{formatCurrency(row.amount || 0)}</div>
-                        <Badge variant="outline" className="mt-1">{row.override_badge ? "Upline Commission" : "Direct Commission"}</Badge>
+                        <Badge variant="outline" className="mt-1">{row.override_badge ? "Override Commission" : "Direct Commission"}</Badge>
                         <div className="text-xs text-gray-500 mt-2">{new Date(row.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>

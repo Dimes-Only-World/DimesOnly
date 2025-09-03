@@ -7,14 +7,14 @@ interface FullWidthVideoProps {
 
 const FullWidthVideo: React.FC<FullWidthVideoProps> = ({ src, className = '' }) => {
   return (
-    <div className={`relative w-full overflow-hidden ${className}`}>
+    <div className={`relative w-screen bg-black ${className}`}>
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="w-screen h-auto block"
-        style={{ width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }}
+        className="block w-screen max-h-[100vh] object-contain mx-auto"
+        style={{ width: '100vw' }}
       >
         <source src={src} type="video/mp4" />
         Your browser does not support the video tag.

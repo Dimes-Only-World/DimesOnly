@@ -376,14 +376,15 @@ const UserDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div
-          className={`${getContainerClasses()} ${isMobile ? "py-4" : "py-8"}`}
-        >
+        {/* Full-bleed dashboard video header (outside container) */}
+        <div className={`${isMobile ? "py-4" : "py-8"}`}>
           <DashboardVideoHeader
             videoUrl="https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4"
             thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           />
+        </div>
 
+        <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
           <DiamondPlusButton userData={userData} />
 
