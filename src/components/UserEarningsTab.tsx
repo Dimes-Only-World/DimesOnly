@@ -224,6 +224,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const { toast } = useToast();
   const { user } = useAppContext();
   const { getContainerClasses, getContentClasses } = useMobileLayout();
+  // Inline error for Supabase connectivity/auth so UI doesn't look blank
+  const [supabaseError, setSupabaseError] = useState<string>("");
 
   // Earnings-query state (Referrals tab)
   const [earningsItems, setEarningsItems] = useState<EarningsItem[]>([]);
@@ -237,6 +239,24 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [commissionTypes, setCommissionTypes] = useState<string[]>([]); // empty -> server defaults
+
+  // Dynamic membership tiers for dropdown (ensures completeness)
+  const [tierOptions, setTierOptions] = useState<string[]>(["free", "silver_plus", "diamond_plus"]);
+  const [tiersLoading, setTiersLoading] = useState<boolean>(false);
+
+
+  const prettyTier = (t?: string | null) =>
+    (t || "").split('_').join("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
+
+  // Auto-apply filters with a small debounce to avoid requiring an explicit Apply click
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      // Reset to first page when filters change
+      fetchReferralEarnings(1, pageSize);
+    }, 300);
+    return () => clearTimeout(handle);
+    // Note: page is intentionally not included here; pagination is handled by Prev/Next buttons
+  }, [membershipType, startDate, endDate, q, commissionTypes, pageSize]);
 
   // Helpers: commission-type toggles
   const toggleCommissionType = (t: string) => {
@@ -271,13 +291,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     return Array.from(set);
   };
 
-  // Helpers: pay-period ranges (1st-14th, 15th-end)
+  // Helpers: pay-period ranges (1–15, 16–end)
   const getCurrentPayPeriod = () => {
     const now = new Date();
     const y = now.getFullYear();
     const m = now.getMonth();
     const d = now.getDate();
-    const start = new Date(y, m, d <= 15 ? 1 : 15);
+    // Periods are 1–15 and 16–end of month (no overlap on the 15th)
+    const start = new Date(y, m, d <= 15 ? 1 : 16);
     const end = new Date(y, m, d <= 15 ? 15 : new Date(y, m + 1, 0).getDate());
     return {
       start: start.toISOString().slice(0, 10),
@@ -293,7 +314,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     if (d <= 15) {
       // previous is 15th -> end of previous month
       const prevMonth = new Date(y, m - 1, 1);
-      const start = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 15);
+      // Use 16th to end of previous month to avoid overlap with 1–15 current-month period
+      const start = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 16);
       const end = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
       return {
         start: start.toISOString().slice(0, 10),
@@ -404,6 +426,32 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     }
   }, [userData?.id]);
 
+  // Load distinct membership tiers from users so all tiers show up
+  useEffect(() => {
+    const loadTiers = async () => {
+      try {
+        setTiersLoading(true);
+        const { data, error } = await supabase
+          .from("users")
+          .select("membership_tier")
+          .not("membership_tier", "is", null);
+        if (error) throw error;
+        const distinct = Array.from(
+          new Set((data || []).map((r: any) => String(r.membership_tier || "").toLowerCase()).filter(Boolean))
+        );
+        const base = new Set(["free", "silver_plus", "diamond_plus"]);
+        // Keep base tiers first, then any extra tiers alphabetically
+        const extras = distinct.filter((t) => !base.has(t)).sort((a, b) => a.localeCompare(b));
+        setTierOptions(["free", "silver_plus", "diamond_plus", ...extras]);
+      } catch (e) {
+        console.warn("tier load failed", e);
+      } finally {
+        setTiersLoading(false);
+      }
+    };
+    loadTiers();
+  }, []);
+
   const buildEarningsUrl = (p: number, ps: number, format: "json" | "csv" = "json") => {
     const params = new URLSearchParams();
     params.set("user_id", userData.id);
@@ -440,6 +488,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       setEarningsTotal(Number(body.total || items.length));
       setPage(p);
       setPageSize(ps);
+      // Clear any prior connectivity/auth error on success
+      if (supabaseError) setSupabaseError("");
 
       // Maintain backward-compatible state for existing summaries
       setReferralCommissions(
@@ -454,6 +504,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       );
     } catch (e) {
       console.error(e);
+      setSupabaseError("Unable to load referral earnings due to a connection/auth issue. Please refresh or try again shortly.");
       toast({ title: "Error", description: "Failed to load referral earnings", variant: "destructive" });
     } finally {
       setEarningsLoading(false);
@@ -495,6 +546,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
     if (!error && data) {
       setTotalReferrals(data.count || 0);
+    } else if (error) {
+      setSupabaseError("Could not load referral count due to a connection issue.");
     }
   };
 
@@ -627,8 +680,11 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           : sum;
       }, 0);
       setTotalYearlyEarnings(yearlyAmount);
+      // Clear any prior connectivity/auth error on success
+      if (supabaseError) setSupabaseError("");
     } catch (error) {
       console.error("Error fetching earnings:", error);
+      setSupabaseError("We’re having trouble connecting to the earnings service. Your session may need a refresh. You can still use the filters below; data will appear once the connection resumes.");
       toast({
         title: "Error",
         description: "Failed to load earnings data",
@@ -1308,26 +1364,49 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 Referral Earnings
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3">
               {/* Current Pay Period Label */}
               <div className="text-xs text-gray-600">Current pay period: {currentPeriod.start} – {currentPeriod.end}</div>
 
+              {/* Connectivity/Auth Error Banner */}
+              {supabaseError && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-3 p-3 rounded-md border border-red-200 bg-red-50 text-red-800"
+                >
+                  <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 text-sm">
+                    {supabaseError}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      setSupabaseError("");
+                      fetchReferralEarnings(1, pageSize);
+                    }}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              )}
+
               {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-                <Input placeholder="Search buyer username" value={q} onChange={(e) => setQ(e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                <Input className="h-8 sm:h-9" placeholder="Search buyer username" value={q} onChange={(e) => setQ(e.target.value)} />
                 <Select value={membershipType} onValueChange={setMembershipType}>
-                  <SelectTrigger><SelectValue placeholder="Membership tier" /></SelectTrigger>
+                  <SelectTrigger className="h-8 sm:h-9"><SelectValue placeholder="Membership tier" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All tiers</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="silver_plus">Silver Plus</SelectItem>
-                    <SelectItem value="diamond_plus">Diamond Plus</SelectItem>
+                    {tierOptions.map((t) => (
+                      <SelectItem key={t} value={t}>{prettyTier(t)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                <Input className="h-8 sm:h-9" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                <Input className="h-8 sm:h-9" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                 <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                  <SelectTrigger><SelectValue placeholder="Page size" /></SelectTrigger>
+                  <SelectTrigger className="h-8 sm:h-9"><SelectValue placeholder="Page size" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="25">25</SelectItem>
@@ -1335,8 +1414,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                     <SelectItem value="100">100</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="secondary" onClick={() => fetchReferralEarnings(1, pageSize)}>Apply</Button>
               </div>
+
+              {/* Helper: filters auto-apply + clarification */}
+              <div className="text-xs text-gray-600 mt-1">
+                Filters update automatically. “Subscription” = recurring creator subscriptions. “Membership” = membership packages (includes Diamond Plus) and their overrides.
+              </div>
+
 
               {/* Commission Types multi-select */}
               {commissionOptions.length > 0 && (
@@ -1350,10 +1434,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                           key={opt}
                           variant={active ? "default" : "outline"}
                           size="sm"
+                          className="px-2"
                           onClick={() => toggleCommissionType(opt)}
-                          className="capitalize"
                         >
-                          {opt.replaceAll('_',' ')}
+                          {opt === "subscription" ? "Subscription" : "Membership"}
                         </Button>
                       );
                     })}
@@ -1366,7 +1450,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                         Clear types
                       </Button>
                     )}
-                    <Button size="sm" onClick={() => fetchReferralEarnings(1, pageSize)}>Apply types</Button>
                   </div>
                 </div>
               )}
@@ -1380,7 +1463,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center justify-between">
                 <div className="text-sm text-gray-600 flex items-center gap-3">
                   <span>Total: {earningsTotal}</span>
                   <span className="flex items-center gap-1">

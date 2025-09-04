@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { Tables } from "@/types";
 import UserSearchComponent from "./UserSearchComponent";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DirectMessage extends Tables<"direct_messages"> {
   sender?: {
@@ -28,7 +29,7 @@ interface DirectMessage extends Tables<"direct_messages"> {
 
 type Conversation = {
   otherUserId: string;
-  otherUser: { id: string; username: string; profile_photo?: string } | null;
+  otherUser: { id: string; username: string; profile_photo?: string; membership_tier?: string | null } | null;
   lastMessage: DirectMessage | null;
   unreadCount: number;
 };
@@ -49,6 +50,7 @@ const UserDirectMessagesTab: React.FC = () => {
     id: string;
     username: string;
     profile_photo?: string;
+    membership_tier?: string | null;
   } | null>(null);
   const [threadMessages, setThreadMessages] = useState<DirectMessage[]>([]);
   const [threadLoading, setThreadLoading] = useState(false);
@@ -60,6 +62,11 @@ const UserDirectMessagesTab: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAppContext();
   const [currentUserProfile, setCurrentUserProfile] = useState<{ id: string; username: string; profile_photo?: string } | null>(null);
+
+  const prettyTier = (t?: string | null) =>
+    (t || "")
+      .split("_").join(" ")
+      .replace(/\b\w/g, (m) => m.toUpperCase());
 
   // Filters: All | Unread
   const [messageFilter, setMessageFilter] = useState<"all" | "unread">("all");
@@ -76,10 +83,19 @@ const UserDirectMessagesTab: React.FC = () => {
       // Fetch other user profile
       const { data: udata } = await supabase
         .from("users")
-        .select("id, username, profile_photo")
+        .select("id, username, profile_photo, membership_tier")
         .eq("id", otherUserId)
         .single();
-      setThreadUser(udata || null);
+      setThreadUser(
+        udata
+          ? {
+              id: (udata as any).id as string,
+              username: ((udata as any).username as string) ?? "Unknown",
+              profile_photo: ((udata as any).profile_photo as string) ?? undefined,
+              membership_tier: ((udata as any).membership_tier as string) ?? null,
+            }
+          : null
+      );
 
       // Fetch both sent and received messages between the two users (robust filter)
       const { data: threadData, error: threadErr } = await supabase
@@ -171,7 +187,15 @@ const UserDirectMessagesTab: React.FC = () => {
             .select("id, username, profile_photo")
             .eq("id", user.id)
             .single();
-          setCurrentUserProfile(data || null);
+          setCurrentUserProfile(
+            data
+              ? {
+                  id: (data as any).id as string,
+                  username: ((data as any).username as string) ?? "Unknown",
+                  profile_photo: ((data as any).profile_photo as string) ?? undefined,
+                }
+              : null
+          );
         } catch {}
       })();
 
@@ -213,7 +237,7 @@ const UserDirectMessagesTab: React.FC = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      const msgs = (all || []) as DirectMessage[];
+      const msgs = (all || []) as unknown as DirectMessage[];
       // Build conversations by other user id
       const map = new Map<string, { last: DirectMessage | null; unread: number }>();
       for (const m of msgs) {
@@ -226,15 +250,15 @@ const UserDirectMessagesTab: React.FC = () => {
       }
 
       const otherIds = Array.from(map.keys());
-      let usersLookup: Record<string, { id: string; username: string; profile_photo?: string }> = {};
+      let usersLookup: Record<string, { id: string; username: string; profile_photo?: string; membership_tier?: string | null }> = {};
       if (otherIds.length > 0) {
         const { data: usersData, error: usersErr } = await supabase
           .from("users")
-          .select("id, username, profile_photo")
+          .select("id, username, profile_photo, membership_tier")
           .in("id", otherIds);
         if (usersErr) throw usersErr;
         usersLookup = Object.fromEntries(
-          (usersData || []).map((u) => [u.id, { id: u.id, username: u.username ?? "Unknown", profile_photo: u.profile_photo ?? undefined }])
+          (usersData || []).map((u) => [u.id, { id: u.id, username: u.username ?? "Unknown", profile_photo: u.profile_photo ?? undefined, membership_tier: (u as any).membership_tier ?? null }])
         );
       }
 
@@ -437,9 +461,32 @@ const UserDirectMessagesTab: React.FC = () => {
                         className="h-10 w-10 rounded-full object-cover border"
                       />
                       <div className="min-w-0">
-                        <CardTitle className="text-lg truncate">
-                          {convo.otherUser?.username || "Unknown"}
-                        </CardTitle>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {convo.otherUser?.username || "Unknown"}
+                          </CardTitle>
+                          {convo.otherUser?.membership_tier && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant={convo.otherUser.membership_tier === "diamond_plus" ? "default" : "secondary"}
+                                    className={
+                                      convo.otherUser.membership_tier === "diamond_plus"
+                                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-none"
+                                        : ""
+                                    }
+                                  >
+                                    {prettyTier(convo.otherUser.membership_tier)}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{prettyTier(convo.otherUser.membership_tier)} member</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs text-gray-500">
                             {convo.lastMessage?.created_at
@@ -486,9 +533,32 @@ const UserDirectMessagesTab: React.FC = () => {
               alt={threadUser?.username || "User"}
               className="h-10 w-10 rounded-full object-cover border"
             />
-            <DialogTitle className="text-base">
-              {threadUser?.username || "Chat"}
-            </DialogTitle>
+            <div className="flex items-center gap-2 min-w-0">
+              <DialogTitle className="text-base truncate">
+                {threadUser?.username || "Chat"}
+              </DialogTitle>
+              {threadUser?.membership_tier && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant={threadUser.membership_tier === "diamond_plus" ? "default" : "secondary"}
+                        className={
+                          threadUser.membership_tier === "diamond_plus"
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-none"
+                            : ""
+                        }
+                      >
+                        {prettyTier(threadUser.membership_tier)}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{prettyTier(threadUser.membership_tier)} member</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </div>
           <div className="h-[60vh] overflow-y-auto p-4 space-y-3 bg-gray-50">
             {threadLoading ? (
