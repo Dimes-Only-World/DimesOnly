@@ -35,6 +35,20 @@ serve(async (req) => {
       frontendUrl: frontendUrl ? "✓ Set" : "✗ Missing",
     });
 
+    // Fail early if critical envs are missing
+    if (!supabaseUrl || !serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Supabase env vars missing (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY)." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+      );
+    }
+    if (!paypalClientId || !paypalClientSecret) {
+      return new Response(
+        JSON.stringify({ success: false, error: "PayPal credentials missing (PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET)." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+      );
+    }
+
     // Determine payment type: 'event' | 'membership' | 'elite_yearly'
     const payment_type = requestBody.payment_type || "event";
 
@@ -100,12 +114,39 @@ serve(async (req) => {
     } else if (payment_type === "elite_yearly") {
       // Elite lifetime one-time payment
       if (!user_id) {
-        throw new Error("Missing required field for elite_yearly: user_id");
+        return new Response(
+          JSON.stringify({ success: false, error: "Missing required field for elite_yearly: user_id" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+        );
       }
-      finalAmount = Number(amount) || 10000.0;
+      finalAmount = Number(amount ?? 10000.0);
+      if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid amount for elite_yearly" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+        );
+      }
       orderDescription = "Elite Membership - Lifetime";
       customId = `elite_yearly_user_${user_id}`;
       console.log("=== Elite Yearly Order Creation Started ===");
+
+      // Seat-cap preflight: ensure seats are available
+      try {
+        const { data: seatStats, error: seatErr } = await supabase
+          .from("elite_seat_stats")
+          .select("seats_available")
+          .single();
+        if (seatErr) {
+          console.warn("Seat stats fetch failed (non-blocking):", seatErr?.message);
+        } else if (seatStats && typeof seatStats.seats_available === "number" && seatStats.seats_available <= 0) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Elite is full. No seats available.", code: "ELITE_FULL" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 },
+          );
+        }
+      } catch (e) {
+        console.warn("Seat-cap preflight exception (ignored):", e);
+      }
     } else {
       // Handle event ticket payment (existing logic)
       if (!event_id || !user_id) {
@@ -183,11 +224,16 @@ serve(async (req) => {
     console.log("PayPal access token obtained");
 
     // Create PayPal order
+    // Ensure we always have a reference_id for traceability
+    const referenceId = (payment_id || membership_upgrade_id || undefined) as
+      | string
+      | undefined;
+
     const orderData = {
       intent: "CAPTURE",
       purchase_units: [
         {
-          reference_id: payment_id || membership_upgrade_id,
+          reference_id: referenceId ?? customId,
           description: orderDescription,
           amount: {
             currency_code: "USD",
@@ -231,8 +277,11 @@ serve(async (req) => {
 
     if (!orderResponse.ok) {
       const errorText = await orderResponse.text();
-      console.error("PayPal order error:", errorText);
-      throw new Error(`PayPal order creation failed: ${errorText}`);
+      console.error("PayPal order error status:", orderResponse.status);
+      console.error("PayPal order error body:", errorText);
+      throw new Error(
+        `PayPal order creation failed (status ${orderResponse.status}): ${errorText}`
+      );
     }
 
     const order = await orderResponse.json();

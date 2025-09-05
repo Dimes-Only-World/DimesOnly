@@ -114,8 +114,18 @@ const Elite: React.FC = () => {
       toast({ title: "Redirecting to PayPal", description: "Approve your Elite lifetime purchase" });
       window.location.href = data.approval_url as string;
     } catch (e: any) {
+      // Surface more details from Supabase FunctionsHttpError if available
+      const ctx = (e && (e.context || (e as any).error)) as any;
+      let detail = e?.message || "Failed to start checkout";
+      if (ctx) {
+        try {
+          const parsed = typeof ctx === 'string' ? JSON.parse(ctx) : ctx;
+          const inner = parsed?.error || parsed?.message || JSON.stringify(parsed);
+          if (inner) detail = `${detail} — ${inner}`;
+        } catch {}
+      }
       console.error("Elite lifetime order error", e);
-      toast({ title: "Checkout error", description: e?.message || "Failed to start checkout", variant: "destructive" });
+      toast({ title: "Checkout error", description: detail, variant: "destructive" });
     } finally {
       setLoadingLifetime(false);
     }
