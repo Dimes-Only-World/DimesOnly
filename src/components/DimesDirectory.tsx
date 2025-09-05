@@ -46,11 +46,10 @@ const DimesDirectory: React.FC = () => {
 
       if (error) throw error;
 
-      // Filter for female users (which seem to be the "dimes") and type cast
+      // Include all female users that are part of the platform: normal, stripper, or exotic
       const femaleUsers = (data?.filter(user => 
-        user.user_type === 'female' || 
-        user.gender === 'female' ||
-        user.user_type === 'dime'
+        (String(user.gender || '').toLowerCase() === 'female') &&
+        ['normal', 'stripper', 'exotic'].includes(String(user.user_type || '').toLowerCase())
       ) || []).map(user => ({
         id: user.id as string,
         username: user.username as string,
@@ -162,7 +161,7 @@ const DimesDirectory: React.FC = () => {
                     </Badge>
                     <Badge variant="outline" className="text-xs flex items-center gap-1">
                       <Crown className="w-3 h-3" />
-                      Dime
+                      {profile.user_type?.charAt(0).toUpperCase() + profile.user_type?.slice(1)}
                     </Badge>
                   </div>
 

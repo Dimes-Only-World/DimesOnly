@@ -375,25 +375,27 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-                  <Button 
-                    onClick={handleTip} 
-                    className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
-                    size="sm"
-                  >
-                    <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    Tip
-                  </Button>
-                  <Button 
-                    onClick={handleRate} 
-                    className="bg-yellow-600 hover:bg-yellow-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
-                    size="sm"
-                  >
-                    <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    Rate
-                  </Button>
-                </div>
+                {/* Action Buttons (hidden for normal female) */}
+                {!(profile.gender?.toLowerCase() === 'female' && profile.user_type?.toLowerCase() === 'normal') && (
+                  <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                    <Button 
+                      onClick={handleTip} 
+                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
+                      size="sm"
+                    >
+                      <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      Tip
+                    </Button>
+                    <Button 
+                      onClick={handleRate} 
+                      className="bg-yellow-600 hover:bg-yellow-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
+                      size="sm"
+                    >
+                      <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      Rate
+                    </Button>
+                  </div>
+                )}
               </div>
               
               {profile.bio && (

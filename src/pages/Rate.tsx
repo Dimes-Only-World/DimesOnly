@@ -37,6 +37,7 @@ interface UserData {
   state: string;
   bio?: string;
   user_type: string;
+  gender?: string;
 }
 
 interface UserMedia {
@@ -171,7 +172,7 @@ const RatePage: React.FC = () => {
       let { data, error } = await supabase
         .from("users")
         .select(
-          "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+          "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
         )
         .eq("username", normalizedRate)
         .maybeSingle();
@@ -181,7 +182,7 @@ const RatePage: React.FC = () => {
         const res = await supabase
           .from("users")
           .select(
-            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
           )
           .ilike("username", normalizedRate)
           .maybeSingle();
@@ -194,7 +195,7 @@ const RatePage: React.FC = () => {
         const res = await supabase
           .from("users")
           .select(
-            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
           )
           .ilike("username", `%${normalizedRate}%`);
         const rows = res.data as any[] | null;
@@ -214,7 +215,7 @@ const RatePage: React.FC = () => {
         let adminRes = await supabaseAdmin
           .from("users")
           .select(
-            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
           )
           .eq("username", normalizedRate)
           .maybeSingle();
@@ -225,7 +226,7 @@ const RatePage: React.FC = () => {
           adminRes = await supabaseAdmin
             .from("users")
             .select(
-              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
             )
             .ilike("username", normalizedRate)
             .maybeSingle();
@@ -237,7 +238,7 @@ const RatePage: React.FC = () => {
           const resList = await supabaseAdmin
             .from("users")
             .select(
-              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type"
+              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
             )
             .ilike("username", `%${normalizedRate}%`);
         const rows = resList.data as any[] | null;
@@ -273,6 +274,7 @@ const RatePage: React.FC = () => {
           state: String(data.state || ""),
           bio: data.bio ? String(data.bio) : undefined,
           user_type: String(data.user_type),
+          gender: data.gender ? String(data.gender) : undefined,
         };
         setUserData(userData);
 
