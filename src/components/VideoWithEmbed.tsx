@@ -21,7 +21,7 @@ const VideoWithEmbed: React.FC<VideoWithEmbedProps> = ({ className = '' }) => {
       <div className="relative w-full h-0" style={{ paddingBottom: '56.25%' }}>
         <video
           ref={setVideoRef}
-          className="absolute top-0 left-0 w-full h-full object-cover"
+          className="absolute top-0 left-0 w-full h-full object-contain bg-black"
           controls={isPlaying}
           muted
           playsInline

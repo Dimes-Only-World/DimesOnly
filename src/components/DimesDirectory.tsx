@@ -46,10 +46,10 @@ const DimesDirectory: React.FC = () => {
 
       if (error) throw error;
 
-      // Include all female users that are part of the platform: normal, stripper, or exotic
+      // Dimes page should show only female performers: stripper or exotic (exclude males and normal females)
       const femaleUsers = (data?.filter(user => 
         (String(user.gender || '').toLowerCase() === 'female') &&
-        ['normal', 'stripper', 'exotic'].includes(String(user.user_type || '').toLowerCase())
+        ['stripper', 'exotic'].includes(String(user.user_type || '').toLowerCase())
       ) || []).map(user => ({
         id: user.id as string,
         username: user.username as string,
