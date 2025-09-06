@@ -67,14 +67,13 @@ const Index: React.FC = () => {
       <HeroBanner />
       <FullWidthVideo 
         src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
-        className="-mt-4"
       />
-      <VideoWithEmbed className="-mt-4" />
-      <ProfileVideoSection className="-mt-4" />
-      <ImageCarousel className="-mt-4" />
-      <RefAwareActionButtons className="-mt-4" />
-      <PositionCounter className="-mt-4" />
-      <SecuritySection className="-mt-4" />
+      <VideoWithEmbed />
+      <ProfileVideoSection />
+      <ImageCarousel />
+      <RefAwareActionButtons />
+      <PositionCounter />
+      <SecuritySection />
       <Footer />
     </div>
   );
