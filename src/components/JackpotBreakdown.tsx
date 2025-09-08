@@ -142,32 +142,32 @@ const JackpotBreakdown: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-purple-600">$62.49 to $110,510.40</div>
+                <div className="font-bold text-2xl text-green-600">$62.49 to $110,510.40</div>
                 <div className="text-sm text-gray-600 mt-1">
                   Goes to Dime
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  $10,000 Bonus to Winner from company if is not executed. Min. $10,062.49
+                  $10,000 Bonus from company included at max
                 </div>
               </div>
               
               <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-blue-600">$10.00 - $5k</div>
+                <div className="font-bold text-2xl text-green-600">$15.62 - $27,627.60</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  Goes to stripper/exotic tipped
+                  Goes to who referred Dime
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  $10 to if Max $5k Deducted from Grand Prize
+                  $40,000 Bonus from company included at max
                 </div>
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-green-600">$5,000 Max</div>
+                <div className="font-bold text-2xl text-purple-600">$40,000 Bonus</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  Goes to winning ticket
+                  Bonus from Company add to max payouts
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  2nd Place $500 Min prize
+                  $120,510.40 & 37,627.60 max
                 </div>
               </div>
             </div>
@@ -186,9 +186,9 @@ const JackpotBreakdown: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-purple-600">$7.50 to $10k</div>
+                <div className="font-bold text-2xl text-green-600">$31.24 to $55,255.20</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  Goes to you if you referred tipper
+                  Goes to who referred tipper
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
                   $7.50 to if Max $10k Deducted from Grand Prize
@@ -196,7 +196,7 @@ const JackpotBreakdown: React.FC = () => {
               </div>
               
               <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-blue-600">$5.00 to $10k</div>
+                <div className="font-bold text-2xl text-purple-600">$5.00 to $10k</div>
                 <div className="text-sm text-gray-600 mt-1">
                   Goes to stripper/exotic username
                 </div>
@@ -206,7 +206,7 @@ const JackpotBreakdown: React.FC = () => {
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-green-600">$5,000 Max</div>
+                <div className="font-bold text-2xl text-purple-600">$10,000 Bonus</div>
                 <div className="text-sm text-gray-600 mt-1">
                   Goes to winning ticket
                 </div>
