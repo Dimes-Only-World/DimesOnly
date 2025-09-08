@@ -191,7 +191,7 @@ const JackpotBreakdown: React.FC = () => {
                   Goes to who referred tipper
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  GUARANNTEED WINNERS IF MAX REACHED
+                  GUARANTEED WINNERS IF MAX REACHED
                 </div>
               </div>
               
