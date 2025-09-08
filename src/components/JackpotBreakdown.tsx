@@ -191,24 +191,24 @@ const JackpotBreakdown: React.FC = () => {
                   Goes to who referred tipper
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  $7.50 to if Max $10k Deducted from Grand Prize
+                  GUARANNTEED WINNERS IF MAX REACHED
                 </div>
               </div>
               
               <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-purple-600">$5.00 to $10k</div>
+                <div className="font-bold text-2xl text-purple-600">Did you refer Tipper?</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  Goes to stripper/exotic username
+                  Tip yourself and win
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  $5.00 to if Max $10k Deducted from Grand Prize
+                  3 Chances to Win
                 </div>
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg text-center">
                 <div className="font-bold text-2xl text-purple-600">$10,000 Bonus</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  Goes to winning ticket
+                  Bonus added if max is reached
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
                   $65,255.20 max
