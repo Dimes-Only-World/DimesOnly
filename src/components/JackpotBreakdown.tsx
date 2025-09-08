@@ -147,7 +147,7 @@ const JackpotBreakdown: React.FC = () => {
                   Goes to Dime
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  $10,000 Bonus to Winner from company if is not executed.<br>Min. $10,062.49</br>
+                  $10,000 Bonus to Winner from company if is not executed. Min. $10,062.49
                 </div>
               </div>
               
