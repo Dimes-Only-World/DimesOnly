@@ -55,7 +55,7 @@ const JackpotBreakdown: React.FC = () => {
                   <div className="text-gray-600">Dime</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-lg text-orange-600">$27,627.60 - $15.62</div>
+                  <div className="font-bold text-lg text-orange-600">$15.62 - $27,627.60</div>
                   <div className="text-gray-600">Dime Referred By</div>
                 </div>
                 <div className="text-center">
@@ -98,7 +98,7 @@ const JackpotBreakdown: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-purple-600">3.75% of Grand Prize</div>
+                <div className="font-bold text-2xl text-green-600">3.75% of Grand Prize</div>
                 <div className="text-sm text-gray-600 mt-1">
                   Goes to who referred Dime
                 </div>
@@ -108,7 +108,7 @@ const JackpotBreakdown: React.FC = () => {
               </div>
               
               <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <div className="font-bold text-2xl text-blue-600">7.5% of Grand Prize</div>
+                <div className="font-bold text-2xl text-green-600">7.5% of Grand Prize</div>
                 <div className="text-sm text-gray-600 mt-1">
                   Goes to the Dime tipped
                 </div>
@@ -167,7 +167,7 @@ const JackpotBreakdown: React.FC = () => {
                   Bonus from Company add to max payouts
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  $120,510.40 & 37,627.60 max
+                  $150,510.40 & 67,627.60 max
                 </div>
               </div>
             </div>
@@ -211,7 +211,7 @@ const JackpotBreakdown: React.FC = () => {
                   Goes to winning ticket
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
-                  3rd Place $250 Min prize
+                  $65,255.20 max
                 </div>
               </div>
             </div>
@@ -245,8 +245,8 @@ const JackpotBreakdown: React.FC = () => {
                     <span className="font-medium">10%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Strippers/Exotics tipped:</span>
-                    <span className="font-medium">10%</span>
+                    <span>Dimes referred & tipped:</span>
+                    <span className="font-medium">30%</span>
                   </div>
                 </div>
               </div>
@@ -258,12 +258,12 @@ const JackpotBreakdown: React.FC = () => {
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>General:</span>
+                    <span>Referrer:</span>
                     <span className="font-medium">10%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Referred & tipped:</span>
-                    <span className="font-medium">30% upfront</span>
+                    <span>Dimes Referred & tipped:</span>
+                    <span className="font-medium">20% upfront</span>
                   </div>
                 </div>
               </div>
