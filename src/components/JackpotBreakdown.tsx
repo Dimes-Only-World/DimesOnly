@@ -262,8 +262,12 @@ const JackpotBreakdown: React.FC = () => {
                     <span className="font-medium">10%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Dimes Referred & tipped:</span>
+                    <span>Dimes Referred User & User Tipped You:</span>
                     <span className="font-medium">20% upfront</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>NO OVERRIDES</span>
+                    <span className="font-medium">UPGRADE TO SILVER MINIMUM $4.99 MONTHLY TO OVERRIDE</span>
                   </div>
                 </div>
               </div>
