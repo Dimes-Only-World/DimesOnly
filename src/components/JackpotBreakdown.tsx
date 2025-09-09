@@ -73,12 +73,12 @@ const JackpotBreakdown: React.FC = () => {
                   <div className="text-gray-600">Who Referred Tipper</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-lg text-orange-600">Did you refer the Tipper?</div>
+                  <div className="font-bold text-lg text-orange-600">Who referred the Tipper?</div>
                   <div className="text-gray-600">Get 3 Chances to Win</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-lg text-orange-600">Get 2 chances to win!</div>
-                  <div className="text-gray-600">Who Referred Tipper</div>
+                  <div className="font-bold text-lg text-orange-600">Dimes tip yourself!</div>
+                  <div className="text-gray-600">Solidify 3 ways to win!</div>
                 </div>
               </div>
             </div>
