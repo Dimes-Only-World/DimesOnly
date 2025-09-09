@@ -238,14 +238,14 @@ const JackpotBreakdown: React.FC = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Referrer:</span>
-                    <span className="font-medium">20% upfront</span>
+                    <span className="font-medium">20% Upfront</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Override:</span>
                     <span className="font-medium">10%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Dimes referred & tipped:</span>
+                    <span>Dimes Referred User & User Tipped You:</span>
                     <span className="font-medium">30%</span>
                   </div>
                 </div>
@@ -263,7 +263,7 @@ const JackpotBreakdown: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Dimes Referred User & User Tipped You:</span>
-                    <span className="font-medium">20% upfront</span>
+                    <span className="font-medium">20% Upfront</span>
                   </div>
                   <div className="flex justify-between">
                     <span>NO OVERRIDES</span>
