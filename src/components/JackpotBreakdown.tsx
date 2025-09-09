@@ -254,7 +254,7 @@ const JackpotBreakdown: React.FC = () => {
               <div className="space-y-3">
                 <h4 className="font-semibold text-blue-700 flex items-center gap-2">
                   <Badge className="bg-blue-100 text-blue-800">FREE</Badge>
-                  Members
+                  Members (All Dimes who started early are paid members!)
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
