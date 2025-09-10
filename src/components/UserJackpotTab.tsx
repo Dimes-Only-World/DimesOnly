@@ -213,7 +213,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             </p>
             <div className="mt-4 flex flex-col items-center space-y-2">
               <img
-                src="https://d64gsuwffb70l.cloudfront.net/6817a577df177dddd3e65fb0_1750790609745_e251903d.jpg"
+                src="https://dimesonly.s3.us-east-2.amazonaws.com/e83da5e4-c638-4edb-bd20-ff187884f4d5.png"
                 alt="Tip & Win"
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
               />
