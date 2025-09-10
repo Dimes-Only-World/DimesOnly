@@ -220,6 +220,8 @@ autoplay="true"
   loop="true" 
   muted="true"
   playsinline
+controlsList="nodownload" 
+  oncontextmenu="return false;"
 >
 </video>
               <p className="text-sm text-center max-w-md">
