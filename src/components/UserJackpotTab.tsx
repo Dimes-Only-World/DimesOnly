@@ -200,7 +200,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             <p className="text-xl font-bold">Countdown begins!</p>
             <p className="text-sm mt-2">
               ${(1000 - currentJackpot).toLocaleString()} to go • max jackpot
-              $2,900,000 a week
+              $1,973,400 a week
             </p>
           </div>
 
@@ -212,11 +212,18 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
               <span>🎯</span> Weekly drawings until winner
             </p>
             <div className="mt-4 flex flex-col items-center space-y-2">
-              <img
-                src="https://d64gsuwffb70l.cloudfront.net/6817a577df177dddd3e65fb0_1750790609745_e251903d.jpg"
-                alt="Tip & Win"
-                className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
-              />
+             <video 
+  src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4" 
+  alt="Tip & Win" 
+  className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors" 
+autoplay="true" 
+  loop="true" 
+  muted="true"
+  playsinline
+controlsList="nodownload" 
+  oncontextmenu="return false;"
+>
+</video>
               <p className="text-sm text-center max-w-md">
                 View winners and live drawings on YouTube Live{" "}
                 <a
