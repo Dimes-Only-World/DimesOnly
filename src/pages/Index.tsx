@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroBanner from '@/components/HeroBanner';
+import HomePromoRail from '@/components/HomePromoRail';
 import FullWidthVideo from '@/components/FullWidthVideo';
 import VideoWithEmbed from '@/components/VideoWithEmbed';
 import ProfileVideoSection from '@/components/ProfileVideoSection';
@@ -62,9 +63,42 @@ const Index: React.FC = () => {
     silver_plus_payment_id: '',
     silver_plus_membership_number: null
   };
+  // Single-slide promo rail configuration
+  const promoSlides = [
+    {
+      id: 'tip-5-dime-tickets',
+      kicker: 'Tip $5',
+      title: 'Get 5 Dime Tickets',
+      titleLines: ['Get', '5', 'Dime Tickets'],
+      highlightLineIndex: 1,
+      subcopy: 'Jackpot Max $1.9 million weekly ',
+      ctaLabel: 'Join Free Now',
+      ctaHref: '/login',
+      ctaSubtext: 'No credit card required\n30s signup',
+      secondaryCtaLabel: 'Tip Dimes Now',
+      secondaryCtaHref: '/rate',
+      bgImage: '/assets/background%20.png',
+      overlayLayouts: [
+        // Main model (anchor on right) - highest z-index to stay in front
+        { src: '/assets/WhatsApp_Image_2025-09-08_at_19.36.24_6e5c21fe-removebg-preview.png', className: 'right-[26%] h-[100%] z-[2]', showOnMobile: true, mobileClassName: '-right-8 -bottom-40 h-[28rem]' },
+        // Roulette stack (behind model, center-right)
+        { src: '/assets/dimelot.png', className: 'top-1/2 -translate-y-1/2 right-[22%] h-[68%] sm:h-[70%] md:h-[72%] z-[1] drop-shadow-[0_8px_28px_rgba(0,0,0,0.55)]', showOnMobile: true, mobileClassName: 'right-1 bottom-64 h-80 z-[3]' },
+        // Money cascade (next to girl, right side but not blocking)
+        //{ src: '/assets/moneycasino.png', className: 'right-[4%] bottom-0 h-[36%] sm:h-[38%] md:h-[40%] opacity-85 z-[2] drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)]', showOnMobile: true, mobileClassName: 'right-1 bottom-2 h-[20%] z-[2]' }
+      ],
+      pills: [
+        'Tip and earn points',
+        'concert-car-clothing',
+        'and a whole lot more'
+      ],
+      footnote: 'Dimes Only promotions subject to terms.\nEligibility varies by region. See rules for jackpot details.',
+      accent: 'yellow' as const,
+    },
+  ];
   return (
     <div className="min-h-screen bg-black">
       <HeroBanner />
+      <HomePromoRail className="border-b border-white/10" autoPlayMs={0} slides={promoSlides} />
       <FullWidthVideo 
         src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
       />
