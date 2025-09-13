@@ -70,19 +70,20 @@ const Index: React.FC = () => {
       kicker: 'Tip $5',
       title: 'Get 5 Dime Tickets',
       titleLines: ['Get', '5', 'Dime Tickets'],
+      taglineLines: ['Pick', 'Tip a dime', 'Win'],
       highlightLineIndex: 1,
       subcopy: 'Jackpot Max $1.9 million weekly ',
       ctaLabel: 'Join Free Now',
-      ctaHref: '/login',
+      ctaHref: '/register?ref=company',
       ctaSubtext: 'No credit card required\n30s signup',
       secondaryCtaLabel: 'Tip Dimes Now',
-      secondaryCtaHref: '/rate',
+      secondaryCtaHref: '/rate-girls',
       bgImage: '/assets/background%20.png',
       overlayLayouts: [
         // Main model (anchor on right) - highest z-index to stay in front
-        { src: '/assets/WhatsApp_Image_2025-09-08_at_19.36.24_6e5c21fe-removebg-preview.png', className: 'right-[26%] h-[100%] z-[2]', showOnMobile: true, mobileClassName: '-right-8 -bottom-40 h-[28rem]' },
+        { src: '/assets/dime_girl.png', className: 'desk-girl right-[26%] lg:right-[28%] h-[100%] z-[2]', showOnMobile: true, mobileClassName: 'mobile-girl -right-8 -bottom-40 h-[clamp(18rem,58vh,26rem)]' },
         // Roulette stack (behind model, center-right)
-        { src: '/assets/dimelot.png', className: 'top-1/2 -translate-y-1/2 right-[22%] h-[68%] sm:h-[70%] md:h-[72%] z-[1] drop-shadow-[0_8px_28px_rgba(0,0,0,0.55)]', showOnMobile: true, mobileClassName: 'right-1 bottom-64 h-80 z-[3]' },
+        { src: '/assets/dimelot.png', className: 'desk-dimelot top-1/2 -translate-y-1/2 right-[12%] lg:right-[2%] xl:right-[1%] h-[68%] sm:h-[70%] md:h-[72%] z-[1] drop-shadow-[0_8px_28px_rgba(0,0,0,0.55)]', showOnMobile: true, mobileClassName: 'mobile-dimelot right-1 bottom-[clamp(22rem,52vh,30rem)] h-[clamp(7.5rem,18vh,11rem)] z-[3]' },
         // Money cascade (next to girl, right side but not blocking)
         //{ src: '/assets/moneycasino.png', className: 'right-[4%] bottom-0 h-[36%] sm:h-[38%] md:h-[40%] opacity-85 z-[2] drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)]', showOnMobile: true, mobileClassName: 'right-1 bottom-2 h-[20%] z-[2]' }
       ],
