@@ -70,7 +70,7 @@ const Index: React.FC = () => {
       kicker: 'Tip $5',
       title: 'Get 5 Dime Tickets',
       titleLines: ['Get', '5', 'Dime Tickets'],
-      taglineLines: ['Pick', 'Tip a dime', 'Win'],
+      taglineLines: ['Pick', 'Tip', 'Win'],
       highlightLineIndex: 1,
       subcopy: 'Jackpot Max $1.9 million weekly ',
       ctaLabel: 'Join Free Now',
@@ -89,7 +89,7 @@ const Index: React.FC = () => {
       ],
       pills: [
         'Tip and earn points',
-        'concert-car-clothing',
+        'Concert - Car - Clothing',
         'and a whole lot more'
       ],
       footnote: 'Dimes Only promotions subject to terms.\nEligibility varies by region. See rules for jackpot details.',
@@ -101,7 +101,7 @@ const Index: React.FC = () => {
       <HeroBanner />
       <HomePromoRail className="border-b border-white/10" autoPlayMs={0} slides={promoSlides} />
       <FullWidthVideo 
-        src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
+        //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
       />
       <VideoWithEmbed />
       <ProfileVideoSection />

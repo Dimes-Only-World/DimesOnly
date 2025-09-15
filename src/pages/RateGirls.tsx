@@ -188,7 +188,7 @@ const RateGirls: React.FC = () => {
               poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
             >
               <source
-                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+                //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
                 type="video/mp4"
               />
             </video>
@@ -304,7 +304,7 @@ const RateGirls: React.FC = () => {
             <div className="bg-white/10 backdrop-blur rounded-2xl p-8 shadow-lg border border-white/20">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="relative group">
-                  <label className="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-white mb-2 items-center gap-2">
                     <User size={16} className="text-blue-400" />
                     Search by Name
                   </label>
@@ -324,7 +324,7 @@ const RateGirls: React.FC = () => {
                 </div>
 
                 <div className="relative group">
-                  <label className="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-white mb-2 items-center gap-2">
                     <MapPin size={16} className="text-green-400" />
                     Search by City
                   </label>
@@ -344,7 +344,7 @@ const RateGirls: React.FC = () => {
                 </div>
 
                 <div className="relative group">
-                  <label className="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-white mb-2 items-center gap-2">
                     <Flag size={16} className="text-purple-400" />
                     Search by State
                   </label>

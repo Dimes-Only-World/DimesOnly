@@ -102,7 +102,7 @@ const HeroBanner: React.FC = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       <VideoBackground 
-        src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/OUTTRO-2-1080.mp4"
+        //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/OUTTRO-2-1080.mp4"
         className={`transition-opacity duration-1000 ${
           showVideo ? 'opacity-100' : 'opacity-0'
         }`}

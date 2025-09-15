@@ -218,7 +218,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
               bottom: min(24rem, 52vh) !important; 
             }
             /* If taglines exist, give a bit more height in portrait */
-            .hero-ratio.has-taglines { padding-bottom: 155% !important; }
+            .hero-ratio.has-taglines { padding-bottom: 180% !important; }
           }
           
           /* Landscape mode for all mobile devices (short displays) */
@@ -261,6 +261,48 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             .pills > span:nth-child(3) { grid-column: 1; grid-row: 2; }
             .cta-primary { padding: 0.5rem 0.9rem !important; font-size: 0.9rem !important; }
             .cta-secondary { padding: 0.5rem 0.9rem !important; font-size: 0.85rem !important; }
+          }
+
+          /* iPad PORTRAIT: Mini/Air/Pro widths (744–1024) */
+          @media only screen and (min-width: 744px) and (max-width: 1024px) and (orientation: portrait) {
+            /* Keep the subject a bit left to open space for the logo */
+            .desk-girl { right: 20% !important; top: 10vh !important; bottom: auto !important; height: 88vh !important; z-index: 1 !important; pointer-events: none !important; }
+            /* Place the logo beside her, not above */
+            .desk-dimelot { right: 3% !important; top: 22vh !important; bottom: auto !important; height: 34vh !important; z-index: 2 !important; pointer-events: none !important; }
+            /* Give copy a little breathing room from the top */
+            .landscape-copy { top: 16vh !important; transform: translateY(0) !important; }
+          }
+
+          /* iPad LANDSCAPE: Pro 11/12.9 and others (1024–1366) */
+          @media only screen and (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+            .desk-girl { right: 24% !important; top: 8vh !important; bottom: auto !important; height: 90vh !important; z-index: 1 !important; pointer-events: none !important; }
+            .desk-dimelot { right: 2% !important; top: 26vh !important; bottom: auto !important; height: 36vh !important; z-index: 2 !important; pointer-events: none !important; }
+            .landscape-copy { top: 10vh !important; }
+          }
+
+          /* iPad Mini/Air portrait exact range (768–834) */
+          @media only screen and (min-width: 768px) and (max-width: 834px) and (orientation: portrait) {
+            .hero-ratio { padding-bottom: 210% !important; padding-top: 24vh !important; }
+            section[aria-label="Promotions"] > div.relative.w-full.overflow-hidden { 
+              overflow: hidden !important; 
+              padding-bottom: 0 !important; 
+            }
+            .desk-girl { right: 16% !important; top: auto !important; bottom: 0 !important; height: 72% !important; }
+            .desk-dimelot { right: 2% !important; top: auto !important; bottom: 12vh !important; height: 36vh !important; }
+            .landscape-copy { top: 16vh !important; padding-bottom: 10vh !important; transform: translateY(0) !important; }
+            .headline { font-size: clamp(2rem, 4.4vw, 3.4rem) !important; }
+          }
+
+          /* iPad Mini/Air landscape exact range (1024–1112) */
+          @media only screen and (min-width: 1024px) and (max-width: 1112px) and (orientation: landscape) {
+            .hero-ratio { padding-bottom: 140% !important; padding-top: 20vh !important; }
+            section[aria-label="Promotions"] > div.relative.w-full.overflow-hidden { 
+              overflow: hidden !important; 
+              padding-bottom: 0 !important; 
+            }
+            .desk-girl { right: 18% !important; top: auto !important; bottom: 0 !important; height: 74% !important; }
+            .desk-dimelot { right: 2% !important; top: auto !important; bottom: 10vh !important; height: 36vh !important; }
+            .landscape-copy { top: 16vh !important; padding-bottom: 8vh !important; transform: translateY(0) !important; }
           }
         `}
       </style>
