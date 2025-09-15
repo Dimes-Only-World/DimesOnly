@@ -319,7 +319,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source
-            //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4"
+            src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4"
             type="video/mp4"
           />
         </video>
@@ -356,7 +356,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source
-            //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4"
+            src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4"
             type="video/mp4"
           />
         </video>
@@ -386,7 +386,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
         <source
-          //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4"
+          src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4"
           type="video/mp4"
         />
       </video>

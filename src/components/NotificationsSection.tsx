@@ -25,8 +25,8 @@ const NotificationsSection: React.FC<NotificationsSectionProps> = ({ userData })
   const isExoticOrDancer = userType === 'exotic' || userType === 'stripper';
   
   const videoUrl = isExoticOrDancer 
-    //? 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4'
-    //: 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opening+Page+f+(1).mp4';
+    ? 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.mp4'
+    : 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opening+Page+f+(1).mp4';
 
   const notifications = [
     {
