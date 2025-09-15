@@ -38,7 +38,7 @@ const AdminDashboard: React.FC = () => {
               poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
             >
               <source
-                //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
                 type="video/mp4"
               />
               Your browser does not support the video tag.

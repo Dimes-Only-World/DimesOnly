@@ -101,7 +101,7 @@ const Index: React.FC = () => {
       <HeroBanner />
       <HomePromoRail className="border-b border-white/10" autoPlayMs={0} slides={promoSlides} />
       <FullWidthVideo 
-        //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
+        src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
       />
       <VideoWithEmbed />
       <ProfileVideoSection />
