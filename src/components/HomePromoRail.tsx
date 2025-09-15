@@ -186,7 +186,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
           @media screen and (max-width: 430px) {
             .mobile-girl { 
               right: -1.5rem !important; 
-              bottom: 5.5rem !important; 
+              bottom: -2rem !important; 
               height: min(24rem, 50vh) !important; 
               max-height: 24rem !important;
             }
