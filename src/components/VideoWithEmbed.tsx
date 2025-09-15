@@ -27,7 +27,7 @@ const VideoWithEmbed: React.FC<VideoWithEmbedProps> = ({ className = '' }) => {
           playsInline
           poster="https://dimesonly.s3.us-east-2.amazonaws.com/Screenshot-2025-05-03-061023-1320x568.png"
         >
-          <source src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opening+XXx+FINAL+xXX+2.mp4" type="video/mp4" />
+          <source src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         
