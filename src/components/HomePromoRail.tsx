@@ -186,23 +186,29 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
           @media screen and (max-width: 430px) {
             .mobile-girl { 
               right: -1.5rem !important; 
-              bottom: -2rem !important; 
+              bottom: 5.5rem !important; 
               height: min(24rem, 50vh) !important; 
               max-height: 24rem !important;
             }
             .mobile-dimelot { 
               right: 0.25rem !important; 
               bottom: min(4rem, 8vh) !important; 
-              height: min(14rem, 28vh) !important; 
-              max-height: 16rem !important;
+              height: min(18rem, 36vh) !important; 
+              max-height: 20rem !important;
             }
+            /* Stack kicker + secondary CTA vertically on phones */
+            .kicker-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.5rem !important; }
+            /* Make Pick/Tip/Win larger with Pick the largest */
+            .taglines .tagline-line:nth-child(1) { font-size: clamp(2.2rem, 12.5vw, 3.2rem) !important; }
+            .taglines .tagline-line:nth-child(2) { font-size: clamp(1.9rem, 11vw, 2.8rem) !important; }
+            .taglines .tagline-line:nth-child(3), .taglines .tagline-stylish:nth-child(3) { font-size: clamp(1.8rem, 10.5vw, 2.6rem) !important; }
           }
           
           /* Small screens like A14 (360px) */
           @media screen and (max-width: 375px) {
             .mobile-girl { 
               right: -1rem !important; 
-              bottom: -1.5rem !important; 
+              bottom: 2rem !important; 
               height: min(22rem, 45vh) !important; 
             }
             .mobile-dimelot { 
@@ -215,10 +221,15 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
           /* Portrait phones: place dimelot above the model */
           @media screen and (orientation: portrait) and (max-width: 480px) {
             .mobile-dimelot { 
-              bottom: min(24rem, 52vh) !important; 
+              right: -10% !important;
+              top: clamp(0.2rem, 1vh, 3.5rem) !important; 
+              bottom: auto !important; 
+              height: clamp(18rem, 36vh, 28rem) !important;
             }
             /* If taglines exist, give a bit more height in portrait */
-            .hero-ratio.has-taglines { padding-bottom: 180% !important; }
+            .hero-ratio.has-taglines { padding-bottom: 215% !important; }
+            /* Move extra space into hero so background covers it */
+            section[aria-label="Promotions"] > div.relative.w-full.overflow-hidden { padding-bottom: 0 !important; }
           }
           
           /* Landscape mode for all mobile devices (short displays) */
@@ -239,10 +250,10 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
               pointer-events: none !important;
             }
             .mobile-dimelot { 
-              right: 3% !important; 
-              top: calc(54vh + env(safe-area-inset-top)) !important; 
+              right: 14% !important; 
+              top: calc(6vh + env(safe-area-inset-top)) !important; 
               bottom: auto !important; 
-              height: min(62rem, 62vh) !important; 
+              height: min(62rem, 78vh) !important; 
               z-index: 2 !important; /* below copy, above girl */
               pointer-events: none !important;
             }
@@ -252,7 +263,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             /* Start copy near the top so taglines are visible; keep a small bottom padding */
             .landscape-copy { top: calc(8vh + env(safe-area-inset-top)) !important; padding-top: 0.25rem !important; padding-bottom: 20vh !important; transform: translateY(0) !important; }
             /* compact typography and controls */
-            .headline { font-size: clamp(1.25rem, 3.6vw, 2.25rem) !important; line-height: 1.15 !important; }
+            .headline { font-size: clamp(1.25rem, 3.7vw, 2.35rem) !important; line-height: 1.15 !important; }
             .subcopy { font-size: clamp(0.8rem, 1.6vw, 1rem) !important; }
             .pills { display: grid !important; grid-template-columns: auto auto; column-gap: 0.5rem; row-gap: 0.5rem; align-items: start; }
             .pills > span { padding: 0.25rem 0.6rem !important; font-size: 0.75rem !important; }
@@ -261,6 +272,10 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             .pills > span:nth-child(3) { grid-column: 1; grid-row: 2; }
             .cta-primary { padding: 0.5rem 0.9rem !important; font-size: 0.9rem !important; }
             .cta-secondary { padding: 0.5rem 0.9rem !important; font-size: 0.85rem !important; }
+            /* Make Pick/Tip/Win sizing relative with Pick largest on compact landscape */
+            .taglines .tagline-line:nth-child(1) { font-size: clamp(1.5rem, 4.8vw, 2.5rem) !important; }
+            .taglines .tagline-line:nth-child(2) { font-size: clamp(1.35rem, 4.4vw, 2.2rem) !important; }
+            .taglines .tagline-line:nth-child(3), .taglines .tagline-stylish:nth-child(3) { font-size: clamp(1.25rem, 4.1vw, 2.05rem) !important; }
           }
 
           /* iPad PORTRAIT: Mini/Air/Pro widths (744–1024) */
@@ -387,7 +402,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
               </div>
             )}
             {current.kicker && (
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 kicker-row">
                 <div className="inline-flex items-center px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm sm:text-base lg:text-lg font-bold text-black bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 shadow-[0_0_30px_rgba(255,200,0,0.4)] ring-2 ring-white/20 transform hover:scale-105 transition-transform">
                   <span className="tracking-wide drop-shadow-sm">{current.kicker}</span>
                 </div>
