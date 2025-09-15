@@ -234,10 +234,10 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
           
           /* Landscape mode for all mobile devices (short displays) */
           @media screen and (orientation: landscape) and (max-height: 500px) {
-            .hero-ratio { padding-bottom: 160vh !important; }
-            .hero-ratio.has-taglines { padding-bottom: 160vh !important; }
+            .hero-ratio { padding-bottom: 190vh !important; }
+            .hero-ratio.has-taglines { padding-bottom: 190vh !important; }
             /* Add breathing room below the hero wrapper so content isn't clipped */
-            section[aria-label="Promotions"] > div.relative.w-full.overflow-hidden { padding-bottom: calc(5vh + env(safe-area-inset-bottom)) !important; }
+            section[aria-label="Promotions"] > div.relative.w-full.overflow-hidden { padding-bottom: calc(12vh + env(safe-area-inset-bottom)) !important; }
             /* Allow content to render past the hero wrapper in landscape (prevents bottom clipping) */
             section[aria-label="Promotions"] > div.relative.w-full.overflow-hidden { overflow: visible !important; }
             /* shrink overlays to keep content visible */
@@ -261,7 +261,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             .desk-girl { right: 26% !important; top: calc(8vh + env(safe-area-inset-top)) !important; bottom: calc(0px + env(safe-area-inset-bottom)) !important; height: calc(100% - (8vh + env(safe-area-inset-top)) - env(safe-area-inset-bottom)) !important; z-index: 1 !important; pointer-events: none !important; }
             .desk-dimelot { right: 3% !important; top: calc(74vh + env(safe-area-inset-top)) !important; bottom: auto !important; height: 78vh !important; z-index: 2 !important; pointer-events: none !important; }
             /* Start copy near the top so taglines are visible; keep a small bottom padding */
-            .landscape-copy { top: calc(8vh + env(safe-area-inset-top)) !important; padding-top: 0.25rem !important; padding-bottom: 20vh !important; transform: translateY(0) !important; }
+            .landscape-copy { top: calc(8vh + env(safe-area-inset-top)) !important; padding-top: 0.25rem !important; padding-bottom: 28vh !important; transform: translateY(0) !important; }
             /* compact typography and controls */
             .headline { font-size: clamp(1.25rem, 3.7vw, 2.35rem) !important; line-height: 1.15 !important; }
             .subcopy { font-size: clamp(0.8rem, 1.6vw, 1rem) !important; }
