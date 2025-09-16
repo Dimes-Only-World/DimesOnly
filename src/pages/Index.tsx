@@ -83,7 +83,7 @@ const Index: React.FC = () => {
         // Main model (anchor on right) - highest z-index to stay in front
         { src: '/assets/dime_girl.png', className: 'desk-girl right-[26%] lg:right-[28%] h-[100%] z-[2]', showOnMobile: true, mobileClassName: 'mobile-girl -right-8 -bottom-40 h-[clamp(18rem,58vh,26rem)]' },
         // Roulette stack (behind model, center-right)
-        { src: '/assets/dimelot.png', className: 'desk-dimelot top-1/2 -translate-y-1/2 right-[12%] lg:right-[2%] xl:right-[1%] h-[68%] sm:h-[70%] md:h-[72%] z-[1] drop-shadow-[0_8px_28px_rgba(0,0,0,0.55)]', showOnMobile: true, mobileClassName: 'mobile-dimelot right-1 bottom-[clamp(22rem,52vh,30rem)] h-[clamp(9.5rem,22vh,14rem)] z-[3]' },
+        //{ src: '/assets/dimelot.png', className: 'desk-dimelot top-1/2 -translate-y-1/2 right-[12%] lg:right-[2%] xl:right-[1%] h-[68%] sm:h-[70%] md:h-[72%] z-[1] drop-shadow-[0_8px_28px_rgba(0,0,0,0.55)]', showOnMobile: true, mobileClassName: 'mobile-dimelot right-1 bottom-[clamp(22rem,52vh,30rem)] h-[clamp(9.5rem,22vh,14rem)] z-[3]' },
         // Money cascade (next to girl, right side but not blocking)
         //{ src: '/assets/moneycasino.png', className: 'right-[4%] bottom-0 h-[36%] sm:h-[38%] md:h-[40%] opacity-85 z-[2] drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)]', showOnMobile: true, mobileClassName: 'right-1 bottom-2 h-[20%] z-[2]' }
       ],
