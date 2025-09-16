@@ -70,7 +70,7 @@ const Index: React.FC = () => {
       kicker: 'Tip $5',
       title: 'Get 5 Dime Tickets',
       titleLines: ['Get', '5', 'Dime Tickets'],
-      taglineLines: ['Pick', 'Tip', 'Win'],
+      //taglineLines: ['Pick', 'Tip', 'Win'],
       highlightLineIndex: 1,
       subcopy: 'Jackpot Max $1.9 million weekly ',
       ctaLabel: 'Join Free Now',
