@@ -27,9 +27,9 @@ const HeroBanner: React.FC = () => {
       >
         <source src={desktopSrc} type="video/mp4" />
       </video>
-      {/* Phone video (below lg by default) */}
+      {/* Phone video (below lg by default) - use object-contain to avoid edge cropping */}
       <video
-        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover"
+        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-contain object-center bg-black"
         autoPlay
         muted
         loop
