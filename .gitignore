@@ -26,5 +26,3 @@ package-lock.json
 *.njsproj
 *.sln
 *.sw?
-fix_pay_periods.sql
-Database scheme.txt

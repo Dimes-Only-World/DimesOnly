@@ -283,7 +283,8 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             /* Keep the subject a bit left to open space for the logo */
             .desk-girl { right: 20% !important; top: 10vh !important; bottom: auto !important; height: 88vh !important; z-index: 1 !important; pointer-events: none !important; }
             /* Place the logo beside her, not above */
-            .desk-dimelot { right: 3% !important; top: 22vh !important; bottom: auto !important; height: 34vh !important; z-index: 2 !important; pointer-events: none !important; }
+            /* Hide dimelot image on iPad portrait per client request */
+            .desk-dimelot { display: none !important; }
             /* Give copy a little breathing room from the top */
             .landscape-copy { top: 16vh !important; transform: translateY(0) !important; }
           }
@@ -291,7 +292,8 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
           /* iPad LANDSCAPE: Pro 11/12.9 and others (1024–1366) */
           @media only screen and (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
             .desk-girl { right: 24% !important; top: 8vh !important; bottom: auto !important; height: 90vh !important; z-index: 1 !important; pointer-events: none !important; }
-            .desk-dimelot { right: 2% !important; top: 26vh !important; bottom: auto !important; height: 36vh !important; z-index: 2 !important; pointer-events: none !important; }
+            /* Hide dimelot image on iPad landscape per client request */
+            .desk-dimelot { display: none !important; }
             .landscape-copy { top: 10vh !important; }
           }
 
@@ -303,7 +305,8 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
               padding-bottom: 0 !important; 
             }
             .desk-girl { right: 16% !important; top: auto !important; bottom: 0 !important; height: 72% !important; }
-            .desk-dimelot { right: 2% !important; top: auto !important; bottom: 12vh !important; height: 36vh !important; }
+            /* Hide dimelot image on iPad Mini/Air portrait */
+            .desk-dimelot { display: none !important; }
             .landscape-copy { top: 16vh !important; padding-bottom: 10vh !important; transform: translateY(0) !important; }
             .headline { font-size: clamp(2rem, 4.4vw, 3.4rem) !important; }
           }
@@ -316,7 +319,8 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
               padding-bottom: 0 !important; 
             }
             .desk-girl { right: 18% !important; top: auto !important; bottom: 0 !important; height: 74% !important; }
-            .desk-dimelot { right: 2% !important; top: auto !important; bottom: 10vh !important; height: 36vh !important; }
+            /* Hide dimelot image on iPad Mini/Air landscape */
+            .desk-dimelot { display: none !important; }
             .landscape-copy { top: 16vh !important; padding-bottom: 8vh !important; transform: translateY(0) !important; }
           }
         `}
@@ -338,11 +342,19 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
 
           {/* Foreground model/subject (single) */}
           {current.overlayImage && !current.overlayImages && !current.overlayLayouts && (
-            <img
-              src={current.overlayImage}
-              alt="promo artwork"
-              className="absolute right-2 bottom-0 h-[110%] object-contain drop-shadow-2xl hidden sm:block z-[2]"
-            />
+            <>
+              {/** If the single overlay is dimelot.png, only show on desktop (xl+) per client request */}
+              <img
+                src={current.overlayImage}
+                alt="promo artwork"
+                className={cn(
+                  "absolute right-2 bottom-0 h-[110%] object-contain drop-shadow-2xl z-[2]",
+                  current.overlayImage.toLowerCase().includes("dimelot.png")
+                    ? "hidden lg:block desk-dimelot" // desktop (lg+) only; iPad hidden via media queries on .desk-dimelot
+                    : "hidden sm:block" // default behavior
+                )}
+              />
+            </>
           )}
           {/* Foreground models with custom layouts (preferred) */}
           {current.overlayLayouts && current.overlayLayouts.length > 0 && (
@@ -350,23 +362,33 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
               {current.overlayLayouts.map((it, i) => (
                 <React.Fragment key={(it.src || "") + i}>
                   {/* Mobile version (only shows on < sm) */}
-                  <img
-                    src={it.src}
-                    alt={it.alt || `promo artwork ${i + 1}`}
-                    className={cn(
-                      "absolute bottom-0 h-[110%] object-contain drop-shadow-2xl z-[2]",
-                      it.showOnMobile ? "block" : "hidden",
-                      "sm:hidden",
-                      it.mobileClassName
-                    )}
-                  />
+                  {it.src && it.src.toLowerCase().includes("dimelot.png") ? (
+                    <>
+                      {/* dimelot.png hidden on mobile per client request (desktop-only) */}
+                    </>
+                  ) : (
+                    <img
+                      src={it.src}
+                      alt={it.alt || `promo artwork ${i + 1}`}
+                      className={cn(
+                        "absolute bottom-0 h-[110%] object-contain drop-shadow-2xl z-[2]",
+                        it.showOnMobile ? "block" : "hidden",
+                        "sm:hidden",
+                        it.mobileClassName
+                      )}
+                    />
+                  )}
                   {/* Desktop version (>= sm) uses desktop className exactly as provided */}
                   <img
                     src={it.src}
                     alt={it.alt || `promo artwork ${i + 1}`}
                     className={cn(
-                      "absolute bottom-0 h-[110%] object-contain drop-shadow-2xl z-[2] hidden sm:block",
-                      it.className
+                      "absolute bottom-0 h-[110%] object-contain drop-shadow-2xl z-[2]",
+                      it.src && it.src.toLowerCase().includes("dimelot.png")
+                        ? "hidden xl:block" // dimelot.png desktop-only (xl+)
+                        : "hidden sm:block",
+                      it.className,
+                      it.src && it.src.toLowerCase().includes("dimelot.png") && "desk-dimelot"
                     )}
                   />
                 </React.Fragment>
@@ -382,7 +404,8 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
                   src={src}
                   alt={`promo artwork ${i + 1}`}
                   className={cn(
-                    "absolute bottom-0 object-contain drop-shadow-2xl hidden sm:block z-[2]",
+                    "absolute bottom-0 object-contain drop-shadow-2xl z-[2]",
+                    src.toLowerCase().includes("dimelot.png") ? "hidden lg:block desk-dimelot" : "hidden sm:block",
                     i === 0 && "right-2 h-[108%]",
                     i === 1 && "right-[18%] h-[95%] opacity-95",
                     i === 2 && "right-[34%] h-[90%] opacity-90"

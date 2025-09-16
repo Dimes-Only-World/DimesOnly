@@ -146,13 +146,13 @@ interface UserEarningsTabProps {
 }
 
 interface PayoutFormData {
-  payoutMethod: "cashapp" | "paypal" | "wire" | "check" | "";
+  payoutMethod: "paypal" | "venmo" | "wire" | "direct_deposit" | "check" | "";
   // PayPal
   paypalEmail: string;
-  // CashApp
-  cashappCashtag: string;
-  cashappPhone: string;
-  cashappEmail: string;
+  // Venmo
+  venmoUsername: string;
+  venmoPhone: string;
+  venmoEmail: string;
   // Wire Transfer
   wireBankName: string;
   wireRoutingNumber: string;
@@ -169,6 +169,9 @@ interface PayoutFormData {
   checkState: string;
   checkZipCode: string;
   checkCountry: string;
+  // ACH extras (Direct Deposit)
+  achTransactionCode: "22" | "32" | ""; // derived from account type: 22=checking, 32=savings
+  achPayeeId: string; // up to 15 chars
 }
 
 const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
@@ -193,9 +196,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [payoutFormData, setPayoutFormData] = useState<PayoutFormData>({
     payoutMethod: "",
     paypalEmail: "",
-    cashappCashtag: "",
-    cashappPhone: "",
-    cashappEmail: "",
+    venmoUsername: "",
+    venmoPhone: "",
+    venmoEmail: "",
     wireBankName: "",
     wireRoutingNumber: "",
     wireAccountNumber: "",
@@ -210,6 +213,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     checkState: "",
     checkZipCode: "",
     checkCountry: "United States",
+    achTransactionCode: "",
+    achPayeeId: "",
   });
   const [totalReferrals, setTotalReferrals] = useState(0);
   const [recentActivity, setRecentActivity] = useState({
@@ -751,6 +756,23 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         throw new Error("Failed to calculate payout date");
       }
 
+      // Pre-compute ACH metadata (for direct_deposit)
+      const achCode =
+        payoutFormData.wireAccountType === "checking"
+          ? "22"
+          : payoutFormData.wireAccountType === "savings"
+          ? "32"
+          : "";
+      const traceId =
+        `${Date.now().toString().slice(-10)}${Math.floor(Math.random() * 100000)
+          .toString()
+          .padStart(5, "0")}`; // 15 digits max
+
+      // Sanitize ACH fields
+      const achRouting = (payoutFormData.wireRoutingNumber || "").replace(/\D/g, "");
+      const achAccount = (payoutFormData.wireAccountNumber || "").replace(/\D/g, "");
+      const achPayeeName = (payoutFormData.wireAccountHolderName || "").trim().slice(0, 22);
+
       // Insert payout request
       const { data, error } = await supabase
         .from("payout_requests")
@@ -766,39 +788,30 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               ? payoutFormData.paypalEmail
               : null,
 
-          // CashApp fields
-          cashapp_cashtag:
-            payoutFormData.payoutMethod === "cashapp"
-              ? payoutFormData.cashappCashtag
-              : null,
-          cashapp_phone:
-            payoutFormData.payoutMethod === "cashapp"
-              ? payoutFormData.cashappPhone
-              : null,
-          cashapp_email:
-            payoutFormData.payoutMethod === "cashapp"
-              ? payoutFormData.cashappEmail
-              : null,
+          // Cash App removed; keep nulls
+          cashapp_cashtag: null,
+          cashapp_phone: null,
+          cashapp_email: null,
 
           // Wire transfer fields
           wire_bank_name:
-            payoutFormData.payoutMethod === "wire"
+            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
               ? payoutFormData.wireBankName
               : null,
           wire_routing_number:
-            payoutFormData.payoutMethod === "wire"
+            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
               ? payoutFormData.wireRoutingNumber
               : null,
           wire_account_number:
-            payoutFormData.payoutMethod === "wire"
+            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
               ? payoutFormData.wireAccountNumber
               : null,
           wire_account_holder_name:
-            payoutFormData.payoutMethod === "wire"
+            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
               ? payoutFormData.wireAccountHolderName
               : null,
           wire_account_type:
-            payoutFormData.payoutMethod === "wire"
+            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
               ? payoutFormData.wireAccountType
               : null,
           wire_bank_address:
@@ -838,6 +851,28 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           check_country:
             payoutFormData.payoutMethod === "check"
               ? payoutFormData.checkCountry
+              : null,
+
+          // Notes: store Venmo and ACH metadata
+          notes:
+            payoutFormData.payoutMethod === "venmo"
+              ? JSON.stringify({
+                  type: "venmo",
+                  username: payoutFormData.venmoUsername || null,
+                  phone: payoutFormData.venmoPhone || null,
+                  email: payoutFormData.venmoEmail || null,
+                })
+              : payoutFormData.payoutMethod === "direct_deposit"
+              ? JSON.stringify({
+                  type: "ach",
+                  transaction_code: achCode || null,
+                  routing_number: achRouting,
+                  account_number: achAccount,
+                  payee_id: payoutFormData.achPayeeId || null,
+                  payee_name: achPayeeName || null,
+                  amount_cents: Math.round(availableForWithdrawal * 100),
+                  trace_id: traceId,
+                })
               : null,
         })
         .select()
@@ -892,16 +927,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         });
         return false;
       }
-    } else if (payoutMethod === "cashapp") {
-      if (!payoutFormData.cashappCashtag) {
+    } else if (payoutMethod === "venmo") {
+      if (!payoutFormData.venmoUsername) {
         toast({
           title: "Missing Information",
-          description: "CashApp $cashtag is required",
+          description: "Venmo username is required",
           variant: "destructive",
         });
         return false;
       }
-    } else if (payoutMethod === "wire") {
+    } else if (payoutMethod === "wire" || payoutMethod === "direct_deposit") {
       const requiredWireFields = [
         "wireBankName",
         "wireRoutingNumber",
@@ -915,10 +950,34 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       if (missingField) {
         toast({
           title: "Missing Information",
-          description: "All wire transfer fields are required",
+          description: payoutMethod === 'wire' ? "All wire transfer fields are required" : "All direct deposit fields are required",
           variant: "destructive",
         });
         return false;
+      }
+      if (payoutMethod === "direct_deposit") {
+        // Additional ACH requirements per client spec
+        const routing = (payoutFormData.wireRoutingNumber || "").replace(/\D/g, "");
+        const account = (payoutFormData.wireAccountNumber || "").replace(/\D/g, "");
+        const payeeId = (payoutFormData.achPayeeId || "").replace(/[^a-zA-Z0-9]/g, "");
+        const payeeName = (payoutFormData.wireAccountHolderName || "").trim();
+
+        if (!/^\d{9}$/.test(routing)) {
+          toast({ title: "Invalid Routing Number", description: "Routing number must be exactly 9 digits.", variant: "destructive" });
+          return false;
+        }
+        if (!/^\d{1,17}$/.test(account)) {
+          toast({ title: "Invalid Account Number", description: "Account number must be 1–17 digits.", variant: "destructive" });
+          return false;
+        }
+        if (!/^[a-zA-Z0-9]{1,15}$/.test(payeeId)) {
+          toast({ title: "Invalid Payee ID", description: "Payee ID must be alphanumeric and up to 15 characters.", variant: "destructive" });
+          return false;
+        }
+        if (payeeName.length === 0 || payeeName.length > 22) {
+          toast({ title: "Invalid Payee Name", description: "Payee Name is required and must be up to 22 characters.", variant: "destructive" });
+          return false;
+        }
       }
     } else if (payoutMethod === "check") {
       const requiredCheckFields = [
@@ -948,9 +1007,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     setPayoutFormData({
       payoutMethod: "",
       paypalEmail: "",
-      cashappCashtag: "",
-      cashappPhone: "",
-      cashappEmail: "",
+      venmoUsername: "",
+      venmoPhone: "",
+      venmoEmail: "",
       wireBankName: "",
       wireRoutingNumber: "",
       wireAccountNumber: "",
@@ -965,11 +1024,23 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       checkState: "",
       checkZipCode: "",
       checkCountry: "United States",
+      achTransactionCode: "",
+      achPayeeId: "",
     });
   };
 
   const updatePayoutFormData = (field: keyof PayoutFormData, value: string) => {
-    setPayoutFormData((prev) => ({ ...prev, [field]: value }));
+    let v = value;
+    if (field === "wireRoutingNumber") {
+      v = value.replace(/\D/g, "").slice(0, 9);
+    } else if (field === "wireAccountNumber") {
+      v = value.replace(/\D/g, "").slice(0, 17);
+    } else if (field === "achPayeeId") {
+      v = value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 15);
+    } else if (field === "wireAccountHolderName") {
+      v = value.slice(0, 22);
+    }
+    setPayoutFormData((prev) => ({ ...prev, [field]: v }));
   };
 
   const isEligibleForPaymentProgram = () => {
@@ -1724,18 +1795,18 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </Label>
               <Select
                 value={payoutFormData.payoutMethod}
-                onValueChange={(
-                  value: "cashapp" | "paypal" | "wire" | "check"
-                ) => updatePayoutFormData("payoutMethod", value)}
+                onValueChange={(value: "paypal" | "venmo" | "wire" | "direct_deposit" | "check") =>
+                  updatePayoutFormData("payoutMethod", value)
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose how you want to receive your funds" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cashapp">
+                  <SelectItem value="venmo">
                     <div className="flex items-center gap-2">
                       <Smartphone className="w-4 h-4" />
-                      CashApp (Instant)
+                      Venmo (Instant)
                     </div>
                   </SelectItem>
                   <SelectItem value="paypal">
@@ -1750,10 +1821,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       Wire Transfer (1-3 days)
                     </div>
                   </SelectItem>
+                  <SelectItem value="direct_deposit">
+                    <div className="flex items-center gap-2">
+                      <Building className="w-4 h-4" />
+                      ACH Payment (Instant)
+                    </div>
+                  </SelectItem>
                   <SelectItem value="check">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      Check by Mail (5-7 days)
+                      Check by Mail (5-7 days) Jackpots only
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -1796,77 +1873,64 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </Card>
             )}
 
-            {payoutFormData.payoutMethod === "cashapp" && (
+            {payoutFormData.payoutMethod === "venmo" && (
               <Card className="border-green-200 bg-green-50">
                 <CardHeader>
                   <CardTitle className="text-lg text-green-700 flex items-center gap-2">
                     <Smartphone className="w-5 h-5" />
-                    CashApp Information
+                    Venmo Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label
-                      htmlFor="cashappCashtag"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      CashApp $Cashtag *
+                    <Label htmlFor="venmoUsername" className="text-sm font-medium text-gray-700">
+                      Venmo Username *
                     </Label>
                     <Input
-                      id="cashappCashtag"
-                      value={payoutFormData.cashappCashtag}
-                      onChange={(e) =>
-                        updatePayoutFormData("cashappCashtag", e.target.value)
-                      }
-                      placeholder="$YourCashtag"
+                      id="venmoUsername"
+                      value={payoutFormData.venmoUsername}
+                      onChange={(e) => updatePayoutFormData("venmoUsername", e.target.value)}
+                      placeholder="@your-venmo"
                       className="mt-1"
                     />
                   </div>
-                  <div>
-                    <Label
-                      htmlFor="cashappPhone"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Phone Number (Optional)
-                    </Label>
-                    <Input
-                      id="cashappPhone"
-                      value={payoutFormData.cashappPhone}
-                      onChange={(e) =>
-                        updatePayoutFormData("cashappPhone", e.target.value)
-                      }
-                      placeholder="(555) 123-4567"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="cashappEmail"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Email Address (Optional)
-                    </Label>
-                    <Input
-                      id="cashappEmail"
-                      type="email"
-                      value={payoutFormData.cashappEmail}
-                      onChange={(e) =>
-                        updatePayoutFormData("cashappEmail", e.target.value)
-                      }
-                      placeholder="your-email@example.com"
-                      className="mt-1"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="venmoPhone" className="text-sm font-medium text-gray-700">
+                        Phone (optional)
+                      </Label>
+                      <Input
+                        id="venmoPhone"
+                        value={payoutFormData.venmoPhone}
+                        onChange={(e) => updatePayoutFormData("venmoPhone", e.target.value)}
+                        placeholder="(555) 123-4567"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="venmoEmail" className="text-sm font-medium text-gray-700">
+                        Email (optional)
+                      </Label>
+                      <Input
+                        id="venmoEmail"
+                        type="email"
+                        value={payoutFormData.venmoEmail}
+                        onChange={(e) => updatePayoutFormData("venmoEmail", e.target.value)}
+                        placeholder="your-email@example.com"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {payoutFormData.payoutMethod === "wire" && (
+            {(payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit") && (
               <Card className="border-purple-200 bg-purple-50">
                 <CardHeader>
                   <CardTitle className="text-lg text-purple-700 flex items-center gap-2">
                     <Building className="w-5 h-5" />
-                    Wire Transfer Information
+                    {payoutFormData.payoutMethod === 'wire' ? 'Wire Transfer' : 'Direct Deposit (ACH)'} Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

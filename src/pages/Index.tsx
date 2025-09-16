@@ -2,7 +2,7 @@ import React from 'react';
 import HeroBanner from '@/components/HeroBanner';
 import HomePromoRail from '@/components/HomePromoRail';
 import FullWidthVideo from '@/components/FullWidthVideo';
-import VideoWithEmbed from '@/components/VideoWithEmbed';
+//import VideoWithEmbed from '@/components/VideoWithEmbed';
 import ProfileVideoSection from '@/components/ProfileVideoSection';
 import ImageCarousel from '@/components/ImageCarousel';
 import RefAwareActionButtons from '@/components/RefAwareActionButtons';
@@ -103,7 +103,7 @@ const Index: React.FC = () => {
       <FullWidthVideo 
         src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4" 
       />
-      <VideoWithEmbed />
+      {/* <VideoWithEmbed /> */}
       <ProfileVideoSection />
       <ImageCarousel />
       <RefAwareActionButtons />
