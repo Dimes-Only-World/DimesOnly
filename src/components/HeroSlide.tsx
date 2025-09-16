@@ -20,23 +20,34 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ isActive }) => {
         isActive ? "opacity-100" : "opacity-0"
       }`}
     >
-      {/* Desktop video */}
+      <style>
+        {`
+        /* Prefer desktop video on iPads (portrait and landscape) */
+        @media only screen and (min-width: 744px) and (max-width: 1366px) {
+          .hero-desktop-vid { display: block !important; }
+          .hero-phone-vid { display: none !important; }
+        }
+        `}
+      </style>
+      {/* Desktop video (lg and up by default; iPad forced via media queries) */}
       <video
-        className="hidden md:block w-full h-full object-cover"
+        className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover"
         autoPlay
         muted
         loop
         playsInline
+        preload="metadata"
       >
         <source src={desktopSrc} type="video/mp4" />
       </video>
-      {/* Mobile video */}
+      {/* Phone video (below lg by default) */}
       <video
-        className="block md:hidden w-full h-full object-cover"
+        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover"
         autoPlay
         muted
         loop
         playsInline
+        preload="metadata"
       >
         <source src={phoneSrc} type="video/mp4" />
       </video>
