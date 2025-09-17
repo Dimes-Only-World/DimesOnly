@@ -1755,7 +1755,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Ready for Payout</h3>
+                <h3 className="font-medium">Minimum Payout Start at $250.00</h3>
                 <p className="text-sm text-gray-500">
                   You have {formatCurrency(availableForWithdrawal)} available
                   for withdrawal
@@ -1766,7 +1766,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 className="bg-green-600 hover:bg-green-700"
                 disabled={availableForWithdrawal === 0}
               >
-                Request Payout
+                Payout Method
               </Button>
             </div>
           </CardContent>

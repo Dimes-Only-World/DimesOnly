@@ -12,8 +12,8 @@ interface HeroSlideProps {
 // and a desktop 16:9 source for md+ screens. Maintains the fade behavior
 // via the isActive prop to stay compatible with HeroBanner.
 const HeroSlide: React.FC<HeroSlideProps> = ({ isActive }) => {
-    const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).mp4';
-    const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).mp4';
+    const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).webm';
+    const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).webm';
   return (
     <div
       className={`absolute inset-0 transition-opacity duration-700 ${

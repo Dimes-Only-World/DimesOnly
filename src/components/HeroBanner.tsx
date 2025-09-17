@@ -3,8 +3,8 @@ import React from 'react';
 // Video-only hero: legacy slides removed.
 
 const HeroBanner: React.FC = () => {
-  const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).mp4';
-  const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).mp4';
+  const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).webm';
+  const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).webm';
   return (
     <section
       className="relative w-full h-[100svh] min-h-[100svh] overflow-hidden bg-black"
@@ -21,6 +21,12 @@ const HeroBanner: React.FC = () => {
         /* Small-height landscape phones (e.g., 360–480px tall) -> show full frame */
         @media screen and (orientation: landscape) and (max-height: 480px) {
           .hero-phone-vid { object-fit: contain !important; background: #000 !important; }
+        }
+
+        /* Phones in landscape (below 744px width): use desktop 16:9 source */
+        @media screen and (max-width: 743px) and (orientation: landscape) {
+          .hero-desktop-vid { display: block !important; }
+          .hero-phone-vid { display: none !important; }
         }
 
         
