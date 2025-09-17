@@ -475,56 +475,61 @@ const UserDashboard: React.FC = () => {
           <Card className={getCardClasses()}>
             <Tabs defaultValue="profile" className="w-full">
               <div className="border-b bg-gray-50">
-                <TabsList className="w-full justify-start bg-transparent p-0 h-auto flex-wrap">
+                <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   <TabsTrigger
                     value="profile"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <User className="w-4 h-4" />
-                    Profile
+                    <User className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Profile</span>
                   </TabsTrigger>
-                  
+
                   <TabsTrigger
                     value="makemoney"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <Share2 className="w-4 h-4" />
-                    Make Money
+                    <Share2 className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Make Money</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="notifications"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <Bell className="w-4 h-4" />
-                    Notifications
+                    <Bell className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Notifications</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="earnings"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <DollarSign className="w-4 h-4" />
-                    Earnings
+                    <DollarSign className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Earnings</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="messages"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    Messages
+                    <MessageCircle className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Messages</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="media"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <Camera className="w-4 h-4" />
-                    Media
+                    <Camera className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Media</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="jackpot"
-                    className="flex items-center gap-2 px-4 py-3"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
-                    <Trophy className="w-4 h-4" />
-                    Jackpot
+                    <Trophy className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Jackpot</span>
                   </TabsTrigger>
                 </TabsList>
               </div>

@@ -6,7 +6,10 @@ const HeroBanner: React.FC = () => {
   const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).mp4';
   const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).mp4';
   return (
-    <section className="relative w-full h-screen min-h-[100svh] h-[100svh] overflow-hidden bg-black">
+    <section
+      className="relative w-full h-[100svh] min-h-[100svh] overflow-hidden bg-black"
+      style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+    >
       <style>
         {`
         /* Prefer desktop video on iPads (portrait and landscape) */
@@ -14,6 +17,13 @@ const HeroBanner: React.FC = () => {
           .hero-desktop-vid { display: block !important; }
           .hero-phone-vid { display: none !important; }
         }
+
+        /* Small-height landscape phones (e.g., 360–480px tall) -> show full frame */
+        @media screen and (orientation: landscape) and (max-height: 480px) {
+          .hero-phone-vid { object-fit: contain !important; background: #000 !important; }
+        }
+
+        
         `}
       </style>
       {/* Desktop video (lg and up; iPads forced via media queries) */}
