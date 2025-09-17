@@ -6,7 +6,7 @@ const HeroBanner: React.FC = () => {
   const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).mp4';
   const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).mp4';
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-black">
+    <section className="relative w-full h-screen min-h-[100svh] h-[100svh] overflow-hidden bg-black">
       <style>
         {`
         /* Prefer desktop video on iPads (portrait and landscape) */
@@ -18,23 +18,25 @@ const HeroBanner: React.FC = () => {
       </style>
       {/* Desktop video (lg and up; iPads forced via media queries) */}
       <video
-        className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover"
+        className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
         autoPlay
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
+        poster="https://dimesonly.s3.us-east-2.amazonaws.com/Screenshot-2025-05-03-061023-1320x568.png"
       >
         <source src={desktopSrc} type="video/mp4" />
       </video>
-      {/* Phone video (below lg by default) - use object-contain to avoid edge cropping */}
+      {/* Phone video (below lg by default) - fill screen to avoid black bars */}
       <video
-        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-contain object-center bg-black"
+        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
         autoPlay
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
+        poster="https://dimesonly.s3.us-east-2.amazonaws.com/Screenshot-2025-05-03-061023-1320x568.png"
       >
         <source src={phoneSrc} type="video/mp4" />
       </video>
