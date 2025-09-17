@@ -251,7 +251,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
 
   const prettyTier = (t?: string | null) =>
-    (t || "").split('_').join("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
+    (t || "").split("_").join(" ").replace(/\b\w/g, (m) => m.toUpperCase());
 
   // Auto-apply filters with a small debounce to avoid requiring an explicit Apply click
   useEffect(() => {
@@ -1325,7 +1325,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                   {weeklyEarnings.map((earning) => (
                     <div
                       key={earning.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg"
                     >
                       <div className="min-w-0">
                         <p className="font-medium">
@@ -1346,10 +1346,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="w-full sm:w-auto flex items-center justify-between gap-3">
                         <Button
                           variant="secondary"
-                          className="bg-yellow-400 text-black hover:bg-yellow-300"
+                          className="bg-yellow-400 text-black hover:bg-yellow-300 shrink-0 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
                           onClick={() => {
                             setStartDate(String(earning.week_start).slice(0,10));
                             setEndDate(String(earning.week_end).slice(0,10));
@@ -1359,7 +1359,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                         >
                           View Referrals
                         </Button>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <p className="text-lg font-bold">
                             {formatCurrency(earning.amount || 0)}
                           </p>
