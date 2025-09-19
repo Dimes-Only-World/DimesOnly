@@ -42,7 +42,7 @@ const HeroBanner: React.FC = () => {
         preload="auto"
         poster="https://dimesonly.s3.us-east-2.amazonaws.com/Screenshot-2025-05-03-061023-1320x568.png"
       >
-        <source src={desktopSrc} type="video/mp4" />
+        <source src={desktopSrc} type="video/webm" />
       </video>
       {/* Phone video (below lg by default) - fill screen to avoid black bars */}
       <video
@@ -54,7 +54,7 @@ const HeroBanner: React.FC = () => {
         preload="auto"
         poster="https://dimesonly.s3.us-east-2.amazonaws.com/Screenshot-2025-05-03-061023-1320x568.png"
       >
-        <source src={phoneSrc} type="video/mp4" />
+        <source src={phoneSrc} type="video/webm" />
       </video>
     </section>
   );
