@@ -393,7 +393,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
       <div className="absolute inset-0 bg-black bg-opacity-50 z-1"></div>
 
       <div className="relative z-10 text-center max-w-4xl mx-auto p-5">
-        <h1 className="text-4xl md:text-6xl font-bold mb-8 text-yellow-400 uppercase tracking-wider">
+        <h1 className="text-2xl md:text-6xl font-bold mb-8 text-yellow-400 uppercase tracking-wider">
           @{profile.name}
         </h1>
         <div className="relative inline-block">
