@@ -4,7 +4,7 @@ import React from 'react';
 
 const HeroBanner: React.FC = () => {
   const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+1080+HOME+BANNER.webm';
-  const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).webm';
+  const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+1080+cinema+HOME+banner.webm';
   return (
     <section
       className="relative w-full h-[100svh] min-h-[100svh] overflow-hidden bg-black"
