@@ -65,8 +65,9 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen bg-black">
       <HeroBanner />
-      <FullWidthVideo 
-        src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm" 
+      <FullWidthVideo
+      srcDesktop="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+CINEMA.webm"
+      srcMobile="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm"
       />
       {/* <VideoWithEmbed /> */}
       <ProfileVideoSection />
