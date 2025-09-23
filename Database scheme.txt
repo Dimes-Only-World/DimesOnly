@@ -120,32 +120,121 @@ CREATE TABLE public.jackpot (
   CONSTRAINT jackpot_pkey PRIMARY KEY (id),
   CONSTRAINT jackpot_winner_id_fkey FOREIGN KEY (winner_id) REFERENCES public.users(id)
 );
+CREATE TABLE public.jackpot_config (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  active boolean NOT NULL DEFAULT true,
+  fee_percent numeric NOT NULL DEFAULT 0.015,
+  fee_fixed numeric NOT NULL DEFAULT 0.55,
+  upfront_dime numeric NOT NULL DEFAULT 0.20,
+  upfront_referred_dime numeric NOT NULL DEFAULT 0.10,
+  jackpot_percent numeric NOT NULL DEFAULT 0.25,
+  jackpot_base text NOT NULL DEFAULT 'gross'::text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT jackpot_config_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.jackpot_configs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  min_start_amount numeric NOT NULL DEFAULT 4000.00,
+  draw_day text NOT NULL DEFAULT 'Saturday'::text,
+  draw_cutoff_time time without time zone NOT NULL DEFAULT '00:00:00'::time without time zone,
+  time_zone text NOT NULL DEFAULT 'UTC'::text,
+  ticket_per_dollar integer NOT NULL DEFAULT 1,
+  max_tickets_per_txn integer NOT NULL DEFAULT 5,
+  fee_percent numeric NOT NULL DEFAULT 1.500,
+  fee_fixed numeric NOT NULL DEFAULT 0.55,
+  split_to_dime_percent numeric NOT NULL DEFAULT 20.000,
+  split_to_referred_dime_percent numeric NOT NULL DEFAULT 10.000,
+  split_to_jackpot_percent numeric NOT NULL DEFAULT 25.000,
+  prize_pct_first numeric NOT NULL DEFAULT 25.000,
+  prize_pct_second numeric NOT NULL DEFAULT 7.500,
+  prize_pct_third numeric NOT NULL DEFAULT 3.750,
+  min_prize numeric NOT NULL DEFAULT 1000.00,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT jackpot_configs_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.jackpot_draws (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  pool_id uuid,
+  drawn_code character NOT NULL CHECK (drawn_code ~ '^[A-Z]{5}$'::text),
+  pool_snapshot numeric NOT NULL DEFAULT 0.00,
+  executed_at timestamp with time zone NOT NULL DEFAULT now(),
+  had_winner boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT jackpot_draws_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.jackpot_ledger (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  tip_id uuid,
+  tipper_id uuid,
+  dime_id uuid,
+  referred_dime_id uuid,
+  gross_amount numeric NOT NULL DEFAULT 0.00,
+  fee_percent numeric NOT NULL DEFAULT 1.500,
+  fee_fixed numeric NOT NULL DEFAULT 0.55,
+  fee_amount numeric NOT NULL DEFAULT 0.00,
+  to_dime numeric NOT NULL DEFAULT 0.00,
+  to_referred_dime numeric NOT NULL DEFAULT 0.00,
+  to_jackpot numeric NOT NULL DEFAULT 0.00,
+  to_company numeric NOT NULL DEFAULT 0.00,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT jackpot_ledger_pkey PRIMARY KEY (id),
+  CONSTRAINT jackpot_ledger_tipper_id_fkey FOREIGN KEY (tipper_id) REFERENCES public.users(id),
+  CONSTRAINT jackpot_ledger_dime_id_fkey FOREIGN KEY (dime_id) REFERENCES public.users(id),
+  CONSTRAINT jackpot_ledger_referred_dime_id_fkey FOREIGN KEY (referred_dime_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.jackpot_pools (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  period_start timestamp with time zone NOT NULL DEFAULT now(),
+  period_end timestamp with time zone,
+  current_amount numeric NOT NULL DEFAULT 0.00,
+  rollover_amount numeric NOT NULL DEFAULT 0.00,
+  status text NOT NULL DEFAULT 'open'::text CHECK (status = ANY (ARRAY['open'::text, 'ready'::text, 'drawn'::text, 'closed'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT jackpot_pools_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.jackpot_tickets (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid,
   tip_id uuid,
   tickets_count integer NOT NULL DEFAULT 1,
-  draw_date date NOT NULL,
+  draw_date date NOT NULL DEFAULT jackpot_next_saturday(now()),
   is_winner boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   source text,
   source_transaction_id text,
   ticket_code text,
+  tipper_id uuid,
+  dime_id uuid,
+  referred_dime_id uuid,
+  pool_id uuid,
+  code character CHECK (code ~ '^[A-Z]{5}$'::text),
+  year integer DEFAULT (EXTRACT(year FROM jackpot_next_saturday(now())))::integer,
   CONSTRAINT jackpot_tickets_pkey PRIMARY KEY (id),
   CONSTRAINT jackpot_tickets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT jackpot_tickets_tip_id_fkey FOREIGN KEY (tip_id) REFERENCES public.tips(id)
+  CONSTRAINT jackpot_tickets_tipper_id_fkey FOREIGN KEY (tipper_id) REFERENCES public.users(id),
+  CONSTRAINT jackpot_tickets_dime_id_fkey FOREIGN KEY (dime_id) REFERENCES public.users(id),
+  CONSTRAINT jackpot_tickets_referred_dime_id_fkey FOREIGN KEY (referred_dime_id) REFERENCES public.users(id),
+  CONSTRAINT jackpot_tickets_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES public.jackpot_pools(id)
 );
 CREATE TABLE public.jackpot_winners (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid,
-  username text NOT NULL,
+  username text,
   profile_photo text,
-  amount_won numeric NOT NULL,
-  draw_date date NOT NULL,
-  year integer NOT NULL,
+  amount_won numeric,
+  draw_date date DEFAULT now(),
+  year integer DEFAULT (EXTRACT(year FROM now()))::integer,
   created_at timestamp with time zone DEFAULT now(),
+  draw_id uuid,
+  role text CHECK (role = ANY (ARRAY['tipper'::text, 'dime'::text, 'referred_dime'::text])),
+  place integer CHECK (place = ANY (ARRAY[1, 2, 3])),
+  percentage numeric,
+  amount numeric,
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'paid'::text, 'void'::text])),
   CONSTRAINT jackpot_winners_pkey PRIMARY KEY (id),
-  CONSTRAINT jackpot_winners_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT jackpot_winners_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT jackpot_winners_draw_id_fkey FOREIGN KEY (draw_id) REFERENCES public.jackpot_draws(id)
 );
 CREATE TABLE public.media_comments (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -270,7 +359,7 @@ CREATE TABLE public.payout_requests (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   amount numeric NOT NULL,
-  payout_method text NOT NULL CHECK (payout_method = ANY (ARRAY['cashapp'::text, 'paypal'::text, 'wire'::text, 'check'::text])),
+  payout_method text NOT NULL CHECK (payout_method = ANY (ARRAY['paypal'::text, 'venmo'::text, 'wire'::text, 'direct_deposit'::text, 'check'::text])),
   paypal_email text,
   cashapp_cashtag text,
   cashapp_phone text,

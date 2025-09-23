@@ -11,9 +11,8 @@ import {
   Share2,
   Trophy,
   LogOut,
-  Crown,
-  CheckCircle2,
   Heart,
+  CheckCircle2,
 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
@@ -62,8 +61,6 @@ const UserDashboard: React.FC = () => {
       getCurrentUser();
     }
   }, [user?.id]);
-
-  // Default to profile tab; no URL-hash based tab switching
 
   // Check for active Diamond subscription (any cadence)
   useEffect(() => {
@@ -335,6 +332,20 @@ const UserDashboard: React.FC = () => {
     );
   }
 
+  // Choose hero video based on user_type (stripper/exotic => WEBM, otherwise => MP4)
+  // Also provide a mobile-specific source like on the Home page.
+  const userType = (userData.user_type || "").toLowerCase();
+
+  // Desktop sources by role
+  const heroVideoDesktopUrl =
+    userType === "stripper" || userType === "exotic"
+      ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+1080+cinema+HOME+banner.webm"
+      : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
+
+  // Mobile (portrait) source
+  const heroVideoMobileUrl =
+    "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm";
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -379,7 +390,8 @@ const UserDashboard: React.FC = () => {
         {/* Full-bleed dashboard video header (outside container) */}
         <div className={`${isMobile ? "py-4" : "py-8"}`}>
           <DashboardVideoHeader
-            videoUrl="https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4"
+            srcDesktop={heroVideoDesktopUrl}
+            srcMobile={heroVideoMobileUrl}
             thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           />
         </div>
@@ -448,9 +460,7 @@ const UserDashboard: React.FC = () => {
           )}
 
           <Card
-            className={`${
-              isMobile ? "mb-4 mx-0 rounded-none" : "mb-8"
-            } overflow-hidden`}
+            className={`${isMobile ? "mb-4 mx-0 rounded-none" : "mb-8"} overflow-hidden`}
           >
             <DashboardBanner
               bannerPhoto={userData.banner_photo}
@@ -471,7 +481,6 @@ const UserDashboard: React.FC = () => {
           </div>
 
           {/* Rest of dashboard content */}
-
           <Card className={getCardClasses()}>
             <Tabs defaultValue="profile" className="w-full">
               <div className="border-b bg-gray-50">
@@ -510,7 +519,7 @@ const UserDashboard: React.FC = () => {
 
                   <TabsTrigger
                     value="messages"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
                     <MessageCircle className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Messages</span>
@@ -518,7 +527,7 @@ const UserDashboard: React.FC = () => {
 
                   <TabsTrigger
                     value="media"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
                     <Camera className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Media</span>
@@ -526,7 +535,7 @@ const UserDashboard: React.FC = () => {
 
                   <TabsTrigger
                     value="jackpot"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
                   >
                     <Trophy className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Jackpot</span>
@@ -554,8 +563,6 @@ const UserDashboard: React.FC = () => {
                     </div>
                   </div>
                 </TabsContent>
-
-                
 
                 <TabsContent value="notifications" className="mt-0">
                   <UserNotificationsTab />

@@ -4,8 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -38,12 +37,43 @@ serve(async (req) => {
       paypal_capture_id: string;
     };
 
-    if (!tipper_id || !tipped_username || !amount || !paypal_capture_id) {
+    // Basic presence checks
+    if (!tipper_id || !tipped_username || amount == null || !paypal_capture_id) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        headers: corsHeaders,
+        status: 400,
+      });
+    }
+
+    // Numeric validation and business rules
+    const MIN_TIP = 5;
+    const MAX_TIP = 1000;
+
+    // Ensure amount is a finite number
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount)) {
+      return new Response(JSON.stringify({ error: "Invalid amount" }), {
+        headers: corsHeaders,
+        status: 400,
+      });
+    }
+
+    if (parsedAmount < MIN_TIP) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
+        JSON.stringify({ error: `Minimum tip is $${MIN_TIP}.` }),
         { headers: corsHeaders, status: 400 }
       );
     }
+
+    if (parsedAmount > MAX_TIP) {
+      return new Response(
+        JSON.stringify({ error: `Maximum tip per transaction is $${MAX_TIP}.` }),
+        { headers: corsHeaders, status: 400 }
+      );
+    }
+
+    // Tickets are whole dollars only
+    const ticketCount = Math.max(0, Math.floor(parsedAmount));
 
     // Fetch tipped user ID
     const { data: tippedUser, error: tippedErr } = await supabase
@@ -59,7 +89,7 @@ serve(async (req) => {
       .from("payments")
       .insert({
         user_id: tipper_id,
-        amount,
+        amount: parsedAmount,
         payment_status: "completed",
         payment_type: "tip",
         paypal_transaction_id: paypal_capture_id,
@@ -71,7 +101,7 @@ serve(async (req) => {
     if (payErr) throw new Error(payErr.message);
 
     // commissions
-    const refCommission = referrer_username ? amount * 0.2 : 0;
+    const refCommission = referrer_username ? parsedAmount * 0.2 : 0;
 
     // basic tip row and capture id
     const { data: tipRow, error: tipErr } = await supabase
@@ -80,8 +110,8 @@ serve(async (req) => {
         tipper_username: tipper_username || "anonymous",
         tipped_username,
         user_id: tipper_id,
-        tip_amount: amount,
-        tickets_generated: Math.floor(amount),
+        tip_amount: parsedAmount,
+        tickets_generated: ticketCount,
         paypal_transaction_id: paypal_capture_id,
         referrer_username: referrer_username || null,
         status: "completed",
@@ -98,14 +128,14 @@ serve(async (req) => {
         tipper_user_id: tipper_id,
         tipped_user_id: tippedUser.id,
         tipped_username,
-        tip_amount: amount,
+        tip_amount: parsedAmount,
         payment_method: "paypal",
         payment_id: payment.id,
         payment_status: "completed",
         paypal_order_id: paypal_capture_id,
         referrer_username: referrer_username || null,
         referrer_commission: refCommission,
-        tickets_generated: Math.floor(amount),
+        tickets_generated: ticketCount,
         completed_at: new Date().toISOString(),
       })
       .select()
@@ -113,37 +143,71 @@ serve(async (req) => {
 
     if (tipTxnErr) throw new Error(tipTxnErr.message);
 
-    // Generate ticket codes
+    // Generate ticket codes (MUST match DB constraint: ^[A-Z]{5}$)
     const ticketCodes: string[] = [];
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    for (let i = 0; i < Math.floor(amount); i++) {
-      let code = "";
-      for (let j = 0; j < 7; j++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (ticketCount > 0) {
+      const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const CODE_LEN = 5; // exactly 5 letters
+      for (let i = 0; i < ticketCount; i++) {
+        let code = "";
+        for (let j = 0; j < CODE_LEN; j++) {
+          code += ALPHA.charAt(Math.floor(Math.random() * ALPHA.length));
+        }
+        ticketCodes.push(code);
       }
-      ticketCodes.push(code);
     }
 
-    // Insert into tickets table
+    // Keep the legacy 'tickets' table insert (no changes)
     if (ticketCodes.length) {
       const ticketRows = ticketCodes.map((code) => ({
         ticket_number: code,
         tip_id: tipRow.id,
-        user_Id: tipper_id,
+        user_Id: tipper_id, // preserved casing per your existing schema
         username: tipper_username || "anonymous",
       }));
       const { error: tErr } = await supabase.from("tickets").insert(ticketRows);
       if (tErr) console.error("tickets insert error", tErr);
     }
 
-    // Insert aggregate row into jackpot_tickets
-    const { error: jpErr } = await supabase.from("jackpot_tickets").insert({
-      user_id: tipper_id,
-      tip_id: tipRow.id,
-      tickets_count: Math.floor(amount),
-      draw_date: getNextDrawDate(),
-    });
-    if (jpErr) console.error("jackpot_tickets insert error", jpErr);
+    // Determine active pool_id for jackpot_tickets so the UI can display codes
+    let poolId: string | null = null;
+    try {
+      const { data: poolView, error: pvErr } = await supabase
+        .from("v_jackpot_active_pool")
+        .select("pool_id")
+        .single();
+      if (!pvErr && poolView?.pool_id) {
+        poolId = poolView.pool_id;
+      }
+    } catch (_) {
+      // ignore and fallback
+    }
+    if (!poolId) {
+      const { data: poolRow } = await supabase
+        .from("jackpot_pools")
+        .select("id")
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      poolId = poolRow?.id || null;
+    }
+
+    // Insert individual rows in jackpot_tickets so UserJackpotTab.tsx can query by tipper_id + pool_id and read 'code'
+    if (poolId && ticketCodes.length) {
+      const jtRows = ticketCodes.map((code) => ({
+        code,
+        tipper_id: tipper_id,
+        pool_id: poolId,
+        // created_at default now() via DB
+      }));
+      const { error: jtErr } = await supabase.from("jackpot_tickets").insert(jtRows);
+      if (jtErr) {
+        console.error("jackpot_tickets insert error", jtErr);
+      }
+    } else if (!poolId) {
+      console.warn("No active pool found; skipping jackpot_tickets insert");
+    }
 
     // Referrer commission
     if (referrer_username && refCommission > 0) {

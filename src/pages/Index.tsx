@@ -5,6 +5,7 @@ import FullWidthVideo from '@/components/FullWidthVideo';
 import ProfileVideoSection from '@/components/ProfileVideoSection';
 import ImageCarousel from '@/components/ImageCarousel';
 import RefAwareActionButtons from '@/components/RefAwareActionButtons';
+import JackpotWinnersBanner from '@/components/JackpotWinnersBanner';
 import PositionCounter from '@/components/PositionCounter';
 import SecuritySection from '@/components/SecuritySection';
 import Footer from '@/components/Footer';
@@ -66,13 +67,14 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-black">
       <HeroBanner />
       <FullWidthVideo
-      srcDesktop="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+CINEMA.webm"
-      srcMobile="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm"
+        srcDesktop="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+CINEMA.webm"
+        srcMobile="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm"
       />
       {/* <VideoWithEmbed /> */}
       <ProfileVideoSection />
       <ImageCarousel />
       <RefAwareActionButtons />
+      <JackpotWinnersBanner />
       <PositionCounter />
       <SecuritySection />
       <Footer />

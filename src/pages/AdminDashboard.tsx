@@ -10,6 +10,7 @@ import AdminRankingTab from "@/components/AdminRankingTab";
 import AdminNotificationTab from "@/components/AdminNotificationTab";
 import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
+import AdminJackpotTab from "@/components/AdminJackpotTab";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -70,6 +71,9 @@ const AdminDashboard: React.FC = () => {
                 <TabsTrigger value="users" className="whitespace-nowrap">
                   Users
                 </TabsTrigger>
+                <TabsTrigger value="jackpot" className="whitespace-nowrap">
+                  Jackpot
+                </TabsTrigger>
                 <TabsTrigger value="earnings" className="whitespace-nowrap">
                   Earnings
                 </TabsTrigger>
@@ -97,6 +101,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="users">
             <AdminUsersListEnhanced />
+          </TabsContent>
+
+          <TabsContent value="jackpot">
+            <AdminJackpotTab />
           </TabsContent>
 
           <TabsContent value="earnings">
