@@ -22,6 +22,12 @@ type WinnerRow = {
   status: string | null;
 };
 
+type Profile = {
+  username: string | null;
+  profile_photo: string | null;
+};
+type ProfilesMap = Record<string, Profile>;
+
 const roleOrder: Record<string, number> = {
   // Grand Prize
   tipper: 1,
@@ -111,11 +117,12 @@ const JackpotWinnersBanner: React.FC = () => {
   const [winners, setWinners] = useState<WinnerRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch: get latest draw_id, then all rows for that draw, then hydrate with user profiles.
+  // Fetch: latest draw_id, winners for that draw, then hydrate user profiles.
   useEffect(() => {
     const run = async () => {
       try {
         setLoading(true);
+
         // 1) Find latest draw by executed_at
         const { data: latest, error: latestErr } = await supabase
           .from("v_jackpot_latest_winners")
@@ -128,7 +135,7 @@ const JackpotWinnersBanner: React.FC = () => {
           return;
         }
 
-        const drawId = latest[0].draw_id;
+        const drawId: string = String(latest[0].draw_id);
 
         // 2) Get all winners for that draw
         const { data: all, error: allErr } = await supabase
@@ -143,30 +150,50 @@ const JackpotWinnersBanner: React.FC = () => {
         }
 
         // 3) Fetch profile info for these user_ids
-        const ids = Array.from(new Set(all.map((w: any) => w.user_id)));
-        let profiles: Record<string, { username: string | null; profile_photo: string | null }> =
-          {};
+        const ids: string[] = Array.from(
+          new Set((all as any[]).map((w) => String(w.user_id)))
+        );
+        let profiles: ProfilesMap = {};
         if (ids.length) {
           const { data: users } = await supabase
             .from("users")
             .select("id, username, profile_photo")
             .in("id", ids);
           for (const u of users || []) {
-            profiles[u.id] = {
-              username: u.username,
-              profile_photo: u.profile_photo,
+            const key = String(u.id);
+            profiles[key] = {
+              username: u.username ?? null,
+              profile_photo: u.profile_photo ?? null,
             };
           }
         }
 
-        // 4) Enrich winners with username/photo
-        const enriched = (all as any[]).map((w) => {
-          const p = profiles[w.user_id] || {};
+        // 4) Enrich winners with username/photo (prefer row data, fallback to fetched profile)
+        const enriched: WinnerRow[] = (all as any[]).map((w) => {
+          const key = String(w.user_id);
+          const p = profiles[key];
           return {
-            ...w,
-            username: w.username ?? p.username ?? null,
-            profile_photo: w.profile_photo ?? p.profile_photo ?? null,
-          } as WinnerRow;
+            draw_id: String(w.draw_id),
+            drawn_code: w.drawn_code ?? null,
+            executed_at: String(w.executed_at),
+            user_id: key,
+            username: (w.username ?? (p?.username ?? null)) as string | null,
+            profile_photo: (w.profile_photo ?? (p?.profile_photo ?? null)) as
+              | string
+              | null,
+            role: w.role as WinnerRow["role"],
+            place: Number(w.place) as WinnerRow["place"],
+            percentage:
+              (typeof w.percentage === "number"
+                ? w.percentage
+                : w.percentage ?? null) as string | number | null,
+            amount:
+              (typeof w.amount === "number" ? w.amount : w.amount ?? null) as
+                | string
+                | number
+                | null,
+            status: (w.status ?? null) as string | null,
+          };
         });
 
         // 5) Sort for display: by place, then by our role order within the place
@@ -182,6 +209,7 @@ const JackpotWinnersBanner: React.FC = () => {
         setLoading(false);
       }
     };
+
     run();
   }, []);
 
