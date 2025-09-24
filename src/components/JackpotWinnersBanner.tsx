@@ -1,103 +1,189 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/lib/supabase";
 
 type WinnerRow = {
   draw_id: string;
-  drawn_code: string;
+  drawn_code: string | null;
   executed_at: string;
   user_id: string;
-  role: "tipper" | "dime" | "referred_dime";
-  place: 1 | 2 | 3;
-  percentage: number | null;
-  amount: number | null;
-  status: "pending" | "approved" | "paid" | "void";
-};
-
-type UserProfile = {
-  id: string;
   username: string | null;
   profile_photo: string | null;
+  role:
+    | "tipper"
+    | "dime"
+    | "referred_dime"
+    | "dime_referred_dime"
+    | "referred_dime_referrer"
+    | "who_referred_tipper";
+  place: 1 | 2 | 3;
+  percentage: string | number | null;
+  amount: string | number | null;
+  status: string | null;
 };
 
-const formatMoney = (n?: number | null) =>
-  Number(n || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
+const roleOrder: Record<string, number> = {
+  // Grand Prize
+  tipper: 1,
+  dime: 2,
+  referred_dime: 3,
+  // 2nd Place
+  dime_referred_dime: 4,
+  referred_dime_referrer: 5,
+  // 3rd Place
+  who_referred_tipper: 6,
+};
+
+function roleLabel(role: WinnerRow["role"]): string {
+  switch (role) {
+    case "tipper":
+      return "Grand Prize • Tipper";
+    case "dime":
+      return "Grand Prize • Dime Winner";
+    case "referred_dime":
+      return "Grand Prize • Dime Recruiter Winner";
+    case "dime_referred_dime":
+      return "2nd Place";
+    case "referred_dime_referrer":
+      return "2nd Place";
+    case "who_referred_tipper":
+      return "3rd Place";
+    default:
+      return "";
+  }
+}
+
+function formatCurrency(v: string | number | null | undefined): string {
+  const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : 0;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     maximumFractionDigits: 2,
-  });
+  }).format(n || 0);
+}
 
-const placeLabel = (place: number) =>
-  place === 1 ? "Grand Prize" : place === 2 ? "Second Place" : "Third Place";
+const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
+  const photo =
+    w.profile_photo ||
+    "https://dimesonly.s3.us-east-2.amazonaws.com/default-avatar.png";
+  const name = w.username || "User";
+  const amount = formatCurrency(w.amount);
 
-const rolePretty = (role: WinnerRow["role"]) =>
-  role.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return (
+    <div className="w-full">
+      <div className="flex items-center gap-4 p-4 rounded-2xl border border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900 transition">
+        <div className="shrink-0">
+          <div className="w-24 h-24 md:w-28 md:h-28 rounded-lg overflow-hidden bg-neutral-800 border border-neutral-700">
+            <img
+              src={photo}
+              alt={name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-white text-lg md:text-xl font-semibold truncate">
+                {name}
+              </div>
+              <div className="text-neutral-400 text-sm md:text-base">
+                {roleLabel(w.role)}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-neutral-400 text-xs md:text-sm uppercase tracking-wide">
+                Prize
+              </div>
+              <div className="text-emerald-400 text-lg md:text-2xl font-bold tabular-nums">
+                {amount}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const JackpotWinnersBanner: React.FC = () => {
   const [winners, setWinners] = useState<WinnerRow[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, UserProfile>>({});
   const [loading, setLoading] = useState(true);
 
+  // Fetch: get latest draw_id, then all rows for that draw, then hydrate with user profiles.
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
+    const run = async () => {
       try {
-        const { data, error } = await supabase
+        setLoading(true);
+        // 1) Find latest draw by executed_at
+        const { data: latest, error: latestErr } = await supabase
           .from("v_jackpot_latest_winners")
-          .select(
-            "draw_id, drawn_code, executed_at, user_id, role, place, percentage, amount, status"
-          )
+          .select("draw_id, executed_at")
           .order("executed_at", { ascending: false })
-          .limit(50);
+          .limit(1);
 
-        if (error || !data || data.length === 0) {
+        if (latestErr || !latest?.length) {
           setWinners([]);
-          setLoading(false);
           return;
         }
 
-        // Most recent draw
-        const sorted = (data as WinnerRow[]).sort(
-          (a, b) =>
-            new Date(b.executed_at).getTime() - new Date(a.executed_at).getTime()
-        );
-        const latestDrawId = sorted[0].draw_id;
-        const latest = sorted.filter((w) => w.draw_id === latestDrawId);
+        const drawId = latest[0].draw_id;
 
-        // Show places 1–3
-        const top = latest
-          .filter((w) => [1, 2, 3].includes(w.place))
-          .sort((a, b) => a.place - b.place);
+        // 2) Get all winners for that draw
+        const { data: all, error: allErr } = await supabase
+          .from("v_jackpot_latest_winners")
+          .select("*")
+          .eq("draw_id", drawId)
+          .order("place", { ascending: true });
 
-        setWinners(top);
+        if (allErr || !all?.length) {
+          setWinners([]);
+          return;
+        }
 
-        // Load minimal profiles
-        const ids = Array.from(new Set(top.map((w) => w.user_id)));
+        // 3) Fetch profile info for these user_ids
+        const ids = Array.from(new Set(all.map((w: any) => w.user_id)));
+        let profiles: Record<string, { username: string | null; profile_photo: string | null }> =
+          {};
         if (ids.length) {
           const { data: users } = await supabase
             .from("users")
             .select("id, username, profile_photo")
             .in("id", ids);
-          const map: Record<string, UserProfile> = {};
-          (users || []).forEach((u: any) => {
-            map[u.id] = u;
-          });
-          setProfiles(map);
+          for (const u of users || []) {
+            profiles[u.id] = {
+              username: u.username,
+              profile_photo: u.profile_photo,
+            };
+          }
         }
-      } catch (e) {
-        console.error(e);
+
+        // 4) Enrich winners with username/photo
+        const enriched = (all as any[]).map((w) => {
+          const p = profiles[w.user_id] || {};
+          return {
+            ...w,
+            username: w.username ?? p.username ?? null,
+            profile_photo: w.profile_photo ?? p.profile_photo ?? null,
+          } as WinnerRow;
+        });
+
+        // 5) Sort for display: by place, then by our role order within the place
+        const sorted = enriched.sort((a, b) => {
+          if (a.place !== b.place) return a.place - b.place;
+          const ao = roleOrder[a.role] ?? 999;
+          const bo = roleOrder[b.role] ?? 999;
+          return ao - bo;
+        });
+
+        setWinners(sorted);
       } finally {
         setLoading(false);
       }
     };
-
-    load();
+    run();
   }, []);
-
-  const executedAt = useMemo(() => {
-    if (!winners.length) return null;
-    return new Date(winners[0].executed_at);
-  }, [winners]);
 
   const executedAtLocal = useMemo(() => {
     if (!winners.length) return null;
@@ -105,34 +191,62 @@ const JackpotWinnersBanner: React.FC = () => {
     return d.toLocaleString("en-US", { timeZone: "America/New_York" });
   }, [winners]);
 
+  const drawnCode = useMemo(() => {
+    if (!winners.length) return null;
+    return winners[0].drawn_code || null;
+  }, [winners]);
+
+  const grandPrize = useMemo(
+    () => winners.filter((w) => w.place === 1),
+    [winners]
+  );
+  const secondPlace = useMemo(
+    () => winners.filter((w) => w.place === 2),
+    [winners]
+  );
+  const thirdPlace = useMemo(
+    () => winners.filter((w) => w.place === 3),
+    [winners]
+  );
+
   return (
     <section className="bg-neutral-950 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Outer box to keep header + grid visually together */}
         <Card className="bg-neutral-950 border border-neutral-900/80 rounded-2xl">
           <CardContent className="p-6 md:p-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
               <div>
-                <h3 className="text-white text-2xl font-semibold">Latest Jackpot Winners</h3>
+                <h3 className="text-white text-2xl md:text-3xl font-semibold">
+                  Latest Jackpot Winners
+                </h3>
                 {loading ? (
-                <p className="text-neutral-500 text-sm">Loading latest results…</p>
-              ) : executedAtLocal ? (
-                <p className="text-neutral-400 text-sm">
-                  Drawn on <span className="text-neutral-300 font-medium">{executedAtLocal}</span>
-                </p>
-              ) : (
-                <p className="text-neutral-400 text-sm">No winners yet. Check back soon.</p>
-              )}
+                  <p className="text-neutral-500 text-sm">
+                    Loading latest results…
+                  </p>
+                ) : executedAtLocal ? (
+                  <p className="text-neutral-400 text-sm">
+                    Drawn on{" "}
+                    <span className="text-neutral-300 font-medium">
+                      {executedAtLocal}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-neutral-400 text-sm">
+                    No winners yet. Check back soon.
+                  </p>
+                )}
               </div>
 
-              {/* Code badge: stacks under title on small, right on md+ */}
+              {/* Winning Ticket ID pill */}
               {winners.length > 0 ? (
                 <div className="md:shrink-0">
                   <span className="inline-flex items-center gap-2 rounded-full bg-neutral-900 border border-neutral-800 px-3 py-1">
-                    <span className="text-neutral-400 text-xs uppercase tracking-wide">Winning Ticket ID</span>
+                    <span className="text-neutral-400 text-xs uppercase tracking-wide">
+                      Winning Ticket ID
+                    </span>
                     <span className="font-mono text-indigo-300 text-sm">
-                      {winners[0].drawn_code}
+                      {drawnCode}
                     </span>
                   </span>
                 </div>
@@ -140,55 +254,53 @@ const JackpotWinnersBanner: React.FC = () => {
             </div>
 
             {/* Content */}
-            {loading ? (
-              <div className="text-center text-neutral-400">Please wait…</div>
-            ) : winners.length === 0 ? (
-              <div className="text-center text-neutral-400">No winners to display.</div>
+            {winners.length === 0 && !loading ? (
+              <div className="text-neutral-400 text-sm">
+                No winners to display.
+              </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-                {winners.map((w) => {
-                  const u = profiles[w.user_id];
-                  const username = u?.username || "";
-                  const displayName = username || "User";
-                  const avatar = u?.profile_photo || "";
-                  const initial = (displayName[0] || "U").toUpperCase();
+              <div className="space-y-8">
+                {/* Grand Prize Section */}
+                {grandPrize.length > 0 && (
+                  <section>
+                    <h4 className="text-white text-xl md:text-2xl font-semibold mb-4">
+                      Grand Prize
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {grandPrize.map((w) => (
+                        <WinnerCard key={`${w.user_id}-${w.role}`} w={w} />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-                  return (
-                    <Card
-                      key={`${w.draw_id}:${w.user_id}`}
-                      className="bg-neutral-900/70 border border-neutral-800 hover:border-neutral-700 transition-colors rounded-xl shadow-sm"
-                    >
-                      <CardContent className="p-4">
-                        {/* Person */}
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            {avatar ? (
-                              <AvatarImage src={avatar} alt={displayName} />
-                            ) : (
-                              <AvatarFallback>{initial}</AvatarFallback>
-                            )}
-                          </Avatar>
-                          <div className="min-w-0">
-                            <div className="text-white font-medium truncate">{displayName}</div>
-                            <div className="text-neutral-400 text-[11px]">
-                              {placeLabel(w.place)} • {rolePretty(w.role)}
-                            </div>
-                          </div>
-                        </div>
+                {/* 2nd Place Section */}
+                {secondPlace.length > 0 && (
+                  <section>
+                    <h4 className="text-white text-xl md:text-2xl font-semibold mb-4">
+                      2nd Place
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {secondPlace.map((w) => (
+                        <WinnerCard key={`${w.user_id}-${w.role}`} w={w} />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-                        {/* Prize */}
-                        <div className="mt-4 rounded-lg bg-neutral-900 border border-neutral-800 p-3">
-                          <div className="flex items-baseline justify-between">
-                            <div className="text-neutral-400 text-xs uppercase tracking-wide">Prize</div>
-                            <div className="text-emerald-300 text-lg md:text-xl font-semibold">
-                              ${formatMoney(w.amount)}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {/* 3rd Place Section */}
+                {thirdPlace.length > 0 && (
+                  <section>
+                    <h4 className="text-white text-xl md:text-2xl font-semibold mb-4">
+                      3rd Place
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {thirdPlace.map((w) => (
+                        <WinnerCard key={`${w.user_id}-${w.role}`} w={w} />
+                      ))}
+                    </div>
+                  </section>
+                )}
               </div>
             )}
           </CardContent>
@@ -197,4 +309,5 @@ const JackpotWinnersBanner: React.FC = () => {
     </section>
   );
 };
+
 export default JackpotWinnersBanner;

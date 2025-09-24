@@ -143,17 +143,32 @@ serve(async (req) => {
 
     if (tipTxnErr) throw new Error(tipTxnErr.message);
 
-    // Generate ticket codes (MUST match DB constraint: ^[A-Z]{5}$)
+    // Generate ticket codes (exactly 5 UPPERCASE letters, all different per code)
     const ticketCodes: string[] = [];
     if (ticketCount > 0) {
       const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      const CODE_LEN = 5; // exactly 5 letters
-      for (let i = 0; i < ticketCount; i++) {
-        let code = "";
-        for (let j = 0; j < CODE_LEN; j++) {
-          code += ALPHA.charAt(Math.floor(Math.random() * ALPHA.length));
+      const CODE_LEN = 5;
+
+      // avoid duplicates within this single tip
+      const batchCodes = new Set<string>();
+
+      const makeUniqueCode = (): string => {
+        // pick 5 distinct letters
+        const picked = new Set<string>();
+        while (picked.size < CODE_LEN) {
+          const ch = ALPHA.charAt(Math.floor(Math.random() * ALPHA.length));
+          picked.add(ch);
         }
-        ticketCodes.push(code);
+        // join in insertion order (random enough)
+        return Array.from(picked).join("");
+      };
+
+      while (ticketCodes.length < ticketCount) {
+        const code = makeUniqueCode();
+        if (!batchCodes.has(code)) {
+          batchCodes.add(code);
+          ticketCodes.push(code);
+        }
       }
     }
 
