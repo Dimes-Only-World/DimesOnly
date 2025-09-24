@@ -197,7 +197,8 @@ serve(async (req) => {
     if (poolId && ticketCodes.length) {
       const jtRows = ticketCodes.map((code) => ({
         code,
-        tipper_id: tipper_id,
+        tipper_id: tipper_id,           // who tipped
+        tipped_user_id: tippedUser.id,  // who was tipped (Dime) — critical for Force Draw to derive the chain
         pool_id: poolId,
         // created_at default now() via DB
       }));

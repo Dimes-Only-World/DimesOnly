@@ -99,6 +99,12 @@ const JackpotWinnersBanner: React.FC = () => {
     return new Date(winners[0].executed_at);
   }, [winners]);
 
+  const executedAtLocal = useMemo(() => {
+    if (!winners.length) return null;
+    const d = new Date(winners[0].executed_at);
+    return d.toLocaleString("en-US", { timeZone: "America/New_York" });
+  }, [winners]);
+
   return (
     <section className="bg-neutral-950 py-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -110,24 +116,21 @@ const JackpotWinnersBanner: React.FC = () => {
               <div>
                 <h3 className="text-white text-2xl font-semibold">Latest Jackpot Winners</h3>
                 {loading ? (
-                  <p className="text-neutral-500 text-sm">Loading latest results…</p>
-                ) : executedAt ? (
-                  <p className="text-neutral-400 text-sm">
-                    Drawn on{" "}
-                    <span className="text-neutral-300 font-medium">
-                      {executedAt.toLocaleString()}
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-neutral-400 text-sm">No winners yet. Check back soon.</p>
-                )}
+                <p className="text-neutral-500 text-sm">Loading latest results…</p>
+              ) : executedAtLocal ? (
+                <p className="text-neutral-400 text-sm">
+                  Drawn on <span className="text-neutral-300 font-medium">{executedAtLocal}</span>
+                </p>
+              ) : (
+                <p className="text-neutral-400 text-sm">No winners yet. Check back soon.</p>
+              )}
               </div>
 
               {/* Code badge: stacks under title on small, right on md+ */}
               {winners.length > 0 ? (
                 <div className="md:shrink-0">
                   <span className="inline-flex items-center gap-2 rounded-full bg-neutral-900 border border-neutral-800 px-3 py-1">
-                    <span className="text-neutral-400 text-xs uppercase tracking-wide">Code</span>
+                    <span className="text-neutral-400 text-xs uppercase tracking-wide">Winning Ticket ID</span>
                     <span className="font-mono text-indigo-300 text-sm">
                       {winners[0].drawn_code}
                     </span>
