@@ -1,20 +1,12 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface FullWidthVideoProps {
-  // Preferred: separate sources for desktop and mobile
   srcDesktop?: string;
   srcMobile?: string;
-
-  // Backward-compatible single source (used if the above are not provided)
   src?: string;
-
-  // Optional posters
   posterDesktop?: string;
   posterMobile?: string;
-
   className?: string;
-
-  // Optional controls
   autoPlay?: boolean;
   loop?: boolean;
   muted?: boolean;
@@ -42,59 +34,99 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
   muted = true,
   playsInline = true,
 }) => {
-  // Fallback to legacy single source if desktop/mobile not provided
-  const single = src && !srcDesktop && !srcMobile ? src : undefined;
-  const poster = posterDesktop || posterMobile;
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mqMobile = window.matchMedia("(max-width: 768px)");
+    const mqPortrait = window.matchMedia("(orientation: portrait)");
+
+    const update = () => {
+      setIsMobileView(mqMobile.matches || mqPortrait.matches);
+    };
+
+    update();
+
+    const add = (mq: MediaQueryList, listener: () => void) => {
+      if (mq.addEventListener) mq.addEventListener("change", listener);
+      else mq.addListener(listener);
+    };
+    const remove = (mq: MediaQueryList, listener: () => void) => {
+      if (mq.removeEventListener) mq.removeEventListener("change", listener);
+      else mq.removeListener(listener);
+    };
+
+    add(mqMobile, update);
+    add(mqPortrait, update);
+
+    return () => {
+      remove(mqMobile, update);
+      remove(mqPortrait, update);
+    };
+  }, []);
+
+  const singleSource = useMemo(() => {
+    if (src && !srcDesktop && !srcMobile) {
+      return { url: src, mime: mimeFromUrl(src) };
+    }
+    return null;
+  }, [src, srcDesktop, srcMobile]);
+
+  const desktopPoster = posterDesktop || posterMobile || undefined;
+  const mobilePoster = posterMobile || posterDesktop || undefined;
 
   return (
     <div className={`relative w-screen bg-black ${className}`}>
-      <video
-        autoPlay={autoPlay}
-        loop={loop}
-        muted={muted}
-        playsInline={playsInline}
-        preload="metadata"
-        poster={poster}
-        className="block w-screen max-h-[100vh] object-contain mx-auto"
-        style={{ width: "100vw" }}
-      >
-        {/* Prefer mobile video on portrait orientation OR narrow screens */}
-        {srcMobile && (
-          <>
-            <source
-              src={srcMobile}
-              type={mimeFromUrl(srcMobile)}
-              media="(orientation: portrait)"
-            />
-            <source
-              src={srcMobile}
-              type={mimeFromUrl(srcMobile)}
-              media="(max-width: 768px)"
-            />
-          </>
-        )}
+      {srcMobile && (
+        <video
+          key="mobile"
+          autoPlay={autoPlay}
+          loop={loop}
+          muted={muted}
+          playsInline={playsInline}
+          preload="auto"
+          poster={mobilePoster}
+          className={`absolute inset-0 w-screen h-full object-cover md:object-contain mx-auto transition-opacity duration-200 ${
+            isMobileView ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <source src={srcMobile} type={mimeFromUrl(srcMobile)} />
+        </video>
+      )}
 
-        {/* Prefer desktop video on landscape or wider screens */}
-        {srcDesktop && (
-          <>
-            <source
-              src={srcDesktop}
-              type={mimeFromUrl(srcDesktop)}
-              media="(orientation: landscape)"
-            />
-            <source
-              src={srcDesktop}
-              type={mimeFromUrl(srcDesktop)}
-              media="(min-width: 769px)"
-            />
-          </>
-        )}
+      {srcDesktop && (
+        <video
+          key="desktop"
+          autoPlay={autoPlay}
+          loop={loop}
+          muted={muted}
+          playsInline={playsInline}
+          preload="auto"
+          poster={desktopPoster}
+          className={`absolute inset-0 w-screen h-full object-contain mx-auto transition-opacity duration-200 ${
+            !isMobileView ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <source src={srcDesktop} type={mimeFromUrl(srcDesktop)} />
+        </video>
+      )}
 
-        {/* Legacy single source fallback */}
-        {single && <source src={single} type={mimeFromUrl(single)} />}
+      {singleSource && (
+        <video
+          autoPlay={autoPlay}
+          loop={loop}
+          muted={muted}
+          playsInline={playsInline}
+          preload="auto"
+          poster={desktopPoster}
+          className="absolute inset-0 w-screen h-full object-contain mx-auto"
+        >
+          <source src={singleSource.url} type={singleSource.mime} />
+        </video>
+      )}
 
-        Your browser does not support the video tag.
-      </video>
+      <div className="relative pb-[177.78%] md:pb-[56.25%]" />
     </div>
   );
 };
