@@ -88,7 +88,9 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
           preload="auto"
           poster={mobilePoster}
           className={`absolute inset-0 w-screen h-full object-cover md:object-contain mx-auto transition-opacity duration-200 ${
-            isMobileView ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            isMobileView
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
           }`}
         >
           <source src={srcMobile} type={mimeFromUrl(srcMobile)} />
@@ -104,8 +106,10 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
           playsInline={playsInline}
           preload="auto"
           poster={desktopPoster}
-          className={`absolute inset-0 w-screen h-full object-contain mx-auto transition-opacity duration-200 ${
-            !isMobileView ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          className={`absolute inset-0 w-screen h-full object-cover mx-auto transition-opacity duration-200 ${
+            !isMobileView
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
           }`}
         >
           <source src={srcDesktop} type={mimeFromUrl(srcDesktop)} />
@@ -120,7 +124,7 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
           playsInline={playsInline}
           preload="auto"
           poster={desktopPoster}
-          className="absolute inset-0 w-screen h-full object-contain mx-auto"
+          className="absolute inset-0 w-screen h-full object-cover mx-auto"
         >
           <source src={singleSource.url} type={singleSource.mime} />
         </video>
