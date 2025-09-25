@@ -68,6 +68,9 @@ function formatCurrency(v: string | number | null | undefined): string {
   }).format(n || 0);
 }
 
+// Winner card with mobile-first layout:
+// - Mobile: Full username ABOVE the image (clear who won), then image with details below.
+// - Desktop: Image left, details + prize to the right (classic row layout).
 const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
   const photo =
     w.profile_photo ||
@@ -77,32 +80,56 @@ const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 p-4 rounded-2xl border border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900 transition">
-        <div className="shrink-0">
-          <div className="w-24 h-24 md:w-28 md:h-28 rounded-lg overflow-hidden bg-neutral-800 border border-neutral-700">
-            <img
-              src={photo}
-              alt={name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+      <div className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900 transition">
+        {/* Mobile name above image */}
+        <div className="md:hidden mb-2">
+          <div className="text-white text-base font-semibold break-words">
+            {name}
           </div>
+          <div className="text-neutral-400 text-sm">{roleLabel(w.role)}</div>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-white text-lg md:text-xl font-semibold truncate">
-                {name}
+
+        {/* Content row (image + details). On desktop shows name inline; on mobile only shows image + prize row since name is above */}
+        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+          {/* Image */}
+          <div className="shrink-0">
+            <div className="w-24 h-24 md:w-28 md:h-28 rounded-lg overflow-hidden bg-neutral-800 border border-neutral-700">
+              <img
+                src={photo}
+                alt={name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          {/* Details (desktop shows name here; mobile shows only prize since name is above) */}
+          <div className="min-w-0 flex-1">
+            <div className="hidden md:flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-white text-lg md:text-xl font-semibold truncate">
+                  {name}
+                </div>
+                <div className="text-neutral-400 text-sm md:text-base">
+                  {roleLabel(w.role)}
+                </div>
               </div>
-              <div className="text-neutral-400 text-sm md:text-base">
-                {roleLabel(w.role)}
+              <div className="text-right">
+                <div className="text-neutral-400 text-xs md:text-sm uppercase tracking-wide">
+                  Prize
+                </div>
+                <div className="text-emerald-400 text-lg md:text-2xl font-bold tabular-nums">
+                  {amount}
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-neutral-400 text-xs md:text-sm uppercase tracking-wide">
+
+            {/* Mobile prize row under the image (since desktop prize is above) */}
+            <div className="md:hidden mt-3 flex items-center justify-between">
+              <div className="text-neutral-400 text-xs uppercase tracking-wide">
                 Prize
               </div>
-              <div className="text-emerald-400 text-lg md:text-2xl font-bold tabular-nums">
+              <div className="text-emerald-400 text-lg font-bold tabular-nums">
                 {amount}
               </div>
             </div>
