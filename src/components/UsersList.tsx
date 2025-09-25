@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+type RateFilter = "all" | "rated" | "not-rated";
 
 interface User {
   id: string;
@@ -11,6 +13,7 @@ interface User {
   city: string;
   state: string;
   user_type: string;
+  ratingCount: number;
 }
 
 interface UsersListProps {
@@ -27,6 +30,7 @@ interface UsersListProps {
     username: string,
     event: React.MouseEvent
   ) => void;
+  rateFilter?: RateFilter;
 }
 
 const UsersList: React.FC<UsersListProps> = ({
@@ -39,6 +43,7 @@ const UsersList: React.FC<UsersListProps> = ({
   orderBy = "username",
   orderDirection = "asc",
   onImageClick,
+  rateFilter = "all",
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,23 +55,55 @@ const UsersList: React.FC<UsersListProps> = ({
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      const { data: usersData, error: usersError } = await supabase
         .from("users")
         .select("id, username, profile_photo, city, state, user_type")
         .in("user_type", ["stripper", "exotic"])
         .order(orderBy, { ascending: orderDirection === "asc" });
 
-      if (error) throw error;
-      setUsers(
-        (data || []).map((user) => ({
+      if (usersError) throw usersError;
+
+      const mappedUsers =
+        (usersData || []).map((user) => ({
           id: String(user.id),
           username: String(user.username),
           profile_photo: String(user.profile_photo || ""),
           city: String(user.city || ""),
           state: String(user.state || ""),
           user_type: String(user.user_type),
-        }))
+          ratingCount: 0,
+        })) ?? [];
+
+      if (mappedUsers.length === 0) {
+        setUsers(mappedUsers);
+        return;
+      }
+
+      const performerIds = mappedUsers.map((user) => user.id);
+
+      const { data: ratingsData, error: ratingsError } = await supabase
+        .from("ratings")
+        .select("user_id")
+        .in("user_id", performerIds);
+
+      if (ratingsError) throw ratingsError;
+
+      const ratingCounts = (ratingsData || []).reduce<Record<string, number>>(
+        (acc, rating) => {
+          const key = String(rating.user_id);
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        },
+        {}
       );
+
+      const usersWithCounts = mappedUsers.map((user) => ({
+        ...user,
+        ratingCount: ratingCounts[user.id] || 0,
+      }));
+
+      setUsers(usersWithCounts);
     } catch (error) {
       console.error("Error fetching users:", error);
       setUsers([]);
@@ -75,19 +112,33 @@ const UsersList: React.FC<UsersListProps> = ({
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const nameMatch =
-      !searchName ||
-      user.username.toLowerCase().includes(searchName.toLowerCase());
-    const cityMatch =
-      !searchCity ||
-      (user.city && user.city.toLowerCase().includes(searchCity.toLowerCase()));
-    const stateMatch =
-      !searchState ||
-      (user.state &&
-        user.state.toLowerCase().includes(searchState.toLowerCase()));
-    return nameMatch && cityMatch && stateMatch;
-  });
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const nameMatch =
+        !searchName ||
+        user.username.toLowerCase().includes(searchName.toLowerCase());
+      const cityMatch =
+        !searchCity ||
+        (user.city &&
+          user.city.toLowerCase().includes(searchCity.toLowerCase()));
+      const stateMatch =
+        !searchState ||
+        (user.state &&
+          user.state.toLowerCase().includes(searchState.toLowerCase()));
+
+      if (!nameMatch || !cityMatch || !stateMatch) {
+        return false;
+      }
+
+      if (rateFilter === "rated") {
+        return user.ratingCount > 0;
+      }
+      if (rateFilter === "not-rated") {
+        return user.ratingCount === 0;
+      }
+      return true;
+    });
+  }, [users, searchName, searchCity, searchState, rateFilter]);
 
   if (loading) {
     return (
@@ -150,6 +201,11 @@ const UsersList: React.FC<UsersListProps> = ({
                     : undefined
                 }
               />
+              <div className="absolute top-2 left-2">
+                <span className="bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                  Rated {user.ratingCount}
+                </span>
+              </div>
               <div className="absolute top-2 right-2">
                 <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
                   {user.user_type}
@@ -161,11 +217,13 @@ const UsersList: React.FC<UsersListProps> = ({
               @{user.username}
             </h3>
 
-            {user.city && user.state && (
+            {(user.city || user.state) && (
               <div className="flex items-center text-gray-300 text-sm mb-4">
                 <MapPin size={14} className="mr-1" />
                 <span className="truncate">
-                  {user.city}, {user.state}
+                  {user.city}
+                  {user.city && user.state ? ", " : ""}
+                  {user.state}
                 </span>
               </div>
             )}

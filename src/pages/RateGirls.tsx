@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+type RateFilter = "all" | "rated" | "not-rated";
+
 interface User {
   id: string;
   username: string;
@@ -52,6 +54,7 @@ const RateGirls: React.FC = () => {
     url: string;
     username: string;
   } | null>(null);
+  const [rateFilter, setRateFilter] = useState<RateFilter>("all");
 
   useEffect(() => {
     getCurrentUser();
@@ -73,7 +76,6 @@ const RateGirls: React.FC = () => {
     try {
       const currentYear = new Date().getFullYear();
 
-      // Get all ratings for the current year
       const { data: ratingsData, error: ratingsError } = await supabase
         .from("ratings")
         .select("user_id, rating")
@@ -84,7 +86,6 @@ const RateGirls: React.FC = () => {
         return;
       }
 
-      // Get all users who are strippers or exotics
       const { data: usersData, error: usersError } = await supabase
         .from("users")
         .select("id, username, profile_photo, city, state, user_type")
@@ -96,34 +97,22 @@ const RateGirls: React.FC = () => {
       }
 
       if (ratingsData && usersData) {
-        // Group ratings by user and calculate totals
         const userScores: { [userId: string]: RankedUser } = {};
 
-        // Initialize user scores
-        usersData.forEach(
-          (user: {
-            id: unknown;
-            username: unknown;
-            profile_photo: unknown;
-            city: unknown;
-            state: unknown;
-            user_type: unknown;
-          }) => {
-            userScores[String(user.id)] = {
-              id: String(user.id),
-              username: String(user.username),
-              profile_photo: String(user.profile_photo || ""),
-              city: String(user.city || ""),
-              state: String(user.state || ""),
-              user_type: String(user.user_type),
-              total_score: 0,
-              rank: 0,
-            };
-          }
-        );
+        usersData.forEach((user) => {
+          userScores[String(user.id)] = {
+            id: String(user.id),
+            username: String(user.username),
+            profile_photo: String(user.profile_photo || ""),
+            city: String(user.city || ""),
+            state: String(user.state || ""),
+            user_type: String(user.user_type),
+            total_score: 0,
+            rank: 0,
+          };
+        });
 
-        // Add up ratings for each user
-        ratingsData.forEach((rating: { user_id: unknown; rating: unknown }) => {
+        ratingsData.forEach((rating) => {
           if (userScores[String(rating.user_id)]) {
             userScores[String(rating.user_id)].total_score += Number(
               rating.rating
@@ -131,12 +120,10 @@ const RateGirls: React.FC = () => {
           }
         });
 
-        // Convert to array and filter out users with no ratings, then sort by total score
         const rankedUsers = Object.values(userScores)
           .filter((user) => user.total_score > 0)
           .sort((a, b) => b.total_score - a.total_score);
 
-        // Assign ranks and take top 20
         rankedUsers.forEach((user, index) => {
           user.rank = index + 1;
         });
@@ -149,7 +136,6 @@ const RateGirls: React.FC = () => {
   };
 
   const handleUserSelect = (user: User) => {
-    // Trim the username to remove any spaces
     const trimmedUsername = user.username.trim();
     const url = `/rate/?rate=${trimmedUsername}${
       refUsername ? `&ref=${refUsername}` : ""
@@ -162,7 +148,7 @@ const RateGirls: React.FC = () => {
     username: string,
     event: React.MouseEvent
   ) => {
-    event.stopPropagation(); // Prevent card click from firing
+    event.stopPropagation();
     setSelectedImage({ url: imageUrl, username });
     setShowImageModal(true);
   };
@@ -173,12 +159,29 @@ const RateGirls: React.FC = () => {
     setSearchState("");
   };
 
+  const renderRateFilterButton = (value: RateFilter, label: string) => {
+    const isActive = rateFilter === value;
+    return (
+      <Button
+        type="button"
+        onClick={() => setRateFilter(value)}
+        className={`rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200 ${
+          isActive
+            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg border-transparent"
+            : "bg-white/10 text-gray-100 border border-white/20 hover:bg-white/20"
+        }`}
+      >
+        {label}
+      </Button>
+    );
+  };
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {/* Video Banner */}
         <div className="relative w-full bg-black">
-          <div className="relative w-full h-0" style={{ paddingBottom: '56.25%' }}>
+          <div className="relative w-full h-0" style={{ paddingBottom: "56.25%" }}>
             <video
               className="absolute inset-0 w-full h-full object-cover"
               autoPlay
@@ -364,6 +367,14 @@ const RateGirls: React.FC = () => {
                 </div>
               </div>
 
+              <div className="mt-6 flex justify-center">
+                <div className="inline-flex flex-wrap gap-2 bg-white/5 border border-white/10 rounded-full p-1">
+                  {renderRateFilterButton("all", "All")}
+                  {renderRateFilterButton("rated", "Rated")}
+                  {renderRateFilterButton("not-rated", "Not Rated")}
+                </div>
+              </div>
+
               {(searchName || searchCity || searchState) && (
                 <div className="mt-6 text-center">
                   <Button
@@ -409,6 +420,7 @@ const RateGirls: React.FC = () => {
             searchName={searchName}
             searchCity={searchCity}
             searchState={searchState}
+            rateFilter={rateFilter}
             onUserSelect={handleUserSelect}
             actionType="rate"
             noDataMessage="NO RATES YET IN 2025. BE THE 1ST!"

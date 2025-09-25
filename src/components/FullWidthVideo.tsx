@@ -134,5 +134,4 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
     </div>
   );
 };
-
 export default FullWidthVideo;

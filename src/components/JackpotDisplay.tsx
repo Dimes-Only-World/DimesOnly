@@ -1,41 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const JackpotDisplay: React.FC = () => {
-  const [jackpotAmount, setJackpotAmount] = useState(0.00);
+  const [jackpotAmount, setJackpotAmount] = useState(0.0);
 
   useEffect(() => {
     const fetchJackpot = async () => {
       try {
-        const { data, error } = await supabase
-          .from('jackpot')
-          .select('amount')
+        const { data: poolData, error: poolError } = await supabase
+          .from("v_jackpot_active_pool")
+          .select("total")
           .single();
-        
-        if (data && !error && data.amount !== null && data.amount !== undefined) {
-          setJackpotAmount(Number(data.amount) || 0);
+
+        if (!poolError && poolData && poolData.total !== null && poolData.total !== undefined) {
+          setJackpotAmount(Number(poolData.total) || 0);
+          return;
+        }
+
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("jackpot")
+          .select("amount")
+          .single();
+
+        if (!fallbackError && fallbackData && fallbackData.amount !== null && fallbackData.amount !== undefined) {
+          setJackpotAmount(Number(fallbackData.amount) || 0);
         }
       } catch (error) {
-        console.error('Error fetching jackpot:', error);
+        console.error("Error fetching jackpot:", error);
       }
     };
 
     fetchJackpot();
-    
-    // Set up real-time subscription
+
     const subscription = supabase
-      .channel('jackpot_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'jackpot' },
-        (payload) => {
-          if (payload.new && typeof payload.new === 'object' && 'amount' in payload.new) {
-            const newAmount = payload.new.amount;
-            if (newAmount !== null && newAmount !== undefined) {
-              setJackpotAmount(Number(newAmount) || 0);
-            }
-          }
+      .channel("jackpot_pool_updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "jackpot_pools" },
+        () => {
+          fetchJackpot();
         }
       )
       .subscribe();

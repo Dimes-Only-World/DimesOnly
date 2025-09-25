@@ -14,6 +14,8 @@ import TipStatusChecker from "@/components/TipStatusChecker";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 
+type RateFilter = "all" | "rated" | "not-rated";
+
 interface User {
   id: string;
   username: string;
@@ -39,6 +41,7 @@ const TipGirls: React.FC = () => {
     email?: string;
     username?: string;
   } | null>(null);
+  const [rateFilter, setRateFilter] = useState<RateFilter>("all");
 
   useEffect(() => {
     getCurrentUser();
@@ -108,13 +111,29 @@ const TipGirls: React.FC = () => {
     window.location.href = url;
   };
 
-  // If showing specific user for tipping
+  // inside TipGirls.tsx
+const renderRateFilterButton = (value: RateFilter, label: string) => {
+  const isActive = rateFilter === value;
+  return (
+    <Button
+      type="button"
+      onClick={() => setRateFilter(value)}
+      className={`rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200 ${
+        isActive
+          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg border-transparent"
+          : "bg-white/10 text-gray-100 border border-white/20 hover:bg-white/20"
+      }`}
+    >
+      {label}
+    </Button>
+  );
+};
+
   if (selectedUser) {
     return (
       <AuthGuard>
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-16">
           <div className="container mx-auto px-4 max-w-4xl">
-            {/* Removed grid layout */}
             <Card className="bg-white/10 backdrop-blur border-white/20">
               <CardHeader className="text-center">
                 <CardTitle className="text-white text-3xl mb-4">
@@ -168,7 +187,6 @@ const TipGirls: React.FC = () => {
                 </Button>
               </CardContent>
             </Card>
-            {/* Moved JackpotDisplay below, full width */}
             <div className="mt-6">
               <JackpotDisplay />
             </div>
@@ -178,13 +196,14 @@ const TipGirls: React.FC = () => {
     );
   }
 
-  // Directory view
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        {/* Video Banner */}
         <div className="relative w-full bg-black">
-          <div className="relative w-full h-0" style={{ paddingBottom: '56.25%' }}>
+          <div
+            className="relative w-full h-0"
+            style={{ paddingBottom: "56.25%" }}
+          >
             <video
               className="absolute inset-0 w-full h-full object-contain"
               autoPlay
@@ -212,13 +231,10 @@ const TipGirls: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
-          {/* Removed grid layout */}
-          {/* Jackpot Results Section */}
           <div className="mb-8">
             <JackpotDisplay />
           </div>
 
-          {/* Search Section */}
           <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
             <CardContent className="p-6">
               <div className="space-y-4 md:space-y-0 md:flex md:space-x-4">
@@ -262,10 +278,18 @@ const TipGirls: React.FC = () => {
                   />
                 </div>
               </div>
+
+              {/* rating filter row */}
+                <div className="mt-6">
+                  <div className="inline-flex flex-wrap gap-2 bg-white/5 border border-white/10 rounded-full p-1">
+                    {renderRateFilterButton("all", "All")}
+                    {renderRateFilterButton("rated", "Rated")}
+                    {renderRateFilterButton("not-rated", "Not Rated")}
+                  </div>
+                </div>
             </CardContent>
           </Card>
 
-          {/* Status Message */}
           {currentUser && (
             <TipStatusChecker userId={currentUser.id}>
               {(hasTips, hasBeenTipped) => {
@@ -289,11 +313,11 @@ const TipGirls: React.FC = () => {
             </TipStatusChecker>
           )}
 
-          {/* Users List */}
           <UsersList
             searchName={searchName}
             searchCity={searchCity}
             searchState={searchState}
+            rateFilter={rateFilter}
             onUserSelect={handleUserSelect}
             actionType="tip"
             noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
