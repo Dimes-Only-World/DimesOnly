@@ -390,8 +390,8 @@ const RateGirls: React.FC = () => {
             </div>
           </div>
 
-          {/* Status Message */}
-          {currentUser && (
+    
+          {/* {currentUser && (
             <RatingStatusChecker userId={currentUser.id}>
               {(hasRatings, hasBeenRated) => {
                 if (!hasRatings && !hasBeenRated) {
@@ -413,7 +413,7 @@ const RateGirls: React.FC = () => {
                 return null;
               }}
             </RatingStatusChecker>
-          )}
+          )} */}
 
           {/* Users List */}
           <UsersList
@@ -423,7 +423,7 @@ const RateGirls: React.FC = () => {
             rateFilter={rateFilter}
             onUserSelect={handleUserSelect}
             actionType="rate"
-            noDataMessage="NO RATES YET IN 2025. BE THE 1ST!"
+            //noDataMessage="NO RATES YET IN 2025. BE THE 1ST!"
             orderBy="created_at"
             orderDirection="desc"
             onImageClick={handleImageClick}

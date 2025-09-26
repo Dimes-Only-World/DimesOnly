@@ -279,18 +279,11 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                 </div>
               </div>
 
-              {/* rating filter row */}
-                <div className="mt-6">
-                  <div className="inline-flex flex-wrap gap-2 bg-white/5 border border-white/10 rounded-full p-1">
-                    {renderRateFilterButton("all", "All")}
-                    {renderRateFilterButton("rated", "Rated")}
-                    {renderRateFilterButton("not-rated", "Not Rated")}
-                  </div>
-                </div>
+        
             </CardContent>
           </Card>
 
-          {currentUser && (
+          {/* {currentUser && (
             <TipStatusChecker userId={currentUser.id}>
               {(hasTips, hasBeenTipped) => {
                 if (!hasTips && !hasBeenTipped) {
@@ -311,7 +304,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                 return null;
               }}
             </TipStatusChecker>
-          )}
+          )} */}
 
           <UsersList
             searchName={searchName}

@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -13,10 +14,30 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
+    const paypalClientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+    const paypalEnvironment = Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox";
+
+    console.log("process-tip environment check:", {
+      supabaseUrl: supabaseUrl ? "✓ Set" : "✗ Missing",
+      serviceRoleKey: serviceRoleKey ? "✓ Set" : "✗ Missing",
+      paypalClientId: paypalClientId ? "✓ Set" : "✗ Missing",
+      paypalClientSecret: paypalClientSecret ? "✓ Set" : "✗ Missing",
+      paypalEnvironment,
+    });
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return new Response(
+        JSON.stringify({
+          error: "Supabase env vars missing (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).",
+        }),
+        { headers: corsHeaders, status: 400 },
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
     const {
@@ -49,7 +70,6 @@ serve(async (req) => {
     const MIN_TIP = 5;
     const MAX_TIP = 1000;
 
-    // Ensure amount is a finite number
     const parsedAmount = Number(amount);
     if (!Number.isFinite(parsedAmount)) {
       return new Response(JSON.stringify({ error: "Invalid amount" }), {
@@ -61,14 +81,14 @@ serve(async (req) => {
     if (parsedAmount < MIN_TIP) {
       return new Response(
         JSON.stringify({ error: `Minimum tip is $${MIN_TIP}.` }),
-        { headers: corsHeaders, status: 400 }
+        { headers: corsHeaders, status: 400 },
       );
     }
 
     if (parsedAmount > MAX_TIP) {
       return new Response(
         JSON.stringify({ error: `Maximum tip per transaction is $${MAX_TIP}.` }),
-        { headers: corsHeaders, status: 400 }
+        { headers: corsHeaders, status: 400 },
       );
     }
 
@@ -100,10 +120,9 @@ serve(async (req) => {
 
     if (payErr) throw new Error(payErr.message);
 
-    // commissions
     const refCommission = referrer_username ? parsedAmount * 0.2 : 0;
 
-    // basic tip row and capture id
+    // Basic tip row
     const { data: tipRow, error: tipErr } = await supabase
       .from("tips")
       .insert({
@@ -121,7 +140,7 @@ serve(async (req) => {
 
     if (tipErr) throw new Error(tipErr.message);
 
-    // tip transaction history (uses tipRow.id as foreign ref later)
+    // Tip transaction history
     const { data: tipTxn, error: tipTxnErr } = await supabase
       .from("tips_transactions")
       .insert({
@@ -143,23 +162,19 @@ serve(async (req) => {
 
     if (tipTxnErr) throw new Error(tipTxnErr.message);
 
-    // Generate ticket codes (exactly 5 UPPERCASE letters, all different per code)
+    // Generate ticket codes
     const ticketCodes: string[] = [];
     if (ticketCount > 0) {
       const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
       const CODE_LEN = 5;
-
-      // avoid duplicates within this single tip
       const batchCodes = new Set<string>();
 
       const makeUniqueCode = (): string => {
-        // pick 5 distinct letters
         const picked = new Set<string>();
         while (picked.size < CODE_LEN) {
           const ch = ALPHA.charAt(Math.floor(Math.random() * ALPHA.length));
           picked.add(ch);
         }
-        // join in insertion order (random enough)
         return Array.from(picked).join("");
       };
 
@@ -172,19 +187,19 @@ serve(async (req) => {
       }
     }
 
-    // Keep the legacy 'tickets' table insert (no changes)
+    // Keep legacy tickets insert
     if (ticketCodes.length) {
       const ticketRows = ticketCodes.map((code) => ({
         ticket_number: code,
         tip_id: tipRow.id,
-        user_Id: tipper_id, // preserved casing per your existing schema
+        user_Id: tipper_id,
         username: tipper_username || "anonymous",
       }));
       const { error: tErr } = await supabase.from("tickets").insert(ticketRows);
       if (tErr) console.error("tickets insert error", tErr);
     }
 
-    // Determine active pool_id for jackpot_tickets so the UI can display codes
+    // Determine active jackpot pool
     let poolId: string | null = null;
     try {
       const { data: poolView, error: pvErr } = await supabase
@@ -195,7 +210,7 @@ serve(async (req) => {
         poolId = poolView.pool_id;
       }
     } catch (_) {
-      // ignore and fallback
+      // ignore
     }
     if (!poolId) {
       const { data: poolRow } = await supabase
@@ -208,24 +223,19 @@ serve(async (req) => {
       poolId = poolRow?.id || null;
     }
 
-    // Insert individual rows in jackpot_tickets so UserJackpotTab.tsx can query by tipper_id + pool_id and read 'code'
     if (poolId && ticketCodes.length) {
       const jtRows = ticketCodes.map((code) => ({
         code,
-        tipper_id: tipper_id,           // who tipped
-        tipped_user_id: tippedUser.id,  // who was tipped (Dime) — critical for Force Draw to derive the chain
+        tipper_id: tipper_id,
+        tipped_user_id: tippedUser.id,
         pool_id: poolId,
-        // created_at default now() via DB
       }));
       const { error: jtErr } = await supabase.from("jackpot_tickets").insert(jtRows);
-      if (jtErr) {
-        console.error("jackpot_tickets insert error", jtErr);
-      }
+      if (jtErr) console.error("jackpot_tickets insert error", jtErr);
     } else if (!poolId) {
       console.warn("No active pool found; skipping jackpot_tickets insert");
     }
 
-    // Referrer commission
     if (referrer_username && refCommission > 0) {
       const { data: refUser } = await supabase
         .from("users")
@@ -245,7 +255,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, ticket_codes: ticketCodes }),
-      { headers: corsHeaders, status: 200 }
+      { headers: corsHeaders, status: 200 },
     );
   } catch (err) {
     console.error(err);
