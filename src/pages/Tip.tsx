@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import { MapPin, User, Calendar, Star, Heart, Play } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 // PayPal SDK types
 declare global {
@@ -70,6 +70,7 @@ interface MediaFile {
 }
 
 const Tip: React.FC = () => {
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const tipUsername = searchParams.get("tip");
   const refUsername = searchParams.get("ref") || "";
@@ -96,11 +97,17 @@ const Tip: React.FC = () => {
     if (tipUsername) {
       fetchUserData();
       fetchUserMedia();
-      fetchLikes();
     }
     getCurrentUser();
     initializePayPal();
   }, [tipUsername]);
+
+  // Fetch likes after currentUser is loaded
+  useEffect(() => {
+    if (userData && currentUser) {
+      fetchLikes();
+    }
+  }, [userData, currentUser]);
 
   const getCurrentUser = async () => {
     try {
@@ -313,75 +320,107 @@ const Tip: React.FC = () => {
     }
   };
 
+  // FIXED: Use same like system as Rate.tsx (users.likes and users.liked_by)
   const fetchLikes = async () => {
-    if (!tipUsername || !currentUser) return;
+    if (!userData || !currentUser) return;
 
     try {
-      // Get user ID
-      const { data: user, error: userError } = await supabase
+      // Get the user's current likes count and liked_by data (same as Rate.tsx)
+      const { data: userLikeData, error: userError } = await supabase
         .from("users")
-        .select("id")
-        .eq("username", tipUsername)
+        .select("likes, liked_by")
+        .eq("id", userData.id)
         .single();
 
-      if (userError || !user) return;
+      if (!userError && userLikeData) {
+        setLikes(Number(userLikeData.likes) || 0);
 
-      // Count total likes for this user
-      const { count, error: countError } = await supabase
-        .from("user_likes")
-        .select("*", { count: "exact" })
-        .eq("liked_user_id", user.id);
-
-      if (!countError) {
-        setLikes(count || 0);
-      }
-
-      // Check if current user has liked this profile
-      const { data: userLike, error: likeError } = await supabase
-        .from("user_likes")
-        .select("id")
-        .eq("liked_user_id", user.id)
-        .eq("liker_user_id", currentUser.id)
-        .single();
-
-      if (!likeError && userLike) {
-        setHasLiked(true);
+        // Check if current user has already liked this profile
+        if (currentUser && userLikeData.liked_by) {
+          const likedByUsers = Array.isArray(userLikeData.liked_by)
+            ? userLikeData.liked_by
+            : [userLikeData.liked_by];
+          setHasLiked(likedByUsers.includes(currentUser.id));
+        }
       }
     } catch (error) {
       console.error("Error fetching likes:", error);
     }
   };
 
+  // FIXED: Use same like system as Rate.tsx
   const handleLike = async () => {
     if (!currentUser || !userData) return;
 
     try {
-      if (hasLiked) {
-        // Unlike
+      // First, get current state to ensure we have latest data (same as Rate.tsx)
+      const { data: currentUserData, error: fetchError } = await supabase
+        .from("users")
+        .select("likes, liked_by")
+        .eq("id", userData.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching current user data:", fetchError);
+        return;
+      }
+
+      const currentLikes = Number(currentUserData.likes) || 0;
+      const currentLikedBy = currentUserData.liked_by;
+
+      // Check if user has already liked
+      let userHasLiked = false;
+      if (currentLikedBy) {
+        const likedByUsers = Array.isArray(currentLikedBy)
+          ? currentLikedBy
+          : [currentLikedBy];
+        userHasLiked = likedByUsers.includes(currentUser.id);
+      }
+
+      if (userHasLiked) {
+        // Unlike - remove like (same as Rate.tsx)
         const { error } = await supabase
-          .from("user_likes")
-          .delete()
-          .eq("liked_user_id", userData.id)
-          .eq("liker_user_id", currentUser.id);
+          .from("users")
+          .update({
+            likes: Math.max(0, currentLikes - 1),
+            liked_by: null, // Simplified for now
+          })
+          .eq("id", userData.id);
 
         if (!error) {
           setHasLiked(false);
-          setLikes((prev) => prev - 1);
+          setLikes(Math.max(0, currentLikes - 1));
+          toast({
+            title: "Unliked",
+            description: `You unliked ${userData.username}`,
+          });
         }
       } else {
-        // Like
-        const { error } = await supabase.from("user_likes").insert({
-          liked_user_id: userData.id,
-          liker_user_id: currentUser.id,
-        });
+        // Like - add like (same as Rate.tsx)
+        const { error } = await supabase
+          .from("users")
+          .update({
+            likes: currentLikes + 1,
+            liked_by: currentUser.id, // Simplified for now
+          })
+          .eq("id", userData.id);
 
         if (!error) {
           setHasLiked(true);
-          setLikes((prev) => prev + 1);
+          setLikes(currentLikes + 1);
+          toast({
+            title: "Liked",
+            description: `You liked ${userData.username}!`,
+          });
         }
       }
     } catch (error) {
       console.error("Error handling like:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update like. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

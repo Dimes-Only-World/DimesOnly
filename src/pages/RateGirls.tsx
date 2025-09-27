@@ -165,7 +165,7 @@ const RateGirls: React.FC = () => {
       <Button
         type="button"
         onClick={() => setRateFilter(value)}
-        className={`rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200 ${
+        className={`flex-1 sm:flex-none rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200 ${
           isActive
             ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg border-transparent"
             : "bg-white/10 text-gray-100 border border-white/20 hover:bg-white/20"
@@ -367,13 +367,15 @@ const RateGirls: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-center">
-                <div className="inline-flex flex-wrap gap-2 bg-white/5 border border-white/10 rounded-full p-1">
+            <div className="mt-6">
+              <div className="max-w-md mx-auto sm:max-w-none">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-2 shadow-inner">
                   {renderRateFilterButton("all", "All")}
                   {renderRateFilterButton("rated", "Rated")}
                   {renderRateFilterButton("not-rated", "Not Rated")}
                 </div>
               </div>
+            </div>
 
               {(searchName || searchCity || searchState) && (
                 <div className="mt-6 text-center">

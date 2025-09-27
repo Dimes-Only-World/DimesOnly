@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Ticket, Archive, Calendar, Crown, ExternalLink, User } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Trophy, Ticket, Crown, ExternalLink, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/types";
@@ -20,7 +26,7 @@ type PoolRow = {
 
 type WinnerRow = {
   draw_id: string;
-  drawn_code: string;
+  drawn_code: string | null;
   executed_at: string;
   user_id: string;
   role: "tipper" | "dime" | "referred_dime";
@@ -30,26 +36,68 @@ type WinnerRow = {
   status: "pending" | "approved" | "paid" | "void";
 };
 
+type DrawGroup = {
+  drawId: string;
+  executedAt: string;
+  drawnCode: string | null;
+  winners: WinnerRow[];
+};
+
 interface UserJackpotTabProps {
   userData: UserRow;
 }
 
+const placeTitle = (place: WinnerRow["place"]) => {
+  if (place === 1) return "1st Place";
+  if (place === 2) return "2nd Place";
+  return "3rd Place";
+};
+
+const roleDisplay = (role: WinnerRow["role"]) => {
+  switch (role) {
+    case "tipper":
+      return "Tipper";
+    case "dime":
+      return "Dime";
+    case "referred_dime":
+      return "Referred Dime";
+    default:
+      return "Winner";
+  }
+};
+
+const formatDate = (value: string, includeTime = false) => {
+  const d = new Date(value);
+  return includeTime
+    ? d.toLocaleString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+};
+
 const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
   const [currentTickets, setCurrentTickets] = useState<number>(0);
   const [ticketCodes, setTicketCodes] = useState<string[]>([]);
-  const [winners, setWinners] = useState<WinnerRow[]>([]);
+  const [drawGroups, setDrawGroups] = useState<DrawGroup[]>([]);
   const [userProfiles, setUserProfiles] = useState<
     Record<string, { name: string; avatar_url?: string | null }>
   >({});
   const [currentJackpot, setCurrentJackpot] = useState<number>(0);
   const [poolStatus, setPoolStatus] = useState<string>("open");
   const [poolId, setPoolId] = useState<string | null>(null);
-  const [showArchive, setShowArchive] = useState(false); // preserved for future
   const { toast } = useToast();
 
   useEffect(() => {
     if (!userData?.id) return;
-    // Fetch pool first (we need pool_id for codes), then parallel fetch tickets/winners.
     (async () => {
       await fetchPool();
       await Promise.all([fetchMyTickets(), fetchWinners()]);
@@ -57,7 +105,6 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userData?.id]);
 
-  // Fetch ticket codes once we know the poolId (fix for empty codes)
   useEffect(() => {
     if (userData?.id && poolId) {
       fetchTicketCodes();
@@ -82,7 +129,11 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       }
     } catch (err) {
       console.error("Error fetching jackpot pool:", err);
-      toast({ title: "Jackpot", description: "Could not load current pool.", variant: "destructive" });
+      toast({
+        title: "Jackpot",
+        description: "Could not load current pool.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -130,12 +181,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     }
   };
 
-  // Helper: build a display name from user profile columns
   const buildDisplayName = (u: any) => {
     return u?.username || "";
   };
 
-  // Load user profiles for winners
   const loadProfiles = async (ids: string[]) => {
     try {
       const { data, error } = await supabase
@@ -144,9 +193,13 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         .in("id", ids);
       if (error) throw error;
 
-      const map: Record<string, { name: string; avatar_url?: string | null }> = {};
+      const map: Record<string, { name: string; avatar_url?: string | null }> =
+        {};
       (data || []).forEach((u: any) => {
-        map[u.id] = { name: buildDisplayName(u) || u.id, avatar_url: u.profile_photo ?? null };
+        map[u.id] = {
+          name: buildDisplayName(u) || u.id,
+          avatar_url: u.profile_photo ?? null,
+        };
       });
 
       setUserProfiles((prev) => ({ ...prev, ...map }));
@@ -159,16 +212,55 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     try {
       const { data, error } = await supabase
         .from("v_jackpot_latest_winners")
-        .select("draw_id,drawn_code,executed_at,user_id,role,place,percentage,amount,status")
-        .limit(10);
+        .select(
+          "draw_id,drawn_code,executed_at,user_id,role,place,percentage,amount,status"
+        )
+        .order("executed_at", { ascending: false })
+        .limit(60);
 
       if (error) throw error;
 
-      const rows = (data as WinnerRow[]) || [];
-      setWinners(rows);
+      const rows = (data as any[]) || [];
 
-      // Fetch profiles for these winners
-      const ids = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+      const groupsMap = new Map<string, DrawGroup>();
+
+      const normalizedRows: WinnerRow[] = rows.map((row) => ({
+        draw_id: String(row.draw_id),
+        drawn_code: row.drawn_code ?? null,
+        executed_at: String(row.executed_at),
+        user_id: String(row.user_id),
+        role: row.role as WinnerRow["role"],
+        place: Number(row.place) as WinnerRow["place"],
+        percentage:
+          row.percentage === null ? null : Number(row.percentage || 0),
+        amount: row.amount === null ? null : Number(row.amount || 0),
+        status: (row.status ?? "pending") as WinnerRow["status"],
+      }));
+
+      normalizedRows.forEach((winner) => {
+        const key = winner.draw_id;
+        if (!groupsMap.has(key)) {
+          groupsMap.set(key, {
+            drawId: key,
+            executedAt: winner.executed_at,
+            drawnCode: winner.drawn_code,
+            winners: [],
+          });
+        }
+        groupsMap.get(key)!.winners.push(winner);
+      });
+
+      const grouped = Array.from(groupsMap.values()).sort((a, b) => {
+        return (
+          new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
+        );
+      });
+
+      setDrawGroups(grouped);
+
+      const ids = Array.from(
+        new Set(normalizedRows.map((r) => r.user_id).filter(Boolean))
+      );
       if (ids.length > 0) {
         await loadProfiles(ids);
       }
@@ -179,7 +271,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
   const formatMoney = (n?: number | null) => {
     const v = Number(n || 0);
-    return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return v.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   const displayNameFor = (userId: string, fallback: string) => {
@@ -188,9 +283,90 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     return fallback;
   };
 
+  const latestDraw = useMemo(
+    () => (drawGroups.length > 0 ? drawGroups[0] : null),
+    [drawGroups]
+  );
+
+  const historicalDraws = useMemo(
+    () => (drawGroups.length > 1 ? drawGroups.slice(1) : []),
+    [drawGroups]
+  );
+
+  const latestSections = useMemo(() => {
+    if (!latestDraw) return [];
+    const buckets: Record<WinnerRow["place"], WinnerRow[]> = {
+      1: [],
+      2: [],
+      3: [],
+    };
+    latestDraw.winners.forEach((w) => {
+      buckets[w.place].push(w);
+    });
+    return ([
+      { place: 1 as WinnerRow["place"], winners: buckets[1] },
+      { place: 2 as WinnerRow["place"], winners: buckets[2] },
+      { place: 3 as WinnerRow["place"], winners: buckets[3] },
+    ].filter((section) => section.winners.length > 0));
+  }, [latestDraw]);
+
+  const WinnerListItem = (
+    winner: WinnerRow,
+    includePlaceBadge = true
+  ): React.ReactNode => {
+    const name = displayNameFor(
+      winner.user_id,
+      roleDisplay(winner.role) || winner.user_id
+    );
+    const avatar = userProfiles[winner.user_id]?.avatar_url || undefined;
+    const placeLabel = placeTitle(winner.place);
+    const roleLabel = roleDisplay(winner.role);
+
+    return (
+      <div
+        key={`${winner.draw_id}-${winner.user_id}-${winner.place}`}
+        className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <Avatar className="w-12 h-12 flex-shrink-0">
+              {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
+              <AvatarFallback>
+                {(name?.[0] || roleLabel?.[0] || "U").toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-gray-900 truncate">{name}</div>
+              <div className="text-xs text-gray-500 capitalize">{roleLabel}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-end gap-3">
+            <div className="text-right">
+              <div className="text-xl sm:text-2xl font-bold text-green-600 leading-tight">
+                ${formatMoney(winner.amount)}
+              </div>
+              {includePlaceBadge && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  {placeLabel}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-xs text-gray-600 mt-2 pt-2 border-t border-yellow-200/50">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span>Won on {formatDate(winner.executed_at)}</span>
+            <span>Draw Code: {winner.drawn_code || "—"}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Profile Stats Detail */}
       <Card className="shadow-lg border-0">
         <CardContent className="p-6">
           <h4 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
@@ -200,56 +376,64 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {userData.user_type?.charAt(0).toUpperCase() + (userData.user_type?.slice(1) || "")}
+                {userData.user_type?.charAt(0).toUpperCase() +
+                  (userData.user_type?.slice(1) || "")}
               </div>
               <div className="text-sm text-gray-600">User Type</div>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {userData.gender?.charAt(0).toUpperCase() + (userData.gender?.slice(1) || "N/A")}
+                {userData.gender?.charAt(0).toUpperCase() +
+                  (userData.gender?.slice(1) || "N/A")}
               </div>
               <div className="text-sm text-gray-600">Gender</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-green-600">{currentTickets}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {currentTickets}
+              </div>
               <div className="text-sm text-gray-600">Tickets This Week</div>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-yellow-600">{poolStatus.toUpperCase()}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {poolStatus.toUpperCase()}
+              </div>
               <div className="text-sm text-gray-600">Pool Status</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Jackpot Display */}
       <Card className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white">
         <CardContent className="p-8 text-center">
           <div className="mb-4">
             <Crown className="w-16 h-16 mx-auto mb-4 text-red-200" />
             <h2 className="text-4xl font-bold mb-2">JACKPOT</h2>
-            <div className="text-6xl font-bold mb-2">${formatMoney(currentJackpot)}</div>
+            <div className="text-6xl font-bold mb-2">
+              ${formatMoney(currentJackpot)}
+            </div>
             <p className="text-xl text-red-100">Current Jackpot Amount</p>
           </div>
 
           <div className="bg-white/20 rounded-lg p-4 mb-4">
-            <p className="text-lg mb-2">When pool reaches $4,000</p>
+            <p className="text-lg mb-2">When pool reaches $1,000</p>
             <p className="text-xl font-bold">Saturday 12:00 am drawing</p>
             <p className="text-sm mt-2">
-              ${formatMoney(Math.max(0, 4000 - currentJackpot))} to go • One code, 1st/2nd/3rd win • Rollover if no match
+              ${formatMoney(Math.max(0, 4000 - currentJackpot))} to go • One
+              code, 1st/2nd/3rd win • Rollover if no match
             </p>
           </div>
 
           <div className="space-y-2 text-left bg-white/10 rounded-lg p-4">
             <p className="flex items-center gap-2">
-              <span>💎</span> Every $1 = 1 ticket (max 5 per tip)
+              <span>💎</span> Every $1 = 1 ticket (min 5 per tip)
             </p>
             <p className="flex items-center gap-2">
-              <span>🎯</span> Weekly drawing (Saturday 12:00 am). If no match, 100% rolls to next week.
+              <span>🎯</span> Weekly drawing (Saturday 12:00 am). If no match,
+              100% rolls to next week.
             </p>
             <div className="mt-4 flex flex-col items-center space-y-2">
               <video
-                //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4"
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
                 autoPlay
                 loop
@@ -274,7 +458,6 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         </CardContent>
       </Card>
 
-      {/* Current Tickets */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -284,7 +467,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         </CardHeader>
         <CardContent>
           <div className="text-center p-6">
-            <div className="text-4xl font-bold text-blue-600 mb-2">{currentTickets}</div>
+            <div className="text-4xl font-bold text-blue-600 mb-2">
+              {currentTickets}
+            </div>
             <p className="text-gray-600 mb-4">Tickets for upcoming drawing</p>
             <Badge variant="outline" className="text-sm">
               $1 = 1 ticket • max 5 per tip
@@ -293,7 +478,6 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         </CardContent>
       </Card>
 
-      {/* Ticket Codes (this week, current pool) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -319,58 +503,84 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         </CardContent>
       </Card>
 
-      {/* Winners */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5" />
-            Recent Winners
+            Latest Winners
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {winners.length > 0 ? (
-              winners.map((w) => {
-                const name = displayNameFor(
-                  w.user_id,
-                  w.role === "tipper" ? "Tipper" : w.role === "dime" ? "Dime" : "Referred Dime"
-                );
-                const avatar = userProfiles[w.user_id]?.avatar_url || undefined;
-                const roleLabel = w.role === "tipper" ? "Tipper" : w.role === "dime" ? "Dime" : "Referred Dime";
-                return (
-                  <div
-                    key={`${w.draw_id}-${w.user_id}-${w.place}`}
-                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
-                  >
-                    <Avatar className="w-12 h-12">
-                      {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
-                      <AvatarFallback>{(name?.[0] || roleLabel?.[0] || "U").toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900">{name}</div>
-                      <div className="text-xs text-gray-500 capitalize">{roleLabel}</div>
-                      <div className="text-sm text-gray-600">
-                        Won on {new Date(w.executed_at).toLocaleDateString()} • Draw Code {w.drawn_code}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-green-600">${formatMoney(w.amount)}</div>
-                      <Badge variant="outline" className="text-xs">
-                        Place: {w.place}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No winners yet — be the first!</p>
+          {latestDraw ? (
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                <span>
+                  Drawn on {formatDate(latestDraw.executedAt, true)}
+                </span>
+                <span>Draw Code: {latestDraw.drawnCode || "—"}</span>
               </div>
-            )}
-          </div>
+
+              {latestSections.map((section) => (
+              <section key={section.place} className="space-y-3">
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {placeTitle(section.place)}
+                </h4>
+                {section.winners.map((winner) =>
+                  WinnerListItem(winner, true)
+                )}
+              </section>
+            ))}
+
+              {historicalDraws.length === 0 && (
+                <p className="text-sm text-gray-500">
+                  No previous draws to display yet.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No winners yet — be the first!</p>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {historicalDraws.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5" />
+              Previous Draw Winners
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="space-y-2">
+              {historicalDraws.map((draw) => (
+                <AccordionItem key={draw.drawId} value={draw.drawId}>
+                  <AccordionTrigger className="text-left">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2">
+                      <span className="font-medium text-gray-900">
+                        Drawn on {formatDate(draw.executedAt, true)}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        Draw Code: {draw.drawnCode || "—"}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 pt-2">
+                      {draw.winners.map((winner) =>
+                        WinnerListItem(winner, true)
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
