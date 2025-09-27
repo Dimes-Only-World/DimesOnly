@@ -228,7 +228,7 @@ CREATE TABLE public.jackpot_winners (
   year integer DEFAULT (EXTRACT(year FROM now()))::integer,
   created_at timestamp with time zone DEFAULT now(),
   draw_id uuid,
-  role text CHECK (role = ANY (ARRAY['tipper'::text, 'dime'::text, 'referred_dime'::text])),
+  role text CHECK (role = ANY (ARRAY['tipper'::text, 'dime'::text, 'referred_dime'::text, 'dime_referred_dime'::text, 'referred_dime_referrer'::text, 'who_referred_tipper'::text])),
   place integer CHECK (place = ANY (ARRAY[1, 2, 3])),
   percentage numeric,
   amount numeric,
@@ -462,7 +462,7 @@ CREATE TABLE public.subscriptions (
 );
 CREATE TABLE public.tickets (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  ticket_number text NOT NULL UNIQUE,
+  ticket_number text NOT NULL UNIQUE CHECK (no_duplicate_letters(ticket_number)) NOT VALI),
   tip_id uuid,
   username text NOT NULL,
   created_at timestamp with time zone DEFAULT now(),

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 interface ForgotUsernameModalProps {
   isOpen: boolean;
@@ -21,19 +22,23 @@ const ForgotUsernameModal: React.FC<ForgotUsernameModalProps> = ({ isOpen, onClo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
-      // Simulate username recovery email
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSuccess(true);
-      toast({
-        title: "Username Recovery Email Sent",
-        description: "Check your email for your username information.",
+      const { data, error } = await supabase.functions.invoke("send-username-reminder", {
+        body: { email },
       });
-    } catch (error) {
+  
+      if (error || !data?.success) {
+        throw new Error(data?.message || "Failed to send username email");
+      }
+  
+      setSuccess(true);
+      toast({ title: "Username sent", description: "Check your inbox for your username." });
+    } catch (err) {
       toast({
         title: "Error",
-        description: "Failed to send username recovery email. Please try again.",
+        description:
+          err instanceof Error ? err.message : "Failed to send username email. Please try again.",
         variant: "destructive",
       });
     } finally {
