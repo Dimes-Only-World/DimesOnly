@@ -419,14 +419,14 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             <p className="text-lg mb-2">When pool reaches $1,000</p>
             <p className="text-xl font-bold">Saturday 12:00 am drawing</p>
             <p className="text-sm mt-2">
-              ${formatMoney(Math.max(0, 4000 - currentJackpot))} to go • One
+              ${formatMoney(Math.max(0, 1000 - currentJackpot))} to go • One
               code, 1st/2nd/3rd win • Rollover if no match
             </p>
           </div>
 
           <div className="space-y-2 text-left bg-white/10 rounded-lg p-4">
             <p className="flex items-center gap-2">
-              <span>💎</span> Every $1 = 1 ticket (min 5 per tip)
+              <span>💎</span> Every $1 = 1 ticket (min $5 per tip)
             </p>
             <p className="flex items-center gap-2">
               <span>🎯</span> Weekly drawing (Saturday 12:00 am). If no match,
@@ -472,7 +472,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             </div>
             <p className="text-gray-600 mb-4">Tickets for upcoming drawing</p>
             <Badge variant="outline" className="text-sm">
-              $1 = 1 ticket • max 5 per tip
+              $1 = 1 ticket • min $5 per tip
             </Badge>
           </div>
         </CardContent>
