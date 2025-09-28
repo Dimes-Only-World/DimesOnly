@@ -178,9 +178,24 @@ const JackpotWinnersBanner: React.FC = () => {
 
         // 3) Fetch profile info for these user_ids
         const ids: string[] = Array.from(
-          new Set((all as any[]).map((w) => String(w.user_id)))
+          new Set(
+            (all as any[])
+              .map((w) => (w.user_id ? String(w.user_id) : null))
+              .filter((id): id is string => Boolean(id))
+          )
         );
+
         let profiles: ProfilesMap = {};
+
+        for (const w of all as any[]) {
+          const rawId = w.user_id ? String(w.user_id) : null;
+          if (!rawId) continue;
+          profiles[rawId] = {
+            username: w.username ?? null,
+            profile_photo: w.profile_photo ?? null,
+          };
+        }
+
         if (ids.length) {
           const { data: users } = await supabase
             .from("users")
@@ -197,15 +212,15 @@ const JackpotWinnersBanner: React.FC = () => {
 
         // 4) Enrich winners with username/photo (prefer row data, fallback to fetched profile)
         const enriched: WinnerRow[] = (all as any[]).map((w) => {
-          const key = String(w.user_id);
-          const p = profiles[key];
+          const rawId = w.user_id ? String(w.user_id) : null;
+          const p = rawId ? profiles[rawId] : undefined;
           return {
             draw_id: String(w.draw_id),
             drawn_code: w.drawn_code ?? null,
             executed_at: String(w.executed_at),
-            user_id: key,
-            username: (w.username ?? (p?.username ?? null)) as string | null,
-            profile_photo: (w.profile_photo ?? (p?.profile_photo ?? null)) as
+            user_id: rawId,
+            username: (w.username ?? p?.username ?? null) as string | null,
+            profile_photo: (w.profile_photo ?? p?.profile_photo ?? null) as
               | string
               | null,
             role: w.role as WinnerRow["role"],

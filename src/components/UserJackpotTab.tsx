@@ -24,12 +24,22 @@ type PoolRow = {
   period_end: string | null;
 };
 
+type WinnerRole =
+  | "tipper"
+  | "dime"
+  | "referred_dime"
+  | "dime_referred_dime"
+  | "referred_dime_referrer"
+  | "who_referred_tipper";
+
 type WinnerRow = {
   draw_id: string;
   drawn_code: string | null;
   executed_at: string;
-  user_id: string;
-  role: "tipper" | "dime" | "referred_dime";
+  user_id: string | null;
+  username: string | null;
+  profile_photo: string | null;
+  role: WinnerRole;
   place: 1 | 2 | 3;
   percentage: number | null;
   amount: number | null;
@@ -61,6 +71,12 @@ const roleDisplay = (role: WinnerRow["role"]) => {
       return "Dime";
     case "referred_dime":
       return "Referred Dime";
+    case "dime_referred_dime":
+      return "Referred Dime (2nd Place)";
+    case "referred_dime_referrer":
+      return "Referrer (2nd Place)";
+    case "who_referred_tipper":
+      return "Tipper Referrer";
     default:
       return "Winner";
   }
@@ -228,7 +244,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         draw_id: String(row.draw_id),
         drawn_code: row.drawn_code ?? null,
         executed_at: String(row.executed_at),
-        user_id: String(row.user_id),
+        user_id: row.user_id ? String(row.user_id) : null,
+        username: null,
+        profile_photo: null,
         role: row.role as WinnerRow["role"],
         place: Number(row.place) as WinnerRow["place"],
         percentage:
@@ -258,8 +276,25 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
       setDrawGroups(grouped);
 
+      const initialProfiles: Record<string, { name: string; avatar_url?: string | null }> = {};
+      normalizedRows.forEach((row) => {
+        if (!row.user_id) return;
+        initialProfiles[row.user_id] = {
+          name: row.username || roleDisplay(row.role) || row.user_id,
+          avatar_url: row.profile_photo ?? null,
+        };
+      });
+
+      if (Object.keys(initialProfiles).length > 0) {
+        setUserProfiles((prev) => ({ ...prev, ...initialProfiles }));
+      }
+
       const ids = Array.from(
-        new Set(normalizedRows.map((r) => r.user_id).filter(Boolean))
+        new Set(
+          normalizedRows
+            .map((r) => r.user_id)
+            .filter((id): id is string => Boolean(id))
+        )
       );
       if (ids.length > 0) {
         await loadProfiles(ids);
@@ -277,9 +312,11 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     });
   };
 
-  const displayNameFor = (userId: string, fallback: string) => {
-    const name = userProfiles[userId]?.name;
-    if (name && name.trim().length > 0) return name;
+  const displayNameFor = (userId: string | null | undefined, fallback: string) => {
+    if (userId) {
+      const name = userProfiles[userId]?.name;
+      if (name && name.trim().length > 0) return name;
+    }
     return fallback;
   };
 
@@ -314,17 +351,22 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     winner: WinnerRow,
     includePlaceBadge = true
   ): React.ReactNode => {
-    const name = displayNameFor(
-      winner.user_id,
-      roleDisplay(winner.role) || winner.user_id
-    );
-    const avatar = userProfiles[winner.user_id]?.avatar_url || undefined;
+    const fallbackName =
+      winner.username ||
+      roleDisplay(winner.role) ||
+      winner.user_id ||
+      "Winner";
+    const name = displayNameFor(winner.user_id, fallbackName);
+    const avatar =
+      (winner.user_id ? userProfiles[winner.user_id]?.avatar_url : undefined) ??
+      winner.profile_photo ??
+      undefined;
     const placeLabel = placeTitle(winner.place);
     const roleLabel = roleDisplay(winner.role);
 
     return (
       <div
-        key={`${winner.draw_id}-${winner.user_id}-${winner.place}`}
+        key={`${winner.draw_id}-${winner.user_id ?? winner.role}-${winner.place}`}
         className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -435,7 +477,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             <div className="mt-4 flex flex-col items-center space-y-2">
               <video
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
-                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4"
+              //src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4"
                 autoPlay
                 loop
                 muted

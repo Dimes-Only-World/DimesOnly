@@ -14,6 +14,7 @@ interface User {
   state: string;
   user_type: string;
   ratingCount: number;
+  myRating: number | null;
 }
 
 interface UsersListProps {
@@ -31,6 +32,8 @@ interface UsersListProps {
     event: React.MouseEvent
   ) => void;
   rateFilter?: RateFilter;
+  currentUserId?: string | null;
+  usePersonalRatings?: boolean;
 }
 
 const UsersList: React.FC<UsersListProps> = ({
@@ -44,13 +47,15 @@ const UsersList: React.FC<UsersListProps> = ({
   orderDirection = "asc",
   onImageClick,
   rateFilter = "all",
+  currentUserId = null,
+  usePersonalRatings = false,
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchUsers();
-  }, [orderBy, orderDirection]);
+  }, [orderBy, orderDirection, currentUserId, usePersonalRatings]);
 
   const fetchUsers = async () => {
     try {
@@ -73,6 +78,7 @@ const UsersList: React.FC<UsersListProps> = ({
           state: String(user.state || ""),
           user_type: String(user.user_type),
           ratingCount: 0,
+          myRating: null,
         })) ?? [];
 
       if (mappedUsers.length === 0) {
@@ -98,9 +104,30 @@ const UsersList: React.FC<UsersListProps> = ({
         {}
       );
 
+      let personalRatings: Record<string, number> = {};
+      if (usePersonalRatings && currentUserId) {
+        const { data: myRatingsData, error: myRatingsError } = await supabase
+          .from("ratings")
+          .select("user_id, rating")
+          .eq("rater_id", currentUserId)
+          .in("user_id", performerIds);
+
+        if (myRatingsError) throw myRatingsError;
+
+        personalRatings = (myRatingsData || []).reduce<Record<string, number>>(
+          (acc, row) => {
+            const key = String(row.user_id);
+            acc[key] = Number(row.rating);
+            return acc;
+          },
+          {}
+        );
+      }
+
       const usersWithCounts = mappedUsers.map((user) => ({
         ...user,
         ratingCount: ratingCounts[user.id] || 0,
+        myRating: personalRatings[user.id] ?? null,
       }));
 
       setUsers(usersWithCounts);
@@ -130,15 +157,18 @@ const UsersList: React.FC<UsersListProps> = ({
         return false;
       }
 
+      const hasPersonalRating = user.myRating !== null;
+      const hasAnyRating = user.ratingCount > 0;
+
       if (rateFilter === "rated") {
-        return user.ratingCount > 0;
+        return usePersonalRatings ? hasPersonalRating : hasAnyRating;
       }
       if (rateFilter === "not-rated") {
-        return user.ratingCount === 0;
+        return usePersonalRatings ? !hasPersonalRating : !hasAnyRating;
       }
       return true;
     });
-  }, [users, searchName, searchCity, searchState, rateFilter]);
+  }, [users, searchName, searchCity, searchState, rateFilter, usePersonalRatings]);
 
   if (loading) {
     return (
@@ -203,7 +233,11 @@ const UsersList: React.FC<UsersListProps> = ({
               />
               <div className="absolute top-2 left-2">
                 <span className="bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                  Rated {user.ratingCount}
+                  {usePersonalRatings
+                    ? user.myRating !== null
+                      ? `Your Rating ${user.myRating}`
+                      : "Not Rated"
+                    : `Rated ${user.ratingCount}`}
                 </span>
               </div>
               <div className="absolute top-2 right-2">

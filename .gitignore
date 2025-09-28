@@ -26,3 +26,7 @@ package-lock.json
 *.njsproj
 *.sln
 *.sw?
+tips_rows.csv
+.gitignore
+tips_transactions_rows.csv
+

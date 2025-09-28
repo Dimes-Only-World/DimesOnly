@@ -481,7 +481,7 @@ const RatePage: React.FC = () => {
           .from("users")
           .update({
             likes: Math.max(0, currentLikes - 1),
-            liked_by: null, // Simplified for now
+            liked_by: null, 
           })
           .eq("id", userData.id);
 

@@ -24,6 +24,8 @@ interface User {
   city: string;
   state: string;
   user_type: string;
+  ratingCount?: number;
+  myRating?: number | null;
 }
 
 interface RankedUser {
@@ -425,39 +427,39 @@ const RateGirls: React.FC = () => {
             rateFilter={rateFilter}
             onUserSelect={handleUserSelect}
             actionType="rate"
-            //noDataMessage="NO RATES YET IN 2025. BE THE 1ST!"
             orderBy="created_at"
             orderDirection="desc"
             onImageClick={handleImageClick}
+            currentUserId={currentUser?.id ?? null}
+            usePersonalRatings={Boolean(currentUser?.id)}
           />
         </div>
+        {/* Image Modal */}
+        <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+          <DialogContent className="bg-gray-800 border-yellow-500 max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="text-yellow-400 flex items-center gap-2">
+                Photo - @{selectedImage?.username}
+              </DialogTitle>
+              <button
+                onClick={() => setShowImageModal(false)}
+                className="absolute right-4 top-4 text-gray-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </DialogHeader>
+            <div className="flex items-center justify-center max-h-[70vh]">
+              {selectedImage && (
+                <img
+                  src={selectedImage.url}
+                  alt={`${selectedImage.username} photo`}
+                  className="max-w-full max-h-full object-contain rounded-lg"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* Image Modal */}
-      <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
-        <DialogContent className="bg-gray-800 border-yellow-500 max-w-4xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-yellow-400 flex items-center gap-2">
-              Photo - @{selectedImage?.username}
-            </DialogTitle>
-            <button
-              onClick={() => setShowImageModal(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-white"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </DialogHeader>
-          <div className="flex items-center justify-center max-h-[70vh]">
-            {selectedImage && (
-              <img
-                src={selectedImage.url}
-                alt={`${selectedImage.username} photo`}
-                className="max-w-full max-h-full object-contain rounded-lg"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </AuthGuard>
   );
 };
