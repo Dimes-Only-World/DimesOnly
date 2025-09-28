@@ -435,6 +435,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             <div className="mt-4 flex flex-col items-center space-y-2">
               <video
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
+                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4"
                 autoPlay
                 loop
                 muted
