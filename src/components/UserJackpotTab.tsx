@@ -102,7 +102,9 @@ const formatDate = (value: string, includeTime = false) => {
 
 const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
   const [currentTickets, setCurrentTickets] = useState<number>(0);
-  const [ticketCodes, setTicketCodes] = useState<string[]>([]);
+  const [ticketCodes, setTicketCodes] = useState<
+    { code: string; created_at: string | null }[]
+  >([]);
   const [drawGroups, setDrawGroups] = useState<DrawGroup[]>([]);
   const [userProfiles, setUserProfiles] = useState<
     Record<string, { name: string; avatar_url?: string | null }>
@@ -180,18 +182,25 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       }
       const { data, error } = await supabase
         .from("jackpot_tickets")
-        .select("code")
+        .select("code, created_at")
         .eq("pool_id", poolId)
         .eq("tipper_id", userData.id)
         .order("created_at", { ascending: false })
         .limit(100);
-
+  
       if (error) throw error;
+  
+      const rows =
+      (data as { code: string | null; created_at: string | null }[]) || [];
 
-      const codes = (data || [])
-        .map((r: { code: string }) => r.code)
-        .filter(Boolean);
-      setTicketCodes(codes);
+    const codes = rows
+      .filter((row) => row.code)
+      .map((row) => ({
+        code: row.code as string,
+        created_at: row.created_at ? new Date(row.created_at) : null,
+      }));
+
+    setTicketCodes(codes);
     } catch (err) {
       console.error("Error fetching ticket codes:", err);
     }
@@ -529,20 +538,30 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {ticketCodes.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {ticketCodes.map((code, idx) => (
-                <Badge key={idx} variant="secondary" className="justify-center">
-                  {code}
+        {ticketCodes.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {ticketCodes.map((ticket, idx) => (
+              <div
+                key={idx}
+                className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-center"
+              >
+                <Badge variant="secondary" className="justify-center text-base mb-2">
+                  {ticket.code}
                 </Badge>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500">
-              <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No tickets yet. Tip to earn your first ticket!</p>
-            </div>
-          )}
+                <div className="text-xs text-neutral-500">
+                  {ticket.created_at
+                    ? `Bought ${formatDate(ticket.created_at, true)}`
+                    : "Purchase time unavailable"}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">
+            <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>No tickets yet. Tip to earn your first ticket!</p>
+          </div>
+        )}
         </CardContent>
       </Card>
 

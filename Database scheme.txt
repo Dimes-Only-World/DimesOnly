@@ -189,8 +189,12 @@ CREATE TABLE public.jackpot_pools (
   period_end timestamp with time zone,
   current_amount numeric NOT NULL DEFAULT 0.00,
   rollover_amount numeric NOT NULL DEFAULT 0.00,
-  status text NOT NULL DEFAULT 'open'::text CHECK (status = ANY (ARRAY['open'::text, 'ready'::text, 'drawn'::text, 'closed'::text])),
+  status text NOT NULL DEFAULT 'open'::text CHECK (status = ANY (ARRAY['open'::text, 'sold_out'::text, 'ready'::text, 'drawn'::text, 'closed'::text])),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
+  max_tickets integer,
+  sold_out_at timestamp with time zone,
+  sales_resume_at timestamp with time zone,
+  guaranteed_draw boolean NOT NULL DEFAULT false,
   CONSTRAINT jackpot_pools_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.jackpot_tickets (

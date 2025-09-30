@@ -49,6 +49,9 @@ declare global {
     };
   }
 }
+const SOLD_OUT_MESSAGE =
+  "Jackpot is maxed out for the upcoming drawing. Tipping will resume at Saturday 12:00 am PST.";
+const JACKPOT_UNAVAILABLE_ERROR = "JACKPOT_UNAVAILABLE";
 
 interface UserData {
   id: string;
@@ -160,6 +163,50 @@ const Tip: React.FC = () => {
     }
   };
 
+  const checkJackpotAvailability = async (): Promise<{
+    canTip: boolean;
+    message?: string;
+  }> => {
+    try {
+      const { data, error } = await supabase
+        .from("v_jackpot_active_pool")
+        .select("pool_id,status")
+        .single();
+  
+      if (error) {
+        if ("code" in error && error.code === "PGRST116") {
+          return {
+            canTip: false,
+            message:
+              "Jackpot ticket sales are unavailable right now. Please try again later.",
+          };
+        }
+        throw error;
+      }
+  
+      if (!data) {
+        return {
+          canTip: false,
+          message:
+            "Jackpot ticket sales are unavailable right now. Please try again later.",
+        };
+      }
+  
+      if (data.status === "sold_out") {
+        return { canTip: false, message: SOLD_OUT_MESSAGE };
+      }
+  
+      return { canTip: true };
+    } catch (err) {
+      console.error("Jackpot availability check failed:", err);
+      return {
+        canTip: false,
+        message:
+          "Jackpot ticket sales are unavailable right now. Please try again later.",
+      };
+    }
+  };
+
   const renderPayPalButton = (containerId: string, amount: number) => {
     if (!window.paypal || amount <= 0) return;
 
@@ -171,7 +218,7 @@ const Tip: React.FC = () => {
 
     window.paypal
       .Buttons({
-        createOrder: (data: unknown, actions: unknown) => {
+        createOrder: async (data: unknown, actions: unknown) => {
           const orderActions = actions as {
             order: {
               create: (order: {
@@ -182,6 +229,24 @@ const Tip: React.FC = () => {
               }) => Promise<string>;
             };
           };
+  
+          const availability = await checkJackpotAvailability();
+          if (!availability.canTip) {
+            const description =
+              availability.message ||
+              "Jackpot ticket sales are unavailable right now. Please try again later.";
+  
+            toast({
+              title: description.toLowerCase().includes("maxed")
+                ? "Jackpot Sold Out"
+                : "Tip Unavailable",
+              description,
+              variant: "destructive",
+            });
+  
+            return Promise.reject(new Error(JACKPOT_UNAVAILABLE_ERROR));
+          }
+  
           return orderActions.order.create({
             purchase_units: [
               {
@@ -211,6 +276,12 @@ const Tip: React.FC = () => {
           });
         },
         onError: (err: unknown) => {
+          if (
+            err === JACKPOT_UNAVAILABLE_ERROR ||
+            (err instanceof Error && err.message === JACKPOT_UNAVAILABLE_ERROR)
+          ) {
+            return;
+          }
           console.error("PayPal error:", err);
           setPaypalError("Payment failed. Please try again.");
         },
@@ -426,8 +497,7 @@ const Tip: React.FC = () => {
 
   const handlePaymentSuccess = async (details: { id: string }) => {
     try {
-      // Call backend function to record tip and generate tickets
-      const { data: resp, error } = await supabase.functions.invoke(
+      const { data: resp, error: fnError } = await supabase.functions.invoke(
         "process-tip",
         {
           body: {
@@ -442,15 +512,48 @@ const Tip: React.FC = () => {
         }
       );
 
-      if (error) {
-        console.error("process-tip error", error);
+      if (fnError) {
+        console.error("process-tip error", fnError);
+        const errorMessage =
+          typeof fnError.message === "string" && fnError.message.length
+            ? fnError.message
+            : "Jackpot ticket sales are unavailable right now. Please try again later.";
+
+        const lowerMessage = errorMessage.toLowerCase();
+        toast({
+          title: lowerMessage.includes("maxed")
+            ? "Jackpot Sold Out"
+            : "Tip Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
 
-      const ticketCodes: string[] = (resp as any)?.ticket_codes || [];
-      setDigitalTicket(ticketCodes[0] || "");
+      const payload = (resp as { success?: boolean; ticket_codes?: string[] }) || {
+        success: false,
+        ticket_codes: [],
+      };
+
+      if (!payload.success || !payload.ticket_codes?.length) {
+        toast({
+          title: "Tip Processed",
+          description:
+            "Your payment completed, but no jackpot tickets were issued. Please contact support.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setDigitalTicket(payload.ticket_codes[0] || "");
       setShowSuccessDialog(true);
-    } catch (error) {
-      console.error("Error processing tip:", error);
+    } catch (err) {
+      console.error("Error processing tip:", err);
+      toast({
+        title: "Tip Failed",
+        description: "We couldn't process your tip. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

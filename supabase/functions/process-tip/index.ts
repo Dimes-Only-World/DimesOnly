@@ -8,6 +8,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const SOLD_OUT_MESSAGE =
+  "Jackpot is maxed out for the upcoming drawing. Tipping will resume at Saturday 12:00 am PST.";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -31,7 +34,8 @@ serve(async (req) => {
     if (!supabaseUrl || !serviceRoleKey) {
       return new Response(
         JSON.stringify({
-          error: "Supabase env vars missing (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).",
+          error:
+            "Supabase env vars missing (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).",
         }),
         { headers: corsHeaders, status: 400 },
       );
@@ -94,6 +98,113 @@ serve(async (req) => {
 
     // Tickets are whole dollars only
     const ticketCount = Math.max(0, Math.floor(parsedAmount));
+
+    // Active pool + cap enforcement (before recording payment)
+    let poolId: string | null = null;
+    let poolStatus: string | null = null;
+    let poolMaxTickets: number | null = null;
+    let poolCurrentTickets = 0;
+
+    if (ticketCount > 0) {
+      try {
+        const {
+          data: poolView,
+          error: poolErr,
+        } = await supabase
+          .from("v_jackpot_active_pool")
+          .select(
+            "pool_id,status,max_tickets,sales_resume_at,guaranteed_draw",
+          )
+          .single();
+
+        if (poolErr && poolErr.code !== "PGRST116") {
+          throw new Error(
+            `Failed to load active jackpot pool: ${poolErr.message}`,
+          );
+        }
+
+        if (poolView) {
+          poolId = poolView.pool_id ?? null;
+          poolStatus = poolView.status ?? null;
+          poolMaxTickets =
+            typeof poolView.max_tickets === "number"
+              ? poolView.max_tickets
+              : null;
+        }
+
+        if (!poolId) {
+          const { data: fallback, error: fallbackErr } = await supabase
+            .from("jackpot_pools")
+            .select("id,status,max_tickets")
+            .in("status", ["open", "sold_out"])
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (fallbackErr && fallbackErr.code !== "PGRST116") {
+            throw new Error(
+              `Fallback pool lookup failed: ${fallbackErr.message}`,
+            );
+          }
+
+          if (fallback) {
+            poolId = fallback.id ?? null;
+            poolStatus = fallback.status ?? null;
+            poolMaxTickets =
+              typeof fallback.max_tickets === "number"
+                ? fallback.max_tickets
+                : null;
+          }
+        }
+
+        if (poolId) {
+          const { count, error: countErr } = await supabase
+            .from("jackpot_tickets")
+            .select("id", { count: "exact", head: true })
+            .eq("pool_id", poolId);
+
+          if (countErr) {
+            throw new Error(
+              `Failed to count jackpot tickets: ${countErr.message}`,
+            );
+          }
+
+          poolCurrentTickets = count ?? 0;
+
+          if (
+            poolStatus === "sold_out" ||
+            (poolMaxTickets !== null && poolCurrentTickets >= poolMaxTickets)
+          ) {
+            return new Response(
+              JSON.stringify({ error: SOLD_OUT_MESSAGE }),
+              { headers: corsHeaders, status: 409 },
+            );
+          }
+
+          if (
+            poolMaxTickets !== null &&
+            poolCurrentTickets + ticketCount > poolMaxTickets
+          ) {
+            return new Response(
+              JSON.stringify({ error: SOLD_OUT_MESSAGE }),
+              { headers: corsHeaders, status: 409 },
+            );
+          }
+        }
+      } catch (poolCheckErr) {
+        console.error(
+          "Jackpot pool availability check failed:",
+          poolCheckErr,
+        );
+        return new Response(
+          JSON.stringify({
+            error:
+              "Jackpot ticket sales are unavailable right now. Please try again later.",
+          }),
+          { headers: corsHeaders, status: 503 },
+        );
+      }
+    }
 
     // Fetch tipped user ID
     const { data: tippedUser, error: tippedErr } = await supabase
@@ -199,28 +310,16 @@ serve(async (req) => {
       if (tErr) console.error("tickets insert error", tErr);
     }
 
-    // Determine active jackpot pool
-    let poolId: string | null = null;
-    try {
-      const { data: poolView, error: pvErr } = await supabase
-        .from("v_jackpot_active_pool")
-        .select("pool_id")
-        .single();
-      if (!pvErr && poolView?.pool_id) {
-        poolId = poolView.pool_id;
-      }
-    } catch (_) {
-      // ignore
-    }
-    if (!poolId) {
+    // Ensure we have a pool id before jackpot insert (fallback if necessary)
+    if (!poolId && ticketCodes.length) {
       const { data: poolRow } = await supabase
         .from("jackpot_pools")
         .select("id")
         .eq("status", "open")
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
-      poolId = poolRow?.id || null;
+        .maybeSingle();
+      poolId = poolRow?.id ?? null;
     }
 
     if (poolId && ticketCodes.length) {
@@ -228,10 +327,38 @@ serve(async (req) => {
         code,
         tipper_id: tipper_id,
         tipped_user_id: tippedUser.id,
-        pool_id: poolId,
+        pool_id: poolId!,
       }));
-      const { error: jtErr } = await supabase.from("jackpot_tickets").insert(jtRows);
+      const { error: jtErr } = await supabase.from("jackpot_tickets").insert(
+        jtRows,
+      );
       if (jtErr) console.error("jackpot_tickets insert error", jtErr);
+      else if (poolMaxTickets !== null) {
+        const newTotal = poolCurrentTickets + ticketCodes.length;
+        if (newTotal >= poolMaxTickets) {
+          const nowIso = new Date().toISOString();
+          let salesResumeAt: string | null = null;
+          const { data: resumeData, error: resumeErr } = await supabase.rpc(
+            "jackpot_next_sales_start",
+            { now_ts: nowIso },
+          );
+          if (!resumeErr && resumeData) {
+            salesResumeAt = resumeData;
+          }
+          const { error: poolUpdateErr } = await supabase
+            .from("jackpot_pools")
+            .update({
+              status: "sold_out",
+              sold_out_at: nowIso,
+              sales_resume_at: salesResumeAt,
+              guaranteed_draw: true,
+            })
+            .eq("id", poolId);
+          if (poolUpdateErr) {
+            console.error("Failed to mark jackpot pool as sold out", poolUpdateErr);
+          }
+        }
+      }
     } else if (!poolId) {
       console.warn("No active pool found; skipping jackpot_tickets insert");
     }
