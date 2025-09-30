@@ -32,7 +32,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
             loop 
             className="w-full sm:w-64 h-48 object-cover rounded-lg border-2 border-orange-500"
           >
-            <source src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/o3+(1).mp4" type="video/mp4" />
+            <source src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/opening+intro.webm" type="video/webm" />
             Your browser does not support the video tag.
           </video>
         </div>
