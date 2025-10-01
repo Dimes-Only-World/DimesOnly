@@ -43,6 +43,13 @@ import PaymentStatus from "@/components/PaymentStatus";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
 import { useMobileLayout } from "@/hooks/use-mobile";
 
+const PERFORMER_RATE = 0.2;
+const REFERRER_RATE = 0.1;
+const JACKPOT_RATE = 0.25;
+const PERFORMER_PERCENT = Math.round(PERFORMER_RATE * 100);
+
+const roundCurrency = (value: number) => Math.round(value * 100) / 100;
+
 interface WeeklyEarning {
   id: string;
   week_start: string;
@@ -57,6 +64,7 @@ interface WeeklyEarning {
 interface TipData {
   id: string;
   tip_amount: number;
+  gross_amount?: number | null;
   tipper_username: string;
   created_at: string;
   status: string;
@@ -625,7 +633,22 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       setWeeklyEarnings(
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       );
-      setTipsReceived((tipsResult.data as unknown as TipData[]) || []);
+      const rawTips = ((tipsResult.data as unknown as TipData[]) || []).map(
+        (tip) => {
+          const net = Number(tip.tip_amount || 0);
+          const gross = tip.gross_amount != null
+            ? Number(tip.gross_amount)
+            : net > 0
+            ? roundCurrency(net / PERFORMER_RATE)
+            : 0;
+          return {
+            ...tip,
+            tip_amount: roundCurrency(net),
+            gross_amount: gross,
+          };
+        },
+      );
+      setTipsReceived(rawTips);
       setReferralCommissions(
         (referralResult.data as unknown as ReferralCommission[]) || []
       );
@@ -654,9 +677,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       });
 
       // Calculate earnings
-      const tipsTotal = (
-        (tipsResult.data as unknown as TipData[]) || []
-      ).reduce((sum, tip) => sum + (tip.tip_amount || 0), 0);
+      const tipsTotal = rawTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
       const referralTotal = (
         (referralResult.data as unknown as ReferralCommission[]) || []
       ).reduce((sum, payment) => sum + (payment.referrer_commission || 0), 0);
@@ -1057,16 +1078,18 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     const recentTips = tipsReceived.filter(
       (tip) => new Date(tip.created_at) >= cutoffDate
     );
-    const recentReferrals = earningsItems.filter(
+    const recentReferrals = referralCommissions.filter(
       (ref) => new Date(ref.created_at) >= cutoffDate
     );
 
-    const tipsAmount = recentTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
-    const referralAmount = recentReferrals.reduce((sum, ref) => sum + (ref.amount || 0), 0);
+    const tipsNetAmount = recentTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
+    const referralAmount = recentReferrals.reduce(
+      (sum, ref) => sum + (ref.referrer_commission || 0),
+      0,
+    );
 
-    return tipsAmount + referralAmount;
+    return tipsNetAmount + referralAmount;
   };
-
   // Derived filters and summaries for Referrals tab
   const commissionOptions = [...defaultCommissionOptions];
   const overridesTotal = earningsItems
@@ -1410,7 +1433,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-600">
-                          {formatCurrency(tip.tip_amount)}
+                          {`${PERFORMER_PERCENT}%`}
                         </p>
                         <Badge variant="outline">{tip.status}</Badge>
                       </div>

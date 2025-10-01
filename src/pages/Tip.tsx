@@ -535,7 +535,9 @@ const Tip: React.FC = () => {
         ticket_codes: [],
       };
 
-      if (!payload.success || !payload.ticket_codes?.length) {
+      console.log("process-tip response", resp);
+
+      if (!payload.success) {
         toast({
           title: "Tip Processed",
           description:
@@ -545,7 +547,15 @@ const Tip: React.FC = () => {
         return;
       }
 
-      setDigitalTicket(payload.ticket_codes[0] || "");
+      if (payload.ticket_codes?.length) {
+        setDigitalTicket(payload.ticket_codes[0] || "");
+      } else {
+        console.warn(
+          "process-tip returned success without ticket codes",
+          resp,
+        );
+      }
+
       setShowSuccessDialog(true);
     } catch (err) {
       console.error("Error processing tip:", err);

@@ -231,15 +231,17 @@ const UsersList: React.FC<UsersListProps> = ({
                     : undefined
                 }
               />
-              <div className="absolute top-2 left-2">
-                <span className="bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                  {usePersonalRatings
-                    ? user.myRating !== null
-                      ? `Your Rating ${user.myRating}`
-                      : "Not Rated"
-                    : `Rated ${user.ratingCount}`}
-                </span>
-              </div>
+              {actionType !== "tip" && (
+                <div className="absolute top-2 left-2">
+                  <span className="bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                    {usePersonalRatings
+                      ? user.myRating !== null
+                        ? `Your Rating ${user.myRating}`
+                        : "Not Rated"
+                      : `Rated ${user.ratingCount}`}
+                  </span>
+                </div>
+              )}
               <div className="absolute top-2 right-2">
                 <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
                   {user.user_type}
