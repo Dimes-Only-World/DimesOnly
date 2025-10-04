@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,30 @@ interface ReferralCommission {
   referred_by: string;
 }
 
+interface ReferralTipData {
+  id: string;
+  referrer_commission: number | null;
+  referrer_username: string | null;
+  tipped_username: string | null;
+  tip_amount: number | null;
+  payment_status: string | null;
+  created_at: string | null;
+  completed_at: string | null;
+}
+
+type TipDisplayRole = "performer" | "referral";
+
+interface TipDisplayEntry {
+  id: string;
+  created_at: string;
+  amount: number;
+  role: TipDisplayRole;
+  counterparty?: string | null;
+  status?: string | null;
+  referrer_username?: string | null;
+  original_tip_amount?: number | null;
+}
+
 interface EarningsItem {
   id: string;
   created_at: string;
@@ -89,10 +113,9 @@ interface EarningsItem {
   payment_status: string | null;
   buyer_id: string | null;
   buyer_username: string | null;
-  // Optional referred-user profile fields (if backend provides)
   buyer_avatar_url?: string | null;
-  buyer_location?: string | null; // e.g. "Los Angeles, CA"
-  buyer_joined_at?: string | null; // ISO date
+  buyer_location?: string | null;
+  buyer_joined_at?: string | null;
   buyer_membership_tier: string | null;
   plan_tier: string | null;
   cadence: string | null;
@@ -100,7 +123,6 @@ interface EarningsItem {
   subscription_id: string | null;
   source_label: string;
   override_badge: boolean;
-  // New: show who directly referred the buyer (used for Upline commissions)
   referrer_username?: string | null;
 }
 
@@ -155,13 +177,10 @@ interface UserEarningsTabProps {
 
 interface PayoutFormData {
   payoutMethod: "paypal" | "venmo" | "wire" | "direct_deposit" | "check" | "";
-  // PayPal
   paypalEmail: string;
-  // Venmo
   venmoUsername: string;
   venmoPhone: string;
   venmoEmail: string;
-  // Wire Transfer
   wireBankName: string;
   wireRoutingNumber: string;
   wireAccountNumber: string;
@@ -169,7 +188,6 @@ interface PayoutFormData {
   wireAccountType: "checking" | "savings" | "";
   wireBankAddress: string;
   wireSwiftCode: string;
-  // Check by Mail
   checkFullName: string;
   checkAddressLine1: string;
   checkAddressLine2: string;
@@ -177,9 +195,8 @@ interface PayoutFormData {
   checkState: string;
   checkZipCode: string;
   checkCountry: string;
-  // ACH extras (Direct Deposit)
-  achTransactionCode: "22" | "32" | ""; // derived from account type: 22=checking, 32=savings
-  achPayeeId: string; // up to 15 chars
+  achTransactionCode: "22" | "32" | "";
+  achPayeeId: string;
 }
 
 const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
@@ -188,13 +205,42 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [referralCommissions, setReferralCommissions] = useState<
     ReferralCommission[]
   >([]);
+  const [referralTips, setReferralTips] = useState<ReferralTipData[]>([]);
+  const combinedTips = useMemo<TipDisplayEntry[]>(() => {
+    const performerEntries = tipsReceived.map((tip) => ({
+      id: `performer-${tip.id}`,
+      created_at: tip.created_at,
+      amount: roundCurrency(tip.tip_amount || 0),
+      role: "performer" as const,
+      counterparty: tip.tipper_username,
+      status: tip.status,
+      referrer_username: tip.referrer_username,
+      original_tip_amount: roundCurrency(
+        tip.gross_amount ?? (tip.tip_amount || 0) / PERFORMER_RATE,
+      ),
+    }));
+
+    const referralEntries = referralTips.map((row) => ({
+      id: `referral-${row.id}`,
+      created_at:
+        row.created_at ?? row.completed_at ?? new Date().toISOString(),
+      amount: roundCurrency(row.referrer_commission || 0),
+      role: "referral" as const,
+      counterparty: row.tipped_username,
+      original_tip_amount: roundCurrency(row.tip_amount || 0),
+    }));
+
+    return [...performerEntries, ...referralEntries]
+      .filter((entry) => entry.amount > 0)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  }, [tipsReceived, referralTips]);
+
   const [jackpotData, setJackpotData] = useState<JackpotData>({
     currentTickets: 0,
     totalTickets: 0,
     winnings: [],
   });
   const [currentEarnings, setCurrentEarnings] = useState(0);
-  // Controlled tab for jumping between sections
   const [tabValue, setTabValue] = useState("weekly");
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
@@ -237,52 +283,44 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const { toast } = useToast();
   const { user } = useAppContext();
   const { getContainerClasses, getContentClasses } = useMobileLayout();
-  // Inline error for Supabase connectivity/auth so UI doesn't look blank
   const [supabaseError, setSupabaseError] = useState<string>("");
 
-  // Earnings-query state (Referrals tab)
   const [earningsItems, setEarningsItems] = useState<EarningsItem[]>([]);
   const [earningsTotal, setEarningsTotal] = useState(0);
   const [earningsLoading, setEarningsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [q, setQ] = useState("");
-  // Use a non-empty sentinel value for "All tiers" to avoid Radix Select error
   const [membershipType, setMembershipType] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [commissionTypes, setCommissionTypes] = useState<string[]>([]); // empty -> server defaults
+  const [commissionTypes, setCommissionTypes] = useState<string[]>([]);
 
-  // Dynamic membership tiers for dropdown (ensures completeness)
-  const [tierOptions, setTierOptions] = useState<string[]>(["free", "silver_plus", "diamond_plus"]);
+  const [tierOptions, setTierOptions] = useState<string[]>([
+    "free",
+    "silver_plus",
+    "diamond_plus",
+  ]);
   const [tiersLoading, setTiersLoading] = useState<boolean>(false);
-
 
   const prettyTier = (t?: string | null) =>
     (t || "").split("_").join(" ").replace(/\b\w/g, (m) => m.toUpperCase());
 
-  // Auto-apply filters with a small debounce to avoid requiring an explicit Apply click
   useEffect(() => {
     const handle = setTimeout(() => {
-      // Reset to first page when filters change
       fetchReferralEarnings(1, pageSize);
     }, 300);
     return () => clearTimeout(handle);
-    // Note: page is intentionally not included here; pagination is handled by Prev/Next buttons
   }, [membershipType, startDate, endDate, q, commissionTypes, pageSize]);
 
-  // Helpers: commission-type toggles
   const toggleCommissionType = (t: string) => {
     setCommissionTypes((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
     );
   };
 
-  // Static options for commission types (do not depend on current results)
-  // Client request: Diamond Plus falls under Membership, so we present only two filters.
   const defaultCommissionOptions = ["subscription", "membership"] as const;
 
-  // Map UI labels -> backend payment_type values expected by earnings-query
   const expandCommissionLabels = (labels: string[]): string[] => {
     const set = new Set<string>();
     for (const label of labels) {
@@ -291,28 +329,28 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         set.add("subscription_referral_commission");
         set.add("subscription_upline_referral_commission");
       } else if (l === "membership") {
-        // Include both standard and Diamond Plus commissions under Membership
         set.add("referral_commission");
         set.add("upline_referral_commission");
         set.add("diamond_plus_referral_commission");
         set.add("diamond_plus_upline_referral_commission");
       } else {
-        // Allow passing through exact payment_type values if provided
         set.add(label);
       }
     }
     return Array.from(set);
   };
 
-  // Helpers: pay-period ranges (1–15, 16–end)
   const getCurrentPayPeriod = () => {
     const now = new Date();
     const y = now.getFullYear();
     const m = now.getMonth();
     const d = now.getDate();
-    // Periods are 1–15 and 16–end of month (no overlap on the 15th)
     const start = new Date(y, m, d <= 15 ? 1 : 16);
-    const end = new Date(y, m, d <= 15 ? 15 : new Date(y, m + 1, 0).getDate());
+    const end = new Date(
+      y,
+      m,
+      d <= 15 ? 15 : new Date(y, m + 1, 0).getDate(),
+    );
     return {
       start: start.toISOString().slice(0, 10),
       end: end.toISOString().slice(0, 10),
@@ -325,17 +363,22 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     const m = now.getMonth();
     const d = now.getDate();
     if (d <= 15) {
-      // previous is 15th -> end of previous month
       const prevMonth = new Date(y, m - 1, 1);
-      // Use 16th to end of previous month to avoid overlap with 1–15 current-month period
-      const start = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 16);
-      const end = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
+      const start = new Date(
+        prevMonth.getFullYear(),
+        prevMonth.getMonth(),
+        16,
+      );
+      const end = new Date(
+        prevMonth.getFullYear(),
+        prevMonth.getMonth() + 1,
+        0,
+      );
       return {
         start: start.toISOString().slice(0, 10),
         end: end.toISOString().slice(0, 10),
       };
     } else {
-      // previous is 1st -> 15th of current month
       const start = new Date(y, m, 1);
       const end = new Date(y, m, 15);
       return {
@@ -345,7 +388,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     }
   };
 
-  // Quick apply pay periods
   const applyCurrentPayPeriod = () => {
     const { start, end } = getCurrentPayPeriod();
     setStartDate(start);
@@ -364,11 +406,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     fetchReferralEarnings(1, pageSize);
   };
 
-  // Pay-period objects for display and export
   const currentPeriod = getCurrentPayPeriod();
   const previousPeriod = getPreviousPayPeriod();
 
-  // CSV export for a specific date range (ignores UI filters for full period export)
   const exportCsvForRange = async (start: string, end: string, name = "period") => {
     try {
       const params = new URLSearchParams();
@@ -380,11 +420,11 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       params.set("format", "csv");
       const url = `${SUPABASE_URL}/functions/v1/earnings-query?${params.toString()}`;
       const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-      },
-    });
+        headers: {
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+      });
       if (!res.ok) throw new Error("CSV export failed");
       const blob = await res.blob();
       const a = document.createElement("a");
@@ -395,11 +435,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       a.remove();
     } catch (e) {
       console.error(e);
-      toast({ title: "Error", description: "CSV export failed", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "CSV export failed",
+        variant: "destructive",
+      });
     }
   };
 
-  // Mock data for payment program tracking
   const [paymentData] = useState({
     weeklyProgress: {
       referrals: 3,
@@ -424,12 +467,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     },
   });
 
-  // Update recent earnings when tips or referrals change
   useEffect(() => {
-    if (tipsReceived.length > 0 || referralCommissions.length > 0) {
-      setRecentEarnings(getRecentEarnings(7));
+    if (combinedTips.length > 0 || referralCommissions.length > 0) {
+      setRecentEarnings(getRecentEarnings(7, combinedTips));
+    } else {
+      setRecentEarnings(0);
     }
-  }, [tipsReceived, referralCommissions]);
+  }, [combinedTips, referralCommissions]);
 
   useEffect(() => {
     if (userData?.id) {
@@ -439,7 +483,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     }
   }, [userData?.id]);
 
-  // Load distinct membership tiers from users so all tiers show up
   useEffect(() => {
     const loadTiers = async () => {
       try {
@@ -450,10 +493,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .not("membership_tier", "is", null);
         if (error) throw error;
         const distinct = Array.from(
-          new Set((data || []).map((r: any) => String(r.membership_tier || "").toLowerCase()).filter(Boolean))
+          new Set(
+            (data || [])
+              .map((r: any) => String(r.membership_tier || "").toLowerCase())
+              .filter(Boolean),
+          ),
         );
         const base = new Set(["free", "silver_plus", "diamond_plus"]);
-        // Keep base tiers first, then any extra tiers alphabetically
         const extras = distinct.filter((t) => !base.has(t)).sort((a, b) => a.localeCompare(b));
         setTierOptions(["free", "silver_plus", "diamond_plus", ...extras]);
       } catch (e) {
@@ -488,12 +534,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       setEarningsLoading(true);
       const url = buildEarningsUrl(p, ps, "json");
       const res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-      },
-    });
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+      });
       if (!res.ok) throw new Error(`earnings-query failed: ${res.status}`);
       const body = await res.json();
       const items = (body.items || []) as EarningsItem[];
@@ -501,10 +547,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       setEarningsTotal(Number(body.total || items.length));
       setPage(p);
       setPageSize(ps);
-      // Clear any prior connectivity/auth error on success
       if (supabaseError) setSupabaseError("");
 
-      // Maintain backward-compatible state for existing summaries
       setReferralCommissions(
         items.map((r) => ({
           id: r.id,
@@ -513,12 +557,18 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           payment_type: r.payment_type,
           created_at: r.created_at,
           referred_by: "",
-        }))
+        })),
       );
     } catch (e) {
       console.error(e);
-      setSupabaseError("Unable to load referral earnings due to a connection/auth issue. Please refresh or try again shortly.");
-      toast({ title: "Error", description: "Failed to load referral earnings", variant: "destructive" });
+      setSupabaseError(
+        "Unable to load referral earnings due to a connection/auth issue. Please refresh or try again shortly.",
+      );
+      toast({
+        title: "Error",
+        description: "Failed to load referral earnings",
+        variant: "destructive",
+      });
     } finally {
       setEarningsLoading(false);
     }
@@ -528,26 +578,29 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     try {
       const url = buildEarningsUrl(page, pageSize, "csv");
       const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-      },
-    });
+        headers: {
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+      });
       if (!res.ok) throw new Error("CSV export failed");
       const blob = await res.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `earnings_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `earnings_${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
     } catch (e) {
       console.error(e);
-      toast({ title: "Error", description: "CSV export failed", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "CSV export failed",
+        variant: "destructive",
+      });
     }
   };
 
-  // Fetch total number of users referred by this user
   const fetchTotalReferrals = async () => {
     if (!userData?.username) return;
 
@@ -571,23 +624,21 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     }
 
     try {
-      // Fetch all data in parallel for better performance
       const [
         weeklyResult,
         tipsResult,
         referralResult,
+        referralTipsResult,
         jackpotTicketsResult,
         jackpotWinningsResult,
         payoutsResult,
       ] = await Promise.all([
-        // Weekly earnings
         supabase
           .from("weekly_earnings")
           .select("*")
           .eq("user_id", userData.id)
           .order("week_start", { ascending: false }),
 
-        // Tips received by this user
         supabase
           .from("tips")
           .select("*")
@@ -595,7 +646,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .eq("status", "completed")
           .order("created_at", { ascending: false }),
 
-        // Referral commissions earned by this user
         supabase
           .from("payments")
           .select("*")
@@ -603,17 +653,23 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .not("referrer_commission", "is", null)
           .order("created_at", { ascending: false }),
 
-        // Jackpot tickets
+        supabase
+          .from("tips_transactions")
+          .select(
+            "id, referrer_commission, referrer_username, tipped_username, tip_amount, payment_status, created_at, completed_at",
+          )
+          .eq("referrer_username", userData.username)
+          .eq("payment_status", "completed")
+          .order("created_at", { ascending: false }),
+
         supabase.from("jackpot_tickets").select("*").eq("user_id", userData.id),
 
-        // Jackpot winnings
         supabase
           .from("jackpot_winners")
           .select("*")
           .eq("user_id", userData.id)
           .order("draw_date", { ascending: false }),
 
-        // Commission payouts to calculate available balance
         supabase
           .from("commission_payouts")
           .select("*")
@@ -621,26 +677,26 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .eq("payout_status", "completed"),
       ]);
 
-      // Handle errors
       if (weeklyResult.error) throw weeklyResult.error;
       if (tipsResult.error) throw tipsResult.error;
       if (referralResult.error) throw referralResult.error;
+      if (referralTipsResult.error) throw referralTipsResult.error;
       if (jackpotTicketsResult.error) throw jackpotTicketsResult.error;
       if (jackpotWinningsResult.error) throw jackpotWinningsResult.error;
       if (payoutsResult.error) throw payoutsResult.error;
 
-      // Set the data with proper typing
       setWeeklyEarnings(
-        (weeklyResult.data as unknown as WeeklyEarning[]) || []
+        (weeklyResult.data as unknown as WeeklyEarning[]) || [],
       );
       const rawTips = ((tipsResult.data as unknown as TipData[]) || []).map(
         (tip) => {
           const net = Number(tip.tip_amount || 0);
-          const gross = tip.gross_amount != null
-            ? Number(tip.gross_amount)
-            : net > 0
-            ? roundCurrency(net / PERFORMER_RATE)
-            : 0;
+          const gross =
+            tip.gross_amount != null
+              ? Number(tip.gross_amount)
+              : net > 0
+              ? roundCurrency(net / PERFORMER_RATE)
+              : 0;
           return {
             ...tip,
             tip_amount: roundCurrency(net),
@@ -650,21 +706,51 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       );
       setTipsReceived(rawTips);
       setReferralCommissions(
-        (referralResult.data as unknown as ReferralCommission[]) || []
+        (referralResult.data as unknown as ReferralCommission[]) || [],
+      );
+      setReferralTips(
+        (referralTipsResult.data as unknown as ReferralTipData[]) || [],
       );
 
-      // Calculate jackpot data
       const tickets =
-        (jackpotTicketsResult.data as unknown as JackpotTicket[]) || [];
-      const winnings =
-        (jackpotWinningsResult.data as unknown as JackpotWinning[]) || [];
-      const currentTickets = tickets
+      (jackpotTicketsResult.data as unknown as JackpotTicket[]) || [];
+    const winnings =
+      (jackpotWinningsResult.data as unknown as JackpotWinning[]) || [];
+
+    let currentTickets = 0;
+    let totalTickets = 0;
+
+    const { data: activePoolRow, error: activePoolError } = await supabase
+      .from("v_jackpot_active_pool")
+      .select("pool_id")
+      .single();
+
+    if (activePoolError && activePoolError.code !== "PGRST116") {
+      throw activePoolError;
+    }
+
+    const activePoolId = activePoolRow?.pool_id ?? null;
+
+    if (activePoolId) {
+      const { count: activeCount, error: activeCountError } = await supabase
+        .from("jackpot_tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("tipper_id", userData.id)
+        .eq("pool_id", activePoolId);
+
+      if (activeCountError) throw activeCountError;
+
+      currentTickets = activeCount || 0;
+      totalTickets = currentTickets;
+    } else {
+      currentTickets = tickets
         .filter((ticket) => !ticket.is_winner)
         .reduce((sum, ticket) => sum + (ticket.tickets_count || 0), 0);
-      const totalTickets = tickets.reduce(
+      totalTickets = tickets.reduce(
         (sum, ticket) => sum + (ticket.tickets_count || 0),
-        0
+        0,
       );
+    }
 
       setJackpotData({
         currentTickets,
@@ -676,7 +762,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         })),
       });
 
-      // Calculate earnings
       const tipsTotal = rawTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
       const referralTotal = (
         (referralResult.data as unknown as ReferralCommission[]) || []
@@ -686,7 +771,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
       const totalEarnings = Math.max(tipsTotal + referralTotal, weeklyTotal);
 
-      // Calculate paid out amount
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
       ).reduce((sum, payout) => sum + (Number(payout.amount) || 0), 0);
@@ -695,7 +779,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       setCurrentEarnings(totalEarnings);
       setAvailableForWithdrawal(available);
 
-      // Calculate yearly earnings
       const currentYear = new Date().getFullYear();
       const yearlyAmount = (
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
@@ -706,11 +789,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           : sum;
       }, 0);
       setTotalYearlyEarnings(yearlyAmount);
-      // Clear any prior connectivity/auth error on success
       if (supabaseError) setSupabaseError("");
     } catch (error) {
       console.error("Error fetching earnings:", error);
-      setSupabaseError("We’re having trouble connecting to the earnings service. Your session may need a refresh. You can still use the filters below; data will appear once the connection resumes.");
+      setSupabaseError(
+        "We’re having trouble connecting to the earnings service. Your session may need a refresh. You can still use the filters below; data will appear once the connection resumes.",
+      );
       toast({
         title: "Error",
         description: "Failed to load earnings data",
@@ -761,14 +845,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       return;
     }
 
-    // Validate required fields based on payout method
     const isValid = validatePayoutForm();
     if (!isValid) return;
 
     setSubmittingPayout(true);
 
     try {
-      // Calculate next payout date
       const { data: nextPayoutResult, error: payoutDateError } =
         await supabase.rpc("calculate_next_payout_date");
 
@@ -777,24 +859,24 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         throw new Error("Failed to calculate payout date");
       }
 
-      // Pre-compute ACH metadata (for direct_deposit)
       const achCode =
         payoutFormData.wireAccountType === "checking"
           ? "22"
           : payoutFormData.wireAccountType === "savings"
           ? "32"
           : "";
-      const traceId =
-        `${Date.now().toString().slice(-10)}${Math.floor(Math.random() * 100000)
-          .toString()
-          .padStart(5, "0")}`; // 15 digits max
+      const traceId = `${Date.now().toString().slice(-10)}${Math.floor(
+        Math.random() * 100000,
+      )
+        .toString()
+        .padStart(5, "0")}`;
 
-      // Sanitize ACH fields
       const achRouting = (payoutFormData.wireRoutingNumber || "").replace(/\D/g, "");
       const achAccount = (payoutFormData.wireAccountNumber || "").replace(/\D/g, "");
-      const achPayeeName = (payoutFormData.wireAccountHolderName || "").trim().slice(0, 22);
+      const achPayeeName = (payoutFormData.wireAccountHolderName || "")
+        .trim()
+        .slice(0, 22);
 
-      // Insert payout request
       const { data, error } = await supabase
         .from("payout_requests")
         .insert({
@@ -802,37 +884,36 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           amount: availableForWithdrawal,
           payout_method: payoutFormData.payoutMethod,
           scheduled_payout_date: nextPayoutResult,
-
-          // PayPal fields
           paypal_email:
             payoutFormData.payoutMethod === "paypal"
               ? payoutFormData.paypalEmail
               : null,
-
-          // Cash App removed; keep nulls
           cashapp_cashtag: null,
           cashapp_phone: null,
           cashapp_email: null,
-
-          // Wire transfer fields
           wire_bank_name:
-            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
+            payoutFormData.payoutMethod === "wire" ||
+            payoutFormData.payoutMethod === "direct_deposit"
               ? payoutFormData.wireBankName
               : null,
           wire_routing_number:
-            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
+            payoutFormData.payoutMethod === "wire" ||
+            payoutFormData.payoutMethod === "direct_deposit"
               ? payoutFormData.wireRoutingNumber
               : null,
           wire_account_number:
-            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
+            payoutFormData.payoutMethod === "wire" ||
+            payoutFormData.payoutMethod === "direct_deposit"
               ? payoutFormData.wireAccountNumber
               : null,
           wire_account_holder_name:
-            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
+            payoutFormData.payoutMethod === "wire" ||
+            payoutFormData.payoutMethod === "direct_deposit"
               ? payoutFormData.wireAccountHolderName
               : null,
           wire_account_type:
-            (payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit")
+            payoutFormData.payoutMethod === "wire" ||
+            payoutFormData.payoutMethod === "direct_deposit"
               ? payoutFormData.wireAccountType
               : null,
           wire_bank_address:
@@ -843,8 +924,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             payoutFormData.payoutMethod === "wire"
               ? payoutFormData.wireSwiftCode
               : null,
-
-          // Check fields
           check_full_name:
             payoutFormData.payoutMethod === "check"
               ? payoutFormData.checkFullName
@@ -873,8 +952,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             payoutFormData.payoutMethod === "check"
               ? payoutFormData.checkCountry
               : null,
-
-          // Notes: store Venmo and ACH metadata
           notes:
             payoutFormData.payoutMethod === "venmo"
               ? JSON.stringify({
@@ -912,17 +989,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       toast({
         title: "Payout Request Submitted",
         description: `Your payout request for ${formatCurrency(
-          availableForWithdrawal
+          availableForWithdrawal,
         )} has been submitted and will be processed on ${new Date(
-          nextPayoutResult as string
+          nextPayoutResult as string,
         ).toLocaleDateString()}.`,
       });
 
-      // Reset form and close dialog
       setShowPayoutForm(false);
       resetPayoutForm();
-
-      // Refresh earnings data
       fetchAllEarningsData();
     } catch (error) {
       console.error("Error requesting payout:", error);
@@ -966,37 +1040,57 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         "wireAccountType",
       ];
       const missingField = requiredWireFields.find(
-        (field) => !payoutFormData[field as keyof PayoutFormData]
+        (field) => !payoutFormData[field as keyof PayoutFormData],
       );
       if (missingField) {
         toast({
           title: "Missing Information",
-          description: payoutMethod === 'wire' ? "All wire transfer fields are required" : "All direct deposit fields are required",
+          description:
+            payoutMethod === "wire"
+              ? "All wire transfer fields are required"
+              : "All direct deposit fields are required",
           variant: "destructive",
         });
         return false;
       }
       if (payoutMethod === "direct_deposit") {
-        // Additional ACH requirements per client spec
         const routing = (payoutFormData.wireRoutingNumber || "").replace(/\D/g, "");
         const account = (payoutFormData.wireAccountNumber || "").replace(/\D/g, "");
         const payeeId = (payoutFormData.achPayeeId || "").replace(/[^a-zA-Z0-9]/g, "");
         const payeeName = (payoutFormData.wireAccountHolderName || "").trim();
 
         if (!/^\d{9}$/.test(routing)) {
-          toast({ title: "Invalid Routing Number", description: "Routing number must be exactly 9 digits.", variant: "destructive" });
+          toast({
+            title: "Invalid Routing Number",
+            description: "Routing number must be exactly 9 digits.",
+            variant: "destructive",
+          });
           return false;
         }
         if (!/^\d{1,17}$/.test(account)) {
-          toast({ title: "Invalid Account Number", description: "Account number must be 1–17 digits.", variant: "destructive" });
+          toast({
+            title: "Invalid Account Number",
+            description: "Account number must be 1–17 digits.",
+            variant: "destructive",
+          });
           return false;
         }
         if (!/^[a-zA-Z0-9]{1,15}$/.test(payeeId)) {
-          toast({ title: "Invalid Payee ID", description: "Payee ID must be alphanumeric and up to 15 characters.", variant: "destructive" });
+          toast({
+            title: "Invalid Payee ID",
+            description:
+              "Payee ID must be alphanumeric and up to 15 characters.",
+            variant: "destructive",
+          });
           return false;
         }
         if (payeeName.length === 0 || payeeName.length > 22) {
-          toast({ title: "Invalid Payee Name", description: "Payee Name is required and must be up to 22 characters.", variant: "destructive" });
+          toast({
+            title: "Invalid Payee Name",
+            description:
+              "Payee Name is required and must be up to 22 characters.",
+            variant: "destructive",
+          });
           return false;
         }
       }
@@ -1009,7 +1103,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         "checkZipCode",
       ];
       const missingField = requiredCheckFields.find(
-        (field) => !payoutFormData[field as keyof PayoutFormData]
+        (field) => !payoutFormData[field as keyof PayoutFormData],
       );
       if (missingField) {
         toast({
@@ -1071,36 +1165,36 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
-  const getRecentEarnings = (days: number) => {
+  const getRecentEarnings = (
+    days: number,
+    tipEntries: TipDisplayEntry[],
+  ) => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    const recentTips = tipsReceived.filter(
-      (tip) => new Date(tip.created_at) >= cutoffDate
-    );
-    const recentReferrals = referralCommissions.filter(
-      (ref) => new Date(ref.created_at) >= cutoffDate
-    );
+    const tipAmount = tipEntries
+      .filter((entry) => new Date(entry.created_at) >= cutoffDate)
+      .reduce((sum, entry) => sum + entry.amount, 0);
 
-    const tipsNetAmount = recentTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
-    const referralAmount = recentReferrals.reduce(
-      (sum, ref) => sum + (ref.referrer_commission || 0),
-      0,
-    );
+    const referralAmount = referralCommissions
+      .filter((ref) => new Date(ref.created_at) >= cutoffDate)
+      .reduce((sum, ref) => sum + (ref.referrer_commission || 0), 0);
 
-    return tipsNetAmount + referralAmount;
+    return tipAmount + referralAmount;
   };
-  // Derived filters and summaries for Referrals tab
+
   const commissionOptions = [...defaultCommissionOptions];
   const overridesTotal = earningsItems
     .filter((i) => i.override_badge)
     .reduce((sum, i) => sum + (i.amount || 0), 0);
-  const totalReferralAmount = earningsItems.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const totalReferralAmount = earningsItems.reduce(
+    (sum, i) => sum + (i.amount || 0),
+    0,
+  );
   const directTotalAmount = earningsItems
     .filter((i) => !i.override_badge)
     .reduce((sum, i) => sum + (i.amount || 0), 0);
 
-  // DM dialog state (for messaging a buyer from referrals table)
   const [dmOpen, setDmOpen] = useState(false);
   const [dmRecipient, setDmRecipient] = useState<string>("");
   const [dmBody, setDmBody] = useState<string>("");
@@ -1113,30 +1207,44 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const sendDm = async () => {
     try {
       if (!dmRecipient || !dmBody.trim()) {
-        toast({ title: "Message", description: "Enter a recipient and a message.", variant: "destructive" });
+        toast({
+          title: "Message",
+          description: "Enter a recipient and a message.",
+          variant: "destructive",
+        });
         return;
       }
       if (!user?.id) {
-        toast({ title: "Sign in required", description: "Log in to send messages.", variant: "destructive" });
+        toast({
+          title: "Sign in required",
+          description: "Log in to send messages.",
+          variant: "destructive",
+        });
         return;
       }
 
-      // Look up recipient by username
       const { data: recipientUser, error: recipientErr } = await supabase
         .from("users")
         .select("id, username")
         .ilike("username", dmRecipient)
         .single();
       if (recipientErr || !recipientUser?.id) {
-        toast({ title: "User not found", description: `Could not find @${dmRecipient}.`, variant: "destructive" });
+        toast({
+          title: "User not found",
+          description: `Could not find @${dmRecipient}.`,
+          variant: "destructive",
+        });
         return;
       }
       if (recipientUser.id === user.id) {
-        toast({ title: "Cannot message yourself", description: "Choose a different recipient.", variant: "destructive" });
+        toast({
+          title: "Cannot message yourself",
+          description: "Choose a different recipient.",
+          variant: "destructive",
+        });
         return;
       }
 
-      // Insert direct message
       const { error: dmErr } = await supabase.from("direct_messages").insert({
         sender_id: user.id,
         recipient_id: recipientUser.id,
@@ -1145,7 +1253,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       });
       if (dmErr) throw dmErr;
 
-      // Fetch current user's username for notification context
       const { data: currentUser, error: curErr } = await supabase
         .from("users")
         .select("username")
@@ -1153,21 +1260,29 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         .single();
       if (curErr) throw curErr;
 
-      // Create notification for recipient
       const { error: notifErr } = await supabase.from("notifications").insert({
         recipient_id: recipientUser.id,
         title: "New Message",
-        message: `You have a new message from ${currentUser?.username || "a user"}`,
+        message: `You have a new message from ${
+          currentUser?.username || "a user"
+        }`,
         is_read: false,
       });
       if (notifErr) throw notifErr;
 
-      toast({ title: "Message sent", description: `Your message to @${recipientUser.username} was sent.` });
+      toast({
+        title: "Message sent",
+        description: `Your message to @${recipientUser.username} was sent.`,
+      });
       setDmOpen(false);
       setDmBody("");
     } catch (e) {
       console.error("sendDm error", e);
-      toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1191,7 +1306,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
   return (
     <div className="space-y-6">
-      {/* Quarterly Payment Program - Only for Strippers and Exotic Dancers */}
       {isEligibleForPaymentProgram() && (
         <PaymentStatus
           userType={userData.user_type || ""}
@@ -1202,10 +1316,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         />
       )}
 
-      {/* Jackpot Information */}
       <JackpotBreakdown />
 
-      {/* Current Earnings Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-green-200 bg-green-50">
           <CardHeader className="pb-3">
@@ -1245,12 +1357,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             <div className="text-2xl font-bold text-purple-800">
               {getNextPayoutDate()}
             </div>
-            <p className="text-sm text-purple-600">1st & 15th of each month</p>
+            <p className="text-sm text-purple-600">
+              1st & 15th of each month
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Performance Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -1298,7 +1411,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         </Card>
       </div>
 
-      {/* Detailed Earnings Tabs */}
       <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
         <TabsList
           className={`grid grid-cols-2 sm:grid-cols-4 w-full gap-2 h-auto bg-gray-50 border border-gray-200 p-2 rounded-lg ${getContentClasses()}`}
@@ -1352,17 +1464,21 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                     >
                       <div className="min-w-0">
                         <p className="font-medium">
-                          Pay period {new Date(earning.week_start).toLocaleDateString()} - {new Date(earning.week_end).toLocaleDateString()}
+                          Pay period{" "}
+                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
+                          {new Date(earning.week_end).toLocaleDateString()}
                         </p>
                         <p className="text-sm text-gray-500 hidden">
-                          {new Date(earning.week_start).toLocaleDateString()} - {new Date(earning.week_end).toLocaleDateString()}
+                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
+                          {new Date(earning.week_end).toLocaleDateString()}
                         </p>
                         <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-600">
                           <span>
                             Tips: {formatCurrency(earning.tip_earnings || 0)}
                           </span>
                           <span>
-                            Referrals: {formatCurrency(earning.referral_earnings || 0)}
+                            Referrals:{" "}
+                            {formatCurrency(earning.referral_earnings || 0)}
                           </span>
                           <span>
                             Jackpot: {formatCurrency(earning.bonus_earnings || 0)}
@@ -1374,8 +1490,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                           variant="secondary"
                           className="bg-yellow-400 text-black hover:bg-yellow-300 shrink-0 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
                           onClick={() => {
-                            setStartDate(String(earning.week_start).slice(0,10));
-                            setEndDate(String(earning.week_end).slice(0,10));
+                            setStartDate(String(earning.week_start).slice(0, 10));
+                            setEndDate(String(earning.week_end).slice(0, 10));
                             setTabValue("referrals");
                             fetchReferralEarnings(1, pageSize);
                           }}
@@ -1402,46 +1518,67 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5" />
-                Tips Received ({tipsReceived.length})
+                Tips Received ({combinedTips.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {tipsReceived.length === 0 ? (
+              {combinedTips.length === 0 ? (
                 <div className="text-center py-8">
                   <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">No tips received yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {tipsReceived.slice(0, 10).map((tip) => (
+                                    {combinedTips.slice(0, 10).map((entry) => (
                     <div
-                      key={tip.id}
+                      key={entry.id}
                       className="flex items-center justify-between p-3 border rounded-lg"
                     >
                       <div>
                         <p className="font-medium">
-                          From {tip.tipper_username}
+                          {entry.role === "performer"
+                            ? `From ${entry.counterparty ?? "Anonymous"}`
+                            : `Referral from ${
+                                entry.counterparty ?? "Unknown performer"
+                              }`}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {new Date(tip.created_at).toLocaleDateString()}
-                          {tip.referrer_username && (
+                          {new Date(entry.created_at).toLocaleDateString()}
+                          {entry.role === "performer" &&
+                            entry.referrer_username && (
+                              <span className="ml-2 text-blue-600">
+                                - Referred by {entry.referrer_username}
+                              </span>
+                            )}
+                          {entry.role === "referral" &&
+                          entry.original_tip_amount ? (
                             <span className="ml-2 text-blue-600">
-                              • Referred by {tip.referrer_username}
+                              - Source tip{" "}
+                              {formatCurrency(entry.original_tip_amount)}
                             </span>
-                          )}
+                          ) : null}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-600">
-                          {`${PERFORMER_PERCENT}%`}
+                          {formatCurrency(entry.amount)}
                         </p>
-                        <Badge variant="outline">{tip.status}</Badge>
+                        {entry.role === "performer" && entry.original_tip_amount ? (
+                          <p className="text-xs text-gray-500">
+                            Tip total {formatCurrency(entry.original_tip_amount)}
+                          </p>
+                        ) : null}
+                        <Badge variant="outline">
+                          {entry.role === "performer"
+                            ? entry.status || "completed"
+                            : "Referral Tip"}
+                        </Badge>
                       </div>
                     </div>
                   ))}
-                  {tipsReceived.length > 10 && (
+                  {combinedTips.length > 10 && (
                     <p className="text-center text-sm text-gray-500 py-2">
-                      Showing 10 of {tipsReceived.length} tips
+                      Showing 10 of {combinedTips.length} tips
                     </p>
                   )}
                 </div>
@@ -1459,19 +1596,17 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 sm:space-y-3">
-              {/* Current Pay Period Label */}
-              <div className="text-xs text-gray-600">Current pay period: {currentPeriod.start} – {currentPeriod.end}</div>
+              <div className="text-xs text-gray-600">
+                Current pay period: {currentPeriod.start} – {currentPeriod.end}
+              </div>
 
-              {/* Connectivity/Auth Error Banner */}
               {supabaseError && (
                 <div
                   role="alert"
                   className="flex items-start gap-3 p-3 rounded-md border border-red-200 bg-red-50 text-red-800"
                 >
                   <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 text-sm">
-                    {supabaseError}
-                  </div>
+                  <div className="flex-1 text-sm">{supabaseError}</div>
                   <Button
                     size="sm"
                     variant="destructive"
@@ -1485,22 +1620,48 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </div>
               )}
 
-              {/* Filters */}
               <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                <Input className="h-8 sm:h-9" placeholder="Search buyer username" value={q} onChange={(e) => setQ(e.target.value)} />
+                <Input
+                  className="h-8 sm:h-9"
+                  placeholder="Search buyer username"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
                 <Select value={membershipType} onValueChange={setMembershipType}>
-                  <SelectTrigger className="h-8 sm:h-9"><SelectValue placeholder="Membership tier" /></SelectTrigger>
+                  <SelectTrigger className="h-8 sm:h-9">
+                    <SelectValue placeholder="Membership tier" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All tiers</SelectItem>
                     {tierOptions.map((t) => (
-                      <SelectItem key={t} value={t}>{prettyTier(t)}</SelectItem>
+                      <SelectItem key={t} value={t}>
+                        {prettyTier(t)}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <Input className="h-8 sm:h-9" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                <Input className="h-8 sm:h-9" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                  <SelectTrigger className="h-8 sm:h-9"><SelectValue placeholder="Page size" /></SelectTrigger>
+                <Input
+                  className="h-8 sm:h-9"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <Input
+                  className="h-8 sm:h-9"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(v) => {
+                    setPageSize(Number(v));
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="h-8 sm:h-9">
+                    <SelectValue placeholder="Page size" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="25">25</SelectItem>
@@ -1510,13 +1671,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </Select>
               </div>
 
-              {/* Helper: filters auto-apply + clarification */}
               <div className="text-xs text-gray-600 mt-1">
-                Filters update automatically. “Subscription” = recurring creator subscriptions. “Membership” = membership packages (includes Diamond Plus) and their overrides.
+                Filters update automatically. “Subscription” = recurring creator
+                subscriptions. “Membership” = membership packages (includes Diamond
+                Plus) and their overrides.
               </div>
 
-
-              {/* Commission Types multi-select */}
               {commissionOptions.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <div className="text-xs text-gray-600">Commission types</div>
@@ -1548,29 +1708,39 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </div>
               )}
 
-              {/* Pay-period quick filters */}
               <div className="flex flex-wrap items-center gap-2">
                 <div className="text-xs text-gray-600 mr-2">Pay period</div>
-                <Button size="sm" variant="outline" onClick={applyCurrentPayPeriod}>Current period</Button>
-                <Button size="sm" variant="outline" onClick={applyPreviousPayPeriod}>Previous period</Button>
-                <Button size="sm" variant="ghost" onClick={clearDateFilters}>Clear dates</Button>
+                <Button size="sm" variant="outline" onClick={applyCurrentPayPeriod}>
+                  Current period
+                </Button>
+                <Button size="sm" variant="outline" onClick={applyPreviousPayPeriod}>
+                  Previous period
+                </Button>
+                <Button size="sm" variant="ghost" onClick={clearDateFilters}>
+                  Clear dates
+                </Button>
               </div>
 
-              {/* Actions */}
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center justify-between">
                 <div className="text-sm text-gray-600 flex items-center gap-3">
                   <span>Total: {earningsTotal}</span>
                   <span className="flex items-center gap-1">
                     <Badge variant="secondary">Sum</Badge>
-                    <span className="font-medium">{formatCurrency(totalReferralAmount)}</span>
+                    <span className="font-medium">
+                      {formatCurrency(totalReferralAmount)}
+                    </span>
                   </span>
                   <span className="hidden sm:flex items-center gap-1">
                     <Badge variant="secondary">Direct</Badge>
-                    <span className="font-medium">{formatCurrency(directTotalAmount)}</span>
+                    <span className="font-medium">
+                      {formatCurrency(directTotalAmount)}
+                    </span>
                   </span>
                   <span className="flex items-center gap-1">
                     <Badge variant="secondary">Overrides</Badge>
-                    <span className="font-medium text-green-700">{formatCurrency(overridesTotal)}</span>
+                    <span className="font-medium text-green-700">
+                      {formatCurrency(overridesTotal)}
+                    </span>
                   </span>
                 </div>
                 <Button size="sm" onClick={exportReferralCsv}>
@@ -1578,27 +1748,44 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </Button>
               </div>
 
-              {/* Previous Pay Period - Downloadable */}
-              <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2 mt-2">
+              <div className="flex	items-center justify-between bg-gray-50 rounded-md px-3 py-2 mt-2">
                 <div className="text-xs text-gray-600">
                   Previous pay period: {previousPeriod.start} – {previousPeriod.end}
                 </div>
-                <Button size="sm" variant="outline" onClick={() => exportCsvForRange(previousPeriod.start, previousPeriod.end, "previous_period")}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    exportCsvForRange(
+                      previousPeriod.start,
+                      previousPeriod.end,
+                      "previous_period",
+                    )
+                  }
+                >
                   <Download className="w-4 h-4 mr-2" /> Download CSV
                 </Button>
               </div>
 
-              {/* Current Pay Period - Downloadable */}
               <div className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
                 <div className="text-xs text-gray-600">
                   Current pay period: {currentPeriod.start} – {currentPeriod.end}
                 </div>
-                <Button size="sm" variant="outline" onClick={() => exportCsvForRange(currentPeriod.start, currentPeriod.end, "current_period")}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    exportCsvForRange(
+                      currentPeriod.start,
+                      currentPeriod.end,
+                      "current_period",
+                    )
+                  }
+                >
                   <Download className="w-4 h-4 mr-2" /> Download CSV
                 </Button>
               </div>
 
-              {/* Card list (client style) */}
               {earningsLoading ? (
                 <div className="text-center py-8">Loading...</div>
               ) : earningsItems.length === 0 ? (
@@ -1609,24 +1796,32 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               ) : (
                 <div className="space-y-3">
                   {earningsItems.map((row) => (
-                    <div key={row.id} className="flex items-stretch justify-between gap-3 p-3 border rounded-xl bg-white">
-                      {/* Left: avatar + info */}
+                    <div
+                      key={row.id}
+                      className="flex	items-stretch justify-between gap-3 p-3 border rounded-xl bg-white"
+                    >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-16 w-16 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden">
                           {row.buyer_avatar_url ? (
-                            <img src={row.buyer_avatar_url} alt={row.buyer_username || "avatar"} className="h-full w-full object-cover" />
+                            <img
+                              src={row.buyer_avatar_url}
+                              alt={row.buyer_username || "avatar"}
+                              className="h-full w-full object-cover"
+                            />
                           ) : null}
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap gap-4 text-xs text-gray-600">
                             <span>Tips: {formatCurrency(0)}</span>
-                            <span>Referrals: {formatCurrency(row.amount || 0)}</span>
+                            <span>
+                              Referrals: {formatCurrency(row.amount || 0)}
+                            </span>
                             <span>Jackpot: {formatCurrency(0)}</span>
                           </div>
                           <div className="mt-1">
                             <p className="font-semibold truncate flex items-center gap-2">
                               {row.buyer_username || "User"}
-                              {row.source_label === 'diamond_plus' ? (
+                              {row.source_label === "diamond_plus" ? (
                                 <Badge variant="secondary">Jackpot</Badge>
                               ) : null}
                               {row.override_badge ? (
@@ -1634,51 +1829,99 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                               ) : null}
                             </p>
                             <p className="text-sm text-gray-500 truncate">
-                              {(row.plan_tier || row.buyer_membership_tier)
-                                ? `${(row.plan_tier || row.buyer_membership_tier || "").toUpperCase()}${row.cadence ? ` • ${row.cadence}` : ""}`
-                                : "Membership"}
+                              {(
+                                row.plan_tier ||
+                                row.buyer_membership_tier ||
+                                ""
+                              ).toUpperCase() || "Membership"}
+                              {row.cadence ? ` • ${row.cadence}` : ""}
                             </p>
                             <p className="text-xs text-gray-600 truncate">
                               {row.buyer_location ? `${row.buyer_location}` : null}
-                              {row.buyer_joined_at ? `${row.buyer_location ? " • " : ""}Joined: ${new Date(row.buyer_joined_at).toLocaleDateString()}` : null}
+                              {row.buyer_joined_at
+                                ? `${
+                                    row.buyer_location ? " • " : ""
+                                  }Joined: ${new Date(
+                                    row.buyer_joined_at,
+                                  ).toLocaleDateString()}`
+                                : null}
                             </p>
                             {row.override_badge && row.referrer_username ? (
-                              <p className="text-xs text-gray-700"><span className="font-semibold">Referred by:</span> {row.referrer_username}</p>
+                              <p className="text-xs text-gray-700">
+                                <span className="font-semibold">Referred by:</span>{" "}
+                                {row.referrer_username}
+                              </p>
                             ) : null}
                             {row.override_badge && (
-                              <p className="text-xs text-gray-700"><span className="font-semibold">Overrides:</span> {formatCurrency(row.amount || 0)}</p>
+                              <p className="text-xs text-gray-700">
+                                <span className="font-semibold">Overrides:</span>{" "}
+                                {formatCurrency(row.amount || 0)}
+                              </p>
                             )}
                           </div>
                           <div className="mt-2 flex items-center gap-2">
-                            <Badge className="bg-purple-700 text-white">{(row.plan_tier || row.buyer_membership_tier || "").toUpperCase() || "PACKAGE"}</Badge>
-                            <Badge variant="secondary" className={row.override_badge ? "bg-orange-100 text-orange-800 border-orange-200" : "bg-green-100 text-green-800 border-green-200"}>
+                            <Badge className="bg-purple-700 text-white">
+                              {(row.plan_tier ||
+                                row.buyer_membership_tier ||
+                                "").toUpperCase() || "PACKAGE"}
+                            </Badge>
+                            <Badge
+                              variant="secondary"
+                              className={
+                                row.override_badge
+                                  ? "bg-orange-100 text-orange-800 border-orange-200"
+                                  : "bg-green-100 text-green-800 border-green-200"
+                              }
+                            >
                               {row.override_badge ? "Override" : "Direct"}
                             </Badge>
                           </div>
                           <div className="mt-2">
-                            <Button className="bg-slate-900 text-white hover:bg-slate-800" size="sm" onClick={() => openDm(row.buyer_username)}>
+                            <Button
+                              className="bg-slate-900 text-white hover:bg-slate-800"
+                              size="sm"
+                              onClick={() => openDm(row.buyer_username)}
+                            >
                               <Mail className="w-4 h-4 mr-2" /> Send Message!
                             </Button>
                           </div>
                         </div>
                       </div>
 
-                      {/* Right: commission */}
                       <div className="ml-auto flex flex-col items-end justify-center">
-                        <div className="text-lg font-semibold text-green-700">{formatCurrency(row.amount || 0)}</div>
-                        <Badge variant="outline" className="mt-1">{row.override_badge ? "Override Commission" : "Direct Commission"}</Badge>
-                        <div className="text-xs text-gray-500 mt-2">{new Date(row.created_at).toLocaleDateString()}</div>
+                        <div className="text-lg font-semibold text-green-700">
+                          {formatCurrency(row.amount || 0)}
+                        </div>
+                        <Badge variant="outline" className="mt-1">
+                          {row.override_badge ? "Override Commission" : "Direct Commission"}
+                        </Badge>
+                        <div className="text-xs text-gray-500 mt-2">
+                          {new Date(row.created_at).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Pagination */}
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => fetchReferralEarnings(page - 1, pageSize)}>Prev</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => fetchReferralEarnings(page - 1, pageSize)}
+                >
+                  Prev
+                </Button>
                 <div className="text-xs text-gray-600">Page {page}</div>
-                <Button variant="outline" size="sm" disabled={(page * pageSize) >= earningsTotal} onClick={() => fetchReferralEarnings(page + 1, pageSize)}>Next</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page * pageSize >= earningsTotal}
+                  onClick={() => fetchReferralEarnings(page + 1, pageSize)}
+                >
+                  Next
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -1708,7 +1951,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </div>
               </div>
 
-              {jackpotData.winnings.length > 0 && (
+              {jackpotData.winnings.length > 0 ? (
                 <div>
                   <h4 className="font-medium mb-3">Jackpot Winnings</h4>
                   <div className="space-y-2">
@@ -1722,8 +1965,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                             Jackpot Win!
                           </p>
                           <p className="text-sm text-green-600">
-                            Draw:{" "}
-                            {new Date(winning.draw_date).toLocaleDateString()}
+                            Draw: {new Date(winning.draw_date).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right">
@@ -1738,9 +1980,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                     ))}
                   </div>
                 </div>
-              )}
-
-              {jackpotData.winnings.length === 0 && (
+              ) : (
                 <div className="text-center py-6">
                   <Award className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">No jackpot winnings yet</p>
@@ -1754,34 +1994,46 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         </TabsContent>
       </Tabs>
 
-      {/* Direct Message Dialog */}
       <Dialog open={dmOpen} onOpenChange={setDmOpen}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Message {dmRecipient ? `@${dmRecipient}` : "user"}</DialogTitle>
-            <DialogDescription>Send a quick message to this buyer.</DialogDescription>
+            <DialogTitle>
+              Message {dmRecipient ? `@${dmRecipient}` : "user"}
+            </DialogTitle>
+            <DialogDescription>
+              Send a quick message to this buyer.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="dmBody">Message</Label>
-            <Textarea id="dmBody" value={dmBody} onChange={(e) => setDmBody(e.target.value)} rows={4} placeholder="Type your message..." />
+            <Textarea
+              id="dmBody"
+              value={dmBody}
+              onChange={(e) => setDmBody(e.target.value)}
+              rows={4}
+              placeholder="Type your message..."
+            />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDmOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDmOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={sendDm}>Send</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Payout Request Button */}
       {availableForWithdrawal > 0 && (
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Minimum Payout Start at $250.00</h3>
+                <h3 className="font-medium">
+                  Minimum Payout Start at&nbsp;$250.00
+                </h3>
                 <p className="text-sm text-gray-500">
-                  You have {formatCurrency(availableForWithdrawal)} available
-                  for withdrawal
+                  You have {formatCurrency(availableForWithdrawal)} available for
+                  withdrawal
                 </p>
               </div>
               <Button
@@ -1796,7 +2048,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         </Card>
       )}
 
-      {/* Payout Request Form Dialog */}
       <Dialog open={showPayoutForm} onOpenChange={setShowPayoutForm}>
         <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
@@ -1811,16 +2062,15 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </DialogHeader>
 
           <div className="overflow-y-auto max-h-[60vh] space-y-6">
-            {/* Payout Method Selection */}
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-700">
                 Select Payout Method *
               </Label>
               <Select
                 value={payoutFormData.payoutMethod}
-                onValueChange={(value: "paypal" | "venmo" | "wire" | "direct_deposit" | "check") =>
-                  updatePayoutFormData("payoutMethod", value)
-                }
+                onValueChange={(
+                  value: "paypal" | "venmo" | "wire" | "direct_deposit" | "check",
+                ) => updatePayoutFormData("payoutMethod", value)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose how you want to receive your funds" />
@@ -1860,7 +2110,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </Select>
             </div>
 
-            {/* Conditional Form Fields */}
             {payoutFormData.payoutMethod === "paypal" && (
               <Card className="border-blue-200 bg-blue-50">
                 <CardHeader>
@@ -1888,8 +2137,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       className="mt-1"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Enter the email address associated with your PayPal
-                      account
+                      Enter the email address associated with your PayPal account
                     </p>
                   </div>
                 </CardContent>
@@ -1906,39 +2154,54 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="venmoUsername" className="text-sm font-medium text-gray-700">
+                    <Label
+                      htmlFor="venmoUsername"
+                      className="text-sm font-medium text-gray-700"
+                    >
                       Venmo Username *
                     </Label>
                     <Input
                       id="venmoUsername"
                       value={payoutFormData.venmoUsername}
-                      onChange={(e) => updatePayoutFormData("venmoUsername", e.target.value)}
+                      onChange={(e) =>
+                        updatePayoutFormData("venmoUsername", e.target.value)
+                      }
                       placeholder="@your-venmo"
                       className="mt-1"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="venmoPhone" className="text-sm font-medium text-gray-700">
+                      <Label
+                        htmlFor="venmoPhone"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         Phone (optional)
                       </Label>
                       <Input
                         id="venmoPhone"
                         value={payoutFormData.venmoPhone}
-                        onChange={(e) => updatePayoutFormData("venmoPhone", e.target.value)}
+                        onChange={(e) =>
+                          updatePayoutFormData("venmoPhone", e.target.value)
+                        }
                         placeholder="(555) 123-4567"
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="venmoEmail" className="text-sm font-medium text-gray-700">
+                      <Label
+                        htmlFor="venmoEmail"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         Email (optional)
                       </Label>
                       <Input
                         id="venmoEmail"
                         type="email"
                         value={payoutFormData.venmoEmail}
-                        onChange={(e) => updatePayoutFormData("venmoEmail", e.target.value)}
+                        onChange={(e) =>
+                          updatePayoutFormData("venmoEmail", e.target.value)
+                        }
                         placeholder="your-email@example.com"
                         className="mt-1"
                       />
@@ -1948,12 +2211,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </Card>
             )}
 
-            {(payoutFormData.payoutMethod === "wire" || payoutFormData.payoutMethod === "direct_deposit") && (
+            {(payoutFormData.payoutMethod === "wire" ||
+              payoutFormData.payoutMethod === "direct_deposit") && (
               <Card className="border-purple-200 bg-purple-50">
                 <CardHeader>
                   <CardTitle className="text-lg text-purple-700 flex items-center gap-2">
                     <Building className="w-5 h-5" />
-                    {payoutFormData.payoutMethod === 'wire' ? 'Wire Transfer' : 'Direct Deposit (ACH)'} Information
+                    {payoutFormData.payoutMethod === "wire"
+                      ? "Wire Transfer"
+                      : "Direct Deposit (ACH)"}{" "}
+                    Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1986,17 +2253,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                         id="wireRoutingNumber"
                         value={payoutFormData.wireRoutingNumber}
                         onChange={(e) =>
-                          updatePayoutFormData(
-                            "wireRoutingNumber",
-                            e.target.value
-                          )
+                          updatePayoutFormData("wireRoutingNumber", e.target.value)
                         }
                         placeholder="123456789"
                         className="mt-1"
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid	grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label
                         htmlFor="wireAccountNumber"
@@ -2008,10 +2272,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                         id="wireAccountNumber"
                         value={payoutFormData.wireAccountNumber}
                         onChange={(e) =>
-                          updatePayoutFormData(
-                            "wireAccountNumber",
-                            e.target.value
-                          )
+                          updatePayoutFormData("wireAccountNumber", e.target.value)
                         }
                         placeholder="Account number"
                         className="mt-1"
@@ -2030,7 +2291,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                         onChange={(e) =>
                           updatePayoutFormData(
                             "wireAccountHolderName",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="John Doe"
@@ -2138,10 +2399,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       id="checkAddressLine1"
                       value={payoutFormData.checkAddressLine1}
                       onChange={(e) =>
-                        updatePayoutFormData(
-                          "checkAddressLine1",
-                          e.target.value
-                        )
+                        updatePayoutFormData("checkAddressLine1", e.target.value)
                       }
                       placeholder="123 Main Street"
                       className="mt-1"
@@ -2158,10 +2416,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                       id="checkAddressLine2"
                       value={payoutFormData.checkAddressLine2}
                       onChange={(e) =>
-                        updatePayoutFormData(
-                          "checkAddressLine2",
-                          e.target.value
-                        )
+                        updatePayoutFormData("checkAddressLine2", e.target.value)
                       }
                       placeholder="Apt 4B"
                       className="mt-1"
@@ -2241,7 +2496,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
               </Card>
             )}
 
-            {/* Information Notice */}
             {payoutFormData.payoutMethod && (
               <Card className="border-yellow-200 bg-yellow-50">
                 <CardContent className="pt-6">
@@ -2250,18 +2504,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                     <div className="text-sm text-yellow-800">
                       <p className="font-medium mb-1">Important Information:</p>
                       <ul className="space-y-1 text-xs">
-                        <li>
-                          • Payouts are processed on the 1st and 15th of each
-                          month
-                        </li>
+                        <li>• Payouts are processed on the 1st and 15th of each month</li>
                         <li>• Processing times vary by payment method</li>
-                        <li>
-                          • Double-check all information before submitting
-                        </li>
-                        <li>
-                          • Contact support if you need to update payout
-                          information
-                        </li>
+                        <li>• Double-check all information before submitting</li>
+                        <li>• Contact support if you need to update payout information</li>
                       </ul>
                     </div>
                   </div>

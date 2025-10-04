@@ -530,7 +530,13 @@ const Tip: React.FC = () => {
         return;
       }
 
-      const payload = (resp as { success?: boolean; ticket_codes?: string[] }) || {
+      const normalizedResp =
+      typeof resp === "string" && resp.trim().length
+        ? JSON.parse(resp)
+        : resp ?? {};
+
+    const payload =
+      (normalizedResp as { success?: boolean; ticket_codes?: string[] }) || {
         success: false,
         ticket_codes: [],
       };

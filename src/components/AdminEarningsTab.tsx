@@ -48,6 +48,8 @@ interface UserEarnings {
   user_type: string;
   referralEarnings: number;
   tipsReceived: number;
+  performerTips: number;
+  referralTips: number;
   eventCommissions: number;
   totalEarnings: number;
   rank: number;
@@ -168,13 +170,31 @@ const AdminEarningsTab: React.FC = () => {
 
       if (usersError) throw usersError;
 
+      const subscriptionReferralTypes = [
+        "subscription_referral_commission",
+        "subscription_upline_referral_commission",
+        "referral_commission",
+        "upline_referral_commission",
+        "diamond_plus_referral_commission",
+        "diamond_plus_upline_referral_commission",
+      ];
+
       const { data: referralCommissions, error: referralError } =
         await supabaseAdmin
           .from("payments")
-          .select("referred_by, referrer_commission, created_at")
+          .select(
+            "referred_by, referrer_commission, created_at, payment_type",
+          )
           .not("referrer_commission", "is", null)
-          .gte("created_at", startOfDay(selectedPeriod.startDate).toISOString())
-          .lte("created_at", endOfDay(selectedPeriod.endDate).toISOString())
+          .in("payment_type", subscriptionReferralTypes)
+          .gte(
+            "created_at",
+            startOfDay(selectedPeriod.startDate).toISOString(),
+          )
+          .lte(
+            "created_at",
+            endOfDay(selectedPeriod.endDate).toISOString(),
+          )
           .eq("payment_status", "completed");
 
       if (referralError) throw referralError;
@@ -183,10 +203,33 @@ const AdminEarningsTab: React.FC = () => {
         .from("tips")
         .select("tipped_username, tip_amount, created_at, status")
         .eq("status", "completed")
-        .gte("created_at", startOfDay(selectedPeriod.startDate).toISOString())
-        .lte("created_at", endOfDay(selectedPeriod.endDate).toISOString());
+        .gte(
+          "created_at",
+          startOfDay(selectedPeriod.startDate).toISOString(),
+        )
+        .lte(
+          "created_at",
+          endOfDay(selectedPeriod.endDate).toISOString(),
+        );
 
       if (tipsError) throw tipsError;
+
+      const { data: tipReferralRows, error: tipReferralError } =
+        await supabaseAdmin
+          .from("tips_transactions")
+          .select("referrer_username, referrer_commission, completed_at")
+          .not("referrer_commission", "is", null)
+          .eq("payment_status", "completed")
+          .gte(
+            "completed_at",
+            startOfDay(selectedPeriod.startDate).toISOString(),
+          )
+          .lte(
+            "completed_at",
+            endOfDay(selectedPeriod.endDate).toISOString(),
+          );
+
+      if (tipReferralError) throw tipReferralError;
 
       const { data: eventCommissions, error: eventError } =
         await supabaseAdmin
@@ -194,8 +237,14 @@ const AdminEarningsTab: React.FC = () => {
           .select("user_id, event_host_commission, created_at")
           .not("event_host_commission", "is", null)
           .eq("payment_status", "completed")
-          .gte("created_at", startOfDay(selectedPeriod.startDate).toISOString())
-          .lte("created_at", endOfDay(selectedPeriod.endDate).toISOString());
+          .gte(
+            "created_at",
+            startOfDay(selectedPeriod.startDate).toISOString(),
+          )
+          .lte(
+            "created_at",
+            endOfDay(selectedPeriod.endDate).toISOString(),
+          );
 
       if (eventError) throw eventError;
 
@@ -213,6 +262,11 @@ const AdminEarningsTab: React.FC = () => {
       const tipRows = (tips || []) as Array<{
         tipped_username: string | null;
         tip_amount: number | null;
+      }>;
+
+      const tipRefRows = (tipReferralRows || []) as Array<{
+        referrer_username: string | null;
+        referrer_commission: number | null;
       }>;
 
       const eventRows = (eventCommissions || []) as Array<{
@@ -238,11 +292,27 @@ const AdminEarningsTab: React.FC = () => {
         }
       });
 
+      tipRefRows.forEach((row) => {
+        const refUsername = (row.referrer_username || "").trim();
+        if (!refUsername) return;
+        const lower = refUsername.toLowerCase();
+        const exists = augmentedUsers.some(
+          (user) => (user.username || "").toLowerCase() === lower,
+        );
+        if (!exists) {
+          augmentedUsers.push({
+            id: `tip_referrer:${lower}`,
+            username: refUsername,
+            user_type: "referrer",
+          });
+        }
+      });
+
       const userEarnings: UserEarnings[] = augmentedUsers.map((user) => {
         const username = user.username || "";
         const usernameLower = username.toLowerCase();
 
-        const userReferralEarnings = referralRows
+        const subscriptionReferralTotal = referralRows
           .filter(
             (commission) =>
               (commission.referred_by || "").toLowerCase() === usernameLower,
@@ -253,12 +323,32 @@ const AdminEarningsTab: React.FC = () => {
             0,
           );
 
-        const userTips = tipRows
+        const performerTipTotal = tipRows
           .filter(
             (tip) =>
               (tip.tipped_username || "").toLowerCase() === usernameLower,
           )
-          .reduce((sum, tip) => sum + Number(tip.tip_amount || 0), 0);
+          .reduce(
+            (sum, tip) => sum + Number(tip.tip_amount || 0),
+            0,
+          );
+
+        const referralTipTotal = tipRefRows
+          .filter(
+            (row) =>
+              (row.referrer_username || "").toLowerCase() === usernameLower,
+          )
+          .reduce(
+            (sum, row) => sum + Number(row.referrer_commission || 0),
+            0,
+          );
+
+        const adjustedReferral = Math.max(
+          0,
+          subscriptionReferralTotal - referralTipTotal,
+        );
+
+        const userTips = performerTipTotal + referralTipTotal;
 
         const userEventCommissions = eventRows
           .filter((commission) => commission.user_id === user.id)
@@ -269,14 +359,16 @@ const AdminEarningsTab: React.FC = () => {
           );
 
         const totalEarnings =
-          userReferralEarnings + userTips + userEventCommissions;
+          adjustedReferral + userTips + userEventCommissions;
 
         return {
           id: user.id,
           username,
           user_type: user.user_type,
-          referralEarnings: userReferralEarnings,
+          referralEarnings: adjustedReferral,
           tipsReceived: userTips,
+          performerTips: performerTipTotal,
+          referralTips: referralTipTotal,
           eventCommissions: userEventCommissions,
           totalEarnings,
           rank: 0,
@@ -636,7 +728,15 @@ const AdminEarningsTab: React.FC = () => {
                             <TableCell className="text-blue-600">
                               {formatCurrency(user.referralEarnings)}
                             </TableCell>
-                            <TableCell className="text-purple-600">
+                            <TableCell
+                              className={
+                                user.performerTips > 0
+                                  ? "text-purple-600"
+                                  : user.referralTips > 0
+                                  ? "text-rose-600"
+                                  : "text-purple-600"
+                              }
+                            >
                               {formatCurrency(user.tipsReceived)}
                             </TableCell>
                             <TableCell className="text-orange-600">

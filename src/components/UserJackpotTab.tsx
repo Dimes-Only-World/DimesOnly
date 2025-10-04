@@ -161,14 +161,22 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         setCurrentTickets(0);
         return;
       }
-      const { count, error } = await supabase
-        .from("jackpot_tickets")
-        .select("id", { count: "exact", head: true })
-        .eq("tipper_id", userData.id)
-        .eq("pool_id", poolId);
+
+      const { data, error } = await supabase
+      .from("jackpot_tickets")
+      .select("code")
+      .eq("user_id", userData.id)
+      .eq("pool_id", poolId);
 
       if (error) throw error;
-      setCurrentTickets(count || 0);
+
+      const uniqueCount = new Set(
+        ((data as { code: string | null }[]) || [])
+          .map((row) => row.code)
+          .filter(Boolean)
+      ).size;
+
+      setCurrentTickets(uniqueCount);
     } catch (err) {
       console.error("Error fetching my tickets (by active pool):", err);
     }
@@ -180,27 +188,37 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         setTicketCodes([]);
         return;
       }
+
       const { data, error } = await supabase
         .from("jackpot_tickets")
         .select("code, created_at")
+        .eq("user_id", userData.id)
         .eq("pool_id", poolId)
-        .eq("tipper_id", userData.id)
         .order("created_at", { ascending: false })
         .limit(100);
-  
-      if (error) throw error;
-  
-      const rows =
-      (data as { code: string | null; created_at: string | null }[]) || [];
 
-    const codes = rows
-      .filter((row) => row.code)
-      .map((row) => ({
-        code: row.code as string,
-        created_at: row.created_at ? new Date(row.created_at) : null,
+      if (error) throw error;
+
+      const rows =
+        (data as { code: string | null; created_at: string | null }[]) || [];
+
+      const uniqueMap = new Map<string, string | null>();
+      rows.forEach((row) => {
+        if (!row.code) return;
+        if (!uniqueMap.has(row.code)) {
+          uniqueMap.set(
+            row.code,
+            row.created_at ? new Date(row.created_at).toISOString() : null
+          );
+        }
+      });
+
+      const codes = Array.from(uniqueMap.entries()).map(([code, createdAt]) => ({
+        code,
+        created_at: createdAt,
       }));
 
-    setTicketCodes(codes);
+      setTicketCodes(codes);
     } catch (err) {
       console.error("Error fetching ticket codes:", err);
     }
@@ -285,7 +303,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
       setDrawGroups(grouped);
 
-      const initialProfiles: Record<string, { name: string; avatar_url?: string | null }> = {};
+      const initialProfiles: Record<
+        string,
+        { name: string; avatar_url?: string | null }
+      > = {};
       normalizedRows.forEach((row) => {
         if (!row.user_id) return;
         initialProfiles[row.user_id] = {
@@ -321,7 +342,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     });
   };
 
-  const displayNameFor = (userId: string | null | undefined, fallback: string) => {
+  const displayNameFor = (
+    userId: string | null | undefined,
+    fallback: string
+  ) => {
     if (userId) {
       const name = userProfiles[userId]?.name;
       if (name && name.trim().length > 0) return name;
@@ -349,11 +373,11 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     latestDraw.winners.forEach((w) => {
       buckets[w.place].push(w);
     });
-    return ([
+    return [
       { place: 1 as WinnerRow["place"], winners: buckets[1] },
       { place: 2 as WinnerRow["place"], winners: buckets[2] },
       { place: 3 as WinnerRow["place"], winners: buckets[3] },
-    ].filter((section) => section.winners.length > 0));
+    ].filter((section) => section.winners.length > 0);
   }, [latestDraw]);
 
   const WinnerListItem = (
@@ -486,7 +510,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             <div className="mt-4 flex flex-col items-center space-y-2">
               <video
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-lg shadow-lg border-4 border-yellow-400 hover:border-yellow-300 transition-colors"
-              src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4"
+                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Tip+and+Win+(1).mp4"
                 autoPlay
                 loop
                 muted
@@ -512,7 +536,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex itemswner:flex-start gap-2">
             <Ticket className="w-5 h-5" />
             Your Current Tickets
           </CardTitle>
@@ -538,30 +562,30 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        {ticketCodes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {ticketCodes.map((ticket, idx) => (
-              <div
-                key={idx}
-                className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-center"
-              >
-                <Badge variant="secondary" className="justify-center text-base mb-2">
-                  {ticket.code}
-                </Badge>
-                <div className="text-xs text-neutral-500">
-                  {ticket.created_at
-                    ? `Bought ${formatDate(ticket.created_at, true)}`
-                    : "Purchase time unavailable"}
+          {ticketCodes.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {ticketCodes.map((ticket, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-center"
+                >
+                  <Badge variant="secondary" className="justify-center text-base mb-2">
+                    {ticket.code}
+                  </Badge>
+                  <div className="text-xs text-neutral-500">
+                    {ticket.created_at
+                      ? `Bought ${formatDate(ticket.created_at, true)}`
+                      : "Purchase time unavailable"}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-gray-500">
-            <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>No tickets yet. Tip to earn your first ticket!</p>
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">
+              <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No tickets yet. Tip to earn your first ticket!</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -574,7 +598,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         </CardHeader>
         <CardContent>
           {latestDraw ? (
-            <div className="space-y-6">
+            <div className="space-Y-6">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
                 <span>
                   Drawn on {formatDate(latestDraw.executedAt, true)}
@@ -583,15 +607,15 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
               </div>
 
               {latestSections.map((section) => (
-              <section key={section.place} className="space-y-3">
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {placeTitle(section.place)}
-                </h4>
-                {section.winners.map((winner) =>
-                  WinnerListItem(winner, true)
-                )}
-              </section>
-            ))}
+                <section key={section.place} className="space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    {placeTitle(section.place)}
+                  </h4>
+                  {section.winners.map((winner) =>
+                    WinnerListItem(winner, true)
+                  )}
+                </section>
+              ))}
 
               {historicalDraws.length === 0 && (
                 <p className="text-sm text-gray-500">
