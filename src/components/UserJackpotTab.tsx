@@ -558,7 +558,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Ticket className="w-5 h-5" />
-            Your Ticket Codes (This Week)
+            Your Ticket Codes (Upcoming Saturday Drawing)
           </CardTitle>
         </CardHeader>
         <CardContent>
