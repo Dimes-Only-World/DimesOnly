@@ -548,7 +548,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             </div>
             <p className="text-gray-600 mb-4">Tickets for upcoming drawing</p>
             <Badge variant="outline" className="text-sm">
-              $1 = 1 ticket • min $5 per tip
+              $5 per tip min • $5 = 5 tickets 
             </Badge>
           </div>
         </CardContent>
