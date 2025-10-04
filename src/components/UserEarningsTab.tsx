@@ -139,7 +139,8 @@ interface JackpotData {
 interface JackpotTicket {
   id: string;
   user_id: string;
-  tickets_count: number;
+  code?: string | null;
+  pool_id?: string | null;
   draw_date: string;
   created_at: string;
   is_winner?: boolean;
@@ -662,7 +663,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .eq("payment_status", "completed")
           .order("created_at", { ascending: false }),
 
-        supabase.from("jackpot_tickets").select("*").eq("user_id", userData.id),
+          supabase
+          .from("jackpot_tickets")
+          .select("id, user_id, pool_id, code, draw_date, created_at, is_winner")
+          .eq("user_id", userData.id),
 
         supabase
           .from("jackpot_winners")
@@ -713,11 +717,27 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       );
 
       const tickets =
-      (jackpotTicketsResult.data as unknown as JackpotTicket[]) || [];
+      ((jackpotTicketsResult.data as unknown as JackpotTicket[]) || []).map(
+        (ticket) => ({
+          ...ticket,
+          code: ticket.code ? String(ticket.code) : null,
+          pool_id: ticket.pool_id ? String(ticket.pool_id) : null,
+        }),
+      );
     const winnings =
       (jackpotWinningsResult.data as unknown as JackpotWinning[]) || [];
 
     let currentTickets = 0;
+    const uniqueCodesByPool = new Map<string, Set<string>>();
+
+    tickets.forEach((ticket) => {
+      if (!ticket.code) return;
+      const poolKey = ticket.pool_id ? ticket.pool_id : "__no_pool__";
+      if (!uniqueCodesByPool.has(poolKey)) {
+        uniqueCodesByPool.set(poolKey, new Set());
+      }
+      uniqueCodesByPool.get(poolKey)!.add(ticket.code);
+    });
     let totalTickets = 0;
 
     const { data: activePoolRow, error: activePoolError } = await supabase
@@ -732,25 +752,23 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     const activePoolId = activePoolRow?.pool_id ?? null;
 
     if (activePoolId) {
-      const { count: activeCount, error: activeCountError } = await supabase
-        .from("jackpot_tickets")
-        .select("id", { count: "exact", head: true })
-        .eq("tipper_id", userData.id)
-        .eq("pool_id", activePoolId);
-
-      if (activeCountError) throw activeCountError;
-
-      currentTickets = activeCount || 0;
-      totalTickets = currentTickets;
+      const activePoolKey = String(activePoolId);
+      const activePoolCodes = uniqueCodesByPool.get(activePoolKey);
+      currentTickets = activePoolCodes ? activePoolCodes.size : 0;
     } else {
-      currentTickets = tickets
-        .filter((ticket) => !ticket.is_winner)
-        .reduce((sum, ticket) => sum + (ticket.tickets_count || 0), 0);
-      totalTickets = tickets.reduce(
-        (sum, ticket) => sum + (ticket.tickets_count || 0),
-        0,
-      );
+      const nonWinningCodes = new Set<string>();
+      tickets
+        .filter((ticket) => !ticket.is_winner && ticket.code)
+        .forEach((ticket) => {
+          nonWinningCodes.add(ticket.code!);
+        });
+      currentTickets = nonWinningCodes.size;
     }
+
+    totalTickets = Array.from(uniqueCodesByPool.values()).reduce(
+      (sum, codes) => sum + codes.size,
+      0,
+    );
 
       setJackpotData({
         currentTickets,

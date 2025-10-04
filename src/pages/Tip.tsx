@@ -823,7 +823,7 @@ const Tip: React.FC = () => {
             </DialogHeader>
             <div className="text-center py-4">
               <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-2xl p-4 rounded-lg mb-4 shadow-lg">
-                🎟️ {digitalTicket}
+                🎟️ View Tickets
               </div>
               <p className="text-white font-semibold mb-2">
                 You received {tipAmount} lottery tickets!
