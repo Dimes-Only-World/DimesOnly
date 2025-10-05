@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/types";
 
 const TICKET_BATCH_SIZE = 30;
+const TICKET_FETCH_PAGE_SIZE = 1000;
+const TICKET_FETCH_MAX_PAGES = 10;
 
 type UserRow = Tables<"users">;
 
@@ -122,7 +124,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     if (!userData?.id) return;
     (async () => {
       await fetchPool();
-      await Promise.all([fetchMyTickets(), fetchWinners()]);
+      await Promise.all([fetchTicketCodes(), fetchWinners()]);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userData?.id]);
@@ -133,6 +135,48 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       fetchMyTickets();
     }
   }, [userData?.id, poolId]);
+
+  useEffect(() => {
+    if (ticketCodes.length === 0) {
+      setVisibleTicketCount(TICKET_BATCH_SIZE);
+      return;
+    }
+    setVisibleTicketCount((prev) =>
+      Math.min(ticketCodes.length, Math.max(TICKET_BATCH_SIZE, prev)),
+    );
+  }, [ticketCodes]);
+
+  const loadTicketPages = async (
+    userId: string,
+    pool: string,
+  ): Promise<{ code: string | null; created_at: string | null }[]> => {
+    const pages: { code: string | null; created_at: string | null }[] = [];
+    let page = 0;
+
+    while (page < TICKET_FETCH_MAX_PAGES) {
+      const from = page * TICKET_FETCH_PAGE_SIZE;
+      const to = from + TICKET_FETCH_PAGE_SIZE - 1;
+
+      const { data, error } = await supabase
+        .from("jackpot_tickets")
+        .select("code, created_at")
+        .eq("user_id", userId)
+        .eq("pool_id", pool)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      const rows =
+        (data as { code: string | null; created_at: string | null }[]) || [];
+      pages.push(...rows);
+
+      if (rows.length < TICKET_FETCH_PAGE_SIZE) break;
+      page += 1;
+    }
+
+    return pages;
+  };
 
   const fetchPool = async () => {
     try {
@@ -166,18 +210,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("jackpot_tickets")
-        .select("code")
-        .eq("user_id", userData.id)
-        .eq("pool_id", poolId);
-
-      if (error) throw error;
-
+      const rows = await loadTicketPages(userData.id, poolId);
       const uniqueCount = new Set(
-        ((data as { code: string | null }[]) || [])
-          .map((row) => row.code)
-          .filter(Boolean),
+        rows.map((row) => row.code).filter(Boolean),
       ).size;
 
       setCurrentTickets(uniqueCount);
@@ -190,21 +225,11 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     try {
       if (!userData?.id || !poolId) {
         setTicketCodes([]);
-        setVisibleTicketCount(TICKET_BATCH_SIZE);
+        setCurrentTickets(0);
         return;
       }
 
-      const { data, error } = await supabase
-        .from("jackpot_tickets")
-        .select("code, created_at")
-        .eq("user_id", userData.id)
-        .eq("pool_id", poolId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      const rows =
-        (data as { code: string | null; created_at: string | null }[]) || [];
+      const rows = await loadTicketPages(userData.id, poolId);
 
       const uniqueMap = new Map<string, string | null>();
       rows.forEach((row) => {
@@ -223,6 +248,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       }));
 
       setTicketCodes(codes);
+      setCurrentTickets(codes.length);
       setVisibleTicketCount(Math.min(TICKET_BATCH_SIZE, codes.length));
     } catch (err) {
       console.error("Error fetching ticket codes:", err);
@@ -321,14 +347,15 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       if (Object.keys(initialProfiles).length > 0) {
         setUserProfiles((prev) => ({ ...prev, ...initialProfiles }));
       }
+
       const ids = Array.from(
         new Set(
           normalizedRows
             .map((r) => r.user_id)
-            .filter((id): id is string => Boolean(id))
-        )
+            .filter((id): id is string => Boolean(id)),
+        ),
       );
-  
+
       if (ids.length > 0) {
         await loadProfiles(ids);
       }
@@ -560,7 +587,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             </div>
             <p className="text-gray-600 mb-4">Tickets for upcoming drawing</p>
             <Badge variant="outline" className="text-sm">
-              $5 per tip min • $5 = 5 tickets 
+              $1 = 1 ticket • min $5 per tip
             </Badge>
           </div>
         </CardContent>
@@ -570,7 +597,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Ticket className="w-5 h-5" />
-            Your Ticket Codes (Upcoming Saturday Drawing)
+            Your Ticket Codes (This Week)
           </CardTitle>
         </CardHeader>
         <CardContent>
