@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -74,6 +75,7 @@ interface MediaFile {
 
 const Tip: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tipUsername = searchParams.get("tip");
   const refUsername = searchParams.get("ref") || "";
@@ -822,16 +824,22 @@ const Tip: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="text-center py-4">
-              <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-2xl p-4 rounded-lg mb-4 shadow-lg">
-                🎟️ View Tickets
-              </div>
-              <p className="text-white font-semibold mb-2">
-                You received {tipAmount} lottery tickets!
-              </p>
-              <p className="text-gray-300 text-sm">
-                Check your dashboard for all tickets
-              </p>
-            </div>
+            <Button
+              onClick={() => {
+                setShowSuccessDialog(false);
+                navigate("/dashboard?tab=jackpot");
+              }}
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black hover:from-yellow-500 hover:to-yellow-600 w-full text-2xl font-bold py-4 mb-4 shadow-lg"
+            >
+              🎟️ View Tickets
+            </Button>
+            <p className="text-white font-semibold mb-2">
+              You received {tipAmount} lottery tickets!
+            </p>
+            <p className="text-gray-300 text-sm">
+              Check your dashboard for all tickets
+            </p>
+          </div>
             <DialogFooter>
               <Button
                 onClick={() => setShowSuccessDialog(false)}

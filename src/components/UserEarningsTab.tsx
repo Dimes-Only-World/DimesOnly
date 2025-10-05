@@ -47,6 +47,8 @@ const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
 const JACKPOT_RATE = 0.25;
 const PERFORMER_PERCENT = Math.round(PERFORMER_RATE * 100);
+const TICKET_FETCH_PAGE_SIZE = 1000;
+const TICKET_FETCH_MAX_PAGES = 10;
 
 const roundCurrency = (value: number) => Math.round(value * 100) / 100;
 
@@ -618,6 +620,41 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     }
   };
 
+  const loadJackpotTicketPages = async (
+    userId: string,
+  ): Promise<JackpotTicket[]> => {
+    const pages: JackpotTicket[] = [];
+    let page = 0;
+
+    while (page < TICKET_FETCH_MAX_PAGES) {
+      const from = page * TICKET_FETCH_PAGE_SIZE;
+      const to = from + TICKET_FETCH_PAGE_SIZE - 1;
+
+      const { data, error } = await supabase
+        .from("jackpot_tickets")
+        .select("id, user_id, pool_id, code, draw_date, created_at, is_winner")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      const rows =
+        ((data as JackpotTicket[] | null | undefined) ?? []).map((ticket) => ({
+          ...ticket,
+          code: ticket.code ? String(ticket.code) : null,
+          pool_id: ticket.pool_id ? String(ticket.pool_id) : null,
+        }));
+
+      pages.push(...rows);
+
+      if (rows.length < TICKET_FETCH_PAGE_SIZE) break;
+      page += 1;
+    }
+
+    return pages;
+  };
+
   const fetchAllEarningsData = async () => {
     if (!userData?.id || !userData?.username) {
       setLoading(false);
@@ -630,7 +667,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         tipsResult,
         referralResult,
         referralTipsResult,
-        jackpotTicketsResult,
         jackpotWinningsResult,
         payoutsResult,
       ] = await Promise.all([
@@ -663,11 +699,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .eq("payment_status", "completed")
           .order("created_at", { ascending: false }),
 
-          supabase
-          .from("jackpot_tickets")
-          .select("id, user_id, pool_id, code, draw_date, created_at, is_winner")
-          .eq("user_id", userData.id),
-
         supabase
           .from("jackpot_winners")
           .select("*")
@@ -685,7 +716,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       if (tipsResult.error) throw tipsResult.error;
       if (referralResult.error) throw referralResult.error;
       if (referralTipsResult.error) throw referralTipsResult.error;
-      if (jackpotTicketsResult.error) throw jackpotTicketsResult.error;
       if (jackpotWinningsResult.error) throw jackpotWinningsResult.error;
       if (payoutsResult.error) throw payoutsResult.error;
 
@@ -716,17 +746,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         (referralTipsResult.data as unknown as ReferralTipData[]) || [],
       );
 
-      const tickets =
-      ((jackpotTicketsResult.data as unknown as JackpotTicket[]) || []).map(
-        (ticket) => ({
-          ...ticket,
-          code: ticket.code ? String(ticket.code) : null,
-          pool_id: ticket.pool_id ? String(ticket.pool_id) : null,
-        }),
-      );
-    const winnings =
-      (jackpotWinningsResult.data as unknown as JackpotWinning[]) || [];
-
+      const tickets = await loadJackpotTicketPages(userData.id);
+      const winnings =
+        (jackpotWinningsResult.data as unknown as JackpotWinning[]) || [];
     let currentTickets = 0;
     const uniqueCodesByPool = new Map<string, Set<string>>();
 

@@ -253,12 +253,27 @@ serve(async (req) => {
       return data ?? null;
     };
 
+    let referrerUsername: string | null =
+      typeof referrer_username === "string" ? referrer_username.trim() : null;
+    if (referrerUsername && !referrerUsername.length) {
+      referrerUsername = null;
+    }
+
+    if (
+      !referrerUsername &&
+      tippedUser.referred_by &&
+      !isCompanyReference(tippedUser.referred_by)
+    ) {
+      const fallback = tippedUser.referred_by.trim();
+      referrerUsername = fallback.length ? fallback : null;
+    }
+
     const percentFee = roundCurrency(parsedAmount * PAYPAL_PERCENT_FEE);
     const paypalFeeAmount = roundCurrency(percentFee + PAYPAL_FIXED_FEE);
     const netBase = Math.max(0, roundCurrency(parsedAmount - paypalFeeAmount));
 
     const performerShare = roundCurrency(netBase * PERFORMER_RATE);
-    let refCommission = referrer_username
+    let refCommission = referrerUsername
       ? roundCurrency(netBase * REFERRER_RATE)
       : 0;
     const jackpotContribution = roundCurrency(netBase * JACKPOT_RATE);
@@ -267,11 +282,11 @@ serve(async (req) => {
     );
 
     let refUserId: string | null = null;
-    if (referrer_username && refCommission > 0) {
+    if (referrerUsername && refCommission > 0) {
       const { data: refUser, error: refErr } = await supabase
         .from("users")
         .select("id")
-        .eq("username", referrer_username)
+        .eq("username", referrerUsername)
         .maybeSingle();
 
       if (refErr) {
@@ -302,58 +317,58 @@ serve(async (req) => {
     }
 
     const { data: payment, error: payErr } = await supabase
-    .from("payments")
-    .insert({
-      user_id: tipper_id,
-      amount: parsedAmount,
-      payment_status: "completed",
-      payment_type: "tip",
-      paypal_transaction_id: paypal_capture_id,
-      referred_by: referrer_username || null,
-      referrer_commission: refCommission,
-    })
-    .select()
-    .single();
+      .from("payments")
+      .insert({
+        user_id: tipper_id,
+        amount: parsedAmount,
+        payment_status: "completed",
+        payment_type: "tip",
+        paypal_transaction_id: paypal_capture_id,
+        referred_by: referrerUsername,
+        referrer_commission: refCommission,
+      })
+      .select()
+      .single();
 
-  if (payErr) throw new Error(payErr.message);
+    if (payErr) throw new Error(payErr.message);
 
     const { data: tipRow, error: tipErr } = await supabase
-    .from("tips")
-    .insert({
-      tipper_username: tipper_username || "anonymous",
-      tipped_username,
-      user_id: tipper_id,
-      tip_amount: performerShare,
-      tickets_generated: ticketCount,
-      paypal_transaction_id: paypal_capture_id,
-      referrer_username: referrer_username || null,
-      status: "completed",
-    })
-    .select()
-    .single();
+      .from("tips")
+      .insert({
+        tipper_username: tipper_username || "anonymous",
+        tipped_username,
+        user_id: tipper_id,
+        tip_amount: performerShare,
+        tickets_generated: ticketCount,
+        paypal_transaction_id: paypal_capture_id,
+        referrer_username: referrerUsername,
+        status: "completed",
+      })
+      .select()
+      .single();
 
-  if (tipErr) throw new Error(tipErr.message);
+    if (tipErr) throw new Error(tipErr.message);
 
-  const { error: tipTxnErr } = await supabase
-  .from("tips_transactions")
-  .insert({
-    tipper_user_id: tipper_id,
-    tipped_user_id: tippedUser.id,
-    tipped_username,
-    tip_amount: performerShare,
-    payment_method: "paypal",
-    payment_id: payment.id,
-    payment_status: "completed",
-    paypal_order_id: paypal_capture_id,
-    referrer_username: referrer_username || null,
-    referrer_commission: refCommission,
-    tickets_generated: ticketCount,
-    completed_at: new Date().toISOString(),
-  })
-  .select()
-  .single();
+    const { error: tipTxnErr } = await supabase
+      .from("tips_transactions")
+      .insert({
+        tipper_user_id: tipper_id,
+        tipped_user_id: tippedUser.id,
+        tipped_username,
+        tip_amount: performerShare,
+        payment_method: "paypal",
+        payment_id: payment.id,
+        payment_status: "completed",
+        paypal_order_id: paypal_capture_id,
+        referrer_username: referrerUsername,
+        referrer_commission: refCommission,
+        tickets_generated: ticketCount,
+        completed_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-if (tipTxnErr) throw new Error(tipTxnErr.message);
+    if (tipTxnErr) throw new Error(tipTxnErr.message);
 
     const earnedAt = tipRow?.created_at
       ? new Date(tipRow.created_at)
