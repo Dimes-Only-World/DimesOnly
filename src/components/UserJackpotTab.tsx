@@ -14,6 +14,8 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/types";
 
+const TICKET_BATCH_SIZE = 30;
+
 type UserRow = Tables<"users">;
 
 type PoolRow = {
@@ -105,6 +107,8 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
   const [ticketCodes, setTicketCodes] = useState<
     { code: string; created_at: string | null }[]
   >([]);
+  const [visibleTicketCount, setVisibleTicketCount] =
+    useState<number>(TICKET_BATCH_SIZE);
   const [drawGroups, setDrawGroups] = useState<DrawGroup[]>([]);
   const [userProfiles, setUserProfiles] = useState<
     Record<string, { name: string; avatar_url?: string | null }>
@@ -163,17 +167,17 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       }
 
       const { data, error } = await supabase
-      .from("jackpot_tickets")
-      .select("code")
-      .eq("user_id", userData.id)
-      .eq("pool_id", poolId);
+        .from("jackpot_tickets")
+        .select("code")
+        .eq("user_id", userData.id)
+        .eq("pool_id", poolId);
 
       if (error) throw error;
 
       const uniqueCount = new Set(
         ((data as { code: string | null }[]) || [])
           .map((row) => row.code)
-          .filter(Boolean)
+          .filter(Boolean),
       ).size;
 
       setCurrentTickets(uniqueCount);
@@ -186,6 +190,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     try {
       if (!userData?.id || !poolId) {
         setTicketCodes([]);
+        setVisibleTicketCount(TICKET_BATCH_SIZE);
         return;
       }
 
@@ -194,8 +199,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         .select("code, created_at")
         .eq("user_id", userData.id)
         .eq("pool_id", poolId)
-        .order("created_at", { ascending: false })
-        .limit(100);
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -208,7 +212,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         if (!uniqueMap.has(row.code)) {
           uniqueMap.set(
             row.code,
-            row.created_at ? new Date(row.created_at).toISOString() : null
+            row.created_at ? new Date(row.created_at).toISOString() : null,
           );
         }
       });
@@ -219,6 +223,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       }));
 
       setTicketCodes(codes);
+      setVisibleTicketCount(Math.min(TICKET_BATCH_SIZE, codes.length));
     } catch (err) {
       console.error("Error fetching ticket codes:", err);
     }
@@ -256,7 +261,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       const { data, error } = await supabase
         .from("v_jackpot_latest_winners")
         .select(
-          "draw_id,drawn_code,executed_at,user_id,role,place,percentage,amount,status"
+          "draw_id,drawn_code,executed_at,user_id,role,place,percentage,amount,status",
         )
         .order("executed_at", { ascending: false })
         .limit(60);
@@ -296,9 +301,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       });
 
       const grouped = Array.from(groupsMap.values()).sort((a, b) => {
-        return (
-          new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
-        );
+        return new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime();
       });
 
       setDrawGroups(grouped);
@@ -318,7 +321,6 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       if (Object.keys(initialProfiles).length > 0) {
         setUserProfiles((prev) => ({ ...prev, ...initialProfiles }));
       }
-
       const ids = Array.from(
         new Set(
           normalizedRows
@@ -326,11 +328,17 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
             .filter((id): id is string => Boolean(id))
         )
       );
+  
       if (ids.length > 0) {
         await loadProfiles(ids);
       }
     } catch (err) {
       console.error("Error fetching winners:", err);
+      toast({
+        title: "Jackpot",
+        description: "Could not load winners.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -344,7 +352,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
   const displayNameFor = (
     userId: string | null | undefined,
-    fallback: string
+    fallback: string,
   ) => {
     if (userId) {
       const name = userProfiles[userId]?.name;
@@ -355,12 +363,12 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
   const latestDraw = useMemo(
     () => (drawGroups.length > 0 ? drawGroups[0] : null),
-    [drawGroups]
+    [drawGroups],
   );
 
   const historicalDraws = useMemo(
     () => (drawGroups.length > 1 ? drawGroups.slice(1) : []),
-    [drawGroups]
+    [drawGroups],
   );
 
   const latestSections = useMemo(() => {
@@ -382,7 +390,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
   const WinnerListItem = (
     winner: WinnerRow,
-    includePlaceBadge = true
+    includePlaceBadge = true,
   ): React.ReactNode => {
     const fallbackName =
       winner.username ||
@@ -439,6 +447,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       </div>
     );
   };
+
+  const visibleTickets = ticketCodes.slice(0, visibleTicketCount);
+  const hasMoreTickets = visibleTicketCount < ticketCodes.length;
+  const canShowLess = visibleTicketCount > TICKET_BATCH_SIZE;
 
   return (
     <div className="space-y-6">
@@ -563,23 +575,55 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         </CardHeader>
         <CardContent>
           {ticketCodes.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {ticketCodes.map((ticket, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-center"
-                >
-                  <Badge variant="secondary" className="justify-center text-base mb-2">
-                    {ticket.code}
-                  </Badge>
-                  <div className="text-xs text-neutral-500">
-                    {ticket.created_at
-                      ? `Bought ${formatDate(ticket.created_at, true)}`
-                      : "Purchase time unavailable"}
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {visibleTickets.map((ticket, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-center"
+                  >
+                    <Badge
+                      variant="secondary"
+                      className="justify-center text-sm mb-2"
+                    >
+                      {ticket.code}
+                    </Badge>
+                    <div className="text-xs text-neutral-500">
+                      {ticket.created_at
+                        ? `Bought ${formatDate(ticket.created_at, true)}`
+                        : "Purchase time unavailable"}
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              {(hasMoreTickets || canShowLess) && (
+                <div className="flex justify-center gap-2 mt-4">
+                  {hasMoreTickets && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setVisibleTicketCount((prev) =>
+                          Math.min(prev + TICKET_BATCH_SIZE, ticketCodes.length),
+                        )
+                      }
+                    >
+                      Show more
+                    </Button>
+                  )}
+                  {canShowLess && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setVisibleTicketCount(TICKET_BATCH_SIZE)}
+                    >
+                      Show less
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="text-center text-gray-500">
               <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -612,7 +656,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
                     {placeTitle(section.place)}
                   </h4>
                   {section.winners.map((winner) =>
-                    WinnerListItem(winner, true)
+                    WinnerListItem(winner, true),
                   )}
                 </section>
               ))}
@@ -657,7 +701,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
                   <AccordionContent>
                     <div className="space-y-3 pt-2">
                       {draw.winners.map((winner) =>
-                        WinnerListItem(winner, true)
+                        WinnerListItem(winner, true),
                       )}
                     </div>
                   </AccordionContent>
