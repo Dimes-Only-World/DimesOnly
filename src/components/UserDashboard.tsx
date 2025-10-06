@@ -36,7 +36,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/types";
+
 type UserData = Tables<"users">;
+
 const UserDashboard: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +53,7 @@ const UserDashboard: React.FC = () => {
   } = useMobileLayout();
   const navigate = useNavigate();
   const [hasActiveDiamond, setHasActiveDiamond] = useState(false);
+
   useEffect(() => {
     if (user?.id) {
       fetchUserDataById(user.id);
@@ -58,6 +61,7 @@ const UserDashboard: React.FC = () => {
       getCurrentUser();
     }
   }, [user?.id]);
+
   // Check for active Diamond subscription (any cadence)
   useEffect(() => {
     const checkDiamond = async () => {
@@ -87,6 +91,7 @@ const UserDashboard: React.FC = () => {
     };
     checkDiamond();
   }, [userData?.id]);
+
   const getCurrentUser = async () => {
     try {
       const {
@@ -100,6 +105,7 @@ const UserDashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
   const fetchUserDataById = async (userId: string): Promise<boolean> => {
     try {
       setLoading(true);
@@ -108,10 +114,12 @@ const UserDashboard: React.FC = () => {
         .select("*")
         .eq("id", userId)
         .single();
+
       if (error) {
         console.error("Error fetching user data:", error);
         return false;
       }
+
       if (data) {
         setUserData(data as UserData);
         return true;
@@ -129,8 +137,10 @@ const UserDashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
   const testUserUpdate = async () => {
     if (!userData?.id) return;
+
     console.log("Testing simple update with minimal data...");
     try {
       // Test with just one field
@@ -139,7 +149,9 @@ const UserDashboard: React.FC = () => {
         .update({ bio: "Test update - " + new Date().toISOString() })
         .eq("id", userData.id)
         .select();
+
       console.log("Test update result:", { data, error });
+
       if (error) {
         console.error("Test update failed:", error);
         // Try with admin client
@@ -149,34 +161,41 @@ const UserDashboard: React.FC = () => {
           "https://qkcuykpndrolrewwnkwb.supabase.co",
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTM4MjA3MCwiZXhwIjoyMDY0OTU4MDcwfQ.ayaH1xWQQU-KzPkS5Zufk_Ss6wHns95u6DBhtdLKFN8"
         );
+
         const { data: adminData, error: adminError } = await adminClient
           .from("users")
           .update({ bio: "Admin test update - " + new Date().toISOString() })
           .eq("id", userData.id)
           .select();
+
         console.log("Admin update result:", { adminData, adminError });
       }
     } catch (error) {
       console.error("Test update exception:", error);
     }
   };
+
   const updateUserData = async (updatedData: Partial<UserData>) => {
     if (!userData?.id) {
       console.error("No user ID available for update");
       return false;
     }
+
     console.log("Attempting to update user data:", {
       userId: userData.id,
       updatedData,
       originalData: userData,
     });
+
     try {
       const { data, error } = await supabase
         .from("users")
         .update(updatedData)
         .eq("id", userData.id)
         .select();
+
       console.log("Supabase update response:", { data, error });
+
       if (error) {
         console.error("Supabase error updating user data:", error);
         toast({
@@ -186,6 +205,7 @@ const UserDashboard: React.FC = () => {
         });
         return false;
       }
+
       if (data && data.length > 0) {
         console.log("Update successful, new data:", data[0]);
         setUserData(data[0] as UserData);
@@ -223,27 +243,34 @@ const UserDashboard: React.FC = () => {
       return false;
     }
   };
+
   const handleImageUpload = async (
     file: File,
     imageType: "profile" | "banner" | "front_page"
   ) => {
     if (!userData?.username) return;
+
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `profiles/${userData.username}/${imageType}.${fileExt}`;
+
       const { data, error } = await supabase.storage
         .from("user-photos")
         .upload(fileName, file, { cacheControl: "3600", upsert: true });
+
       if (error) throw error;
+
       const {
         data: { publicUrl },
       } = supabase.storage.from("user-photos").getPublicUrl(fileName);
+
       const updateField =
         imageType === "profile"
           ? "profile_photo"
           : imageType === "banner"
           ? "banner_photo"
           : "front_page_photo";
+
       await updateUserData({ [updateField]: publicUrl });
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -254,20 +281,25 @@ const UserDashboard: React.FC = () => {
       });
     }
   };
+
   const handleLogout = async () => {
     try {
       // Sign out from Supabase
       await supabase.auth.signOut();
+
       // Clear local storage and session storage
       localStorage.removeItem("authToken");
       sessionStorage.removeItem("userData");
       sessionStorage.removeItem("currentUser");
+
       // Clear app context
       setUser(null);
+
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
+
       // Redirect to login
       navigate("/login", { replace: true });
     } catch (error) {
@@ -279,6 +311,7 @@ const UserDashboard: React.FC = () => {
       });
     }
   };
+
   if (loading) {
     return (
       <AuthGuard>
@@ -288,6 +321,7 @@ const UserDashboard: React.FC = () => {
       </AuthGuard>
     );
   }
+
   if (!userData) {
     return (
       <AuthGuard>
@@ -297,13 +331,21 @@ const UserDashboard: React.FC = () => {
       </AuthGuard>
     );
   }
+
   // Choose hero video based on user_type (stripper/exotic => WEBM, otherwise => MP4)
+  // Also provide a mobile-specific source like on the Home page.
   const userType = (userData.user_type || "").toLowerCase();
+
   // Desktop sources by role
   const heroVideoDesktopUrl =
     userType === "stripper" || userType === "exotic"
       ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
       : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
+
+  // Mobile (portrait) source
+  const heroVideoMobileUrl =
+    "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm";
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -318,13 +360,13 @@ const UserDashboard: React.FC = () => {
                   Dimes
                 </h1>
               </div>
-             
+              
               <div className="hidden md:flex items-center">
                 <p className="text-sm text-gray-600">
                   Welcome Back {userData.username || "User"}
                 </p>
               </div>
-             
+              
               <div className="flex items-center gap-2">
                 <div className="md:hidden">
                   <p className="text-xs text-gray-600 text-right">
@@ -344,18 +386,23 @@ const UserDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
         {/* Full-bleed dashboard video header (outside container) */}
         <div className={`${isMobile ? "py-4" : "py-8"}`}>
           <DashboardVideoHeader
             srcDesktop={heroVideoDesktopUrl}
+            srcMobile={heroVideoMobileUrl}
             thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           />
         </div>
+
         <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
           <DiamondPlusButton userData={userData} />
+
           {/* Subscription Progress (Diamond Yearly Split) */}
           <SubscriptionProgress userId={userData.id} />
+
           {/* Silver Plus Counter and Benefits Section - Only show for eligible users who don't have Silver Plus */}
           {userData && (userData.gender === "male" || (userData.gender === "female" && userData.user_type === "normal")) && !userData.silver_plus_active && (
             <Card className="bg-gradient-to-br from-blue-900 to-blue-700 text-white mb-6">
@@ -369,7 +416,7 @@ const UserDashboard: React.FC = () => {
                       <SilverPlusCounter />
                     </div>
                   </div>
-                 
+                  
                   {/* Right side - Benefits */}
                   <div className="w-full md:w-2/3">
                     <h4 className="font-semibold text-yellow-300 text-lg mb-3">Silver Plus Referral & Compensation</h4>
@@ -404,12 +451,14 @@ const UserDashboard: React.FC = () => {
               </CardContent>
             </Card>
           )}
+
           {/* Silver Plus Membership Section */}
           {userData && (
             <div className="mb-6">
               <SilverPlusMembership userData={userData} onMembershipUpdate={setUserData} />
             </div>
           )}
+
           <Card
             className={`${isMobile ? "mb-4 mx-0 rounded-none" : "mb-8"} overflow-hidden`}
           >
@@ -419,6 +468,7 @@ const UserDashboard: React.FC = () => {
               onImageUpload={(file) => handleImageUpload(file, "banner")}
             />
           </Card>
+
           {/* Upgrade Membership Button – always visible */}
           <div className="my-6 flex justify-center">
             <Button
@@ -429,6 +479,7 @@ const UserDashboard: React.FC = () => {
               <a href="/upgrade">Upgrade Membership</a>
             </Button>
           </div>
+
           {/* Rest of dashboard content */}
           <Card className={getCardClasses()}>
             <Tabs defaultValue="profile" className="w-full">
@@ -441,6 +492,7 @@ const UserDashboard: React.FC = () => {
                     <User className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Profile</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="makemoney"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -448,6 +500,7 @@ const UserDashboard: React.FC = () => {
                     <Share2 className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Make Money</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="notifications"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -455,6 +508,7 @@ const UserDashboard: React.FC = () => {
                     <Bell className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Notifications</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="earnings"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -462,6 +516,7 @@ const UserDashboard: React.FC = () => {
                     <DollarSign className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Earnings</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="messages"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -469,6 +524,7 @@ const UserDashboard: React.FC = () => {
                     <MessageCircle className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Messages</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="media"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -476,6 +532,7 @@ const UserDashboard: React.FC = () => {
                     <Camera className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Media</span>
                   </TabsTrigger>
+
                   <TabsTrigger
                     value="jackpot"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -485,6 +542,7 @@ const UserDashboard: React.FC = () => {
                   </TabsTrigger>
                 </TabsList>
               </div>
+
               <CardContent className={getPaddingClasses()}>
                 <TabsContent value="profile" className="mt-0">
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -505,24 +563,30 @@ const UserDashboard: React.FC = () => {
                     </div>
                   </div>
                 </TabsContent>
+
                 <TabsContent value="notifications" className="mt-0">
                   <UserNotificationsTab />
                 </TabsContent>
+
                 <TabsContent value="earnings" className="mt-0">
                   <UserEarningsTab userData={userData} />
                 </TabsContent>
+
                 <TabsContent value="messages" className="mt-0">
                   <UserDirectMessagesTab />
                 </TabsContent>
+
                 <TabsContent value="media" className="mt-0">
                   <UserMediaUploadTab
                     userData={userData}
                     onUpdate={updateUserData}
                   />
                 </TabsContent>
+
                 <TabsContent value="makemoney" className="mt-0">
                   <UserMakeMoneyTab />
                 </TabsContent>
+
                 <TabsContent value="jackpot" className="mt-0">
                   <UserJackpotTab userData={userData} />
                 </TabsContent>
@@ -534,4 +598,5 @@ const UserDashboard: React.FC = () => {
     </AuthGuard>
   );
 };
+
 export default UserDashboard;
