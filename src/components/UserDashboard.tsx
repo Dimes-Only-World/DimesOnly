@@ -339,7 +339,7 @@ const UserDashboard: React.FC = () => {
   // Desktop sources by role
   const heroVideoDesktopUrl =
     userType === "stripper" || userType === "exotic"
-      ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+1080+cinema+HOME+banner.webm"
+      ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
       : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
 
   // Mobile (portrait) source
