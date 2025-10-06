@@ -68,6 +68,7 @@ interface TipData {
   tip_amount: number;
   gross_amount?: number | null;
   tipper_username: string;
+  tipped_username: string;
   created_at: string;
   status: string;
   referrer_username: string | null;
@@ -91,6 +92,10 @@ interface ReferralTipData {
   payment_status: string | null;
   created_at: string | null;
   completed_at: string | null;
+  tipper_user_id?: string | null;
+  tipper_user?: {
+    username?: string | null;
+  } | null;
 }
 
 type TipDisplayRole = "performer" | "referral";
@@ -104,6 +109,8 @@ interface TipDisplayEntry {
   status?: string | null;
   referrer_username?: string | null;
   original_tip_amount?: number | null;
+  tipper_username?: string | null;
+  tipped_username?: string | null;
 }
 
 interface EarningsItem {
@@ -221,16 +228,21 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       original_tip_amount: roundCurrency(
         tip.gross_amount ?? (tip.tip_amount || 0) / PERFORMER_RATE,
       ),
+      tipper_username: tip.tipper_username,
+      tipped_username: tip.tipped_username ?? userData?.username ?? null,
     }));
-
+  
     const referralEntries = referralTips.map((row) => ({
-      id: `referral-${row.id}`,
-      created_at:
-        row.created_at ?? row.completed_at ?? new Date().toISOString(),
+      id: row.id,
+      created_at: row.created_at ?? row.completed_at ?? "",
       amount: roundCurrency(row.referrer_commission || 0),
       role: "referral" as const,
       counterparty: row.tipped_username,
       original_tip_amount: roundCurrency(row.tip_amount || 0),
+      tipper_username:
+        row.tipper_user?.username ??
+        (row.tipper_user_id ? row.tipper_user_id : null),
+      tipped_username: row.tipped_username ?? null,
     }));
 
     return [...performerEntries, ...referralEntries]
@@ -690,10 +702,19 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .not("referrer_commission", "is", null)
           .order("created_at", { ascending: false }),
 
-        supabase
+          supabase
           .from("tips_transactions")
           .select(
-            "id, referrer_commission, referrer_username, tipped_username, tip_amount, payment_status, created_at, completed_at",
+            `id,
+             referrer_commission,
+             referrer_username,
+             tipped_username,
+             tip_amount,
+             payment_status,
+             created_at,
+             completed_at,
+             tipper_user_id,
+             tipper_user:tipper_user_id ( username )`
           )
           .eq("referrer_username", userData.username)
           .eq("payment_status", "completed")
@@ -1569,58 +1590,61 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                                    {combinedTips.slice(0, 10).map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">
-                          {entry.role === "performer"
-                            ? `From ${entry.counterparty ?? "Anonymous"}`
-                            : `Referral from ${
-                                entry.counterparty ?? "Unknown performer"
-                              }`}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(entry.created_at).toLocaleDateString()}
-                          {entry.role === "performer" &&
-                            entry.referrer_username && (
-                              <span className="ml-2 text-blue-600">
-                                - Referred by {entry.referrer_username}
-                              </span>
-                            )}
-                          {entry.role === "referral" &&
-                          entry.original_tip_amount ? (
-                            <span className="ml-2 text-blue-600">
-                              - Source tip{" "}
-                              {formatCurrency(entry.original_tip_amount)}
-                            </span>
-                          ) : null}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">
-                          {formatCurrency(entry.amount)}
-                        </p>
-                        {entry.role === "performer" && entry.original_tip_amount ? (
-                          <p className="text-xs text-gray-500">
-                            Tip total {formatCurrency(entry.original_tip_amount)}
+                                {combinedTips.slice(0, 10).map((entry) => {
+                const isPerformer = entry.role === "performer";
+                return (
+                  <div
+                    key={entry.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-500">
+                        {new Date(entry.created_at).toLocaleString()}
+                      </p>
+                      {isPerformer ? (
+                        <>
+                          <p className="text-sm font-semibold text-gray-900">
+                            Tipper: {entry.tipper_username ?? entry.counterparty ?? "Anonymous"}
                           </p>
-                        ) : null}
-                        <Badge variant="outline">
-                          {entry.role === "performer"
-                            ? entry.status || "completed"
-                            : "Referral Tip"}
-                        </Badge>
-                      </div>
+                          <p className="text-sm text-gray-500">
+                            Referred By: {entry.referrer_username ?? "None"}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-semibold text-gray-900">
+                            Tipped: {entry.tipped_username ?? entry.counterparty ?? "Unknown"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Tipper: {entry.tipper_username ?? "Unknown"}
+                          </p>
+                        </>
+                      )}
                     </div>
-                  ))}
-                  {combinedTips.length > 10 && (
-                    <p className="text-center text-sm text-gray-500 py-2">
-                      Showing 10 of {combinedTips.length} tips
-                    </p>
-                  )}
+                    <div className="text-right space-y-1">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                        {isPerformer ? "Amount Received" : "Override Amount"}
+                      </p>
+                      <p className="font-bold text-green-600">
+                        {formatCurrency(entry.amount)}
+                      </p>
+                      {entry.original_tip_amount ? (
+                        <p className="text-xs text-gray-500">
+                          {/* Source Tip {formatCurrency(entry.original_tip_amount)} */}
+                        </p>
+                      ) : null}
+                      <Badge variant="outline">
+                        {isPerformer ? entry.status || "completed" : "Referral Tip"}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+                {combinedTips.length > 10 && (
+                  <p className="text-center text-sm text-gray-500 py-2">
+                    Showing 10 of {combinedTips.length} tips
+                  </p>
+                )}
                 </div>
               )}
             </CardContent>

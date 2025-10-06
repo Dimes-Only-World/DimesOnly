@@ -350,23 +350,24 @@ serve(async (req) => {
     if (tipErr) throw new Error(tipErr.message);
 
     const { error: tipTxnErr } = await supabase
-      .from("tips_transactions")
-      .insert({
-        tipper_user_id: tipper_id,
-        tipped_user_id: tippedUser.id,
-        tipped_username,
-        tip_amount: performerShare,
-        payment_method: "paypal",
-        payment_id: payment.id,
-        payment_status: "completed",
-        paypal_order_id: paypal_capture_id,
-        referrer_username: referrerUsername,
-        referrer_commission: refCommission,
-        tickets_generated: ticketCount,
-        completed_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    .from("tips_transactions")
+    .insert({
+      tipper_user_id: tipper_id,
+      tipped_user_id: tippedUser.id,
+      tipped_username,
+      tipper_username: tipper_username || "anonymous",  
+      tip_amount: performerShare,
+      payment_method: "paypal",
+      payment_id: payment.id,
+      payment_status: "completed",
+      paypal_order_id: paypal_capture_id,
+      referrer_username: referrerUsername,
+      referrer_commission: refCommission,
+      tickets_generated: ticketCount,
+      completed_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
 
     if (tipTxnErr) throw new Error(tipTxnErr.message);
 
