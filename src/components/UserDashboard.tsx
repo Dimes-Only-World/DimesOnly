@@ -337,14 +337,14 @@ const UserDashboard: React.FC = () => {
   const userType = (userData.user_type || "").toLowerCase();
 
   // Desktop sources by role
-  const heroVideoDesktopUrl =
-    userType === "stripper" || userType === "exotic"
-      ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
-      : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
-
-  // Mobile (portrait) source
-  const heroVideoMobileUrl =
-    "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm";
+// Desktop video by user type
+const heroVideoUrl =
+  ["stripper", "exotic"].includes(userType)
+    ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
+    : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
+// Mobile (portrait) source
+const heroVideoMobileUrl =
+"https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm";
 
   return (
     <AuthGuard>
@@ -384,16 +384,15 @@ const UserDashboard: React.FC = () => {
                 </Button>
               </div>
             </div>
-          </div>
+          </div>``
         </div>
 
         {/* Full-bleed dashboard video header (outside container) */}
         <div className={`${isMobile ? "py-4" : "py-8"}`}>
-          <DashboardVideoHeader
-            srcDesktop={heroVideoDesktopUrl}
-            srcMobile={heroVideoMobileUrl}
-            thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-          />
+        <DashboardVideoHeader
+          src={heroVideoUrl}
+          thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
+        />
         </div>
 
         <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
