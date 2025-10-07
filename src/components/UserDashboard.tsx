@@ -342,9 +342,7 @@ const heroVideoUrl =
   ["stripper", "exotic"].includes(userType)
     ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
     : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
-// Mobile (portrait) source
-const heroVideoMobileUrl =
-"https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm";
+
 
   return (
     <AuthGuard>
@@ -384,7 +382,7 @@ const heroVideoMobileUrl =
                 </Button>
               </div>
             </div>
-          </div>``
+          </div>
         </div>
 
         {/* Full-bleed dashboard video header (outside container) */}
