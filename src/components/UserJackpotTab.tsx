@@ -95,6 +95,12 @@ const ROLE_SEQUENCE: WinnerRow["role"][] = [
   "referred_dime_referrer",
 ];
 
+const PLACE_ROLE_ORDER: Record<WinnerRow["place"], WinnerRow["role"][]> = {
+  1: ["tipper", "dime", "referred_dime", "who_referred_tipper", "dime_referred_dime", "referred_dime_referrer"],
+  2: ["referred_dime", "dime_referred_dime", "referred_dime_referrer", "tipper", "dime", "who_referred_tipper"],
+  3: ["who_referred_tipper", "referred_dime", "dime_referred_dime", "referred_dime_referrer", "tipper", "dime"],
+};
+
 const ROLE_METADATA: Record<
   WinnerRow["role"],
   { label: string; helper?: string }
@@ -463,18 +469,32 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
   const latestSections = useMemo(() => {
     if (!latestDraw) return [];
+  
     const buckets: Record<WinnerRow["place"], WinnerRow[]> = {
       1: [],
       2: [],
       3: [],
     };
-    latestDraw.winners.forEach((w) => {
-      buckets[w.place].push(w);
+  
+    const sortForPlace = (place: WinnerRow["place"], winners: WinnerRow[]) => {
+      const order = PLACE_ROLE_ORDER[place] ?? [];
+      const roleRank = (role: WinnerRow["role"]) => {
+        const idx = order.indexOf(role);
+        if (idx !== -1) return idx;
+        const fallback = ROLE_SEQUENCE.indexOf(role);
+        return order.length + (fallback === -1 ? 99 : fallback);
+      };
+      return [...winners].sort((a, b) => roleRank(a.role) - roleRank(b.role));
+    };
+  
+    latestDraw.winners.forEach((winner) => {
+      buckets[winner.place].push(winner);
     });
+  
     return [
-      { place: 1 as WinnerRow["place"], winners: buckets[1] },
-      { place: 2 as WinnerRow["place"], winners: buckets[2] },
-      { place: 3 as WinnerRow["place"], winners: buckets[3] },
+      { place: 1 as WinnerRow["place"], winners: sortForPlace(1, buckets[1]) },
+      { place: 2 as WinnerRow["place"], winners: sortForPlace(2, buckets[2]) },
+      { place: 3 as WinnerRow["place"], winners: sortForPlace(3, buckets[3]) },
     ].filter((section) => section.winners.length > 0);
   }, [latestDraw]);
 
@@ -493,7 +513,13 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       winner.profile_photo ??
       undefined;
     const placeLabel = placeTitle(winner.place);
-    const roleLabel = roleDisplay(winner.role);
+    const roleLabel = (() => {
+      if (winner.place === 2) {
+        if (winner.role === "dime_referred_dime") return "Referred Dime";
+        if (winner.role === "referred_dime_referrer") return "Dime’s Referrer Referrer";
+      }
+      return roleDisplay(winner.role);
+    })();
 
     return (
       <div

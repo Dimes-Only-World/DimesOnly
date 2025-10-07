@@ -355,7 +355,6 @@ serve(async (req) => {
       tipper_user_id: tipper_id,
       tipped_user_id: tippedUser.id,
       tipped_username,
-      tipper_username: tipper_username || "anonymous",  
       tip_amount: performerShare,
       payment_method: "paypal",
       payment_id: payment.id,
