@@ -62,7 +62,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange("firstName")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-yellow-400"
               placeholder="Enter your first name"
             />
             {errors.firstName && (
