@@ -388,9 +388,10 @@ const heroVideoUrl =
         {/* Full-bleed dashboard video header (outside container) */}
         <div className={`${isMobile ? "py-4" : "py-8"}`}>
         <DashboardVideoHeader
-          src={heroVideoUrl}
-          thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-        />
+        srcDesktop={heroVideoUrl}
+        srcMobile={heroVideoUrl}
+        thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
+      />
         </div>
 
         <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
