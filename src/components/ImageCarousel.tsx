@@ -90,7 +90,6 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ className = '' }) => {
     </h3>
     <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full"></div>
   </div>
-</div>
       
       {/* Desktop */}
       <div className="hidden md:block overflow-hidden">
