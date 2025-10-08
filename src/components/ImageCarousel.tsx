@@ -72,12 +72,25 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ className = '' }) => {
 
   return (
     <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
-      <div className="text-center mb-8">
-        <h2 className="text-white text-2xl md:text-4xl font-bold mb-2">
-          MEET OUR FEATURED MODELS
-        </h2>
-        <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full"></div>
-      </div>
+  <div className="text-center mb-8">
+    <h2 className="text-white text-2xl md:text-4xl font-bold mb-2">
+      CURRENT TOP 20 RANKED DIMES
+    </h2>
+    <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full"></div>
+  </div>
+
+  <div className="text-center mb-8">
+    <h3 className="text-2xl md:text-4xl font-bold mb-2">
+      <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
+        $10,000 Every 3 Months
+      </span>{" "}
+      <span className="text-white">Given to The #1 Top Rank</span>
+      <br />
+      <span className="text-white">Ranked #2 – #20 Will Get Money as Well</span>
+    </h3>
+    <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full"></div>
+  </div>
+</div>
       
       {/* Desktop */}
       <div className="hidden md:block overflow-hidden">
