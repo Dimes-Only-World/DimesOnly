@@ -431,7 +431,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
           <div className="space-y-2">
             <FileUploadField
-              label="Front Page Photo (Protrait Size)"
+              label="Front Page Photo (Portrait Size)"
               accept="image/*"
               onChange={handleFileChange("frontPagePhoto")}
             />
