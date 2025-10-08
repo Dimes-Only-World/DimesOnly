@@ -62,7 +62,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange("firstName")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="Enter your first name"
             />
             {errors.firstName && (
@@ -82,7 +82,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.lastName}
               onChange={(e) => handleInputChange("lastName")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="Enter your last name"
             />
             {errors.lastName && (
@@ -100,7 +100,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             type="text"
             value={formData.username}
             onChange={(e) => handleInputChange("username")(e.target.value)}
-            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
             placeholder="Choose a unique username"
             disabled={false}
           />
@@ -130,7 +130,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange("email")(e.target.value)}
-            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
             placeholder="Enter your email address"
           />
           {errors.email && (
@@ -151,7 +151,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="password"
               value={formData.password}
               onChange={(e) => handleInputChange("password")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="Create a secure password"
             />
             {errors.password && (
@@ -173,7 +173,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               onChange={(e) =>
                 handleInputChange("confirmPassword")(e.target.value)
               }
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="Confirm your password"
             />
             {errors.confirmPassword && (
@@ -201,7 +201,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             type="tel"
             value={formData.mobileNumber}
             onChange={(e) => handleInputChange("mobileNumber")(e.target.value)}
-            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
             placeholder="Enter your phone number"
           />
           {errors.mobileNumber && (
@@ -218,7 +218,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             type="text"
             value={formData.address}
             onChange={(e) => handleInputChange("address")(e.target.value)}
-            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+            className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
             placeholder="Enter your street address"
           />
           {errors.address && (
@@ -236,7 +236,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.city}
               onChange={(e) => handleInputChange("city")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="City"
             />
             {errors.city && (
@@ -253,7 +253,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.state}
               onChange={(e) => handleInputChange("state")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="State"
             />
             {errors.state && (
@@ -270,7 +270,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.zip}
               onChange={(e) => handleInputChange("zip")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-blue-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
               placeholder="Zip"
             />
             {errors.zip && <p className="text-red-400 text-sm">{errors.zip}</p>}
@@ -345,7 +345,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                       Normal
                     </Label>
                     <p className="text-white/70 text-sm mt-1">
-                      Here just to make money
+                      Here just to make money!
                     </p>
                   </div>
                 </div>
@@ -364,7 +364,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                       Exotic
                     </Label>
                     <p className="text-white/70 text-sm mt-1">
-                      Here to make more money than normal
+                      Here to make more money than normal.
                     </p>
                   </div>
                 </div>
@@ -383,7 +383,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                       Stripper
                     </Label>
                     <p className="text-white/70 text-sm mt-1">
-                      Here to be on the reality show Housing Angels, LLC.
+                      Here to be on the reality show Housing Angels.
                     </p>
                   </div>
                 </div>
@@ -409,7 +409,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <FileUploadField
-              label="Profile Photo"
+              label="Profile Photo (Square Size)"
               accept="image/*"
               onChange={handleFileChange("profilePhoto")}
             />
@@ -420,7 +420,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
           <div className="space-y-2">
             <FileUploadField
-              label="Banner Photo"
+              label="Banner Photo (LandScape Size)"
               accept="image/*"
               onChange={handleFileChange("bannerPhoto")}
             />
@@ -431,7 +431,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
           <div className="space-y-2">
             <FileUploadField
-              label="Front Page Photo"
+              label="Front Page Photo (Protrait Size)"
               accept="image/*"
               onChange={handleFileChange("frontPagePhoto")}
             />
