@@ -28,6 +28,7 @@ interface FormData {
   profilePhoto?: string;
   bannerPhoto?: string;
   frontPagePhoto?: string;
+  dateOfBirth: string;
 }
 
 const backgroundImages = [
@@ -48,6 +49,37 @@ const validatePassword = (password: string): boolean => {
   return password.length >= 6;
 };
 
+const capitalizeWords = (value: string) =>
+  value
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map((word) =>
+      word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""
+    )
+    .join(" ");
+
+const formatAddress = (value: string) =>
+  value
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map((word) =>
+      word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""
+    )
+    .join(" ");
+
+    const formatPhoneNumber = (value: string) => {
+      const digits = value.replace(/\D/g, "").slice(0, 10);
+      const area = digits.slice(0, 3);
+      const middle = digits.slice(3, 6);
+      const line = digits.slice(6);
+      if (digits.length > 6) return `(${area})${middle}-${line}`;
+      if (digits.length > 3) return `(${area})${middle}`;
+      if (digits.length > 0) return `(${area}`;
+      return "";
+    };
+
 const validateRequired = (data: FormData): string[] => {
   const errors: string[] = [];
   const requiredFields: (keyof FormData)[] = [
@@ -62,6 +94,7 @@ const validateRequired = (data: FormData): string[] => {
     "state",
     "zip",
     "gender",
+    "dateOfBirth",
   ];
 
   requiredFields.forEach((field) => {
@@ -85,6 +118,8 @@ export const Register: React.FC = () => {
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>("");
   const [bannerPhotoUrl, setBannerPhotoUrl] = useState<string>("");
   const [frontPagePhotoUrl, setFrontPagePhotoUrl] = useState<string>("");
+  const [videoUrls, setVideoUrls] = useState<string[]>(["", "", ""]);
+  const [videoErrors, setVideoErrors] = useState<string[]>(["", "", ""]);
   const [showVideo, setShowVideo] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {}
@@ -105,23 +140,44 @@ export const Register: React.FC = () => {
     zip: "",
     gender: "",
     userType: "",
+    dateOfBirth: "",
     referredBy: getReferralUsername(searchParams),
   });
 
   const handleInputChange = (field: keyof FormData) => (value: string) => {
-    // Convert username to lowercase automatically
-    const processedValue = field === "username" ? value.toLowerCase() : value;
+    let processedValue = value;
+
+    if (field === "username") {
+      processedValue = value.toLowerCase();
+    } else if (field === "firstName" || field === "lastName") {
+      processedValue = capitalizeWords(value);
+    } else if (field === "address") {
+      processedValue = formatAddress(value);
+    } else if (field === "mobileNumber") {
+      processedValue = formatPhoneNumber(value);
+    }
+
+    if (field === "gender") {
+      setFormData((prev) => ({
+        ...prev,
+        gender: processedValue,
+        userType: processedValue === "female" ? prev.userType : "",
+      }));
+      setShowVideo(false);
+      setErrors((prev) => ({
+        ...prev,
+        gender: undefined,
+        userType: processedValue === "female" ? prev.userType : undefined,
+      }));
+      return;
+    }
+
+    if (field === "userType") {
+      setShowVideo(processedValue === "exotic" || processedValue === "stripper");
+    }
 
     setFormData((prev) => ({ ...prev, [field]: processedValue }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-
-    if (field === "gender") {
-      setFormData((prev) => ({ ...prev, [field]: processedValue }));
-    } else if (field === "userType") {
-      setShowVideo(value === "exotic" || value === "stripper");
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: processedValue }));
-    }
   };
 
   const handleFileChange = (field: string) => async (file: File | null) => {
@@ -167,25 +223,16 @@ export const Register: React.FC = () => {
       if (!response.ok)
         throw new Error(`Upload failed: ${response.status} - ${responseText}`);
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        throw new Error(`Invalid JSON: ${responseText}`);
-      }
-
+      const result = JSON.parse(responseText);
       if (result.success && result.url) {
         if (field === "profilePhoto") {
           setProfilePhotoUrl(result.url);
-          // Clear the error for profile photo
           setErrors((prev) => ({ ...prev, profilePhoto: undefined }));
         } else if (field === "bannerPhoto") {
           setBannerPhotoUrl(result.url);
-          // Clear the error for banner photo
           setErrors((prev) => ({ ...prev, bannerPhoto: undefined }));
         } else if (field === "frontPagePhoto") {
           setFrontPagePhotoUrl(result.url);
-          // Clear the error for front page photo
           setErrors((prev) => ({ ...prev, frontPagePhoto: undefined }));
         }
 
@@ -198,15 +245,110 @@ export const Register: React.FC = () => {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Unexpected upload error";
       toast({
         title: "Upload Failed",
-        description: errorMessage,
+        description:
+          error instanceof Error ? error.message : "Unexpected upload error",
         variant: "destructive",
       });
     }
   };
+
+  const handleVideoUpload =
+    (slot: number) => async (file: File | null) => {
+      if (!file) {
+        setVideoUrls((prev) => {
+          const next = [...prev];
+          next[slot] = "";
+          return next;
+        });
+        setVideoErrors((prev) => {
+          const next = [...prev];
+          next[slot] = "Video upload is required";
+          return next;
+        });
+        return;
+      }
+
+      if (!formData.username) {
+        toast({
+          title: "Username Required",
+          description: "Please enter a username before uploading videos",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!file.type.startsWith("video/")) {
+        toast({
+          title: "Invalid File",
+          description: "Please upload a video file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const MAX_VIDEO_SIZE_MB = 200;
+      if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: `Each video must be under ${MAX_VIDEO_SIZE_MB}MB.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      uploadFormData.append("username", formData.username);
+      uploadFormData.append("photoType", `video${slot + 1}`);
+
+      try {
+        const response = await fetch(
+          "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/5c970590-4f98-420e-8352-e90ae4b99fd6",
+          {
+            method: "POST",
+            headers: {
+              Authorization:
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTc5NzMsImV4cCI6MjA2NDk3Mzk3M30.Uh-sEGCgMZKzCLLGOPLCVEJMWvG-YFKvxRPEr5mMJvI",
+            },
+            body: uploadFormData,
+          }
+        );
+
+        const responseText = await response.text();
+        if (!response.ok)
+          throw new Error(`Upload failed: ${response.status} - ${responseText}`);
+
+        const result = JSON.parse(responseText);
+        if (!result.success || !result.url)
+          throw new Error(result.error || "Upload failed without error message");
+
+        setVideoUrls((prev) => {
+          const next = [...prev];
+          next[slot] = result.url;
+          return next;
+        });
+        setVideoErrors((prev) => {
+          const next = [...prev];
+          next[slot] = "";
+          return next;
+        });
+
+        toast({
+          title: "Upload Successful",
+          description: `Video ${slot + 1} uploaded successfully`,
+        });
+      } catch (error) {
+        console.error("Video upload error:", error);
+        toast({
+          title: "Upload Failed",
+          description:
+            error instanceof Error ? error.message : "Unexpected upload error",
+          variant: "destructive",
+        });
+      }
+    };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
@@ -230,8 +372,9 @@ export const Register: React.FC = () => {
     if (!formData.gender) newErrors.gender = "Gender is required";
     if (formData.gender === "female" && !formData.userType)
       newErrors.userType = "User type is required";
+    if (!formData.dateOfBirth)
+      newErrors.dateOfBirth = "Date of birth is required";
 
-    // Check if all photos are uploaded (mandatory)
     if (!profilePhotoUrl) newErrors.profilePhoto = "Profile photo is required";
     if (!bannerPhotoUrl) newErrors.bannerPhoto = "Banner photo is required";
     if (!frontPagePhotoUrl)
@@ -245,30 +388,45 @@ export const Register: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const missingVideos = videoUrls
+      .map((url, idx) => (!url ? idx : -1))
+      .filter((idx) => idx !== -1);
+
+    if (missingVideos.length > 0) {
+      setVideoErrors((prev) => {
+        const next = [...prev];
+        missingVideos.forEach((idx) => {
+          next[idx] = "Video upload is required";
+        });
+        return next;
+      });
+      toast({
+        title: "Missing Videos",
+        description: "Please upload all three required videos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Validate required fields
       const validationErrors = validateRequired(formData);
       if (validationErrors.length > 0) {
         throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
       }
 
-      // Validate password match
       if (formData.password !== formData.confirmPassword) {
         throw new Error("Passwords do not match");
       }
 
-      // Validate email format
       if (!validateEmail(formData.email)) {
         throw new Error("Invalid email format");
       }
 
-      // Validate password strength
       if (!validatePassword(formData.password)) {
         throw new Error("Password must be at least 6 characters long");
       }
 
-      // Check if username exists
       const { data: existingUser } = await supabaseAdmin
         .from("users")
         .select("username")
@@ -279,7 +437,6 @@ export const Register: React.FC = () => {
         throw new Error("Username already exists");
       }
 
-      // Check if email exists
       const { data: existingEmail } = await supabaseAdmin
         .from("users")
         .select("email")
@@ -290,7 +447,6 @@ export const Register: React.FC = () => {
         throw new Error("Email already registered");
       }
 
-      // Create auth session first
       const { data: session, error: sessionError } = await supabase.auth.signUp(
         {
           email: formData.email,
@@ -306,20 +462,17 @@ export const Register: React.FC = () => {
         throw new Error("Failed to create auth user");
       }
 
-      // Hash password
       const passwordHash = await bcrypt.hash(formData.password, 10);
 
-      // Determine initial membership based on gender and user type
       const isFemaleDiamond =
         formData.gender === "female" &&
         (formData.userType === "exotic" || formData.userType === "stripper");
 
-      // Create user record with auth user ID
-      const { data: newUser, error: createError } = await supabaseAdmin
+      const { error: createError } = await supabaseAdmin
         .from("users")
         .insert([
           {
-            id: session.user.id, // Link to auth.users id
+            id: session.user.id,
             username: formData.username,
             email: formData.email,
             password_hash: passwordHash,
@@ -339,27 +492,25 @@ export const Register: React.FC = () => {
               formData.referredBy && formData.referredBy.trim() !== ""
                 ? formData.referredBy
                 : "Company",
+            date_of_birth: formData.dateOfBirth,
             profile_photo: profilePhotoUrl,
             banner_photo: bannerPhotoUrl,
             front_page_photo: frontPagePhotoUrl,
+            video_urls: videoUrls,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
-        ])
-        .select()
-        .single();
+        ]);
 
       if (createError) {
         throw new Error(`Failed to create user: ${createError.message}`);
       }
 
-      // Increment membership limits current_count based on new user
       try {
         const userTypeInserted = formData.userType
           ? formData.userType
           : "normal";
 
-        // This is for LIMIT COUNTING only, NOT the user's actual membership tier
         const limitCategoryForCounting =
           userTypeInserted === "normal" ? "silver" : "diamond";
 
@@ -371,7 +522,6 @@ export const Register: React.FC = () => {
         console.error("Failed to increment membership limits:", incrementError);
       }
 
-      // Store authentication info
       localStorage.setItem("authToken", session.user?.id || "authenticated");
       sessionStorage.setItem("currentUser", formData.username);
 
@@ -431,6 +581,9 @@ export const Register: React.FC = () => {
                     handleInputChange={handleInputChange}
                     handleFileChange={handleFileChange}
                     profilePhotoUrl={profilePhotoUrl}
+                    videoUrls={videoUrls}
+                    videoErrors={videoErrors}
+                    handleVideoUpload={handleVideoUpload}
                   />
 
                   {showVideo && (
@@ -466,14 +619,20 @@ export const Register: React.FC = () => {
                     Already have an account?{" "}
                     <a
                       href="/login"
-                      className="text-blue-300 hover:text-blue-200 hover:underline font-medium"
+                      className="text-blue-300 hover:text-blue-200 underline"
                     >
-                      Sign In
+                      Sign in here
                     </a>
                   </p>
                 </div>
               </div>
             </div>
+
+            <p className="text-center text-white/60 text-xs mt-6 max-w-2xl mx-auto">
+              By creating an account, you agree to our Terms of Service and
+              Privacy Policy. We are committed to keeping your information
+              secure and ensuring a safe, inclusive community for all members.
+            </p>
           </div>
         </div>
       </div>

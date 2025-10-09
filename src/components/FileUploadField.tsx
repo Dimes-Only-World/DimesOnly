@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Upload, X, Loader2, Image } from 'lucide-react';
+import React, { useRef, useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Upload, X, Image, Video } from "lucide-react";
 
 interface FileUploadFieldProps {
   label: string;
@@ -20,6 +20,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const isVideoField = accept?.includes("video");
 
   const handleFileChange = (file: File | null) => {
     if (file) {
@@ -36,6 +37,8 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
+    if (file && isVideoField && !file.type.startsWith("video/")) return;
+    if (file && !isVideoField && !file.type.startsWith("image/")) return;
     handleFileChange(file);
   };
 
@@ -66,9 +69,10 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      handleFileChange(file);
-    }
+    if (!file) return;
+    if (isVideoField && !file.type.startsWith("video/")) return;
+    if (!isVideoField && !file.type.startsWith("image/")) return;
+    handleFileChange(file);
   };
 
   return (
@@ -81,11 +85,21 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         <div className="space-y-3">
           <div className="relative inline-block">
             <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-white/20 bg-white/5">
-              <img 
-                src={preview} 
-                alt="Preview" 
+            {isVideoField ? (
+              <video
+                src={preview || undefined}
+                className="w-full h-full object-cover"
+                controls
+                muted
+                playsInline
+              />
+            ) : (
+              <img
+                src={preview || undefined}
+                alt="Preview"
                 className="w-full h-full object-cover"
               />
+            )}
             </div>
             <button
               type="button"
@@ -110,10 +124,16 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         >
           <div className="flex flex-col items-center space-y-3">
             <div className="p-3 rounded-full bg-white/10">
-              <Image className="h-6 w-6 text-white/60" />
+            {isVideoField ? (
+            <Video className="h-6 w-6 text-white/60" />
+          ) : (
+            <Image className="h-6 w-6 text-white/60" />
+          )}
             </div>
             <div className="space-y-1">
-              <p className="text-white/80 text-sm font-medium">Drop your image here</p>
+            <p className="text-white/80 text-sm font-medium">
+            {isVideoField ? "Drop your video here" : "Drop your image here"}
+          </p>
               <p className="text-white/60 text-xs">or</p>
             </div>
             <Button
@@ -125,7 +145,9 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
               <Upload className="h-4 w-4" />
               Choose File
             </Button>
-            <p className="text-white/50 text-xs">PNG, JPG, GIF up to 50MB</p>
+            <p className="text-white/50 text-xs">
+            {isVideoField ? "MP4, MOV, WEBM up to 200MB" : "PNG, JPG, GIF up to 50MB"}
+          </p>
           </div>
         </div>
       )}

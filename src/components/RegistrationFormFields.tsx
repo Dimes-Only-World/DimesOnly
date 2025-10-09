@@ -3,6 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import FileUploadField from "@/components/FileUploadField";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FormData {
   firstName: string;
@@ -22,6 +29,7 @@ interface FormData {
   profilePhoto?: string;
   bannerPhoto?: string;
   frontPagePhoto?: string;
+  dateOfBirth: string;
 }
 
 interface RegistrationFormFieldsProps {
@@ -31,7 +39,63 @@ interface RegistrationFormFieldsProps {
   handleInputChange: (field: keyof FormData) => (value: string) => void;
   handleFileChange: (field: string) => (file: File | null) => void;
   profilePhotoUrl: string;
+  videoUrls: string[];
+  videoErrors: string[];
+  handleVideoUpload: (slot: number) => (file: File | null) => void;
 }
+
+const US_STATES = [
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticut",
+  "Delaware",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming",
+];
 
 const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   formData,
@@ -40,6 +104,9 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   handleInputChange,
   handleFileChange,
   profilePhotoUrl,
+  videoUrls,
+  videoErrors,
+  handleVideoUpload,
 }) => {
   return (
     <div className="space-y-6">
@@ -89,6 +156,22 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               <p className="text-red-400 text-sm">{errors.lastName}</p>
             )}
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="dateOfBirth" className="text-sm font-medium text-white">
+            Date of Birth <span className="text-red-400">*</span>
+          </Label>
+          <Input
+            id="dateOfBirth"
+            type="date"
+            value={formData.dateOfBirth}
+            onChange={(e) => handleInputChange("dateOfBirth")(e.target.value)}
+            className="bg-white/10 border-white/30 text-white focus:border-yellow-400 focus:ring-blue-400"
+          />
+          {errors.dateOfBirth && (
+            <p className="text-red-400 text-sm">{errors.dateOfBirth}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -248,14 +331,21 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             <Label htmlFor="state" className="text-sm font-medium text-white">
               State <span className="text-red-400">*</span>
             </Label>
-            <Input
-              id="state"
-              type="text"
+            <Select
               value={formData.state}
-              onChange={(e) => handleInputChange("state")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
-              placeholder="State"
-            />
+              onValueChange={handleInputChange("state")}
+            >
+              <SelectTrigger className="bg-white/10 border-white/30 text-white focus:border-yellow-400 focus:ring-blue-400">
+                <SelectValue placeholder="Select your state" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 text-white">
+                {US_STATES.map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.state && (
               <p className="text-red-400 text-sm">{errors.state}</p>
             )}
@@ -270,10 +360,12 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               type="text"
               value={formData.zip}
               onChange={(e) => handleInputChange("zip")(e.target.value)}
-              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus:border-yellow-400 focus:ring-blue-400"
+              className="bg-white/10 border-white/30 text-white placeholder-white/60 focus-border-yellow-400 focus:ring-blue-400"
               placeholder="Zip"
             />
-            {errors.zip && <p className="text-red-400 text-sm">{errors.zip}</p>}
+            {errors.zip && (
+              <p className="text-red-400 text-sm">{errors.zip}</p>
+            )}
           </div>
         </div>
       </div>
@@ -412,10 +504,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               label="Profile Photo (Square Size)"
               accept="image/*"
               onChange={handleFileChange("profilePhoto")}
+              error={errors.profilePhoto}
             />
-            {errors.profilePhoto && (
-              <p className="text-red-400 text-sm">{errors.profilePhoto}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -423,22 +513,47 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               label="Banner Photo (LandScape Size)"
               accept="image/*"
               onChange={handleFileChange("bannerPhoto")}
+              error={errors.bannerPhoto}
             />
-            {errors.bannerPhoto && (
-              <p className="text-red-400 text-sm">{errors.bannerPhoto}</p>
-            )}
           </div>
 
           <div className="space-y-2">
-            <FileUploadField
-              label="Front Page Photo (Protrait Size)"
-              accept="image/*"
-              onChange={handleFileChange("frontPagePhoto")}
-            />
-            {errors.frontPagePhoto && (
-              <p className="text-red-400 text-sm">{errors.frontPagePhoto}</p>
+          <FileUploadField
+            label="Front Page Photo (Portrait Size)"
+            accept="image/*"
+            onChange={handleFileChange("frontPagePhoto")}
+            error={errors.frontPagePhoto}
+          />
+            {errors.zip && (
+              <p className="text-red-400 text-sm">{errors.zip}</p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Required Videos */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
+          Required Videos
+        </h3>
+        <p className="text-sm text-white/70">
+          Upload a combination of or just Normal, Nude, or X-Rated videos to get
+          approved.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[0, 1, 2].map((slot) => (
+            <div key={slot} className="space-y-2">
+              <FileUploadField
+                label={`Video ${slot + 1}`}
+                accept="video/*"
+                onChange={handleVideoUpload(slot)}
+                error={videoErrors[slot] || undefined}
+              />
+              {videoUrls[slot] && (
+                <p className="text-xs text-green-300">Uploaded</p>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
