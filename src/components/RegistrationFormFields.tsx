@@ -518,14 +518,13 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           </div>
 
           <div className="space-y-2">
-          <FileUploadField
-            label="Front Page Photo (Portrait Size)"
-            accept="image/*"
-            onChange={handleFileChange("frontPagePhoto")}
-            error={errors.frontPagePhoto}
-          />
-            {errors.zip && (
-              <p className="text-red-400 text-sm">{errors.zip}</p>
+            <FileUploadField
+              label="Front Page Photo (Protrait Size)"
+              accept="image/*"
+              onChange={handleFileChange("frontPagePhoto")}
+            />
+            {errors.frontPagePhoto && (
+              <p className="text-red-400 text-sm">{errors.frontPagePhoto}</p>
             )}
           </div>
         </div>
