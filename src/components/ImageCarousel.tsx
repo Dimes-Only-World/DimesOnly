@@ -36,17 +36,17 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const [topRanked, setTopRanked] = useState<RankedPerformer[]>([]);
 
   const performers =
-    topRanked.length > 0
-      ? topRanked.map((user, index) => ({
-          id: user.id,
-          username: user.username,
-          image:
-            user.front_page_photo ||
-            user.profile_photo ||
-            fallbackPerformers[index % fallbackPerformers.length].image,
-          rank: user.rank,
-        }))
-      : fallbackPerformers;
+  topRanked.length > 0
+    ? topRanked.map((user, index) => ({
+        id: user.id,
+        username: user.username,
+        image:
+          user.profile_photo ||
+          user.front_page_photo ||
+          fallbackPerformers[index % fallbackPerformers.length].image,
+        rank: user.rank,
+      }))
+    : fallbackPerformers;
 
   const getRefParam = () => {
     const urlParams = new URLSearchParams(window.location.search);
