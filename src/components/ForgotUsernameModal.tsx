@@ -22,23 +22,33 @@ const ForgotUsernameModal: React.FC<ForgotUsernameModalProps> = ({ isOpen, onClo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
     try {
       const { data, error } = await supabase.functions.invoke("send-username-reminder", {
         body: { email },
       });
-  
-      if (error || !data?.success) {
-        throw new Error(data?.message || "Failed to send username email");
+
+      if (error) {
+        throw new Error(error.message || "Failed to send username email");
       }
-  
+
+      const payload =
+        typeof data === "string"
+          ? JSON.parse(data)
+          : (data as { success?: boolean; message?: string } | null);
+
+      if (!payload?.success) {
+        throw new Error(payload?.message || "Failed to send username email");
+      }
+
       setSuccess(true);
       toast({ title: "Username sent", description: "Check your inbox for your username." });
     } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to send username email. Please try again.";
       toast({
         title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to send username email. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -61,7 +71,7 @@ const ForgotUsernameModal: React.FC<ForgotUsernameModalProps> = ({ isOpen, onClo
             Forgot Username
           </DialogTitle>
         </DialogHeader>
-        
+
         {success ? (
           <div className="py-6">
             <Alert className="bg-green-50 border-green-200">
@@ -89,7 +99,7 @@ const ForgotUsernameModal: React.FC<ForgotUsernameModalProps> = ({ isOpen, onClo
                 className="border-gray-300 focus:border-blue-500"
               />
             </div>
-            
+
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"

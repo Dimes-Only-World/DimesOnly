@@ -6,6 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Content-Type": "application/json",
 };
 
 serve(async (req) => {
@@ -50,7 +51,7 @@ serve(async (req) => {
 
     const resend = new Resend(resendKey);
     await resend.emails.send({
-      from: "support@dimesonly.world",
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Your DimesOnly username",
       html: `<p>Your username is <strong>${data.username}</strong>.</p>`,

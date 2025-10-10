@@ -36,26 +36,49 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const [topRanked, setTopRanked] = useState<RankedPerformer[]>([]);
 
   const performers =
-  topRanked.length > 0
-    ? topRanked.map((user, index) => ({
-        id: user.id,
-        username: user.username,
-        image:
-          user.profile_photo ||
-          user.front_page_photo ||
-          fallbackPerformers[index % fallbackPerformers.length].image,
-        rank: user.rank,
-      }))
-    : fallbackPerformers;
+    topRanked.length > 0
+      ? topRanked.map((user, index) => ({
+          id: user.id,
+          username: user.username,
+          image:
+            user.profile_photo ||
+            user.front_page_photo ||
+            fallbackPerformers[index % fallbackPerformers.length].image,
+          rank: user.rank,
+        }))
+      : fallbackPerformers;
 
   const getRefParam = () => {
     const urlParams = new URLSearchParams(window.location.search);
     return normalizeRefParam(urlParams.get("ref"));
   };
 
-  const handleImageClick = () => {
-    const ref = getRefParam();
-    window.open(`/register?ref=${encodeURIComponent(ref)}`, "_blank");
+  const handleImageClick = async (performer?: { id: string; username: string }) => {
+    if (!performer || performer.id.startsWith("fallback-")) {
+      const ref = getRefParam();
+      window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
+      return;
+    }
+
+    try {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+
+      if (!session?.user) {
+        const ref = getRefParam();
+        const loginUrl = new URL("/login", window.location.origin);
+        loginUrl.searchParams.set("redirect", `/profile/${encodeURIComponent(performer.username)}`);
+        if (ref) loginUrl.searchParams.set("ref", ref);
+        window.location.href = loginUrl.toString();
+        return;
+      }
+
+      window.location.href = `/profile/${encodeURIComponent(performer.username)}`;
+    } catch (error) {
+      console.error("[ImageCarousel] Error checking auth state:", error);
+      const ref = getRefParam();
+      window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
+    }
   };
 
   useEffect(() => {
@@ -77,9 +100,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
 
         const { data: usersData, error: usersError } = await supabase
           .from("users")
-          .select(
-            "id, username, front_page_photo, profile_photo, user_type"
-          )
+          .select("id, username, front_page_photo, profile_photo, user_type")
           .in("user_type", ["stripper", "exotic"]);
 
         if (usersError) {
@@ -97,12 +118,8 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
           userScores[user.id] = {
             id: String(user.id),
             username: String(user.username),
-            front_page_photo: user.front_page_photo
-              ? String(user.front_page_photo)
-              : null,
-            profile_photo: user.profile_photo
-              ? String(user.profile_photo)
-              : null,
+            front_page_photo: user.front_page_photo ? String(user.front_page_photo) : null,
+            profile_photo: user.profile_photo ? String(user.profile_photo) : null,
             total_score: 0,
             rating_count: 0,
             rank: 0,
@@ -191,7 +208,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
         <div
           key={`${performer.id}-${index}`}
           className={`${cardClass} group cursor-pointer`}
-          onClick={handleImageClick}
+          onClick={() => handleImageClick(performer)}
         >
           <div className="relative w-full h-full overflow-hidden rounded-xl shadow-2xl transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-pink-500/25">
             <img
@@ -206,7 +223,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
             </div>
             <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <p className="font-semibold text-lg">@{performer.username}</p>
-              <p className="text-sm text-gray-200">Click to register</p>
+              <p className="text-sm text-gray-200">Click to see profile</p>
             </div>
           </div>
         </div>
