@@ -12,6 +12,13 @@ interface RankedPerformer {
   rank: number;
 }
 
+interface CarouselPerformer {
+  id: string;
+  username: string;
+  image: string;
+  rank: number;
+}
+
 const fallbackImages = [
   "https://dimesonly.s3.us-east-2.amazonaws.com/eroticgirl_77f16c72-f054-4fcd-a954-208021412fb9-768x1250.png",
   "https://dimesonly.s3.us-east-2.amazonaws.com/Home-Dimes-5-768x1250.png",
@@ -23,7 +30,7 @@ const fallbackImages = [
   "https://dimesonly.s3.us-east-2.amazonaws.com/Home-Dimes-2-768x1250.png",
 ];
 
-const fallbackPerformers = Array.from({ length: 20 }).map((_, index) => ({
+const fallbackPerformers: CarouselPerformer[] = Array.from({ length: 20 }).map((_, index) => ({
   id: `fallback-${index}`,
   username: `Model ${index + 1}`,
   image: fallbackImages[index % fallbackImages.length],
@@ -34,8 +41,15 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const desktopScrollRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   const [topRanked, setTopRanked] = useState<RankedPerformer[]>([]);
+  const [selectedPerformer, setSelectedPerformer] = useState<CarouselPerformer | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const performers =
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const scrollStartRef = useRef(0);
+
+  const performers: CarouselPerformer[] =
     topRanked.length > 0
       ? topRanked.map((user, index) => ({
           id: user.id,
@@ -53,32 +67,60 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     return normalizeRefParam(urlParams.get("ref"));
   };
 
-  const handleImageClick = async (performer?: { id: string; username: string }) => {
+  const navigateToProfile = (username: string) => {
+    window.location.href = `/profile/${encodeURIComponent(username)}`;
+  };
+
+  const openModalForPerformer = async (performer: CarouselPerformer) => {
+    setSelectedPerformer(performer);
+    setIsModalOpen(true);
+
+    try {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(Boolean(data?.session?.user));
+    } catch (error) {
+      console.error("[ImageCarousel] Error checking auth state:", error);
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleImageClick = (performer?: CarouselPerformer) => {
     if (!performer || performer.id.startsWith("fallback-")) {
       const ref = getRefParam();
       window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
       return;
     }
 
-    try {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
+    void openModalForPerformer(performer);
+  };
 
-      if (!session?.user) {
-        const ref = getRefParam();
-        const loginUrl = new URL("/login", window.location.origin);
-        loginUrl.searchParams.set("redirect", `/profile/${encodeURIComponent(performer.username)}`);
-        if (ref) loginUrl.searchParams.set("ref", ref);
-        window.location.href = loginUrl.toString();
-        return;
-      }
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedPerformer(null);
+  };
 
-      window.location.href = `/profile/${encodeURIComponent(performer.username)}`;
-    } catch (error) {
-      console.error("[ImageCarousel] Error checking auth state:", error);
-      const ref = getRefParam();
-      window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
+  const handleLoginClick = () => {
+    if (!selectedPerformer) return;
+
+    if (isAuthenticated) {
+      navigateToProfile(selectedPerformer.username);
+      return;
     }
+
+    const ref = getRefParam();
+    const loginUrl = new URL("/login", window.location.origin);
+    loginUrl.searchParams.set("redirect", `/profile/${encodeURIComponent(selectedPerformer.username)}`);
+    if (ref) loginUrl.searchParams.set("ref", ref);
+    window.location.href = loginUrl.toString();
+  };
+
+  const handleRegisterClick = () => {
+    if (!selectedPerformer) return;
+    const ref = getRefParam();
+    const registerUrl = new URL("/register", window.location.origin);
+    if (ref) registerUrl.searchParams.set("ref", ref);
+    registerUrl.searchParams.set("target", selectedPerformer.username);
+    window.location.href = registerUrl.toString();
   };
 
   useEffect(() => {
@@ -159,71 +201,175 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   }, []);
 
   useEffect(() => {
-    const desktopContainer = desktopScrollRef.current;
-    if (desktopContainer) {
-      let scrollAmount = 0;
-      const scrollStep = 0.5;
-      const scrollDelay = 16;
+    const containers = [desktopScrollRef.current, mobileScrollRef.current].filter(
+      (container): container is HTMLDivElement => Boolean(container)
+    );
 
-      const scroll = () => {
-        scrollAmount += scrollStep;
-        if (scrollAmount >= desktopContainer.scrollWidth / 2) {
-          scrollAmount = 0;
+    const getBaseWidth = (container: HTMLDivElement) => container.scrollWidth / 2;
+
+    const normalizePosition = (container: HTMLDivElement, currentX?: number) => {
+      const baseWidth = getBaseWidth(container);
+      if (baseWidth <= 0) return;
+
+      if (container.scrollLeft <= 0) {
+        container.scrollLeft += baseWidth;
+        if (currentX !== undefined) {
+          scrollStartRef.current = container.scrollLeft;
+          dragStartXRef.current = currentX;
         }
-        desktopContainer.scrollLeft = scrollAmount;
+      } else if (container.scrollLeft >= baseWidth * 2) {
+        container.scrollLeft -= baseWidth;
+        if (currentX !== undefined) {
+          scrollStartRef.current = container.scrollLeft;
+          dragStartXRef.current = currentX;
+        }
+      }
+    };
+
+    const getClientX = (event: MouseEvent | TouchEvent) =>
+      event instanceof TouchEvent ? event.touches[0]?.clientX ?? 0 : event.clientX;
+
+    const handlePointerDown = (container: HTMLDivElement) => (event: MouseEvent | TouchEvent) => {
+      isDraggingRef.current = true;
+      const clientX = getClientX(event);
+      dragStartXRef.current = clientX;
+      scrollStartRef.current = container.scrollLeft;
+      container.classList.add("cursor-grabbing");
+      container.classList.remove("cursor-grab");
+      normalizePosition(container);
+      event.preventDefault();
+    };
+
+    const handlePointerMove = (container: HTMLDivElement) => (event: MouseEvent | TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      const currentX = getClientX(event);
+      const walk = (dragStartXRef.current - currentX) * 1.2;
+      container.scrollLeft = scrollStartRef.current + walk;
+      normalizePosition(container, currentX);
+    };
+
+    const handlePointerUp = (container: HTMLDivElement) => () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      container.classList.remove("cursor-grabbing");
+      container.classList.add("cursor-grab");
+    };
+
+    const cleaners: (() => void)[] = [];
+
+    containers.forEach((container) => {
+      container.classList.add("cursor-grab");
+
+      const down = handlePointerDown(container);
+      const move = handlePointerMove(container);
+      const up = handlePointerUp(container);
+
+      container.addEventListener("mousedown", down);
+      container.addEventListener("mousemove", move);
+      container.addEventListener("mouseleave", up);
+      container.addEventListener("mouseup", up);
+
+      container.addEventListener("touchstart", down, { passive: false });
+      container.addEventListener("touchmove", move, { passive: false });
+      container.addEventListener("touchend", up);
+
+      const cleanup = () => {
+        container.removeEventListener("mousedown", down);
+        container.removeEventListener("mousemove", move);
+        container.removeEventListener("mouseleave", up);
+        container.removeEventListener("mouseup", up);
+
+        container.removeEventListener("touchstart", down);
+        container.removeEventListener("touchmove", move);
+        container.removeEventListener("touchend", up);
+        container.classList.remove("cursor-grab", "cursor-grabbing");
       };
 
-      const desktopInterval = setInterval(scroll, scrollDelay);
-      return () => clearInterval(desktopInterval);
-    }
-  }, []);
+      cleaners.push(cleanup);
+    });
+
+    return () => {
+      cleaners.forEach((cleanup) => cleanup());
+    };
+  }, [performers.length]);
 
   useEffect(() => {
-    const mobileContainer = mobileScrollRef.current;
-    if (mobileContainer) {
-      let scrollAmount = 0;
-      const scrollStep = 0.3;
-      const scrollDelay = 16;
+    const setupAutoScroll = (container: HTMLDivElement | null, speed: number) => {
+      if (!container) return undefined;
 
-      const scroll = () => {
-        scrollAmount += scrollStep;
-        if (scrollAmount >= mobileContainer.scrollWidth / 2) {
-          scrollAmount = 0;
+      const getBaseWidth = () => container.scrollWidth / 2;
+
+      const normalizePosition = () => {
+        const baseWidth = getBaseWidth();
+        if (baseWidth <= 0) return;
+        if (container.scrollLeft <= 0) {
+          container.scrollLeft += baseWidth;
+        } else if (container.scrollLeft >= baseWidth * 2) {
+          container.scrollLeft -= baseWidth;
         }
-        mobileContainer.scrollLeft = scrollAmount;
       };
 
-      const mobileInterval = setInterval(scroll, scrollDelay);
-      return () => clearInterval(mobileInterval);
-    }
-  }, []);
+      const initializePosition = () => {
+        const baseWidth = getBaseWidth();
+        if (baseWidth > 0) {
+          container.scrollLeft = baseWidth;
+        }
+      };
+
+      let animationFrame: number;
+
+      const step = () => {
+        const baseWidth = getBaseWidth();
+        if (baseWidth > 0 && !isDraggingRef.current) {
+          container.scrollLeft += speed;
+        }
+        normalizePosition();
+        animationFrame = requestAnimationFrame(step);
+      };
+
+      initializePosition();
+      animationFrame = requestAnimationFrame(step);
+      return () => cancelAnimationFrame(animationFrame);
+    };
+
+    const cleanupDesktop = setupAutoScroll(desktopScrollRef.current, 4.0);
+    const cleanupMobile = setupAutoScroll(mobileScrollRef.current, 3.0);
+
+    return () => {
+      cleanupDesktop?.();
+      cleanupMobile?.();
+    };
+  }, [performers.length]);
 
   const renderCarousel = (
-    data: { id: string; username: string; image: string; rank: number }[],
+    data: CarouselPerformer[],
     ref: React.RefObject<HTMLDivElement>,
     cardClass: string
   ) => (
-    <div ref={ref} className="flex overflow-x-hidden scrollbar-hide">
+    <div
+      ref={ref}
+      className="flex overflow-x-auto scrollbar-hide scroll-smooth select-none touch-pan-x"
+    >
       {[...data, ...data].map((performer, index) => (
         <div
           key={`${performer.id}-${index}`}
-          className={`${cardClass} group cursor-pointer`}
+          className={`${cardClass} group`}
           onClick={() => handleImageClick(performer)}
         >
-          <div className="relative w-full h-full overflow-hidden rounded-xl shadow-2xl transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-pink-500/25">
+          <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
             <img
               src={performer.image}
               alt={`Rank ${performer.rank} - ${performer.username}`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute top-4 left-4 bg-black/70 backdrop-blur rounded-full px-4 py-1 text-sm font-semibold text-yellow-300">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
               Rank #{performer.rank}
             </div>
-            <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <p className="font-semibold text-lg">@{performer.username}</p>
-              <p className="text-sm text-gray-200">Click to see profile</p>
+            <div className="absolute bottom-6 left-4 right-4 text-white">
+              <p className="font-semibold text-xl md:text-2xl">@{performer.username}</p>
+              <p className="text-sm md:text-base text-gray-200 opacity-80">Tap to preview</p>
             </div>
           </div>
         </div>
@@ -232,9 +378,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   );
 
   return (
-    <div
-      className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}
-    >
+    <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
       <div className="text-center mb-8">
         <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 uppercase tracking-wide">
           Current Top 20 Ranked
@@ -251,12 +395,54 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
       </div>
 
       <div className="hidden md:block overflow-hidden">
-        {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-96 mx-3")}
+        {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-[28rem] mx-3")}
       </div>
 
       <div className="block md:hidden overflow-hidden">
         {renderCarousel(performers, mobileScrollRef, "flex-shrink-0 w-56 h-80 mx-2")}
       </div>
+
+      {isModalOpen && selectedPerformer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
+          <div className="relative w-[90vw] max-w-xl rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 z-10 text-white text-3xl font-bold bg-black/50 rounded-full px-3 py-1 hover:bg-black/80 transition"
+              aria-label="Close preview"
+            >
+              ×
+            </button>
+
+            <img
+              src={selectedPerformer.image}
+              alt={`Rank ${selectedPerformer.rank}`}
+              className="w-full h-[28rem] object-cover"
+            />
+            <div className="absolute top-5 left-5 bg-black/75 px-5 py-2 rounded-full text-lg font-semibold text-yellow-300 uppercase tracking-wide shadow-lg">
+              Rank #{selectedPerformer.rank}
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-6">
+              <p className="text-white text-2xl font-bold mb-4">@{selectedPerformer.username}</p>
+
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+                <button
+                  onClick={handleLoginClick}
+                  className="w-full md:w-1/2 bg-neutral-900/90 hover:bg-neutral-800 text-white text-lg font-semibold py-3 rounded-xl transition"
+                >
+                  {isAuthenticated ? "View Profile" : "Login"}
+                </button>
+                <button
+                  onClick={handleRegisterClick}
+                  className="w-full md:w-1/2 bg-amber-600 hover:bg-amber-500 text-white text-lg font-semibold py-3 rounded-xl transition"
+                >
+                  Sign Up
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .scrollbar-hide {

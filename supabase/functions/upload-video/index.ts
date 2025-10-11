@@ -95,7 +95,7 @@ serve(async (req) => {
 
     const { data: existing, error: fetchError } = await supabase
       .from("users")
-      .select("video_urls")
+      .select("id, video_urls")
       .eq("username", username)
       .single();
 
@@ -113,6 +113,29 @@ serve(async (req) => {
 
       if (updateError) {
         console.error("Failed to update video URLs:", updateError);
+      }
+
+      if (existing?.id) {
+        const filename = storagePath.split("/").pop() ?? "";
+
+        const { error: mediaError } = await supabase
+          .from("user_media")
+          .insert({
+            user_id: existing.id,
+            media_url: url,
+            media_type: "video",
+            filename,
+            storage_path: storagePath,
+            content_tier: meta.tier,
+            is_nude: meta.isNude,
+            is_xrated: meta.isXrated,
+            upload_date: new Date().toISOString(),
+            access_restricted: meta.tier !== "free",
+          });
+
+        if (mediaError) {
+          console.error("Failed to insert user_media:", mediaError);
+        }
       }
     }
 
