@@ -36,6 +36,7 @@ interface RegistrationFormFieldsProps {
   formData: FormData;
   errors: Partial<Record<keyof FormData, string>>;
   showUserType: boolean;
+  showVideoUploads: boolean;
   handleInputChange: (field: keyof FormData) => (value: string) => void;
   handleFileChange: (field: string) => (file: File | null) => void;
   profilePhotoUrl: string;
@@ -101,6 +102,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   formData,
   errors,
   showUserType,
+  showVideoUploads,
   handleInputChange,
   handleFileChange,
   profilePhotoUrl,
@@ -108,6 +110,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoErrors,
   handleVideoUpload,
 }) => {
+  const videoSlotLabels = ["Normal video", "Nude video", "X-rated video"];
+
   return (
     <div className="space-y-6">
       {/* Personal Information Section */}
@@ -531,30 +535,34 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
       </div>
 
       {/* Required Videos */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
-          Required Videos
-        </h3>
-        <p className="text-sm text-white/70">
-          Upload a combination of or just Normal, Nude, or X-Rated videos to get
-          approved.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[0, 1, 2].map((slot) => (
-            <div key={slot} className="space-y-2">
-              <FileUploadField
-                label={`Video ${slot + 1}`}
-                accept="video/*"
-                onChange={handleVideoUpload(slot)}
-                error={videoErrors[slot] || undefined}
-              />
-              {videoUrls[slot] && (
-                <p className="text-xs text-green-300">Uploaded</p>
-              )}
-            </div>
-          ))}
+      {showVideoUploads && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
+            Required Videos
+          </h3>
+          <p className="text-sm text-white/70">
+            Upload each required video type to complete your premium application.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[0, 1, 2].map((slot) => (
+              <div key={slot} className="space-y-2">
+                <FileUploadField
+                  label={`Video ${slot + 1} (${videoSlotLabels[slot]})`}
+                  accept="video/*"
+                  onChange={handleVideoUpload(slot)}
+                  error={videoErrors[slot] || undefined}
+                />
+                <p className="text-xs text-white/60">
+                  Upload your {videoSlotLabels[slot].toLowerCase()} here.
+                </p>
+                {videoUrls[slot] && (
+                  <p className="text-xs text-green-300">Uploaded</p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

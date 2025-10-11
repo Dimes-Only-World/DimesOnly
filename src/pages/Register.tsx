@@ -10,6 +10,11 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import bcrypt from "bcryptjs";
 import { getReferralUsername } from "@/lib/utils";
 
+const FUNCTIONS_BASE_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1";
+const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
+const VIDEO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-video`;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 interface FormData {
   firstName: string;
   lastName: string;
@@ -69,16 +74,16 @@ const formatAddress = (value: string) =>
     )
     .join(" ");
 
-    const formatPhoneNumber = (value: string) => {
-      const digits = value.replace(/\D/g, "").slice(0, 10);
-      const area = digits.slice(0, 3);
-      const middle = digits.slice(3, 6);
-      const line = digits.slice(6);
-      if (digits.length > 6) return `(${area})${middle}-${line}`;
-      if (digits.length > 3) return `(${area})${middle}`;
-      if (digits.length > 0) return `(${area}`;
-      return "";
-    };
+const formatPhoneNumber = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  const area = digits.slice(0, 3);
+  const middle = digits.slice(3, 6);
+  const line = digits.slice(6);
+  if (digits.length > 6) return `(${area})${middle}-${line}`;
+  if (digits.length > 3) return `(${area})${middle}`;
+  if (digits.length > 0) return `(${area}`;
+  return "";
+};
 
 const validateRequired = (data: FormData): string[] => {
   const errors: string[] = [];
@@ -158,22 +163,36 @@ export const Register: React.FC = () => {
     }
 
     if (field === "gender") {
+      const nextGender = processedValue;
+      const shouldShowVideos =
+        nextGender === "female" &&
+        (formData.userType === "exotic" || formData.userType === "stripper");
+
       setFormData((prev) => ({
         ...prev,
-        gender: processedValue,
-        userType: processedValue === "female" ? prev.userType : "",
+        gender: nextGender,
+        userType: nextGender === "female" ? prev.userType : "",
       }));
-      setShowVideo(false);
+      setShowVideo(shouldShowVideos);
+      if (!shouldShowVideos) {
+        setVideoUrls(["", "", ""]);
+        setVideoErrors(["", "", ""]);
+      }
       setErrors((prev) => ({
         ...prev,
         gender: undefined,
-        userType: processedValue === "female" ? prev.userType : undefined,
+        userType: nextGender === "female" ? prev.userType : undefined,
       }));
       return;
     }
 
     if (field === "userType") {
-      setShowVideo(processedValue === "exotic" || processedValue === "stripper");
+      const shouldShowVideos = processedValue === "exotic" || processedValue === "stripper";
+      setShowVideo(shouldShowVideos);
+      if (!shouldShowVideos) {
+        setVideoUrls(["", "", ""]);
+        setVideoErrors(["", "", ""]);
+      }
     }
 
     setFormData((prev) => ({ ...prev, [field]: processedValue }));
@@ -207,17 +226,13 @@ export const Register: React.FC = () => {
     uploadFormData.append("photoType", field.replace("Photo", ""));
 
     try {
-      const response = await fetch(
-        "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/5c970590-4f98-420e-8352-e90ae4b99fd6",
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTc5NzMsImV4cCI6MjA2NDk3Mzk3M30.Uh-sEGCgMZKzCLLGOPLCVEJMWvG-YFKvxRPEr5mMJvI",
-          },
-          body: uploadFormData,
-        }
-      );
+     const response = await fetch(PHOTO_UPLOAD_ENDPOINT, {
+        method: "POST",
+        headers: SUPABASE_ANON_KEY
+          ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+          : undefined,
+        body: uploadFormData,
+      });
 
       const responseText = await response.text();
       if (!response.ok)
@@ -302,19 +317,16 @@ export const Register: React.FC = () => {
       uploadFormData.append("file", file);
       uploadFormData.append("username", formData.username);
       uploadFormData.append("photoType", `video${slot + 1}`);
+      uploadFormData.append("contentTier", slot === 0 ? "free" : slot === 1 ? "silver" : "gold");
 
       try {
-        const response = await fetch(
-          "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/5c970590-4f98-420e-8352-e90ae4b99fd6",
-          {
-            method: "POST",
-            headers: {
-              Authorization:
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTc5NzMsImV4cCI6MjA2NDk3Mzk3M30.Uh-sEGCgMZKzCLLGOPLCVEJMWvG-YFKvxRPEr5mMJvI",
-            },
-            body: uploadFormData,
-          }
-        );
+        const response = await fetch(VIDEO_UPLOAD_ENDPOINT, {
+          method: "POST",
+          headers: SUPABASE_ANON_KEY
+           ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+            : undefined,
+          body: uploadFormData,
+        });
 
         const responseText = await response.text();
         if (!response.ok)
@@ -388,24 +400,26 @@ export const Register: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const missingVideos = videoUrls
-      .map((url, idx) => (!url ? idx : -1))
-      .filter((idx) => idx !== -1);
+    if (showVideo) {
+      const missingVideos = videoUrls
+        .map((url, idx) => (!url ? idx : -1))
+        .filter((idx) => idx !== -1);
 
-    if (missingVideos.length > 0) {
-      setVideoErrors((prev) => {
-        const next = [...prev];
-        missingVideos.forEach((idx) => {
-          next[idx] = "Video upload is required";
+      if (missingVideos.length > 0) {
+        setVideoErrors((prev) => {
+          const next = [...prev];
+          missingVideos.forEach((idx) => {
+            next[idx] = "Video upload is required";
+          });
+          return next;
         });
-        return next;
-      });
-      toast({
-        title: "Missing Videos",
-        description: "Please upload all three required videos.",
-        variant: "destructive",
-      });
-      return;
+        toast({
+          title: "Missing Videos",
+          description: "Please upload all three required videos.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -578,6 +592,7 @@ export const Register: React.FC = () => {
                     formData={formData}
                     errors={errors}
                     showUserType={showUserType}
+                    showVideoUploads={showVideo}
                     handleInputChange={handleInputChange}
                     handleFileChange={handleFileChange}
                     profilePhotoUrl={profilePhotoUrl}
