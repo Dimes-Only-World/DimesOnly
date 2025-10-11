@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 
@@ -45,10 +46,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const isDraggingRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const scrollStartRef = useRef(0);
-
   const performers: CarouselPerformer[] =
     topRanked.length > 0
       ? topRanked.map((user, index) => ({
@@ -70,6 +67,23 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const navigateToProfile = (username: string) => {
     window.location.href = `/profile/${encodeURIComponent(username)}`;
   };
+
+  const scrollByCards = useCallback((ref: React.RefObject<HTMLDivElement>, direction: number) => {
+    const container = ref.current;
+    if (!container || typeof window === "undefined") return;
+
+    const card = container.querySelector<HTMLElement>("[data-carousel-card]");
+    if (!card) return;
+
+    const styles = window.getComputedStyle(container);
+    const gapValue =
+      parseFloat(
+        styles.getPropertyValue("column-gap") || styles.getPropertyValue("gap") || "0",
+      ) || 0;
+
+    const scrollAmount = direction * (card.offsetWidth + gapValue || card.offsetWidth);
+    container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  }, []);
 
   const openModalForPerformer = async (performer: CarouselPerformer) => {
     setSelectedPerformer(performer);
@@ -200,182 +214,69 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     };
   }, []);
 
-  useEffect(() => {
-    const containers = [desktopScrollRef.current, mobileScrollRef.current].filter(
-      (container): container is HTMLDivElement => Boolean(container)
-    );
-
-    const getBaseWidth = (container: HTMLDivElement) => container.scrollWidth / 2;
-
-    const normalizePosition = (container: HTMLDivElement, currentX?: number) => {
-      const baseWidth = getBaseWidth(container);
-      if (baseWidth <= 0) return;
-
-      if (container.scrollLeft <= 0) {
-        container.scrollLeft += baseWidth;
-        if (currentX !== undefined) {
-          scrollStartRef.current = container.scrollLeft;
-          dragStartXRef.current = currentX;
-        }
-      } else if (container.scrollLeft >= baseWidth * 2) {
-        container.scrollLeft -= baseWidth;
-        if (currentX !== undefined) {
-          scrollStartRef.current = container.scrollLeft;
-          dragStartXRef.current = currentX;
-        }
-      }
-    };
-
-    const getClientX = (event: MouseEvent | TouchEvent) =>
-      event instanceof TouchEvent ? event.touches[0]?.clientX ?? 0 : event.clientX;
-
-    const handlePointerDown = (container: HTMLDivElement) => (event: MouseEvent | TouchEvent) => {
-      isDraggingRef.current = true;
-      const clientX = getClientX(event);
-      dragStartXRef.current = clientX;
-      scrollStartRef.current = container.scrollLeft;
-      container.classList.add("cursor-grabbing");
-      container.classList.remove("cursor-grab");
-      normalizePosition(container);
-      event.preventDefault();
-    };
-
-    const handlePointerMove = (container: HTMLDivElement) => (event: MouseEvent | TouchEvent) => {
-      if (!isDraggingRef.current) return;
-      const currentX = getClientX(event);
-      const walk = (dragStartXRef.current - currentX) * 1.2;
-      container.scrollLeft = scrollStartRef.current + walk;
-      normalizePosition(container, currentX);
-    };
-
-    const handlePointerUp = (container: HTMLDivElement) => () => {
-      if (!isDraggingRef.current) return;
-      isDraggingRef.current = false;
-      container.classList.remove("cursor-grabbing");
-      container.classList.add("cursor-grab");
-    };
-
-    const cleaners: (() => void)[] = [];
-
-    containers.forEach((container) => {
-      container.classList.add("cursor-grab");
-
-      const down = handlePointerDown(container);
-      const move = handlePointerMove(container);
-      const up = handlePointerUp(container);
-
-      container.addEventListener("mousedown", down);
-      container.addEventListener("mousemove", move);
-      container.addEventListener("mouseleave", up);
-      container.addEventListener("mouseup", up);
-
-      container.addEventListener("touchstart", down, { passive: false });
-      container.addEventListener("touchmove", move, { passive: false });
-      container.addEventListener("touchend", up);
-
-      const cleanup = () => {
-        container.removeEventListener("mousedown", down);
-        container.removeEventListener("mousemove", move);
-        container.removeEventListener("mouseleave", up);
-        container.removeEventListener("mouseup", up);
-
-        container.removeEventListener("touchstart", down);
-        container.removeEventListener("touchmove", move);
-        container.removeEventListener("touchend", up);
-        container.classList.remove("cursor-grab", "cursor-grabbing");
-      };
-
-      cleaners.push(cleanup);
-    });
-
-    return () => {
-      cleaners.forEach((cleanup) => cleanup());
-    };
-  }, [performers.length]);
-
-  useEffect(() => {
-    const setupAutoScroll = (container: HTMLDivElement | null, speed: number) => {
-      if (!container) return undefined;
-
-      const getBaseWidth = () => container.scrollWidth / 2;
-
-      const normalizePosition = () => {
-        const baseWidth = getBaseWidth();
-        if (baseWidth <= 0) return;
-        if (container.scrollLeft <= 0) {
-          container.scrollLeft += baseWidth;
-        } else if (container.scrollLeft >= baseWidth * 2) {
-          container.scrollLeft -= baseWidth;
-        }
-      };
-
-      const initializePosition = () => {
-        const baseWidth = getBaseWidth();
-        if (baseWidth > 0) {
-          container.scrollLeft = baseWidth;
-        }
-      };
-
-      let animationFrame: number;
-
-      const step = () => {
-        const baseWidth = getBaseWidth();
-        if (baseWidth > 0 && !isDraggingRef.current) {
-          container.scrollLeft += speed;
-        }
-        normalizePosition();
-        animationFrame = requestAnimationFrame(step);
-      };
-
-      initializePosition();
-      animationFrame = requestAnimationFrame(step);
-      return () => cancelAnimationFrame(animationFrame);
-    };
-
-    const cleanupDesktop = setupAutoScroll(desktopScrollRef.current, 4.0);
-    const cleanupMobile = setupAutoScroll(mobileScrollRef.current, 3.0);
-
-    return () => {
-      cleanupDesktop?.();
-      cleanupMobile?.();
-    };
-  }, [performers.length]);
-
   const renderCarousel = (
     data: CarouselPerformer[],
     ref: React.RefObject<HTMLDivElement>,
-    cardClass: string
-  ) => (
-    <div
-      ref={ref}
-      className="flex overflow-x-auto scrollbar-hide scroll-smooth select-none touch-pan-x"
-    >
-      {[...data, ...data].map((performer, index) => (
+    cardClass: string,
+    controlClasses?: { left: string; right: string },
+  ) => {
+    const buttonBase =
+      "absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-yellow-400";
+
+    return (
+      <div className="relative">
+        {controlClasses && (
+          <>
+            <button
+              type="button"
+              onClick={() => scrollByCards(ref, -1)}
+              className={`${buttonBase} ${controlClasses.left}`}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCards(ref, 1)}
+              className={`${buttonBase} ${controlClasses.right}`}
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </>
+        )}
+
         <div
-          key={`${performer.id}-${index}`}
-          className={`${cardClass} group`}
-          onClick={() => handleImageClick(performer)}
+          ref={ref}
+          className="flex gap-6 overflow-x-auto px-2 py-2 scrollbar-hide scroll-smooth snap-x snap-mandatory"
         >
-          <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
-            <img
-              src={performer.image}
-              alt={`Rank ${performer.rank} - ${performer.username}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
-              Rank #{performer.rank}
+          {data.map((performer) => (
+            <div
+              key={performer.id}
+              data-carousel-card
+              className={`${cardClass} group`}
+              onClick={() => handleImageClick(performer)}
+            >
+              <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
+                <img
+                  src={performer.image}
+                  alt={`Rank ${performer.rank} - ${performer.username}`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
+                  Rank #{performer.rank}
+                </div>
+                <div className="absolute bottom-6 left-4 right-4 text-white">
+                  <p className="font-semibold text-xl md:text-2xl">@{performer.username}</p>
+                  <p className="text-sm md:text-base text-gray-200 opacity-80">Tap to preview</p>
+                </div>
+              </div>
             </div>
-            <div className="absolute bottom-6 left-4 right-4 text-white">
-              <p className="font-semibold text-xl md:text-2xl">@{performer.username}</p>
-              <p className="text-sm md:text-base text-gray-200 opacity-80">Tap to preview</p>
-            </div>
-          </div>
+          ))}
         </div>
-      ))}
-    </div>
-  );
+      </div>
+    );
+  };
 
   return (
     <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
@@ -395,11 +296,17 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
       </div>
 
       <div className="hidden md:block overflow-hidden">
-        {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-[28rem] mx-3")}
+        {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-[28rem]", {
+          left: "hidden md:flex left-4 w-12 h-12",
+          right: "hidden md:flex right-4 w-12 h-12",
+        })}
       </div>
 
       <div className="block md:hidden overflow-hidden">
-        {renderCarousel(performers, mobileScrollRef, "flex-shrink-0 w-56 h-80 mx-2")}
+        {renderCarousel(performers, mobileScrollRef, "flex-shrink-0 w-56 h-80", {
+          left: "flex md:hidden left-2 w-10 h-10",
+          right: "flex md:hidden right-2 w-10 h-10",
+        })}
       </div>
 
       {isModalOpen && selectedPerformer && (
@@ -444,7 +351,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
