@@ -5,15 +5,15 @@ import { Loader2 } from "lucide-react";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
 import RotatingBackground from "@/components/RotatingBackground";
 import { useToast } from "@/hooks/use-toast";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import bcrypt from "bcryptjs";
 import { getReferralUsername } from "@/lib/utils";
+import { supabase, supabaseAdmin, SUPABASE_ANON_KEY } from "@/lib/supabase";
 
 const FUNCTIONS_BASE_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1";
 const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
 const VIDEO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-video`;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 
 interface FormData {
   firstName: string;
