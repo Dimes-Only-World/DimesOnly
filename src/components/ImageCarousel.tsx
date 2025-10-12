@@ -305,7 +305,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
           </span>{" "}
         <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full mt-4" />
       </div>
-
+ </div>
       <div className="hidden md:block overflow-hidden">
         {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-[28rem]", {
           left: "hidden md:flex left-4 w-12 h-12",
