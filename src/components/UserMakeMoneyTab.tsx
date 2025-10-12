@@ -217,11 +217,9 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
 
       {/* Download + Share Section */}
       <div className="flex flex-col items-center p-4 text-center mb-8">
-        <h3 className="text-xl font-bold mb-2">The message below you will share to get your followers until the app is released.
-          
-          CLICK ALL THE LINKS BELOW THE MESSAGE TO MAXIMIZE YOUR FOLLOWERS.
-          
-          Click Copy - Instagram - Facebook - Contacts to share</h3>
+        <h3 className="text-xl font-bold mb-2">The message below you will share to get your followers until the app is released.</h3>
+        <h3 className="text-xl font-bold mb-2">ALL THE LINKS WILL MAXIMIZE YOUR FOLLOWERS.</h3>
+        <h3 className="text-xl font-bold mb-2">Click Copy - Instagram - Facebook - Contacts below message to share</h3>
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
