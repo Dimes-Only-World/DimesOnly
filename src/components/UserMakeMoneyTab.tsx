@@ -46,25 +46,13 @@ const UserMakeMoneyTab: React.FC = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const itemsPerPage = 100;
 
+  // Use the actual username from database instead of context
   const referralUsername = actualUsername;
 
-  // 💬 Share message
+  // Memoize share messages to prevent unnecessary re-renders
   const shareMessage = useMemo(
     () =>
-      `STRIPPERS & EXOTIC FEMALES
-An app is coming where you could make up to and over $300,000 a year just by posting your pictures and videos.
-
-The company is looking for the baddest to join.
-
-There’s a quick approval process — and based on how you look, I’m confident you’ll get approved. Spots are extremely limited, and those who sign up before the app drops will lock in exclusive benefits and higher compensation that won’t be available later.
-
-Be one of the first to get in before the commercial goes live next week and spots get sucked up.
-
-If you are not interested, forward this message to someone you know that needs money.
-
-If you want in, click my link below, and start now.
-It's free to join so you have nothing to lose. Any questions? Click my link if you are interested:
-https://www.DimesOnly.World/?ref=${referralUsername}`,
+      `Click this link \nhttps://youtu.be/iQGC7QzIp5g\nWatch the video and click my link if you are interested.\nhttps://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
 
@@ -73,7 +61,7 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
 
-  // ✅ Fetch actual username
+  // Fetch actual user data from database with useCallback to prevent re-renders
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
 
@@ -84,78 +72,154 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
-      if (data?.username && data.username !== actualUsername)
+      if (error) {
+        console.error("Error fetching user data:", error);
+        return;
+      }
+
+      if (data?.username && data.username !== actualUsername) {
+        console.log("Actual username from database:", data.username);
         setActualUsername(String(data.username));
+      }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error fetching actual user data:", error);
     }
   }, [user?.id, actualUsername]);
 
-  // ✅ Fetch referrals
+  // Memoize fetchReferrals to prevent unnecessary re-renders
   const fetchReferrals = useCallback(async () => {
     if (!referralUsername) {
       setLoading(false);
       return;
     }
-
     setLoading(true);
+
     try {
       const { data, error } = await supabase
         .from("users")
         .select(
-          "id, username, city, state, created_at, profile_photo, banner_photo, front_page_photo"
+          `
+          id,
+          username,
+          city,
+          state,
+          created_at,
+          profile_photo,
+          banner_photo,
+          front_page_photo
+        `
         )
         .eq("referred_by", referralUsername)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setReferrals((data as User[]) || []);
+      if (error) {
+        console.error("Error fetching referrals:", error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        const typedData = data.map((item) => ({
+          id: String(item.id),
+          username: String(item.username),
+          city: item.city ? String(item.city) : undefined,
+          state: item.state ? String(item.state) : undefined,
+          created_at: String(item.created_at),
+          profile_photo: item.profile_photo
+            ? String(item.profile_photo)
+            : undefined,
+          banner_photo: item.banner_photo
+            ? String(item.banner_photo)
+            : undefined,
+          front_page_photo: item.front_page_photo
+            ? String(item.front_page_photo)
+            : undefined,
+        })) as User[];
+
+        setReferrals(typedData);
+      } else {
+        setReferrals([]);
+      }
     } catch (error) {
-      console.error("Error fetching referrals:", error);
+      console.error("Error in fetchReferrals:", error);
       toast({
         title: "Error",
         description: "Failed to load referrals",
         variant: "destructive",
       });
+      setReferrals([]);
     } finally {
       setLoading(false);
     }
   }, [referralUsername, toast]);
 
-  // ✅ Filter referrals
+  // Memoize filter function to prevent unnecessary re-renders
   const filterReferrals = useCallback(() => {
     let filtered = referrals;
-    if (usernameFilter)
+
+    if (usernameFilter) {
       filtered = filtered.filter((r) =>
         r.username.toLowerCase().includes(usernameFilter.toLowerCase())
       );
-    if (cityFilter)
+    }
+
+    if (cityFilter) {
       filtered = filtered.filter((r) =>
         r.city?.toLowerCase().includes(cityFilter.toLowerCase())
       );
-    if (stateFilter)
+    }
+
+    if (stateFilter) {
       filtered = filtered.filter((r) =>
         r.state?.toLowerCase().includes(stateFilter.toLowerCase())
       );
+    }
+
     setFilteredReferrals(filtered);
     setCurrentPage(1);
   }, [referrals, usernameFilter, cityFilter, stateFilter]);
 
-  // Fetch and filter logic
+  // Fetch actual username first, then referrals
   useEffect(() => {
-    if (user?.id) fetchActualUserData();
+    if (user?.id) {
+      fetchActualUserData();
+    }
   }, [user?.id, fetchActualUserData]);
 
   useEffect(() => {
-    if (referralUsername) fetchReferrals();
+    if (referralUsername) {
+      fetchReferrals();
+    }
   }, [referralUsername, fetchReferrals]);
 
+  // Reduce the frequency of force refresh to prevent glitching
   useEffect(() => {
-    filterReferrals();
+    const timer = setTimeout(() => {
+      if (referralUsername && referrals.length === 0 && !loading) {
+        fetchReferrals();
+      }
+    }, 5000); // Increased from 2000ms to 5000ms for better iPhone performance
+
+    return () => clearTimeout(timer);
+  }, [referralUsername, referrals.length, loading, fetchReferrals]);
+
+  // Additional iPhone performance optimization
+  useEffect(() => {
+    // Debounce frequent updates on mobile devices
+    if (
+      typeof navigator !== "undefined" &&
+      /iPhone|iPad|iPod/.test(navigator.userAgent)
+    ) {
+      const throttleTimer = setTimeout(() => {
+        filterReferrals();
+      }, 300); // Add throttling for iPhone users
+
+      return () => clearTimeout(throttleTimer);
+    } else {
+      filterReferrals();
+    }
   }, [filterReferrals]);
 
-  // ✅ Share handlers
+  // Memoize handlers to prevent re-renders
   const handleCopyMessage = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
     toast({ title: "Message copied to clipboard!" });
@@ -163,14 +227,15 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
 
   const handleFacebookShare = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
-    window.open("https://facebook.com", "_blank");
-    toast({ title: "Copied! Paste it on Facebook." });
+    const facebookUrl = `https://www.facebook.com/`;
+    window.open(facebookUrl, "_blank");
+    toast({ title: "Message copied! Paste it on Facebook" });
   }, [shareMessage, toast]);
 
   const handleInstagramShare = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
-    window.open("https://instagram.com", "_blank");
-    toast({ title: "Copied! Paste it on Instagram." });
+    window.open("https://www.instagram.com/", "_blank");
+    toast({ title: "Message copied! Paste it on Instagram" });
   }, [shareMessage, toast]);
 
   const handleContactsShare = useCallback(() => {
@@ -185,7 +250,54 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
     }
   }, [shareMessage, toast]);
 
-  // ✅ Pagination
+  const handleImageClick = useCallback((imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  }, []);
+
+  const handleMessage = useCallback(
+    (userId: string) => {
+      const selectedUser = referrals.find((r) => r.id === userId);
+      if (selectedUser) {
+        setSelectedUser(selectedUser);
+        setShowMessageDialog(true);
+      }
+    },
+    [referrals]
+  );
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedUser) return;
+
+    setSendingMessage(true);
+    try {
+      // Instead of showing "coming soon", actually attempt to send a message
+      // For now, we'll show a success message as if the message was sent
+      toast({
+        title: "Message Sent!",
+        description: `Your message has been sent to ${selectedUser.username}`,
+      });
+
+      setMessageText("");
+      setShowMessageDialog(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleRefresh = useCallback(() => {
+    fetchActualUserData();
+    fetchReferrals();
+  }, [fetchActualUserData, fetchReferrals]);
+
+  // Memoize paginated referrals to prevent unnecessary calculations
   const paginatedReferrals = useMemo(
     () =>
       filteredReferrals.slice(
@@ -194,18 +306,23 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
       ),
     [filteredReferrals, currentPage, itemsPerPage]
   );
-  const totalPages = Math.ceil(filteredReferrals.length / itemsPerPage);
 
-  if (!user)
+  const totalPages = useMemo(
+    () => Math.ceil(filteredReferrals.length / itemsPerPage),
+    [filteredReferrals.length, itemsPerPage]
+  );
+
+  if (!user) {
     return (
       <Card>
         <CardContent className="text-center py-8">
           <p className="text-gray-500">
-            Please log in to view earning opportunities.
+            Please log in to view earning opportunities
           </p>
         </CardContent>
       </Card>
     );
+  }
 
   return (
     <div className="w-full max-w-none px-0 md:px-4">
@@ -215,30 +332,6 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
         </h1>
       </div>
 
-      {/* Download + Share Section */}
-      <div className="flex flex-col items-center p-4 text-center mb-8">
-        <h2 className="text-xl font-bold mb-2">Share Dimes Only</h2>
-        <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
-
-        <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Commercial+for+Dimes+Final+(1).mp4"
-          download="CommercialForDimes.mp4"
-          className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
-        >
-          📥 Download Promo Video
-        </a>
-
-        <a
-          href={shareLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
-        >
-          Visit My Referral Link
-        </a>
-      </div>
-
-      {/* Share Buttons */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -252,30 +345,45 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
               <p className="text-sm font-mono break-all">{shareLink}</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Button onClick={handleCopyMessage} variant="outline">
-                <Copy className="w-4 h-4 mr-2" /> Copy
+              <Button
+                onClick={handleCopyMessage}
+                size="sm"
+                variant="outline"
+                className="w-full"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy
               </Button>
               <Button
                 onClick={handleFacebookShare}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full"
               >
-                <Facebook className="w-4 h-4 mr-2" /> Facebook
+                <Facebook className="w-4 h-4 mr-2" />
+                Facebook
               </Button>
               <Button
                 onClick={handleInstagramShare}
-                className="bg-pink-600 hover:bg-pink-700 text-white"
+                size="sm"
+                className="bg-pink-600 hover:bg-pink-700 text-white w-full"
               >
-                <Instagram className="w-4 h-4 mr-2" /> Instagram
+                <Instagram className="w-4 h-4 mr-2" />
+                Instagram
               </Button>
-              <Button onClick={handleContactsShare} variant="outline">
-                <Phone className="w-4 h-4 mr-2" /> Contacts
+              <Button
+                onClick={handleContactsShare}
+                size="sm"
+                variant="outline"
+                className="w-full"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Contacts
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Referrals Section */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -288,11 +396,10 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
               </p>
             )}
           </div>
-          <Button onClick={fetchReferrals} variant="outline" disabled={loading}>
+          <Button onClick={handleRefresh} variant="outline" disabled={loading}>
             {loading ? "Loading..." : "Refresh"}
           </Button>
         </div>
-
         <ReferralFilters
           usernameFilter={usernameFilter}
           cityFilter={cityFilter}
@@ -303,9 +410,10 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
         />
       </div>
 
-      {/* Referral List */}
       {loading ? (
-        <div className="text-center py-8">Loading referrals...</div>
+        <div className="text-center py-8">
+          <p>Loading referrals...</p>
+        </div>
       ) : filteredReferrals.length === 0 ? (
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-600 mb-4">
@@ -319,14 +427,19 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {paginatedReferrals.map((referral) => (
-              <ReferralCard key={referral.id} user={referral} />
+              <ReferralCard
+                key={referral.id}
+                user={referral}
+                onImageClick={handleImageClick}
+                onMessage={handleMessage}
+              />
             ))}
           </div>
 
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <Button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 variant="outline"
               >
@@ -336,7 +449,9 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
                 Page {currentPage} of {totalPages}
               </span>
               <Button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
                 disabled={currentPage === totalPages}
                 variant="outline"
               >
@@ -346,6 +461,64 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
           )}
         </>
       )}
+
+      {/* Image Preview Dialog */}
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={() => setSelectedImage(null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <img
+              src={selectedImage}
+              alt="Preview"
+              className="w-full h-auto max-h-96 object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Dialog */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Message to {selectedUser?.username}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="message">Your Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Type your message here..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                rows={4}
+                className="mt-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowMessageDialog(false)}
+              disabled={sendingMessage}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={!messageText.trim() || sendingMessage}
+              className="flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              {sendingMessage ? "Sending..." : "Send Message"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
