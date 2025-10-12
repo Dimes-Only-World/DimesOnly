@@ -52,7 +52,22 @@ const UserMakeMoneyTab: React.FC = () => {
   // Memoize share messages to prevent unnecessary re-renders
   const shareMessage = useMemo(
     () =>
-      `Click this link \nhttps://youtu.be/iQGC7QzIp5g\nWatch the video and click my link if you are interested.\nhttps://www.DimesOnly.World/?ref=${referralUsername}`,
+      `📥 Download the official video here:
+https://dimesonlyworld.s3.us-east-2.amazonaws.com/Commercial+for+Dimes+Final+(1).mp4
+
+STRIPPERS & EXOTIC FEMALES
+An app is coming where you could make up to and over $300,000 a year just by posting your pictures and videos.
+
+The company is looking for the baddest to join.
+
+There’s a quick approval process — and based on how you look, I’m confident you’ll get approved. Spots are extremely limited, and those who sign up before the app drops will lock in exclusive benefits and higher compensation that won’t be available later.
+
+Be one of the first to get in before the commercial goes live next week and spots get sucked up.
+
+If you are not interested, forward this message to someone you know that needs money.
+
+If  you want in, click my link below, and start now. 
+It's free to join so you have nothing to lose. Any questions? Click my link if you are interested.\nhttps://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
 
@@ -60,7 +75,30 @@ const UserMakeMoneyTab: React.FC = () => {
     () => `https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
+ return (
+    <div className="flex flex-col items-center p-4 text-center">
+      <h2 className="text-xl font-bold mb-2">Share Dimes Only</h2>
+      <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
+      <a
+        href="/CommercialForDimes.mp4"
+        download="CommercialForDimes.mp4"
+        className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
+      >
+        📥 Download Promo Video
+      </a>
+
+      <a
+        href={shareLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+      >
+        Visit My Referral Link
+      </a>
+    </div>
+  );
+}
   // Fetch actual user data from database with useCallback to prevent re-renders
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
