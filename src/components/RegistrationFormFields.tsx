@@ -110,7 +110,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoErrors,
   handleVideoUpload,
 }) => {
-  const videoSlotLabels = ["Normal video", "Nude video", "X-rated video"];
+  const videoSlotLabels = ["Normal video", "Normal or Nude video", "Normal or X-rated video"];
 
   return (
     <div className="space-y-6">
