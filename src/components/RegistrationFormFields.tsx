@@ -110,7 +110,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoErrors,
   handleVideoUpload,
 }) => {
-  const videoSlotLabels = ["Normal video", "Nude video", "X-rated video"];
+  const videoSlotLabels = ["Normal video", "Normal or Nude video", "Normal or X-rated video"];
 
   return (
     <div className="space-y-6">
@@ -499,7 +499,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
         </h3>
         <p className="text-sm text-white/70">
           <span className="text-red-400">*</span> All photos are required to
-          complete your registration
+          complete your registration.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -523,7 +523,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
           <div className="space-y-2">
             <FileUploadField
-              label="Front Page Photo (Protrait Size)"
+              label="Front Page Photo (Portrait Size)"
               accept="image/*"
               onChange={handleFileChange("frontPagePhoto")}
             />
@@ -541,7 +541,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             Required Videos
           </h3>
           <p className="text-sm text-white/70">
-            Upload each required video type to complete your premium application.
+            Upload each recommended video type to complete your premium application. A combination of or just normal, nude or x-rated.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[0, 1, 2].map((slot) => (
