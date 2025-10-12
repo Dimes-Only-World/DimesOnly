@@ -63,7 +63,7 @@ Be one of the first to get in before the commercial goes live next week and spot
 If you are not interested, forward this message to someone you know that needs money.
 
 If you want in, click my link below, and start now.
-It's free to join so you have nothing to lose. Any questions? Click my link if you are interested:
+It's free to join so you have nothing to lose. Any questions?
 https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
@@ -210,14 +210,16 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
   return (
     <div className="w-full max-w-none px-0 md:px-4">
       <div className="text-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-purple-600 mb-2">
+        <h2 className="text-2xl md:text-3xl font-bold text-purple-600 mb-2">
           SHARE YOUR LINK AND GET YOUR FIRST REFERRAL NOW!
-        </h1>
+        </h2>
       </div>
 
       {/* Download + Share Section */}
       <div className="flex flex-col items-center p-4 text-center mb-8">
-        <h2 className="text-xl font-bold mb-2">Share Dimes Only</h2>
+        <h2 className="text-xl font-bold mb-2">The message below you will share to get your followers until the app is released.
+          CLICK ALL THE LINKS BELOW THE MESSAGE TO MAXIMIZE YOUR FOLLOWERS
+          Copy - Instagram - Facebook - Contacts</h2>
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
