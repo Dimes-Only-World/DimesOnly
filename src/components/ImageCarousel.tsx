@@ -286,9 +286,9 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
         </h2>
         <p className="text-lg md:text-2xl font-semibold leading-relaxed text-white">
           <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
-            $10,000 Every 3 Months
+            $10,000 to The #1 Top Rank
           </span>{" "}
-          <br />Given to The #1 Top Rank
+          <br />Winner Announced When App is Released
           <br />
           <span className="text-white">Rank #2 - #20 Get Money as Well</span>
         </p>
