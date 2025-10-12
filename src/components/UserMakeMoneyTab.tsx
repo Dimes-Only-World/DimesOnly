@@ -51,10 +51,7 @@ const UserMakeMoneyTab: React.FC = () => {
   // 💬 Share message
   const shareMessage = useMemo(
     () =>
-      `📥 Download the official video here:
-https://dimesonlyworld.s3.us-east-2.amazonaws.com/Commercial+for+Dimes+Final+(1).mp4
-
-STRIPPERS & EXOTIC FEMALES
+      `STRIPPERS & EXOTIC FEMALES
 An app is coming where you could make up to and over $300,000 a year just by posting your pictures and videos.
 
 The company is looking for the baddest to join.
