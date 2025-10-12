@@ -5,15 +5,14 @@ import { Loader2 } from "lucide-react";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
 import RotatingBackground from "@/components/RotatingBackground";
 import { useToast } from "@/hooks/use-toast";
+import { supabase, supabaseAdmin, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import bcrypt from "bcryptjs";
 import { getReferralUsername } from "@/lib/utils";
-import { supabase, supabaseAdmin, SUPABASE_ANON_KEY } from "@/lib/supabase";
 
 const FUNCTIONS_BASE_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1";
 const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
 const VIDEO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-video`;
-
 
 interface FormData {
   firstName: string;
@@ -34,6 +33,15 @@ interface FormData {
   bannerPhoto?: string;
   frontPagePhoto?: string;
   dateOfBirth: string;
+}
+
+interface UploadedVideoMeta {
+  slot: string;
+  contentTier: "free" | "silver" | "gold";
+  storagePath: string;
+  url: string;
+  isNude: boolean;
+  isXrated: boolean;
 }
 
 const backgroundImages = [
@@ -59,9 +67,7 @@ const capitalizeWords = (value: string) =>
     .trim()
     .replace(/\s+/g, " ")
     .split(" ")
-    .map((word) =>
-      word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""
-    )
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
 const formatAddress = (value: string) =>
@@ -69,9 +75,7 @@ const formatAddress = (value: string) =>
     .trim()
     .replace(/\s+/g, " ")
     .split(" ")
-    .map((word) =>
-      word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""
-    )
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
 const formatPhoneNumber = (value: string) => {
@@ -125,10 +129,15 @@ export const Register: React.FC = () => {
   const [frontPagePhotoUrl, setFrontPagePhotoUrl] = useState<string>("");
   const [videoUrls, setVideoUrls] = useState<string[]>(["", "", ""]);
   const [videoErrors, setVideoErrors] = useState<string[]>(["", "", ""]);
+  const [videoUploadMeta, setVideoUploadMeta] = useState<
+    Record<number, UploadedVideoMeta | null>
+  >({
+    0: null,
+    1: null,
+    2: null,
+  });
   const [showVideo, setShowVideo] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
-    {}
-  );
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
   const [formData, setFormData] = useState<FormData>({
@@ -177,6 +186,7 @@ export const Register: React.FC = () => {
       if (!shouldShowVideos) {
         setVideoUrls(["", "", ""]);
         setVideoErrors(["", "", ""]);
+        setVideoUploadMeta({ 0: null, 1: null, 2: null });
       }
       setErrors((prev) => ({
         ...prev,
@@ -192,6 +202,7 @@ export const Register: React.FC = () => {
       if (!shouldShowVideos) {
         setVideoUrls(["", "", ""]);
         setVideoErrors(["", "", ""]);
+        setVideoUploadMeta({ 0: null, 1: null, 2: null });
       }
     }
 
@@ -226,17 +237,14 @@ export const Register: React.FC = () => {
     uploadFormData.append("photoType", field.replace("Photo", ""));
 
     try {
-     const response = await fetch(PHOTO_UPLOAD_ENDPOINT, {
+      const response = await fetch(PHOTO_UPLOAD_ENDPOINT, {
         method: "POST",
-        headers: SUPABASE_ANON_KEY
-          ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-          : undefined,
+        headers: SUPABASE_ANON_KEY ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : undefined,
         body: uploadFormData,
       });
 
       const responseText = await response.text();
-      if (!response.ok)
-        throw new Error(`Upload failed: ${response.status} - ${responseText}`);
+      if (!response.ok) throw new Error(`Upload failed: ${response.status} - ${responseText}`);
 
       const result = JSON.parse(responseText);
       if (result.success && result.url) {
@@ -262,8 +270,7 @@ export const Register: React.FC = () => {
       console.error("Upload error:", error);
       toast({
         title: "Upload Failed",
-        description:
-          error instanceof Error ? error.message : "Unexpected upload error",
+        description: error instanceof Error ? error.message : "Unexpected upload error",
         variant: "destructive",
       });
     }
@@ -282,6 +289,7 @@ export const Register: React.FC = () => {
           next[slot] = "Video upload is required";
           return next;
         });
+        setVideoUploadMeta((prev) => ({ ...prev, [slot]: null }));
         return;
       }
 
@@ -322,15 +330,12 @@ export const Register: React.FC = () => {
       try {
         const response = await fetch(VIDEO_UPLOAD_ENDPOINT, {
           method: "POST",
-          headers: SUPABASE_ANON_KEY
-           ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-            : undefined,
+          headers: SUPABASE_ANON_KEY ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : undefined,
           body: uploadFormData,
         });
 
         const responseText = await response.text();
-        if (!response.ok)
-          throw new Error(`Upload failed: ${response.status} - ${responseText}`);
+        if (!response.ok) throw new Error(`Upload failed: ${response.status} - ${responseText}`);
 
         const result = JSON.parse(responseText);
         if (!result.success || !result.url)
@@ -346,6 +351,17 @@ export const Register: React.FC = () => {
           next[slot] = "";
           return next;
         });
+        setVideoUploadMeta((prev) => ({
+          ...prev,
+          [slot]: {
+            slot: result.slot ?? `video${slot + 1}`,
+            contentTier: (result.contentTier ?? "free") as "free" | "silver" | "gold",
+            storagePath: result.storagePath,
+            url: result.url,
+            isNude: Boolean(result.isNude),
+            isXrated: Boolean(result.isXrated),
+          },
+        }));
 
         toast({
           title: "Upload Successful",
@@ -355,8 +371,7 @@ export const Register: React.FC = () => {
         console.error("Video upload error:", error);
         toast({
           title: "Upload Failed",
-          description:
-            error instanceof Error ? error.message : "Unexpected upload error",
+          description: error instanceof Error ? error.message : "Unexpected upload error",
           variant: "destructive",
         });
       }
@@ -368,15 +383,13 @@ export const Register: React.FC = () => {
     if (!formData.lastName) newErrors.lastName = "Last name is required";
     if (!formData.username) newErrors.username = "Username is required";
     if (!formData.email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
-      newErrors.email = "Invalid email";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email";
     if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
     if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
-    if (!formData.mobileNumber)
-      newErrors.mobileNumber = "Phone number is required";
+    if (!formData.mobileNumber) newErrors.mobileNumber = "Phone number is required";
     if (!formData.address) newErrors.address = "Address is required";
     if (!formData.city) newErrors.city = "City is required";
     if (!formData.state) newErrors.state = "State is required";
@@ -384,13 +397,11 @@ export const Register: React.FC = () => {
     if (!formData.gender) newErrors.gender = "Gender is required";
     if (formData.gender === "female" && !formData.userType)
       newErrors.userType = "User type is required";
-    if (!formData.dateOfBirth)
-      newErrors.dateOfBirth = "Date of birth is required";
+    if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
 
     if (!profilePhotoUrl) newErrors.profilePhoto = "Profile photo is required";
     if (!bannerPhotoUrl) newErrors.bannerPhoto = "Banner photo is required";
-    if (!frontPagePhotoUrl)
-      newErrors.frontPagePhoto = "Front page photo is required";
+    if (!frontPagePhotoUrl) newErrors.frontPagePhoto = "Front page photo is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -461,12 +472,10 @@ export const Register: React.FC = () => {
         throw new Error("Email already registered");
       }
 
-      const { data: session, error: sessionError } = await supabase.auth.signUp(
-        {
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const { data: session, error: sessionError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
 
       if (sessionError) {
         throw new Error(`Failed to create session: ${sessionError.message}`);
@@ -482,48 +491,71 @@ export const Register: React.FC = () => {
         formData.gender === "female" &&
         (formData.userType === "exotic" || formData.userType === "stripper");
 
-      const { error: createError } = await supabaseAdmin
-        .from("users")
-        .insert([
-          {
-            id: session.user.id,
-            username: formData.username,
-            email: formData.email,
-            password_hash: passwordHash,
-            hash_type: "bcrypt",
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            mobile_number: formData.mobileNumber,
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            zip: formData.zip,
-            gender: formData.gender,
-            user_type: formData.userType ? formData.userType : "normal",
-            membership_tier: isFemaleDiamond ? "diamond" : "free",
-            membership_type: isFemaleDiamond ? "diamond" : "free",
-            referred_by:
-              formData.referredBy && formData.referredBy.trim() !== ""
-                ? formData.referredBy
-                : "Company",
-            date_of_birth: formData.dateOfBirth,
-            profile_photo: profilePhotoUrl,
-            banner_photo: bannerPhotoUrl,
-            front_page_photo: frontPagePhotoUrl,
-            video_urls: videoUrls,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ]);
+      const { error: createError } = await supabaseAdmin.from("users").insert([
+        {
+          id: session.user.id,
+          username: formData.username,
+          email: formData.email,
+          password_hash: passwordHash,
+          hash_type: "bcrypt",
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          mobile_number: formData.mobileNumber,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          gender: formData.gender,
+          user_type: formData.userType ? formData.userType : "normal",
+          membership_tier: isFemaleDiamond ? "diamond" : "free",
+          membership_type: isFemaleDiamond ? "diamond" : "free",
+          referred_by:
+            formData.referredBy && formData.referredBy.trim() !== ""
+              ? formData.referredBy
+              : "Company",
+          date_of_birth: formData.dateOfBirth,
+          profile_photo: profilePhotoUrl,
+          banner_photo: bannerPhotoUrl,
+          front_page_photo: frontPagePhotoUrl,
+          video_urls: videoUrls,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
 
       if (createError) {
         throw new Error(`Failed to create user: ${createError.message}`);
       }
 
+      const metaEntries = Object.values(videoUploadMeta).filter(
+        (meta): meta is UploadedVideoMeta => Boolean(meta),
+      );
+
+      if (metaEntries.length > 0) {
+        const mediaRows = metaEntries.map((meta) => ({
+          user_id: session.user.id,
+          media_url: meta.url,
+          media_type: "video",
+          filename: meta.storagePath.split("/").pop() ?? `${formData.username}_${meta.slot}.mp4`,
+          storage_path: meta.storagePath,
+          content_tier: meta.contentTier,
+          is_nude: meta.isNude,
+          is_xrated: meta.isXrated,
+          upload_date: new Date().toISOString(),
+          access_restricted: meta.contentTier !== "free",
+        }));
+
+        const { error: mediaInsertError } = await supabaseAdmin
+          .from("user_media")
+          .insert(mediaRows);
+
+        if (mediaInsertError) {
+          console.error("Failed to insert registration videos:", mediaInsertError);
+        }
+      }
+
       try {
-        const userTypeInserted = formData.userType
-          ? formData.userType
-          : "normal";
+        const userTypeInserted = formData.userType ? formData.userType : "normal";
 
         const limitCategoryForCounting =
           userTypeInserted === "normal" ? "silver" : "diamond";
@@ -560,7 +592,6 @@ export const Register: React.FC = () => {
   };
 
   const showUserType = formData.gender === "female";
-
   return (
     <div className="w-full min-h-screen relative">
       <RotatingBackground images={backgroundImages} interval={3000} />
