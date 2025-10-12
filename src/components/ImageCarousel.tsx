@@ -279,23 +279,25 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   };
 
   return (
-    <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
-      <div className="text-center mb-8">
-        <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 uppercase tracking-wide">
-          Current Top 20 Ranked
-        </h2>
-        <p className="text-lg md:text-2xl font-semibold leading-relaxed text-white">
-          <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
-            $10,000 to The #1 Top Rank<br />
-            #10,000 Every 3 Month
-          </span>{" "}
-          <br />Winner Announced When App is Released
-          <br />
-          <span className="text-white">Rank #2 - #20 Get Money as Well</span>
-        </p>
-        <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full mt-4" />
-      </
-       </div>
+   <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
+  <div className="text-center mb-8">
+    <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 uppercase tracking-wide">
+      Current Top 20 Ranked
+    </h2>
+    <p className="text-lg md:text-2xl font-semibold leading-relaxed text-white">
+      <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
+        $10,000 to The #1 Top Rank<br />
+        $10,000 Every 3 Months
+      </span>
+      <br />
+      Winner Announced When App is Released
+      <br />
+      <span className="text-white">Rank #2 - #20 Get Money as Well</span>
+    </p>
+    <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full mt-4" />
+  </div>
+</div>
+
       <div className="hidden md:block overflow-hidden">
         {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-[28rem]", {
           left: "hidden md:flex left-4 w-12 h-12",
