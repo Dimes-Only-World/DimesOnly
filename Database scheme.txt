@@ -609,6 +609,7 @@ CREATE TABLE public.users (
   silver_plus_membership_number integer,
   silver_plus_joined_at timestamp with time zone,
   date_of_birth date,
+  video_urls ARRAY DEFAULT '{}'::text[],
   CONSTRAINT users_pkey PRIMARY KEY (id),
   CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
   CONSTRAINT users_liked_by_fkey FOREIGN KEY (liked_by) REFERENCES public.users(id)

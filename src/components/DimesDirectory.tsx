@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, User, Crown, Mail } from "lucide-react";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
+import DirectMessageModal from "./DirectMessageModal";
 
 interface DimeProfile {
   id: string;
@@ -70,6 +71,8 @@ const DimesDirectory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [messageRecipient, setMessageRecipient] = useState<DimeProfile | null>(null);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProfiles();
@@ -270,8 +273,14 @@ const DimesDirectory: React.FC = () => {
     navigate(`/profile/${username}`);
   };
 
-  const handleMessageClick = (username: string) => {
-    navigate(`/dashboard?tab=messages&to=${encodeURIComponent(username)}`);
+    const handleMessageClick = (profile: DimeProfile) => {
+    setMessageRecipient(profile);
+    setIsMessageModalOpen(true);
+  };
+
+  const closeMessageModal = () => {
+    setIsMessageModalOpen(false);
+    setMessageRecipient(null);
   };
 
   if (loading) {
@@ -356,13 +365,13 @@ const DimesDirectory: React.FC = () => {
                     <div className="flex flex-col gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-rose-600">Message Me</span>
-                        <Button
+                         <Button
                           size="sm"
                           variant="outline"
                           className="flex items-center gap-2 border-rose-500 text-rose-600 hover:bg-rose-50"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleMessageClick(profile.username);
+                            handleMessageClick(profile);
                           }}
                         >
                           <Mail className="w-4 h-4" />
@@ -420,6 +429,11 @@ const DimesDirectory: React.FC = () => {
           </p>
         </div>
       )}
+        <DirectMessageModal
+        isOpen={isMessageModalOpen}
+        onClose={closeMessageModal}
+        recipientUsername={messageRecipient?.username ?? null}
+      />
     </div>
   );
 };

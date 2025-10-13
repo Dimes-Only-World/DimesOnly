@@ -43,8 +43,11 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   const [topRanked, setTopRanked] = useState<RankedPerformer[]>([]);
   const [selectedPerformer, setSelectedPerformer] = useState<CarouselPerformer | null>(null);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   const performers: CarouselPerformer[] =
     topRanked.length > 0
@@ -85,10 +88,45 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     container.scrollBy({ left: scrollAmount, behavior: "smooth" });
   }, []);
 
+     const fetchPreviewVideo = async (performer: CarouselPerformer) => {
+  if (performer.id.startsWith("fallback-")) {
+    setSelectedVideoUrl(null);
+    setIsLoadingMedia(false);
+    return;
+  }
+
+  setIsLoadingMedia(true);
+  setSelectedVideoUrl(null);
+
+  try {
+    const { data, error } = await supabase
+      .from("user_media")
+      .select("media_url")
+      .eq("user_id", performer.id)
+      .eq("media_type", "video")
+      .eq("content_tier", "silver")
+      .order("upload_date", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error("[ImageCarousel] Error fetching silver video:", error);
+    } else if (data && data.length > 0 && data[0].media_url) {
+      setSelectedVideoUrl(String(data[0].media_url));
+    }
+  } catch (err) {
+    console.error("[ImageCarousel] Unexpected error loading silver preview:", err);
+  } finally {
+    setIsLoadingMedia(false);
+  }
+};
+
   const openModalForPerformer = async (performer: CarouselPerformer) => {
     setSelectedPerformer(performer);
     setIsModalOpen(true);
+    setSelectedVideoUrl(null);
+    setIsLoadingMedia(true);
 
+    void fetchPreviewVideo(performer);
     try {
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(Boolean(data?.session?.user));
@@ -111,6 +149,8 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedPerformer(null);
+    setSelectedVideoUrl(null);
+    setIsLoadingMedia(false);
   };
 
   const handleLoginClick = () => {
@@ -136,6 +176,20 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     registerUrl.searchParams.set("target", selectedPerformer.username);
     window.location.href = registerUrl.toString();
   };
+
+    useEffect(() => {
+    const updateOrientation = () => {
+      if (typeof window === "undefined") return;
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    updateOrientation();
+    window.addEventListener("resize", updateOrientation);
+
+    return () => {
+      window.removeEventListener("resize", updateOrientation);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -309,9 +363,13 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
         })}
       </div>
 
-      {isModalOpen && selectedPerformer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
-          <div className="relative w-[90vw] max-w-xl rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+            {isModalOpen && selectedPerformer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur p-4">
+          <div
+            className={`relative w-full ${
+              isLandscape ? "max-w-md" : "max-w-3xl"
+            } max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-black/70 flex flex-col`}
+          >
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 z-10 text-white text-3xl font-bold bg-black/50 rounded-full px-3 py-1 hover:bg-black/80 transition"
@@ -320,11 +378,38 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
               ×
             </button>
 
-            <img
-              src={selectedPerformer.image}
-              alt={`Rank ${selectedPerformer.rank}`}
-              className="w-full h-[28rem] object-cover"
-            />
+            <div
+              className={`relative w-full bg-black flex items-center justify-center ${
+                isLandscape
+                  ? "aspect-[9/16] self-center"
+                  : "flex-1 min-h-[40vh] max-h-[70vh]"
+              }`}
+            >
+              {isLoadingMedia ? (
+                <div className="text-white text-lg">Loading preview…</div>
+              ) : selectedVideoUrl ? (
+                <video
+                  key={selectedVideoUrl}
+                  src={selectedVideoUrl}
+                  controls
+                  autoPlay
+                  loop
+                  playsInline
+                  className={`w-full h-full object-contain bg-black ${
+                    isLandscape ? "rounded-xl" : "max-h-[70vh]"
+                  }`}
+                />
+              ) : (
+                <img
+                  src={selectedPerformer.image}
+                  alt={`Rank ${selectedPerformer.rank}`}
+                  className={`w-full h-full object-cover ${
+                    isLandscape ? "rounded-xl" : "max-h-[70vh]"
+                  }`}
+                />
+              )}
+            </div>
+
             <div className="absolute top-5 left-5 bg-black/75 px-5 py-2 rounded-full text-lg font-semibold text-yellow-300 uppercase tracking-wide shadow-lg">
               Rank #{selectedPerformer.rank}
             </div>
@@ -350,7 +435,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
           </div>
         </div>
       )}
-
       <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
