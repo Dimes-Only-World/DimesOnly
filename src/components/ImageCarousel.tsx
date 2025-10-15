@@ -387,13 +387,13 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
             >
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
-              ) : selectedVideoUrl ? (
+                ) : selectedVideoUrl ? (
                 <video
                   key={selectedVideoUrl}
                   src={selectedVideoUrl}
-                  controls
                   autoPlay
                   loop
+                  muted
                   playsInline
                   className={`w-full h-full object-contain bg-black ${
                     isLandscape ? "rounded-xl" : "max-h-[70vh]"
@@ -410,23 +410,23 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
               )}
             </div>
 
-            <div className="absolute top-5 left-5 bg-black/75 px-5 py-2 rounded-full text-lg font-semibold text-yellow-300 uppercase tracking-wide shadow-lg">
+            <div className="absolute top-5 left-5 bg-black/75 px-4 py-1.5 rounded-full text-sm md:text-lg font-semibold text-yellow-300 uppercase tracking-wide shadow-lg">
               Rank #{selectedPerformer.rank}
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-6">
-              <p className="text-white text-2xl font-bold mb-4">@{selectedPerformer.username}</p>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-5 md:p-6">
+              <p className="text-white text-lg md:text-2xl font-bold mb-3">@{selectedPerformer.username}</p>
 
-              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+              <div className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-start">
                 <button
                   onClick={handleLoginClick}
-                  className="w-full md:w-1/2 bg-neutral-900/90 hover:bg-neutral-800 text-white text-lg font-semibold py-3 rounded-xl transition"
+                  className="flex-1 basis-[48%] min-w-[120px] bg-neutral-900/90 hover:bg-neutral-800 text-white text-sm md:text-base font-semibold py-2 md:py-3 rounded-lg md:rounded-xl transition"
                 >
                   {isAuthenticated ? "View Profile" : "Login"}
                 </button>
                 <button
                   onClick={handleRegisterClick}
-                  className="w-full md:w-1/2 bg-amber-600 hover:bg-amber-500 text-white text-lg font-semibold py-3 rounded-xl transition"
+                  className="flex-1 basis-[48%] min-w-[120px] bg-amber-600 hover:bg-amber-500 text-white text-sm md:text-base font-semibold py-2 md:py-3 rounded-lg md:rounded-xl transition"
                 >
                   Sign Up
                 </button>
