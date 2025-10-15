@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { Button } from "@/components/ui/button";
 
 interface RankedUser {
   id: string;
@@ -18,6 +19,7 @@ interface RankedUser {
 const AdminRankingTab: React.FC = () => {
   const [rankedUsers, setRankedUsers] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isResetting, setIsResetting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -94,6 +96,44 @@ const AdminRankingTab: React.FC = () => {
     }
   };
 
+    const handleResetRankings = async () => {
+    if (isResetting) return;
+
+    const confirmed = window.confirm(
+      "Reset all ranking points for the current year? This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsResetting(true);
+      const currentYear = new Date().getFullYear();
+
+      const { error } = await supabase
+        .from("ratings")
+        .delete()
+        .eq("year", currentYear);
+
+      if (error) throw error;
+
+      toast({
+        title: "Rankings reset",
+        description: `All ranking points for ${currentYear} have been cleared.`,
+      });
+
+      setLoading(true);
+      await fetchRankings();
+    } catch (error) {
+      console.error("[AdminRankingTab] reset error:", error);
+      toast({
+        title: "Reset failed",
+        description: "Could not reset rankings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -106,11 +146,20 @@ const AdminRankingTab: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>User Rankings - Top 50 Strippers & Exotic Dancers</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Ranked by total score (current year)
-        </p>
+      <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <CardTitle>User Rankings - Top 50 Strippers & Exotic Dancers</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Ranked by total score (current year)
+          </p>
+        </div>
+        <Button
+          variant="destructive"
+          onClick={handleResetRankings}
+          disabled={isResetting || loading}
+        >
+          {isResetting ? "Resetting..." : "Reset Rankings"}
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-3 max-h-96 overflow-y-auto">
