@@ -275,12 +275,17 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
               </Button>
              </div>
 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+{/* WhatsApp */}
   <Button
-    onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank")}
+    onClick={() =>
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank")
+    }
     className="bg-green-500 hover:bg-green-600 text-white"
   >
     WhatsApp
   </Button>
+
+  {/* Telegram */}
   <Button
     onClick={() =>
       window.open(
@@ -292,6 +297,8 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
   >
     Telegram
   </Button>
+
+  {/* X (Twitter) */}
   <Button
     onClick={() =>
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, "_blank")
@@ -300,8 +307,12 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
   >
     X
   </Button>
+
+  {/* Email */}
   <Button
-    onClick={() => window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`, "_blank")}
+    onClick={() =>
+      window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`, "_blank")
+    }
     className="bg-red-500 hover:bg-red-600 text-white"
   >
     Email
