@@ -336,16 +336,16 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
       <div className="text-center mb-8">
         <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 uppercase tracking-wide">
-          Current Top 20 Ranked
+          Current Top 20 Ranked Below
         </h2>
         <p className="text-lg md:text-2xl font-semibold leading-relaxed text-white">
           <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
-            $10,000 Every 3 Months
+            Win $10,000 At App Launch
           </span>{" "}<br />
           Given to The #1 Top Rank When App is Released.
           <br />
-          <span className="text-white">Rank #2 - #20 Get Money as Well</span><br />
-          <span className="text-white">Reset Every 3 Months After Launch</span>
+          <span className="text-white">Rank #2 - #20 Win Money as Well</span><br />
+          <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">Reset Every 3 Months After Launch</span>{" "}
         </p>
         <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full mt-4" />
       </div>
