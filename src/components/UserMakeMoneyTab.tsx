@@ -51,16 +51,20 @@ const UserMakeMoneyTab: React.FC = () => {
   // 💬 Share message
   const shareMessage = useMemo(
     () =>
-      `Load up your sexiest 3 videos and pics to get approved. If you get approved you will get an email. I will text you on the platform from now on until the app is released.
+      `Everyone who joins before the app is released will be compensated up to $10,000 to $22,500 a month or more for life just for joining early. There is more money than that to be made on your own. This will be historic.
 
-Everyone who joins before the app is released will be compensated up to $10,000 to $22,500 a month for life. There is more money than that to be made own your own. This will be historic. If you know any ladies or males that want to make money, send them this message and they can get paid to.
-
-Set up your account and see if you get approved.
+Strippers and Exotic Females Must Be Approved
+Load up your sexiest 3 videos and pics to get approved. If you get approved, you will get an email. I will text you on the platform from now on until the app is released.
+Set up your account and see if you get approved. 
 Add Nude content = $74,000 a year
 Add x-rated content = $114,000 a year
+Refer Baddies = Overrides $$$$ for Life
+
+Males and normal females are approved automatically.
 Refer a baddie = Overrides $$$$ For Life
 
-Any questions? If not click the link now before positions are gone.
+This is only a peek at the money you can make.
+Any questions? If not, click the link now before positions are gone.
 https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
