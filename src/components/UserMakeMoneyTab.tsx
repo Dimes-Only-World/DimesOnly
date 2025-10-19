@@ -51,19 +51,16 @@ const UserMakeMoneyTab: React.FC = () => {
   // 💬 Share message
   const shareMessage = useMemo(
     () =>
-      `STRIPPERS & EXOTIC FEMALES
-An app is coming where you could make up to and over $300,000 a year just by posting your pictures and videos.
+      `Load up your sexiest 3 videos and pics to get approved. If you get approved you will get an email. I will text you on the platform from now on until the app is released.
 
-The company is looking for the baddest to join.
+Everyone who joins before the app is released will up to $10,000 to $22,500 a month for life. There is more money than that to be made own your own. This will be historic. If you know any ladies or males that want to make money, send them this message and they can get paid to.
 
-There’s a quick approval process — and based on how you look, I’m confident you’ll get approved. Spots are extremely limited, and those who sign up before the app drops will lock in exclusive benefits and higher compensation that won’t be available later.
+Set up your account and see if you get approved.
+Add Nude content = $74,000 a year
+Add x-rated content = $114,000 a year
+Refer a baddie = Overrides $$$$ For Life
 
-Be one of the first to get in before the commercial goes live next week and spots get sucked up.
-
-If you are not interested, forward this message to someone you know that needs money.
-
-If you want in, click my link below, and start now.
-It's free to join so you have nothing to lose. Any questions?
+Any questions? If not click the link now before positions are gone.
 https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
