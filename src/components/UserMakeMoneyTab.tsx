@@ -157,6 +157,33 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
   }, [filterReferrals]);
 
   // ✅ Share handlers
+  const handleWhatsAppShare = useCallback(() => {
+  navigator.clipboard.writeText(shareMessage);
+  window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank");
+  toast({ title: "Copied! Paste it on WhatsApp." });
+}, [shareMessage, toast]);
+
+const handleTelegramShare = useCallback(() => {
+  navigator.clipboard.writeText(shareMessage);
+  window.open(
+    `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
+    "_blank"
+  );
+  toast({ title: "Copied! Paste it on Telegram." });
+}, [shareMessage, shareLink, toast]);
+
+const handleXShare = useCallback(() => {
+  navigator.clipboard.writeText(shareMessage);
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, "_blank");
+  toast({ title: "Copied! Paste it on X." });
+}, [shareMessage, toast]);
+
+const handleEmailShare = useCallback(() => {
+  navigator.clipboard.writeText(shareMessage);
+  window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`, "_blank");
+  toast({ title: "Copied! Paste it in Email." });
+}, [shareMessage, toast]);
+  
   const handleCopyMessage = useCallback(() => {
     navigator.clipboard.writeText(shareMessage);
     toast({ title: "Message copied to clipboard!" });
@@ -275,46 +302,19 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
               </Button>
              </div>
 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-{/* WhatsApp */}
-  <Button
-    onClick={() =>
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank")
-    }
-    className="bg-green-500 hover:bg-green-600 text-white"
-  >
+<Button onClick={handleWhatsAppShare} className="bg-green-500 hover:bg-green-600 text-white">
     WhatsApp
   </Button>
 
-  {/* Telegram */}
-  <Button
-    onClick={() =>
-      window.open(
-        `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
-        "_blank"
-      )
-    }
-    className="bg-blue-400 hover:bg-blue-500 text-white"
-  >
+  <Button onClick={handleTelegramShare} className="bg-blue-400 hover:bg-blue-500 text-white">
     Telegram
   </Button>
 
-  {/* X (Twitter) */}
-  <Button
-    onClick={() =>
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, "_blank")
-    }
-    className="bg-sky-600 hover:bg-sky-700 text-white"
-  >
+  <Button onClick={handleXShare} className="bg-sky-600 hover:bg-sky-700 text-white">
     X
   </Button>
 
-  {/* Email */}
-  <Button
-    onClick={() =>
-      window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`, "_blank")
-    }
-    className="bg-red-500 hover:bg-red-600 text-white"
-  >
+  <Button onClick={handleEmailShare} className="bg-red-500 hover:bg-red-600 text-white">
     Email
   </Button>
 </div>
