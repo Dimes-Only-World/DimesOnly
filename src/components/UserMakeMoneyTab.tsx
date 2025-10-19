@@ -254,7 +254,7 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
             <div className="p-3 bg-gray-50 rounded border">
               <p className="text-sm font-mono break-all">{shareLink}</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-8 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <Button onClick={handleCopyMessage} variant="outline">
                 <Copy className="w-4 h-4 mr-2" /> Copy
               </Button>
@@ -273,46 +273,40 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
               <Button onClick={handleContactsShare} variant="outline">
                 <Phone className="w-4 h-4 mr-2" /> Contacts
               </Button>
-              {/* WhatsApp */}
+             </div>
+<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
   <Button
-    as="a"
-    href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`}
-    target="_blank"
+    onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank")}
     className="bg-green-500 hover:bg-green-600 text-white"
   >
     WhatsApp
   </Button>
-
-  {/* Telegram */}
   <Button
-    as="a"
-    href={`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`}
-    target="_blank"
+    onClick={() =>
+      window.open(
+        `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
+        "_blank"
+      )
+    }
     className="bg-blue-400 hover:bg-blue-500 text-white"
   >
     Telegram
   </Button>
-
-  {/* X (Twitter) */}
   <Button
-    as="a"
-    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`}
-    target="_blank"
+    onClick={() =>
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, "_blank")
+    }
     className="bg-sky-600 hover:bg-sky-700 text-white"
   >
     X
   </Button>
-
-  {/* Email */}
   <Button
-    as="a"
-    href={`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`}
-    target="_blank"
+    onClick={() => window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`, "_blank")}
     className="bg-red-500 hover:bg-red-600 text-white"
   >
     Email
   </Button>
-            </div>
+</div>
           </div>
         </CardContent>
       </Card>
