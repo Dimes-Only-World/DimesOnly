@@ -58,10 +58,10 @@ Load up your sexiest 3 videos and pics to get approved. If you get approved, you
 Set up your account and see if you get approved. 
 Add Nude content = $74,000 a year
 Add x-rated content = $114,000 a year
-Refer Baddies = Overrides $$$$ for Life
+Refer Dimes & People = Overrides $$$$ for Life
 
 Males and normal females are approved automatically.
-Refer a baddie = Overrides $$$$ For Life
+Refer Dimes & People = Overrides $$$$ For Life
 
 This is only a peek at the money you can make.
 Any questions? If not, click the link now before positions are gone.
