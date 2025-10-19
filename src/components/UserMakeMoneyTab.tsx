@@ -53,7 +53,7 @@ const UserMakeMoneyTab: React.FC = () => {
     () =>
       `Load up your sexiest 3 videos and pics to get approved. If you get approved you will get an email. I will text you on the platform from now on until the app is released.
 
-Everyone who joins before the app is released will up to $10,000 to $22,500 a month for life. There is more money than that to be made own your own. This will be historic. If you know any ladies or males that want to make money, send them this message and they can get paid to.
+Everyone who joins before the app is released will be compensated up to $10,000 to $22,500 a month for life. There is more money than that to be made own your own. This will be historic. If you know any ladies or males that want to make money, send them this message and they can get paid to.
 
 Set up your account and see if you get approved.
 Add Nude content = $74,000 a year
