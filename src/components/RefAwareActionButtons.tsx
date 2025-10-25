@@ -14,12 +14,14 @@ const RefAwareActionButtons: React.FC<RefAwareActionButtonsProps> = ({ className
 
   const handleStartFree = () => {
     const ref = getRefParam();
-    window.open(`https://dimesonly.world/register/?ref=${encodeURIComponent(ref)}`, '_blank');
+    // Use local routes instead of external URLs for development
+    window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
   };
 
   const handleLogin = () => {
     const ref = getRefParam();
-    window.open(`https://dimesonly.world/login/?ref=${encodeURIComponent(ref)}`, '_blank');
+    // Use local routes instead of external URLs for development
+    window.location.href = `/login?ref=${encodeURIComponent(ref)}`;
   };
 
   return (

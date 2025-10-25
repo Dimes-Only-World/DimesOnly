@@ -46,41 +46,29 @@ const Login: React.FC = () => {
     try {
       let email = usernameOrEmail.trim();
       let userRecord = null;
+      const identifier = usernameOrEmail.trim();
 
-      if (!isEmail(usernameOrEmail)) {
+      // Detect if user entered username or email
+      if (!identifier.includes("@")) {
+        // User entered username - query users table to get email
+        console.log('Username login detected, looking up email for:', identifier);
         const { data: userData, error: userError } = await supabaseAdmin
           .from("users")
-          .select("email, password_hash, *")
-          .eq("username", usernameOrEmail.trim())
+          .select("*")
+          .eq("username", identifier)
           .single();
 
         if (userError || !userData) {
+          console.error('Username not found:', userError);
           throw new Error("Invalid username or password");
         }
-
-        email = userData.email;
+        
+        email = (userData as any).email;
         userRecord = userData;
-
-        const passwordMatch = await bcrypt.compare(
-          password,
-          userData.password_hash
-        );
-        if (!passwordMatch) {
-          throw new Error("Invalid username or password");
-        }
-      }
-
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: email,
-          password: password,
-        });
-
-      if (authError) {
-        throw new Error("Invalid credentials");
-      }
-
-      if (!userRecord) {
+        console.log('Found user email for username:', email);
+      } else {
+        // User entered email - find user by email
+        console.log('Email login detected:', identifier);
         const { data: userData, error: userError } = await supabaseAdmin
           .from("users")
           .select("*")
@@ -88,10 +76,62 @@ const Login: React.FC = () => {
           .single();
 
         if (userError || !userData) {
-          throw new Error("User data not found");
+          console.error('Email not found:', userError);
+          throw new Error("Invalid email or password");
+        }
+        userRecord = userData;
+      }
+
+      // Use Supabase Auth for authentication
+      // This ensures full sync between Supabase Auth and custom users table
+      console.log('Attempting Supabase Auth login with email:', email);
+      
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (authError) {
+        console.error("Supabase Auth failed:", authError.message);
+        
+        // If Supabase Auth fails, the password might not be synced
+        // Verify password against custom users table first
+        const bcrypt = await import('bcryptjs');
+        const passwordMatch = await bcrypt.compare(password, (userRecord as any).password_hash);
+        
+        if (!passwordMatch) {
+          throw new Error("Invalid credentials");
         }
 
-        userRecord = userData;
+        console.log("Custom users table password is correct, syncing with Supabase Auth...");
+        
+        // Password is correct in custom table but not in Supabase Auth
+        // Create or update Supabase Auth user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+        });
+
+        if (signUpError && signUpError.message !== "User already registered") {
+          console.error("Failed to sync Supabase Auth user:", signUpError);
+          
+          // Try to sign in again in case user already exists
+          const { data: retryAuthData, error: retryAuthError } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+          });
+
+          if (retryAuthError) {
+            console.error("Authentication failed after sync attempt:", retryAuthError);
+            throw new Error("Authentication failed. Please reset your password.");
+          }
+          
+          console.log("✅ Authentication successful after retry");
+        } else {
+          console.log("✅ Supabase Auth user created/synced successfully");
+        }
+      } else {
+        console.log("✅ Supabase Auth login successful");
       }
 
       const user = {
@@ -119,11 +159,13 @@ const Login: React.FC = () => {
       };
 
       setUser(user);
-      localStorage.setItem(
-        "authToken",
-        authData.session?.access_token || "authenticated"
-      );
+
+      // Store auth token from Supabase Auth
+      if (authData?.session?.access_token) {
+        localStorage.setItem("authToken", authData.session.access_token);
+      }
       sessionStorage.setItem("currentUser", userRecord.username);
+      sessionStorage.setItem("userData", JSON.stringify(user));
 
       toast({
         title: "Login Successful!",

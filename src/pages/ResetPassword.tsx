@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,14 +37,104 @@ const ResetPassword: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      // First, update the password in Supabase Auth
+      const { error: authError } = await supabase.auth.updateUser({ password });
+      if (authError) throw authError;
+
+      // Get the current user's email to find the user record
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser?.email) {
+        throw new Error("User email not found");
+      }
+
+      // Import bcrypt for password hashing
+      const bcrypt = await import('bcryptjs');
+      
+      // Hash the new password for storage in our custom users table
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Update the password hash in our custom users table
+      // This is CRITICAL for username login to work after password reset
+      console.log('Syncing password for user:', authUser.email);
+      
+      try {
+        // Find the user in our custom users table
+        const { data: userData, error: fetchError } = await supabaseAdmin
+          .from('users')
+          .select('id, username, email, password_hash')
+          .eq('email', authUser.email)
+          .single();
+
+        if (fetchError || !userData) {
+          console.error('User not found in custom users table:', fetchError);
+          throw new Error('User profile not found. Please contact support.');
+        }
+
+        // Update the password hash in the custom users table
+        // This ensures username login works after password reset
+        const userId = (userData as any).id;
+        
+        // Update password hash using admin client
+        const { error: updateError } = await supabaseAdmin
+          .from('users')
+          // @ts-ignore - Bypassing TypeScript restrictions for password update
+          .update({ 
+            password_hash: hashedPassword,
+            hash_type: 'bcrypt',
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', authUser.email);
+
+        if (updateError) {
+          console.error('Failed to update custom users table:', updateError);
+          // Try again with ID instead of email
+          const { error: retryError } = await supabaseAdmin
+            .from('users')
+            // @ts-ignore - Bypassing TypeScript restrictions for password update
+            .update({ 
+              password_hash: hashedPassword,
+              hash_type: 'bcrypt',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+          
+          if (retryError) {
+            console.error('Retry failed:', retryError);
+            throw new Error('Failed to update password in database. Please try again.');
+          }
+        }
+
+        console.log('✅ Password successfully synced for both Supabase Auth and custom users table');
+        console.log('✅ User can now login with both username and email');
+      } catch (updateErr: any) {
+        console.error('Critical error syncing passwords:', updateErr);
+        throw new Error(updateErr?.message || 'Failed to update password. Please try again.');
+      }
+
+      // Also update the Supabase Auth password to keep both systems in sync
+      const { error: authUpdateError } = await supabase.auth.updateUser({ 
+        password: password 
+      });
+
+      if (authUpdateError) {
+        console.error('Error updating Supabase Auth password:', authUpdateError);
+      }
+
 
       toast({ title: "Password updated", description: "You can now log in with your new password" });
-      // Optionally redirect to login
+      
+      // Sign out the user to force re-authentication with new password
+      await supabase.auth.signOut();
+      
+      // Redirect to login
       window.location.replace("/login");
     } catch (err) {
-      toast({ title: "Failed to update password", description: "The recovery link may be expired. Try sending a new reset email.", variant: "destructive" });
+      console.error('Password reset error:', err);
+      toast({ 
+        title: "Failed to update password", 
+        description: "The recovery link may be expired. Try sending a new reset email.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
     }

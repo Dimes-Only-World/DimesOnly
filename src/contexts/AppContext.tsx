@@ -79,27 +79,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (userData) {
         console.log("User data fetched from database:", userData);
         const user: User = {
-          id: String(userData.id),
-          username: String(userData.username),
-          email: String(userData.email),
-          firstName: String(userData.first_name || ""),
-          lastName: String(userData.last_name || ""),
-          userType: String(userData.user_type || ""),
-          profilePhoto: String(userData.profile_photo || ""),
-          bannerPhoto: String(userData.banner_photo || ""),
-          mobileNumber: String(userData.mobile_number || ""),
-          address: String(userData.address || ""),
-          city: String(userData.city || ""),
-          state: String(userData.state || ""),
-          zip: String(userData.zip || ""),
-          gender: String(userData.gender || ""),
-          membershipType: String(userData.membership_type || ""),
-          tipsEarned: Number(userData.tips_earned || 0),
-          referralFees: Number(userData.referral_fees || 0),
-          overrides: Number(userData.overrides || 0),
-          weeklyHours: Number(userData.weekly_hours || 0),
-          isRanked: Boolean(userData.is_ranked || false),
-          rankNumber: Number(userData.rank_number || 0),
+          id: String((userData as any).id),
+          username: String((userData as any).username),
+          email: String((userData as any).email),
+          firstName: String((userData as any).first_name || ""),
+          lastName: String((userData as any).last_name || ""),
+          userType: String((userData as any).user_type || ""),
+          profilePhoto: String((userData as any).profile_photo || ""),
+          bannerPhoto: String((userData as any).banner_photo || ""),
+          mobileNumber: String((userData as any).mobile_number || ""),
+          address: String((userData as any).address || ""),
+          city: String((userData as any).city || ""),
+          state: String((userData as any).state || ""),
+          zip: String((userData as any).zip || ""),
+          gender: String((userData as any).gender || ""),
+          membershipType: String((userData as any).membership_type || ""),
+          tipsEarned: Number((userData as any).tips_earned || 0),
+          referralFees: Number((userData as any).referral_fees || 0),
+          overrides: Number((userData as any).overrides || 0),
+          weeklyHours: Number((userData as any).weekly_hours || 0),
+          isRanked: Boolean((userData as any).is_ranked || false),
+          rankNumber: Number((userData as any).rank_number || 0),
         };
         return user;
       }
@@ -131,6 +131,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             return;
           } catch (e) {
             console.error("Error parsing saved user data:", e);
+          }
+        }
+
+        // Check for custom authentication token
+        if (savedToken && savedToken.startsWith("authenticated_")) {
+          const userId = savedToken.replace("authenticated_", "");
+          console.log("Found custom auth token for user:", userId);
+          const userData = await fetchUserFromDatabase(userId);
+          if (userData) {
+            setUser(userData);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Check for Supabase Auth token
+        if (savedToken && !savedToken.startsWith("authenticated_")) {
+          console.log("Found Supabase Auth token, checking session...");
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (session?.user) {
+            console.log("Found valid Supabase session:", session.user.id);
+            const userData = await fetchUserFromDatabase(session.user.id);
+            if (userData) {
+              setUser(userData);
+              setLoading(false);
+              return;
+            }
           }
         }
 

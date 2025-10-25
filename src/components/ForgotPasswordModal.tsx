@@ -24,21 +24,40 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsLoading(true);
 
     try {
+      // First, check if the email exists in our users table
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("email, username")
+        .eq("email", email)
+        .single();
+
+      if (userError || !userData) {
+        toast({
+          title: "Email Not Found",
+          description: "No account found with this email address. Please check your email or create a new account.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const redirectTo = `${window.location.origin}/reset-password`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
+        emailTemplate: 'password-reset', // Use custom template
       });
+      
       if (error) throw error;
 
       setSuccess(true);
       toast({
         title: "Password Reset Email Sent",
-        description: "Check your inbox for the reset link.",
+        description: `Check your inbox (and spam folder) for the reset link. If you don't see it within 5 minutes, please check your spam folder.`,
       });
     } catch (error) {
+      console.error("Password reset error:", error);
       toast({
         title: "Error",
-        description: "Failed to send reset email. Please try again.",
+        description: "Failed to send reset email. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
