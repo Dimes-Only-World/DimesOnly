@@ -333,22 +333,48 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   };
 
   return (
-    <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-8 ${className}`}>
-      <div className="text-center mb-8">
-        <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 uppercase tracking-wide">
-          Current Top 20 Ranked Below
-        </h2>
-        <p className="text-lg md:text-2xl font-semibold leading-relaxed text-white">
-          <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
-            Win $10,000 At App Launch
-          </span>{" "}<br />
-          Given to The #1 Top Rank When App is Released.
-          <br />
-          <span className="text-white">Rank #2 - #20 Win Money as Well</span><br />
-          <span className="text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">Reset Every 3 Months After Launch</span>{" "}
-        </p>
-        <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full mt-4" />
-      </div>
+    <div className={`w-full bg-gradient-to-b  from-black via-gray-900 to-black py-10 ${className}`}>
+<div className="relative flex flex-col items-center justify-center bg-white text-black rounded-[50px] px-10 py-16 mx-10 my-10 md:px-16 md:py-20 shadow-2xl overflow-hidden h-[550px] md:h-[600px]">
+
+  {/* Background silhouette image */}
+  <img
+    src="/exo.png"
+    alt="silhouette"
+    className="absolute inset-0 w-full h-full object-cover opacity-15"
+  />
+
+  {/* Money illustration overlay */}
+  <img
+    src="/money.png"
+    alt="money"
+    className="absolute bottom-0 w-[85%] max-w-[600px] opacity-30"
+  />
+
+  {/* Content */}
+  <div className="relative z-10 text-center">
+    <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
+      Win Upto{" "}
+      <span className="bg-gradient-to-r from-purple-600 to-indigo-700 bg-clip-text text-transparent">
+        $10,000
+      </span>
+    </h2>
+
+    <p className="text-lg md:text-xl font-semibold text-gray-700 mb-6">
+      At App Launch
+    </p>
+
+    <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
+      Given To The <span className="text-green-600">#1 Top Rank</span> When App Is Released. <br />
+      <span className="text-yellow-500">Rank #2 - #20</span> Win Money As Well
+    </p>
+
+    <button className="mt-8 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
+      Reset Every 3 Months After Launch
+    </button>
+  </div>
+</div>
+
+
 
       <div className="hidden md:block overflow-hidden">
         {renderCarousel(performers, desktopScrollRef, "flex-shrink-0 w-72 h-[28rem]", {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { motion } from "framer-motion";
+import { supabase } from "../lib/supabase";
 
 interface PositionCounterProps {
   className?: string;
@@ -12,73 +13,59 @@ interface CounterData {
   remaining: number;
 }
 
-const PositionCounter: React.FC<PositionCounterProps> = ({
-  className = "",
-}) => {
+const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => {
   const [diamondPlusSpotsLeft, setDiamondPlusSpotsLeft] = useState(1000);
   const [silverPlusData, setSilverPlusData] = useState<CounterData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initial fetch
     fetchCounts();
 
-    // Set up real-time subscription for Silver Plus counter
     const subscription = supabase
-      .channel('silver_plus_updates')
+      .channel("silver_plus_updates")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'users',
-          filter: 'silver_plus_active=eq.true'
+          event: "*",
+          schema: "public",
+          table: "users",
+          filter: "silver_plus_active=eq.true",
         },
-        () => {
-          // When a user's silver_plus_active changes, refetch the counter
-          fetchSilverPlusCounter();
-        }
+        () => fetchSilverPlusCounter()
       )
       .subscribe();
 
-    // Clean up subscription on unmount
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    return () => supabase.removeChannel(subscription);
   }, []);
 
   const fetchCounts = async () => {
-    await Promise.all([
-      fetchDiamondPlusCount(),
-      fetchSilverPlusCounter()
-    ]);
+    await Promise.all([fetchDiamondPlusCount(), fetchSilverPlusCounter()]);
     setLoading(false);
   };
 
   const fetchDiamondPlusCount = async () => {
     try {
-      // Count active diamond plus users directly (client wants 1000 total cap)
-      const { count: diamondPlusCount, error: countError } = await supabase
+      const { count, error } = await supabase
         .from("users")
         .select("id", { count: "exact", head: true })
         .eq("diamond_plus_active", true)
         .in("user_type", ["exotic", "stripper"]);
 
-      if (!countError && diamondPlusCount !== null) {
-        setDiamondPlusSpotsLeft(Math.max(0, 1000 - diamondPlusCount)); // Use 1000 cap as client requested
-      }
+      if (!error && count !== null)
+        setDiamondPlusSpotsLeft(Math.max(0, 1000 - count));
     } catch (error) {
-      console.error("Error fetching Diamond Plus count:", error);
+      console.error("Diamond Plus count error:", error);
     }
   };
 
   const fetchSilverPlusCounter = async () => {
     try {
-      const { data, error } = await supabase
-        .rpc('check_silver_plus_availability');
+      const res: any = await supabase.rpc("check_silver_plus_availability");
+      const data = res.data;
+      const error = res.error;
 
       if (error) {
-        console.error("Error fetching Silver Plus counter:", error);
+        console.error("Silver Plus counter error:", error);
         return;
       }
 
@@ -88,50 +75,113 @@ const PositionCounter: React.FC<PositionCounterProps> = ({
           current_count: counterInfo.current_count,
           max_count: counterInfo.max_count,
           available: counterInfo.available,
-          remaining: counterInfo.max_count - counterInfo.current_count
+          remaining: counterInfo.max_count - counterInfo.current_count,
         });
       }
     } catch (error) {
-      console.error("Error fetching Silver Plus counter:", error);
+      console.error("Silver Plus counter error:", error);
     }
   };
 
+  const fadeIn = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+  };
+
   return (
-    <div className={`text-center py-8 bg-black ${className}`}>
-      <div className="space-y-6">
-        <h3 className="text-white text-xl md:text-2xl font-bold">
-          INCENTIVE POSITIONS AVAILABLE NOW
-        </h3>
-        <h4 className="text-white text-lg md:text-xl font-bold">
-          LEARN MORE INSIDE
-        </h4>
+    <div className={`py-16 px-5 bg-black ${className}`}>
+      <div className="max-w-6xl mx-auto px-6 my-10">
+        <div className="grid gap-12 grid-cols-1 md:grid-cols-2">
+          {/* 💎 Diamond Plus Card */}
+          <motion.div
+            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
+            initial="hidden"
+            animate="show"
+            variants={fadeIn}
+            whileHover={{ scale: 1.02 }}
+          >
+            {/* Background Image */}
+            <div className="absolute inset-0">
+              <img
+                src="/nude.png"
+                alt="diamond plus"
+                className="w-full h-full object-cover object-center"
+                loading="lazy"
+                onError={(e) => (e.currentTarget.src = "/assets/placeholder.svg")}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+            </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-white text-base md:text-lg font-bold">
-              EXOTIC FEMALES AND STRIPPERS
-            </p>
-            <p className="text-white text-base md:text-lg font-bold">
-              DIAMOND PLUS MEMBERSHIPS
-            </p>
-            <p className="text-white text-base md:text-lg font-bold">
-              LIFETIME POSITIONS LEFT: {diamondPlusSpotsLeft}
-            </p>
-          </div>
+            {/* Content */}
+            <div className="relative z-10 p-8 text-left">
+              <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
+                Exotic Females & Strippers
+              </p>
+              <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
+                Diamond Plus Memberships
+              </h3>
+              <div className="mt-8 flex items-baseline gap-3">
+                <span className="text-gray-400 uppercase tracking-wide text-sm">
+                  Lifetime Positions Left:
+                </span>
+                <motion.span
+                  key={diamondPlusSpotsLeft}
+                  className="text-5xl font-extrabold text-indigo-300"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {diamondPlusSpotsLeft}
+                </motion.span>
+              </div>
+            </div>
+          </motion.div>
 
-          <div className="space-y-1">
-            <p className="text-white text-base md:text-lg font-bold">
-              NORMAL FEMALES AND MALE
-            </p>
-            <p className="text-white text-base md:text-lg font-bold">
-              SILVER PLUS MEMBERSHIP
-            </p>
-            <p className="text-white text-base md:text-lg font-bold">
-              LIFETIME POSITIONS LEFT: {loading ? '...' : (silverPlusData?.remaining ?? 'N/A')}
-            </p>
-          </div>
+          {/* 🥈 Silver Plus Card */}
+          <motion.div
+            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
+            initial="hidden"
+            animate="show"
+            variants={fadeIn}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="absolute inset-0">
+              <img
+                src="/exotic.jpg"
+                alt="silver plus"
+                className="w-full h-full object-cover object-center"
+                loading="lazy"
+                onError={(e) => (e.currentTarget.src = "/assets/placeholder.svg")}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+            </div>
+
+            <div className="relative z-10 p-8 text-left">
+              <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
+                Normal Females & Males
+              </p>
+              <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
+                Silver Plus Memberships
+              </h3>
+              <div className="mt-8 flex items-baseline gap-3">
+                <span className="text-gray-400 uppercase tracking-wide text-sm">
+                  Lifetime Positions Left:
+                </span>
+                <motion.span
+                  key={silverPlusData?.remaining}
+                  className="text-5xl font-extrabold text-indigo-300"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {loading ? "..." : silverPlusData?.remaining ?? "N/A"}
+                </motion.span>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
+      <img src="/steps.png" alt="" />
     </div>
   );
 };
