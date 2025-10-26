@@ -2,6 +2,11 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 
+import nudeImg from "@/assets/nude.png";
+import exoticImg from "@/assets/exotic.jpg";
+import stepsImg from "@/assets/steps.png";
+
+
 interface PositionCounterProps {
   className?: string;
 }
@@ -103,7 +108,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             {/* Background Image */}
             <div className="absolute inset-0">
               <img
-                src="/nude.png"
+                src={nudeImg}
                 alt="diamond plus"
                 className="w-full h-full object-cover object-center"
                 loading="lazy"
@@ -147,7 +152,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
           >
             <div className="absolute inset-0">
               <img
-                src="/exotic.jpg"
+                src={exoticImg}
                 alt="silver plus"
                 className="w-full h-full object-cover object-center"
                 loading="lazy"
@@ -181,7 +186,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
           </motion.div>
         </div>
       </div>
-      <img src="/steps.png" alt="" />
+      <img src={stepsImg} alt="" />
     </div>
   );
 };
