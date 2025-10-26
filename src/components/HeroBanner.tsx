@@ -1,5 +1,7 @@
 import React from "react";
 import { normalizeRefParam } from "@/lib/utils";
+import hero from "@/assets/hero.png";
+
 
 const HeroBanner: React.FC = () => {
   const phoneSrc =
@@ -70,7 +72,7 @@ const HeroBanner: React.FC = () => {
 
       {/* Clickable Hero Image */}
       <div className="cursor-pointer" onClick={handleClick}>
-        <img src="/hero.png" alt="Hero" className="w-full h-auto" />
+        <img src={hero} alt="Hero" className="w-full h-auto" />
       </div>
     </div>
   );

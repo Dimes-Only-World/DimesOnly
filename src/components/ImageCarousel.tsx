@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
+import exo from "@/assets/exo.png";
+import money from "@/assets/money.png";
+
 
 interface RankedPerformer {
   id: string;
@@ -338,14 +341,14 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
 
   {/* Background silhouette image */}
   <img
-    src="/exo.png"
+    src={exo}
     alt="silhouette"
     className="absolute inset-0 w-full h-full object-cover opacity-15"
   />
 
   {/* Money illustration overlay */}
   <img
-    src="/money.png"
+    src={money}
     alt="money"
     className="absolute bottom-0 w-[85%] max-w-[600px] opacity-30"
   />
