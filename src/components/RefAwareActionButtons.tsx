@@ -48,7 +48,7 @@ const RefAwareActionButtons: React.FC<RefAwareActionButtonsProps> = ({ className
         </div>
         
         <p className="text-gray-300 mt-6 text-lg">
-          Join thousands of dancers and exotic performers earning money online
+          Join thousands of dancers and exotic females & earn money online!
         </p>
       </div>
     </div>
