@@ -4,8 +4,11 @@ import { supabase } from "../lib/supabase";
 
 import nudeImg from "@/assets/nude.png";
 import exoticImg from "@/assets/exotic.jpg";
-import stepsImg from "@/assets/steps.png";
 
+// Replace with your own safe, normal placeholder images later
+import step1Img from "@/assets/step1.png";
+import step2Img from "@/assets/step2.png";
+import step3Img from "@/assets/step3.png";
 
 interface PositionCounterProps {
   className?: string;
@@ -93,9 +96,36 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
   };
 
+  // ✅ Steps content (injected version)
+const steps = [
+  {
+    id: 1,
+    title: "Sign Up For Free",
+    text: "Sign up before guaranteed positions are gone",
+    image: step1Img,
+  },
+  {
+    id: 2,
+    title: "Fill Out Registration Form",
+    text: "Exotics: Upload creative content to get approved. Everyone Else: Earn up to $10,000 to $22,500 a month GUARANTEED.",
+    image: step2Img,
+  },
+  {
+    id: 3,
+    title: "Transfer Your Followers",
+    text: "Want more money? Add followers = $$$$",
+    image: step3Img,
+  },
+];
+
+
   return (
     <div className={`py-16 px-5 bg-black ${className}`}>
+      {/* === MEMBERSHIP CARDS === */}
       <div className="max-w-6xl mx-auto px-6 my-10">
+        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
+          Incentive positions available now
+        </h2>
         <div className="grid gap-12 grid-cols-1 md:grid-cols-2">
           {/* 💎 Diamond Plus Card */}
           <motion.div
@@ -105,7 +135,6 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             variants={fadeIn}
             whileHover={{ scale: 1.02 }}
           >
-            {/* Background Image */}
             <div className="absolute inset-0">
               <img
                 src={nudeImg}
@@ -117,7 +146,6 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
             </div>
 
-            {/* Content */}
             <div className="relative z-10 p-8 text-left">
               <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
                 Exotic Females & Strippers
@@ -186,7 +214,42 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
           </motion.div>
         </div>
       </div>
-      <img src={stepsImg} alt="" />
+
+      {/* === 3 EASY STEPS SECTION === */}
+      <div className="max-w-6xl mx-auto px-6 mt-20">
+        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
+          Get Started In 3 Easy Steps
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {steps.map((step) => (
+            <motion.div
+              key={step.id}
+              className="relative bg-gradient-to-b from-indigo-700 to-purple-800 rounded-3xl text-center p-6 md:p-8 shadow-lg overflow-hidden flex flex-col items-center"
+              initial="hidden"
+              animate="show"
+              variants={fadeIn}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="mb-3 ">
+                <span className="bg-white/10 text-md px-6 py-2 rounded-full font-semibold">
+                  Step {step.id}
+                </span>
+              </div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 text-white">
+                {step.title}
+              </h3>
+              <p className="text-sm text-gray-200 mb-6 max-w-xs">
+                {step.text}
+              </p>
+              <img
+                src={step.image}
+                alt={`Step ${step.id}`}
+                className="w-full max-w-[250px] h-auto object-contain drop-shadow-lg"
+              />
+            </motion.div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

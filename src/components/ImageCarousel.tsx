@@ -354,27 +354,34 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
   />
 
   {/* Content */}
-  <div className="relative z-10 text-center">
-    <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
-      Win Upto{" "}
-      <span className="bg-gradient-to-r from-purple-600 to-indigo-700 bg-clip-text text-transparent">
-        $10,000
-      </span>
-    </h2>
+<div className="relative z-10 text-center">
 
-    <p className="text-lg md:text-xl font-semibold text-gray-700 mb-6">
-      At App Launch
-    </p>
 
-    <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
-      Given To The <span className="text-green-600">#1 Top Rank</span> When App Is Released. <br />
-      <span className="text-yellow-500">Rank #2 - #20</span> Win Money As Well
-    </p>
+  <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
+    Win{" "}
+    <span className="bg-gradient-to-r from-purple-600 to-indigo-700 bg-clip-text text-transparent">
+      $10,000
+    </span>
+  </h2>
 
-    <button className="mt-8 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
-      Reset Every 3 Months After Launch
-    </button>
-  </div>
+  <p className="text-lg md:text-xl font-semibold text-gray-700 mb-4">
+    Winner Announced at App Launch
+  </p>
+
+  <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
+    <span className="text-green-600">#1 Top Ranked</span> = $10,000 <br />
+    <span className="text-yellow-500">Rank #2 - #20</span> Win Money As Well
+  </p>
+
+  <button className="mt-8 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
+    Winners Every 3 Months After Launch
+  </button>
+
+  <p className="mt-6 text-base md:text-lg font-semibold text-indigo-400 uppercase tracking-wide">
+    SEE WHO’S CURRENTLY ON TOP BELOW!
+  </p>
+</div>
+
 </div>
 
 
