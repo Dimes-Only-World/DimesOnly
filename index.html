@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#000000" />
+    <title>Dimes Only Network</title>
+    <meta
+      name="description"
+      content="A community platform for dancers and enthusiasts, facilitating profiles, tips, and events."
+    />
+    <meta name="author" content="Famous.ai" />
+    <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
+    <!-- Performance hints for hero videos hosted on S3 -->
+    <link rel="preconnect" href="https://dimesonlyworld.s3.us-east-2.amazonaws.com" crossorigin />
+    <link rel="dns-prefetch" href="//dimesonlyworld.s3.us-east-2.amazonaws.com" />
+
+    <meta property="og:title" content="Dimes Only Network" />
+    <meta
+      property="og:description"
+      content="A community platform for dancers and enthusiasts, facilitating profiles, tips, and events."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.dimesonly.world/" />
+    <meta property="og:image" content="https://www.dimesonly.world/assets/dimelot.jpg" />
+    <meta property="og:image:secure_url" content="https://www.dimesonly.world/assets/dimelot.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content="Dimes Only World jackpot lottery logo" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Famous_AI" />
+    <meta name="twitter:image" content="https://www.dimesonly.world/assets/dimelot.jpg" />
+    <meta name="twitter:image:alt" content="Dimes Only World jackpot lottery logo" />
+
+    <style>
+      /* Prevent zoom on mobile */
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
+
+      /* Ensure full viewport height on mobile */
+      html,
+      body {
+        height: 100%;
+        height: 100vh;
+        height: -webkit-fill-available;
+        overflow-x: hidden;
+      }
+
+      #root {
+        height: 100%;
+        height: 100vh;
+        height: -webkit-fill-available;
+      }
+    </style>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z6XX851W8E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-Z6XX851W8E');
+</script>
+    <script type="module" crossorigin src="/assets/index-PP7ZLZdA.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BBrycFgr.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script>
+      // Hide URL bar on mobile devices
+      function hideAddressBar() {
+        if (window.innerHeight < window.innerWidth) return; // Skip on landscape
+
+        setTimeout(function () {
+          if (window.scrollY === 0) {
+            window.scrollTo(0, 1);
+          }
+        }, 100);
+
+        setTimeout(function () {
+          if (window.scrollY === 1) {
+            window.scrollTo(0, 0);
+          }
+        }, 200);
+      }
+
+      // Apply on load and orientation change
+      window.addEventListener("load", hideAddressBar);
+      window.addEventListener("orientationchange", function () {
+        setTimeout(hideAddressBar, 500);
+      });
+
+      // Prevent zoom on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener(
+        "touchend",
+        function (event) {
+          const now = new Date().getTime();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        },
+        false
+      );
+
+      // Set viewport height custom property for mobile browsers
+      function setViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty("--vh", `${vh}px`);
+      }
+
+      setViewportHeight();
+      window.addEventListener("resize", setViewportHeight);
+      window.addEventListener("orientationchange", function () {
+        setTimeout(setViewportHeight, 500);
+      });
+    </script>
+  </body>
+</html>
