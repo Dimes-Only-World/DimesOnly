@@ -166,10 +166,11 @@ export const Register: React.FC = () => {
       processedValue = capitalizeWords(value);
     } else if (field === "city") {
       processedValue = capitalizeWords(value);
-    } else if (field === "address") {
+        } else if (field === "address") {
       processedValue = formatAddress(value);
     } else if (field === "mobileNumber") {
       processedValue = formatPhoneNumber(value);
+    }
 
     if (field === "gender") {
       const nextGender = processedValue;

@@ -83,7 +83,7 @@ if (!error && data) {
     fetchLatestPerformers();
   }, [fetchLatestPerformers]);
 
-  const fetchPreviewVideo = async (performer: LatestPerformer) => {
+    const fetchPreviewVideo = async (performer: LatestPerformer) => {
     if (performer.id.startsWith("fallback-")) {
       setSelectedVideoUrl(null);
       setIsLoadingMedia(false);
@@ -95,18 +95,20 @@ if (!error && data) {
 
     try {
       const { data, error } = await supabase
-      .from("user_media")
-      .select("media_url")
-      .eq("user_id", performer.id)
-      .eq("media_type", "video")
-      .eq("content_tier", "silver")
-      .order("upload_date", { ascending: false })
-      .limit(1);
+        .from("user_media")
+        .select("media_url")
+        .eq("user_id", performer.id)
+        .eq("media_type", "video")
+        .eq("content_tier", "free")
+        .order("upload_date", { ascending: false })
+        .limit(1);
 
       if (!error && data) {
-      const rows = data as RawMediaRow[];
-      const url = rows[0]?.media_url;
-      if (url) setSelectedVideoUrl(url);
+        const rows = data as RawMediaRow[];
+        const url = rows[0]?.media_url;
+        if (url) {
+          setSelectedVideoUrl(url);
+        }
       }
     } catch (err) {
       console.error("[LatestDimesCarousel] Failed to load preview:", err);
