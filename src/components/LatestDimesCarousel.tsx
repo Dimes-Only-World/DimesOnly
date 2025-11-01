@@ -20,6 +20,7 @@ type RawUserRow = {
 
 type RawMediaRow = {
   media_url: string | null;
+  content_tier?: string | null;
 };
 
 const fallbackImages = [
@@ -95,17 +96,17 @@ if (!error && data) {
 
     try {
       const { data, error } = await supabase
-        .from("user_media")
-        .select("media_url")
-        .eq("user_id", performer.id)
-        .eq("media_type", "video")
-        .eq("content_tier", "free")
-        .order("upload_date", { ascending: false })
-        .limit(1);
+      .from("user_media")
+      .select("media_url, content_tier")
+      .eq("user_id", performer.id)
+      .eq("media_type", "video")
+      .ilike("content_tier", "silver") 
+      .order("upload_date", { ascending: false })
+      .limit(1);
 
       if (!error && data) {
         const rows = data as RawMediaRow[];
-        const url = rows[0]?.media_url;
+        const url = rows[0]?.media_url?.trim();
         if (url) {
           setSelectedVideoUrl(url);
         }

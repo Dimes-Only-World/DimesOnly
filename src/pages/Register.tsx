@@ -77,6 +77,12 @@ const formatAddress = (value: string) =>
     .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
+const formatCity = (value: string) =>
+  value
+    .split(" ")
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
+    .join(" ");
+
 const formatPhoneNumber = (value: string) => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
   const area = digits.slice(0, 3);
@@ -165,8 +171,8 @@ export const Register: React.FC = () => {
     } else if (field === "firstName" || field === "lastName") {
       processedValue = capitalizeWords(value);
     } else if (field === "city") {
-      processedValue = capitalizeWords(value);
-        } else if (field === "address") {
+      processedValue = formatCity(value);
+    } else if (field === "address") {
       processedValue = formatAddress(value);
     } else if (field === "mobileNumber") {
       processedValue = formatPhoneNumber(value);
