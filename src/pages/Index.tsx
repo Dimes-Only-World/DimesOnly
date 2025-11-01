@@ -9,6 +9,7 @@ import JackpotWinnersBanner from '@/components/JackpotWinnersBanner';
 import PositionCounter from '@/components/PositionCounter';
 import SecuritySection from '@/components/SecuritySection';
 import Footer from '@/components/Footer';
+import LatestDimesCarousel from "@/components/LatestDimesCarousel";
 
 const Index: React.FC = () => {
   // Use a fully populated dummyUserData to satisfy the SilverPlusMembership type
@@ -73,6 +74,7 @@ const Index: React.FC = () => {
       {/* <VideoWithEmbed /> */}
       <ProfileVideoSection />
       <ImageCarousel />
+      <LatestDimesCarousel />
       <RefAwareActionButtons />
       <JackpotWinnersBanner />
       <PositionCounter />
