@@ -425,17 +425,19 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
                 ) : selectedVideoUrl ? (
-                <video
-                  key={selectedVideoUrl}
-                  src={selectedVideoUrl}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className={`w-full h-full object-contain bg-black ${
-                    isLandscape ? "rounded-xl" : "max-h-[70vh]"
-                  }`}
-                />
+               <video
+               key={selectedVideoUrl}
+               src={selectedVideoUrl}
+               autoPlay
+               loop
+               muted
+               playsInline
+               controls
+               controlsList="nodownload noremoteplayback"
+               disablePictureInPicture
+               onContextMenu={(event) => event.preventDefault()}
+               className="max-h-[70vh] w-full object-contain"
+             />
               ) : (
                 <img
                   src={selectedPerformer.image}

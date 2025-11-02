@@ -258,15 +258,19 @@ if (!error && data) {
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
               ) : selectedVideoUrl ? (
-                <video
-                  key={selectedVideoUrl}
-                  src={selectedVideoUrl}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="h-full max-h-[70vh] w-full object-contain"
-                />
+               <video
+               key={selectedVideoUrl}
+               src={selectedVideoUrl}
+               autoPlay
+               loop
+               muted
+               playsInline
+               controls
+               controlsList="nodownload noremoteplayback"
+               disablePictureInPicture
+               onContextMenu={(event) => event.preventDefault()}
+               className="h-full max-h-[70vh] w-full object-contain"
+             />
               ) : (
                 <img
                   src={selectedPerformer.image}
