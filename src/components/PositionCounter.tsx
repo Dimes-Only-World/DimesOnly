@@ -3,9 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 
 import nudeImg from "@/assets/nude.png";
-import exoticImg from "@/assets/exotic.jpg";
-
-// Replace with your own safe, normal placeholder images later
+import exoticImg from "@/assets/exotic.png";
 import step1Img from "@/assets/step1.png";
 import step2Img from "@/assets/step2.png";
 import step3Img from "@/assets/step3.png";
@@ -96,28 +94,26 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
   };
 
-  // ✅ Steps content (injected version)
-const steps = [
-  {
-    id: 1,
-    title: "Sign Up For Free",
-    text: "Sign up before guaranteed positions are gone",
-    image: step1Img,
-  },
-  {
-    id: 2,
-    title: "Fill Out Registration Form",
-    text: "Exotics: Upload creative content to get approved. Everyone Else: Earn up to $10,000 to $22,500 a month GUARANTEED.",
-    image: step2Img,
-  },
-  {
-    id: 3,
-    title: "Transfer Your Followers",
-    text: "Want more money? Add followers = $$$$",
-    image: step3Img,
-  },
-];
-
+  const steps = [
+    {
+      id: 1,
+      title: "Sign Up For Free",
+      text: "Sign up before guaranteed positions are gone",
+      image: step1Img,
+    },
+    {
+      id: 2,
+      title: "Fill Out Registration Form",
+      text: "Exotics: Upload creative content to get approved. Everyone Else: Earn up to $10,000 to $22,500 a month GUARANTEED.",
+      image: step2Img,
+    },
+    {
+      id: 3,
+      title: "Transfer Your Followers",
+      text: "Want more money? Add followers = $$$$",
+      image: step3Img,
+    },
+  ];
 
   return (
     <div className={`py-16 px-5 bg-black ${className}`}>
@@ -126,8 +122,9 @@ const steps = [
         <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
           Incentive positions available now
         </h2>
+
         <div className="grid gap-12 grid-cols-1 md:grid-cols-2">
-          {/* 💎 Diamond Plus Card */}
+          {/* 💎 Diamond Plus */}
           <motion.div
             className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
             initial="hidden"
@@ -135,13 +132,11 @@ const steps = [
             variants={fadeIn}
             whileHover={{ scale: 1.02 }}
           >
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 overflow-hidden flex items-end justify-start">
               <img
                 src={nudeImg}
                 alt="diamond plus"
-                className="w-full h-full object-cover object-center"
-                loading="lazy"
-                onError={(e) => (e.currentTarget.src = "/assets/placeholder.svg")}
+                className="h-full w-auto md:h-[110%] object-contain object-bottom"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
             </div>
@@ -170,7 +165,7 @@ const steps = [
             </div>
           </motion.div>
 
-          {/* 🥈 Silver Plus Card */}
+          {/* 🥈 Silver Plus */}
           <motion.div
             className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
             initial="hidden"
@@ -178,13 +173,11 @@ const steps = [
             variants={fadeIn}
             whileHover={{ scale: 1.02 }}
           >
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 overflow-hidden flex items-end justify-start">
               <img
                 src={exoticImg}
                 alt="silver plus"
-                className="w-full h-full object-cover object-center"
-                loading="lazy"
-                onError={(e) => (e.currentTarget.src = "/assets/placeholder.svg")}
+                className="h-full w-auto md:h-[110%] object-contain object-bottom"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
             </div>
@@ -215,41 +208,65 @@ const steps = [
         </div>
       </div>
 
-      {/* === 3 EASY STEPS SECTION === */}
-      <div className="max-w-6xl mx-auto px-6 mt-20">
-        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
-          Get Started In 3 Easy Steps
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {steps.map((step) => (
-            <motion.div
-              key={step.id}
-              className="relative bg-gradient-to-b from-indigo-700 to-purple-800 rounded-3xl text-center p-6 md:p-8 shadow-lg overflow-hidden flex flex-col items-center"
-              initial="hidden"
-              animate="show"
-              variants={fadeIn}
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="mb-3 ">
-                <span className="bg-white/10 text-md px-6 py-2 rounded-full font-semibold">
-                  Step {step.id}
-                </span>
-              </div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 text-white">
-                {step.title}
-              </h3>
-              <p className="text-sm text-gray-200 mb-6 max-w-xs">
-                {step.text}
-              </p>
-              <img
-                src={step.image}
-                alt={`Step ${step.id}`}
-                className="w-full max-w-[250px] h-auto object-contain drop-shadow-lg"
-              />
-            </motion.div>
-          ))}
-        </div>
-      </div>
+{/* === 3 EASY STEPS SECTION === */}
+<div className="max-w-6xl mx-auto px-6 mt-20 relative">
+  <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
+    Get Started In 3 Easy Steps
+  </h2>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    {steps.map((step, index) => (
+      <motion.div
+        key={step.id}
+        className="relative bg-gradient-to-b from-[#151515] to-[#0b0b0b] border border-gray-800 rounded-3xl text-center p-8 shadow-xl overflow-hidden flex flex-col items-center justify-end h-[460px]"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: index * 0.2 }}
+        viewport={{ once: true }}
+        whileHover={{ scale: 1.03 }}
+      >
+        {/* Animated Background Illustration */}
+        <motion.div
+          className="absolute inset-0 flex items-end justify-center overflow-hidden"
+          initial={{ scale: 1.1, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.3 + index * 0.2 }}
+          viewport={{ once: true }}
+        >
+          <img
+            src={step.image}
+            alt={`Step ${step.id}`}
+            className="w-[80%] md:w-[70%] h-auto object-contain mb-[-5px] drop-shadow-[0_0_25px_rgba(79,70,229,0.4)]"
+          />
+          {/* Stronger gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+        </motion.div>
+
+        {/* Animated Text */}
+        <motion.div
+          className="relative z-10 text-white"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 + index * 0.2 }}
+          viewport={{ once: true }}
+        >
+          <div className="mb-3">
+            <span className="bg-indigo-600/20 border border-indigo-400/20 text-sm px-6 py-2 rounded-full font-semibold tracking-wide backdrop-blur-sm">
+              Step {step.id}
+            </span>
+          </div>
+          <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
+            {step.title}
+          </h3>
+          <p className="text-sm text-gray-300 mb-4 max-w-xs mx-auto leading-relaxed">
+            {step.text}
+          </p>
+        </motion.div>
+      </motion.div>
+    ))}
+  </div>
+</div>
+
     </div>
   );
 };

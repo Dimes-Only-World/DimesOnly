@@ -71,11 +71,11 @@ const HeroBanner: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           viewport={{ once: true }}
-          className="flex flex-col md:flex-row items-center justify-between rounded-[2rem] p-10 md:p-14 lg:p-16 max-w-6xl w-full border border-gray-700 shadow-2xl"
+          className="relative flex flex-col md:flex-row items-center justify-between rounded-[2rem] p-10 md:p-14 lg:p-16 max-w-6xl w-full border border-gray-700 shadow-2xl"
         >
           {/* Left Section */}
           <div className="text-center md:text-left space-y-6 md:w-1/2">
-            {/* Logo + Vector (after text) */}
+            {/* Logo + Vector */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -120,20 +120,18 @@ const HeroBanner: React.FC = () => {
             </motion.button>
           </div>
 
-          {/* Right Section (Lady Image Placeholder) */}
-          <motion.div
-            initial={{ opacity: 0, x: 60 }}
+          {/* Desktop-right hero image anchored to the card's inner bottom-right */}
+          <motion.img
+            src={placeholderLady}
+            alt="Hero figure"
+            initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative mt-12 md:mt-0 md:w-1/2 flex justify-center"
-          >
-            <img
-              src={placeholderLady}
-              alt="Hero figure"
-              className="w-[280px] sm:w-[340px] md:w-[420px] lg:w-[460px] object-contain rounded-[1.5rem] transition-transform duration-500 hover:scale-105"
-              loading="lazy"
-            />
-          </motion.div>
+            viewport={{ once: true }}
+            loading="lazy"
+            className="hidden md:block absolute right-8 md:bottom-2 lg:bottom-0 w-[280px] sm:w-[340px] md:w-[420px] lg:w-[460px] object-contain rounded-[1.5rem] transition-transform duration-500 hover:scale-105"
+            style={{ transformOrigin: "bottom right" }}
+          />
         </motion.div>
       </section>
     </div>
