@@ -102,18 +102,19 @@ const HeroBanner: React.FC = () => {
               </p>
             </motion.div>
 
+            {/* Desktop & Tablet Button */}
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
               onClick={handleClick}
-              className="mt-8 px-8 sm:px-10 py-3 sm:py-4 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
+              className="hidden sm:inline-block mt-8 px-8 sm:px-10 py-3 sm:py-4 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
             >
               Get Started
             </motion.button>
           </div>
 
-          {/* Lady Image with Black Fade on Bottom */}
+          {/* Lady Image */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -131,6 +132,22 @@ const HeroBanner: React.FC = () => {
             {/* Black gradient fade at bottom */}
             <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black via-black/80 to-transparent sm:hidden pointer-events-none"></div>
           </motion.div>
+        </motion.div>
+
+        {/* === Mobile-Only Button (Separate, Below Image) === */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          viewport={{ once: true }}
+          className="sm:hidden w-full flex justify-center mt-10"
+        >
+          <button
+            onClick={handleClick}
+            className="px-8 py-3 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
+          >
+            Get Started
+          </button>
         </motion.div>
       </section>
     </div>
