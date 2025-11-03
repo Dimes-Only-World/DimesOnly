@@ -108,10 +108,10 @@ const HeroBanner: React.FC = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              onClick={handleClick}
+              // onClick={handleClick}
               className="hidden sm:inline-block mt-8 px-8 sm:px-10 py-3 sm:py-4 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
             >
-              Get Started
+              Get Started Below
             </motion.button>
           </div>
 
@@ -144,10 +144,10 @@ const HeroBanner: React.FC = () => {
           className="sm:hidden w-full flex justify-center mt-10"
         >
           <button
-            onClick={handleClick}
+            // onClick={handleClick}
             className="px-8 py-3 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
           >
-            Get Started
+            Get Started Below
           </button>
         </motion.div>
       </section>
