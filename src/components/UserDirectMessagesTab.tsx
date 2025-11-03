@@ -34,6 +34,13 @@ type Conversation = {
   unreadCount: number;
 };
 
+const getPreviewText = (text: string, maxWords = 6) => {
+  if (!text) return "";
+  const words = text.replace(/\s+/g, " ").trim().split(" ");
+  if (words.length <= maxWords) return words.join(" ");
+  return `${words.slice(0, maxWords).join(" ")}…`;
+};
+
 const UserDirectMessagesTab: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
@@ -497,8 +504,8 @@ const UserDirectMessagesTab: React.FC = () => {
                             <Badge variant="default" className="text-[10px] py-0 px-1.5">{convo.unreadCount}</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 truncate mt-1">
-                          {convo.lastMessage?.message || ""}
+                          <p className="mt-1 text-sm text-gray-600 truncate">
+                          {getPreviewText(convo.lastMessage?.message || "")}
                         </p>
                       </div>
                     </div>
