@@ -97,7 +97,7 @@ const HeroBanner: React.FC = () => {
               </h2>
               <p className="text-gray-300 text-base sm:text-lg md:text-xl mt-3 leading-relaxed">
                 Welcome to the{" "}
-                <span className="text-indigo-400 font-semibold">Ultimate</span>{" "}
+                <span className="text-pink-500 font-semibold">Ultimate</span>{" "}
                 Experience
               </p>
             </motion.div>
