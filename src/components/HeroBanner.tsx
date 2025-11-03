@@ -14,6 +14,7 @@ const HeroBanner: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = normalizeRefParam(urlParams.get("ref")) || "company";
     window.location.href = `/register?ref=${encodeURIComponent(ref)}`;
+    const name = "ref";
   };
 
   return (
