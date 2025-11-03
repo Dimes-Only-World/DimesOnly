@@ -19,6 +19,27 @@ interface CounterData {
   remaining: number;
 }
 
+// 🔠 Word-by-word fade animation
+const WordFade: React.FC<{ text: string; delay?: number }> = ({ text, delay = 0 }) => {
+  const words = text.split(" ");
+  return (
+    <motion.span className="inline-block">
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          className="inline-block mr-1"
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: delay + i * 0.05, duration: 0.45, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+};
+
 const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => {
   const [diamondPlusSpotsLeft, setDiamondPlusSpotsLeft] = useState(1000);
   const [silverPlusData, setSilverPlusData] = useState<CounterData | null>(null);
@@ -26,21 +47,14 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
   useEffect(() => {
     fetchCounts();
-
     const subscription = supabase
       .channel("silver_plus_updates")
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "users",
-          filter: "silver_plus_active=eq.true",
-        },
+        { event: "*", schema: "public", table: "users", filter: "silver_plus_active=eq.true" },
         () => fetchSilverPlusCounter()
       )
       .subscribe();
-
     return () => supabase.removeChannel(subscription);
   }, []);
 
@@ -56,9 +70,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         .select("id", { count: "exact", head: true })
         .eq("diamond_plus_active", true)
         .in("user_type", ["exotic", "stripper"]);
-
-      if (!error && count !== null)
-        setDiamondPlusSpotsLeft(Math.max(0, 1000 - count));
+      if (!error && count !== null) setDiamondPlusSpotsLeft(Math.max(0, 1000 - count));
     } catch (error) {
       console.error("Diamond Plus count error:", error);
     }
@@ -69,12 +81,10 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
       const res: any = await supabase.rpc("check_silver_plus_availability");
       const data = res.data;
       const error = res.error;
-
       if (error) {
         console.error("Silver Plus counter error:", error);
         return;
       }
-
       if (data && Array.isArray(data) && data.length > 0) {
         const counterInfo = data[0];
         setSilverPlusData({
@@ -119,10 +129,17 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
     <div className={`py-16 px-5 bg-black ${className}`}>
       {/* === MEMBERSHIP CARDS === */}
       <div className="max-w-6xl mx-auto px-6 my-10">
-        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
-          Incentive positions available now
-        </h2>
+        <motion.h2
+          className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <WordFade text="Incentive positions available now" />
+        </motion.h2>
 
+        {/* === CARDS === */}
         <div className="grid gap-12 grid-cols-1 md:grid-cols-2">
           {/* 💎 Diamond Plus */}
           <motion.div
@@ -143,14 +160,15 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
             <div className="relative z-10 p-8 text-left">
               <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
-                Exotic Females & Strippers
+                <WordFade text="Exotic Females & Strippers" />
               </p>
               <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
-                Diamond Plus Memberships
+                <WordFade text="Diamond Plus Memberships" />
               </h3>
+
               <div className="mt-8 flex items-baseline gap-3">
                 <span className="text-gray-400 uppercase tracking-wide text-sm">
-                  Lifetime Positions Left:
+                  <WordFade text="Lifetime Positions Left:" />
                 </span>
                 <motion.span
                   key={diamondPlusSpotsLeft}
@@ -184,14 +202,15 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
             <div className="relative z-10 p-8 text-left">
               <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
-                Normal Females & Males
+                <WordFade text="Normal Females & Males" />
               </p>
               <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
-                Silver Plus Memberships
+                <WordFade text="Silver Plus Memberships" />
               </h3>
+
               <div className="mt-8 flex items-baseline gap-3">
                 <span className="text-gray-400 uppercase tracking-wide text-sm">
-                  Lifetime Positions Left:
+                  <WordFade text="Lifetime Positions Left:" />
                 </span>
                 <motion.span
                   key={silverPlusData?.remaining}
@@ -208,65 +227,79 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         </div>
       </div>
 
-{/* === 3 EASY STEPS SECTION === */}
-<div className="max-w-6xl mx-auto px-6 mt-20 relative">
-  <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12 text-white">
-    Get Started In 3 Easy Steps
-  </h2>
-
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-    {steps.map((step, index) => (
-      <motion.div
-        key={step.id}
-        className="relative bg-gradient-to-b from-[#151515] to-[#0b0b0b] border border-gray-800 rounded-3xl text-center p-8 shadow-xl overflow-hidden flex flex-col items-center justify-end h-[460px]"
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: index * 0.2 }}
-        viewport={{ once: true }}
-        whileHover={{ scale: 1.03 }}
-      >
-        {/* Animated Background Illustration */}
-        <motion.div
-          className="absolute inset-0 flex items-end justify-center overflow-hidden"
-          initial={{ scale: 1.1, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1, ease: "easeOut", delay: 0.3 + index * 0.2 }}
+      {/* === 3 EASY STEPS SECTION === */}
+      <div className="max-w-6xl mx-auto px-6 mt-24 relative">
+        <motion.h2
+          className="text-3xl md:text-4xl font-semibold text-center mb-14 text-white"
+          initial="hidden"
+          whileInView="show"
+          variants={fadeIn}
           viewport={{ once: true }}
         >
-          <img
-            src={step.image}
-            alt={`Step ${step.id}`}
-            className="w-[80%] md:w-[70%] h-auto object-contain mb-[-5px] drop-shadow-[0_0_25px_rgba(79,70,229,0.4)]"
-          />
-          {/* Stronger gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-        </motion.div>
+          <WordFade text="Get Started In 3 Easy Steps" />
+        </motion.h2>
 
-        {/* Animated Text */}
-        <motion.div
-          className="relative z-10 text-white"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 + index * 0.2 }}
-          viewport={{ once: true }}
-        >
-          <div className="mb-3">
-            <span className="bg-indigo-600/20 border border-indigo-400/20 text-sm px-6 py-2 rounded-full font-semibold tracking-wide backdrop-blur-sm">
-              Step {step.id}
-            </span>
-          </div>
-          <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
-            {step.title}
-          </h3>
-          <p className="text-sm text-gray-300 mb-4 max-w-xs mx-auto leading-relaxed">
-            {step.text}
-          </p>
-        </motion.div>
-      </motion.div>
-    ))}
-  </div>
-</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {steps.map((step, index) => (
+            <motion.div
+              key={step.id}
+              className="relative bg-gradient-to-b from-[#171717] to-[#0b0b0b] border border-gray-800 rounded-3xl text-center p-10 shadow-[0_0_35px_rgba(79,70,229,0.15)] overflow-hidden flex flex-col items-center justify-end h-[520px] md:h-[560px] group transition-all duration-500"
+              initial={{ opacity: 0, y: 80 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: index * 0.2, ease: "easeOut" }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.05 }}
+            >
+              {/* Background Image */}
+              <motion.div
+                className="absolute inset-0 flex items-end justify-center overflow-hidden"
+                initial={{ scale: 1.15, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                transition={{
+                  duration: 1,
+                  ease: "easeOut",
+                  delay: 0.25 + index * 0.25,
+                }}
+                viewport={{ once: true }}
+              >
+                <motion.img
+                  src={step.image}
+                  alt={`Step ${step.id}`}
+                  className="w-[95%] sm:w-[95%] md:w-[85%] h-auto object-contain mb-[-8px] drop-shadow-[0_0_30px_rgba(79,70,229,0.4)] transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+              </motion.div>
 
+              {/* Animated Text */}
+              <motion.div
+                className="relative z-10 text-white transition-all duration-500 group-hover:translate-y-[-8px] group-hover:scale-[1.02]"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.6 + index * 0.25,
+                  ease: "easeOut",
+                }}
+                viewport={{ once: true }}
+              >
+                <div className="mb-4">
+                  <span className="bg-indigo-600/20 border border-indigo-400/30 text-sm px-7 py-2 rounded-full font-semibold tracking-wide backdrop-blur-sm shadow-inner">
+                    Step {step.id}
+                  </span>
+                </div>
+
+                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                  <WordFade text={step.title} delay={0.2 + index * 0.3} />
+                </h3>
+
+                <p className="text-base text-gray-300 mb-4 max-w-sm mx-auto leading-relaxed">
+                  <WordFade text={step.text} delay={0.5 + index * 0.3} />
+                </p>
+              </motion.div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

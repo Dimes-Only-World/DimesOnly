@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { normalizeRefParam } from "@/lib/utils";
 import heroVector from "@/assets/one.png";
-import placeholderLady from "@/assets/weo.png"; // replace locally with your own image
+import placeholderLady from "@/assets/weo.png";
 
 const HeroBanner: React.FC = () => {
   const phoneSrc =
@@ -71,11 +71,10 @@ const HeroBanner: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           viewport={{ once: true }}
-          className="relative flex flex-col md:flex-row items-center justify-between rounded-[2rem] p-8 sm:p-10 md:p-14 lg:p-16 max-w-6xl w-full border border-gray-700 shadow-2xl"
+          className="relative flex flex-col md:flex-row items-center justify-between rounded-[2rem] p-8 sm:p-10 md:p-14 lg:p-16 max-w-6xl w-full border border-gray-700 shadow-2xl sm:border-gray-700 border-transparent"
         >
           {/* Left Section */}
           <div className="text-center md:text-left space-y-6 md:w-1/2">
-            {/* Logo + Vector */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -85,14 +84,9 @@ const HeroBanner: React.FC = () => {
               <h1 className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-indigo-500 to-indigo-700 text-transparent bg-clip-text drop-shadow-lg">
                 DIMES
               </h1>
-              <img
-                src={heroVector}
-                alt="Vector"
-                className="w-8 sm:w-10 md:w-14"
-              />
+              <img src={heroVector} alt="Vector" className="w-8 sm:w-10 md:w-14" />
             </motion.div>
 
-            {/* Texts */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -108,7 +102,6 @@ const HeroBanner: React.FC = () => {
               </p>
             </motion.div>
 
-            {/* Button */}
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -120,18 +113,24 @@ const HeroBanner: React.FC = () => {
             </motion.button>
           </div>
 
-          {/* Hero Image (visible on all screen sizes) */}
-          <motion.img
-            src={placeholderLady}
-            alt="Hero figure"
+          {/* Lady Image with Black Fade on Bottom */}
+          <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
-            loading="lazy"
-            className="block md:absolute md:right-8 md:bottom-0 w-[240px] sm:w-[300px] md:w-[380px] lg:w-[420px] mt-10 md:mt-0 object-contain rounded-[1.5rem] transition-transform duration-500 hover:scale-105"
-            style={{ transformOrigin: "bottom right" }}
-          />
+            className="relative mt-10 md:mt-0 md:absolute md:right-8 md:bottom-0"
+          >
+            <img
+              src={placeholderLady}
+              alt="Hero figure"
+              loading="lazy"
+              className="w-[240px] sm:w-[300px] md:w-[380px] lg:w-[420px] object-contain rounded-[1.5rem] transition-transform duration-500 hover:scale-105"
+              style={{ transformOrigin: "bottom right" }}
+            />
+            {/* Black gradient fade at bottom */}
+            <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black via-black/80 to-transparent sm:hidden pointer-events-none"></div>
+          </motion.div>
         </motion.div>
       </section>
     </div>
