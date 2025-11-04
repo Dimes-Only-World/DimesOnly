@@ -298,7 +298,7 @@ const JackpotWinnersBanner: React.FC = () => {
               <div>
                 <h3 className="text-white text-2xl md:text-3xl font-semibold">
                   Latest Jackpot Winners
-                  Tip & Win Money Weekly
+                  Tip & Win $$$ Weekly
                 </h3>
                 {loading ? (
                   <p className="text-neutral-500 text-sm">
