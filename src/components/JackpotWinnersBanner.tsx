@@ -287,7 +287,7 @@ const JackpotWinnersBanner: React.FC = () => {
             {/* IMAGE ABOVE TITLE */}
             <div className="mb-6 -mt-6 overflow-hidden rounded-xl">
               <img
-                src="https://dimesonly.s3.us-east-2.amazonaws.com/2690edea-f1d5-4864-b5e1-3aaae04b206f.png"
+                src="https://dimesonly.s3.us-east-2.amazonaws.com/e83da5e4-c638-4edb-bd20-ff187884f4d5.png"
                 alt="Jackpot celebration"
                 className="w-full h-auto object-cover"
               />
