@@ -405,16 +405,16 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
             <span className="text-green-600">#1 Top Ranked</span> = $10,000{" "}
             <br />
-            <span className="text-yellow-500">Rank #2 - #20</span> Win Money As
+            <span className="text-yellow-500">Rank Between #2 - #20</span> <br />Win Money As
             Well
           </p>
 
           <button className="mt-8 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
-            Winners Every 3 Months After Launch
+            Winners Every 3 Months After Spots Below Say 0
           </button>
 
           <p className="mt-6 text-base md:text-lg font-semibold text-indigo-400 uppercase tracking-wide">
-            SEE WHO’S CURRENTLY ON TOP BELOW!
+            AN ENTERTAINMENT APP FOR STRAIGHT MEN!
           </p>
         </div>
       </div>
@@ -423,10 +423,10 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       <section className="w-full py-10">
         <div className="text-center mb-8">
           <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-            Latest 20 Dimes to Join
+            Current Top 20 Ranked
           </h2>
           <p className="text-base md:text-lg text-gray-300">
-            See More Inside · Baddies Joining Daily
+            Winners will be annonced when all positions are filled!!!
           </p>
         </div>
 
