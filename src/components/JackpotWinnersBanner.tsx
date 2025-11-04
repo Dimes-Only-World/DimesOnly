@@ -29,14 +29,11 @@ type Profile = {
 type ProfilesMap = Record<string, Profile>;
 
 const roleOrder: Record<string, number> = {
-  // Grand Prize
   tipper: 1,
   dime: 2,
   referred_dime: 3,
-  // 2nd Place
   dime_referred_dime: 4,
   referred_dime_referrer: 5,
-  // 3rd Place
   who_referred_tipper: 6,
 };
 
@@ -68,9 +65,6 @@ function formatCurrency(v: string | number | null | undefined): string {
   }).format(n || 0);
 }
 
-// Winner card with mobile-first layout:
-// - Mobile: Full username ABOVE the image (clear who won), then image with details below.
-// - Desktop: Image left, details + prize to the right (classic row layout).
 const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
   const photo =
     w.profile_photo ||
@@ -89,7 +83,7 @@ const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
           <div className="text-neutral-400 text-sm">{roleLabel(w.role)}</div>
         </div>
 
-        {/* Content row (image + details). On desktop shows name inline; on mobile only shows image + prize row since name is above */}
+        {/* Content row */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
           {/* Image */}
           <div className="shrink-0">
@@ -103,7 +97,7 @@ const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
             </div>
           </div>
 
-          {/* Details (desktop shows name here; mobile shows only prize since name is above) */}
+          {/* Details */}
           <div className="min-w-0 flex-1">
             <div className="hidden md:flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -124,7 +118,7 @@ const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
               </div>
             </div>
 
-            {/* Mobile prize row under the image (since desktop prize is above) */}
+            {/* Mobile prize row */}
             <div className="md:hidden mt-3 flex items-center justify-between">
               <div className="text-neutral-400 text-xs uppercase tracking-wide">
                 Prize
@@ -143,19 +137,19 @@ const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
 const JackpotWinnersBanner: React.FC = () => {
   const [winners, setWinners] = useState<WinnerRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showPopup, setShowPopup] = useState(false);
+  const [showZoom, setShowZoom] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
-  // POP-UP: Show image once when section enters viewport
+  /* ---------- ZOOM IMAGE ABOVE TITLE ON SCROLL ---------- */
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !showPopup) {
-          setShowPopup(true);
-          observer.disconnect(); // Only once
+        if (entry.isIntersecting && !showZoom) {
+          setShowZoom(true);
+          observer.disconnect(); // Show only once
         }
       },
-      { threshold: 0.3 } // Trigger when 30% visible
+      { threshold: 0.3 }
     );
 
     if (sectionRef.current) {
@@ -163,15 +157,14 @@ const JackpotWinnersBanner: React.FC = () => {
     }
 
     return () => observer.disconnect();
-  }, [showPopup]);
+  }, [showZoom]);
 
-  // Fetch: latest draw_id, winners for that draw, then hydrate user profiles.
+  /* ---------- FETCH WINNERS ---------- */
   useEffect(() => {
     const run = async () => {
       try {
         setLoading(true);
 
-        // 1) Find latest draw by executed_at
         const { data: latest, error: latestErr } = await supabase
           .from("v_jackpot_latest_winners")
           .select("draw_id, executed_at")
@@ -183,9 +176,8 @@ const JackpotWinnersBanner: React.FC = () => {
           return;
         }
 
-        const drawId: string = String(latest[0].draw_id);
+        const drawId = String(latest[0].draw_id);
 
-        // 2) Get all winners for that draw
         const { data: all, error: allErr } = await supabase
           .from("v_jackpot_latest_winners")
           .select("*")
@@ -197,7 +189,6 @@ const JackpotWinnersBanner: React.FC = () => {
           return;
         }
 
-        // 3) Fetch profile info for these user_ids
         const ids: string[] = Array.from(
           new Set(
             (all as any[])
@@ -231,14 +222,13 @@ const JackpotWinnersBanner: React.FC = () => {
           }
         }
 
-        // 4) Enrich winners with username/photo (prefer row data, fallback to fetched profile)
         const enriched: WinnerRow[] = (all as any[]).map((w) => {
           const rawId = w.user_id ? String(w.user_id) : null;
           const p = rawId ? profiles[rawId] : undefined;
           return {
             draw_id: String(w.draw_id),
             drawn_code: w.drawn_code ?? null,
-            executed_at: String(w.executated_at),
+            executed_at: String(w.executed_at),
             user_id: rawId,
             username: (w.username ?? p?.username ?? null) as string | null,
             profile_photo: (w.profile_photo ?? p?.profile_photo ?? null) as
@@ -259,7 +249,6 @@ const JackpotWinnersBanner: React.FC = () => {
           };
         });
 
-        // 5) Sort for display: by place, then by our role order within the place
         const sorted = enriched.sort((a, b) => {
           if (a.place !== b.place) return a.place - b.place;
           const ao = roleOrder[a.role] ?? 999;
@@ -302,29 +291,20 @@ const JackpotWinnersBanner: React.FC = () => {
 
   return (
     <section ref={sectionRef} className="bg-neutral-950 py-12 px-4">
-      {/* POP-UP IMAGE ON SCROLL */}
-      {showPopup && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 animate-in fade-in zoom-in duration-300">
-          <div className="relative max-w-md w-full">
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-gray-300 transition"
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <img
-              src="https://dimesonly.s3.us-east-2.amazonaws.com/2690edea-f1d5-4864-b5e1-3aaae04b206f.png"
-              alt="Jackpot celebration"
-              className="w-full h-auto rounded-2xl shadow-2xl"
-            />
-          </div>
-        </div>
-      )}
-
       <div className="max-w-6xl mx-auto">
         <Card className="bg-neutral-950 border border-neutral-900/80 rounded-2xl">
           <CardContent className="p-6 md:p-8">
+            {/* ---------- ZOOM IMAGE ABOVE TITLE ---------- */}
+            {showZoom && (
+              <div className="relative -mt-6 mb-6 overflow-hidden rounded-xl animate-in fade-in zoom-in-50 duration-700">
+                <img
+                  src="https://dimesonly.s3.us-east-2.amazonaws.com/2690edea-f1d5-4864-b5e1-3aaae04b206f.png"
+                  alt="Jackpot celebration"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
               <div>
@@ -349,8 +329,7 @@ const JackpotWinnersBanner: React.FC = () => {
                 )}
               </div>
 
-              {/* Winning Ticket ID pill */}
-              {winners.length > 0 ? (
+              {winners.length > 0 && (
                 <div className="md:shrink-0">
                   <span className="inline-flex items-center gap-2 rounded-full bg-neutral-900 border border-neutral-800 px-3 py-1">
                     <span className="text-neutral-400 text-xs uppercase tracking-wide">
@@ -361,7 +340,7 @@ const JackpotWinnersBanner: React.FC = () => {
                     </span>
                   </span>
                 </div>
-              ) : null}
+              )}
             </div>
 
             {/* Content */}
@@ -371,7 +350,6 @@ const JackpotWinnersBanner: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-8">
-                {/* Grand Prize Section */}
                 {grandPrize.length > 0 && (
                   <section>
                     <h4 className="text-white text-xl md:text-2xl font-semibold mb-4">
@@ -385,7 +363,6 @@ const JackpotWinnersBanner: React.FC = () => {
                   </section>
                 )}
 
-                {/* 2nd Place Section */}
                 {secondPlace.length > 0 && (
                   <section>
                     <h4 className="text-white text-xl md:text-2xl font-semibold mb-4">
@@ -399,7 +376,6 @@ const JackpotWinnersBanner: React.FC = () => {
                   </section>
                 )}
 
-                {/* 3rd Place Section */}
                 {thirdPlace.length > 0 && (
                   <section>
                     <h4 className="text-white text-xl md:text-2xl font-semibold mb-4">
