@@ -383,15 +383,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
 </div>
 
 </div>
-<section className="w-full py-10">
-        <div className="text-center mb-8">
-          <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-            Latest 20 Dimes to Join
-          </h2>
-          <p className="text-base md:text-lg text-gray-300">
-            See More Inside · Baddies Joining Daily
-          </p>
-        </div>
+
 
 
       <div className="hidden md:block overflow-hidden">
