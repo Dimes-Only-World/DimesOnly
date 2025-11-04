@@ -405,7 +405,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
             <span className="text-green-600">#1 Top Ranked</span> = $10,000{" "}
             <br />
-            <span className="text-yellow-500">Rank Between #2 - #20</span> <br />Win Money As
+            <span className="text-yellow-500">Rank Between #2 - #20</span> Win Money As
             Well
           </p>
 
