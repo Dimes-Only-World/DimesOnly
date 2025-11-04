@@ -297,7 +297,8 @@ const JackpotWinnersBanner: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
               <div>
                 <h3 className="text-white text-2xl md:text-3xl font-semibold">
-                  Latest Jackpot Winners<br>Tip & Win Money Weekly</br>
+                  Latest Jackpot Winners
+                  Tip & Win Money Weekly
                 </h3>
                 {loading ? (
                   <p className="text-neutral-500 text-sm">
