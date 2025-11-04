@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 
@@ -143,6 +143,27 @@ const WinnerCard: React.FC<{ w: WinnerRow }> = ({ w }) => {
 const JackpotWinnersBanner: React.FC = () => {
   const [winners, setWinners] = useState<WinnerRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // POP-UP: Show image once when section enters viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !showPopup) {
+          setShowPopup(true);
+          observer.disconnect(); // Only once
+        }
+      },
+      { threshold: 0.3 } // Trigger when 30% visible
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [showPopup]);
 
   // Fetch: latest draw_id, winners for that draw, then hydrate user profiles.
   useEffect(() => {
@@ -217,7 +238,7 @@ const JackpotWinnersBanner: React.FC = () => {
           return {
             draw_id: String(w.draw_id),
             drawn_code: w.drawn_code ?? null,
-            executed_at: String(w.executed_at),
+            executed_at: String(w.executated_at),
             user_id: rawId,
             username: (w.username ?? p?.username ?? null) as string | null,
             profile_photo: (w.profile_photo ?? p?.profile_photo ?? null) as
@@ -280,7 +301,27 @@ const JackpotWinnersBanner: React.FC = () => {
   );
 
   return (
-    <section className="bg-neutral-950 py-12 px-4">
+    <section ref={sectionRef} className="bg-neutral-950 py-12 px-4">
+      {/* POP-UP IMAGE ON SCROLL */}
+      {showPopup && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 animate-in fade-in zoom-in duration-300">
+          <div className="relative max-w-md w-full">
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-gray-300 transition"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <img
+              src="https://dimesonly.s3.us-east-2.amazonaws.com/2690edea-f1d5-4864-b5e1-3aaae04b206f.png"
+              alt="Jackpot celebration"
+              className="w-full h-auto rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         <Card className="bg-neutral-950 border border-neutral-900/80 rounded-2xl">
           <CardContent className="p-6 md:p-8">
