@@ -422,11 +422,11 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       {/* ---------- CAROUSEL SECTION ---------- */}
       <section className="w-full py-10">
         <div className="text-center mb-8">
-          <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-            Current Top 20 Ranked
+                    <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
+            VIEW CURRENT TOP 20 RANKED
           </h2>
           <p className="text-base md:text-lg text-gray-300">
-            Winners will be annonced when all positions are filled!!!
+            Top 20 Dimes win money every 3 months. Who’s Next?
           </p>
         </div>
 
