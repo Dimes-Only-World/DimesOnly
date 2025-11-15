@@ -643,7 +643,7 @@ export const Register: React.FC = () => {
                     <div className="mt-6">
                       <video controls className="w-full rounded-lg shadow-lg">
                         <source
-                          src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Explain+form+confirm+(1).mp4"
+                          src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Copy+of+Explain+form+confirm+FINAL.webm"
                           type="video/mp4"
                         />
                         Your browser does not support the video tag.
