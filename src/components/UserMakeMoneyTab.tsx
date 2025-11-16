@@ -52,19 +52,11 @@ const UserMakeMoneyTab: React.FC = () => {
   const shareMessage = useMemo(
     () =>
       `Everyone who joins before the app is released will be compensated up to $10,000 to $22,500 a month or more for life just for joining early. There is more money than that to be made on your own. This will be historic.
+If you are a Dime $up to $300,000+ a year
+If you are a male or normal female up to $100,000+ a year
 
-Strippers and Exotic Females Must Be Approved
-Load up your sexiest 3 videos and pics to get approved. If you get approved, you will get an email. I will text you on the platform from now on until the app is released.
-Set up your account and see if you get approved. 
-Add Nude content = $74,000 a year
-Add x-rated content = $114,000 a year
-Refer Dimes & People = Overrides $$$$ for Life
-
-Males and normal females are approved automatically.
-Refer Dimes & People = Overrides $$$$ For Life
-
-This is only a peek at the money you can make.
-Any questions? If not, click the link now before positions are gone.
+You can make unlimited money, the above is just our commitment to thise that join early...
+Any questions? Text or call (707)640-1661 If not, click my link now before positions are gone or the app is released.
 https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
