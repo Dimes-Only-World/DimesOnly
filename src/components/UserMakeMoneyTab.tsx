@@ -51,14 +51,12 @@ const UserMakeMoneyTab: React.FC = () => {
   // 💬 Share message
   const shareMessage = useMemo(
     () =>
-      `Everyone who joins before the app is released will be compensated up to $10,000 to $22,500 a month or more for life just for joining early. There is more money than that to be made on your own. This will be historic.
-EXOTICS & STRIPPERS
-Make up to $300,000+ a year
-EVERYONE ELSE
-Make up to $100,000+ a year
-
-You can make unlimited money, the above is just our commitment to thise that join early...
-Any questions? Text or call (707)640-1661 If not, click my link now before positions are gone or the app is released.
+      `https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opportunity.webm
+Watch Video Above:
+If you are interested, click my link below and sign up now!
+Spots are limited!
+Do not select normal. 
+Select exotic or stripper to get the big money...
 https://www.DimesOnly.World/?ref=${referralUsername}`,
     [referralUsername]
   );
