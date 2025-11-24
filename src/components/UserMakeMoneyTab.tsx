@@ -245,8 +245,8 @@ const handleEmailShare = useCallback(() => {
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Commercial+for+Dimes+Final+(1).mp4"
-          download="CommercialForDimes.mp4"
+          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opportunity.webm"
+          download="Opportunity.webm"
           className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
         >
           📥 Download Promo Video To Send
