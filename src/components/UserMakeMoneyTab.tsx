@@ -1,16 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Share2, Facebook, Instagram, Phone, Copy, Send } from "lucide-react";
+import { Share2, Facebook, Instagram, Phone, Copy } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -38,35 +30,25 @@ const UserMakeMoneyTab: React.FC = () => {
   const [usernameFilter, setUsernameFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [stateFilter, setStateFilter] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [actualUsername, setActualUsername] = useState<string>("");
-  const [showMessageDialog, setShowMessageDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [messageText, setMessageText] = useState("");
-  const [sendingMessage, setSendingMessage] = useState(false);
   const itemsPerPage = 100;
 
   const referralUsername = actualUsername;
 
-  // 💬 Share message
-  const shareMessage = useMemo(
-    () =>
-      `https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm
-Watch Video Above:
-If you are interested, click my link below and sign up now!
-Spots are limited!
-Do not select normal. 
-Select exotic or stripper to get the big money...
-https://www.DimesOnly.World/?ref=${referralUsername}`,
-    [referralUsername]
-  );
-
   const shareLink = useMemo(
-    () => `https://www.DimesOnly.World/?ref=${referralUsername}`,
+    () => `https://www.DimesOnly.World/?ref=${encodeURIComponent(referralUsername || "")}`,
     [referralUsername]
   );
 
-  // ✅ Fetch actual username
+  const shareMessage = useMemo(() => {
+    const base =
+      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm\n\n" +
+      "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nDo not select normal. \nSelect exotic or stripper to get the big money...\n";
+    const link = shareLink;
+    return `${base}${link}`;
+  }, [shareLink]);
+
+  // Fetch actual username
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
 
@@ -78,14 +60,13 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
         .single();
 
       if (error) throw error;
-      if (data?.username && data.username !== actualUsername)
-        setActualUsername(String(data.username));
+      if (data?.username) setActualUsername(String(data.username));
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
-  }, [user?.id, actualUsername]);
+  }, [user?.id]);
 
-  // ✅ Fetch referrals
+  // Fetch referrals (note: this uses username as the referred_by value; if your DB stores an id there, change accordingly)
   const fetchReferrals = useCallback(async () => {
     if (!referralUsername) {
       setLoading(false);
@@ -116,7 +97,7 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
     }
   }, [referralUsername, toast]);
 
-  // ✅ Filter referrals
+  // Filter referrals
   const filterReferrals = useCallback(() => {
     let filtered = referrals;
     if (usernameFilter)
@@ -135,7 +116,7 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
     setCurrentPage(1);
   }, [referrals, usernameFilter, cityFilter, stateFilter]);
 
-  // Fetch and filter logic
+  // Effects
   useEffect(() => {
     if (user?.id) fetchActualUserData();
   }, [user?.id, fetchActualUserData]);
@@ -148,64 +129,95 @@ https://www.DimesOnly.World/?ref=${referralUsername}`,
     filterReferrals();
   }, [filterReferrals]);
 
-  // ✅ Share handlers
-  const handleWhatsAppShare = useCallback(() => {
-  navigator.clipboard.writeText(shareMessage);
-  window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank");
-  toast({ title: "Copied! Paste it on WhatsApp." });
-}, [shareMessage, toast]);
-
-const handleTelegramShare = useCallback(() => {
-  navigator.clipboard.writeText(shareMessage);
-  window.open(
-    `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
-    "_blank"
+  // Clipboard helper with fallback and feedback
+  const copyToClipboard = useCallback(
+    async (text: string) => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          toast({ title: "Message copied to clipboard!" });
+          return true;
+        } else {
+          // Fallback: create temporary textarea
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          const successful = document.execCommand("copy");
+          document.body.removeChild(ta);
+          if (successful) {
+            toast({ title: "Message copied to clipboard!" });
+            return true;
+          }
+          throw new Error("Fallback copy failed");
+        }
+      } catch (err) {
+        console.warn("Copy failed:", err);
+        toast({ title: "Could not copy to clipboard", description: "Please copy manually." });
+        return false;
+      }
+    },
+    [toast]
   );
-  toast({ title: "Copied! Paste it on Telegram." });
-}, [shareMessage, shareLink, toast]);
 
-const handleXShare = useCallback(() => {
-  navigator.clipboard.writeText(shareMessage);
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, "_blank");
-  toast({ title: "Copied! Paste it on X." });
-}, [shareMessage, toast]);
+  // Share handlers
+  const handleWhatsAppShare = useCallback(async () => {
+    await copyToClipboard(shareMessage);
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank");
+  }, [shareMessage, copyToClipboard]);
 
-const handleEmailShare = useCallback(() => {
-  navigator.clipboard.writeText(shareMessage);
-  window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(shareMessage)}`, "_blank");
-  toast({ title: "Copied! Paste it in Email." });
-}, [shareMessage, toast]);
-  
-  const handleCopyMessage = useCallback(() => {
-    navigator.clipboard.writeText(shareMessage);
-    toast({ title: "Message copied to clipboard!" });
-  }, [shareMessage, toast]);
+  const handleTelegramShare = useCallback(async () => {
+    await copyToClipboard(shareMessage);
+    window.open(
+      `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
+      "_blank"
+    );
+  }, [shareMessage, shareLink, copyToClipboard]);
 
-  const handleFacebookShare = useCallback(() => {
-    navigator.clipboard.writeText(shareMessage);
-    window.open("https://facebook.com", "_blank");
-    toast({ title: "Copied! Paste it on Facebook." });
-  }, [shareMessage, toast]);
+  const handleXShare = useCallback(async () => {
+    await copyToClipboard(shareMessage);
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`, "_blank");
+  }, [shareMessage, copyToClipboard]);
 
-  const handleInstagramShare = useCallback(() => {
-    navigator.clipboard.writeText(shareMessage);
-    window.open("https://instagram.com", "_blank");
-    toast({ title: "Copied! Paste it on Instagram." });
-  }, [shareMessage, toast]);
+  const handleEmailShare = useCallback(async () => {
+    await copyToClipboard(shareMessage);
+    window.open(`mailto:?subject=${encodeURIComponent("Check this out")}&body=${encodeURIComponent(shareMessage)}`, "_blank");
+  }, [shareMessage, copyToClipboard]);
 
-  const handleContactsShare = useCallback(() => {
+  const handleCopyMessage = useCallback(async () => {
+    await copyToClipboard(shareMessage);
+  }, [shareMessage, copyToClipboard]);
+
+  const handleFacebookShare = useCallback(async () => {
+    // Facebook share uses sharer with the URL to share; the message can't be pre-filled for FB due to restrictions.
+    await copyToClipboard(shareMessage);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`, "_blank");
+  }, [shareMessage, shareLink, copyToClipboard]);
+
+  const handleInstagramShare = useCallback(async () => {
+    // Instagram does not support prefilled web share; copy message and open Instagram.
+    await copyToClipboard(shareMessage);
+    window.open("https://www.instagram.com", "_blank");
+  }, [shareMessage, copyToClipboard]);
+
+  const handleContactsShare = useCallback(async () => {
     if (navigator.share) {
-      navigator.share({
-        title: "Check out DimesOnly",
-        text: shareMessage,
-      });
+      try {
+        await navigator.share({
+          title: "Check out DimesOnly",
+          text: shareMessage,
+          url: shareLink,
+        });
+      } catch (err) {
+        // user canceled or share failed — fall back to copy
+        await copyToClipboard(shareMessage);
+      }
     } else {
-      navigator.clipboard.writeText(shareMessage);
-      toast({ title: "Message copied to share with contacts!" });
+      await copyToClipboard(shareMessage);
     }
-  }, [shareMessage, toast]);
+  }, [shareMessage, shareLink, copyToClipboard]);
 
-  // ✅ Pagination
+  // Pagination
   const paginatedReferrals = useMemo(
     () =>
       filteredReferrals.slice(
@@ -220,9 +232,7 @@ const handleEmailShare = useCallback(() => {
     return (
       <Card>
         <CardContent className="text-center py-8">
-          <p className="text-gray-500">
-            Please log in to view earning opportunities.
-          </p>
+          <p className="text-gray-500">Please log in to view earning opportunities.</p>
         </CardContent>
       </Card>
     );
@@ -237,7 +247,9 @@ const handleEmailShare = useCallback(() => {
 
       {/* Download + Share Section */}
       <div className="flex flex-col items-center p-4 text-center mb-8">
-        <h3 className="text-xl font-bold mb-2">The message below you will share to get your followers until the app is released.</h3>
+        <h3 className="text-xl font-bold mb-2">
+          The message below you will share to get your followers until the app is released.
+        </h3>
         <h3 className="text-xl font-bold mb-2">ALL THE LINKS WILL MAXIMIZE YOUR FOLLOWERS.</h3>
         <h3 className="text-xl font-bold mb-2">Click Copy - Instagram - Facebook - Contacts below message to share</h3>
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
@@ -277,39 +289,33 @@ const handleEmailShare = useCallback(() => {
               <Button onClick={handleCopyMessage} variant="outline">
                 <Copy className="w-4 h-4 mr-2" /> Copy
               </Button>
-              <Button
-                onClick={handleFacebookShare}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
+              <Button onClick={handleFacebookShare} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Facebook className="w-4 h-4 mr-2" /> Facebook
               </Button>
-              <Button
-                onClick={handleInstagramShare}
-                className="bg-pink-600 hover:bg-pink-700 text-white"
-              >
+              <Button onClick={handleInstagramShare} className="bg-pink-600 hover:bg-pink-700 text-white">
                 <Instagram className="w-4 h-4 mr-2" /> Instagram
               </Button>
               <Button onClick={handleContactsShare} variant="outline">
                 <Phone className="w-4 h-4 mr-2" /> Contacts
               </Button>
-             </div>
-<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-<Button onClick={handleWhatsAppShare} className="bg-green-500 hover:bg-green-600 text-white">
-    WhatsApp
-  </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <Button onClick={handleWhatsAppShare} className="bg-green-500 hover:bg-green-600 text-white">
+                WhatsApp
+              </Button>
 
-  <Button onClick={handleTelegramShare} className="bg-blue-400 hover:bg-blue-500 text-white">
-    Telegram
-  </Button>
+              <Button onClick={handleTelegramShare} className="bg-blue-400 hover:bg-blue-500 text-white">
+                Telegram
+              </Button>
 
-  <Button onClick={handleXShare} className="bg-sky-600 hover:bg-sky-700 text-white">
-    X
-  </Button>
+              <Button onClick={handleXShare} className="bg-sky-600 hover:bg-sky-700 text-white">
+                X
+              </Button>
 
-  <Button onClick={handleEmailShare} className="bg-red-500 hover:bg-red-600 text-white">
-    Email
-  </Button>
-</div>
+              <Button onClick={handleEmailShare} className="bg-red-500 hover:bg-red-600 text-white">
+                Email
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -318,14 +324,8 @@ const handleEmailShare = useCallback(() => {
       <div className="mb-4">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl font-semibold">
-              Your Referrals ({filteredReferrals.length})
-            </h2>
-            {actualUsername && (
-              <p className="text-sm text-gray-600">
-                Checking referrals for: {actualUsername}
-              </p>
-            )}
+            <h2 className="text-xl font-semibold">Your Referrals ({filteredReferrals.length})</h2>
+            {actualUsername && <p className="text-sm text-gray-600">Checking referrals for: {actualUsername}</p>}
           </div>
           <Button onClick={fetchReferrals} variant="outline" disabled={loading}>
             {loading ? "Loading..." : "Refresh"}
@@ -347,12 +347,8 @@ const handleEmailShare = useCallback(() => {
         <div className="text-center py-8">Loading referrals...</div>
       ) : filteredReferrals.length === 0 ? (
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">
-            NO REFERRALS YET?
-          </h2>
-          <p className="text-gray-500">
-            Share your link to get your first referral!
-          </p>
+          <h2 className="text-2xl font-bold text-gray-600 mb-4">NO REFERRALS YET?</h2>
+          <p className="text-gray-500">Share your link to get your first referral!</p>
         </div>
       ) : (
         <>
@@ -364,21 +360,13 @@ const handleEmailShare = useCallback(() => {
 
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
-              <Button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                variant="outline"
-              >
+              <Button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} variant="outline">
                 Previous
               </Button>
               <span className="flex items-center px-4">
                 Page {currentPage} of {totalPages}
               </span>
-              <Button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                variant="outline"
-              >
+              <Button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} variant="outline">
                 Next
               </Button>
             </div>
