@@ -42,6 +42,7 @@ const UserMakeMoneyTab: React.FC = () => {
 
   const shareMessage = useMemo(() => {
     const base =
+      "Xxxotics and Stirppers Needed\n\n" +
       "https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm\n\n" +
       "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nDo not select normal. \nSelect exotic or stripper to get the big money...\n";
     const link = shareLink;
