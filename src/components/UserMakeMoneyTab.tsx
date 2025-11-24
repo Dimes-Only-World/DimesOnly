@@ -51,7 +51,7 @@ const UserMakeMoneyTab: React.FC = () => {
   // 💬 Share message
   const shareMessage = useMemo(
     () =>
-      `https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opportunity.webm
+      `https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm
 Watch Video Above:
 If you are interested, click my link below and sign up now!
 Spots are limited!
@@ -243,8 +243,8 @@ const handleEmailShare = useCallback(() => {
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opportunity.webm"
-          download="Opportunity.webm"
+          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm"
+          download="ExoticsandStrippersOnly.webm"
           className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
         >
           📥 Download Promo Video To Send
