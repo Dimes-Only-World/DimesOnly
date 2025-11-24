@@ -71,8 +71,8 @@ const Index: React.FC = () => {
         srcDesktop="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+CINEMA.webm"
         srcMobile="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm"
       />
-      {/* <VideoWithEmbed /> */}
       <ProfileVideoSection />
+      {/* <VideoWithEmbed /> */}
       <ImageCarousel />
       <LatestDimesCarousel />
       <JackpotWinnersBanner />
