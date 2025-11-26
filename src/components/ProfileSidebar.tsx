@@ -253,7 +253,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-3 leading-relaxed">
-              Earnings paid bi-weekly if ≥ $25. Via CashApp, PayPal, Zelle.
+              Earnings paid bi-weekly if greater rhan $250. Via CashApp, PayPal, Zelle.
             </p>
           </CardContent>
         </Card>
