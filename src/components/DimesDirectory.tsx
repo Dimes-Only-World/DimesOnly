@@ -295,6 +295,7 @@ const DimesDirectory: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-4">Browse Dimes</h2>
+        <p className="text-gray-600 mb-6">Full content will be available when the app is released</p>
         <p className="text-gray-600 mb-6">Search and discover dimes profiles</p>
 
         <div className="relative max-w-md mx-auto">
