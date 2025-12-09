@@ -179,7 +179,7 @@ serve(async (req) => {
       }
 
       // Check if event is sold out
-      if (currentAttendees >= event.max_attendees) {
+      if ((currentAttendees ?? 0) >= event.max_attendees) {
         throw new Error("Event is sold out");
       }
 
@@ -377,7 +377,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to create PayPal order",
+        error: error instanceof Error ? error.message : "Failed to create PayPal order",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

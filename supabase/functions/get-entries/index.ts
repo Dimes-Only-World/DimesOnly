@@ -10,8 +10,8 @@ Deno.serve(async (req)=>{
     });
   }
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data: entries, error } = await supabase.from('entries').select('*').order('created_at', {
       ascending: false
@@ -29,7 +29,7 @@ Deno.serve(async (req)=>{
     });
   } catch (error) {
     return new Response(JSON.stringify({
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,
       headers: {

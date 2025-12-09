@@ -8,14 +8,14 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Max-Age': '86400'
 };
-const validateEmail = (email)=>{
+const validateEmail = (email: string)=>{
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
-const validatePassword = (password)=>{
+const validatePassword = (password: string)=>{
   return password.length >= 6;
 };
-const validateRequired = (data)=>{
+const validateRequired = (data: Record<string, unknown>)=>{
   const errors = [];
   const requiredFields = [
     'firstName',
@@ -140,7 +140,7 @@ serve(async (req)=>{
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     }), {
       headers: {
         ...corsHeaders,
