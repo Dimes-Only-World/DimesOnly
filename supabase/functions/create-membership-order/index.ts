@@ -47,7 +47,7 @@ serve(async (req) => {
     }
 
     // Initialize Supabase client
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = createClient(supabaseUrl!, serviceRoleKey!);
 
     // Fetch membership upgrade details
     const { data: upgrade, error: upgradeError } = await supabase
@@ -243,7 +243,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         success: false,
       }),
       {

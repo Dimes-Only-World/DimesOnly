@@ -29,8 +29,8 @@ Deno.serve(async (req)=>{
         }
       });
     }
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
     const supabase = createClient(supabaseUrl, supabaseKey);
     // Try exact username match
@@ -142,7 +142,7 @@ Deno.serve(async (req)=>{
     console.error('Authentication error:', error);
     return new Response(JSON.stringify({
       message: 'Internal server error',
-      details: error.message
+      details: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,
       headers: {

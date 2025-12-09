@@ -42,7 +42,7 @@ Deno.serve(async (req)=>{
     const checkResult = await fetch('https://qkcuykpndrolrewwnkwb.supabase.co/rest/v1/users?select=username,email&or=(username.eq.' + username + ',email.eq.' + email + ')', {
       method: 'GET',
       headers: {
-        'apikey': Deno.env.get('SUPABASE_ANON_KEY'),
+        'apikey': Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         'Content-Type': 'application/json'
       }
     });
@@ -63,7 +63,7 @@ Deno.serve(async (req)=>{
     const insertResult = await fetch('https://qkcuykpndrolrewwnkwb.supabase.co/rest/v1/users', {
       method: 'POST',
       headers: {
-        'apikey': Deno.env.get('SUPABASE_ANON_KEY'),
+        'apikey': Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
@@ -113,7 +113,7 @@ Deno.serve(async (req)=>{
     });
   } catch (error) {
     return new Response(JSON.stringify({
-      error: 'Server error: ' + error.message
+      error: 'Server error: ' + (error instanceof Error ? error.message : 'Unknown error')
     }), {
       status: 500,
       headers: {

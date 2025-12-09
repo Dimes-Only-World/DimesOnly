@@ -115,16 +115,18 @@ serve(async (req) => {
           hostAmount
         );
 
-        // Update referrer earnings
+        // Update referrer earnings using RPC or direct update
+        const { data: referrerData } = await supabase
+          .from("users")
+          .select("tips_earned, referral_fees")
+          .eq("username", payment.referred_by)
+          .single();
+
         const { error: referrerError } = await supabase
           .from("users")
           .update({
-            total_earnings: supabase.raw(
-              `COALESCE(total_earnings, 0) + ${referrerAmount}`
-            ),
-            pending_earnings: supabase.raw(
-              `COALESCE(pending_earnings, 0) + ${referrerAmount}`
-            ),
+            tips_earned: (referrerData?.tips_earned ?? 0) + referrerAmount,
+            referral_fees: (referrerData?.referral_fees ?? 0) + referrerAmount,
           })
           .eq("username", payment.referred_by);
 
@@ -141,15 +143,16 @@ serve(async (req) => {
 
         if (event && event.created_by) {
           // Update host/performer earnings
+          const { data: hostData } = await supabase
+            .from("users")
+            .select("tips_earned")
+            .eq("id", event.created_by)
+            .single();
+
           const { error: hostError } = await supabase
             .from("users")
             .update({
-              total_earnings: supabase.raw(
-                `COALESCE(total_earnings, 0) + ${hostAmount}`
-              ),
-              pending_earnings: supabase.raw(
-                `COALESCE(pending_earnings, 0) + ${hostAmount}`
-              ),
+              tips_earned: (hostData?.tips_earned ?? 0) + hostAmount,
             })
             .eq("id", event.created_by);
 
@@ -199,7 +202,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Webhook processing error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
