@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,71 @@ import AdminNotificationTab from "@/components/AdminNotificationTab";
 import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
 import AdminJackpotTab from "@/components/AdminJackpotTab";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const adminAuth = localStorage.getItem("adminAuth");
-    if (!adminAuth) {
-      navigate("/adminlogin");
-    }
+    const verifyAdminAccess = async () => {
+      try {
+        // Check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate("/adminlogin");
+          return;
+        }
+
+        // Verify admin role server-side using security definer function
+        const { data: hasAdminRole, error } = await supabase
+          .rpc('is_admin');
+
+        if (error) {
+          console.error('Admin verification error:', error);
+          navigate("/adminlogin");
+          return;
+        }
+
+        if (!hasAdminRole) {
+          await supabase.auth.signOut();
+          navigate("/adminlogin");
+          return;
+        }
+
+        setIsAdmin(true);
+      } catch (error) {
+        console.error('Admin verification failed:', error);
+        navigate("/adminlogin");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    verifyAdminAccess();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate("/adminlogin");
   };
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

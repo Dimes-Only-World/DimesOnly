@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AdminForgotModals } from '@/components/AdminForgotModals';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -21,21 +22,57 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      if (username === 'admin' && password === 'Mjivkwo1!?') {
-        localStorage.setItem('adminAuth', 'true');
-        toast({
-          title: 'Success',
-          description: 'Admin login successful',
-        });
-        navigate('/admin');
-      } else {
+      // Authenticate with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError || !authData.user) {
         toast({
           title: 'Error',
-          description: 'Invalid admin credentials',
+          description: 'Invalid credentials',
           variant: 'destructive',
         });
+        setLoading(false);
+        return;
       }
+
+      // Verify admin role server-side using security definer function
+      const { data: isAdmin, error: roleError } = await supabase
+        .rpc('is_admin');
+
+      if (roleError) {
+        console.error('Role check error:', roleError);
+        await supabase.auth.signOut();
+        toast({
+          title: 'Error',
+          description: 'Failed to verify admin privileges',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        toast({
+          title: 'Access Denied',
+          description: 'You do not have admin privileges',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Admin verified server-side
+      toast({
+        title: 'Success',
+        description: 'Admin login successful',
+      });
+      navigate('/admin');
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: 'Error',
         description: 'Login failed',
@@ -57,14 +94,14 @@ const AdminLogin = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Enter admin username"
+                placeholder="Enter admin email"
               />
             </div>
             <div className="space-y-2">
