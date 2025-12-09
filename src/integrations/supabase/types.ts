@@ -2285,8 +2285,8 @@ export type Database = {
       jackpot_next_sales_start: { Args: { now_ts: string }; Returns: string }
       jackpot_next_saturday: { Args: { p_ts: string }; Returns: string }
       jackpot_run_draw:
-        | { Args: { p_now?: string }; Returns: Json }
         | { Args: { p_force_code?: string; p_now?: string }; Returns: Json }
+        | { Args: { p_now?: string }; Returns: Json }
       jackpot_run_draw_force: {
         Args: { p_code: string; p_now?: string }
         Returns: Json

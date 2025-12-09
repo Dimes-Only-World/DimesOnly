@@ -609,10 +609,10 @@ serve(async (req) => {
         .from("commission_payouts")
         .insert({
           user_id: refUserId,
+          payment_id: payment.id,
           amount: refCommission,
           commission_type: "tip_referral",
           payout_status: "pending",
-          source_payment_id: payment.id,
         });
 
       if (payoutErr) {
