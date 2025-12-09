@@ -2248,6 +2248,10 @@ export type Database = {
         Args: { amount: number; user_id: string }
         Returns: undefined
       }
+      increment_tips_earned: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
       increment_weekly_referral_earnings: {
         Args: { p_amount: number; p_user_id: string; p_week_start: string }
         Returns: undefined

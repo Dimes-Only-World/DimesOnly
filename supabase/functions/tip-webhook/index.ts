@@ -361,9 +361,10 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Webhook error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
@@ -398,7 +399,8 @@ const roundCurrencyHelper = (value: number) => Math.round(value * 100) / 100;
 
 // Helper: Upsert weekly earnings
 async function upsertWeeklyEarnings(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   userId: string,
   when: Date,
   tipDelta: number,
@@ -421,10 +423,12 @@ async function upsertWeeklyEarnings(
     return;
   }
 
-  const nextTip = roundCurrencyHelper((existing?.tip_earnings || 0) + tipDelta);
-  const nextReferral = roundCurrencyHelper((existing?.referral_earnings || 0) + referralDelta);
-  const nextBonus = roundCurrencyHelper((existing?.bonus_earnings || 0) + bonusDelta);
-  const nextAmount = roundCurrencyHelper((existing?.amount || 0) + tipDelta + referralDelta + bonusDelta);
+  // deno-lint-ignore no-explicit-any
+  const existingData = existing as any;
+  const nextTip = roundCurrencyHelper((existingData?.tip_earnings || 0) + tipDelta);
+  const nextReferral = roundCurrencyHelper((existingData?.referral_earnings || 0) + referralDelta);
+  const nextBonus = roundCurrencyHelper((existingData?.bonus_earnings || 0) + bonusDelta);
+  const nextAmount = roundCurrencyHelper((existingData?.amount || 0) + tipDelta + referralDelta + bonusDelta);
 
   const basePayload = {
     week_start: start,
@@ -436,11 +440,11 @@ async function upsertWeeklyEarnings(
     updated_at: new Date().toISOString(),
   };
 
-  if (existing?.id) {
+  if (existingData?.id) {
     const { error: updateErr } = await supabase
       .from("weekly_earnings")
       .update(basePayload)
-      .eq("id", existing.id);
+      .eq("id", existingData.id);
 
     if (updateErr) {
       console.error("Error updating weekly earnings:", updateErr);
