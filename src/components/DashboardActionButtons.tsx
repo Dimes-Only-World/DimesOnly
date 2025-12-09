@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, Star, Edit, Heart } from "lucide-react";
 
@@ -13,9 +14,11 @@ interface DashboardActionButtonsProps {
 const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
   userData,
 }) => {
+  const navigate = useNavigate();
+
   const handleTipWin = () => {
     const username = userData?.username || "company";
-    window.open(`https://dimesonly.world/tip-girls?ref=${username}`, "_blank");
+    navigate(`/tip-girls?ref=${username}`);
   };
 
   const handleEvents = () => {
@@ -23,30 +26,20 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
     const userType = userData?.user_type;
 
     if (userType === "stripper" || userType === "exotic") {
-      window.open(
-        `https://dimesonly.world/events-dimes-only?ref=${username}`,
-        "_blank"
-      );
+      navigate(`/events-dimes-only?ref=${username}`);
     } else {
-      window.open(
-        `https://dimesonly.world/eventsdimes?ref=${username}`,
-        "_blank"
-      );
+      navigate(`/eventsdimes?ref=${username}`);
     }
   };
 
   const handleRate = () => {
     const username = userData?.username || "company";
-    window.open(
-      `https://dimesonly.world/rate-girls/?ref=${username}`,
-      "_blank"
-    );
+    navigate(`/rate-girls?ref=${username}`);
   };
 
   const handleDimesDirectory = () => {
     const username = userData?.username || "company";
-    // Navigate to dedicated Dimes page
-    window.location.href = `/dimes?ref=${username}`;
+    navigate(`/dimes?ref=${username}`);
   };
 
   return (
