@@ -628,8 +628,9 @@ serve(async (req) => {
       },
     );
   } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
     console.error(err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
@@ -637,7 +638,8 @@ serve(async (req) => {
 });
 
 async function upsertWeeklyEarnings(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   userId: string,
   when: Date,
   tipDelta: number,
@@ -657,13 +659,15 @@ async function upsertWeeklyEarnings(
 
   if (readErr) throw readErr;
 
-  const nextTip = roundCurrency((existing?.tip_earnings || 0) + tipDelta);
+  // deno-lint-ignore no-explicit-any
+  const existingData = existing as any;
+  const nextTip = roundCurrency((existingData?.tip_earnings || 0) + tipDelta);
   const nextReferral = roundCurrency(
-    (existing?.referral_earnings || 0) + referralDelta,
+    (existingData?.referral_earnings || 0) + referralDelta,
   );
-  const nextBonus = roundCurrency((existing?.bonus_earnings || 0) + bonusDelta);
+  const nextBonus = roundCurrency((existingData?.bonus_earnings || 0) + bonusDelta);
   const nextAmount = roundCurrency(
-    (existing?.amount || 0) + tipDelta + referralDelta + bonusDelta,
+    (existingData?.amount || 0) + tipDelta + referralDelta + bonusDelta,
   );
 
   const basePayload = {
@@ -676,11 +680,11 @@ async function upsertWeeklyEarnings(
     updated_at: new Date().toISOString(),
   };
 
-  if (existing?.id) {
+  if (existingData?.id) {
     const { error: updateErr } = await supabase
       .from("weekly_earnings")
       .update(basePayload)
-      .eq("id", existing.id);
+      .eq("id", existingData.id);
 
     if (updateErr) throw updateErr;
   } else {
