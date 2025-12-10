@@ -453,7 +453,10 @@ const heroVideoUrl =
           {/* Silver Plus Membership Section */}
           {userData && (
             <div className="mb-6">
-              <SilverPlusMembership userData={userData} onMembershipUpdate={setUserData} />
+              <SilverPlusMembership 
+                userData={userData} 
+                onMembershipUpdate={(updatedData) => setUserData(prev => ({ ...prev, ...updatedData }))} 
+              />
             </div>
           )}
 

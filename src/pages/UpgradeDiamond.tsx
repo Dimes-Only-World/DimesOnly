@@ -300,7 +300,6 @@ const UpgradeDiamondPage: React.FC = () => {
         .select("*");
 
       if (error) throw error;
-      // @ts-expect-error casting result
       setMembershipLimits(data as MembershipLimits[]);
     } catch (error) {
       console.error("Error fetching membership limits:", error);

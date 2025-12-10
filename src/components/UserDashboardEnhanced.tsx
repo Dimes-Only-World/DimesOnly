@@ -230,27 +230,27 @@ const UserDashboardEnhanced: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="notifications" className="mt-0">
-                  <UserNotificationsTab userId={userData.id} />
+                  <UserNotificationsTab />
                 </TabsContent>
 
                 <TabsContent value="messages" className="mt-0">
-                  <UserDirectMessagesTab userId={userData.id} username={userData.username} />
+                  <UserDirectMessagesTab />
                 </TabsContent>
 
                 <TabsContent value="upload" className="mt-0">
-                  <UserMediaUploadTab userId={userData.id} username={userData.username} />
+                  <UserMediaUploadTab userData={userData} />
                 </TabsContent>
 
                 <TabsContent value="earnings" className="mt-0">
-                  <UserEarningsTab userId={userData.id} username={userData.username} />
+                  <UserEarningsTab userData={userData} />
                 </TabsContent>
 
                 <TabsContent value="makemoney" className="mt-0">
-                  <UserMakeMoneyTab username={userData.username} />
+                  <UserMakeMoneyTab />
                 </TabsContent>
 
                 <TabsContent value="jackpot" className="mt-0">
-                  <UserJackpotTab userId={userData.id} username={userData.username} />
+                  <UserJackpotTab userData={userData} />
                 </TabsContent>
               </CardContent>
             </Tabs>

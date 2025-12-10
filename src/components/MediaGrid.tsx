@@ -82,8 +82,10 @@ const MediaGrid: React.FC<MediaGridProps> = ({
 
     // Try orientation lock to detected aspect (not on iOS Safari)
     try {
+      // @ts-ignore - orientation.lock may not be available in all browsers
       if (screen.orientation && screen.orientation.lock) {
         const target = detectedOrientationMap[id] || ((video.videoWidth && video.videoHeight) ? (video.videoWidth >= video.videoHeight ? 'landscape' : 'portrait') : 'landscape');
+        // @ts-ignore
         await screen.orientation.lock(target === 'landscape' ? 'landscape' : 'portrait');
       } else {
         setOrientationHintMap((m) => ({ ...m, [id]: true }));

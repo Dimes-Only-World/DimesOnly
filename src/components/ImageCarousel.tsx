@@ -539,7 +539,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       )}
 
       {/* Hide native scrollbars */}
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
