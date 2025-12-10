@@ -9,9 +9,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import RotatingBackground from "@/components/RotatingBackground";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import ForgotUsernameModal from "@/components/ForgotUsernameModal";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import bcrypt from "bcryptjs";
 
 const backgroundImages = [
   'https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_ea2691d7-25a7-4cd7-8d4e-cf4826e6c1c3.png',
@@ -43,90 +42,95 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      let email = usernameOrEmail.trim();
-      let userRecord = null;
-
-      if (!isEmail(usernameOrEmail)) {
-        const { data: userData, error: userError } = await supabaseAdmin
-          .from("users")
-          .select("email, password_hash, *")
-          .eq("username", usernameOrEmail.trim())
-          .single();
-
-        if (userError || !userData) {
-          throw new Error("Invalid username or password");
-        }
-
-        email = userData.email;
-        userRecord = userData;
-
-        const passwordMatch = await bcrypt.compare(
-          password,
-          userData.password_hash
-        );
-        if (!passwordMatch) {
-          throw new Error("Invalid username or password");
-        }
+      const input = usernameOrEmail.trim();
+      
+      if (!input || !password) {
+        throw new Error("Please enter your username/email and password");
       }
 
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: email,
+      // If input is an email, try Supabase Auth first
+      if (isEmail(input)) {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: input,
           password: password,
         });
 
-      if (authError) {
+      if (!authError && authData.user) {
+          // Get user record from users table
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("email", input)
+            .single();
+
+          if (userError || !userData) {
+            throw new Error("User data not found");
+          }
+
+          const userRecord = userData as Record<string, any>;
+          const user = mapUserRecord(userRecord);
+          setUser(user);
+          localStorage.setItem("authToken", authData.session?.access_token || "authenticated");
+          sessionStorage.setItem("currentUser", userRecord.username);
+
+          toast({
+            title: "Login Successful!",
+            description: `Welcome back, ${userRecord.username}!`,
+          });
+
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+      }
+
+      // Use server-side authenticate-user edge function for username login or email fallback
+      const response = await supabase.functions.invoke('authenticate-user', {
+        body: { username: input, password }
+      });
+
+      if (response.error) {
+        console.error('Edge function error:', response.error);
         throw new Error("Invalid credentials");
       }
 
-      if (!userRecord) {
-        const { data: userData, error: userError } = await supabaseAdmin
-          .from("users")
-          .select("*")
-          .eq("email", email)
-          .single();
+      const data = response.data;
 
-        if (userError || !userData) {
-          throw new Error("User data not found");
-        }
-
-        userRecord = userData;
+      if (!data.success || !data.user) {
+        throw new Error(data.message || "Invalid credentials");
       }
 
+      // Map the response user data
       const user = {
-        id: userRecord.id,
-        username: userRecord.username,
-        email: userRecord.email,
-        firstName: userRecord.first_name,
-        lastName: userRecord.last_name,
-        userType: userRecord.user_type,
-        profilePhoto: userRecord.profile_photo,
-        bannerPhoto: userRecord.banner_photo,
-        mobileNumber: userRecord.mobile_number,
-        address: userRecord.address,
-        city: userRecord.city,
-        state: userRecord.state,
-        zip: userRecord.zip,
-        gender: userRecord.gender,
-        membershipType: userRecord.membership_type,
-        tipsEarned: userRecord.tips_earned || 0,
-        referralFees: userRecord.referral_fees || 0,
-        overrides: userRecord.overrides || 0,
-        weeklyHours: userRecord.weekly_hours || 0,
-        isRanked: userRecord.is_ranked || false,
-        rankNumber: userRecord.rank_number,
+        id: data.user.id,
+        username: data.user.username,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        userType: data.user.user_type,
+        profilePhoto: data.user.profile_photo,
+        bannerPhoto: data.user.banner_photo,
+        mobileNumber: data.user.mobile_number,
+        address: data.user.address,
+        city: data.user.city,
+        state: data.user.state,
+        zip: data.user.zip,
+        gender: data.user.gender,
+        membershipType: data.user.membership_type,
+        tipsEarned: data.user.tips_earned || 0,
+        referralFees: data.user.referral_fees || 0,
+        overrides: data.user.overrides || 0,
+        weeklyHours: data.user.weekly_hours || 0,
+        isRanked: data.user.is_ranked || false,
+        rankNumber: data.user.rank_number,
       };
 
       setUser(user);
-      localStorage.setItem(
-        "authToken",
-        authData.session?.access_token || "authenticated"
-      );
-      sessionStorage.setItem("currentUser", userRecord.username);
+      localStorage.setItem("authToken", data.token || "authenticated");
+      sessionStorage.setItem("currentUser", data.user.username);
 
       toast({
         title: "Login Successful!",
-        description: `Welcome back, ${userRecord.username}!`,
+        description: `Welcome back, ${data.user.username}!`,
       });
 
       navigate("/dashboard", { replace: true });
@@ -146,6 +150,31 @@ const Login: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Helper function to map database record to user object
+  const mapUserRecord = (userRecord: any) => ({
+    id: userRecord.id,
+    username: userRecord.username,
+    email: userRecord.email,
+    firstName: userRecord.first_name,
+    lastName: userRecord.last_name,
+    userType: userRecord.user_type,
+    profilePhoto: userRecord.profile_photo,
+    bannerPhoto: userRecord.banner_photo,
+    mobileNumber: userRecord.mobile_number,
+    address: userRecord.address,
+    city: userRecord.city,
+    state: userRecord.state,
+    zip: userRecord.zip,
+    gender: userRecord.gender,
+    membershipType: userRecord.membership_type,
+    tipsEarned: userRecord.tips_earned || 0,
+    referralFees: userRecord.referral_fees || 0,
+    overrides: userRecord.overrides || 0,
+    weeklyHours: userRecord.weekly_hours || 0,
+    isRanked: userRecord.is_ranked || false,
+    rankNumber: userRecord.rank_number,
+  });
 
   return (
     <div className="w-full min-h-screen relative">
