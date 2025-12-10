@@ -1,4 +1,5 @@
 import React from "react";
+// App component - Dimes Only Network
 import {
   BrowserRouter as Router,
   Routes,
