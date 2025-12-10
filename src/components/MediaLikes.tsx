@@ -62,8 +62,8 @@ const MediaLikes: React.FC<MediaLikesProps> = ({
 
       if (error) throw error;
 
-      const likersList = data
-        .map(item => item.user)
+      const likersList = (data || [])
+        .map((item: any) => item.user)
         .filter(Boolean) as Array<{ username: string; profile_photo: string }>;
 
       setLikers(likersList);

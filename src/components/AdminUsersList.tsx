@@ -37,6 +37,7 @@ const AdminUsersList = () => {
   const [cityFilter, setCityFilter] = useState('');
   const [stateFilter, setStateFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
+  const [referredByFilter, setReferredByFilter] = useState('');
   
   const { toast } = useToast();
 
@@ -160,6 +161,8 @@ const AdminUsersList = () => {
             setStateFilter={setStateFilter}
             genderFilter={genderFilter}
             setGenderFilter={setGenderFilter}
+            referredByFilter={referredByFilter}
+            setReferredByFilter={setReferredByFilter}
           />
           
           <div className="space-y-4 max-h-96 overflow-y-auto">

@@ -355,7 +355,12 @@ const UserMakeMoneyTab: React.FC = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {paginatedReferrals.map((referral) => (
-              <ReferralCard key={referral.id} user={referral} />
+              <ReferralCard 
+                key={referral.id} 
+                user={referral} 
+                onImageClick={() => {}} 
+                onMessage={() => {}} 
+              />
             ))}
           </div>
 

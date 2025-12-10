@@ -45,8 +45,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, title, onLike, l
     try {
       // Only works while in fullscreen on most browsers
       // Some environments throw if not allowed
+      // @ts-ignore - orientation.lock may not be available in all browsers
       if (screen.orientation && screen.orientation.lock) {
         const target = detectedOrientation || 'landscape';
+        // @ts-ignore
         await screen.orientation.lock(target === 'landscape' ? 'landscape' : 'portrait');
       } else {
         setShowOrientationHint(true);

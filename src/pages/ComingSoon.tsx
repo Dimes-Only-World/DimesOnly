@@ -8,7 +8,6 @@ const ComingSoon: React.FC = () => {
   return (
     <VideoBackground 
       videoUrl="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opening+Page+f+(1).mp4"
-      overlayOpacity={0.7}
     >
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-2xl mx-auto text-center">

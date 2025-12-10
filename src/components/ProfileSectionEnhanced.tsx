@@ -170,7 +170,7 @@ const ProfileSectionEnhanced: React.FC<ProfileSectionProps> = ({ userData, setUs
 
   // Determine badge label
   let badgeLabel = "";
-  const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
+  const rawTier = String((userData as any)?.membership_tier || userData?.membership_type || '').toLowerCase();
   if (userData.diamond_plus_active || rawTier === 'diamond_plus') {
     badgeLabel = "Diamond Plus Member";
   } else if (userData.silver_plus_active || rawTier === 'silver_plus') {

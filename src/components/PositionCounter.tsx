@@ -55,7 +55,9 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         () => fetchSilverPlusCounter()
       )
       .subscribe();
-    return () => supabase.removeChannel(subscription);
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
   const fetchCounts = async () => {
@@ -101,7 +103,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
   const fadeIn = {
     hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] as const } },
   };
 
   const steps = [
