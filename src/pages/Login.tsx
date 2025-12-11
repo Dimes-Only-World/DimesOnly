@@ -9,7 +9,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import RotatingBackground from "@/components/RotatingBackground";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import ForgotUsernameModal from "@/components/ForgotUsernameModal";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import bcrypt from "bcryptjs";
 
@@ -52,7 +52,7 @@ const Login: React.FC = () => {
       if (!identifier.includes("@")) {
         // User entered username - query users table to get email
         console.log('Username login detected, looking up email for:', identifier);
-        const { data: userData, error: userError } = await supabaseAdmin
+        const { data: userData, error: userError } = await supabase
           .from("users")
           .select("*")
           .eq("username", identifier)
@@ -69,7 +69,7 @@ const Login: React.FC = () => {
       } else {
         // User entered email - find user by email
         console.log('Email login detected:', identifier);
-        const { data: userData, error: userError } = await supabaseAdmin
+        const { data: userData, error: userError } = await supabase
           .from("users")
           .select("*")
           .eq("email", email)
