@@ -210,7 +210,7 @@ const JackpotWinnersBanner: React.FC = () => {
           }
         }
 
-        // 4) Enrich winners with username/photo (prefer row data, fallback to fetched profile)
+        // 4) Enrich winners with username/photo (prefer ACTUAL profile from users table over stored winner data)
         const enriched: WinnerRow[] = (all as any[]).map((w) => {
           const rawId = w.user_id ? String(w.user_id) : null;
           const p = rawId ? profiles[rawId] : undefined;
@@ -219,8 +219,8 @@ const JackpotWinnersBanner: React.FC = () => {
             drawn_code: w.drawn_code ?? null,
             executed_at: String(w.executed_at),
             user_id: rawId,
-            username: (w.username ?? p?.username ?? null) as string | null,
-            profile_photo: (w.profile_photo ?? p?.profile_photo ?? null) as
+            username: (p?.username ?? w.username ?? null) as string | null,
+            profile_photo: (p?.profile_photo ?? w.profile_photo ?? null) as
               | string
               | null,
             role: w.role as WinnerRow["role"],
