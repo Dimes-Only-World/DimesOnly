@@ -130,34 +130,23 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
     setSelectedVideoUrl(null);
 
     try {
-      // First try to get a silver tier video
-      let { data, error } = await supabase
+      // Fetch any video for this user (no content_tier filter)
+      const { data, error } = await supabase
         .from("user_media")
         .select("media_url")
         .eq("user_id", performer.id)
         .eq("media_type", "video")
-        .eq("content_tier", "silver")
         .order("upload_date", { ascending: false })
         .limit(1);
 
-      // If no silver video, try free tier
-      if (!data?.length) {
-        const freeResult = await supabase
-          .from("user_media")
-          .select("media_url")
-          .eq("user_id", performer.id)
-          .eq("media_type", "video")
-          .eq("content_tier", "free")
-          .order("upload_date", { ascending: false })
-          .limit(1);
-        data = freeResult.data;
-        error = freeResult.error;
-      }
+      console.log("[ImageCarousel] Video query result for", performer.username, ":", data, error);
 
       if (error) {
         console.error("[ImageCarousel] Error fetching video:", error);
       } else if (data?.[0]?.media_url) {
         setSelectedVideoUrl(String(data[0].media_url));
+      } else {
+        console.log("[ImageCarousel] No video found for user:", performer.id);
       }
     } catch (err) {
       console.error("[ImageCarousel] Unexpected error loading preview:", err);
