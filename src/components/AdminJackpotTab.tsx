@@ -317,7 +317,6 @@ const AdminJackpotTab: React.FC = () => {
           });
         }
       }
-          });
 
       await fetchPool();
     } catch (err: unknown) {
@@ -328,9 +327,6 @@ const AdminJackpotTab: React.FC = () => {
         variant: "destructive",
       });
     } finally {
-      setUpdatingMaxTickets(false);
-    }
-  };
       setUpdatingMaxTickets(false);
     }
   };
@@ -364,9 +360,6 @@ const AdminJackpotTab: React.FC = () => {
         variant: "destructive",
       });
     } finally {
-      setUpdatingStatus(false);
-    }
-  };
       setUpdatingStatus(false);
     }
   };
@@ -478,11 +471,6 @@ const AdminJackpotTab: React.FC = () => {
         body: { action: 'updateWinnerStatus', drawId: draw_id, visitorId: user_id, status }
       });
       if (error || res?.error) throw error || new Error(res?.error);
-      await fetchLatestWinners();
-    } finally {
-      setUpdatingId(null);
-    }
-  };
       await fetchLatestWinners();
     } finally {
       setUpdatingId(null);

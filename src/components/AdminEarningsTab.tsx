@@ -182,6 +182,8 @@ const AdminEarningsTab: React.FC = () => {
         user_type: string;
       }>;
 
+      const augmentedUsers = [...typedUsers];
+
       const referralRows = (referralCommissions || []) as Array<{
         referred_by: string | null;
         referrer_commission: number | null;
