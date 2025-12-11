@@ -198,7 +198,7 @@ const JackpotWinnersBanner: React.FC = () => {
 
         if (ids.length) {
           const { data: users } = await supabase
-            .from("users")
+            .from("public_user_profiles")
             .select("id, username, profile_photo")
             .in("id", ids);
           for (const u of users || []) {
