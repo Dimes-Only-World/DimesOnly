@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -236,14 +236,13 @@ const AdminJackpotTab: React.FC = () => {
   
     setUpdatingMaxTickets(true);
     try {
-      const { count: ticketCount, error: countError } = await supabaseAdmin
-        .from("jackpot_tickets")
-        .select("id", { count: "exact", head: true })
-        .eq("pool_id", pool.pool_id);
-      if (countError) throw countError;
+      const { data: countResponse, error: countError } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'getPoolTicketCount', poolId: pool.pool_id }
+      });
+      if (countError || countResponse?.error) throw countError || new Error(countResponse?.error);
+      const currentTickets = Number(countResponse?.data?.count ?? 0);
   
-      const currentTickets = Number(ticketCount ?? 0);
-  
+
       if (parsed !== null && parsed < currentTickets) {
         toast({
           title: "Cap too low",
@@ -253,11 +252,10 @@ const AdminJackpotTab: React.FC = () => {
         return;
       }
   
-      const { error } = await supabaseAdmin
-        .from("jackpot_pools")
-        .update({ max_tickets: parsed })
-        .eq("id", pool.pool_id);
-      if (error) throw error;
+      const { data: updateRes, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'updateMaxTickets', poolId: pool.pool_id, maxTickets: parsed }
+      });
+      if (error || updateRes?.error) throw error || new Error(updateRes?.error);
   
       toast({
         title: "Max tickets updated",
@@ -270,21 +268,22 @@ const AdminJackpotTab: React.FC = () => {
       const capAllowsMore = parsed === null || parsed > currentTickets;
   
       if (pool.status === "sold_out" && capAllowsMore) {
-        const { error: reopenError } = await supabaseAdmin
-          .from("jackpot_pools")
-          .update({
-            status: "open",
-            sold_out_at: null,
-            sales_resume_at: null,
-            guaranteed_draw: false,
-          })
-          .eq("id", pool.pool_id);
+        const { data: reopenRes, error: reopenError } = await supabase.functions.invoke('admin-data', {
+          body: { 
+            action: 'updatePoolStatus', 
+            poolId: pool.pool_id, 
+            status: 'open',
+            soldOutAt: null,
+            salesResumeAt: null,
+            guaranteedDraw: false
+          }
+        });
   
-        if (reopenError) {
-          console.error("Failed to reopen pool after cap change:", reopenError);
+        if (reopenError || reopenRes?.error) {
+          console.error("Failed to reopen pool after cap change:", reopenError || reopenRes?.error);
           toast({
             title: "Cap updated, but reopen failed",
-            description: reopenError.message ?? "Pool is still marked sold out.",
+            description: (reopenError || reopenRes?.error)?.message ?? "Pool is still marked sold out.",
             variant: "destructive",
           });
         } else {
@@ -294,21 +293,21 @@ const AdminJackpotTab: React.FC = () => {
           });
         }
       } else if (parsed !== null && parsed === currentTickets && pool.status !== "sold_out") {
-        const { error: soldOutError } = await supabaseAdmin
-          .from("jackpot_pools")
-          .update({
-            status: "sold_out",
-            sold_out_at: new Date().toISOString(),
-            sales_resume_at: null,
-            guaranteed_draw: true,
-          })
-          .eq("id", pool.pool_id);
-  
-        if (soldOutError) {
-          console.error("Failed to mark pool sold out after cap change:", soldOutError);
+        const { data: soldRes, error: soldOutError } = await supabase.functions.invoke('admin-data', {
+          body: { 
+            action: 'updatePoolStatus', 
+            poolId: pool.pool_id, 
+            status: 'sold_out',
+            soldOutAt: new Date().toISOString(),
+            salesResumeAt: null,
+            guaranteedDraw: true
+          }
+        });
+        if (soldOutError || soldRes?.error) {
+          console.error("Failed to mark pool sold out:", soldOutError || soldRes?.error);
           toast({
             title: "Cap saved, but sold-out update failed",
-            description: soldOutError.message ?? "Pool is still marked open.",
+            description: (soldOutError || soldRes?.error)?.message ?? "Pool is still marked open.",
             variant: "destructive",
           });
         } else {
@@ -318,16 +317,20 @@ const AdminJackpotTab: React.FC = () => {
           });
         }
       }
-  
+          });
+
       await fetchPool();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast({
         title: "Update failed",
-        description: err?.message ?? "Could not update max tickets.",
+        description: err instanceof Error ? err.message : "Could not update max tickets.",
         variant: "destructive",
       });
     } finally {
+      setUpdatingMaxTickets(false);
+    }
+  };
       setUpdatingMaxTickets(false);
     }
   };
@@ -336,30 +339,34 @@ const AdminJackpotTab: React.FC = () => {
     if (!pool?.pool_id) return;
     setUpdatingStatus(true);
     try {
-      const { error } = await supabaseAdmin
-        .from("jackpot_pools")
-        .update({
-          status: "open",
-          sold_out_at: null,
-          sales_resume_at: null,
-          guaranteed_draw: false,
-        })
-        .eq("id", pool.pool_id);
-      if (error) throw error;
+      const { data: res, error } = await supabase.functions.invoke('admin-data', {
+        body: { 
+          action: 'updatePoolStatus', 
+          poolId: pool.pool_id, 
+          status: 'open',
+          soldOutAt: null,
+          salesResumeAt: null,
+          guaranteedDraw: false
+        }
+      });
+      if (error || res?.error) throw error || new Error(res?.error);
   
       toast({
         title: "Pool reopened",
         description: "Ticket sales resumed for the current pool.",
       });
       await fetchPool();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast({
         title: "Could not resume sales",
-        description: err?.message ?? "Retry or check the logs.",
+        description: err instanceof Error ? err.message : "Retry or check the logs.",
         variant: "destructive",
       });
     } finally {
+      setUpdatingStatus(false);
+    }
+  };
       setUpdatingStatus(false);
     }
   };
@@ -467,11 +474,15 @@ const AdminJackpotTab: React.FC = () => {
   ) => {
     setUpdatingId(`${draw_id}:${user_id}:${status}`);
     try {
-      const { error } = await supabaseAdmin
-        .from("jackpot_winners")
-        .update({ status })
-        .match({ draw_id, user_id });
-      if (error) throw error;
+      const { data: res, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'updateWinnerStatus', drawId: draw_id, visitorId: user_id, status }
+      });
+      if (error || res?.error) throw error || new Error(res?.error);
+      await fetchLatestWinners();
+    } finally {
+      setUpdatingId(null);
+    }
+  };
       await fetchLatestWinners();
     } finally {
       setUpdatingId(null);

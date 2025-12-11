@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import AdminUserFiltersEnhanced from "./AdminUserFiltersEnhanced";
 import AdminUserDetailsEnhanced from "./AdminUserDetailsEnhanced";
 
@@ -64,13 +64,14 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabaseAdmin
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'fetchAllUsers' }
+      });
 
       if (error) throw error;
-      setUsers((data as unknown as User[]) || []);
+      if (data?.error) throw new Error(data.error);
+      
+      setUsers((data?.data as User[]) || []);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -216,12 +217,12 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const handleDeactivateUser = async (userId: string) => {
     try {
-      const { error } = await supabaseAdmin
-        .from("users")
-        .update({ is_active: false })
-        .eq("id", userId);
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'deactivateUser', userId }
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Success",

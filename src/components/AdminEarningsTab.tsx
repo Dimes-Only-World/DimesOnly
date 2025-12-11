@@ -30,7 +30,7 @@ import {
   Calendar,
   Download,
 } from "lucide-react";
-import { supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
@@ -163,90 +163,18 @@ const AdminEarningsTab: React.FC = () => {
       const selectedPeriod = payPeriods.find((p) => p.id === periodId);
       if (!selectedPeriod) return;
 
-      const { data: users, error: usersError } = await supabaseAdmin
-        .from("users")
-        .select("id, username, user_type")
-        .order("username");
+      const startDate = startOfDay(selectedPeriod.startDate).toISOString();
+      const endDate = endOfDay(selectedPeriod.endDate).toISOString();
 
-      if (usersError) throw usersError;
+      // Use admin-data edge function for payroll data
+      const { data: response, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'fetchPayrollData', startDate, endDate }
+      });
 
-      const subscriptionReferralTypes = [
-        "subscription_referral_commission",
-        "subscription_upline_referral_commission",
-        "referral_commission",
-        "upline_referral_commission",
-        "diamond_plus_referral_commission",
-        "diamond_plus_upline_referral_commission",
-      ];
+      if (error) throw error;
+      if (response?.error) throw new Error(response.error);
 
-      const { data: referralCommissions, error: referralError } =
-        await supabaseAdmin
-          .from("payments")
-          .select(
-            "referred_by, referrer_commission, created_at, payment_type",
-          )
-          .not("referrer_commission", "is", null)
-          .in("payment_type", subscriptionReferralTypes)
-          .gte(
-            "created_at",
-            startOfDay(selectedPeriod.startDate).toISOString(),
-          )
-          .lte(
-            "created_at",
-            endOfDay(selectedPeriod.endDate).toISOString(),
-          )
-          .eq("payment_status", "completed");
-
-      if (referralError) throw referralError;
-
-      const { data: tips, error: tipsError } = await supabaseAdmin
-        .from("tips")
-        .select("tipped_username, tip_amount, created_at, status")
-        .eq("status", "completed")
-        .gte(
-          "created_at",
-          startOfDay(selectedPeriod.startDate).toISOString(),
-        )
-        .lte(
-          "created_at",
-          endOfDay(selectedPeriod.endDate).toISOString(),
-        );
-
-      if (tipsError) throw tipsError;
-
-      const { data: tipReferralRows, error: tipReferralError } =
-        await supabaseAdmin
-          .from("tips_transactions")
-          .select("referrer_username, referrer_commission, completed_at")
-          .not("referrer_commission", "is", null)
-          .eq("payment_status", "completed")
-          .gte(
-            "completed_at",
-            startOfDay(selectedPeriod.startDate).toISOString(),
-          )
-          .lte(
-            "completed_at",
-            endOfDay(selectedPeriod.endDate).toISOString(),
-          );
-
-      if (tipReferralError) throw tipReferralError;
-
-      const { data: eventCommissions, error: eventError } =
-        await supabaseAdmin
-          .from("payments")
-          .select("user_id, event_host_commission, created_at")
-          .not("event_host_commission", "is", null)
-          .eq("payment_status", "completed")
-          .gte(
-            "created_at",
-            startOfDay(selectedPeriod.startDate).toISOString(),
-          )
-          .lte(
-            "created_at",
-            endOfDay(selectedPeriod.endDate).toISOString(),
-          );
-
-      if (eventError) throw eventError;
+      const { users, referralCommissions, tips, tipReferrals, eventCommissions } = response?.data || {};
 
       const typedUsers = (users || []) as Array<{
         id: string;
@@ -264,7 +192,7 @@ const AdminEarningsTab: React.FC = () => {
         tip_amount: number | null;
       }>;
 
-      const tipRefRows = (tipReferralRows || []) as Array<{
+      const tipRefRows = (tipReferrals || []) as Array<{
         referrer_username: string | null;
         referrer_commission: number | null;
       }>;
@@ -273,8 +201,6 @@ const AdminEarningsTab: React.FC = () => {
         user_id: string | null;
         event_host_commission: number | null;
       }>;
-
-      const augmentedUsers = [...typedUsers];
 
       referralRows.forEach((row) => {
         const referredBy = (row.referred_by || "").trim();

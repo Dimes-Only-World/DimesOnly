@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   MapPin,
@@ -25,7 +25,6 @@ import {
   Heart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-// Removed media display on Rate page to keep exclusive content on Profile
 
 interface UserData {
   id: string;
@@ -38,17 +37,6 @@ interface UserData {
   bio?: string;
   user_type: string;
   gender?: string;
-}
-
-interface UserMedia {
-  id: string;
-  media_url: string;
-  media_type: string;
-  created_at: string;
-  content_tier?: string;
-  is_nude?: boolean;
-  is_xrated?: boolean;
-  upload_date?: string;
 }
 
 interface CurrentStanding {
@@ -64,32 +52,6 @@ interface UserRating {
   rating: number;
   year: number;
   created_at: string;
-}
-
-interface RatingWithUser {
-  id: string;
-  rater_id: string;
-  user_id: string;
-  rating: number;
-  year: number;
-  created_at: string;
-  users: {
-    username: string;
-    profile_photo: string | null;
-  } | null;
-}
-
-interface DatabaseRating {
-  id: unknown;
-  rater_id: unknown;
-  user_id: unknown;
-  rating: unknown;
-  year: unknown;
-  created_at: unknown;
-  users: {
-    username: unknown;
-    profile_photo: unknown;
-  } | null;
 }
 
 interface NumberAssignment {
@@ -165,103 +127,17 @@ const RatePage: React.FC = () => {
 
   const fetchUserData = async () => {
     try {
-      // Normalize username to reduce mismatch due to spaces/case
-      const normalizedRate = String(rateUsername).trim().toLowerCase();
-
-      // maybeSingle avoids 406 on zero rows
-      let { data, error } = await supabase
-        .from("users")
-        .select(
-          "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
-        )
-        .eq("username", normalizedRate)
-        .maybeSingle();
-
-      // Fallback to case-insensitive match
-      if ((!data || error) && !data) {
-        const res = await supabase
-          .from("users")
-          .select(
-            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
-          )
-          .ilike("username", normalizedRate)
-          .maybeSingle();
-        data = res.data as any;
-        error = res.error as any;
-      }
-
-      // Fallback: contains search and pick best match
-      if ((!data || error) && !data) {
-        const res = await supabase
-          .from("users")
-          .select(
-            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
-          )
-          .ilike("username", `%${normalizedRate}%`);
-        const rows = res.data as any[] | null;
-        if (rows && rows.length > 0) {
-          const lower = (u: string) => String(u || "").toLowerCase();
-          const exact = rows.find((r) => lower(r.username) === normalizedRate);
-          const starts = rows.find((r) => lower(r.username).startsWith(normalizedRate));
-          data = (exact || starts || rows[0]) as any;
-          error = res.error as any;
-        }
-      }
-
-      // Admin fallback to bypass potential RLS blocking a single row
-      if (!data) {
-        console.warn("[Rate] Public fetch returned no data. Trying admin fallback for", normalizedRate);
-        // Exact
-        let adminRes = await supabaseAdmin
-          .from("users")
-          .select(
-            "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
-          )
-          .eq("username", normalizedRate)
-          .maybeSingle();
-        let adminData = adminRes.data as any | null;
-
-        if (!adminData) {
-          // Case-insensitive
-          adminRes = await supabaseAdmin
-            .from("users")
-            .select(
-              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
-            )
-            .ilike("username", normalizedRate)
-            .maybeSingle();
-          adminData = adminRes.data as any | null;
-        }
-
-        if (!adminData) {
-          // Contains
-          const resList = await supabaseAdmin
-            .from("users")
-            .select(
-              "id, username, profile_photo, banner_photo, front_page_photo, city, state, bio, user_type, gender"
-            )
-            .ilike("username", `%${normalizedRate}%`);
-        const rows = resList.data as any[] | null;
-        if (rows && rows.length > 0) {
-          const lower = (u: string) => String(u || "").toLowerCase();
-          const exact = rows.find((r) => lower(r.username) === normalizedRate);
-          const starts = rows.find((r) => lower(r.username).startsWith(normalizedRate));
-          adminData = (exact || starts || rows[0]) as any;
-        }
-        }
-
-        if (adminData) {
-          console.warn("[Rate] Admin fallback succeeded for", adminData.username);
-          data = adminData;
-        } else {
-          console.warn("[Rate] Admin fallback also failed for", normalizedRate, "error:", error);
-        }
-      }
+      // Use public-data edge function to fetch profile
+      const { data: response, error } = await supabase.functions.invoke('public-data', {
+        body: { action: 'fetchProfile', username: rateUsername }
+      });
 
       if (error) {
         console.error("Error fetching user data:", error);
         return;
       }
+
+      const data = response?.data;
 
       if (data) {
         const userData: UserData = {
@@ -348,8 +224,6 @@ const RatePage: React.FC = () => {
     }
   };
 
-  // Removed fetchUserMedia(): no media fetched for Rate page
-
   const fetchLikes = async (userId: string) => {
     try {
       // Get the user's current likes count and liked_by data
@@ -423,7 +297,7 @@ const RatePage: React.FC = () => {
             > = usersData.reduce((acc, user) => {
               acc[String(user.id)] = user;
               return acc;
-            }, {});
+            }, {} as Record<string, { id: string; username: string; profile_photo: string | null }>);
 
             ratings.forEach((rating) => {
               const user = userMap[String(rating.user_id)];
@@ -499,7 +373,7 @@ const RatePage: React.FC = () => {
           .from("users")
           .update({
             likes: currentLikes + 1,
-            liked_by: currentUser.id, // Simplified for now
+            liked_by: currentUser.id,
           })
           .eq("id", userData.id);
 
@@ -507,204 +381,144 @@ const RatePage: React.FC = () => {
           setHasLiked(true);
           setLikes(currentLikes + 1);
           toast({
-            title: "Liked",
-            description: `You liked ${userData.username}!`,
+            title: "Liked!",
+            description: `You liked ${userData.username}`,
           });
         }
       }
     } catch (error) {
       console.error("Error handling like:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update like. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
-  const handleNumberClick = async (number: number) => {
-    if (!userData || !currentUser) return;
-
-    // Check if user has used all numbers
-    if (isAllNumbersUsed && !numberAssignments[number]) {
+  const handleNumberClick = (num: number) => {
+    if (!currentUser) {
       toast({
-        title: "All Numbers Used",
-        description:
-          "YOU HAVE USED ALL THE NUMBERS, CLICK HERE TO SEE THE RANKING OF ALL THE STRIPPERS AND EXOTICS",
+        title: "Login Required",
+        description: "Please login to rate users.",
         variant: "destructive",
       });
       return;
     }
 
-    const existingAssignment = numberAssignments[number];
+    if (!userData) return;
 
-    if (!existingAssignment) {
-      // Number is available, show confirmation for selection
-      if (number === 100) {
-        setConfirmMessage(
-          `Confirm you want to give ${userData.username} number ${number}.`
-        );
-      } else {
-        setConfirmMessage(
-          `Confirm you want to give ${userData.username} number ${number}.`
-        );
-      }
-      setSelectedNumber(number);
-      setShowConfirmDialog(true);
-    } else if (existingAssignment.is_current_page) {
-      // Number already assigned to current page user
-      toast({
-        title: "Already Assigned",
-        description: `You have already given number ${number} to ${userData.username}.`,
-      });
-    } else {
-      // Number assigned to different user, show reassignment dialog
-      setReassignFromUser({
-        username: existingAssignment.assigned_to_username,
-        photo: existingAssignment.assigned_to_photo,
-      });
-      setSelectedNumber(number);
-      setShowReassignDialog(true);
-    }
-  };
+    const assignment = numberAssignments[num];
 
-  const confirmRating = async () => {
-    if (!selectedNumber || !userData || !currentUser) return;
-
-    try {
-      const currentYear = new Date().getFullYear();
-
-      // Check if this number is already assigned to another user
-      const existingAssignment = numberAssignments[selectedNumber];
-      if (existingAssignment && !existingAssignment.is_current_page) {
-        // Delete the old rating for this number
-        await supabase
-          .from("ratings")
-          .delete()
-          .eq("rater_id", currentUser.id)
-          .eq("rating", selectedNumber)
-          .eq("year", currentYear);
-      }
-
-      // Check if current user already rated this performer with a different number
-      const existingRatingForUser = userRatings.find(
-        (r) => r.user_id === userData.id
-      );
-      if (existingRatingForUser) {
-        // Delete the existing rating for this performer
-        await supabase
-          .from("ratings")
-          .delete()
-          .eq("rater_id", currentUser.id)
-          .eq("user_id", userData.id)
-          .eq("year", currentYear);
-      }
-
-      // Insert new rating
-      const { error } = await supabase.from("ratings").insert({
-        rater_id: currentUser.id,
-        user_id: userData.id,
-        rating: selectedNumber,
-        year: currentYear,
-      });
-
-      if (error) {
-        console.error("Error saving rating:", error);
+    if (assignment) {
+      if (assignment.is_current_page) {
         toast({
-          title: "Error",
-          description: "Failed to save rating. Please try again.",
-          variant: "destructive",
+          title: "Already Assigned",
+          description: `You already gave #${num} to @${userData.username}`,
         });
         return;
       }
 
-      // Update local state - remove old assignment for this user if exists
-      const newAssignments = { ...numberAssignments };
-
-      // Remove any existing assignment for this user (from previous rating)
-      Object.keys(newAssignments).forEach((key) => {
-        const assignment = newAssignments[Number(key)];
-        if (
-          assignment.assigned_to_username === userData.username &&
-          assignment.is_current_page
-        ) {
-          delete newAssignments[Number(key)];
-        }
+      // Number is assigned to someone else - offer to reassign
+      setSelectedNumber(num);
+      setReassignFromUser({
+        username: assignment.assigned_to_username,
+        photo: assignment.assigned_to_photo,
       });
+      setShowReassignDialog(true);
+      return;
+    }
 
-      // Add new assignment
-      newAssignments[selectedNumber] = {
-        number: selectedNumber,
-        assigned_to_username: userData.username,
-        assigned_to_photo: userData.profile_photo || "",
-        is_current_page: true,
-      };
-      setNumberAssignments(newAssignments);
+    // Number is available - confirm assignment
+    setSelectedNumber(num);
+    setConfirmMessage(
+      `Do you want to give #${num} to @${userData.username}?`
+    );
+    setShowConfirmDialog(true);
+  };
 
-      // Update user ratings - remove old rating for this user and add new one
-      const newRating: UserRating = {
-        id: "",
-        rater_id: currentUser.id,
-        user_id: userData.id,
-        rating: selectedNumber,
-        year: currentYear,
-        created_at: new Date().toISOString(),
-      };
-      setUserRatings((prev) => [
-        ...prev.filter((r) => r.user_id !== userData.id), // Remove old rating for this user
-        newRating,
-      ]);
+  const confirmRating = async () => {
+    if (!currentUser || !userData || selectedNumber === null) return;
+
+    try {
+      const currentYear = new Date().getFullYear();
+
+      // Check if user already has a rating for this user this year
+      const existingRating = userRatings.find(
+        (r) => r.user_id === userData.id && r.year === currentYear
+      );
+
+      if (existingRating) {
+        // Update existing rating
+        const { error } = await supabase
+          .from("ratings")
+          .update({ rating: selectedNumber })
+          .eq("id", existingRating.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new rating
+        const { error } = await supabase.from("ratings").insert({
+          rater_id: currentUser.id,
+          user_id: userData.id,
+          rating: selectedNumber,
+          year: currentYear,
+        });
+
+        if (error) throw error;
+      }
 
       toast({
-        title: "Rating Saved",
-        description: `You have given ${userData.username} number ${selectedNumber}!`,
+        title: "Rating Saved!",
+        description: `You gave #${selectedNumber} to @${userData.username}`,
       });
 
-      setShowConfirmDialog(false);
-      setSelectedNumber(null);
+      // Update local state
+      const newAssignment: NumberAssignment = {
+        number: selectedNumber,
+        assigned_to_username: userData.username,
+        assigned_to_photo: userData.profile_photo,
+        is_current_page: true,
+      };
 
-      // If this was a reassignment, redirect back to the previous user's page
-      if (existingAssignment && !existingAssignment.is_current_page) {
-        setTimeout(() => {
-          navigate(
-            `/rate/?rate=${existingAssignment.assigned_to_username}&ref=${refUsername}`
-          );
-        }, 2000);
-      }
+      setNumberAssignments((prev) => ({
+        ...prev,
+        [selectedNumber]: newAssignment,
+      }));
+
+      // Refresh ratings
+      await fetchUserRatings(currentUser.id);
+      await fetchCurrentStanding(userData.id);
     } catch (error) {
-      console.error("Error confirming rating:", error);
+      console.error("Error saving rating:", error);
       toast({
         title: "Error",
         description: "Failed to save rating. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setShowConfirmDialog(false);
+      setShowReassignDialog(false);
+      setSelectedNumber(null);
+      setReassignFromUser(null);
     }
   };
 
   const confirmReassignment = async () => {
+    if (!reassignFromUser) return;
+    setConfirmMessage(
+      `This will remove #${selectedNumber} from @${reassignFromUser.username} and give it to @${userData?.username}. Continue?`
+    );
     setShowReassignDialog(false);
     setShowConfirmDialog(true);
-    setConfirmMessage(
-      `This number is for ${reassignFromUser?.username}! Do you want to give this number to ${userData?.username}?`
-    );
   };
 
-  const getNumberColor = (number: number) => {
-    const assignment = numberAssignments[number];
-    if (!assignment) {
-      return "bg-gray-700 text-white hover:bg-gray-600"; // Available
-    } else if (assignment.is_current_page) {
-      return "bg-yellow-400 text-black"; // Current page
-    } else {
-      return "bg-red-500 text-white"; // Used on other page
-    }
+  const getNumberColor = (num: number) => {
+    const assignment = numberAssignments[num];
+    if (!assignment) return "bg-gray-100 hover:bg-gray-200 text-gray-800";
+    if (assignment.is_current_page)
+      return "bg-green-500 hover:bg-green-600 text-white";
+    return "bg-blue-100 hover:bg-blue-200 text-blue-800";
   };
-
-  // Removed helpers for photos/videos
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
@@ -712,377 +526,233 @@ const RatePage: React.FC = () => {
 
   if (!userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <Card className="bg-red-900/20 border-red-500">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-red-400 font-bold text-xl mb-2">
-              User Not Found
-            </h2>
-            <p className="text-red-300">
-              The requested user could not be found.
-            </p>
-            <Button
-              onClick={() => (window.location.href = "/rate-girls")}
-              className="mt-4 bg-red-500 hover:bg-red-600"
-            >
-              Back to Rate Girls
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-white text-2xl mb-2">User Not Found</h2>
+          <p className="text-gray-300 mb-4">
+            The user you're looking for doesn't exist.
+          </p>
+          <Button onClick={() => navigate("/rate-girls")}>
+            Browse Other Girls
+          </Button>
+        </div>
       </div>
     );
   }
-
-  // Check if user has access to rating system
-  if (
-    isAllNumbersUsed &&
-    Object.values(numberAssignments).every((a) => !a.is_current_page)
-  ) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <Card className="bg-yellow-900/20 border-yellow-500 max-w-md">
-          <CardContent className="p-8 text-center">
-            <Lock className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-            <h2 className="text-yellow-400 font-bold text-xl mb-4">
-              YOU HAVE USED ALL THE NUMBERS
-            </h2>
-            <p className="text-yellow-300 mb-6">
-              CLICK HERE TO SEE THE RANKING OF ALL THE STRIPPERS AND EXOTICS
-            </p>
-            <Button
-              onClick={() => navigate("/rankings")}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
-            >
-              <Trophy className="w-4 h-4 mr-2" />
-              View Rankings
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const numbers = Array.from({ length: 100 }, (_, i) => i + 1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Banner Photo */}
-        {userData.banner_photo && (
-          <div className="mb-8">
-            <img
-              src={userData.banner_photo}
-              alt={`${userData.username} banner`}
-              className="w-full h-48 md:h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setExpandedImage(userData.banner_photo)}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* User Profile Card */}
+        <Card className="mb-8 overflow-hidden">
+          <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
+            {userData.banner_photo && (
+              <img
+                src={userData.banner_photo}
+                alt="Banner"
+                className="w-full h-full object-cover"
+              />
+            )}
+            <div className="absolute inset-0 bg-black bg-opacity-30" />
           </div>
-        )}
 
-        <div className="text-center mb-8">
-          {/* Current Standing */}
-          {currentStanding && currentStanding.rank > 0 && (
-            <div className="mb-6">
-              <Card className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-yellow-500/50 inline-block">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Trophy className="w-8 h-8 text-violet-600" />
-                    <div className="text-left">
-                      <div className="text-2xl font-bold text-violet-600">
-                        Ranked #{currentStanding.rank}
-                      </div>
-                      <div className="text-sm text-gray-900">
-                        {currentStanding.totalScore} points •{" "}
-                        {currentStanding.totalRatings} ratings
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Three Photos Row */}
-          <div className="grid grid-cols-3 gap-4 mb-6 max-w-2xl mx-auto">
-            {/* Profile Photo */}
-            <div className="text-center">
-              <div className="border-2 border-yellow-400 rounded-lg overflow-hidden mb-2">
+          <CardContent className="relative -mt-16 pb-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div
+                className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-white cursor-pointer"
+                onClick={() =>
+                  userData.profile_photo &&
+                  setExpandedImage(userData.profile_photo)
+                }
+              >
                 <img
                   src={userData.profile_photo || "/placeholder.svg"}
-                  alt="Profile"
-                  className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setExpandedImage(userData.profile_photo)}
+                  alt={userData.username}
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-sm text-gray-300">Profile</p>
-            </div>
 
-            {/* Banner Photo */}
-            <div className="text-center">
-              <div className="border-2 border-blue-400 rounded-lg overflow-hidden mb-2">
-                <img
-                  src={userData.banner_photo || "/placeholder.svg"}
-                  alt="Banner"
-                  className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setExpandedImage(userData.banner_photo)}
-                />
+              <div className="text-center sm:text-left flex-1">
+                <h1 className="text-2xl font-bold">@{userData.username}</h1>
+                <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 mt-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>
+                    {userData.city && userData.state
+                      ? `${userData.city}, ${userData.state}`
+                      : userData.city || userData.state || "Location not set"}
+                  </span>
+                </div>
+                {userData.bio && (
+                  <p className="text-gray-600 mt-2">{userData.bio}</p>
+                )}
               </div>
-              <p className="text-sm text-gray-300">Banner</p>
-            </div>
 
-            {/* Front Page Photo */}
-            <div className="text-center">
-              <div className="border-2 border-green-400 rounded-lg overflow-hidden mb-2">
-                <img
-                  src={userData.front_page_photo || "/placeholder.svg"}
-                  alt="Front Page"
-                  className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setExpandedImage(userData.front_page_photo)}
-                />
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  variant={hasLiked ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleLike}
+                  className="flex items-center gap-2"
+                >
+                  <Heart
+                    className={`w-4 h-4 ${hasLiked ? "fill-current" : ""}`}
+                  />
+                  {likes}
+                </Button>
               </div>
-              <p className="text-sm text-gray-300">Front Page</p>
             </div>
-          </div>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
-            Rate @{userData.username}
-          </h1>
-          <div className="flex items-center justify-center gap-4 text-gray-300 mb-4">
-            <div className="flex items-center gap-1">
-              <User size={16} />
-              <span className="capitalize">{userData.user_type}</span>
-            </div>
-            {userData.city && userData.state && (
-              <div className="flex items-center gap-1">
-                <MapPin size={16} />
-                <span>
-                  {userData.city}, {userData.state}
-                </span>
+            {/* Current Standing */}
+            {currentStanding && (
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                <div className="bg-yellow-50 rounded-lg p-3">
+                  <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
+                  <div className="text-2xl font-bold text-yellow-600">
+                    #{currentStanding.rank || "—"}
+                  </div>
+                  <div className="text-xs text-gray-600">Current Rank</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {currentStanding.totalScore}
+                  </div>
+                  <div className="text-xs text-gray-600">Total Score</div>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {currentStanding.totalRatings}
+                  </div>
+                  <div className="text-xs text-gray-600">Total Ratings</div>
+                </div>
               </div>
             )}
-          </div>
-          {userData.bio && (
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              {userData.bio}
-            </p>
-          )}
-
-          {/* Profile Like Button */}
-          <div className="flex justify-center mb-8">
-            <Button
-              onClick={handleLike}
-              variant={hasLiked ? "default" : "outline"}
-              className={`flex items-center gap-2 ${
-                hasLiked
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "border-red-500 text-red-400 hover:bg-red-600 hover:text-white"
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${hasLiked ? "fill-current" : ""}`} />
-              {hasLiked ? "Liked" : "Like"} ({likes})
-            </Button>
-          </div>
-
-          {/* Removed Photos & Videos section from Rate page */}
-
-          {/* View Profile Button */}
-          <div className="flex justify-center mb-8">
-            <Button
-              onClick={() => navigate(`/profile/${userData.username}`)}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              View Profile
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Rating Grid */}
-        <div className="mb-8">
-          <h3 className="text-2xl font-bold text-yellow-400 mb-6 text-center">
-            Select a Number (1-100)
-          </h3>
-
-          {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-4 mb-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-700 rounded"></div>
-              <span>Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-              <span>Selected for {userData.username}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span>Used for other performer</span>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-4 sm:p-6 border border-white/20">
-            <div className="grid grid-cols-10 gap-1 sm:gap-2 max-w-4xl mx-auto justify-items-center">
-              {numbers.map((number) => {
-                const colorClass = getNumberColor(number);
-                const assignment = numberAssignments[number];
-
-                return (
-                  <button
-                    key={number}
-                    onClick={() => handleNumberClick(number)}
-                    className={`
-                      w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 
-                      ${colorClass}
-                      ${
-                        assignment?.is_current_page ? "scale-110 shadow-lg" : ""
-                      }
-                      hover:scale-105
-                    `}
-                    title={
-                      assignment
-                        ? `Assigned to ${assignment.assigned_to_username}`
-                        : "Available"
-                    }
-                  >
-                    {number}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress indicator */}
-        <div className="text-center mb-8">
-          <div className="bg-white/10 backdrop-blur rounded-lg p-4 max-w-md mx-auto">
-            <p className="text-gray-300 mb-2">
-              Numbers Used: {Object.keys(numberAssignments).length}/100
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Rate @{userData.username}
+            </h2>
+            <p className="text-gray-600 text-center mb-6">
+              Click a number to assign it to this user. Higher numbers = better
+              rating!
             </p>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${
-                    (Object.keys(numberAssignments).length / 100) * 100
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </div>
-        </div>
 
-        <div className="text-center">
-          <Button
-            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-            onClick={() => navigate(`/rate-girls/?ref=${refUsername}`)}
-          >
-            Rate Another Performer
+            <div className="grid grid-cols-10 gap-2">
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
+                <button
+                  key={num}
+                  onClick={() => handleNumberClick(num)}
+                  className={`aspect-square rounded-lg font-semibold text-sm transition-colors ${getNumberColor(
+                    num
+                  )}`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-gray-100 border"></div>
+                <span>Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-500"></div>
+                <span>Assigned to this user</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-blue-100 border border-blue-200"></div>
+                <span>Assigned to another user</span>
+              </div>
+            </div>
+
+            <div className="mt-4 text-center text-gray-600">
+              Numbers used: {Object.keys(numberAssignments).length}/100
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Navigation Buttons */}
+        <div className="mt-8 flex justify-center gap-4">
+          <Button variant="outline" onClick={() => navigate("/rate-girls")}>
+            Rate Another Girl
+          </Button>
+          <Button onClick={() => navigate(`/profile/${userData.username}`)}>
+            View Full Profile
           </Button>
         </div>
       </div>
 
-      {/* Confirmation Dialog */}
+      {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="bg-gray-800 border-yellow-500">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-yellow-400">
-              Confirm Rating
-            </DialogTitle>
-            <DialogDescription className="text-white">
-              {confirmMessage}
-            </DialogDescription>
+            <DialogTitle>Confirm Rating</DialogTitle>
+            <DialogDescription>{confirmMessage}</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2">
+          <DialogFooter>
             <Button
+              variant="outline"
               onClick={() => setShowConfirmDialog(false)}
-              variant="outline"
-              className="border-gray-500 text-gray-300 hover:bg-gray-700"
             >
-              No
+              Cancel
             </Button>
-            <Button
-              onClick={confirmRating}
-              className="bg-yellow-500 text-black hover:bg-yellow-600"
-            >
-              Yes
-            </Button>
+            <Button onClick={confirmRating}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Reassignment Dialog */}
+      {/* Reassign Dialog */}
       <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
-        <DialogContent className="bg-gray-800 border-red-500">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-400">
-              Number Already Used
-            </DialogTitle>
-            <DialogDescription className="text-white">
-              <div className="flex items-center gap-4 mt-4">
-                {reassignFromUser?.photo && (
-                  <img
-                    src={reassignFromUser.photo}
-                    alt={reassignFromUser.username}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-red-400"
-                  />
-                )}
-                <div>
-                  <p>
-                    This number is for{" "}
-                    <strong>{reassignFromUser?.username}</strong>!
-                  </p>
-                  <p>
-                    Do you want to give this number to{" "}
-                    <strong>{userData?.username}</strong>?
-                  </p>
-                </div>
-              </div>
+            <DialogTitle>Reassign Number?</DialogTitle>
+            <DialogDescription>
+              #{selectedNumber} is currently assigned to @
+              {reassignFromUser?.username}. Do you want to reassign it to @
+              {userData?.username}?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              onClick={() => setShowReassignDialog(false)}
-              variant="outline"
-              className="border-gray-500 text-gray-300 hover:bg-gray-700"
-            >
-              No
-            </Button>
-            <Button
-              onClick={confirmReassignment}
-              className="bg-red-500 text-white hover:bg-red-600"
-            >
-              Yes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Expansion Dialog */}
-      {expandedImage && (
-        <Dialog open={!!expandedImage} onOpenChange={() => setExpandedImage(null)}>
-          <DialogContent className="max-w-4xl bg-gray-900 border-gray-700">
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-white">Image Preview</DialogTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setExpandedImage(null)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </DialogHeader>
+          {reassignFromUser?.photo && (
             <div className="flex justify-center">
-              <img 
-                src={expandedImage} 
-                alt="Expanded view" 
-                className="max-w-full max-h-[70vh] object-contain rounded-lg"
+              <img
+                src={reassignFromUser.photo}
+                alt={reassignFromUser.username}
+                className="w-16 h-16 rounded-full object-cover"
               />
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowReassignDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmReassignment}>Reassign</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      {/* Expanded Image Dialog */}
+      <Dialog
+        open={!!expandedImage}
+        onOpenChange={() => setExpandedImage(null)}
+      >
+        <DialogContent className="max-w-3xl">
+          {expandedImage && (
+            <img
+              src={expandedImage}
+              alt="Expanded"
+              className="w-full h-auto rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

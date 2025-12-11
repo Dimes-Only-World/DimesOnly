@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, User, Crown, Mail } from "lucide-react";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import DirectMessageModal from "./DirectMessageModal";
 
@@ -197,42 +197,45 @@ const DimesDirectory: React.FC = () => {
         { free: number; nude: number; xrated: number }
       >();
 
+      // Fetch media counts using public-data edge function
       if (femaleUsers.length > 0) {
-        const { data: mediaData, error: mediaError } = await supabaseAdmin
-          .from("user_media")
-          .select("user_id, content_tier, is_nude, is_xrated, flagged")
-          .in(
-            "user_id",
-            femaleUsers.map((user) => user.id)
-          )
-          .eq("flagged", false);
-
-        if (!mediaError && mediaData) {
-          const mediaRows = mediaData as {
-            user_id: string;
-            content_tier: string | null;
-            is_nude: boolean | null;
-            is_xrated: boolean | null;
-          }[];
-
-          mediaRows.forEach((row) => {
-            const entry =
-              mediaCounts.get(row.user_id) || { free: 0, nude: 0, xrated: 0 };
-            const tier = (row.content_tier ?? "").toLowerCase();
-
-            if (tier === "free") {
-              entry.free += 1;
-            } else if (tier === "silver") {
-              entry.nude += 1;
-            } else if (tier === "gold") {
-              entry.xrated += 1;
-            } else {
-              if (row.is_nude) entry.nude += 1;
-              if (row.is_xrated) entry.xrated += 1;
+        try {
+          const { data: mediaResponse, error: mediaError } = await supabase.functions.invoke('public-data', {
+            body: { 
+              action: 'fetchMediaCounts', 
+              userIds: femaleUsers.map((user) => user.id)
             }
-
-            mediaCounts.set(row.user_id, entry);
           });
+
+          if (!mediaError && mediaResponse?.data) {
+            const mediaRows = mediaResponse.data as {
+              user_id: string;
+              content_tier: string | null;
+              is_nude: boolean | null;
+              is_xrated: boolean | null;
+            }[];
+
+            mediaRows.forEach((row) => {
+              const entry =
+                mediaCounts.get(row.user_id) || { free: 0, nude: 0, xrated: 0 };
+              const tier = (row.content_tier ?? "").toLowerCase();
+
+              if (tier === "free") {
+                entry.free += 1;
+              } else if (tier === "silver") {
+                entry.nude += 1;
+              } else if (tier === "gold") {
+                entry.xrated += 1;
+              } else {
+                if (row.is_nude) entry.nude += 1;
+                if (row.is_xrated) entry.xrated += 1;
+              }
+
+              mediaCounts.set(row.user_id, entry);
+            });
+          }
+        } catch (mediaErr) {
+          console.warn("Could not fetch media counts:", mediaErr);
         }
       }
 
