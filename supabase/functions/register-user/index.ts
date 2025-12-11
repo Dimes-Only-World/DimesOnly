@@ -43,7 +43,8 @@ Deno.serve(async (req) => {
     }
 
     // SECURITY: Use bcrypt for password hashing with proper cost factor
-    const password_hash = await bcrypt.hash(password, 12);
+    const salt = await bcrypt.genSalt(12);
+    const password_hash = await bcrypt.hash(password, salt);
 
     // Initialize Supabase client with service role key (server-side only)
     const supabaseClient = createClient(
