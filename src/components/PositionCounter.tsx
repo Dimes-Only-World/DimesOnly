@@ -67,12 +67,10 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
   const fetchDiamondPlusCount = async () => {
     try {
-      const { count, error } = await supabase
-        .from("users")
-        .select("id", { count: "exact", head: true })
-        .eq("diamond_plus_active", true)
-        .in("user_type", ["exotic", "stripper"]);
-      if (!error && count !== null) setDiamondPlusSpotsLeft(Math.max(0, 1000 - count));
+      const { data, error } = await supabase.rpc("get_diamond_plus_count");
+      if (!error && data !== null) {
+        setDiamondPlusSpotsLeft(Math.max(0, 1000 - data));
+      }
     } catch (error) {
       console.error("Diamond Plus count error:", error);
     }
