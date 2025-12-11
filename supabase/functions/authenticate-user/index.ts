@@ -175,13 +175,14 @@ Deno.serve(async (req) => {
     if (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$')) {
       if (storedHash.length === 60) {
         try {
-          const bcrypt = await import('https://deno.land/x/bcrypt@v0.4.1/mod.ts');
-          passwordMatch = await bcrypt.compare(password, storedHash);
+          // Use bcryptjs which is compatible with edge runtime (no Worker dependency)
+          const bcrypt = await import('https://esm.sh/bcryptjs@2.4.3');
+          passwordMatch = bcrypt.compareSync(password, storedHash);
         } catch (e) {
           console.error('Bcrypt error:', e);
         }
       }
-    } 
+    }
     // SHA256 hash check (64 character hex string)
     else if (storedHash.length === 64 && /^[a-f0-9]+$/i.test(storedHash)) {
       const encoder = new TextEncoder();
