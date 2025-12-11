@@ -4,6 +4,68 @@ export const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
+// Rate limiter with exponential backoff for failed attempts
+const rateLimitMap = new Map<string, { 
+  attempts: number; 
+  lastAttempt: number; 
+  lockoutUntil: number;
+}>();
+
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes lockout
+const ATTEMPT_WINDOW_MS = 5 * 60 * 1000; // 5 minute window
+
+function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+         req.headers.get('x-real-ip') ||
+         'unknown';
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  
+  if (!record) {
+    return { allowed: true };
+  }
+  
+  // Check if currently locked out
+  if (record.lockoutUntil > now) {
+    const retryAfter = Math.ceil((record.lockoutUntil - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+  
+  // Reset if outside attempt window
+  if (now - record.lastAttempt > ATTEMPT_WINDOW_MS) {
+    rateLimitMap.delete(ip);
+    return { allowed: true };
+  }
+  
+  return { allowed: true };
+}
+
+function recordFailedAttempt(ip: string): void {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  
+  if (!record || now - record.lastAttempt > ATTEMPT_WINDOW_MS) {
+    rateLimitMap.set(ip, { attempts: 1, lastAttempt: now, lockoutUntil: 0 });
+    return;
+  }
+  
+  record.attempts++;
+  record.lastAttempt = now;
+  
+  if (record.attempts >= MAX_ATTEMPTS) {
+    record.lockoutUntil = now + LOCKOUT_DURATION_MS;
+    console.log(`IP ${ip} locked out until ${new Date(record.lockoutUntil).toISOString()}`);
+  }
+}
+
+function clearFailedAttempts(ip: string): void {
+  rateLimitMap.delete(ip);
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -12,9 +74,28 @@ Deno.serve(async (req) => {
     });
   }
 
+  const clientIP = getClientIP(req);
+  
+  // Rate limiting check
+  const rateCheck = checkRateLimit(clientIP);
+  if (!rateCheck.allowed) {
+    console.log(`Rate limit: IP ${clientIP} is locked out`);
+    return new Response(JSON.stringify({
+      message: 'Too many failed login attempts. Please try again later.',
+      retryAfter: rateCheck.retryAfter
+    }), {
+      status: 429,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+        'Retry-After': String(rateCheck.retryAfter)
+      }
+    });
+  }
+
   try {
     const body = await req.json();
-    console.log('Incoming login request:', { username: body.username ? '***' : undefined });
+    console.log('Incoming login request from IP:', clientIP);
     
     const { username, password } = body;
     
@@ -54,12 +135,12 @@ Deno.serve(async (req) => {
       if (!searchError && users && users.length > 0) {
         user = users[0];
         error = null;
-        console.log('Found user via case-insensitive search');
       }
     }
 
     if (error || !user) {
-      console.log('User not found');
+      recordFailedAttempt(clientIP);
+      console.log('User not found - failed attempt recorded');
       return new Response(JSON.stringify({
         message: 'Invalid credentials'
       }), {
@@ -74,10 +155,10 @@ Deno.serve(async (req) => {
     // Password validation - ONLY accept bcrypt or SHA256 hashes
     let passwordMatch = false;
     
-    const hashType = user.hash_type || 'unknown';
     const storedHash = user.password_hash;
 
     if (!storedHash) {
+      recordFailedAttempt(clientIP);
       console.log('No password hash stored for user');
       return new Response(JSON.stringify({
         message: 'Invalid credentials'
@@ -96,7 +177,6 @@ Deno.serve(async (req) => {
         try {
           const bcrypt = await import('https://deno.land/x/bcrypt@v0.4.1/mod.ts');
           passwordMatch = await bcrypt.compare(password, storedHash);
-          console.log('Bcrypt comparison completed');
         } catch (e) {
           console.error('Bcrypt error:', e);
         }
@@ -110,14 +190,14 @@ Deno.serve(async (req) => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
       passwordMatch = storedHash.toLowerCase() === hashHex.toLowerCase();
-      console.log('SHA256 comparison completed');
     } else {
       // Unknown hash format - reject for security
       console.log('Unknown password hash format - rejecting login');
     }
 
     if (!passwordMatch) {
-      console.log('Password validation failed');
+      recordFailedAttempt(clientIP);
+      console.log('Password validation failed - failed attempt recorded');
       return new Response(JSON.stringify({
         message: 'Invalid credentials'
       }), {
@@ -129,7 +209,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Login successful');
+    // Clear failed attempts on successful login
+    clearFailedAttempts(clientIP);
+    console.log('Login successful for user:', user.username);
     
     // Return user data WITHOUT sensitive fields
     return new Response(JSON.stringify({

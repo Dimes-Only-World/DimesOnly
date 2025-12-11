@@ -7,9 +7,57 @@ export const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5; // 5 registrations per minute per IP
+
+function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+         req.headers.get('x-real-ip') ||
+         'unknown';
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+  
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    const retryAfter = Math.ceil((record.resetTime - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+  
+  record.count++;
+  return { allowed: true };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  // Rate limiting check
+  const clientIP = getClientIP(req);
+  const rateCheck = checkRateLimit(clientIP);
+  
+  if (!rateCheck.allowed) {
+    console.log(`Rate limit exceeded for IP: ${clientIP}`);
+    return new Response(JSON.stringify({ 
+      error: 'Too many registration attempts. Please try again later.',
+      retryAfter: rateCheck.retryAfter
+    }), {
+      status: 429,
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'Retry-After': String(rateCheck.retryAfter)
+      }
+    });
   }
 
   try {
@@ -118,8 +166,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log(`User registered successfully: ${newUser.username} from IP: ${clientIP}`);
+
     // Return success without exposing sensitive data
-    // Note: Token generation should use Supabase Auth, not custom tokens
     return new Response(JSON.stringify({
       success: true,
       message: 'Registration successful',
