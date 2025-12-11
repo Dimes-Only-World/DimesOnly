@@ -2401,44 +2401,59 @@ export type Database = {
       }
       public_user_profiles: {
         Row: {
-          about_me: string | null
           banner_photo: string | null
           bio: string | null
+          city: string | null
+          created_at: string | null
+          first_name: string | null
           front_page_photo: string | null
           id: string | null
           is_ranked: boolean | null
-          likes: number | null
           membership_tier: string | null
+          membership_type: string | null
           profile_photo: string | null
           rank_number: number | null
+          referral_fees: number | null
+          state: string | null
+          tips_earned: number | null
           user_type: string | null
           username: string | null
         }
         Insert: {
-          about_me?: string | null
           banner_photo?: string | null
           bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          first_name?: string | null
           front_page_photo?: string | null
           id?: string | null
           is_ranked?: boolean | null
-          likes?: number | null
           membership_tier?: string | null
+          membership_type?: string | null
           profile_photo?: string | null
           rank_number?: number | null
+          referral_fees?: number | null
+          state?: string | null
+          tips_earned?: number | null
           user_type?: string | null
           username?: string | null
         }
         Update: {
-          about_me?: string | null
           banner_photo?: string | null
           bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          first_name?: string | null
           front_page_photo?: string | null
           id?: string | null
           is_ranked?: boolean | null
-          likes?: number | null
           membership_tier?: string | null
+          membership_type?: string | null
           profile_photo?: string | null
           rank_number?: number | null
+          referral_fees?: number | null
+          state?: string | null
+          tips_earned?: number | null
           user_type?: string | null
           username?: string | null
         }
