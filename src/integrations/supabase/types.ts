@@ -2496,9 +2496,11 @@ export type Database = {
           executed_at: string | null
           percentage: number | null
           place: number | null
+          profile_photo: string | null
           role: string | null
           status: string | null
           user_id: string | null
+          username: string | null
         }
         Relationships: [
           {
