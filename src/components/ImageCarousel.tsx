@@ -504,7 +504,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             </button>
 
             {/* Media container */}
-            <div className="relative w-full bg-black flex items-center justify-center flex-1">
+            <div className="relative w-full bg-black flex items-center justify-center flex-1 overflow-hidden rounded-3xl">
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
               ) : selectedVideoUrl ? (
