@@ -1,14 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { normalizeRefParam } from "@/lib/utils";
 import heroVector from "@/assets/one.png";
 import placeholderLady from "@/assets/weo.png";
 
 const HeroBanner: React.FC = () => {
-  const phoneSrc =
-    "https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+1080+HOME+BANNER.webm";
-  const desktopSrc =
-    "https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+1080+cinema+HOME+banner.webm";
+  const [videoError, setVideoError] = useState(false);
+  
+  // Cache-busting version to force fresh fetch
+  const VERSION = "v2";
+  const phoneSrc = `https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+1080+HOME+BANNER.webm?v=${VERSION}`;
+  const desktopSrc = `https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+1080+cinema+HOME+banner.webm?v=${VERSION}`;
+  
+  const handleVideoError = () => setVideoError(true);
 
   const handleClick = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -41,28 +45,45 @@ const HeroBanner: React.FC = () => {
         </style>
 
         {/* Desktop Video */}
-        <video
-          className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        >
-          <source src={desktopSrc} type="video/webm" />
-        </video>
+        {!videoError && (
+          <video
+            key="desktop-hero"
+            className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            onError={handleVideoError}
+          >
+            <source src={desktopSrc} type="video/webm" />
+          </video>
+        )}
 
         {/* Phone Video */}
-        <video
-          className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        >
-          <source src={phoneSrc} type="video/webm" />
-        </video>
+        {!videoError && (
+          <video
+            key="mobile-hero"
+            className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            onError={handleVideoError}
+          >
+            <source src={phoneSrc} type="video/webm" />
+          </video>
+        )}
+
+        {/* Fallback Image when video fails */}
+        {videoError && (
+          <img
+            src={placeholderLady}
+            alt="Hero background"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+        )}
       </section>
 
       {/* === Hero Content Section === */}
