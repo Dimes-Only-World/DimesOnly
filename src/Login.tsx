@@ -9,9 +9,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import RotatingBackground from "@/components/RotatingBackground";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import ForgotUsernameModal from "@/components/ForgotUsernameModal";
-import { supabase } from "@/lib/supabase";
+import { supabase, SUPABASE_URL } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import bcrypt from "bcryptjs";
 
 const backgroundImages = [
   'https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_ea2691d7-25a7-4cd7-8d4e-cf4826e6c1c3.png',
@@ -43,90 +42,84 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      let email = usernameOrEmail.trim();
-      let userRecord = null;
+      const identifier = usernameOrEmail.trim();
+      
+      // Use server-side authentication via edge function
+      // This keeps password verification secure on the server
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/authenticate-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: identifier,
+          password: password,
+        }),
+      });
 
-      if (!isEmail(usernameOrEmail)) {
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("email, password_hash, *")
-          .eq("username", usernameOrEmail.trim())
-          .single();
+      const result = await response.json();
 
-        if (userError || !userData) {
-          throw new Error("Invalid username or password");
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error(result.message || 'Too many login attempts. Please try again later.');
         }
-
-        email = userData.email;
-        userRecord = userData;
-
-        const passwordMatch = await bcrypt.compare(
-          password,
-          userData.password_hash
-        );
-        if (!passwordMatch) {
-          throw new Error("Invalid username or password");
-        }
+        throw new Error(result.message || 'Invalid credentials');
       }
 
-      const { data: authData, error: authError } =
+      if (!result.success || !result.user) {
+        throw new Error('Authentication failed');
+      }
+
+      const userData = result.user;
+
+      // Also sign in with Supabase Auth if it's an email login for session management
+      if (isEmail(identifier)) {
         await supabase.auth.signInWithPassword({
-          email: email,
+          email: identifier,
           password: password,
         });
-
-      if (authError) {
-        throw new Error("Invalid credentials");
-      }
-
-      if (!userRecord) {
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("email", email)
-          .single();
-
-        if (userError || !userData) {
-          throw new Error("User data not found");
-        }
-
-        userRecord = userData;
+      } else if (userData.email) {
+        // Try to sign in with the user's email for session management
+        await supabase.auth.signInWithPassword({
+          email: userData.email,
+          password: password,
+        }).catch(() => {
+          // Silently ignore if Supabase Auth sync fails - edge function auth is primary
+          console.log('Supabase Auth session sync skipped');
+        });
       }
 
       const user = {
-        id: userRecord.id,
-        username: userRecord.username,
-        email: userRecord.email,
-        firstName: userRecord.first_name,
-        lastName: userRecord.last_name,
-        userType: userRecord.user_type,
-        profilePhoto: userRecord.profile_photo,
-        bannerPhoto: userRecord.banner_photo,
-        mobileNumber: userRecord.mobile_number,
-        address: userRecord.address,
-        city: userRecord.city,
-        state: userRecord.state,
-        zip: userRecord.zip,
-        gender: userRecord.gender,
-        membershipType: userRecord.membership_type,
-        tipsEarned: userRecord.tips_earned || 0,
-        referralFees: userRecord.referral_fees || 0,
-        overrides: userRecord.overrides || 0,
-        weeklyHours: userRecord.weekly_hours || 0,
-        isRanked: userRecord.is_ranked || false,
-        rankNumber: userRecord.rank_number,
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName || userData.first_name,
+        lastName: userData.lastName || userData.last_name,
+        userType: userData.user_type,
+        profilePhoto: userData.profile_photo,
+        bannerPhoto: userData.banner_photo,
+        mobileNumber: userData.mobile_number,
+        address: userData.address,
+        city: userData.city,
+        state: userData.state,
+        zip: userData.zip,
+        gender: userData.gender,
+        membershipType: userData.membership_type,
+        tipsEarned: userData.tips_earned || 0,
+        referralFees: userData.referral_fees || 0,
+        overrides: userData.overrides || 0,
+        weeklyHours: userData.weekly_hours || 0,
+        isRanked: userData.is_ranked || false,
+        rankNumber: userData.rank_number,
       };
 
       setUser(user);
-      localStorage.setItem(
-        "authToken",
-        authData.session?.access_token || "authenticated"
-      );
-      sessionStorage.setItem("currentUser", userRecord.username);
+      localStorage.setItem("authToken", result.token || "authenticated");
+      sessionStorage.setItem("currentUser", userData.username);
 
       toast({
         title: "Login Successful!",
-        description: `Welcome back, ${userRecord.username}!`,
+        description: `Welcome back, ${userData.username}!`,
       });
 
       navigate("/dashboard", { replace: true });

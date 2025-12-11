@@ -9,9 +9,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import RotatingBackground from "@/components/RotatingBackground";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import ForgotUsernameModal from "@/components/ForgotUsernameModal";
-import { supabase } from "@/lib/supabase";
+import { supabase, SUPABASE_URL } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import bcrypt from "bcryptjs";
 
 const backgroundImages = [
   "https://dimesonly.s3.us-east-2.amazonaws.com/realisticvision_45c765ef-2fe4-4658-8281-ff6cae9e2618.png",
@@ -44,132 +43,87 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      let email = usernameOrEmail.trim();
-      let userRecord = null;
       const identifier = usernameOrEmail.trim();
-
-      // Detect if user entered username or email
-      if (!identifier.includes("@")) {
-        // User entered username - query users table to get email
-        console.log('Username login detected, looking up email for:', identifier);
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("username", identifier)
-          .single();
-
-        if (userError || !userData) {
-          console.error('Username not found:', userError);
-          throw new Error("Invalid username or password");
-        }
-        
-        email = (userData as any).email;
-        userRecord = userData;
-        console.log('Found user email for username:', email);
-      } else {
-        // User entered email - find user by email
-        console.log('Email login detected:', identifier);
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("email", email)
-          .single();
-
-        if (userError || !userData) {
-          console.error('Email not found:', userError);
-          throw new Error("Invalid email or password");
-        }
-        userRecord = userData;
-      }
-
-      // Use Supabase Auth for authentication
-      // This ensures full sync between Supabase Auth and custom users table
-      console.log('Attempting Supabase Auth login with email:', email);
       
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
+      // Use server-side authentication via edge function
+      // This keeps password verification secure on the server
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/authenticate-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: identifier,
+          password: password,
+        }),
       });
 
-      if (authError) {
-        console.error("Supabase Auth failed:", authError.message);
-        
-        // If Supabase Auth fails, the password might not be synced
-        // Verify password against custom users table first
-        const bcrypt = await import('bcryptjs');
-        const passwordMatch = await bcrypt.compare(password, (userRecord as any).password_hash);
-        
-        if (!passwordMatch) {
-          throw new Error("Invalid credentials");
-        }
+      const result = await response.json();
 
-        console.log("Custom users table password is correct, syncing with Supabase Auth...");
-        
-        // Password is correct in custom table but not in Supabase Auth
-        // Create or update Supabase Auth user
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: email,
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error(result.message || 'Too many login attempts. Please try again later.');
+        }
+        throw new Error(result.message || 'Invalid credentials');
+      }
+
+      if (!result.success || !result.user) {
+        throw new Error('Authentication failed');
+      }
+
+      const userData = result.user;
+
+      // Also sign in with Supabase Auth if it's an email login for session management
+      if (isEmail(identifier)) {
+        await supabase.auth.signInWithPassword({
+          email: identifier,
           password: password,
         });
-
-        if (signUpError && signUpError.message !== "User already registered") {
-          console.error("Failed to sync Supabase Auth user:", signUpError);
-          
-          // Try to sign in again in case user already exists
-          const { data: retryAuthData, error: retryAuthError } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-          });
-
-          if (retryAuthError) {
-            console.error("Authentication failed after sync attempt:", retryAuthError);
-            throw new Error("Authentication failed. Please reset your password.");
-          }
-          
-          console.log("✅ Authentication successful after retry");
-        } else {
-          console.log("✅ Supabase Auth user created/synced successfully");
-        }
-      } else {
-        console.log("✅ Supabase Auth login successful");
+      } else if (userData.email) {
+        // Try to sign in with the user's email for session management
+        await supabase.auth.signInWithPassword({
+          email: userData.email,
+          password: password,
+        }).catch(() => {
+          // Silently ignore if Supabase Auth sync fails - edge function auth is primary
+          console.log('Supabase Auth session sync skipped');
+        });
       }
 
       const user = {
-        id: userRecord.id,
-        username: userRecord.username,
-        email: userRecord.email,
-        firstName: userRecord.first_name,
-        lastName: userRecord.last_name,
-        userType: userRecord.user_type,
-        profilePhoto: userRecord.profile_photo,
-        bannerPhoto: userRecord.banner_photo,
-        mobileNumber: userRecord.mobile_number,
-        address: userRecord.address,
-        city: userRecord.city,
-        state: userRecord.state,
-        zip: userRecord.zip,
-        gender: userRecord.gender,
-        membershipType: userRecord.membership_type,
-        tipsEarned: userRecord.tips_earned || 0,
-        referralFees: userRecord.referral_fees || 0,
-        overrides: userRecord.overrides || 0,
-        weeklyHours: userRecord.weekly_hours || 0,
-        isRanked: userRecord.is_ranked || false,
-        rankNumber: userRecord.rank_number,
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName || userData.first_name,
+        lastName: userData.lastName || userData.last_name,
+        userType: userData.user_type,
+        profilePhoto: userData.profile_photo,
+        bannerPhoto: userData.banner_photo,
+        mobileNumber: userData.mobile_number,
+        address: userData.address,
+        city: userData.city,
+        state: userData.state,
+        zip: userData.zip,
+        gender: userData.gender,
+        membershipType: userData.membership_type,
+        tipsEarned: userData.tips_earned || 0,
+        referralFees: userData.referral_fees || 0,
+        overrides: userData.overrides || 0,
+        weeklyHours: userData.weekly_hours || 0,
+        isRanked: userData.is_ranked || false,
+        rankNumber: userData.rank_number,
       };
 
       setUser(user);
 
-      // Store auth token from Supabase Auth
-      if (authData?.session?.access_token) {
-        localStorage.setItem("authToken", authData.session.access_token);
-      }
-      sessionStorage.setItem("currentUser", userRecord.username);
+      // Store auth token
+      localStorage.setItem("authToken", result.token || "authenticated");
+      sessionStorage.setItem("currentUser", userData.username);
       sessionStorage.setItem("userData", JSON.stringify(user));
 
       toast({
         title: "Login Successful!",
-        description: `Welcome back, ${userRecord.username}!`,
+        description: `Welcome back, ${userData.username}!`,
       });
 
       navigate("/dashboard", { replace: true });
