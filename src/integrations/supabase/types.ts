@@ -78,6 +78,13 @@ export type Database = {
             foreignKeyName: "commission_payouts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_payouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -131,6 +138,13 @@ export type Database = {
             foreignKeyName: "content_access_payments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_access_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -175,6 +189,13 @@ export type Database = {
             foreignKeyName: "direct_messages_liked_by_fkey"
             columns: ["liked_by"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_liked_by_fkey"
+            columns: ["liked_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -182,7 +203,21 @@ export type Database = {
             foreignKeyName: "direct_messages_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -236,6 +271,13 @@ export type Database = {
             foreignKeyName: "elite_memberships_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "elite_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -267,6 +309,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "entries_user_id_fkey"
             columns: ["user_id"]
@@ -424,6 +473,13 @@ export type Database = {
           winner_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jackpot_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jackpot_winner_id_fkey"
             columns: ["winner_id"]
@@ -616,6 +672,13 @@ export type Database = {
             foreignKeyName: "jackpot_ledger_dime_id_fkey"
             columns: ["dime_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_ledger_dime_id_fkey"
+            columns: ["dime_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -623,7 +686,21 @@ export type Database = {
             foreignKeyName: "jackpot_ledger_referred_dime_id_fkey"
             columns: ["referred_dime_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_ledger_referred_dime_id_fkey"
+            columns: ["referred_dime_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_ledger_tipper_id_fkey"
+            columns: ["tipper_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -740,6 +817,13 @@ export type Database = {
             foreignKeyName: "jackpot_tickets_dime_id_fkey"
             columns: ["dime_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_dime_id_fkey"
+            columns: ["dime_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -768,6 +852,13 @@ export type Database = {
             foreignKeyName: "jackpot_tickets_referred_dime_id_fkey"
             columns: ["referred_dime_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_referred_dime_id_fkey"
+            columns: ["referred_dime_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -775,7 +866,21 @@ export type Database = {
             foreignKeyName: "jackpot_tickets_tipper_id_fkey"
             columns: ["tipper_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_tipper_id_fkey"
+            columns: ["tipper_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -848,6 +953,13 @@ export type Database = {
             foreignKeyName: "jackpot_winners_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_winners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -884,6 +996,13 @@ export type Database = {
             columns: ["media_id"]
             isOneToOne: false
             referencedRelation: "user_media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -955,6 +1074,13 @@ export type Database = {
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "media_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1071,6 +1197,13 @@ export type Database = {
             foreignKeyName: "membership_upgrades_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_upgrades_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1124,7 +1257,21 @@ export type Database = {
             foreignKeyName: "messages_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1178,7 +1325,21 @@ export type Database = {
             foreignKeyName: "notifications_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1251,6 +1412,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1357,6 +1525,13 @@ export type Database = {
           wire_swift_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payout_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payout_requests_user_id_fkey"
             columns: ["user_id"]
@@ -1471,6 +1646,13 @@ export type Database = {
             foreignKeyName: "quarterly_requirements_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quarterly_requirements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1509,7 +1691,21 @@ export type Database = {
             foreignKeyName: "ratings_rater_id_fkey"
             columns: ["rater_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1593,6 +1789,13 @@ export type Database = {
             foreignKeyName: "subscriptions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1629,6 +1832,13 @@ export type Database = {
             columns: ["tip_id"]
             isOneToOne: false
             referencedRelation: "tips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_user_Id_fkey"
+            columns: ["user_Id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1678,6 +1888,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tips_user_id_fkey"
             columns: ["user_id"]
@@ -1769,7 +1986,21 @@ export type Database = {
             foreignKeyName: "tips_transactions_tipped_user_id_fkey"
             columns: ["tipped_user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_transactions_tipped_user_id_fkey"
+            columns: ["tipped_user_id"]
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_transactions_tipper_user_id_fkey"
+            columns: ["tipper_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1828,6 +2059,13 @@ export type Database = {
             columns: ["payment_id"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1895,6 +2133,13 @@ export type Database = {
           warning_message?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_media_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_media_user_id_fkey"
             columns: ["user_id"]
@@ -2078,6 +2323,13 @@ export type Database = {
             foreignKeyName: "users_liked_by_fkey"
             columns: ["liked_by"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_liked_by_fkey"
+            columns: ["liked_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -2125,6 +2377,13 @@ export type Database = {
             foreignKeyName: "weekly_earnings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -2137,6 +2396,51 @@ export type Database = {
           seats_available: number | null
           seats_max: number | null
           seats_taken: number | null
+        }
+        Relationships: []
+      }
+      public_user_profiles: {
+        Row: {
+          about_me: string | null
+          banner_photo: string | null
+          bio: string | null
+          front_page_photo: string | null
+          id: string | null
+          is_ranked: boolean | null
+          likes: number | null
+          membership_tier: string | null
+          profile_photo: string | null
+          rank_number: number | null
+          user_type: string | null
+          username: string | null
+        }
+        Insert: {
+          about_me?: string | null
+          banner_photo?: string | null
+          bio?: string | null
+          front_page_photo?: string | null
+          id?: string | null
+          is_ranked?: boolean | null
+          likes?: number | null
+          membership_tier?: string | null
+          profile_photo?: string | null
+          rank_number?: number | null
+          user_type?: string | null
+          username?: string | null
+        }
+        Update: {
+          about_me?: string | null
+          banner_photo?: string | null
+          bio?: string | null
+          front_page_photo?: string | null
+          id?: string | null
+          is_ranked?: boolean | null
+          likes?: number | null
+          membership_tier?: string | null
+          profile_photo?: string | null
+          rank_number?: number | null
+          user_type?: string | null
+          username?: string | null
         }
         Relationships: []
       }
@@ -2193,8 +2497,45 @@ export type Database = {
             foreignKeyName: "jackpot_winners_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_winners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_jackpot_pool_stats: {
+        Row: {
+          draw_date: string | null
+          pool_id: string | null
+          total_tickets: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jackpot_tickets_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "jackpot_pools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "v_jackpot_active_pool"
+            referencedColumns: ["pool_id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "v_jackpot_current_pool"
+            referencedColumns: ["pool_id"]
           },
         ]
       }
@@ -2204,6 +2545,13 @@ export type Database = {
           user_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jackpot_tickets_tipper_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jackpot_tickets_tipper_id_fkey"
             columns: ["user_id"]
