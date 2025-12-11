@@ -5,14 +5,14 @@ import { Loader2 } from "lucide-react";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
 import RotatingBackground from "@/components/RotatingBackground";
 import { useToast } from "@/hooks/use-toast";
-import { supabase, supabaseAdmin, SUPABASE_ANON_KEY } from "@/lib/supabase";
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
-import bcrypt from "bcryptjs";
 import { getReferralUsername } from "@/lib/utils";
 
-const FUNCTIONS_BASE_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1";
+const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
 const VIDEO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-video`;
+const REGISTER_ENDPOINT = `${FUNCTIONS_BASE_URL}/register-user`;
 
 interface FormData {
   firstName: string;
@@ -459,124 +459,80 @@ export const Register: React.FC = () => {
         throw new Error("Password must be at least 6 characters long");
       }
 
-      const { data: existingUser } = await supabaseAdmin
-        .from("users")
-        .select("username")
-        .eq("username", formData.username)
-        .single();
+      // Prepare video metadata for the edge function
+      const metaEntries = Object.values(videoUploadMeta).filter(
+        (meta): meta is UploadedVideoMeta => Boolean(meta),
+      );
 
-      if (existingUser) {
-        throw new Error("Username already exists");
-      }
-
-      const { data: existingEmail } = await supabaseAdmin
-        .from("users")
-        .select("email")
-        .eq("email", formData.email)
-        .single();
-
-      if (existingEmail) {
-        throw new Error("Email already registered");
-      }
-
-      const { data: session, error: sessionError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (sessionError) {
-        throw new Error(`Failed to create session: ${sessionError.message}`);
-      }
-
-      if (!session.user) {
-        throw new Error("Failed to create auth user");
-      }
-
-      const passwordHash = await bcrypt.hash(formData.password, 10);
-
-      const isFemaleDiamond =
-        formData.gender === "female" &&
-        (formData.userType === "exotic" || formData.userType === "stripper");
-
-      const { error: createError } = await supabaseAdmin.from("users").insert([
-        {
-          id: session.user.id,
+      // Call the register-user edge function
+      const response = await fetch(REGISTER_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           username: formData.username,
           email: formData.email,
-          password_hash: passwordHash,
-          hash_type: "bcrypt",
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          mobile_number: formData.mobileNumber,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+          mobileNumber: formData.mobileNumber,
           address: formData.address,
           city: formData.city,
           state: formData.state,
           zip: formData.zip,
           gender: formData.gender,
-          user_type: formData.userType ? formData.userType : "normal",
-          membership_tier: isFemaleDiamond ? "diamond" : "free",
-          membership_type: isFemaleDiamond ? "diamond" : "free",
-          referred_by:
-            formData.referredBy && formData.referredBy.trim() !== ""
-              ? formData.referredBy
-              : "Company",
-          date_of_birth: formData.dateOfBirth,
-          profile_photo: profilePhotoUrl,
-          banner_photo: bannerPhotoUrl,
-          front_page_photo: frontPagePhotoUrl,
-          video_urls: videoUrls,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
+          userType: formData.userType || 'normal',
+          referredBy: formData.referredBy && formData.referredBy.trim() !== "" 
+            ? formData.referredBy 
+            : "Company",
+          dateOfBirth: formData.dateOfBirth,
+          profilePhotoUrl,
+          bannerPhotoUrl,
+          frontPagePhotoUrl,
+          videoUrls,
+          videoMeta: metaEntries.map(meta => ({
+            slot: meta.slot,
+            url: meta.url,
+            storagePath: meta.storagePath,
+            contentTier: meta.contentTier,
+            isNude: meta.isNude,
+            isXrated: meta.isXrated
+          }))
+        })
+      });
 
-      if (createError) {
-        throw new Error(`Failed to create user: ${createError.message}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed');
       }
 
-      const metaEntries = Object.values(videoUploadMeta).filter(
-        (meta): meta is UploadedVideoMeta => Boolean(meta),
-      );
-
-      if (metaEntries.length > 0) {
-        const mediaRows = metaEntries.map((meta) => ({
-          user_id: session.user.id,
-          media_url: meta.url,
-          media_type: "video",
-          filename: meta.storagePath.split("/").pop() ?? `${formData.username}_${meta.slot}.mp4`,
-          storage_path: meta.storagePath,
-          content_tier: meta.contentTier,
-          is_nude: meta.isNude,
-          is_xrated: meta.isXrated,
-          upload_date: new Date().toISOString(),
-          access_restricted: meta.contentTier !== "free",
-        }));
-
-        const { error: mediaInsertError } = await supabaseAdmin
-          .from("user_media")
-          .insert(mediaRows);
-
-        if (mediaInsertError) {
-          console.error("Failed to insert registration videos:", mediaInsertError);
-        }
+      if (!result.success || !result.user) {
+        throw new Error(result.error || 'Registration failed');
       }
 
-      try {
-        const userTypeInserted = formData.userType ? formData.userType : "normal";
+      // Sign in the user after successful registration
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-        const limitCategoryForCounting =
-          userTypeInserted === "normal" ? "silver" : "diamond";
-
-        await supabaseAdmin.rpc("increment_membership_count", {
-          membership_type_param: limitCategoryForCounting,
-          user_type_param: userTypeInserted,
+      if (signInError) {
+        console.error('Auto sign-in failed:', signInError);
+        // Registration was successful, user can manually sign in
+        toast({
+          title: "Registration Successful!",
+          description: "Please sign in with your new credentials.",
         });
-      } catch (incrementError) {
-        console.error("Failed to increment membership limits:", incrementError);
+        navigate("/login");
+        return;
       }
 
-      localStorage.setItem("authToken", session.user?.id || "authenticated");
-      sessionStorage.setItem("currentUser", formData.username);
+      localStorage.setItem("authToken", result.user.id || "authenticated");
+      sessionStorage.setItem("currentUser", result.user.username);
 
       toast({
         title: "Registration Successful!",

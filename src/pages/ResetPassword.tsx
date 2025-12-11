@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,11 +7,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
+const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
+
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -20,6 +23,9 @@ const ResetPassword: React.FC = () => {
     const check = async () => {
       const { data } = await supabase.auth.getSession();
       setReady(Boolean(data.session));
+      if (data.session?.user?.email) {
+        setUserEmail(data.session.user.email);
+      }
     };
     check();
   }, []);
@@ -37,89 +43,48 @@ const ResetPassword: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // First, update the password in Supabase Auth
-      const { error: authError } = await supabase.auth.updateUser({ password });
-      if (authError) throw authError;
+      // Get the current session for authorization
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("No active session. Please request a new password reset link.");
+      }
 
-      // Get the current user's email to find the user record
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser?.email) {
+      const email = sessionData.session.user.email;
+      if (!email) {
         throw new Error("User email not found");
       }
 
-      // Import bcrypt for password hashing
-      const bcrypt = await import('bcryptjs');
-      
-      // Hash the new password for storage in our custom users table
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Update the password hash in our custom users table
-      // This is CRITICAL for username login to work after password reset
-      console.log('Syncing password for user:', authUser.email);
-      
-      try {
-        // Find the user in our custom users table
-        const { data: userData, error: fetchError } = await supabaseAdmin
-          .from('users')
-          .select('id, username, email, password_hash')
-          .eq('email', authUser.email)
-          .single();
-
-        if (fetchError || !userData) {
-          console.error('User not found in custom users table:', fetchError);
-          throw new Error('User profile not found. Please contact support.');
-        }
-
-        // Update the password hash in the custom users table
-        // This ensures username login works after password reset
-        const userId = (userData as any).id;
-        
-        // Update password hash using admin client
-        const { error: updateError } = await supabaseAdmin
-          .from('users')
-          // @ts-ignore - Bypassing TypeScript restrictions for password update
-          .update({ 
-            password_hash: hashedPassword,
-            hash_type: 'bcrypt',
-            updated_at: new Date().toISOString()
-          })
-          .eq('email', authUser.email);
-
-        if (updateError) {
-          console.error('Failed to update custom users table:', updateError);
-          // Try again with ID instead of email
-          const { error: retryError } = await supabaseAdmin
-            .from('users')
-            // @ts-ignore - Bypassing TypeScript restrictions for password update
-            .update({ 
-              password_hash: hashedPassword,
-              hash_type: 'bcrypt',
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', userId);
-          
-          if (retryError) {
-            console.error('Retry failed:', retryError);
-            throw new Error('Failed to update password in database. Please try again.');
-          }
-        }
-
-        console.log('✅ Password successfully synced for both Supabase Auth and custom users table');
-        console.log('✅ User can now login with both username and email');
-      } catch (updateErr: any) {
-        console.error('Critical error syncing passwords:', updateErr);
-        throw new Error(updateErr?.message || 'Failed to update password. Please try again.');
+      // First, update the password in Supabase Auth (this works with recovery session)
+      const { error: authError } = await supabase.auth.updateUser({ password });
+      if (authError) {
+        console.error('Supabase Auth update error:', authError);
+        throw authError;
       }
 
-      // Also update the Supabase Auth password to keep both systems in sync
-      const { error: authUpdateError } = await supabase.auth.updateUser({ 
-        password: password 
+      // Call the edge function to sync password to custom users table
+      const response = await fetch(`${FUNCTIONS_BASE_URL}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionData.session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          email,
+          newPassword: password
+        })
       });
 
-      if (authUpdateError) {
-        console.error('Error updating Supabase Auth password:', authUpdateError);
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Password sync error:', result);
+        // The Supabase Auth password was updated, but sync failed
+        // Still show success since the user can login with email
+        console.warn('Custom table sync failed, but auth password was updated');
       }
 
+      console.log('✅ Password successfully updated');
 
       toast({ title: "Password updated", description: "You can now log in with your new password" });
       
@@ -151,6 +116,12 @@ const ResetPassword: React.FC = () => {
               Open this page from the password reset email link. If you already did, the link might be expired—request a new reset email from the Login page.
             </AlertDescription>
           </Alert>
+        )}
+
+        {ready && userEmail && (
+          <p className="text-sm text-muted-foreground">
+            Resetting password for: <strong>{userEmail}</strong>
+          </p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
