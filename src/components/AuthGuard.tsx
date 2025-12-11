@@ -13,19 +13,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First check Supabase session
+        // SECURITY: Only use Supabase session for authentication
+        // localStorage/sessionStorage fallback has been removed to prevent auth bypass
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          setIsAuthenticated(true);
-          return;
-        }
-        
-        // Fallback to localStorage tokens
-        const authToken = localStorage.getItem('authToken');
-        const currentUser = sessionStorage.getItem('currentUser');
-        
-        if (authToken === 'authenticated' && currentUser) {
           setIsAuthenticated(true);
           return;
         }
@@ -41,6 +33,20 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     };
 
     checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsAuthenticated(false);
+        navigate('/login');
+      } else if (session) {
+        setIsAuthenticated(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   // Show loading state while checking authentication

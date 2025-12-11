@@ -3,7 +3,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // Exported constants for use across the app (e.g., calling Edge Functions)
 export const SUPABASE_URL = 'https://qkcuykpndrolrewwnkwb.supabase.co';
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs';
-const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTM4MjA3MCwiZXhwIjoyMDY0OTU4MDcwfQ.ayaH1xWQQU-KzPkS5Zufk_Ss6wHns95u6DBhtdLKFN8';
+
+// SECURITY: Service role key has been removed from client-side code.
+// Admin operations must be performed through Edge Functions.
 
 // Force untyped clients to bypass Database type issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,7 +13,6 @@ type AnyDatabase = any;
 
 // Global singleton to prevent multiple instances
 let globalSupabaseInstance: SupabaseClient<AnyDatabase> | null = null;
-let globalSupabaseAdminInstance: SupabaseClient<AnyDatabase> | null = null;
 
 const getSupabaseClient = (): SupabaseClient<AnyDatabase> => {
   if (!globalSupabaseInstance) {
@@ -27,20 +28,18 @@ const getSupabaseClient = (): SupabaseClient<AnyDatabase> => {
   return globalSupabaseInstance;
 };
 
-const getSupabaseAdminClient = (): SupabaseClient<AnyDatabase> => {
-  if (!globalSupabaseAdminInstance) {
-    globalSupabaseAdminInstance = createClient<AnyDatabase>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: {
-        storageKey: 'dimes-only-admin-auth'
-      }
-    });
-  }
-  return globalSupabaseAdminInstance;
-};
-
-// Export the singleton instances
+// Export the singleton instance
 export const supabase: SupabaseClient<AnyDatabase> = getSupabaseClient();
-export const supabaseAdmin: SupabaseClient<AnyDatabase> = getSupabaseAdminClient();
+
+// DEPRECATED: supabaseAdmin has been removed for security reasons.
+// Use Edge Functions for admin operations instead.
+// This export is kept temporarily for backward compatibility but will throw an error.
+export const supabaseAdmin = new Proxy({} as SupabaseClient<AnyDatabase>, {
+  get() {
+    console.error('SECURITY ERROR: supabaseAdmin has been removed. Use Edge Functions for admin operations.');
+    throw new Error('supabaseAdmin has been removed for security. Use Edge Functions instead.');
+  }
+});
 
 // For backward compatibility
 export default supabase;
