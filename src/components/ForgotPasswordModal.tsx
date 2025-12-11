@@ -24,22 +24,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsLoading(true);
 
     try {
-      // First, check if the email exists in our users table
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("email, username")
-        .eq("email", email)
-        .single();
-
-      if (userError || !userData) {
-        toast({
-          title: "Email Not Found",
-          description: "No account found with this email address. Please check your email or create a new account.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const redirectTo = `${window.location.origin}/reset-password`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
