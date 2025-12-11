@@ -133,7 +133,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       // Fetch any video for this user (no content_tier filter)
       const { data, error } = await supabase
         .from("user_media")
-        .select("media_url")
+        .select("media_url, storage_path")
         .eq("user_id", performer.id)
         .eq("media_type", "video")
         .order("upload_date", { ascending: false })
@@ -144,7 +144,33 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       if (error) {
         console.error("[ImageCarousel] Error fetching video:", error);
       } else if (data?.[0]?.media_url) {
-        setSelectedVideoUrl(String(data[0].media_url));
+        const mediaUrl = String(data[0].media_url);
+        
+        // Check if video is in private-media bucket (needs signed URL)
+        if (mediaUrl.includes("/private-media/")) {
+          // Extract the path after the bucket name
+          const pathMatch = mediaUrl.match(/\/private-media\/(.+)$/);
+          if (pathMatch) {
+            const storagePath = pathMatch[1];
+            const { data: signedData, error: signedError } = await supabase.storage
+              .from("private-media")
+              .createSignedUrl(storagePath, 3600); // 1 hour expiry
+            
+            if (signedError) {
+              console.error("[ImageCarousel] Error creating signed URL:", signedError);
+              // Fall back to public URL (might work for some)
+              setSelectedVideoUrl(mediaUrl);
+            } else if (signedData?.signedUrl) {
+              console.log("[ImageCarousel] Using signed URL for private video");
+              setSelectedVideoUrl(signedData.signedUrl);
+            }
+          } else {
+            setSelectedVideoUrl(mediaUrl);
+          }
+        } else {
+          // Public bucket, use URL directly
+          setSelectedVideoUrl(mediaUrl);
+        }
       } else {
         console.log("[ImageCarousel] No video found for user:", performer.id);
       }
