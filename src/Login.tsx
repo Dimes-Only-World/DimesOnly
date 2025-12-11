@@ -9,7 +9,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import RotatingBackground from "@/components/RotatingBackground";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import ForgotUsernameModal from "@/components/ForgotUsernameModal";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import bcrypt from "bcryptjs";
 
@@ -47,7 +47,7 @@ const Login: React.FC = () => {
       let userRecord = null;
 
       if (!isEmail(usernameOrEmail)) {
-        const { data: userData, error: userError } = await supabaseAdmin
+        const { data: userData, error: userError } = await supabase
           .from("users")
           .select("email, password_hash, *")
           .eq("username", usernameOrEmail.trim())
@@ -80,7 +80,7 @@ const Login: React.FC = () => {
       }
 
       if (!userRecord) {
-        const { data: userData, error: userError } = await supabaseAdmin
+        const { data: userData, error: userError } = await supabase
           .from("users")
           .select("*")
           .eq("email", email)
