@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, DollarSign, Star, Lock, Crown } from 'lucide-react';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useAppContext } from '@/contexts/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import MediaGrid from '@/components/MediaGrid';
@@ -44,9 +44,6 @@ const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'free' | 'silver' | 'gold'>('free');
   const [userMembership, setUserMembership] = useState<string>('free');
 
-  // Silence debug logs in console; flip to console.log if needed for debugging
-  const debugLog = (..._args: any[]) => {};
-
   useEffect(() => {
     if (username) {
       fetchProfile();
@@ -63,95 +60,16 @@ const Profile: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      // Sanitize + normalize username to avoid hidden chars/trailing spaces/case issues
-      const sanitize = (s: string) =>
-        s
-          .replace(/[\u200B\u200C\u200D\u00A0]/g, '') // zero-width & NBSP
-          .normalize('NFKC')
-          .trim()
-          .toLowerCase();
-      const normalizedUsername = sanitize(String(username));
+      // Use public-data edge function to fetch profile
+      const { data: response, error } = await supabase.functions.invoke('public-data', {
+        body: { action: 'fetchProfile', username }
+      });
 
-      // Use maybeSingle to avoid 406 errors on 0 rows
-      let { data, error } = await supabase
-        .from('users')
-        .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-        .eq('username', normalizedUsername)
-        .maybeSingle();
+      if (error) throw error;
+      
+      const data = response?.data;
 
-      // Fallback: try case-insensitive match if exact match failed
-      if ((!data || error) && !data) {
-        const res = await supabase
-          .from('users')
-          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-          .ilike('username', normalizedUsername)
-          .maybeSingle();
-        data = res.data as any;
-        error = res.error as any;
-      }
-
-      // Fallback: try contains search (may match multiple). We'll pick the best match.
-      if ((!data || error) && !data) {
-        const res = await supabase
-          .from('users')
-          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-          .ilike('username', `%${normalizedUsername}%`);
-        const rows = res.data as any[] | null;
-        if (rows && rows.length > 0) {
-          // Prefer exact case-insensitive match, else startsWith, else first
-          const lower = (u: string) => String(u || '').toLowerCase();
-          const exact = rows.find(r => lower(r.username) === normalizedUsername);
-          const starts = rows.find(r => lower(r.username).startsWith(normalizedUsername));
-          data = (exact || starts || rows[0]) as any;
-          error = res.error as any;
-        }
-      }
-
-      // If still no data, try admin client to bypass RLS in case a specific row is blocked
       if (!data) {
-        debugLog('[Profile] Public fetch returned no data. Trying admin fallback for', normalizedUsername);
-        // Exact
-        let adminRes = await supabaseAdmin
-          .from('users')
-          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-          .eq('username', normalizedUsername)
-          .maybeSingle();
-        let adminData = adminRes.data as any | null;
-
-        if (!adminData) {
-          // Case-insensitive
-          adminRes = await supabaseAdmin
-            .from('users')
-            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-            .ilike('username', normalizedUsername)
-            .maybeSingle();
-          adminData = adminRes.data as any | null;
-        }
-
-        if (!adminData) {
-          // Contains match, pick best
-          const resList = await supabaseAdmin
-            .from('users')
-            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, user_type, gender, city, state')
-            .ilike('username', `%${normalizedUsername}%`);
-          const rows = resList.data as any[] | null;
-          if (rows && rows.length > 0) {
-            const lower = (u: string) => String(u || '').toLowerCase();
-            const exact = rows.find(r => lower(r.username) === normalizedUsername);
-            const starts = rows.find(r => lower(r.username).startsWith(normalizedUsername));
-            adminData = (exact || starts || rows[0]) as any;
-          }
-        }
-
-        if (adminData) {
-          debugLog('[Profile] Admin fallback succeeded for', adminData.username);
-          data = adminData;
-        } else {
-          debugLog('[Profile] Admin fallback also failed for', normalizedUsername, 'error:', error);
-        }
-      }
-
-      if (error || !data) {
         toast({
           title: "Profile not found",
           description: "The requested profile does not exist.",
@@ -177,29 +95,25 @@ const Profile: React.FC = () => {
 
   const fetchMedia = async (userId: string) => {
     try {
-      // Use supabaseAdmin like the admin dashboard does to bypass RLS
-      const { data, error } = await supabaseAdmin
-        .from('user_media')
-        .select('id, media_url, media_type, content_tier, flagged, created_at, storage_path')
-        .eq('user_id', userId)
-        .eq('flagged', false)
-        .order('created_at', { ascending: false });
+      // Use public-data edge function to fetch media
+      const { data: response, error } = await supabase.functions.invoke('public-data', {
+        body: { action: 'fetchUserMedia', userId }
+      });
 
       if (error) throw error;
 
-      debugLog('Profile media fetched:', data);
+      const data = response?.data || [];
 
-      const transformedMedia = await Promise.all((data || []).map(async (item) => {
+      const transformedMedia = await Promise.all(data.map(async (item: any) => {
         let effectiveUrl = item.media_url as string;
         // Videos are stored in the private bucket; generate a signed URL
         if (item.media_type === 'video' && item.storage_path) {
           try {
-            const { data: signed, error: signErr } = await supabaseAdmin
-              .storage
-              .from('private-media')
-              .createSignedUrl(item.storage_path, 60 * 60); // 1 hour
-            if (!signErr && signed?.signedUrl) {
-              effectiveUrl = signed.signedUrl;
+            const { data: signedResponse, error: signErr } = await supabase.functions.invoke('public-data', {
+              body: { action: 'createSignedUrl', storagePath: item.storage_path, expiresIn: 3600 }
+            });
+            if (!signErr && signedResponse?.data?.signedUrl) {
+              effectiveUrl = signedResponse.data.signedUrl;
             }
           } catch (e) {
             console.warn('Failed to create signed URL for video', item.id, e);
@@ -216,7 +130,6 @@ const Profile: React.FC = () => {
         };
       }));
 
-      debugLog('Transformed media:', transformedMedia);
       setMedia(transformedMedia);
     } catch (error) {
       console.error('Error fetching media:', error);
@@ -455,26 +368,22 @@ const Profile: React.FC = () => {
                       throw new Error('Function not implemented.');
                     } }                  />
                 ) : (
-                  <div className="text-center py-8 sm:py-12 text-gray-500">
-                    <p className="text-sm sm:text-base">No {activeTab} content available</p>
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No {activeTab} content available yet</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-8 sm:py-12 px-4">
-                <Lock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                  {activeTab === 'silver' ? 'Silver Plus' : 'Gold'} Required
+              <div className="text-center py-12">
+                <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">
+                  {activeTab === 'silver' ? 'Silver' : 'Gold'} Content Locked
                 </h3>
-                <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
-                  Upgrade your membership to access this exclusive content
+                <p className="text-gray-500 mb-4">
+                  Upgrade your membership to access {activeTab} content
                 </p>
-                <Button 
-                  onClick={() => handleUpgrade(activeTab)}
-                  className="bg-purple-600 hover:bg-purple-700 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
-                  size="sm"
-                >
-                  Upgrade to {activeTab === 'silver' ? 'Silver Plus' : 'Gold'}
+                <Button onClick={() => handleUpgrade(activeTab)}>
+                  Upgrade to {activeTab === 'silver' ? 'Silver Plus' : 'Diamond Plus'}
                 </Button>
               </div>
             )}

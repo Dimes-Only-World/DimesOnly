@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, DollarSign, Ticket, TrendingUp } from "lucide-react";
 import { Tables } from "@/types";
-import { supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 
 type UserData = Tables<"users">;
@@ -46,63 +46,50 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
     try {
       setLoading(true);
 
-      // Fetch tips data
-      const { data: tipsData } = await supabaseAdmin
-        .from("tips")
-        .select("*")
-        .eq("user_id", userData.id)
-        .order("created_at", { ascending: false });
+      // Use public-data edge function to fetch earnings data
+      const { data: response, error } = await supabase.functions.invoke('public-data', {
+        body: { action: 'fetchUserEarnings', userId: userData.id }
+      });
 
-      // Fetch tickets data
-      const { data: ticketsData } = await supabaseAdmin
-        .from("tickets")
-        .select("*")
-        .eq("user_Id", userData.id);
-
-      // Fetch current jackpot
-      const { data: jackpotData } = await supabaseAdmin
-        .from("jackpot")
-        .select("current_amount")
-        .eq("status", "active")
-        .single();
+      if (error) throw error;
+      
+      const { tips: tipsData, tickets: ticketsData, jackpot: jackpotData } = response?.data || {};
 
       // Calculate earnings
-            // Calculate earnings
-            const typedTips = (tipsData ?? []).map((tip) => {
-              const tipAmount = Number(tip?.tip_amount ?? 0);
-              const createdAt = tip?.created_at ? String(tip.created_at) : "";
-              const tipperUsername =
-                typeof tip?.tipper_username === "string" && tip.tipper_username.length > 0
-                  ? tip.tipper_username
-                  : "Anonymous";
-              const ticketsGenerated = Number(tip?.tickets_generated ?? 0);
-      
-              return {
-                tip_amount: tipAmount,
-                created_at: createdAt,
-                tipper_username: tipperUsername,
-                tickets_generated: ticketsGenerated,
-              };
-            });
-      
-            const totalTips = typedTips.reduce((sum, tip) => sum + tip.tip_amount, 0);
-            const weeklyTips = calculateWeeklyEarnings(typedTips);
-            const recentTips = typedTips.slice(0, 10).map((tip) => ({
-              from: tip.tipper_username,
-              amount: tip.tip_amount,
-              date: tip.created_at,
-              tickets: tip.tickets_generated,
-            }));
-      
-            setEarnings({
-              totalEarnings:
-                Number(userData.tips_earned ?? 0) + Number(userData.referral_fees ?? 0),
-              weeklyEarnings: Number(userData.weekly_earnings ?? weeklyTips),
-              totalTips: typedTips.length,
-              ticketsOwned: Number(userData.lottery_tickets ?? 0) + Number(ticketsData?.length ?? 0),
-              jackpotAmount: Number(jackpotData?.current_amount ?? 0),
-              recentTips,
-            });
+      const typedTips = (tipsData ?? []).map((tip: any) => {
+        const tipAmount = Number(tip?.tip_amount ?? 0);
+        const createdAt = tip?.created_at ? String(tip.created_at) : "";
+        const tipperUsername =
+          typeof tip?.tipper_username === "string" && tip.tipper_username.length > 0
+            ? tip.tipper_username
+            : "Anonymous";
+        const ticketsGenerated = Number(tip?.tickets_generated ?? 0);
+
+        return {
+          tip_amount: tipAmount,
+          created_at: createdAt,
+          tipper_username: tipperUsername,
+          tickets_generated: ticketsGenerated,
+        };
+      });
+
+      const weeklyTips = calculateWeeklyEarnings(typedTips);
+      const recentTips = typedTips.slice(0, 10).map((tip: any) => ({
+        from: tip.tipper_username,
+        amount: tip.tip_amount,
+        date: tip.created_at,
+        tickets: tip.tickets_generated,
+      }));
+
+      setEarnings({
+        totalEarnings:
+          Number(userData.tips_earned ?? 0) + Number(userData.referral_fees ?? 0),
+        weeklyEarnings: Number(userData.weekly_earnings ?? weeklyTips),
+        totalTips: typedTips.length,
+        ticketsOwned: Number(userData.lottery_tickets ?? 0) + Number(ticketsData?.length ?? 0),
+        jackpotAmount: Number(jackpotData?.amount ?? 0),
+        recentTips,
+      });
     } catch (error) {
       console.error("Error fetching earnings data:", error);
     } finally {

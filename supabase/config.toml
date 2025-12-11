@@ -1,4 +1,10 @@
 project_id = "qkcuykpndrolrewwnkwb"
 
+[functions.admin-data]
+verify_jwt = false
+
+[functions.public-data]
+verify_jwt = false
+
 [functions.reset-password]
 verify_jwt = false
