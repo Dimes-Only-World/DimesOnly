@@ -130,7 +130,8 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
     setSelectedVideoUrl(null);
 
     try {
-      const { data, error } = await supabase
+      // First try to get a silver tier video
+      let { data, error } = await supabase
         .from("user_media")
         .select("media_url")
         .eq("user_id", performer.id)
@@ -139,8 +140,22 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
         .order("upload_date", { ascending: false })
         .limit(1);
 
+      // If no silver video, try free tier
+      if (!data?.length) {
+        const freeResult = await supabase
+          .from("user_media")
+          .select("media_url")
+          .eq("user_id", performer.id)
+          .eq("media_type", "video")
+          .eq("content_tier", "free")
+          .order("upload_date", { ascending: false })
+          .limit(1);
+        data = freeResult.data;
+        error = freeResult.error;
+      }
+
       if (error) {
-        console.error("[ImageCarousel] Error fetching silver video:", error);
+        console.error("[ImageCarousel] Error fetching video:", error);
       } else if (data?.[0]?.media_url) {
         setSelectedVideoUrl(String(data[0].media_url));
       }
