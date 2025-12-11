@@ -244,7 +244,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
         }
 
         const { data: users, error: uErr } = await supabase
-          .from("users")
+          .from("public_user_profiles")
           .select("id, username, front_page_photo, profile_photo, user_type")
           .in("user_type", ["stripper", "exotic"]);
 
