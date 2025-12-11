@@ -56,25 +56,25 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
   const fetchLatestPerformers = useCallback(async () => {
     try {
       const { data, error } = await supabase
-  .from("users")
-  .select("id, username, profile_photo, front_page_photo, created_at")
-  .in("user_type", ["stripper", "exotic"])
-  .order("created_at", { ascending: false })
-  .limit(20);
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, front_page_photo, created_at")
+        .in("user_type", ["stripper", "exotic"])
+        .order("created_at", { ascending: false })
+        .limit(20);
 
-if (!error && data) {
-  const rows = data as RawUserRow[];
-  const mapped = rows.map((user, index) => ({
-    id: String(user.id),
-    username: user.username || `New Dime ${index + 1}`,
-    image:
-      user.profile_photo ??
-      user.front_page_photo ??
-      fallbackImages[index % fallbackImages.length],
-    created_at: user.created_at,
-  }));
-  setPerformers(mapped);
-}
+      if (!error && data) {
+        const rows = data as RawUserRow[];
+        const mapped = rows.map((user, index) => ({
+          id: String(user.id),
+          username: user.username || `New Dime ${index + 1}`,
+          image:
+            user.profile_photo ??
+            user.front_page_photo ??
+            fallbackImages[index % fallbackImages.length],
+          created_at: user.created_at,
+        }));
+        setPerformers(mapped);
+      }
     } catch (err) {
       console.error("[LatestDimesCarousel] Failed to fetch latest performers:", err);
     }
