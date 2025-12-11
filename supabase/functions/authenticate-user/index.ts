@@ -176,8 +176,10 @@ Deno.serve(async (req) => {
       if (storedHash.length === 60) {
         try {
           // Use bcryptjs which is compatible with edge runtime (no Worker dependency)
-          const bcrypt = await import('https://esm.sh/bcryptjs@2.4.3');
+          const bcryptModule = await import('https://esm.sh/bcryptjs@2.4.3');
+          const bcrypt = bcryptModule.default || bcryptModule;
           passwordMatch = bcrypt.compareSync(password, storedHash);
+          console.log('Bcrypt comparison result:', passwordMatch);
         } catch (e) {
           console.error('Bcrypt error:', e);
         }
