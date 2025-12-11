@@ -84,7 +84,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     fetchLatestPerformers();
   }, [fetchLatestPerformers]);
 
-    const fetchPreviewVideo = async (performer: LatestPerformer) => {
+  const fetchPreviewVideo = async (performer: LatestPerformer) => {
     if (performer.id.startsWith("fallback-")) {
       setSelectedVideoUrl(null);
       setIsLoadingMedia(false);
@@ -95,20 +95,40 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     setSelectedVideoUrl(null);
 
     try {
+      // Try to get any video for this user (no content_tier filter)
       const { data, error } = await supabase
-      .from("user_media")
-      .select("media_url, content_tier")
-      .eq("user_id", performer.id)
-      .eq("media_type", "video")
-      .ilike("content_tier", "silver") 
-      .order("upload_date", { ascending: false })
-      .limit(1);
+        .from("user_media")
+        .select("media_url, storage_path")
+        .eq("user_id", performer.id)
+        .eq("media_type", "video")
+        .order("upload_date", { ascending: false })
+        .limit(1);
 
-      if (!error && data) {
-        const rows = data as RawMediaRow[];
-        const url = rows[0]?.media_url?.trim();
+      if (!error && data && data.length > 0) {
+        const row = data[0] as { media_url: string | null; storage_path: string | null };
+        const url = row?.media_url?.trim();
+        
         if (url) {
-          setSelectedVideoUrl(url);
+          // Check if this is from private-media bucket and needs a signed URL
+          if (url.includes("/private-media/")) {
+            const storagePath = row.storage_path || url.split("/private-media/")[1]?.split("?")[0];
+            if (storagePath) {
+              const { data: signedData, error: signedError } = await supabase.storage
+                .from("private-media")
+                .createSignedUrl(storagePath, 3600);
+              
+              if (!signedError && signedData?.signedUrl) {
+                setSelectedVideoUrl(signedData.signedUrl);
+              } else {
+                console.error("[LatestDimesCarousel] Signed URL error:", signedError);
+                setSelectedVideoUrl(url);
+              }
+            } else {
+              setSelectedVideoUrl(url);
+            }
+          } else {
+            setSelectedVideoUrl(url);
+          }
         }
       }
     } catch (err) {
