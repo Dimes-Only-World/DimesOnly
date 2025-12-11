@@ -474,7 +474,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             </button>
 
             {/* Media container */}
-            <div className="relative w-full bg-black flex items-center justify-center flex-1 min-h-[50vh]">
+            <div className="relative w-full bg-black flex items-center justify-center flex-1">
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
               ) : selectedVideoUrl ? (
@@ -489,13 +489,13 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
                   controlsList="nodownload noremoteplayback"
                   disablePictureInPicture
                   onContextMenu={(e) => e.preventDefault()}
-                  className="h-full max-h-[65vh] w-auto max-w-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <img
                   src={selectedPerformer.image}
                   alt={`Rank ${selectedPerformer.rank}`}
-                  className="h-full max-h-[65vh] w-auto max-w-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               )}
             </div>
