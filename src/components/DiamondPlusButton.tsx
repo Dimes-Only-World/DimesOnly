@@ -59,18 +59,13 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
     try {
       console.log("Fetching actual Diamond Plus user count...");
 
-      // Count actual diamond plus users (same as PositionCounter)
-      const { count: diamondPlusCount, error: countError } = await supabase
-        .from("users")
-        .select("id", { count: "exact", head: true })
-        .eq("diamond_plus_active", true)
-        .in("user_type", ["exotic", "stripper"]);
+      // Use RPC function to bypass RLS restrictions
+      const { data: diamondPlusCount, error: countError } = await supabase.rpc("get_diamond_plus_count");
 
       console.log("Diamond Plus user count result:", { diamondPlusCount, countError });
 
       if (countError) {
         console.error("Error fetching Diamond Plus user count:", countError);
-        // Set default values if there's any error
         setMembershipLimits([
           {
             membership_type: "diamond_plus",
@@ -80,7 +75,6 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
           } as MembershipLimits,
         ]);
       } else {
-        // Use actual count from database
         setMembershipLimits([
           {
             membership_type: "diamond_plus",
@@ -92,7 +86,6 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
       }
     } catch (error) {
       console.error("Error fetching Diamond Plus user count:", error);
-      // Set default values if there's any error
       setMembershipLimits([
         {
           membership_type: "diamond_plus",
