@@ -39,11 +39,12 @@ const EventsDimes: React.FC = () => {
   // Get ref parameter from URL with proper decoding and normalization
   const refParam = normalizeRefParam(searchParams.get("ref"));
 
-  // Check access control - only users without user_type (normal people)
+  // Check access control - allow male, female, normal users (not strippers/exotics)
+  const allowedUserTypes = ["", "normal", "male", "female", "male_normal", "female_normal"];
   const canViewPage =
     !userLoading &&
     user &&
-    (!user.userType || user.userType === "" || user.userType === "normal");
+    (!user.userType || allowedUserTypes.includes(user.userType.toLowerCase()));
 
   console.log("EventsDimes access control check:", {
     userLoading,
