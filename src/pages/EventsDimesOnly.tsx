@@ -581,25 +581,40 @@ const EventsDimesOnly: React.FC = () => {
 
   const fetchEventAttendees = async (eventId: string) => {
     try {
-      const { data, error } = await supabase
+      // First get the user_events
+      const { data: userEventsData, error: userEventsError } = await supabase
         .from("user_events")
-        .select(
-          `
-          user_id,
-          users (
-            username,
-            profile_photo,
-            user_type,
-            city,
-            state
-          )
-        `
-        )
+        .select("user_id, username")
         .eq("event_id", eventId);
 
-      if (error) throw error;
+      if (userEventsError) throw userEventsError;
+      if (!userEventsData || userEventsData.length === 0) return [];
 
-      return (data as unknown as Attendee[]) || [];
+      // Then get user profile info from public_user_profiles view (bypasses RLS on users table)
+      const userIds = userEventsData.map((ue) => ue.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, user_type, city, state")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Map profiles to attendees
+      const attendees: Attendee[] = (userEventsData || []).map((ue) => {
+        const profile = profilesData?.find((p) => p.id === ue.user_id);
+        return {
+          user_id: ue.user_id,
+          users: {
+            username: profile?.username || ue.username || "Unknown",
+            profile_photo: profile?.profile_photo || "",
+            user_type: (profile?.user_type as Attendee["users"]["user_type"]) || "normal",
+            city: profile?.city || "",
+            state: profile?.state || "",
+          },
+        };
+      });
+
+      return attendees;
     } catch (error) {
       console.error("Error fetching attendees:", error);
       return [];
