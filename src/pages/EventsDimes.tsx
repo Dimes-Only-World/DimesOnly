@@ -18,7 +18,7 @@ interface Performer {
   city: string;
   state: string;
   user_type: "stripper" | "exotic";
-  created_at: string; // Add registration date
+  created_at?: string;
 }
 
 const EventsDimes: React.FC = () => {
@@ -67,17 +67,17 @@ const EventsDimes: React.FC = () => {
 
   const fetchPerformers = async () => {
     try {
+      // Use public_user_profiles view to bypass RLS restrictions
       const { data, error } = await supabase
-        .from("users")
-        .select(
-          "id, username, profile_photo, city, state, user_type, created_at"
-        )
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, city, state, user_type, created_at")
         .in("user_type", ["stripper", "exotic"])
-        .order("created_at", { ascending: false }); // Latest registered first
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setPerformers((data as Performer[]) || []);
     } catch (error) {
+      console.error("Error fetching performers:", error);
       toast({
         title: "Error",
         description: "Failed to fetch performers",
@@ -273,13 +273,13 @@ const EventsDimes: React.FC = () => {
               <Card className="bg-white/10 backdrop-blur border-white/20 max-w-md mx-auto">
                 <CardContent className="p-8">
                   <h3 className="text-xl font-bold text-yellow-400 mb-4">
-                    No Events Available
+                    No Performers Found
                   </h3>
                   <p className="text-gray-300 mb-4">
-                    Baddie hasn't selected any events yet.
+                    No strippers or exotic dancers match your search criteria.
                   </p>
                   <p className="text-gray-400 text-sm mb-6">
-                    CHECK BACK TOMORROW
+                    Try adjusting your filters
                   </p>
                   <Button
                     onClick={handleGoBack}
