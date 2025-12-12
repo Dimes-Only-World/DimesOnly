@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Camera, Gift, Star, Calendar, Car, Shirt, Heart } from "lucide-react";
 import { Tables } from "@/types";
@@ -16,6 +17,7 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
   userData,
   onImageUpload,
 }) => {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bannerUrl, setBannerUrl] = useState(bannerPhoto || "");
@@ -49,15 +51,9 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
     const userType = userData.user_type;
 
     if (userType === "stripper" || userType === "exotic") {
-      window.open(
-        `https://dimesonly.world/events-dimes-only?ref=${username}`,
-        "_blank"
-      );
+      navigate(`/events-dimes-only?ref=${username}`);
     } else {
-      window.open(
-        `https://dimesonly.world/eventsdimes?ref=${username}`,
-        "_blank"
-      );
+      navigate(`/eventsdimes?ref=${username}`);
     }
   };
 
