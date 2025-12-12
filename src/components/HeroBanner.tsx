@@ -25,8 +25,8 @@ const HeroBanner: React.FC = () => {
     <div className="w-full">
       {/* === Video Background Section === */}
       <section
-        className="relative w-full h-[100svh] overflow-hidden bg-black"
-        style={{ height: "calc(var(--vh, 1vh) * 100)" }}
+        className="relative w-full min-h-screen overflow-hidden bg-black"
+        style={{ minHeight: "100vh" }}
       >
         <style>
           {`

@@ -52,7 +52,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
