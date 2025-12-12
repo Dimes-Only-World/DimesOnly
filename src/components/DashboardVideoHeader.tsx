@@ -29,10 +29,10 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
     setShowVideo(true);
   };
 
-  // Desktop keeps a 16:9 frame; Mobile does NOT force a 16:9 aspect box
+  // Desktop keeps a 16:9 frame; Mobile has min-height for visibility
   const wrapperClass = isMobile
-    ? 'relative w-screen' // let the video control its height on mobile
-    : 'relative w-screen aspect-video'; // 16:9 only on desktop
+    ? 'relative w-full min-h-[50vh]' // ensure visibility on mobile
+    : 'relative w-full aspect-video'; // 16:9 only on desktop
 
   // Video class per device
   const videoClass = isMobile

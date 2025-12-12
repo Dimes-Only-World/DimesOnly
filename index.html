@@ -100,19 +100,7 @@
         setTimeout(hideAddressBar, 500);
       });
 
-      // Prevent zoom on double tap
-      let lastTouchEnd = 0;
-      document.addEventListener(
-        "touchend",
-        function (event) {
-          const now = new Date().getTime();
-          if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-          }
-          lastTouchEnd = now;
-        },
-        false
-      );
+      // Double-tap zoom prevention removed to fix mobile interaction issues
 
       // Set viewport height custom property for mobile browsers
       function setViewportHeight() {
