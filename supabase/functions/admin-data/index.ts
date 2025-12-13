@@ -15,35 +15,25 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
     // Create admin client for privileged operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Create user client to verify auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    const body = await req.json();
+    const { action, adminUserId, ...params } = body;
+    
+    // Verify admin user ID is provided
+    if (!adminUserId) {
       return new Response(
-        JSON.stringify({ error: 'Authorization header required' }),
+        JSON.stringify({ error: 'Admin user ID required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    // Verify the user is an admin
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check admin role
-    const { data: isAdmin, error: roleError } = await supabaseUser.rpc('is_admin');
+    // Verify the user is an admin using the check_admin_by_user_id function
+    const { data: isAdmin, error: roleError } = await supabaseAdmin
+      .rpc('check_admin_by_user_id', { _user_id: adminUserId });
+    
     if (roleError || !isAdmin) {
       console.error('Admin check failed:', roleError);
       return new Response(
@@ -52,8 +42,7 @@ serve(async (req) => {
       );
     }
 
-    const { action, ...params } = await req.json();
-    console.log(`Admin action: ${action} by user: ${user.id}`);
+    console.log(`Admin action: ${action} by user: ${adminUserId}`);
 
     let result;
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getAdminUserId } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -236,8 +237,9 @@ const AdminJackpotTab: React.FC = () => {
   
     setUpdatingMaxTickets(true);
     try {
+      const adminUserId = getAdminUserId();
       const { data: countResponse, error: countError } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'getPoolTicketCount', poolId: pool.pool_id }
+        body: { action: 'getPoolTicketCount', poolId: pool.pool_id, adminUserId }
       });
       if (countError || countResponse?.error) throw countError || new Error(countResponse?.error);
       const currentTickets = Number(countResponse?.data?.count ?? 0);
@@ -253,7 +255,7 @@ const AdminJackpotTab: React.FC = () => {
       }
   
       const { data: updateRes, error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'updateMaxTickets', poolId: pool.pool_id, maxTickets: parsed }
+        body: { action: 'updateMaxTickets', poolId: pool.pool_id, maxTickets: parsed, adminUserId }
       });
       if (error || updateRes?.error) throw error || new Error(updateRes?.error);
   
@@ -275,7 +277,8 @@ const AdminJackpotTab: React.FC = () => {
             status: 'open',
             soldOutAt: null,
             salesResumeAt: null,
-            guaranteedDraw: false
+            guaranteedDraw: false,
+            adminUserId
           }
         });
   
@@ -300,7 +303,8 @@ const AdminJackpotTab: React.FC = () => {
             status: 'sold_out',
             soldOutAt: new Date().toISOString(),
             salesResumeAt: null,
-            guaranteedDraw: true
+            guaranteedDraw: true,
+            adminUserId
           }
         });
         if (soldOutError || soldRes?.error) {
@@ -335,6 +339,7 @@ const AdminJackpotTab: React.FC = () => {
     if (!pool?.pool_id) return;
     setUpdatingStatus(true);
     try {
+      const adminUserId = getAdminUserId();
       const { data: res, error } = await supabase.functions.invoke('admin-data', {
         body: { 
           action: 'updatePoolStatus', 
@@ -342,7 +347,8 @@ const AdminJackpotTab: React.FC = () => {
           status: 'open',
           soldOutAt: null,
           salesResumeAt: null,
-          guaranteedDraw: false
+          guaranteedDraw: false,
+          adminUserId
         }
       });
       if (error || res?.error) throw error || new Error(res?.error);
@@ -467,8 +473,9 @@ const AdminJackpotTab: React.FC = () => {
   ) => {
     setUpdatingId(`${draw_id}:${user_id}:${status}`);
     try {
+      const adminUserId = getAdminUserId();
       const { data: res, error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'updateWinnerStatus', drawId: draw_id, visitorId: user_id, status }
+        body: { action: 'updateWinnerStatus', drawId: draw_id, visitorId: user_id, status, adminUserId }
       });
       if (error || res?.error) throw error || new Error(res?.error);
       await fetchLatestWinners();

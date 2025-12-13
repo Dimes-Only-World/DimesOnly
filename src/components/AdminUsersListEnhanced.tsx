@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getAdminUserId } from "@/lib/adminAuth";
 import AdminUserFiltersEnhanced from "./AdminUserFiltersEnhanced";
 import AdminUserDetailsEnhanced from "./AdminUserDetailsEnhanced";
 
@@ -64,8 +65,9 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      const adminUserId = getAdminUserId();
       const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'fetchAllUsers' }
+        body: { action: 'fetchAllUsers', adminUserId }
       });
 
       if (error) throw error;
@@ -217,8 +219,9 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const handleDeactivateUser = async (userId: string) => {
     try {
+      const adminUserId = getAdminUserId();
       const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'deactivateUser', userId }
+        body: { action: 'deactivateUser', userId, adminUserId }
       });
 
       if (error) throw error;
