@@ -22,26 +22,29 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const verifyAdminAccess = async () => {
       try {
-        // Check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
+        // Check for admin session in sessionStorage (set by AdminLogin)
+        const adminUserData = sessionStorage.getItem('adminUser');
         
-        if (!session) {
+        if (!adminUserData) {
           navigate("/adminlogin");
           return;
         }
 
+        const adminUser = JSON.parse(adminUserData);
+        
         // Verify admin role server-side using security definer function
         const { data: hasAdminRole, error } = await supabase
-          .rpc('is_admin');
+          .rpc('check_admin_by_user_id', { _user_id: adminUser.id });
 
         if (error) {
           console.error('Admin verification error:', error);
+          sessionStorage.removeItem('adminUser');
           navigate("/adminlogin");
           return;
         }
 
         if (!hasAdminRole) {
-          await supabase.auth.signOut();
+          sessionStorage.removeItem('adminUser');
           navigate("/adminlogin");
           return;
         }
@@ -49,6 +52,7 @@ const AdminDashboard: React.FC = () => {
         setIsAdmin(true);
       } catch (error) {
         console.error('Admin verification failed:', error);
+        sessionStorage.removeItem('adminUser');
         navigate("/adminlogin");
       } finally {
         setIsVerifying(false);
@@ -58,8 +62,8 @@ const AdminDashboard: React.FC = () => {
     verifyAdminAccess();
   }, [navigate]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    sessionStorage.removeItem('adminUser');
     navigate("/adminlogin");
   };
 
