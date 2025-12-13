@@ -58,21 +58,15 @@ const AdminLogin = () => {
         return;
       }
 
-      // Sign in with Supabase Auth using the user's email
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // Store admin session data (username-based auth doesn't use Supabase Auth)
+      // This is validated server-side via edge function + admin role check
+      sessionStorage.setItem('adminUser', JSON.stringify({
+        id: data.user.id,
+        username: data.user.username,
         email: data.user.email,
-        password: password,
-      });
-
-      if (signInError) {
-        toast({
-          title: 'Error',
-          description: 'Failed to establish session',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-      }
+        isAdmin: true,
+        loginTime: new Date().toISOString()
+      }));
 
       toast({
         title: 'Success',
