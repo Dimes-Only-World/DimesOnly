@@ -171,18 +171,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // bcrypt hash check (starts with $2a$ or $2b$ and length 60)
+    // bcrypt hash check (starts with $2a$ or $2b$)
     if (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$')) {
-      if (storedHash.length === 60) {
-        try {
-          // Use bcryptjs which is compatible with edge runtime (no Worker dependency)
-          const bcryptModule = await import('https://esm.sh/bcryptjs@2.4.3');
-          const bcrypt = bcryptModule.default || bcryptModule;
-          passwordMatch = bcrypt.compareSync(password, storedHash);
-          console.log('Bcrypt comparison result:', passwordMatch);
-        } catch (e) {
-          console.error('Bcrypt error:', e);
-        }
+      try {
+        // Use bcryptjs which is compatible with edge runtime (no Worker dependency)
+        const bcryptModule = await import('https://esm.sh/bcryptjs@2.4.3');
+        const bcrypt = bcryptModule.default || bcryptModule;
+        console.log('Attempting bcrypt comparison, hash length:', storedHash.length);
+        passwordMatch = bcrypt.compareSync(password, storedHash);
+        console.log('Bcrypt comparison result:', passwordMatch);
+      } catch (e) {
+        console.error('Bcrypt error:', e);
       }
     }
     // SHA256 hash check (64 character hex string)
