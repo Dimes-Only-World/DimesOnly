@@ -40,6 +40,61 @@ import Elite from "./pages/Elite";
 import ResetPassword from "./pages/ResetPassword";
 import "./App.css";
 
+// Error boundary to catch any rendering errors
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("App render error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ 
+          minHeight: '100vh', 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: '#000',
+          color: '#fff',
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <h1 style={{ color: '#f97316', marginBottom: '10px' }}>Something went wrong</h1>
+          <p>Please refresh the page to try again.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '20px',
+              padding: '10px 20px',
+              backgroundColor: '#f97316',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function AppContent() {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
@@ -92,16 +147,18 @@ function AppContent() {
 
 function App() {
   return (
-    <AppProvider>
-      <Router
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <AppContent />
-      </Router>
-    </AppProvider>
+    <AppErrorBoundary>
+      <AppProvider>
+        <Router
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <AppContent />
+        </Router>
+      </AppProvider>
+    </AppErrorBoundary>
   );
 }
 
