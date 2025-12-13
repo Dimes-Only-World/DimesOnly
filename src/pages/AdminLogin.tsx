@@ -9,7 +9,7 @@ import { AdminForgotModals } from '@/components/AdminForgotModals';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -22,40 +22,37 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      // Authenticate with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Authenticate via edge function (username-based)
+      const response = await fetch(
+        `https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/authenticate-user`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        }
+      );
 
-      if (authError || !authData.user) {
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
         toast({
           title: 'Error',
-          description: 'Invalid credentials',
+          description: data.error || 'Invalid credentials',
           variant: 'destructive',
         });
         setLoading(false);
         return;
       }
 
-      // Verify admin role server-side using security definer function
-      const { data: isAdmin, error: roleError } = await supabase
-        .rpc('is_admin');
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
 
-      if (roleError) {
-        console.error('Role check error:', roleError);
-        await supabase.auth.signOut();
-        toast({
-          title: 'Error',
-          description: 'Failed to verify admin privileges',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (!isAdmin) {
-        await supabase.auth.signOut();
+      if (roleError || !roleData) {
         toast({
           title: 'Access Denied',
           description: 'You do not have admin privileges',
@@ -65,7 +62,9 @@ const AdminLogin = () => {
         return;
       }
 
-      // Admin verified server-side
+      // Store admin session
+      localStorage.setItem('adminUser', JSON.stringify(data.user));
+      
       toast({
         title: 'Success',
         description: 'Admin login successful',
@@ -94,14 +93,14 @@ const AdminLogin = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
-                placeholder="Enter admin email"
+                placeholder="Enter admin username"
               />
             </div>
             <div className="space-y-2">
