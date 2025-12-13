@@ -25,8 +25,8 @@ const HeroBanner: React.FC = () => {
     <div className="w-full">
       {/* === Video Background Section === */}
       <section
-        className="relative w-full min-h-screen overflow-hidden bg-black"
-        style={{ minHeight: "100vh" }}
+        className="relative w-full h-screen overflow-hidden bg-black"
+        style={{ height: "100dvh" }}
       >
         <style>
           {`
@@ -53,8 +53,9 @@ const HeroBanner: React.FC = () => {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             onError={handleVideoError}
+            poster={placeholderLady}
           >
             <source src={desktopSrc} type="video/webm" />
           </video>
@@ -69,8 +70,9 @@ const HeroBanner: React.FC = () => {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             onError={handleVideoError}
+            poster={placeholderLady}
           >
             <source src={phoneSrc} type="video/webm" />
           </video>
