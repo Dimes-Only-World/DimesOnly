@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAdminUserId } from "@/lib/adminAuth";
 import {
   Card,
   CardContent,
@@ -167,8 +168,9 @@ const AdminEarningsTab: React.FC = () => {
       const endDate = endOfDay(selectedPeriod.endDate).toISOString();
 
       // Use admin-data edge function for payroll data
+      const adminUserId = getAdminUserId();
       const { data: response, error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'fetchPayrollData', startDate, endDate }
+        body: { action: 'fetchPayrollData', startDate, endDate, adminUserId }
       });
 
       if (error) throw error;
