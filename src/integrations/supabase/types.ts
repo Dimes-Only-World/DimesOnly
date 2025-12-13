@@ -2405,8 +2405,10 @@ export type Database = {
           bio: string | null
           city: string | null
           created_at: string | null
+          diamond_plus_active: boolean | null
           first_name: string | null
           front_page_photo: string | null
+          gender: string | null
           id: string | null
           is_ranked: boolean | null
           membership_tier: string | null
@@ -2414,8 +2416,10 @@ export type Database = {
           profile_photo: string | null
           rank_number: number | null
           referral_fees: number | null
+          silver_plus_active: boolean | null
           state: string | null
           tips_earned: number | null
+          user_rank: number | null
           user_type: string | null
           username: string | null
         }
@@ -2424,8 +2428,10 @@ export type Database = {
           bio?: string | null
           city?: string | null
           created_at?: string | null
+          diamond_plus_active?: boolean | null
           first_name?: string | null
           front_page_photo?: string | null
+          gender?: string | null
           id?: string | null
           is_ranked?: boolean | null
           membership_tier?: string | null
@@ -2433,8 +2439,10 @@ export type Database = {
           profile_photo?: string | null
           rank_number?: number | null
           referral_fees?: number | null
+          silver_plus_active?: boolean | null
           state?: string | null
           tips_earned?: number | null
+          user_rank?: number | null
           user_type?: string | null
           username?: string | null
         }
@@ -2443,8 +2451,10 @@ export type Database = {
           bio?: string | null
           city?: string | null
           created_at?: string | null
+          diamond_plus_active?: boolean | null
           first_name?: string | null
           front_page_photo?: string | null
+          gender?: string | null
           id?: string | null
           is_ranked?: boolean | null
           membership_tier?: string | null
@@ -2452,8 +2462,10 @@ export type Database = {
           profile_photo?: string | null
           rank_number?: number | null
           referral_fees?: number | null
+          silver_plus_active?: boolean | null
           state?: string | null
           tips_earned?: number | null
+          user_rank?: number | null
           user_type?: string | null
           username?: string | null
         }

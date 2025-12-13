@@ -84,8 +84,9 @@ const DimesDirectory: React.FC = () => {
 
   const fetchProfiles = async () => {
     try {
+      // Use public_user_profiles view to bypass RLS restrictions
       const { data: usersData, error: usersError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select(
           `
             id,
