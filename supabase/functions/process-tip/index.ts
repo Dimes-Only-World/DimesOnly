@@ -253,20 +253,20 @@ serve(async (req) => {
       return data ?? null;
     };
 
-    let referrerUsername: string | null =
-      typeof referrer_username === "string" ? referrer_username.trim() : null;
-    if (referrerUsername && !referrerUsername.length) {
-      referrerUsername = null;
+    // ALWAYS use the tipped user's (performer's) referrer from database
+    // This ensures the person who referred the performer gets the commission, not the tipper
+    let referrerUsername: string | null = null;
+    
+    if (tippedUser.referred_by && !isCompanyReference(tippedUser.referred_by)) {
+      referrerUsername = tippedUser.referred_by.trim() || null;
     }
-
-    if (
-      !referrerUsername &&
-      tippedUser.referred_by &&
-      !isCompanyReference(tippedUser.referred_by)
-    ) {
-      const fallback = tippedUser.referred_by.trim();
-      referrerUsername = fallback.length ? fallback : null;
-    }
+    
+    console.log("Referrer determination:", {
+      tipped_username,
+      tippedUserReferredBy: tippedUser.referred_by,
+      providedReferrerUsername: referrer_username,
+      effectiveReferrer: referrerUsername,
+    });
 
     const percentFee = roundCurrency(parsedAmount * PAYPAL_PERCENT_FEE);
     const paypalFeeAmount = roundCurrency(percentFee + PAYPAL_FIXED_FEE);
