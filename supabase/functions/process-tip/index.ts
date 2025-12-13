@@ -374,6 +374,28 @@ serve(async (req) => {
       ? new Date(tipRow.created_at)
       : new Date();
 
+    // Update performer's tips_earned in users table
+    const { error: performerUpdateError } = await supabase.rpc(
+      "increment_tips_earned",
+      { p_user_id: tippedUser.id, p_amount: performerShare }
+    );
+    
+    if (performerUpdateError) {
+      console.error("Error updating performer tips_earned:", performerUpdateError);
+    }
+
+    // Update referrer's referral_fees in users table
+    if (refUserId && refCommission > 0) {
+      const { error: referrerUpdateError } = await supabase.rpc(
+        "increment_referral_fees",
+        { p_user_id: refUserId, p_amount: refCommission }
+      );
+      
+      if (referrerUpdateError) {
+        console.error("Error updating referrer referral_fees:", referrerUpdateError);
+      }
+    }
+
     try {
       await upsertWeeklyEarnings(
         supabase,

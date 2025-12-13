@@ -406,6 +406,16 @@ serve(async (req) => {
           console.error("Error creating referrer commission:", commissionError);
         }
 
+        // Update referrer's referral_fees in users table
+        const { error: referrerUpdateError } = await supabase.rpc(
+          "increment_referral_fees",
+          { p_user_id: referrerUserId, p_amount: referrerCommission }
+        );
+        
+        if (referrerUpdateError) {
+          console.error("Error updating referrer referral_fees:", referrerUpdateError);
+        }
+
         // Update referrer's weekly earnings
         await upsertWeeklyEarnings(supabase, referrerUserId, new Date(), 0, referrerCommission, 0);
       }

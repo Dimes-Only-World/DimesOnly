@@ -2578,6 +2578,28 @@ export type Database = {
           },
         ]
       }
+      v_tip_allocation_audit: {
+        Row: {
+          company_share: number | null
+          fee_fixed: number | null
+          fee_percent: number | null
+          gross_amount: number | null
+          jackpot_contribution: number | null
+          ledger_id: string | null
+          net_after_fees: number | null
+          paypal_fee: number | null
+          performer_name: string | null
+          performer_share: number | null
+          referrer_name: string | null
+          referrer_share: number | null
+          referrer_username: string | null
+          tickets_generated: number | null
+          tipped_username: string | null
+          tipper_username: string | null
+          transaction_date: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       api_jackpot_close_and_open: {
@@ -2612,6 +2634,14 @@ export type Database = {
       }
       increment_referral_earnings: {
         Args: { amount: number; user_id: string }
+        Returns: undefined
+      }
+      increment_referral_fees: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
+      increment_tips_earned: {
+        Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
       increment_weekly_referral_earnings: {
