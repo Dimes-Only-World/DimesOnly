@@ -44,15 +44,11 @@ const AdminLogin = () => {
         return;
       }
 
-      // Check if user has admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
+      // Check if user has admin role using the check_admin_by_user_id function
+      const { data: isAdminUser, error: roleError } = await supabase
+        .rpc('check_admin_by_user_id', { _user_id: data.user.id });
 
-      if (roleError || !roleData) {
+      if (roleError || !isAdminUser) {
         toast({
           title: 'Access Denied',
           description: 'You do not have admin privileges',
@@ -62,9 +58,22 @@ const AdminLogin = () => {
         return;
       }
 
-      // Store admin session
-      localStorage.setItem('adminUser', JSON.stringify(data.user));
-      
+      // Sign in with Supabase Auth using the user's email
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.user.email,
+        password: password,
+      });
+
+      if (signInError) {
+        toast({
+          title: 'Error',
+          description: 'Failed to establish session',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       toast({
         title: 'Success',
         description: 'Admin login successful',
