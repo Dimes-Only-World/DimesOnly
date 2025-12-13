@@ -186,8 +186,16 @@ serve(async (req) => {
         throw new Error("Tipper user not found");
       }
 
-      // Determine referrer - use provided referrer_username or fall back to tipped user's referrer
-      const effectiveReferrerUsername = referrer_username || tippedUser.referred_by || null;
+      // Determine referrer - ALWAYS use the tipped user's (performer's) referrer from database
+      // This ensures the person who referred the performer gets the commission, not the tipper
+      const effectiveReferrerUsername = tippedUser.referred_by || null;
+      
+      console.log("Referrer determination:", {
+        tipped_username,
+        tippedUserReferredBy: tippedUser.referred_by,
+        providedReferrerUsername: referrer_username,
+        effectiveReferrer: effectiveReferrerUsername,
+      });
 
       // Calculate allocations
       const percentFee = roundCurrency(grossAmount * PAYPAL_PERCENT_FEE);
