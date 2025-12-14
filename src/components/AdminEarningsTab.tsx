@@ -479,7 +479,7 @@ const AdminEarningsTab: React.FC = () => {
                 <SelectTrigger className="w-full max-w-md">
                   <SelectValue placeholder="Select a pay period" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto bg-white dark:bg-gray-900 z-50">
                   {payPeriods.map((period) => (
                     <SelectItem key={period.id} value={period.id}>
                       {period.label}
