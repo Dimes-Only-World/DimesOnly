@@ -311,16 +311,61 @@ serve(async (req) => {
         throw new Error("Failed to create tip transaction");
       }
 
-      // Update performer's tips_earned in users table
-      const { error: performerUpdateError } = await supabase.rpc(
+      // Update performer's tips_earned in users table with detailed logging and fallback
+      console.log("Attempting to update performer tips_earned:", {
+        performerId: tippedUser.id,
+        performerUsername: tipped_username,
+        performerShare,
+      });
+      
+      const { data: rpcResult, error: performerUpdateError } = await supabase.rpc(
         "increment_tips_earned",
         { p_user_id: tippedUser.id, p_amount: performerShare }
       );
       
       if (performerUpdateError) {
-        console.error("Error updating performer tips_earned:", performerUpdateError);
-        // Don't throw - this is not critical
+        console.error("RPC increment_tips_earned failed:", {
+          error: performerUpdateError,
+          code: performerUpdateError.code,
+          message: performerUpdateError.message,
+          details: performerUpdateError.details,
+          hint: performerUpdateError.hint,
+          performerId: tippedUser.id,
+          amount: performerShare,
+        });
+        
+        // Fallback: Direct update if RPC fails
+        console.log("Attempting direct UPDATE fallback for performer...");
+        const { data: currentUser, error: fetchError } = await supabase
+          .from("users")
+          .select("tips_earned")
+          .eq("id", tippedUser.id)
+          .single();
+          
+        if (!fetchError && currentUser) {
+          const newTipsEarned = roundCurrency((currentUser.tips_earned || 0) + performerShare);
+          const { error: directUpdateError } = await supabase
+            .from("users")
+            .update({ tips_earned: newTipsEarned, updated_at: new Date().toISOString() })
+            .eq("id", tippedUser.id);
+            
+          if (directUpdateError) {
+            console.error("Direct UPDATE fallback also failed:", directUpdateError);
+          } else {
+            console.log("Direct UPDATE fallback succeeded:", { newTipsEarned });
+          }
+        }
+      } else {
+        console.log("RPC increment_tips_earned succeeded:", { rpcResult });
       }
+      
+      // Verify the update was applied
+      const { data: verifyPerformer } = await supabase
+        .from("users")
+        .select("tips_earned, updated_at")
+        .eq("id", tippedUser.id)
+        .single();
+      console.log("Performer tips_earned after update:", verifyPerformer);
 
       // Update weekly earnings for performer
       await upsertWeeklyEarnings(supabase, tippedUser.id, new Date(), performerShare, 0, 0);
@@ -414,15 +459,61 @@ serve(async (req) => {
           console.error("Error creating referrer commission:", commissionError);
         }
 
-        // Update referrer's referral_fees in users table
-        const { error: referrerUpdateError } = await supabase.rpc(
+        // Update referrer's referral_fees in users table with detailed logging and fallback
+        console.log("Attempting to update referrer referral_fees:", {
+          referrerId: referrerUserId,
+          referrerUsername: effectiveReferrerUsername,
+          referrerCommission,
+        });
+        
+        const { data: refRpcResult, error: referrerUpdateError } = await supabase.rpc(
           "increment_referral_fees",
           { p_user_id: referrerUserId, p_amount: referrerCommission }
         );
         
         if (referrerUpdateError) {
-          console.error("Error updating referrer referral_fees:", referrerUpdateError);
+          console.error("RPC increment_referral_fees failed:", {
+            error: referrerUpdateError,
+            code: referrerUpdateError.code,
+            message: referrerUpdateError.message,
+            details: referrerUpdateError.details,
+            hint: referrerUpdateError.hint,
+            referrerId: referrerUserId,
+            amount: referrerCommission,
+          });
+          
+          // Fallback: Direct update if RPC fails
+          console.log("Attempting direct UPDATE fallback for referrer...");
+          const { data: currentRefUser, error: refFetchError } = await supabase
+            .from("users")
+            .select("referral_fees")
+            .eq("id", referrerUserId)
+            .single();
+            
+          if (!refFetchError && currentRefUser) {
+            const newReferralFees = roundCurrency((currentRefUser.referral_fees || 0) + referrerCommission);
+            const { error: refDirectUpdateError } = await supabase
+              .from("users")
+              .update({ referral_fees: newReferralFees, updated_at: new Date().toISOString() })
+              .eq("id", referrerUserId);
+              
+            if (refDirectUpdateError) {
+              console.error("Referrer direct UPDATE fallback also failed:", refDirectUpdateError);
+            } else {
+              console.log("Referrer direct UPDATE fallback succeeded:", { newReferralFees });
+            }
+          }
+        } else {
+          console.log("RPC increment_referral_fees succeeded:", { refRpcResult });
         }
+        
+        // Verify the referrer update was applied
+        const { data: verifyReferrer } = await supabase
+          .from("users")
+          .select("referral_fees, updated_at")
+          .eq("id", referrerUserId)
+          .single();
+        console.log("Referrer referral_fees after update:", verifyReferrer);
 
         // Update referrer's weekly earnings
         await upsertWeeklyEarnings(supabase, referrerUserId, new Date(), 0, referrerCommission, 0);
