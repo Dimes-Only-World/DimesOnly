@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,22 +11,13 @@ import {
   Calendar,
   MapPin,
   Clock,
-  User,
   Check,
   X,
   Users,
   Eye,
   Play,
   Image as ImageIcon,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface Event {
   id: string;
@@ -48,18 +39,6 @@ interface Event {
   description?: string;
   video_urls?: string[];
   additional_photos?: string[];
-  attendees?: EventAttendee[];
-}
-
-interface EventAttendee {
-  user_id: string;
-  users: {
-    username: string;
-    profile_photo: string;
-    user_type: string;
-    city: string;
-    state: string;
-  };
 }
 
 interface UserProfile {
@@ -71,64 +50,21 @@ interface UserProfile {
   user_type: string;
 }
 
-// Memoized Attendee Card Component
-const AttendeeCard = React.memo(({ attendee }: { attendee: EventAttendee }) => (
-  <div className="text-center">
-    <img
-      src={attendee.users.profile_photo || "/placeholder.svg"}
-      alt={attendee.users.username}
-      className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-yellow-400 mx-auto mb-2"
-      loading="lazy"
-      onError={(e) => {
-        const target = e.target as HTMLImageElement;
-        target.src = "/placeholder.svg";
-      }}
-    />
-    <p className="text-xs text-yellow-400 truncate font-medium">
-      @{attendee.users.username}
-    </p>
-    <p className="text-xs text-gray-400 mt-1">{attendee.users.user_type}</p>
-  </div>
-));
-
-AttendeeCard.displayName = "AttendeeCard";
-
 const Events: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { getContainerClasses, getContentClasses, getCardClasses } =
     useMobileLayout();
   const username = searchParams.get("events") || "";
-  const ref = searchParams.get("ref") || "";
 
   const [events, setEvents] = useState<Event[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showAttendeesDialog, setShowAttendeesDialog] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [attendeeSearch, setAttendeeSearch] = useState("");
-  const [attendeeTypeFilter, setAttendeeTypeFilter] = useState("all");
-  const [attendeesLoading, setAttendeesLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     location: "",
     date: "",
   });
-
-  // Constants for pagination
-  const ATTENDEES_PER_PAGE = 24;
-
-  // Debounced search to prevent excessive filtering
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(attendeeSearch);
-      setCurrentPage(1); // Reset to first page on search
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [attendeeSearch]);
 
   useEffect(() => {
     if (username) {
@@ -140,9 +76,7 @@ const Events: React.FC = () => {
   // Cleanup function to cancel ongoing requests
   useEffect(() => {
     return () => {
-      // Cleanup any ongoing operations
       setLoading(false);
-      setAttendeesLoading(false);
     };
   }, []);
 
@@ -211,104 +145,13 @@ const Events: React.FC = () => {
     }
   }, [username, toast]);
 
-  const fetchEventAttendees = useCallback(
-    async (eventId: string) => {
-      if (!eventId) return [];
-
-      setAttendeesLoading(true);
-      try {
-        // Use pagination and limit to prevent overwhelming the browser
-        const { data, error } = await supabase
-          .from("user_events")
-          .select(
-            `
-          user_id,
-          users (
-            username,
-            profile_photo,
-            user_type,
-            city,
-            state
-          )
-        `
-          )
-          .eq("event_id", eventId)
-          .limit(200); // Limit to 200 attendees max to prevent crashes
-
-        if (error) throw error;
-
-        return (data as unknown as EventAttendee[]) || [];
-      } catch (error) {
-        console.error("Error fetching attendees:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load attendees. Please try again.",
-          variant: "destructive",
-        });
-        return [];
-      } finally {
-        setAttendeesLoading(false);
-      }
-    },
-    [toast]
-  );
-
-  const handleViewAttendees = useCallback(
-    async (event: Event) => {
+  const handleViewDetails = useCallback(
+    (event: Event) => {
       if (!event?.id) return;
-
-      try {
-        setSelectedEvent(event);
-        setShowAttendeesDialog(true);
-        setCurrentPage(1);
-        setAttendeeSearch("");
-        setAttendeeTypeFilter("all");
-
-        const attendees = await fetchEventAttendees(event.id);
-        setSelectedEvent((prev) => (prev ? { ...prev, attendees } : null));
-      } catch (error) {
-        console.error("Error handling view attendees:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load event details",
-          variant: "destructive",
-        });
-      }
+      navigate(`/event-details?id=${event.id}`);
     },
-    [fetchEventAttendees, toast]
+    [navigate]
   );
-
-  // Memoized filtered attendees with debounced search
-  const filteredAttendees = useMemo(() => {
-    if (!selectedEvent?.attendees) return [];
-
-    const searchTerm = debouncedSearch.toLowerCase().trim();
-
-    return selectedEvent.attendees.filter((attendee) => {
-      if (!attendee?.users) return false;
-
-      const matchesSearch =
-        !searchTerm ||
-        attendee.users.username?.toLowerCase().includes(searchTerm) ||
-        attendee.users.city?.toLowerCase().includes(searchTerm) ||
-        attendee.users.state?.toLowerCase().includes(searchTerm);
-
-      const matchesType =
-        attendeeTypeFilter === "all" ||
-        attendee.users.user_type === attendeeTypeFilter;
-
-      return matchesSearch && matchesType;
-    });
-  }, [selectedEvent?.attendees, debouncedSearch, attendeeTypeFilter]);
-
-  // Memoized paginated attendees
-  const paginatedAttendees = useMemo(() => {
-    const startIndex = (currentPage - 1) * ATTENDEES_PER_PAGE;
-    const endIndex = startIndex + ATTENDEES_PER_PAGE;
-    return filteredAttendees.slice(startIndex, endIndex);
-  }, [filteredAttendees, currentPage]);
-
-  const totalPages = Math.ceil(filteredAttendees.length / ATTENDEES_PER_PAGE);
 
   // Memoized filtered events with proper null checks
   const filteredEvents = useMemo(() => {
@@ -338,15 +181,6 @@ const Events: React.FC = () => {
   const getFreeSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
     return (event.free_spots_strippers || 0) + (event.free_spots_exotics || 0);
-  }, []);
-
-  // Handle dialog close with cleanup
-  const handleCloseDialog = useCallback(() => {
-    setShowAttendeesDialog(false);
-    setSelectedEvent(null);
-    setAttendeeSearch("");
-    setAttendeeTypeFilter("all");
-    setCurrentPage(1);
   }, []);
 
   return (
@@ -627,7 +461,7 @@ const Events: React.FC = () => {
 
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => handleViewAttendees(event)}
+                        onClick={() => handleViewDetails(event)}
                         variant="outline"
                         size="sm"
                         className="flex-1 border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-400 bg-transparent"
@@ -643,257 +477,6 @@ const Events: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Event Details Dialog - Optimized Performance */}
-      <Dialog open={showAttendeesDialog} onOpenChange={handleCloseDialog}>
-        <DialogContent
-          className={`bg-gray-900 border-gray-700 text-white max-w-5xl max-h-[95vh] overflow-hidden p-0 ${getCardClasses()}`}
-        >
-          <div className={`border-b border-gray-700 ${getContentClasses()}`}>
-            <DialogHeader>
-              <DialogTitle className="text-yellow-400 text-xl md:text-2xl">
-                {selectedEvent?.name}
-              </DialogTitle>
-            </DialogHeader>
-            {attendeesLoading && (
-              <div className="flex items-center gap-2 text-yellow-400 text-sm">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
-                Loading attendees...
-              </div>
-            )}
-          </div>
-
-          <div className={`flex-1 overflow-y-auto ${getContentClasses()}`}>
-            <div className="space-y-6">
-              {/* Event Details - Mobile Optimized */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-yellow-400 mb-3">
-                    Event Information
-                  </h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                      <Calendar className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>
-                        {selectedEvent &&
-                          new Date(selectedEvent.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                      <Clock className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>
-                        {selectedEvent?.start_time} - {selectedEvent?.end_time}
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                      <MapPin className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                      <span className="break-words">
-                        {selectedEvent?.address}, {selectedEvent?.city},{" "}
-                        {selectedEvent?.state}
-                      </span>
-                    </div>
-                    {selectedEvent?.price && selectedEvent.price > 0 && (
-                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                        <span className="text-yellow-400 font-bold text-lg">
-                          ${selectedEvent.price}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                      <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>
-                        {selectedEvent?.current_attendees}/
-                        {selectedEvent?.max_attendees} attending
-                      </span>
-                    </div>
-                  </div>
-
-                  {selectedEvent?.description && (
-                    <div className="mt-6">
-                      <h4 className="font-semibold text-gray-300 mb-3">
-                        Description
-                      </h4>
-                      <p className="text-gray-300 text-sm leading-relaxed p-3 bg-white/5 rounded-lg">
-                        {selectedEvent.description}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Media Gallery - Mobile Optimized */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-yellow-400 mb-3">
-                    Media
-                  </h3>
-
-                  {/* Main Photo */}
-                  <img
-                    src={selectedEvent?.photo_url || "/placeholder.svg"}
-                    alt={selectedEvent?.name}
-                    className="w-full h-48 md:h-56 object-cover rounded-lg"
-                  />
-
-                  {/* Additional Photos */}
-                  {selectedEvent?.additional_photos &&
-                    selectedEvent.additional_photos.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-gray-300 mb-3 text-sm">
-                          Photos ({selectedEvent.additional_photos.length})
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {selectedEvent.additional_photos
-                            .slice(0, 6)
-                            .map((photo, index) => (
-                              <img
-                                key={index}
-                                src={photo}
-                                alt={`Event photo ${index + 1}`}
-                                className="w-full h-20 md:h-24 object-cover rounded-lg"
-                              />
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Videos */}
-                  {selectedEvent?.video_urls &&
-                    selectedEvent.video_urls.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-gray-300 mb-3 text-sm">
-                          Videos ({selectedEvent.video_urls.length})
-                        </h4>
-                        <div className="space-y-3">
-                          {selectedEvent.video_urls
-                            .slice(0, 2)
-                            .map((video, index) => (
-                              <div key={index} className="relative">
-                                <video
-                                  src={video}
-                                  className="w-full h-32 md:h-40 object-cover rounded-lg"
-                                  controls
-                                />
-                              </div>
-                            ))}
-                        </div>
-
-                        {/* Watch Live Button */}
-                        <Button
-                          variant="outline"
-                          className="w-full mt-4 border-red-400 text-red-400 hover:bg-red-400/10"
-                          disabled
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          Watch Live (Coming Soon)
-                        </Button>
-                      </div>
-                    )}
-                </div>
-              </div>
-
-              {/* Attendees Section - Mobile Optimized */}
-              <div className="border-t border-gray-700 pt-6">
-                <h3 className="text-lg font-semibold text-yellow-400 mb-4">
-                  Attendees ({selectedEvent?.attendees?.length || 0})
-                </h3>
-
-                {/* Search and Filter - Mobile Stack */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                  <Input
-                    placeholder="Search by username, city, or state"
-                    value={attendeeSearch}
-                    onChange={(e) => setAttendeeSearch(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder-gray-400"
-                  />
-                  <select
-                    value={attendeeTypeFilter}
-                    onChange={(e) => setAttendeeTypeFilter(e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-md px-3 py-2 text-white"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="stripper">Strippers</option>
-                    <option value="exotic">Exotics</option>
-                    <option value="male">Males</option>
-                    <option value="female">Females</option>
-                    <option value="normal">Normal</option>
-                  </select>
-                </div>
-
-                {/* Attendees Grid - Optimized with Pagination */}
-                {attendeesLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-                    <p className="text-gray-400">Loading attendees...</p>
-                  </div>
-                ) : filteredAttendees.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-4">
-                      {paginatedAttendees.map((attendee) => (
-                        <AttendeeCard
-                          key={attendee.user_id}
-                          attendee={attendee}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                      <div className="flex items-center justify-center gap-4 mt-6 p-4 bg-white/5 rounded-lg">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setCurrentPage(Math.max(1, currentPage - 1))
-                          }
-                          disabled={currentPage === 1}
-                          className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <ChevronLeft className="h-4 w-4 mr-1" />
-                          Previous
-                        </Button>
-
-                        <span className="text-gray-400 text-sm">
-                          Page {currentPage} of {totalPages} (
-                          {filteredAttendees.length} total)
-                        </span>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setCurrentPage(
-                              Math.min(totalPages, currentPage + 1)
-                            )
-                          }
-                          disabled={currentPage === totalPages}
-                          className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="bg-white/5 rounded-lg p-8">
-                      <p className="text-gray-400 text-lg mb-2">
-                        {attendeeSearch || attendeeTypeFilter !== "all"
-                          ? "No attendees match your search"
-                          : "No attendees yet"}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        {attendeeSearch || attendeeTypeFilter !== "all"
-                          ? "Try adjusting your search filters"
-                          : "Be the first to join this event!"}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

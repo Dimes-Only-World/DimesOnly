@@ -15,6 +15,7 @@ import AdminLogin from "@/pages/AdminLogin";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
+import EventDetails from "@/pages/EventDetails";
 import EventsDimes from "@/pages/EventsDimes";
 import EventsDimesOnly from "@/pages/EventsDimesOnly";
 import Rate from "@/pages/Rate";
@@ -108,6 +109,7 @@ function AppContent() {
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/events" element={<Events />} />
+      <Route path="/event-details" element={<EventDetails />} />
       <Route path="/eventsdimes" element={<EventsDimes />} />
       <Route path="/events-dimes-only" element={<EventsDimesOnly />} />
       <Route path="/rate" element={<Rate />} />
