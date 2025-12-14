@@ -497,8 +497,8 @@ const AdminJackpotTab: React.FC = () => {
   const loadProfiles = async (ids: string[]) => {
     try {
       const { data, error } = await supabase
-        .from("users")
-        .select("id, username, first_name, last_name, profile_photo")
+        .from("public_user_profiles")
+        .select("id, username, profile_photo")
         .in("id", ids);
       if (error) throw error;
 
@@ -506,7 +506,7 @@ const AdminJackpotTab: React.FC = () => {
         {};
       (data || []).forEach((u: any) => {
         map[u.id] = {
-          name: buildDisplayName(u) || u.id,
+          name: u.username || u.id,
           avatar_url: u.profile_photo ?? null,
         };
       });
