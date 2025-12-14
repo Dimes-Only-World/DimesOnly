@@ -112,7 +112,7 @@ const TipPage: React.FC = () => {
   const fetchUserData = async () => {
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username, profile_photo, city, state, user_type, bio")
         .eq("username", tipUsername.trim())
         .single();
