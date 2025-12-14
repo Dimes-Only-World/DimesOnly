@@ -359,29 +359,69 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Action: cleanup - Remove test data
+    // Action: cleanup - Remove test data AND user accounts
     if (action === "cleanup") {
-      console.log("Cleaning up test data...");
+      console.log("Cleaning up test data and user accounts...");
 
       // Get test user IDs
       const { data: users } = await supabase
         .from("users")
-        .select("id")
+        .select("id, username")
         .in("username", ["test_tipper", "test_performer", "test_referrer"]);
 
       const userIds = users?.map(u => u.id) || [];
+      const deletedUsers: string[] = [];
+      const errors: string[] = [];
 
       if (userIds.length > 0) {
+        // Clean up transaction data first
+        console.log("Deleting transaction data...");
         await supabase.from("tips_transactions").delete().eq("tipped_username", "test_performer");
         await supabase.from("tips").delete().eq("tipped_username", "test_performer");
         await supabase.from("weekly_earnings").delete().in("user_id", userIds);
         await supabase.from("jackpot_tickets").delete().in("tipper_id", userIds);
+        await supabase.from("jackpot_tickets").delete().in("dime_id", userIds);
         await supabase.from("payments").delete().in("user_id", userIds);
+        console.log("Transaction data deleted");
+
+        // Delete from public.users
+        console.log("Deleting from public.users...");
+        const { error: usersDeleteError } = await supabase
+          .from("users")
+          .delete()
+          .in("id", userIds);
+        
+        if (usersDeleteError) {
+          console.error("Failed to delete from public.users:", usersDeleteError);
+          errors.push(`public.users: ${usersDeleteError.message}`);
+        } else {
+          console.log(`Deleted ${userIds.length} records from public.users`);
+        }
+
+        // Delete from auth.users
+        console.log("Deleting from auth.users...");
+        for (const userId of userIds) {
+          const username = users?.find(u => u.id === userId)?.username || userId;
+          const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+          
+          if (authDeleteError) {
+            console.error(`Failed to delete auth user ${username}:`, authDeleteError);
+            errors.push(`auth.users ${username}: ${authDeleteError.message}`);
+          } else {
+            console.log(`Deleted auth user: ${username}`);
+            deletedUsers.push(username);
+          }
+        }
       }
 
       return new Response(JSON.stringify({
-        success: true,
-        message: "Test data cleaned up"
+        success: errors.length === 0,
+        message: errors.length === 0 
+          ? "Test accounts and data fully cleaned up" 
+          : "Cleanup completed with some errors",
+        deletedUsers,
+        deletedCount: deletedUsers.length,
+        errors: errors.length > 0 ? errors : undefined
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
