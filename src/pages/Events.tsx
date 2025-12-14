@@ -360,15 +360,28 @@ const Events: React.FC = () => {
                   className={`bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden ${getCardClasses()}`}
                 >
                   <div className="relative">
-                    <img
-                      src={event.photo_url || "/placeholder.svg"}
-                      alt={event.name}
-                      className="w-full h-32 md:h-40 object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/placeholder.svg";
-                      }}
-                    />
+                    {event.photo_url ? (
+                      <img
+                        src={event.photo_url}
+                        alt={event.name}
+                        className="w-full h-32 md:h-40 object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const parent = target.parentElement;
+                          if (parent && !parent.querySelector('.fallback-placeholder')) {
+                            const fallback = document.createElement('div');
+                            fallback.className = 'fallback-placeholder w-full h-32 md:h-40 bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center';
+                            fallback.innerHTML = '<span class="text-yellow-400 text-4xl font-bold">🎉</span>';
+                            parent.insertBefore(fallback, parent.firstChild);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-32 md:h-40 bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center">
+                        <span className="text-yellow-400 text-4xl font-bold">🎉</span>
+                      </div>
+                    )}
 
                     {/* Attendance Status Badge */}
                     <div className="absolute top-3 right-3">
