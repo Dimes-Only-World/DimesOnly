@@ -302,9 +302,10 @@ const Tip: React.FC = () => {
   const fetchUserData = async () => {
     try {
       setLoading(true);
+      // Use public_user_profiles view to bypass RLS restrictions
       const { data, error } = await supabase
-        .from("users")
-        .select("*")
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, city, state, bio, user_type")
         .eq("username", tipUsername)
         .in("user_type", ["stripper", "exotic"])
         .single();
@@ -319,14 +320,12 @@ const Tip: React.FC = () => {
           id: String(data.id),
           username: String(data.username),
           profile_photo: String(data.profile_photo || ""),
-          banner_photo: data.banner_photo
-            ? String(data.banner_photo)
-            : undefined,
+          banner_photo: undefined, // Not available in public view
           city: String(data.city || ""),
           state: String(data.state || ""),
           bio: data.bio ? String(data.bio) : undefined,
           user_type: String(data.user_type),
-          created_at: String(data.created_at),
+          created_at: new Date().toISOString(), // Not available in public view
         });
       }
     } catch (error) {
@@ -340,9 +339,9 @@ const Tip: React.FC = () => {
     if (!tipUsername) return;
 
     try {
-      // Get user ID first
+      // Get user ID from public_user_profiles to bypass RLS
       const { data: user, error: userError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id")
         .eq("username", tipUsername)
         .single();
