@@ -92,10 +92,27 @@ serve(async (req) => {
     if (action === "setup") {
       console.log("Setting up test accounts...");
       
+      const runTag = `${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 6)}`;
+
       const testUsers = [
-        { email: "test_tipper@dimesonly.test", username: "test_tipper", user_type: "normal", referred_by: "company" },
-        { email: "test_referrer@dimesonly.test", username: "test_referrer", user_type: "normal", referred_by: "company" },
-        { email: "test_performer@dimesonly.test", username: "test_performer", user_type: "exotic", referred_by: "test_referrer" }
+        {
+          email: `test_tipper+${runTag}@dimesonly.test`,
+          username: "test_tipper",
+          user_type: "normal",
+          referred_by: "company",
+        },
+        {
+          email: `test_referrer+${runTag}@dimesonly.test`,
+          username: "test_referrer",
+          user_type: "normal",
+          referred_by: "company",
+        },
+        {
+          email: `test_performer+${runTag}@dimesonly.test`,
+          username: "test_performer",
+          user_type: "exotic",
+          referred_by: "test_referrer",
+        },
       ];
 
       const createdUsers: any[] = [];
@@ -111,27 +128,47 @@ serve(async (req) => {
         console.warn("Pre-cleanup warning:", e);
       }
 
-      // Step 2: Delete existing accounts (public + auth) with proper pagination
+      // Step 2: Delete existing public users by username, and best-effort delete matching auth users by ID.
+      // IMPORTANT: We intentionally avoid scanning auth users by email (listUsers) because in this project
+      // listUsers is currently failing with "Database error finding users".
       console.log("Deleting existing test accounts...");
-      
+
       for (const user of testUsers) {
-        // Delete public.users by username first (and dependent records)
         const { data: existingPublic } = await supabase
           .from("users")
           .select("id")
           .eq("username", user.username)
           .maybeSingle();
-        
+
         if (existingPublic?.id) {
-          console.log(`Found existing public user ${user.username} (${existingPublic.id}), deleting...`);
-          
+          console.log(
+            `Found existing public user ${user.username} (${existingPublic.id}), deleting...`
+          );
+
+          // Best-effort delete matching auth user by id (works when public.users.id mirrors auth.users.id)
+          const { error: authDelByIdErr } = await supabase.auth.admin.deleteUser(existingPublic.id);
+          if (authDelByIdErr) {
+            console.warn(
+              `Auth delete by id failed for ${user.username} (${existingPublic.id}):`,
+              authDelByIdErr
+            );
+          }
+
           // Delete dependent records
-          await supabase.from("tips_transactions").delete().or(`tipper_user_id.eq.${existingPublic.id},tipped_user_id.eq.${existingPublic.id}`);
+          await supabase
+            .from("tips_transactions")
+            .delete()
+            .or(`tipper_user_id.eq.${existingPublic.id},tipped_user_id.eq.${existingPublic.id}`);
           await supabase.from("tips").delete().eq("user_id", existingPublic.id);
           await supabase.from("weekly_earnings").delete().eq("user_id", existingPublic.id);
-          await supabase.from("jackpot_tickets").delete().or(`tipper_id.eq.${existingPublic.id},dime_id.eq.${existingPublic.id},referred_dime_id.eq.${existingPublic.id}`);
+          await supabase
+            .from("jackpot_tickets")
+            .delete()
+            .or(
+              `tipper_id.eq.${existingPublic.id},dime_id.eq.${existingPublic.id},referred_dime_id.eq.${existingPublic.id}`
+            );
           await supabase.from("payments").delete().eq("user_id", existingPublic.id);
-          
+
           const { error: delErr } = await supabase.from("users").delete().eq("id", existingPublic.id);
           if (delErr) {
             console.error(`Failed to delete public user ${user.username}:`, delErr);
@@ -140,20 +177,8 @@ serve(async (req) => {
             console.log(`Deleted public user ${user.username}`);
           }
         }
-        
-        // Delete auth.users by email (with pagination search)
-        const existingAuth = await findAuthUserByEmail(supabase, user.email);
-        if (existingAuth?.id) {
-          console.log(`Found existing auth user ${user.email} (${existingAuth.id}), deleting...`);
-          const { error: authDelErr } = await supabase.auth.admin.deleteUser(existingAuth.id);
-          if (authDelErr) {
-            console.error(`Failed to delete auth user ${user.email}:`, authDelErr);
-            errors.push(`delete auth ${user.email}: ${authDelErr.message}`);
-          } else {
-            console.log(`Deleted auth user ${user.email}`);
-          }
-        }
       }
+
 
       // Wait for deletions to propagate
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -516,15 +541,10 @@ serve(async (req) => {
         }
       }
 
-      // Also try to clean up orphaned auth users by email
-      const testEmails = ["test_tipper@dimesonly.test", "test_referrer@dimesonly.test", "test_performer@dimesonly.test"];
-      for (const email of testEmails) {
-        const existing = await findAuthUserByEmail(supabase, email);
-        if (existing?.id && !userIds.includes(existing.id)) {
-          console.log(`Found orphaned auth user ${email}, deleting...`);
-          await supabase.auth.admin.deleteUser(existing.id);
-        }
-      }
+      // NOTE: We do not attempt to find/delete orphaned auth users by email here.
+      // In this project, auth admin listUsers can fail with "Database error finding users",
+      // and setup now uses unique emails per run to avoid email collisions.
+
 
       return new Response(JSON.stringify({
         success: errors.length === 0,
