@@ -63,120 +63,105 @@ serve(async (req) => {
 
       const createdUsers: any[] = [];
 
-      // Step 1: Clean up any orphaned auth users first
-      console.log("Checking for orphaned auth users...");
-      const { data: allAuthUsers } = await supabase.auth.admin.listUsers();
+      // Step 1: Force delete ALL existing test accounts (auth + public)
+      console.log("Force cleaning existing test accounts...");
+      
+      // Get all auth users and find test ones
+      const { data: allAuthUsers, error: listError } = await supabase.auth.admin.listUsers();
+      if (listError) {
+        console.error("Failed to list auth users:", listError);
+      } else {
+        console.log(`Found ${allAuthUsers?.users?.length || 0} total auth users`);
+      }
       
       for (const user of testUsers) {
+        // Delete from public.users by username first
+        const { data: existingPublicUser, error: publicFetchError } = await supabase
+          .from("users")
+          .select("id")
+          .eq("username", user.username)
+          .maybeSingle();
+        
+        if (publicFetchError) {
+          console.error(`Error checking public user ${user.username}:`, publicFetchError);
+        }
+        
+        if (existingPublicUser) {
+          console.log(`Deleting existing public.users record for ${user.username} (id: ${existingPublicUser.id})`);
+          const { error: publicDeleteError } = await supabase
+            .from("users")
+            .delete()
+            .eq("id", existingPublicUser.id);
+          
+          if (publicDeleteError) {
+            console.error(`Failed to delete public user ${user.username}:`, publicDeleteError);
+          } else {
+            console.log(`Deleted public.users record for ${user.username}`);
+          }
+        }
+        
+        // Delete from auth.users by email
         const existingAuthUser = allAuthUsers?.users?.find(u => u.email === user.email);
         if (existingAuthUser) {
-          // Check if there's a corresponding public.users record
-          const { data: publicUser } = await supabase
-            .from("users")
-            .select("id")
-            .eq("id", existingAuthUser.id)
-            .maybeSingle();
-          
-          if (!publicUser) {
-            // Orphaned auth user found - delete it
-            console.log(`Found orphaned auth user for ${user.email}, deleting...`);
-            const { error: deleteError } = await supabase.auth.admin.deleteUser(existingAuthUser.id);
-            if (deleteError) {
-              console.error(`Failed to delete orphaned auth user ${user.email}:`, deleteError);
-            } else {
-              console.log(`Deleted orphaned auth user: ${user.email}`);
-            }
+          console.log(`Deleting existing auth.users record for ${user.email} (id: ${existingAuthUser.id})`);
+          const { error: authDeleteError } = await supabase.auth.admin.deleteUser(existingAuthUser.id);
+          if (authDeleteError) {
+            console.error(`Failed to delete auth user ${user.email}:`, authDeleteError);
+          } else {
+            console.log(`Deleted auth.users record for ${user.email}`);
           }
         }
       }
 
-      // Step 2: Create or reset test users
-      for (const user of testUsers) {
-        // Check if user exists in public.users
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select("id, username")
-          .eq("username", user.username)
-          .maybeSingle();
+      // Wait a moment for deletions to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (existingUser) {
-          // Reset their financial fields
-          await supabase
-            .from("users")
-            .update({ tips_earned: 0, referral_fees: 0 })
-            .eq("id", existingUser.id);
-          
-          createdUsers.push({ ...existingUser, status: "reset" });
-          console.log(`Reset existing user: ${user.username}`);
-        } else {
-          // Create auth user
-          const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      // Step 2: Create fresh test users
+      console.log("Creating fresh test accounts...");
+      
+      for (const user of testUsers) {
+        console.log(`Creating user: ${user.username}`);
+        
+        // Create auth user
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: user.email,
+          password: "TestPassword123!",
+          email_confirm: true,
+          user_metadata: { username: user.username }
+        });
+
+        if (authError) {
+          console.error(`Failed to create auth user ${user.username}:`, authError);
+          continue;
+        }
+        
+        console.log(`Created auth user ${user.username} with id: ${authUser.user.id}`);
+
+        // Create public.users record
+        const { error: userError } = await supabase
+          .from("users")
+          .insert({
+            id: authUser.user.id,
+            username: user.username,
             email: user.email,
-            password: "TestPassword123!",
-            email_confirm: true,
-            user_metadata: { username: user.username }
+            password_hash: "$2a$12$placeholder",
+            user_type: user.user_type,
+            referred_by: user.referred_by,
+            first_name: "Test",
+            last_name: user.username.replace("test_", ""),
+            tips_earned: 0,
+            referral_fees: 0
           });
 
-          if (authError) {
-            console.error(`Failed to create auth user ${user.username}:`, authError);
-            // If email already exists, try to find and use existing auth user
-            if (authError.message?.includes("already") || authError.code === "email_exists") {
-              console.log(`Attempting to recover existing auth user for ${user.email}...`);
-              const { data: refreshedAuthUsers } = await supabase.auth.admin.listUsers();
-              const existingAuth = refreshedAuthUsers?.users?.find(u => u.email === user.email);
-              
-              if (existingAuth) {
-                // Create public.users record with existing auth user ID
-                const { error: userError } = await supabase
-                  .from("users")
-                  .insert({
-                    id: existingAuth.id,
-                    username: user.username,
-                    email: user.email,
-                    password_hash: "$2a$12$placeholder",
-                    user_type: user.user_type,
-                    referred_by: user.referred_by,
-                    first_name: "Test",
-                    last_name: user.username.replace("test_", ""),
-                    tips_earned: 0,
-                    referral_fees: 0
-                  });
-
-                if (userError) {
-                  console.error(`Failed to create public user ${user.username} with existing auth:`, userError);
-                } else {
-                  createdUsers.push({ id: existingAuth.id, username: user.username, status: "recovered" });
-                  console.log(`Recovered and linked user: ${user.username}`);
-                }
-              }
-            }
-            continue;
-          }
-
-          // Create public.users record
-          const { error: userError } = await supabase
-            .from("users")
-            .insert({
-              id: authUser.user.id,
-              username: user.username,
-              email: user.email,
-              password_hash: "$2a$12$placeholder",
-              user_type: user.user_type,
-              referred_by: user.referred_by,
-              first_name: "Test",
-              last_name: user.username.replace("test_", ""),
-              tips_earned: 0,
-              referral_fees: 0
-            });
-
-          if (userError) {
-            console.error(`Failed to create public user ${user.username}:`, userError);
-            continue;
-          }
-
-          createdUsers.push({ id: authUser.user.id, username: user.username, status: "created" });
-          console.log(`Created new user: ${user.username}`);
+        if (userError) {
+          console.error(`Failed to create public user ${user.username}:`, userError);
+          // Try to clean up the auth user we just created
+          await supabase.auth.admin.deleteUser(authUser.user.id);
+          continue;
         }
+
+        createdUsers.push({ id: authUser.user.id, username: user.username, status: "created" });
+        console.log(`Successfully created user: ${user.username}`);
       }
 
       // Clean up any existing test data
