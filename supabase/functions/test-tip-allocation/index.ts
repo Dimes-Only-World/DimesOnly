@@ -38,36 +38,43 @@ function calculateExpectedAllocation(grossAmount: number, hasReferrer: boolean) 
   };
 }
 
-// Helper to find auth user by email with pagination
+// Helper to find auth user by email (avoid listUsers scan errors)
 async function findAuthUserByEmail(supabase: any, email: string): Promise<any | null> {
-  const perPage = 1000;
+  const admin = supabase?.auth?.admin as any;
+
+  // Preferred: direct lookup (doesn't require scanning all auth users)
+  if (admin?.getUserByEmail) {
+    const { data, error } = await admin.getUserByEmail(email);
+    if (error) {
+      console.error(`getUserByEmail(${email}) error:`, error);
+      return null;
+    }
+    return data?.user ?? null;
+  }
+
+  // Fallback: pagination scan (may fail if auth has bad rows)
+  console.warn("admin.getUserByEmail not available; falling back to listUsers scan");
+  const perPage = 200;
   let page = 1;
-  
-  while (page <= 50) { // Max 50 pages = 50,000 users
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
-    
+
+  while (page <= 200) {
+    const { data, error } = await admin.listUsers({ page, perPage });
     if (error) {
       console.error(`listUsers page ${page} error:`, error);
       return null;
     }
-    
+
     const users = data?.users || [];
     const match = users.find((u: any) => u.email === email);
-    if (match) {
-      console.log(`Found auth user ${email} on page ${page}`);
-      return match;
-    }
-    
-    // No more pages if we got fewer users than requested
-    if (users.length < perPage) {
-      break;
-    }
-    
+    if (match) return match;
+
+    if (users.length < perPage) break;
     page++;
   }
-  
+
   return null;
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
