@@ -302,13 +302,18 @@ const Tip: React.FC = () => {
   const fetchUserData = async () => {
     try {
       setLoading(true);
+      console.log("Fetching user data for username:", tipUsername);
+      
       // Use public_user_profiles view to bypass RLS restrictions
+      // Use maybeSingle() instead of single() to handle missing users gracefully
       const { data, error } = await supabase
         .from("public_user_profiles")
         .select("id, username, profile_photo, city, state, bio, user_type")
         .eq("username", tipUsername)
         .in("user_type", ["stripper", "exotic"])
-        .single();
+        .maybeSingle();
+
+      console.log("Query result - data:", data, "error:", error);
 
       if (error) {
         console.error("Error fetching user data:", error);
@@ -316,6 +321,7 @@ const Tip: React.FC = () => {
       }
 
       if (data) {
+        console.log("User found:", data.username);
         setUserData({
           id: String(data.id),
           username: String(data.username),
@@ -327,6 +333,8 @@ const Tip: React.FC = () => {
           user_type: String(data.user_type),
           created_at: new Date().toISOString(), // Not available in public view
         });
+      } else {
+        console.log("No user found for username:", tipUsername);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -344,9 +352,16 @@ const Tip: React.FC = () => {
         .from("public_user_profiles")
         .select("id")
         .eq("username", tipUsername)
-        .single();
+        .maybeSingle();
 
-      if (userError || !user) return;
+      if (userError) {
+        console.error("Error fetching user for media:", userError);
+        return;
+      }
+      if (!user) {
+        console.log("No user found for media fetch:", tipUsername);
+        return;
+      }
 
       // Fetch recent photos (3 most recent)
       const { data: photos, error: photosError } = await supabase

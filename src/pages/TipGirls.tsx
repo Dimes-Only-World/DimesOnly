@@ -82,15 +82,21 @@ const TipGirls: React.FC = () => {
 
   const fetchUserByUsername = async (username: string) => {
     try {
+      console.log("Fetching user by username:", username);
       // Use public_user_profiles view to bypass RLS restrictions
       const { data, error } = await supabase
         .from("public_user_profiles")
         .select("id, username, profile_photo, city, state, user_type")
         .eq("username", username)
         .in("user_type", ["stripper", "exotic"])
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      console.log("TipGirls query result - data:", data, "error:", error);
+      
+      if (error) {
+        console.error("Error fetching user:", error);
+        return;
+      }
       if (data) {
         setSelectedUser({
           id: String(data.id),
@@ -100,6 +106,8 @@ const TipGirls: React.FC = () => {
           state: String(data.state || ""),
           user_type: String(data.user_type),
         });
+      } else {
+        console.log("No user found for username:", username);
       }
     } catch (error) {
       console.error("Error fetching user:", error);
