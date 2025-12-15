@@ -54,7 +54,7 @@ serve(async (req) => {
     if (action === "setup") {
       console.log("Setting up test accounts...");
       
-      // Create test users in auth.users first via admin API
+      // Test user definitions
       const testUsers = [
         { email: "test_tipper@dimesonly.test", username: "test_tipper", user_type: "normal", referred_by: "company" },
         { email: "test_referrer@dimesonly.test", username: "test_referrer", user_type: "normal", referred_by: "company" },
@@ -63,13 +63,41 @@ serve(async (req) => {
 
       const createdUsers: any[] = [];
 
+      // Step 1: Clean up any orphaned auth users first
+      console.log("Checking for orphaned auth users...");
+      const { data: allAuthUsers } = await supabase.auth.admin.listUsers();
+      
+      for (const user of testUsers) {
+        const existingAuthUser = allAuthUsers?.users?.find(u => u.email === user.email);
+        if (existingAuthUser) {
+          // Check if there's a corresponding public.users record
+          const { data: publicUser } = await supabase
+            .from("users")
+            .select("id")
+            .eq("id", existingAuthUser.id)
+            .maybeSingle();
+          
+          if (!publicUser) {
+            // Orphaned auth user found - delete it
+            console.log(`Found orphaned auth user for ${user.email}, deleting...`);
+            const { error: deleteError } = await supabase.auth.admin.deleteUser(existingAuthUser.id);
+            if (deleteError) {
+              console.error(`Failed to delete orphaned auth user ${user.email}:`, deleteError);
+            } else {
+              console.log(`Deleted orphaned auth user: ${user.email}`);
+            }
+          }
+        }
+      }
+
+      // Step 2: Create or reset test users
       for (const user of testUsers) {
         // Check if user exists in public.users
         const { data: existingUser } = await supabase
           .from("users")
           .select("id, username")
           .eq("username", user.username)
-          .single();
+          .maybeSingle();
 
         if (existingUser) {
           // Reset their financial fields
@@ -91,6 +119,37 @@ serve(async (req) => {
 
           if (authError) {
             console.error(`Failed to create auth user ${user.username}:`, authError);
+            // If email already exists, try to find and use existing auth user
+            if (authError.message?.includes("already") || authError.code === "email_exists") {
+              console.log(`Attempting to recover existing auth user for ${user.email}...`);
+              const { data: refreshedAuthUsers } = await supabase.auth.admin.listUsers();
+              const existingAuth = refreshedAuthUsers?.users?.find(u => u.email === user.email);
+              
+              if (existingAuth) {
+                // Create public.users record with existing auth user ID
+                const { error: userError } = await supabase
+                  .from("users")
+                  .insert({
+                    id: existingAuth.id,
+                    username: user.username,
+                    email: user.email,
+                    password_hash: "$2a$12$placeholder",
+                    user_type: user.user_type,
+                    referred_by: user.referred_by,
+                    first_name: "Test",
+                    last_name: user.username.replace("test_", ""),
+                    tips_earned: 0,
+                    referral_fees: 0
+                  });
+
+                if (userError) {
+                  console.error(`Failed to create public user ${user.username} with existing auth:`, userError);
+                } else {
+                  createdUsers.push({ id: existingAuth.id, username: user.username, status: "recovered" });
+                  console.log(`Recovered and linked user: ${user.username}`);
+                }
+              }
+            }
             continue;
           }
 
