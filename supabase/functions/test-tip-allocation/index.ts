@@ -38,6 +38,37 @@ function calculateExpectedAllocation(grossAmount: number, hasReferrer: boolean) 
   };
 }
 
+// Helper to find auth user by email with pagination
+async function findAuthUserByEmail(supabase: any, email: string): Promise<any | null> {
+  const perPage = 1000;
+  let page = 1;
+  
+  while (page <= 50) { // Max 50 pages = 50,000 users
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    
+    if (error) {
+      console.error(`listUsers page ${page} error:`, error);
+      return null;
+    }
+    
+    const users = data?.users || [];
+    const match = users.find((u: any) => u.email === email);
+    if (match) {
+      console.log(`Found auth user ${email} on page ${page}`);
+      return match;
+    }
+    
+    // No more pages if we got fewer users than requested
+    if (users.length < perPage) {
+      break;
+    }
+    
+    page++;
+  }
+  
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -54,7 +85,6 @@ serve(async (req) => {
     if (action === "setup") {
       console.log("Setting up test accounts...");
       
-      // Test user definitions
       const testUsers = [
         { email: "test_tipper@dimesonly.test", username: "test_tipper", user_type: "normal", referred_by: "company" },
         { email: "test_referrer@dimesonly.test", username: "test_referrer", user_type: "normal", referred_by: "company" },
@@ -62,123 +92,148 @@ serve(async (req) => {
       ];
 
       const createdUsers: any[] = [];
+      const errors: string[] = [];
 
-      // Step 1: Force delete ALL existing test accounts (auth + public)
-      console.log("Force cleaning existing test accounts...");
-      
-      // Get all auth users and find test ones
-      const { data: allAuthUsers, error: listError } = await supabase.auth.admin.listUsers();
-      if (listError) {
-        console.error("Failed to list auth users:", listError);
-      } else {
-        console.log(`Found ${allAuthUsers?.users?.length || 0} total auth users`);
+      // Step 1: Delete existing test data
+      console.log("Cleaning up existing test data...");
+      try {
+        await supabase.from("tips_transactions").delete().eq("tipped_username", "test_performer");
+        await supabase.from("tips").delete().eq("tipped_username", "test_performer");
+        await supabase.from("jackpot_tickets").delete().eq("source", "test_tip");
+      } catch (e) {
+        console.warn("Pre-cleanup warning:", e);
       }
+
+      // Step 2: Delete existing accounts (public + auth) with proper pagination
+      console.log("Deleting existing test accounts...");
       
       for (const user of testUsers) {
-        // Delete from public.users by username first
-        const { data: existingPublicUser, error: publicFetchError } = await supabase
+        // Delete public.users by username first (and dependent records)
+        const { data: existingPublic } = await supabase
           .from("users")
           .select("id")
           .eq("username", user.username)
           .maybeSingle();
         
-        if (publicFetchError) {
-          console.error(`Error checking public user ${user.username}:`, publicFetchError);
-        }
-        
-        if (existingPublicUser) {
-          console.log(`Deleting existing public.users record for ${user.username} (id: ${existingPublicUser.id})`);
-          const { error: publicDeleteError } = await supabase
-            .from("users")
-            .delete()
-            .eq("id", existingPublicUser.id);
+        if (existingPublic?.id) {
+          console.log(`Found existing public user ${user.username} (${existingPublic.id}), deleting...`);
           
-          if (publicDeleteError) {
-            console.error(`Failed to delete public user ${user.username}:`, publicDeleteError);
+          // Delete dependent records
+          await supabase.from("tips_transactions").delete().or(`tipper_user_id.eq.${existingPublic.id},tipped_user_id.eq.${existingPublic.id}`);
+          await supabase.from("tips").delete().eq("user_id", existingPublic.id);
+          await supabase.from("weekly_earnings").delete().eq("user_id", existingPublic.id);
+          await supabase.from("jackpot_tickets").delete().or(`tipper_id.eq.${existingPublic.id},dime_id.eq.${existingPublic.id},referred_dime_id.eq.${existingPublic.id}`);
+          await supabase.from("payments").delete().eq("user_id", existingPublic.id);
+          
+          const { error: delErr } = await supabase.from("users").delete().eq("id", existingPublic.id);
+          if (delErr) {
+            console.error(`Failed to delete public user ${user.username}:`, delErr);
+            errors.push(`delete public ${user.username}: ${delErr.message}`);
           } else {
-            console.log(`Deleted public.users record for ${user.username}`);
+            console.log(`Deleted public user ${user.username}`);
           }
         }
         
-        // Delete from auth.users by email
-        const existingAuthUser = allAuthUsers?.users?.find(u => u.email === user.email);
-        if (existingAuthUser) {
-          console.log(`Deleting existing auth.users record for ${user.email} (id: ${existingAuthUser.id})`);
-          const { error: authDeleteError } = await supabase.auth.admin.deleteUser(existingAuthUser.id);
-          if (authDeleteError) {
-            console.error(`Failed to delete auth user ${user.email}:`, authDeleteError);
+        // Delete auth.users by email (with pagination search)
+        const existingAuth = await findAuthUserByEmail(supabase, user.email);
+        if (existingAuth?.id) {
+          console.log(`Found existing auth user ${user.email} (${existingAuth.id}), deleting...`);
+          const { error: authDelErr } = await supabase.auth.admin.deleteUser(existingAuth.id);
+          if (authDelErr) {
+            console.error(`Failed to delete auth user ${user.email}:`, authDelErr);
+            errors.push(`delete auth ${user.email}: ${authDelErr.message}`);
           } else {
-            console.log(`Deleted auth.users record for ${user.email}`);
+            console.log(`Deleted auth user ${user.email}`);
           }
         }
       }
 
-      // Wait a moment for deletions to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for deletions to propagate
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Step 2: Create fresh test users
+      // Step 3: Create fresh test accounts
       console.log("Creating fresh test accounts...");
       
       for (const user of testUsers) {
-        console.log(`Creating user: ${user.username}`);
+        console.log(`Creating ${user.username}...`);
         
-        // Create auth user
-        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-          email: user.email,
-          password: "TestPassword123!",
-          email_confirm: true,
-          user_metadata: { username: user.username }
-        });
-
-        if (authError) {
-          console.error(`Failed to create auth user ${user.username}:`, authError);
-          continue;
-        }
+        // Try to create auth user (with retry if email_exists)
+        let authUserId: string | null = null;
         
-        console.log(`Created auth user ${user.username} with id: ${authUser.user.id}`);
-
-        // Create public.users record
-        const { error: userError } = await supabase
-          .from("users")
-          .insert({
-            id: authUser.user.id,
-            username: user.username,
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
             email: user.email,
-            password_hash: "$2a$12$placeholder",
-            user_type: user.user_type,
-            referred_by: user.referred_by,
-            first_name: "Test",
-            last_name: user.username.replace("test_", ""),
-            tips_earned: 0,
-            referral_fees: 0
+            password: "TestPassword123!",
+            email_confirm: true,
+            user_metadata: { username: user.username }
           });
-
-        if (userError) {
-          console.error(`Failed to create public user ${user.username}:`, userError);
-          // Try to clean up the auth user we just created
-          await supabase.auth.admin.deleteUser(authUser.user.id);
+          
+          if (!authErr && authData?.user?.id) {
+            authUserId = authData.user.id;
+            console.log(`Created auth user ${user.username} (${authUserId})`);
+            break;
+          }
+          
+          console.error(`Auth create attempt ${attempt} failed for ${user.email}:`, authErr);
+          
+          // If email exists, try to find and delete it then retry
+          if (authErr?.code === "email_exists" || authErr?.message?.toLowerCase().includes("already")) {
+            console.log(`Attempting to find and delete existing auth user ${user.email}...`);
+            const existing = await findAuthUserByEmail(supabase, user.email);
+            if (existing?.id) {
+              console.log(`Found existing auth ${existing.id}, deleting...`);
+              await supabase.auth.admin.deleteUser(existing.id);
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue; // Retry creation
+            }
+          }
+          
+          errors.push(`auth create ${user.email}: ${authErr?.message || "unknown"}`);
+          break;
+        }
+        
+        if (!authUserId) {
+          console.error(`Failed to create auth user for ${user.username} after retries`);
           continue;
         }
-
-        createdUsers.push({ id: authUser.user.id, username: user.username, status: "created" });
-        console.log(`Successfully created user: ${user.username}`);
+        
+        // Create public.users record
+        const { error: publicErr } = await supabase.from("users").insert({
+          id: authUserId,
+          username: user.username,
+          email: user.email,
+          password_hash: "$2a$12$placeholder",
+          user_type: user.user_type,
+          referred_by: user.referred_by,
+          first_name: "Test",
+          last_name: user.username.replace("test_", ""),
+          tips_earned: 0,
+          referral_fees: 0
+        });
+        
+        if (publicErr) {
+          console.error(`Failed to create public user ${user.username}:`, publicErr);
+          errors.push(`public create ${user.username}: ${publicErr.message}`);
+          // Cleanup auth user we just created
+          await supabase.auth.admin.deleteUser(authUserId);
+          continue;
+        }
+        
+        createdUsers.push({ id: authUserId, username: user.username, status: "created" });
+        console.log(`Successfully created ${user.username}`);
       }
 
-      // Clean up any existing test data
-      await supabase.from("tips_transactions").delete().eq("tipped_username", "test_performer");
-      await supabase.from("tips").delete().eq("tipped_username", "test_performer");
+      const success = createdUsers.length === testUsers.length;
       
-      const userIds = createdUsers.map(u => u.id).filter(Boolean);
-      if (userIds.length > 0) {
-        await supabase.from("weekly_earnings").delete().in("user_id", userIds);
-        await supabase.from("jackpot_tickets").delete().in("tipper_id", userIds);
-      }
-
       return new Response(JSON.stringify({
-        success: true,
-        message: "Test accounts ready",
-        users: createdUsers
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        success,
+        message: success ? "Test accounts ready" : `Created ${createdUsers.length}/${testUsers.length} accounts`,
+        users: createdUsers,
+        errors: errors.length > 0 ? errors : undefined
+      }), { 
+        status: success ? 200 : 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
     }
 
     // Action: test - Run a test tip
@@ -190,24 +245,26 @@ serve(async (req) => {
         .from("users")
         .select("id, username")
         .eq("username", "test_tipper")
-        .single();
+        .maybeSingle();
 
       const { data: performer } = await supabase
         .from("users")
         .select("id, username, referred_by")
         .eq("username", "test_performer")
-        .single();
+        .maybeSingle();
 
       const { data: referrer } = await supabase
         .from("users")
         .select("id, username")
         .eq("username", "test_referrer")
-        .single();
+        .maybeSingle();
 
       if (!tipper || !performer || !referrer) {
+        console.error("Missing test users - tipper:", !!tipper, "performer:", !!performer, "referrer:", !!referrer);
         return new Response(JSON.stringify({
           success: false,
-          error: "Test accounts not found. Run 'setup' first."
+          error: "Test accounts not found. Run 'setup' first.",
+          debug: { tipper: !!tipper, performer: !!performer, referrer: !!referrer }
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
       }
 
@@ -281,7 +338,7 @@ serve(async (req) => {
         .select("id, amount, tip_earnings")
         .eq("user_id", performer.id)
         .eq("week_start", weekStart.toISOString().split("T")[0])
-        .single();
+        .maybeSingle();
 
       if (existingPerformerWeek) {
         await supabase
@@ -309,7 +366,7 @@ serve(async (req) => {
         .select("id, amount, referral_earnings")
         .eq("user_id", referrer.id)
         .eq("week_start", weekStart.toISOString().split("T")[0])
-        .single();
+        .maybeSingle();
 
       if (existingReferrerWeek) {
         await supabase
@@ -417,44 +474,48 @@ serve(async (req) => {
       const deletedUsers: string[] = [];
       const errors: string[] = [];
 
+      // Clean up transaction data
+      console.log("Deleting transaction data...");
+      await supabase.from("tips_transactions").delete().eq("tipped_username", "test_performer");
+      await supabase.from("tips").delete().eq("tipped_username", "test_performer");
+      await supabase.from("jackpot_tickets").delete().eq("source", "test_tip");
+      
       if (userIds.length > 0) {
-        // Clean up transaction data first
-        console.log("Deleting transaction data...");
-        await supabase.from("tips_transactions").delete().eq("tipped_username", "test_performer");
-        await supabase.from("tips").delete().eq("tipped_username", "test_performer");
         await supabase.from("weekly_earnings").delete().in("user_id", userIds);
         await supabase.from("jackpot_tickets").delete().in("tipper_id", userIds);
         await supabase.from("jackpot_tickets").delete().in("dime_id", userIds);
         await supabase.from("payments").delete().in("user_id", userIds);
-        console.log("Transaction data deleted");
 
         // Delete from public.users
-        console.log("Deleting from public.users...");
         const { error: usersDeleteError } = await supabase
           .from("users")
           .delete()
           .in("id", userIds);
         
         if (usersDeleteError) {
-          console.error("Failed to delete from public.users:", usersDeleteError);
           errors.push(`public.users: ${usersDeleteError.message}`);
-        } else {
-          console.log(`Deleted ${userIds.length} records from public.users`);
         }
 
         // Delete from auth.users
-        console.log("Deleting from auth.users...");
         for (const userId of userIds) {
           const username = users?.find(u => u.id === userId)?.username || userId;
           const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
           
           if (authDeleteError) {
-            console.error(`Failed to delete auth user ${username}:`, authDeleteError);
             errors.push(`auth.users ${username}: ${authDeleteError.message}`);
           } else {
-            console.log(`Deleted auth user: ${username}`);
             deletedUsers.push(username);
           }
+        }
+      }
+
+      // Also try to clean up orphaned auth users by email
+      const testEmails = ["test_tipper@dimesonly.test", "test_referrer@dimesonly.test", "test_performer@dimesonly.test"];
+      for (const email of testEmails) {
+        const existing = await findAuthUserByEmail(supabase, email);
+        if (existing?.id && !userIds.includes(existing.id)) {
+          console.log(`Found orphaned auth user ${email}, deleting...`);
+          await supabase.auth.admin.deleteUser(existing.id);
         }
       }
 
