@@ -49,7 +49,7 @@ type WinnerRow = {
   drawn_code: string;
   executed_at: string;
   user_id: string;
-  role: "tipper" | "dime" | "referred_dime";
+  role: "tipper" | "dime" | "referred_dime" | "dime_referred_dime" | "referred_dime_referrer" | "who_referred_tipper";
   place: 1 | 2 | 3;
   percentage: number | null;
   amount: number | null;
