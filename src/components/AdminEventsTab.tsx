@@ -100,10 +100,15 @@ const AdminEventsTab: React.FC = () => {
   const [showEditEvent, setShowEditEvent] = useState(false);
   const [showAttendees, setShowAttendees] = useState(false);
 
-  // File upload states
+  // File upload states for creating
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [additionalPhotoFiles, setAdditionalPhotoFiles] = useState<File[]>([]);
+  
+  // File upload states for editing
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+  const [editVideoFiles, setEditVideoFiles] = useState<File[]>([]);
+  const [editAdditionalPhotoFiles, setEditAdditionalPhotoFiles] = useState<File[]>([]);
 
   const { toast } = useToast();
 
@@ -398,8 +403,47 @@ const AdminEventsTab: React.FC = () => {
     if (!editingEvent) return;
 
     setLoading(true);
+    setUploading(true);
+    
     try {
       console.log("🔄 Updating event:", editingEvent.id);
+
+      let photoUrl = editingEvent.photo_url;
+      let videoUrls = editingEvent.video_urls || [];
+      let additionalPhotoUrls = editingEvent.additional_photos || [];
+
+      // Upload new main photo if provided
+      if (editPhotoFile) {
+        console.log("📸 Uploading new main photo...");
+        const newPhotoUrl = await uploadFileToStorage(editPhotoFile, "event-photos");
+        if (newPhotoUrl) {
+          photoUrl = newPhotoUrl;
+        }
+      }
+
+      // Upload new videos if provided
+      if (editVideoFiles.length > 0) {
+        console.log("🎥 Uploading new videos...", editVideoFiles.length, "files");
+        for (const video of editVideoFiles) {
+          const videoUrl = await uploadFileToStorage(video, "event-videos");
+          if (videoUrl) {
+            videoUrls = [...videoUrls, videoUrl];
+          }
+        }
+        console.log("✅ Videos uploaded:", videoUrls.length, "total");
+      }
+
+      // Upload new additional photos if provided
+      if (editAdditionalPhotoFiles.length > 0) {
+        console.log("📷 Uploading new additional photos...", editAdditionalPhotoFiles.length, "files");
+        for (const photo of editAdditionalPhotoFiles) {
+          const url = await uploadFileToStorage(photo, "event-photos");
+          if (url) {
+            additionalPhotoUrls = [...additionalPhotoUrls, url];
+          }
+        }
+        console.log("✅ Additional photos uploaded:", additionalPhotoUrls.length, "total");
+      }
 
       // Create the location field by combining address, city, state
       const location =
@@ -424,7 +468,9 @@ const AdminEventsTab: React.FC = () => {
         max_attendees: editingEvent.max_attendees,
         free_spots_strippers: editingEvent.free_spots_strippers,
         free_spots_exotics: editingEvent.free_spots_exotics,
-        photo_url: editingEvent.photo_url,
+        photo_url: photoUrl || null,
+        video_urls: videoUrls.length > 0 ? videoUrls : null,
+        additional_photos: additionalPhotoUrls.length > 0 ? additionalPhotoUrls : null,
       };
 
       console.log("💾 Update data:", updateData);
@@ -441,6 +487,12 @@ const AdminEventsTab: React.FC = () => {
 
       console.log("✅ Event updated successfully");
       toast({ title: "Success", description: "Event updated successfully" });
+      
+      // Reset edit file states
+      setEditPhotoFile(null);
+      setEditVideoFiles([]);
+      setEditAdditionalPhotoFiles([]);
+      
       setEditingEvent(null);
       setShowEditEvent(false);
       fetchEvents();
@@ -453,6 +505,7 @@ const AdminEventsTab: React.FC = () => {
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -1239,19 +1292,108 @@ const AdminEventsTab: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Photo URL
-                </label>
-                <Input
-                  value={editingEvent.photo_url || ""}
-                  onChange={(e) =>
-                    setEditingEvent((prev) =>
-                      prev ? { ...prev, photo_url: e.target.value } : null
-                    )
-                  }
-                  placeholder="https://example.com/photo.jpg"
-                />
+              {/* Media Upload Section */}
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+                <h4 className="font-medium text-sm">Media</h4>
+                
+                {/* Current Photo Preview */}
+                {editingEvent.photo_url && (
+                  <div className="mb-2">
+                    <p className="text-xs text-muted-foreground mb-1">Current Photo:</p>
+                    <img 
+                      src={editingEvent.photo_url} 
+                      alt="Current event" 
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Main Photo Upload */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Image className="w-4 h-4 inline mr-1" />
+                      {editingEvent.photo_url ? "Replace Main Photo" : "Add Main Photo"}
+                    </label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setEditPhotoFile(e.target.files?.[0] || null)}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    {editPhotoFile && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Selected: {editPhotoFile.name}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Video Upload */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Video className="w-4 h-4 inline mr-1" />
+                      Add Videos
+                    </label>
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      multiple
+                      onChange={(e) => setEditVideoFiles(Array.from(e.target.files || []))}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    />
+                    {editVideoFiles.length > 0 && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Selected: {editVideoFiles.length} video(s)
+                      </p>
+                    )}
+                    {editingEvent.video_urls && editingEvent.video_urls.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Existing: {editingEvent.video_urls.length} video(s)
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Additional Photos Upload */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Image className="w-4 h-4 inline mr-1" />
+                      Add Photos
+                    </label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => setEditAdditionalPhotoFiles(Array.from(e.target.files || []))}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    />
+                    {editAdditionalPhotoFiles.length > 0 && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Selected: {editAdditionalPhotoFiles.length} photo(s)
+                      </p>
+                    )}
+                    {editingEvent.additional_photos && editingEvent.additional_photos.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Existing: {editingEvent.additional_photos.length} photo(s)
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Alternative URL input */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Or Enter Photo URL
+                  </label>
+                  <Input
+                    value={editingEvent.photo_url || ""}
+                    onChange={(e) =>
+                      setEditingEvent((prev) =>
+                        prev ? { ...prev, photo_url: e.target.value } : null
+                      )
+                    }
+                    placeholder="https://example.com/photo.jpg"
+                  />
+                </div>
               </div>
 
               <div>
@@ -1272,10 +1414,19 @@ const AdminEventsTab: React.FC = () => {
 
               <Button
                 onClick={handleEditEvent}
-                disabled={loading}
+                disabled={loading || uploading}
                 className="w-full"
               >
-                {loading ? "Updating..." : "Update Event"}
+                {uploading ? (
+                  <>
+                    <Upload className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading Files...
+                  </>
+                ) : loading ? (
+                  "Updating..."
+                ) : (
+                  "Update Event"
+                )}
               </Button>
             </div>
           )}
