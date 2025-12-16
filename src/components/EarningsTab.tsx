@@ -348,7 +348,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ userData }) => {
                   Your tickets: {earnings.ticketsOwned}
                 </p>
                 <p className="text-yellow-600 text-sm">
-                  Drawing every Friday when jackpot reaches $1,000+
+                  Drawing every Saturday 11:59 PM PST when jackpot reaches $1,000+
                 </p>
               </div>
             </div>

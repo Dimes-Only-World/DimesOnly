@@ -9,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Trophy, Ticket, Crown, ExternalLink, User } from "lucide-react";
+import { Trophy, Ticket, Crown, ExternalLink, User, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/types";
@@ -527,12 +527,27 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <Avatar className="w-12 h-12 flex-shrink-0">
-              {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
-              <AvatarFallback>
-                {(name?.[0] || roleLabel?.[0] || "U").toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="flex flex-col items-center gap-1">
+              <Avatar className="w-12 h-12 flex-shrink-0">
+                {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
+                <AvatarFallback>
+                  {(name?.[0] || roleLabel?.[0] || "U").toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {winner.user_id && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                  onClick={() => {
+                    window.location.href = `/profile/${winner.user_id}?message=true`;
+                  }}
+                >
+                  <MessageCircle className="w-3 h-3 mr-1" />
+                  Message
+                </Button>
+              )}
+            </div>
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-gray-900 truncate">{name}</div>
               <div className="text-xs text-gray-500 capitalize">{roleLabel}</div>

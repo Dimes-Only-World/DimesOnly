@@ -262,7 +262,7 @@ const EarningsSection: React.FC<EarningsSectionProps> = ({ userData }) => {
             
             <div className="text-center p-3 bg-white/5 rounded">
               <p className="text-white font-semibold">Your tickets: {earningsData.lotteryTickets}</p>
-              <p className="text-gray-300 text-sm">Drawing every Friday when jackpot reaches $1,000+</p>
+              <p className="text-gray-300 text-sm">Drawing every Saturday 11:59 PM PST when jackpot reaches $1,000+</p>
             </div>
           </div>
         </CardContent>
