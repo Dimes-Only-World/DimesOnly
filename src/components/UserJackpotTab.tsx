@@ -299,9 +299,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
 
   const loadProfiles = async (ids: string[]) => {
     try {
+      // Use public_user_profiles view which has correct, fresh profile photos
       const { data, error } = await supabase
-        .from("users")
-        .select("id, username, first_name, last_name, profile_photo")
+        .from("public_user_profiles")
+        .select("id, username, profile_photo")
         .in("id", ids);
       if (error) throw error;
 
@@ -309,7 +310,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         {};
       (data || []).forEach((u: any) => {
         map[u.id] = {
-          name: buildDisplayName(u) || u.id,
+          name: u.username || u.id,
           avatar_url: u.profile_photo ?? null,
         };
       });
@@ -385,8 +386,18 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       if (Object.keys(initialProfiles).length > 0) {
         setUserProfiles((prev) => ({ ...prev, ...initialProfiles }));
       }
-      // Note: Not calling loadProfiles anymore since v_jackpot_latest_winners 
-      // already provides the correct username and profile_photo for each winner
+
+      // Fetch fresh profile photos from public_user_profiles view
+      const ids = Array.from(
+        new Set(
+          normalizedRows
+            .map((r) => r.user_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      );
+      if (ids.length > 0) {
+        await loadProfiles(ids);
+      }
     } catch (err) {
       console.error("Error fetching winners:", err);
       toast({
