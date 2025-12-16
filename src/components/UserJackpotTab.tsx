@@ -325,7 +325,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       const { data, error } = await supabase
         .from("v_jackpot_latest_winners")
         .select(
-          "draw_id,drawn_code,executed_at,user_id,role,place,percentage,amount,status",
+          "draw_id,drawn_code,executed_at,user_id,username,profile_photo,role,place,percentage,amount,amount_won,status",
         )
         .order("executed_at", { ascending: false })
         .limit(60);
@@ -341,13 +341,13 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
         drawn_code: row.drawn_code ?? null,
         executed_at: String(row.executed_at),
         user_id: row.user_id ? String(row.user_id) : null,
-        username: null,
-        profile_photo: null,
+        username: row.username ?? null,
+        profile_photo: row.profile_photo ?? null,
         role: row.role as WinnerRow["role"],
         place: Number(row.place) as WinnerRow["place"],
         percentage:
           row.percentage === null ? null : Number(row.percentage || 0),
-        amount: row.amount === null ? null : Number(row.amount || 0),
+        amount: row.amount_won ?? (row.amount === null ? null : Number(row.amount || 0)),
         status: (row.status ?? "pending") as WinnerRow["status"],
       }));
 
