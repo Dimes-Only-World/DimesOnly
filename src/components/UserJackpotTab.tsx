@@ -524,41 +524,45 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
     return (
       <div
         key={`${winner.draw_id}-${winner.user_id ?? winner.role}-${winner.place}`}
-        className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
+        className="flex flex-col md:flex-row items-center gap-4 p-4 bg-neutral-900/50 rounded-xl border border-neutral-800"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <Avatar className="w-12 h-12 flex-shrink-0">
-              {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
-              <AvatarFallback>
-                {(name?.[0] || roleLabel?.[0] || "U").toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-gray-900 truncate">{name}</div>
-              <div className="text-xs text-gray-500 capitalize">{roleLabel}</div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between sm:justify-end gap-3">
-            <div className="text-right">
-              <div className="text-xl sm:text-2xl font-bold text-green-600 leading-tight">
-                ${formatMoney(winner.amount)}
-              </div>
-              {includePlaceBadge && (
-                <Badge variant="outline" className="text-xs mt-1">
-                  {placeLabel}
-                </Badge>
-              )}
-            </div>
-          </div>
+        {/* Mobile: Username above image */}
+        <div className="md:hidden text-center w-full">
+          <p className="text-white font-semibold text-lg truncate">{name}</p>
+          <p className="text-neutral-400 text-sm capitalize">{roleLabel}</p>
+        </div>
+        
+        {/* Profile Photo */}
+        <div className="relative flex-shrink-0">
+          <Avatar className="w-24 h-24 md:w-28 md:h-28 border-2 border-neutral-700">
+            {avatar ? <AvatarImage src={avatar} alt={name} className="object-cover" /> : null}
+            <AvatarFallback className="bg-neutral-800 text-white text-2xl">
+              {(name?.[0] || roleLabel?.[0] || "U").toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
 
-        <div className="text-xs text-gray-600 mt-2 pt-2 border-t border-yellow-200/50">
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span>Won on {formatDate(winner.executed_at)}</span>
-            <span>Draw Code: {winner.drawn_code || "—"}</span>
-          </div>
+        {/* Desktop: Details to the right */}
+        <div className="hidden md:flex flex-col flex-1 min-w-0">
+          <p className="text-white font-semibold text-lg truncate">{name}</p>
+          <p className="text-neutral-400 text-sm capitalize">{roleLabel}</p>
+          {includePlaceBadge && (
+            <Badge variant="outline" className="text-xs mt-1 w-fit border-neutral-600 text-neutral-300">
+              {placeLabel}
+            </Badge>
+          )}
+        </div>
+
+        {/* Prize Amount */}
+        <div className="text-center md:text-right">
+          <p className="text-emerald-400 font-bold text-2xl md:text-3xl">
+            ${formatMoney(winner.amount)}
+          </p>
+          {includePlaceBadge && (
+            <Badge variant="outline" className="md:hidden text-xs mt-1 border-neutral-600 text-neutral-300">
+              {placeLabel}
+            </Badge>
+          )}
         </div>
       </div>
     );
@@ -795,27 +799,30 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           </CardContent>
         </Card>
       )}
-      <Card>
+      <Card className="bg-neutral-950 border-neutral-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Trophy className="w-5 h-5 text-yellow-500" />
             Latest Winners
           </CardTitle>
         </CardHeader>
         <CardContent>
           {latestDraw ? (
-            <div className="space-Y-6">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-400">
                 <span>
                   Drawn on {formatDate(latestDraw.executedAt, true)}
                 </span>
-                <span>Draw Code: {latestDraw.drawnCode || "—"}</span>
+                <span className="font-mono bg-neutral-800 px-2 py-1 rounded">
+                  Code: {latestDraw.drawnCode || "—"}
+                </span>
               </div>
 
               {latestSections.map((section) => (
                 <section key={section.place} className="space-y-3">
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    {placeTitle(section.place)}
+                  <h4 className="text-lg font-semibold text-yellow-500 flex items-center gap-2">
+                    {section.place === 1 && <Crown className="w-5 h-5" />}
+                    {section.place === 1 ? "🏆 Grand Prize" : placeTitle(section.place)}
                   </h4>
                   {section.winners.map((winner) =>
                     WinnerListItem(winner, true),
@@ -824,13 +831,13 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
               ))}
 
               {historicalDraws.length === 0 && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-neutral-500">
                   No previous draws to display yet.
                 </p>
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-neutral-500">
               <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No winners yet — be the first!</p>
             </div>
