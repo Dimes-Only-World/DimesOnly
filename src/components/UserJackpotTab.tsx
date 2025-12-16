@@ -385,18 +385,8 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       if (Object.keys(initialProfiles).length > 0) {
         setUserProfiles((prev) => ({ ...prev, ...initialProfiles }));
       }
-
-      const ids = Array.from(
-        new Set(
-          normalizedRows
-            .map((r) => r.user_id)
-            .filter((id): id is string => Boolean(id)),
-        ),
-      );
-
-      if (ids.length > 0) {
-        await loadProfiles(ids);
-      }
+      // Note: Not calling loadProfiles anymore since v_jackpot_latest_winners 
+      // already provides the correct username and profile_photo for each winner
     } catch (err) {
       console.error("Error fetching winners:", err);
       toast({
