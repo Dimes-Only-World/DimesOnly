@@ -126,7 +126,7 @@ const JackpotCountdown: React.FC<JackpotCountdownProps> = ({
                 </div>
               </div>
               <p className="text-yellow-100 text-sm mt-2">
-                Drawing every Friday at 6 PM
+                Drawing every Saturday 11:59 PM PST
               </p>
             </div>
           )
