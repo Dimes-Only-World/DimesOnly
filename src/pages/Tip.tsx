@@ -729,13 +729,30 @@ const Tip: React.FC = () => {
                         {recentVideos.map((video) => (
                           <div
                             key={video.id}
-                            className="aspect-video overflow-hidden rounded-lg relative"
+                            className="aspect-video overflow-hidden rounded-lg relative cursor-pointer"
+                            onClick={(e) => {
+                              const videoEl = e.currentTarget.querySelector('video');
+                              const overlay = e.currentTarget.querySelector('.play-overlay');
+                              if (videoEl) {
+                                if (videoEl.paused) {
+                                  videoEl.play();
+                                  videoEl.controls = true;
+                                  if (overlay) overlay.classList.add('hidden');
+                                } else {
+                                  videoEl.pause();
+                                  videoEl.controls = false;
+                                  if (overlay) overlay.classList.remove('hidden');
+                                }
+                              }
+                            }}
                           >
                             <video
                               src={video.media_url}
                               className="w-full h-full object-cover"
+                              playsInline
+                              preload="metadata"
                             />
-                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                            <div className="play-overlay absolute inset-0 bg-black/20 flex items-center justify-center">
                               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                                 <Play className="w-6 h-6 text-white ml-1" />
                               </div>
