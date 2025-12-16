@@ -458,10 +458,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           winner.user_id,
           winner.username || meta.label || "Participant",
         ),
-        avatar:
-          (winner.user_id
-            ? userProfiles[winner.user_id]?.avatar_url ?? null
-            : winner.profile_photo ?? null),
+        avatar: winner.user_id
+          ? userProfiles[winner.user_id]?.avatar_url ?? null
+          : null,
         helper: meta.helper,
       });
       return acc;
@@ -509,10 +508,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
       winner.user_id ||
       "Winner";
     const name = displayNameFor(winner.user_id, fallbackName);
-    const avatar =
-      (winner.user_id ? userProfiles[winner.user_id]?.avatar_url : undefined) ??
-      winner.profile_photo ??
-      undefined;
+    const avatar = winner.user_id
+      ? userProfiles[winner.user_id]?.avatar_url ?? null
+      : null;
     const placeLabel = placeTitle(winner.place);
     const roleLabel = (() => {
       if (winner.place === 2) {
