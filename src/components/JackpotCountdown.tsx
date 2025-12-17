@@ -10,7 +10,7 @@ interface JackpotCountdownProps {
 
 const JackpotCountdown: React.FC<JackpotCountdownProps> = ({
   currentJackpot = 0,
-  targetAmount = 1000,
+  targetAmount = 100,
   nextDrawDate
 }) => {
   const [timeLeft, setTimeLeft] = useState<{

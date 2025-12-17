@@ -72,6 +72,7 @@ const AdminJackpotTab: React.FC = () => {
 
   const { toast } = useToast();
   const [forceCode, setForceCode] = useState("");
+  const [confirmCode, setConfirmCode] = useState("");
 
   // Recent codes dialog state
   const [pickOpen, setPickOpen] = useState(false);
@@ -609,7 +610,9 @@ const AdminJackpotTab: React.FC = () => {
   };
   
   const pickThisCode = (value: string) => {
-    setForceCode(value.toUpperCase());
+    const code = value.toUpperCase();
+    setForceCode(code);
+    setConfirmCode(code);
     setPickOpen(false);
   };
   
@@ -699,17 +702,36 @@ const AdminJackpotTab: React.FC = () => {
               )}
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={forceCode}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setForceCode(e.target.value.toUpperCase())
+                    }
+                    placeholder="Enter code (ABCDE)"
+                    className="w-36"
+                    maxLength={5}
+                  />
+                  <Input
+                    value={confirmCode}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setConfirmCode(e.target.value.toUpperCase())
+                    }
+                    placeholder="Confirm code"
+                    className="w-36"
+                    maxLength={5}
+                  />
+                </div>
+                {forceCode && confirmCode && forceCode !== confirmCode && (
+                  <p className="text-xs text-red-500">Codes do not match</p>
+                )}
+                {forceCode && confirmCode && forceCode === confirmCode && /^[A-Z]{5}$/.test(forceCode) && (
+                  <p className="text-xs text-green-500">Codes match ✓</p>
+                )}
+              </div>
               <div className="flex items-center gap-2">
-                <Input
-                  value={forceCode}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setForceCode(e.target.value.toUpperCase())
-                  }
-                  placeholder="Force code (ABCDE)"
-                  className="w-36"
-                  maxLength={5}
-                />
                 <Button
                   type="button"
                   variant="secondary"
@@ -722,7 +744,9 @@ const AdminJackpotTab: React.FC = () => {
                 <Button
                   variant="secondary"
                   disabled={
-                    runningDraw || !/^[A-Z]{5}$/.test(forceCode || "")
+                    runningDraw || 
+                    !/^[A-Z]{5}$/.test(forceCode || "") ||
+                    forceCode !== confirmCode
                   }
                   onClick={runForcedDraw}
                 >
