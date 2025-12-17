@@ -872,8 +872,10 @@ const EventsDimesOnly: React.FC = () => {
                               SOLD OUT
                             </div>
                           ) : getFreeSpots(event) > 0 ? (
-                            <div className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                              FREE: {getFreeSpots(event)}
+                            <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold space-y-0.5">
+                              <div>Free Spots: {getFreeSpots(event)}</div>
+                              <div>Exotics: {event.free_spots_exotics || 0}</div>
+                              <div>Stripper: {event.free_spots_strippers || 0}</div>
                             </div>
                           ) : (
                             <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">

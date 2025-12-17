@@ -404,7 +404,7 @@ const Events: React.FC = () => {
                         </Badge>
                       ) : getFreeSpots(event) > 0 ? (
                         <Badge className="bg-green-600 text-white font-bold">
-                          FREE SPOTS: {getFreeSpots(event)}
+                          Free Spots: {getFreeSpots(event)}
                         </Badge>
                       ) : (
                         <Badge className="bg-yellow-600 text-white font-bold">
