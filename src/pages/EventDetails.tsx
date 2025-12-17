@@ -142,23 +142,44 @@ const EventDetails: React.FC = () => {
   const fetchEventAttendees = async () => {
     setAttendeesLoading(true);
     try {
-      const { data, error } = await supabase
+      // First get the user_events
+      const { data: eventUsers, error: eventError } = await supabase
         .from("user_events")
-        .select(`
-          user_id,
-          users (
-            username,
-            profile_photo,
-            user_type,
-            city,
-            state
-          )
-        `)
+        .select("user_id")
         .eq("event_id", eventId)
         .limit(200);
 
-      if (error) throw error;
-      setAttendees((data as unknown as EventAttendee[]) || []);
+      if (eventError) throw eventError;
+
+      if (!eventUsers || eventUsers.length === 0) {
+        setAttendees([]);
+        return;
+      }
+
+      // Get user IDs
+      const userIds = eventUsers.map(eu => eu.user_id);
+
+      // Fetch user profiles from public_user_profiles view (bypasses RLS)
+      const { data: profiles, error: profileError } = await supabase
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, user_type, city, state")
+        .in("id", userIds);
+
+      if (profileError) throw profileError;
+
+      // Map profiles to attendee format
+      const attendeesData: EventAttendee[] = (profiles || []).map(profile => ({
+        user_id: profile.id,
+        users: {
+          username: profile.username || '',
+          profile_photo: profile.profile_photo || '',
+          user_type: profile.user_type || '',
+          city: profile.city || '',
+          state: profile.state || '',
+        }
+      }));
+
+      setAttendees(attendeesData);
     } catch (error) {
       console.error("Error fetching attendees:", error);
       toast({
