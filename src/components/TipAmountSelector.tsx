@@ -18,6 +18,7 @@ const TipAmountSelector: React.FC<TipAmountSelectorProps> = ({
   onCustomAmountChange,
 }) => {
   const MIN_TIP = 5;
+  const MAX_TIP = 1000;
   const presetAmounts = [5, 10, 20, 50, 100, 200];
 
   const handleCustomAmountChange = (value: string) => {
@@ -27,8 +28,11 @@ const TipAmountSelector: React.FC<TipAmountSelectorProps> = ({
 
     const numericValue = parseFloat(sanitized);
 
-    if (!isNaN(numericValue) && numericValue >= MIN_TIP) {
+    if (!isNaN(numericValue) && numericValue >= MIN_TIP && numericValue <= MAX_TIP) {
       onAmountChange(numericValue);
+    } else if (!isNaN(numericValue) && numericValue > MAX_TIP) {
+      // Cap at max
+      onAmountChange(MAX_TIP);
     } else {
       // Reset to 0 if under the minimum
       onAmountChange(0);
@@ -90,7 +94,10 @@ const TipAmountSelector: React.FC<TipAmountSelectorProps> = ({
               <span className="font-bold">${selectedAmount.toFixed(2)}</span>
             </p>
             <p className="text-green-300 text-xs mt-1">
-              This will generate {selectedAmount} lottery tickets
+              This will generate {Math.floor(selectedAmount)} lottery tickets
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              Max tip: ${MAX_TIP} per transaction
             </p>
           </div>
         )}
