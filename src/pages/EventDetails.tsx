@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
+import PayPalEventButton from "@/components/PayPalEventButton";
 import {
   Calendar,
   MapPin,
@@ -17,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  CheckCircle,
+  Ticket,
 } from "lucide-react";
 
 interface Event {
@@ -38,6 +41,12 @@ interface Event {
   description?: string;
   video_urls?: string[];
   additional_photos?: string[];
+  host_user_id?: string;
+}
+
+interface CurrentUser {
+  id: string;
+  username: string;
 }
 
 interface EventAttendee {
@@ -89,6 +98,9 @@ const EventDetails: React.FC = () => {
   const [attendeeTypeFilter, setAttendeeTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isUserRegistered, setIsUserRegistered] = useState(false);
+  const [checkingRegistration, setCheckingRegistration] = useState(false);
 
   const ATTENDEES_PER_PAGE = 24;
 
@@ -99,6 +111,46 @@ const EventDetails: React.FC = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [attendeeSearch]);
+
+  // Fetch current user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setCurrentUser({ id: userData.id, username: userData.username });
+      } catch (e) {
+        console.error("Error parsing user data:", e);
+      }
+    }
+  }, []);
+
+  // Check if user is already registered for this event
+  useEffect(() => {
+    const checkRegistration = async () => {
+      if (!currentUser?.id || !eventId) return;
+      
+      setCheckingRegistration(true);
+      try {
+        const { data, error } = await supabase
+          .from("user_events")
+          .select("id")
+          .eq("user_id", currentUser.id)
+          .eq("event_id", eventId)
+          .single();
+        
+        if (!error && data) {
+          setIsUserRegistered(true);
+        }
+      } catch (e) {
+        // User not registered, that's fine
+      } finally {
+        setCheckingRegistration(false);
+      }
+    };
+
+    checkRegistration();
+  }, [currentUser?.id, eventId]);
 
   useEffect(() => {
     if (eventId) {
@@ -318,6 +370,121 @@ const EventDetails: React.FC = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* Ticket Purchase Section */}
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <h4 className="font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                      <Ticket className="h-4 w-4 text-yellow-400" />
+                      Get Your Ticket
+                    </h4>
+
+                    {/* Already Registered */}
+                    {isUserRegistered ? (
+                      <div className="flex items-center gap-2 p-4 bg-green-500/20 rounded-lg border border-green-500/50">
+                        <CheckCircle className="h-5 w-5 text-green-400" />
+                        <span className="text-green-400 font-medium">You're registered for this event!</span>
+                      </div>
+                    ) : event.current_attendees >= event.max_attendees ? (
+                      /* Sold Out */
+                      <div className="p-4 bg-red-500/20 rounded-lg border border-red-500/50 text-center">
+                        <span className="text-red-400 font-medium">This event is sold out</span>
+                      </div>
+                    ) : event.price > 0 ? (
+                      /* Paid Event - Show PayPal Button */
+                      currentUser ? (
+                        <PayPalEventButton
+                          eventId={event.id}
+                          eventName={event.name}
+                          eventPrice={event.price}
+                          eventOwnerId={event.host_user_id}
+                          buyerId={currentUser.id}
+                          buyerUsername={currentUser.username}
+                          onSuccess={(transactionId) => {
+                            setIsUserRegistered(true);
+                            // Refresh attendees
+                            fetchEventAttendees();
+                            // Update attendee count
+                            setEvent(prev => prev ? {
+                              ...prev,
+                              current_attendees: prev.current_attendees + 1
+                            } : null);
+                          }}
+                          onError={(error) => {
+                            toast({
+                              title: "Payment Failed",
+                              description: error,
+                              variant: "destructive",
+                            });
+                          }}
+                          disabled={checkingRegistration}
+                        />
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-gray-400 text-sm text-center">
+                            Please log in to purchase a ticket
+                          </p>
+                          <Button
+                            onClick={() => navigate("/login")}
+                            className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
+                          >
+                            Log In to Purchase
+                          </Button>
+                        </div>
+                      )
+                    ) : (
+                      /* Free Event */
+                      currentUser ? (
+                        <Button
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase
+                                .from("user_events")
+                                .insert({
+                                  user_id: currentUser.id,
+                                  event_id: event.id,
+                                  username: currentUser.username,
+                                  payment_status: "free",
+                                });
+                              
+                              if (error) throw error;
+                              
+                              setIsUserRegistered(true);
+                              toast({
+                                title: "Registered!",
+                                description: `You're now registered for ${event.name}`,
+                              });
+                              fetchEventAttendees();
+                              setEvent(prev => prev ? {
+                                ...prev,
+                                current_attendees: prev.current_attendees + 1
+                              } : null);
+                            } catch (err: any) {
+                              toast({
+                                title: "Registration Failed",
+                                description: err.message || "Unable to register",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
+                        >
+                          Register for Free
+                        </Button>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-gray-400 text-sm text-center">
+                            Please log in to register
+                          </p>
+                          <Button
+                            onClick={() => navigate("/login")}
+                            className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
+                          >
+                            Log In to Register
+                          </Button>
+                        </div>
+                      )
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 

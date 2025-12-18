@@ -325,6 +325,150 @@ export type Database = {
           },
         ]
       }
+      event_owner_earnings: {
+        Row: {
+          amount: number
+          created_at: string | null
+          earnings_type: string | null
+          event_id: string | null
+          id: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          earnings_type?: string | null
+          event_id?: string | null
+          id?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          earnings_type?: string | null
+          event_id?: string | null
+          id?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_owner_earnings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_owner_earnings_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "event_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_owner_earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_owner_earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_transactions: {
+        Row: {
+          amount: number
+          buyer_id: string | null
+          created_at: string | null
+          currency: string | null
+          event_id: string
+          event_owner_id: string | null
+          id: string
+          payment_id: string | null
+          payment_status: string | null
+          paypal_transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          event_id: string
+          event_owner_id?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          paypal_transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          event_id?: string
+          event_owner_id?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          paypal_transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_transactions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_transactions_event_owner_id_fkey"
+            columns: ["event_owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_transactions_event_owner_id_fkey"
+            columns: ["event_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_transactions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           additional_photos: string[] | null
@@ -337,6 +481,7 @@ export type Database = {
           free_spots_exotics: number | null
           free_spots_strippers: number | null
           genre: string | null
+          host_user_id: string | null
           id: string
           location: string
           max_attendees: number | null
@@ -358,6 +503,7 @@ export type Database = {
           free_spots_exotics?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
+          host_user_id?: string | null
           id?: string
           location: string
           max_attendees?: number | null
@@ -379,6 +525,7 @@ export type Database = {
           free_spots_exotics?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
+          host_user_id?: string | null
           id?: string
           location?: string
           max_attendees?: number | null
@@ -389,7 +536,22 @@ export type Database = {
           state?: string | null
           video_urls?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       installment_payments: {
         Row: {
@@ -2200,6 +2362,8 @@ export type Database = {
           diamond_plus_payment_id: string | null
           diamond_plus_signed_at: string | null
           email: string
+          event_available_balance: number | null
+          event_total_earnings: number | null
           first_name: string | null
           front_page_photo: string | null
           gender: string | null
@@ -2256,6 +2420,8 @@ export type Database = {
           diamond_plus_payment_id?: string | null
           diamond_plus_signed_at?: string | null
           email: string
+          event_available_balance?: number | null
+          event_total_earnings?: number | null
           first_name?: string | null
           front_page_photo?: string | null
           gender?: string | null
@@ -2312,6 +2478,8 @@ export type Database = {
           diamond_plus_payment_id?: string | null
           diamond_plus_signed_at?: string | null
           email?: string
+          event_available_balance?: number | null
+          event_total_earnings?: number | null
           first_name?: string | null
           front_page_photo?: string | null
           gender?: string | null
