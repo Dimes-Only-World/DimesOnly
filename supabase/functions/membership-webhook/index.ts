@@ -289,9 +289,9 @@ async function activateMembership(supabase: any, upgrade: any) {
           const referralPercentage = referrerData.referral_fees?.silver_plus || 20; // Default 20%
           const grossAmount = parseFloat(upgrade.payment_amount || upgrade.amount_paid || '0');
           
-          // Calculate PayPal fees: $0.50 flat + 1.5% of gross
+          // Calculate PayPal fees: $0.50 flat + 2.75% of gross
           const paypalFlatFee = 0.50;
-          const paypalPercentageFee = grossAmount * 0.015;
+          const paypalPercentageFee = grossAmount * 0.0275;
           const totalPaypalFees = paypalFlatFee + paypalPercentageFee;
           const netAmount = grossAmount - totalPaypalFees;
           
@@ -618,9 +618,9 @@ async function activateMembership(supabase: any, upgrade: any) {
           const referralPercentage = referrerData.referral_fees?.diamond_plus || 20; // Default 20%
           const grossAmount = parseFloat(upgrade.payment_amount || upgrade.amount_paid || '0');
           
-          // Calculate PayPal fees: $0.50 flat + 1.5% of gross
+          // Calculate PayPal fees: $0.50 flat + 2.75% of gross
           const paypalFlatFee = 0.50;
-          const paypalPercentageFee = grossAmount * 0.015;
+          const paypalPercentageFee = grossAmount * 0.0275;
           const totalPaypalFees = paypalFlatFee + paypalPercentageFee;
           const netAmount = grossAmount - totalPaypalFees;
           

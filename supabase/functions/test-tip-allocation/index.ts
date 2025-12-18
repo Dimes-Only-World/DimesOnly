@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Tip allocation rates (must match process-tip and tip-webhook)
-const PAYPAL_FEE_PERCENT = 0.015; // 1.5%
+const PAYPAL_FEE_PERCENT = 0.0275; // 2.75%
 const PAYPAL_FEE_FIXED = 0.50;    // $0.50
 const PERFORMER_RATE = 0.20;      // 20% of net
 const REFERRER_RATE = 0.10;       // 10% of net
