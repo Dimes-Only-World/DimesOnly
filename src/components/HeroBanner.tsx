@@ -25,8 +25,8 @@ const HeroBanner: React.FC = () => {
     <div className="w-full">
       {/* === Video Background Section === */}
       <section
-        className="relative w-full h-screen overflow-hidden bg-black"
-        style={{ height: "100dvh" }}
+        className="relative w-full min-h-screen overflow-hidden bg-black"
+        style={{ minHeight: "100dvh" }}
       >
         <style>
           {`
@@ -44,6 +44,13 @@ const HeroBanner: React.FC = () => {
           `}
         </style>
 
+        {/* Fallback Image - always render as background */}
+        <img
+          src={placeholderLady}
+          alt="Hero background"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+
         {/* Desktop Video */}
         {!videoError && (
           <video
@@ -55,7 +62,6 @@ const HeroBanner: React.FC = () => {
             playsInline
             preload="metadata"
             onError={handleVideoError}
-            poster={placeholderLady}
           >
             <source src={desktopSrc} type="video/webm" />
           </video>
@@ -72,19 +78,9 @@ const HeroBanner: React.FC = () => {
             playsInline
             preload="metadata"
             onError={handleVideoError}
-            poster={placeholderLady}
           >
             <source src={phoneSrc} type="video/webm" />
           </video>
-        )}
-
-        {/* Fallback Image when video fails */}
-        {videoError && (
-          <img
-            src={placeholderLady}
-            alt="Hero background"
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
         )}
       </section>
 
