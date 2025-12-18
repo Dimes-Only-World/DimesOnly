@@ -11,7 +11,7 @@ const corsHeaders = {
 const PERFORMER_RATE = 0.2;      // 20% to dime (performer)
 const REFERRER_RATE = 0.1;       // 10% to referrer
 const JACKPOT_RATE = 0.25;       // 25% to jackpot
-const PAYPAL_PERCENT_FEE = 0.015; // 1.5% PayPal fee
+const PAYPAL_PERCENT_FEE = 0.0275; // 2.75% PayPal fee
 const PAYPAL_FIXED_FEE = 0.5;    // $0.50 fixed PayPal fee
 
 const roundCurrency = (value: number) => Math.round(value * 100) / 100;

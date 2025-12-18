@@ -6,7 +6,7 @@ import { DollarSign, User, Users, Trophy, Building, CreditCard } from 'lucide-re
 const PERFORMER_RATE = 0.20;      // 20% to performer
 const REFERRER_RATE = 0.10;       // 10% to referrer  
 const JACKPOT_RATE = 0.25;        // 25% to jackpot
-const PAYPAL_PERCENT_FEE = 0.015; // 1.5% PayPal fee
+const PAYPAL_PERCENT_FEE = 0.0275; // 2.75% PayPal fee
 const PAYPAL_FIXED_FEE = 0.50;    // $0.50 fixed fee
 
 const roundCurrency = (value: number) => Math.round(value * 100) / 100;
@@ -115,7 +115,7 @@ const TipAllocationBreakdown: React.FC<TipAllocationBreakdownProps> = ({
     {
       label: 'PayPal Processing',
       value: allocation.paypalFee,
-      rate: `1.5% + $0.50`,
+      rate: `2.75% + $0.50`,
       icon: CreditCard,
       color: 'text-gray-600 dark:text-gray-400',
       bgColor: 'bg-gray-50 dark:bg-gray-900/20',
