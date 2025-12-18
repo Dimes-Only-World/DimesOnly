@@ -15,6 +15,7 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
 }) => {
   const [showVideo, setShowVideo] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   // Detect mobile by viewport width (align with Tailwind md breakpoint)
   useEffect(() => {
@@ -29,30 +30,20 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
     setShowVideo(true);
   };
 
-  // Desktop keeps a 16:9 frame; Mobile has min-height for visibility
-  const wrapperClass = isMobile
-    ? 'relative w-full min-h-[50vh]' // ensure visibility on mobile
-    : 'relative w-full aspect-video'; // 16:9 only on desktop
-
-  // Video class per device
-  const videoClass = isMobile
-    ? 'block w-screen h-auto max-h-[100vh] object-contain bg-black'
-    : 'block w-full h-full object-contain bg-black';
-
-  // Thumbnail class per device
-  const thumbClass = isMobile
-    ? 'w-screen h-auto object-contain bg-black'
-    : 'w-full h-full object-contain bg-black';
+  const handleVideoError = () => {
+    setVideoError(true);
+    setShowVideo(false);
+  };
 
   return (
-    <div className="relative w-screen mb-6 bg-black">
-      <div className={wrapperClass}>
-        {!showVideo ? (
-          <div className="relative w-full h-full">
+    <div className="relative w-full max-w-full overflow-hidden mb-6 bg-black">
+      <div className="relative w-full">
+        {!showVideo || videoError ? (
+          <div className="relative w-full">
             <img
               src={thumbnailUrl}
               alt="Video Thumbnail"
-              className={thumbClass}
+              className="w-full h-auto max-w-full object-contain bg-black"
             />
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <Button
@@ -65,13 +56,14 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
             </div>
           </div>
         ) : (
-          <div className="relative w-full h-full">
+          <div className="relative w-full">
             <video
-              className={videoClass}
+              className="w-full h-auto max-w-full object-contain bg-black"
               controls
               autoPlay
               playsInline
               poster={thumbnailUrl}
+              onError={handleVideoError}
             >
               {/* Choose source based on viewport */}
               {isMobile ? (

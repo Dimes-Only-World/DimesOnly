@@ -35,6 +35,7 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
   playsInline = true,
 }) => {
   const [isMobileView, setIsMobileView] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -76,8 +77,17 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
   const desktopPoster = posterDesktop || posterMobile || undefined;
   const mobilePoster = posterMobile || posterDesktop || undefined;
 
+  const handleVideoError = () => {
+    setVideoError(true);
+  };
+
+  // If video fails, show nothing (skip this section gracefully)
+  if (videoError) {
+    return null;
+  }
+
   return (
-    <div className={`relative w-screen bg-black ${className}`}>
+    <div className={`relative w-full overflow-hidden bg-black ${className}`}>
       {srcMobile && (
         <video
           key="mobile"
@@ -85,12 +95,13 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
           loop={loop}
           muted={muted}
           playsInline={playsInline}
-          preload="auto"
+          preload="metadata"
           poster={mobilePoster}
-          className={`absolute inset-0 w-screen h-full object-cover md:object-contain mx-auto transition-opacity duration-200 ${
+          onError={handleVideoError}
+          className={`w-full h-auto max-w-full transition-opacity duration-200 ${
             isMobileView
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
+              ? "block opacity-100"
+              : "hidden opacity-0"
           }`}
         >
           <source src={srcMobile} type={mimeFromUrl(srcMobile)} />
@@ -104,12 +115,13 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
           loop={loop}
           muted={muted}
           playsInline={playsInline}
-          preload="auto"
+          preload="metadata"
           poster={desktopPoster}
-          className={`absolute inset-0 w-screen h-full object-cover mx-auto transition-opacity duration-200 ${
+          onError={handleVideoError}
+          className={`w-full h-auto max-w-full transition-opacity duration-200 ${
             !isMobileView
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
+              ? "block opacity-100"
+              : "hidden opacity-0"
           }`}
         >
           <source src={srcDesktop} type={mimeFromUrl(srcDesktop)} />
@@ -122,15 +134,14 @@ const FullWidthVideo: React.FC<FullWidthVideoProps> = ({
           loop={loop}
           muted={muted}
           playsInline={playsInline}
-          preload="auto"
+          preload="metadata"
           poster={desktopPoster}
-          className="absolute inset-0 w-screen h-full object-cover mx-auto"
+          onError={handleVideoError}
+          className="w-full h-auto max-w-full"
         >
           <source src={singleSource.url} type={singleSource.mime} />
         </video>
       )}
-
-      <div className="relative pb-[177.78%] md:pb-[56.25%]" />
     </div>
   );
 };
