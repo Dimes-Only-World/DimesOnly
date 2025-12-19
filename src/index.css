@@ -138,3 +138,20 @@
     overflow-x: hidden;
   }
 }
+
+/* PayPal iframe scrollable container fix */
+.paypal-button-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure PayPal credit card iframe is scrollable */
+iframe[name^="__zoid__paypal"] {
+  max-height: none !important;
+}
+
+/* Allow scrolling inside PayPal card form modals */
+body.paypal-overlay-open {
+  overflow: auto !important;
+  position: static !important;
+}

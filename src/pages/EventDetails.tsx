@@ -316,8 +316,8 @@ const EventDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className={getContainerClasses()}>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white overflow-y-auto">
+      <div className={`${getContainerClasses()} pb-8`}>
         {/* Back Button */}
         <div className="p-4">
           <Button
