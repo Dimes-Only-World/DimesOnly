@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import PayPalEventButton from "@/components/PayPalEventButton";
 import {
@@ -85,6 +86,7 @@ const EventDetails: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user: appUser, loading: appUserLoading } = useAppContext();
   const { getContainerClasses, getContentClasses, getCardClasses } =
     useMobileLayout();
   
@@ -112,55 +114,31 @@ const EventDetails: React.FC = () => {
     return () => clearTimeout(timer);
   }, [attendeeSearch]);
 
-  // Fetch current user from localStorage or Supabase session
+  // Resolve current user (source of truth: AppContext)
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      // First check localStorage
-      const storedUser = localStorage.getItem("currentUser");
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          if (userData.id && userData.username) {
-            setCurrentUser({ id: userData.id, username: userData.username });
-            return;
-          }
-        } catch (e) {
-          console.error("Error parsing user data:", e);
-        }
-      }
+    if (appUserLoading) return;
 
-      // Also check sessionStorage
-      const sessionUser = sessionStorage.getItem("user");
-      if (sessionUser) {
-        try {
-          const userData = JSON.parse(sessionUser);
-          if (userData.id && userData.username) {
-            setCurrentUser({ id: userData.id, username: userData.username });
-            return;
-          }
-        } catch (e) {
-          console.error("Error parsing session user data:", e);
-        }
-      }
+    if (appUser?.id && appUser.username) {
+      setCurrentUser({ id: appUser.id, username: appUser.username });
+      return;
+    }
 
-      // Fallback to Supabase auth session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Fetch user profile from database
-        const { data: userProfile } = await supabase
-          .from("users")
-          .select("id, username")
-          .eq("email", session.user.email)
-          .single();
-        
-        if (userProfile) {
-          setCurrentUser({ id: userProfile.id, username: userProfile.username });
+    // Fallback for legacy flows
+    const savedUserData = sessionStorage.getItem("userData");
+    if (savedUserData) {
+      try {
+        const userData = JSON.parse(savedUserData);
+        if (userData?.id && userData?.username) {
+          setCurrentUser({ id: userData.id, username: userData.username });
+          return;
         }
+      } catch (e) {
+        console.error("Error parsing saved user data:", e);
       }
-    };
+    }
 
-    fetchCurrentUser();
-  }, []);
+    setCurrentUser(null);
+  }, [appUserLoading, appUser?.id, appUser?.username]);
 
   // Check if user is already registered for this event
   useEffect(() => {
@@ -455,6 +433,10 @@ const EventDetails: React.FC = () => {
                           }}
                           disabled={checkingRegistration}
                         />
+                      ) : appUserLoading ? (
+                        <div className="flex items-center justify-center gap-2 p-4 bg-white/5 rounded-lg">
+                          <span className="text-gray-300 text-sm">Loading your account...</span>
+                        </div>
                       ) : (
                         <div className="space-y-3">
                           <p className="text-gray-400 text-sm text-center">
