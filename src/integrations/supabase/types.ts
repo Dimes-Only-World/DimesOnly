@@ -2841,6 +2841,20 @@ export type Database = {
       check_user_exists: { Args: { username: string }; Returns: boolean }
       delete_expired_notifications: { Args: never; Returns: undefined }
       get_diamond_plus_count: { Args: never; Returns: number }
+      get_my_referrals: {
+        Args: never
+        Returns: {
+          banner_photo: string
+          city: string
+          created_at: string
+          front_page_photo: string
+          id: string
+          profile_photo: string
+          state: string
+          username: string
+        }[]
+      }
+      get_my_referrals_count: { Args: never; Returns: number }
       get_my_username: { Args: never; Returns: string }
       get_or_create_weekly_earnings: {
         Args: { p_user_id: string; p_week_start: string }

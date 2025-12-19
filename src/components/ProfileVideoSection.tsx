@@ -46,222 +46,57 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
 
   const fetchProfile = async (username: string) => {
     try {
-      console.log("🏠 Fetching profile for username:", username);
-      console.log("🏠 Username length:", username.length);
-      console.log(
-        "🏠 Username characters:",
-        username
-          .split("")
-          .map((c) => `${c}(${c.charCodeAt(0)})`)
-          .join(", ")
+      setLoading(true);
+
+      const requested = String(username || "").trim();
+      console.log("🏠 Fetching public profile for username:", requested);
+
+      const { data, error } = await supabase.functions.invoke("public-data", {
+        body: {
+          action: "fetchProfile",
+          username: requested,
+        },
+      });
+
+      if (error) throw error;
+
+      // Edge function returns: { data: result }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (data as any)?.data ?? null;
+
+      setDebugInfo(
+        JSON.stringify(
+          {
+            requested,
+            found: Boolean(result?.username),
+            returnedUsername: result?.username ?? null,
+          },
+          null,
+          2
+        )
       );
 
-      // First, let's get ALL usernames that contain any part of our search term
-      console.log("🏠 🔍 SEARCHING FOR ALL SIMILAR USERNAMES...");
-      const { data: allSimilarUsers, error: allSimilarError } = await supabase
-        .from("users")
-        .select("username, front_page_photo")
-        .ilike("username", `%${username}%`);
+      if (result?.username) {
+        const name = String(result.username).trim();
+        const imgSrc =
+          String(result.front_page_photo || "") ||
+          String(result.profile_photo || "") ||
+          "https://via.placeholder.com/450x300?text=No+Photo+Available";
 
-      console.log("🏠 🔍 ALL SIMILAR USERS FOUND:", allSimilarUsers);
-
-      if (allSimilarUsers && allSimilarUsers.length > 0) {
-        console.log("🏠 🔍 DETAILED ANALYSIS OF SIMILAR USERS:");
-        allSimilarUsers.forEach((user, index) => {
-          const dbUsername = String(user.username);
-          console.log(`🏠 🔍 Similar user ${index + 1}:`);
-          console.log(`🏠 🔍   Database username: "${dbUsername}"`);
-          console.log(
-            `🏠 🔍   Length: ${dbUsername.length} vs search: ${username.length}`
-          );
-          console.log(
-            `🏠 🔍   Characters: ${dbUsername
-              .split("")
-              .map((c) => `${c}(${c.charCodeAt(0)})`)
-              .join(", ")}`
-          );
-          console.log(`🏠 🔍   Exact match: ${dbUsername === username}`);
-          console.log(
-            `🏠 🔍   Case insensitive match: ${
-              dbUsername.toLowerCase() === username.toLowerCase()
-            }`
-          );
-          console.log(
-            `🏠 🔍   Trimmed match: ${dbUsername.trim() === username.trim()}`
-          );
-          console.log(
-            `🏠 🔍   Trimmed case insensitive: ${
-              dbUsername.trim().toLowerCase() === username.trim().toLowerCase()
-            }`
-          );
-          console.log(
-            `🏠 🔍   Has photo: ${user.front_page_photo ? "Yes" : "No"}`
-          );
-
-          // Character by character comparison
-          if (dbUsername.length === username.length) {
-            console.log(`🏠 🔍   Character comparison:`);
-            for (let i = 0; i < username.length; i++) {
-              const searchChar = username[i];
-              const dbChar = dbUsername[i];
-              const match = searchChar === dbChar;
-              console.log(
-                `🏠 🔍     Position ${i}: "${searchChar}"(${searchChar.charCodeAt(
-                  0
-                )}) vs "${dbChar}"(${dbChar.charCodeAt(0)}) - ${
-                  match ? "MATCH" : "DIFFERENT"
-                }`
-              );
-            }
-          }
-        });
-      }
-
-      // Now let's try a broader search to see ALL usernames in the database that start with 'miss'
-      console.log("🏠 🔍 SEARCHING FOR ALL USERNAMES STARTING WITH 'miss'...");
-      const { data: missUsers, error: missError } = await supabase
-        .from("users")
-        .select("username")
-        .ilike("username", "miss%")
-        .limit(20);
-
-      console.log(
-        "🏠 🔍 ALL USERNAMES STARTING WITH 'miss':",
-        missUsers?.map((u) => String(u.username))
-      );
-
-      // Try exact match first
-      const { data: exactData, error: exactError } = await supabase
-        .from("users")
-        .select("username, front_page_photo")
-        .eq("username", username)
-        .single();
-
-      console.log("🏠 Exact match result:", {
-        data: exactData,
-        error: exactError,
-      });
-
-      // Try case-insensitive match if exact fails
-      const { data: caseInsensitiveData, error: caseInsensitiveError } =
-        await supabase
-          .from("users")
-          .select("username, front_page_photo")
-          .ilike("username", username)
-          .single();
-
-      console.log("🏠 Case-insensitive match result:", {
-        data: caseInsensitiveData,
-        error: caseInsensitiveError,
-      });
-
-      // Try with trimmed whitespace - this should fix the trailing space issue!
-      console.log("🏠 🔍 TRYING TRIMMED WHITESPACE MATCHES...");
-
-      // Search for usernames that match when trimmed
-      const { data: allPotentialMatches, error: potentialError } =
-        await supabase
-          .from("users")
-          .select("username, front_page_photo")
-          .ilike("username", `%${username.trim()}%`);
-
-      console.log("🏠 Potential trimmed matches:", allPotentialMatches);
-
-      // Find exact match after trimming
-      let trimmedMatch = null;
-      if (allPotentialMatches) {
-        trimmedMatch = allPotentialMatches.find(
-          (user) =>
-            String(user.username).trim().toLowerCase() ===
-            username.trim().toLowerCase()
-        );
-      }
-
-      console.log("🏠 Trimmed match result:", trimmedMatch);
-
-      // Try with SQL LIKE using different patterns
-      console.log("🏠 🔍 TRYING DIFFERENT SQL PATTERNS...");
-
-      // Try with escaped underscore
-      const { data: escapedData, error: escapedError } = await supabase
-        .from("users")
-        .select("username, front_page_photo")
-        .like("username", username.replace("_", "\\_"))
-        .single();
-
-      console.log("🏠 Escaped underscore match:", {
-        data: escapedData,
-        error: escapedError,
-      });
-
-      // Try without escaping underscore (underscore as wildcard)
-      const { data: wildcardData, error: wildcardError } = await supabase
-        .from("users")
-        .select("username, front_page_photo")
-        .like("username", username)
-        .single();
-
-      console.log("🏠 Wildcard underscore match:", {
-        data: wildcardData,
-        error: wildcardError,
-      });
-
-      const finalData =
-        exactData ||
-        caseInsensitiveData ||
-        trimmedMatch ||
-        escapedData ||
-        wildcardData;
-
-      setDebugInfo(`
-        Original: "${username}"
-        Length: ${username.length}
-        Exact match: ${exactData ? "Found" : "Not found"}
-        Case insensitive: ${caseInsensitiveData ? "Found" : "Not found"}
-        Trimmed match: ${trimmedMatch ? "Found" : "Not found"}
-        Escaped underscore: ${escapedData ? "Found" : "Not found"}
-        Wildcard underscore: ${wildcardData ? "Found" : "Not found"}
-        Similar users: ${allSimilarUsers?.length || 0}
-        Similar usernames: ${
-          allSimilarUsers?.map((u) => `"${String(u.username)}"`).join(", ") ||
-          "None"
-        }
-        Miss users found: ${missUsers?.length || 0}
-        Miss usernames: ${
-          missUsers?.map((u) => `"${String(u.username)}"`).join(", ") || "None"
-        }
-        Final result: ${finalData ? "Success" : "Failed"}
-        Match method: ${
-          exactData
-            ? "Exact"
-            : caseInsensitiveData
-            ? "Case insensitive"
-            : trimmedMatch
-            ? "Trimmed whitespace"
-            : escapedData
-            ? "Escaped underscore"
-            : wildcardData
-            ? "Wildcard"
-            : "None"
-        }
-      `);
-
-      if (finalData) {
-        console.log("🏠 ✅ Profile found:", finalData.username);
         setProfile({
-          name: String(finalData.username).trim(), // Trim the display name
-          imgSrc:
-            String(finalData.front_page_photo || "") ||
-            "https://via.placeholder.com/450x300?text=No+Photo+Available",
-          alt: `${String(finalData.username).trim()} profile`,
+          name,
+          imgSrc,
+          alt: `${name} profile`,
         });
       } else {
-        console.log("🏠 ❌ No profile found for:", username);
         setProfile(null);
       }
     } catch (error) {
-      console.error("🏠 💥 Error fetching profile:", error);
-      setDebugInfo(`Exception: ${error}`);
+      console.error("🏠 💥 Error fetching public profile:", error);
+      setProfile(null);
+      setDebugInfo(
+        `Exception: ${error instanceof Error ? error.message : String(error)}`
+      );
     } finally {
       setLoading(false);
     }

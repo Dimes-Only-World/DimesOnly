@@ -67,23 +67,16 @@ const UserMakeMoneyTab: React.FC = () => {
     }
   }, [user?.id]);
 
-  // Fetch referrals (note: this uses username as the referred_by value; if your DB stores an id there, change accordingly)
+  // Fetch referrals securely via RPC (bypasses users table RLS)
   const fetchReferrals = useCallback(async () => {
-    if (!referralUsername) {
+    if (!user?.id) {
       setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select(
-          "id, username, city, state, created_at, profile_photo, banner_photo, front_page_photo"
-        )
-        .eq("referred_by", referralUsername)
-        .order("created_at", { ascending: false });
-
+      const { data, error } = await supabase.rpc("get_my_referrals");
       if (error) throw error;
       setReferrals((data as User[]) || []);
     } catch (error) {
@@ -96,7 +89,7 @@ const UserMakeMoneyTab: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [referralUsername, toast]);
+  }, [user?.id, toast]);
 
   // Filter referrals
   const filterReferrals = useCallback(() => {
@@ -123,8 +116,8 @@ const UserMakeMoneyTab: React.FC = () => {
   }, [user?.id, fetchActualUserData]);
 
   useEffect(() => {
-    if (referralUsername) fetchReferrals();
-  }, [referralUsername, fetchReferrals]);
+    if (user?.id) fetchReferrals();
+  }, [user?.id, fetchReferrals]);
 
   useEffect(() => {
     filterReferrals();
