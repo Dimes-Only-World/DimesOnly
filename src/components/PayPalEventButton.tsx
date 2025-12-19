@@ -51,145 +51,164 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
     containerRef.current.innerHTML = "";
     buttonRenderedRef.current = true;
 
-    paypal.Buttons({
-      style: {
-        layout: "vertical",
-        color: "gold",
-        shape: "rect",
-        label: "pay",
-        height: 45,
-      },
-      createOrder: async () => {
-        setIsProcessing(true);
-        setError(null);
+    try {
+      paypal
+        .Buttons({
+          style: {
+            layout: "vertical",
+            color: "gold",
+            shape: "rect",
+            label: "pay",
+            height: 45,
+          },
+          createOrder: async () => {
+            setIsProcessing(true);
+            setError(null);
 
-        console.log("Creating PayPal order for event:", eventId);
+            console.log("Creating PayPal order for event:", eventId);
 
-        try {
-          // First create a payment record in the database
-          const { data: paymentRecord, error: paymentError } = await supabase
-            .from("payments")
-            .insert({
-              user_id: buyerId,
-              event_id: eventId,
-              amount: eventPrice,
-              payment_type: "event",
-              payment_status: "pending",
-              referred_by: null,
-            })
-            .select()
-            .single();
+            try {
+              // First create a payment record in the database
+              const { data: paymentRecord, error: paymentError } = await supabase
+                .from("payments")
+                .insert({
+                  user_id: buyerId,
+                  event_id: eventId,
+                  amount: eventPrice,
+                  payment_type: "event",
+                  payment_status: "pending",
+                  referred_by: null,
+                })
+                .select()
+                .single();
 
-          if (paymentError) {
-            console.error("Failed to create payment record:", paymentError);
-            throw new Error("Failed to initialize payment");
-          }
+              if (paymentError) {
+                console.error("Failed to create payment record:", paymentError);
+                throw new Error("Failed to initialize payment");
+              }
 
-          console.log("Payment record created:", paymentRecord.id);
+              console.log("Payment record created:", paymentRecord.id);
 
-          // Create PayPal order via edge function
-          const { data, error } = await supabase.functions.invoke(
-            "create-paypal-order",
-            {
-              body: {
-                payment_type: "event",
-                event_id: eventId,
-                user_id: buyerId,
-                payment_id: paymentRecord.id,
-                amount: eventPrice,
-                description: `Event Ticket - ${eventName}`,
-                return_url: `${window.location.origin}/events?payment=success&event=${eventId}`,
-                cancel_url: `${window.location.origin}/events?payment=cancelled&event=${eventId}`,
-              },
+              // Create PayPal order via edge function
+              const { data, error } = await supabase.functions.invoke(
+                "create-paypal-order",
+                {
+                  body: {
+                    payment_type: "event",
+                    event_id: eventId,
+                    user_id: buyerId,
+                    payment_id: paymentRecord.id,
+                    amount: eventPrice,
+                    description: `Event Ticket - ${eventName}`,
+                    return_url: `${window.location.origin}/events?payment=success&event=${eventId}`,
+                    cancel_url: `${window.location.origin}/events?payment=cancelled&event=${eventId}`,
+                  },
+                }
+              );
+
+              if (error || !data?.success) {
+                console.error("Create order error:", error || data?.error);
+                throw new Error(data?.error || "Failed to create payment order");
+              }
+
+              console.log("PayPal order created:", data.order_id);
+              return data.order_id;
+            } catch (err: any) {
+              console.error("PayPal createOrder error:", err);
+              setError(err.message || "Failed to create order");
+              setIsProcessing(false);
+              throw err;
             }
-          );
+          },
+          onApprove: async (data: any) => {
+            console.log("Payment approved, capturing...", data);
 
-          if (error || !data?.success) {
-            console.error("Create order error:", error || data?.error);
-            throw new Error(data?.error || "Failed to create payment order");
-          }
+            try {
+              // Capture the payment via edge function
+              const { data: captureData, error: captureError } =
+                await supabase.functions.invoke("capture-event-payment", {
+                  body: {
+                    order_id: data.orderID,
+                    event_id: eventId,
+                    event_owner_id: eventOwnerId,
+                    buyer_id: buyerId,
+                    buyer_username: buyerUsername,
+                    amount: eventPrice,
+                  },
+                });
 
-          console.log("PayPal order created:", data.order_id);
-          return data.order_id;
-        } catch (err: any) {
-          console.error("PayPal createOrder error:", err);
-          setError(err.message || "Failed to create order");
-          setIsProcessing(false);
-          throw err;
-        }
-      },
-      onApprove: async (data: any) => {
-        console.log("Payment approved, capturing...", data);
+              if (captureError || !captureData?.success) {
+                console.error(
+                  "Capture error:",
+                  captureError || captureData?.error
+                );
+                throw new Error(captureData?.error || "Payment capture failed");
+              }
 
-        try {
-          // Capture the payment via edge function
-          const { data: captureData, error: captureError } =
-            await supabase.functions.invoke("capture-event-payment", {
-              body: {
-                order_id: data.orderID,
-                event_id: eventId,
-                event_owner_id: eventOwnerId,
-                buyer_id: buyerId,
-                buyer_username: buyerUsername,
-                amount: eventPrice,
-              },
+              console.log("Payment captured successfully:", captureData);
+
+              setPaymentSuccess(true);
+              setIsProcessing(false);
+
+              toast({
+                title: "Payment Successful!",
+                description: `You're now registered for ${eventName}`,
+              });
+
+              onSuccess?.(captureData.transaction_id, captureData.payment_id);
+            } catch (err: any) {
+              console.error("Payment capture error:", err);
+              setError(err.message || "Payment processing failed");
+              setIsProcessing(false);
+              onError?.(err.message);
+
+              toast({
+                title: "Payment Failed",
+                description: err.message || "Unable to process payment",
+                variant: "destructive",
+              });
+            }
+          },
+          onCancel: () => {
+            console.log("Payment cancelled by user");
+            setIsProcessing(false);
+            toast({
+              title: "Payment Cancelled",
+              description: "You cancelled the payment process",
+              variant: "destructive",
             });
+          },
+          onError: (err: any) => {
+            console.error("PayPal error:", err);
+            setError("Payment system error. Please try again.");
+            setIsProcessing(false);
+            onError?.("Payment system error");
 
-          if (captureError || !captureData?.success) {
-            console.error("Capture error:", captureError || captureData?.error);
-            throw new Error(captureData?.error || "Payment capture failed");
-          }
-
-          console.log("Payment captured successfully:", captureData);
-
-          setPaymentSuccess(true);
-          setIsProcessing(false);
-
-          toast({
-            title: "Payment Successful!",
-            description: `You're now registered for ${eventName}`,
-          });
-
-          onSuccess?.(
-            captureData.transaction_id,
-            captureData.payment_id
-          );
-        } catch (err: any) {
-          console.error("Payment capture error:", err);
-          setError(err.message || "Payment processing failed");
-          setIsProcessing(false);
-          onError?.(err.message);
-
-          toast({
-            title: "Payment Failed",
-            description: err.message || "Unable to process payment",
-            variant: "destructive",
-          });
-        }
-      },
-      onCancel: () => {
-        console.log("Payment cancelled by user");
-        setIsProcessing(false);
-        toast({
-          title: "Payment Cancelled",
-          description: "You cancelled the payment process",
-          variant: "destructive",
-        });
-      },
-      onError: (err: any) => {
-        console.error("PayPal error:", err);
-        setError("Payment system error. Please try again.");
-        setIsProcessing(false);
-        onError?.("Payment system error");
-
-        toast({
-          title: "Payment Error",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
-      },
-    }).render(containerRef.current);
-  }, [eventId, eventName, eventPrice, eventOwnerId, buyerId, buyerUsername, onSuccess, onError, toast]);
+            toast({
+              title: "Payment Error",
+              description: "Something went wrong. Please try again.",
+              variant: "destructive",
+            });
+          },
+        })
+        .render(containerRef.current);
+    } catch (e) {
+      console.error("Failed to render PayPal button:", e);
+      buttonRenderedRef.current = false;
+      setError("Failed to load payment system");
+      setIsLoading(false);
+    }
+  }, [
+    eventId,
+    eventName,
+    eventPrice,
+    eventOwnerId,
+    buyerId,
+    buyerUsername,
+    onSuccess,
+    onError,
+    toast,
+  ]);
 
   // Load PayPal config (client id) then load PayPal SDK
   useEffect(() => {
@@ -279,6 +298,20 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
       buttonRenderedRef.current = false;
     };
   }, [paypalClientId, eventPrice, disabled, renderButton]);
+
+  // Ensure we render the PayPal button after React has mounted the container
+  useEffect(() => {
+    if (eventPrice <= 0 || disabled) return;
+    if (isLoading || error || paymentSuccess) return;
+
+    const paypal = (window as any).paypal;
+    if (!paypal) return;
+    if (!containerRef.current) return;
+    if (buttonRenderedRef.current) return;
+
+    // Defer to the next frame to ensure layout is ready
+    window.requestAnimationFrame?.(() => renderButton());
+  }, [eventPrice, disabled, isLoading, error, paymentSuccess, renderButton]);
 
   // Free event - no payment needed
   if (eventPrice <= 0) {
