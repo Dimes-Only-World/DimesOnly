@@ -145,13 +145,35 @@
   z-index: 10;
 }
 
-/* Ensure PayPal credit card iframe is scrollable */
-iframe[name^="__zoid__paypal"] {
+/* Ensure PayPal credit card form is scrollable */
+iframe[name^="__zoid__paypal"],
+iframe[title*="PayPal"],
+div[data-paypal-overlay],
+.paypal-checkout-sandbox,
+.paypal-overlay-context-popup {
   max-height: none !important;
+  overflow: visible !important;
 }
 
 /* Allow scrolling inside PayPal card form modals */
-body.paypal-overlay-open {
+body.paypal-overlay-open,
+body:has(iframe[name^="__zoid__paypal"]) {
   overflow: auto !important;
   position: static !important;
+  height: auto !important;
+}
+
+/* PayPal overlay modal scrolling fix */
+div[class*="paypal"] iframe,
+.zoid-outlet iframe {
+  max-height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+/* Ensure the PayPal popup container allows scrolling */
+.paypal-checkout-modal,
+[data-zoid-outlet],
+.zoid-outlet {
+  max-height: 100vh !important;
+  overflow-y: auto !important;
 }
