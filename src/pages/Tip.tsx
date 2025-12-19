@@ -383,14 +383,14 @@ const Tip: React.FC = () => {
         );
       }
 
-      // Fetch recent videos (2 most recent)
+      // Fetch recent videos (6 most recent)
       const { data: videos, error: videosError } = await supabase
         .from("user_media")
         .select("id, media_url, media_type, created_at")
         .eq("user_id", user.id)
         .eq("media_type", "video")
         .order("created_at", { ascending: false })
-        .limit(2);
+        .limit(6);
 
       if (!videosError && videos) {
         setRecentVideos(
