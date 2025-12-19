@@ -386,21 +386,57 @@ const Tip: React.FC = () => {
       // Fetch recent videos (6 most recent)
       const { data: videos, error: videosError } = await supabase
         .from("user_media")
-        .select("id, media_url, media_type, created_at")
+        .select("id, media_url, media_type, created_at, storage_path")
         .eq("user_id", user.id)
         .eq("media_type", "video")
         .order("created_at", { ascending: false })
         .limit(6);
 
       if (!videosError && videos) {
-        setRecentVideos(
-          videos.map((video) => ({
-            id: String(video.id),
-            media_url: String(video.media_url),
-            media_type: video.media_type as "photo" | "video",
-            created_at: String(video.created_at),
-          }))
+        const transformed = await Promise.all(
+          videos.map(async (video) => {
+            const rawUrl = String(video.media_url || "");
+            const storagePath = (video as unknown as { storage_path?: string | null }).storage_path;
+
+            // Videos may be stored in the private-media bucket (requires a signed URL)
+            if (storagePath) {
+              try {
+                const { data: signedResponse, error: signErr } =
+                  await supabase.functions.invoke("public-data", {
+                    body: {
+                      action: "createSignedUrl",
+                      storagePath,
+                      expiresIn: 3600,
+                    },
+                  });
+
+                const signedUrl = signedResponse?.data?.signedUrl as
+                  | string
+                  | undefined;
+
+                if (!signErr && signedUrl) {
+                  return {
+                    id: String(video.id),
+                    media_url: signedUrl,
+                    media_type: video.media_type as "photo" | "video",
+                    created_at: String(video.created_at),
+                  };
+                }
+              } catch {
+                // fall back to rawUrl
+              }
+            }
+
+            return {
+              id: String(video.id),
+              media_url: rawUrl,
+              media_type: video.media_type as "photo" | "video",
+              created_at: String(video.created_at),
+            };
+          })
         );
+
+        setRecentVideos(transformed);
       }
     } catch (error) {
       console.error("Error fetching user media:", error);
@@ -732,12 +768,13 @@ const Tip: React.FC = () => {
                             className="aspect-video overflow-hidden rounded-lg relative"
                           >
                             <video
-                              src={video.media_url}
                               className="w-full h-full object-cover"
                               playsInline
                               preload="metadata"
                               controls
-                            />
+                            >
+                              <source src={video.media_url} type="video/mp4" />
+                            </video>
                           </div>
                         ))}
                       </div>
