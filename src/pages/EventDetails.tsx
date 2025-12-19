@@ -112,17 +112,54 @@ const EventDetails: React.FC = () => {
     return () => clearTimeout(timer);
   }, [attendeeSearch]);
 
-  // Fetch current user from localStorage
+  // Fetch current user from localStorage or Supabase session
   useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setCurrentUser({ id: userData.id, username: userData.username });
-      } catch (e) {
-        console.error("Error parsing user data:", e);
+    const fetchCurrentUser = async () => {
+      // First check localStorage
+      const storedUser = localStorage.getItem("currentUser");
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          if (userData.id && userData.username) {
+            setCurrentUser({ id: userData.id, username: userData.username });
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing user data:", e);
+        }
       }
-    }
+
+      // Also check sessionStorage
+      const sessionUser = sessionStorage.getItem("user");
+      if (sessionUser) {
+        try {
+          const userData = JSON.parse(sessionUser);
+          if (userData.id && userData.username) {
+            setCurrentUser({ id: userData.id, username: userData.username });
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing session user data:", e);
+        }
+      }
+
+      // Fallback to Supabase auth session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Fetch user profile from database
+        const { data: userProfile } = await supabase
+          .from("users")
+          .select("id, username")
+          .eq("email", session.user.email)
+          .single();
+        
+        if (userProfile) {
+          setCurrentUser({ id: userProfile.id, username: userProfile.username });
+        }
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
   // Check if user is already registered for this event
@@ -427,7 +464,7 @@ const EventDetails: React.FC = () => {
                             onClick={() => navigate("/login")}
                             className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
                           >
-                            Log In to Purchase
+                            Purchase
                           </Button>
                         </div>
                       )
