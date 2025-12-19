@@ -36,10 +36,9 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRenderedRef = useRef(false);
-
-  const PAYPAL_CLIENT_ID = "AQVQ2hfnHQo1MBYcsi2";
 
   // Render PayPal button
   const renderButton = useCallback(() => {
@@ -192,36 +191,71 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
     }).render(containerRef.current);
   }, [eventId, eventName, eventPrice, eventOwnerId, buyerId, buyerUsername, onSuccess, onError, toast]);
 
-  // Load PayPal SDK
+  // Load PayPal config (client id) then load PayPal SDK
   useEffect(() => {
-    if (eventPrice <= 0 || disabled) {
-      setIsLoading(false);
-      return;
-    }
+    let cancelled = false;
+
+    const fetchPayPalConfig = async () => {
+      if (eventPrice <= 0 || disabled) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const { data, error } = await supabase.functions.invoke("paypal-config", {
+          body: {},
+        });
+
+        if (cancelled) return;
+
+        if (error || !data?.clientId) {
+          console.error("Failed to load PayPal config:", error || data);
+          setError("Failed to load payment system");
+          setIsLoading(false);
+          return;
+        }
+
+        setPaypalClientId(data.clientId);
+      } catch (e) {
+        console.error("Failed to load PayPal config:", e);
+        setError("Failed to load payment system");
+        setIsLoading(false);
+      }
+    };
+
+    fetchPayPalConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [eventPrice, disabled]);
+
+  useEffect(() => {
+    if (!paypalClientId || eventPrice <= 0 || disabled) return;
 
     const loadPayPalScript = () => {
-      // Check if script already exists
-      const existingScript = document.querySelector(
-        'script[src*="paypal.com/sdk/js"]'
-      );
+      const existingScript =
+        document.querySelector('script[data-paypal-sdk="true"]') ||
+        document.querySelector('script[src*="paypal.com/sdk/js"]');
 
+      // If PayPal is already available, just render.
       if (existingScript && (window as any).paypal) {
         setIsLoading(false);
         renderButton();
         return;
       }
 
+      // If a previous attempt left a script tag behind (or it failed), remove it and try fresh.
       if (existingScript) {
-        existingScript.addEventListener("load", () => {
-          setIsLoading(false);
-          renderButton();
-        });
-        return;
+        existingScript.remove();
       }
 
-      // Create and append PayPal script
       const script = document.createElement("script");
-      script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
+      script.setAttribute("data-paypal-sdk", "true");
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(paypalClientId)}&currency=USD&intent=capture`;
       script.async = true;
 
       script.onload = () => {
@@ -244,7 +278,7 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
     return () => {
       buttonRenderedRef.current = false;
     };
-  }, [eventPrice, disabled, renderButton, PAYPAL_CLIENT_ID]);
+  }, [paypalClientId, eventPrice, disabled, renderButton]);
 
   // Free event - no payment needed
   if (eventPrice <= 0) {
