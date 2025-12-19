@@ -183,7 +183,6 @@ const ReferrerDisplay: React.FC<ReferrerDisplayProps> = ({
         <p className="text-white font-semibold text-sm bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
           @{referrerData.username}
         </p>
-        <div className="text-xs text-gray-400 mt-0.5">Referrer</div>
       </div>
     </div>
   );
