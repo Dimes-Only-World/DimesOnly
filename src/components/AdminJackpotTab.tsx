@@ -23,6 +23,9 @@ import {
   DollarSign,
   Loader2,
   List,
+  RotateCcw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Dialog,
@@ -71,8 +74,12 @@ const AdminJackpotTab: React.FC = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const { toast } = useToast();
-  const [forceCode, setForceCode] = useState("");
+  
+  // Double-entry verification state
+  const [entryStep, setEntryStep] = useState<'enter' | 'confirm' | 'ready'>('enter');
+  const [firstCode, setFirstCode] = useState("");
   const [confirmCode, setConfirmCode] = useState("");
+  const [codeError, setCodeError] = useState("");
 
   // Recent codes dialog state
   const [pickOpen, setPickOpen] = useState(false);
@@ -371,10 +378,67 @@ const AdminJackpotTab: React.FC = () => {
     }
   };
 
-  const runDraw = async () => {
+  // Handle first code entry - when 5 chars entered, mask and move to confirm step
+  const handleFirstCodeChange = (value: string) => {
+    const cleaned = value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 5);
+    setFirstCode(cleaned);
+    setCodeError("");
+    
+    if (cleaned.length === 5) {
+      // Move to confirm step after a brief delay to show the full code
+      setTimeout(() => {
+        setEntryStep('confirm');
+      }, 300);
+    }
+  };
+
+  // Handle confirm code entry - validate when 5 chars entered
+  const handleConfirmCodeChange = (value: string) => {
+    const cleaned = value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 5);
+    setConfirmCode(cleaned);
+    setCodeError("");
+    
+    if (cleaned.length === 5) {
+      // Validate codes match
+      if (cleaned === firstCode) {
+        setEntryStep('ready');
+        setCodeError("");
+      } else {
+        // Codes don't match - reset everything
+        setCodeError("Codes do not match - please try again");
+        setTimeout(() => {
+          setFirstCode("");
+          setConfirmCode("");
+          setEntryStep('enter');
+          setCodeError("");
+        }, 1500);
+      }
+    }
+  };
+
+  // Reset the code entry workflow
+  const resetCodeEntry = () => {
+    setFirstCode("");
+    setConfirmCode("");
+    setEntryStep('enter');
+    setCodeError("");
+  };
+
+  const runVerifiedDraw = async () => {
+    if (entryStep !== 'ready' || firstCode !== confirmCode) {
+      toast({
+        title: "Invalid state",
+        description: "Please complete code verification first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const code = firstCode.toUpperCase();
     setRunningDraw(true);
     try {
-      const { data, error } = await supabase.rpc("api_jackpot_run_draw", {
+      const { data, error } = await supabase.rpc("api_jackpot_run_draw_force", {
+        p_force_code: code,
         p_now: new Date().toISOString(),
       });
       if (error) {
@@ -385,80 +449,23 @@ const AdminJackpotTab: React.FC = () => {
         });
         throw error;
       }
-      toast({
-        title: "Draw completed",
-        description: "Weekly draw executed successfully.",
-      });
-      await refreshAll();
-    } catch (e: any) {
-      console.error(e);
-    } finally {
-      setRunningDraw(false);
-    }
-  };
-
-  const runForcedDraw = async () => {
-    const code = (forceCode || "").trim().toUpperCase();
-    if (!/^[A-Z]{5}$/.test(code)) {
-      toast({
-        title: "Invalid code",
-        description: "Enter a 5-letter code (A–Z).",
-        variant: "destructive",
-      });
-      return;
-    }
-    setRunningDraw(true);
-    try {
-      const { data, error } = await supabase.rpc("api_jackpot_run_draw_force", {
-        p_force_code: code,
-        p_now: new Date().toISOString(),
-      });
-      if (error) {
+      
+      const result = data as { ok?: boolean; had_winner?: boolean; message?: string } | null;
+      
+      if (result?.had_winner) {
         toast({
-          title: "Forced draw failed",
-          description: error.message,
-          variant: "destructive",
+          title: "Winner found!",
+          description: `Draw completed with code ${code}. Winners have been recorded.`,
         });
-        throw error;
-      }
-      toast({
-        title: "Forced draw completed",
-        description: `Draw executed with code ${code}.`,
-      });
-      await refreshAll();
-    } catch (e: any) {
-      console.error(e);
-    } finally {
-      setRunningDraw(false);
-    }
-  };
-
-  const runRolloverNow = async () => {
-    setRunningDraw(true);
-    try {
-      const { data, error } = await supabase.rpc("api_jackpot_close_and_open", {
-        p_now: new Date().toISOString(),
-      });
-      const res = (data || {}) as {
-        ok?: boolean;
-        error?: string;
-        carried_rollover?: number;
-      };
-      if (error || !res?.ok) {
-        const msg = error?.message || res?.error || "Rollover failed";
+      } else {
         toast({
-          title: "Rollover failed",
-          description: msg,
-          variant: "destructive",
+          title: "No winner - Rolled over",
+          description: `No matching ticket for ${code}. All tickets and pool rolled over to next week.`,
         });
-        throw error || new Error(msg);
       }
-      toast({
-        title: "Pool advanced",
-        description: `Closed current pool and opened next (carried: $${Number(
-          res.carried_rollover || 0
-        ).toFixed(2)})`,
-      });
+      
+      // Reset code entry after successful draw
+      resetCodeEntry();
       await refreshAll();
     } catch (e: any) {
       console.error(e);
@@ -611,8 +618,10 @@ const AdminJackpotTab: React.FC = () => {
   
   const pickThisCode = (value: string) => {
     const code = value.toUpperCase();
-    setForceCode(code);
+    setFirstCode(code);
     setConfirmCode(code);
+    setEntryStep('ready');
+    setCodeError("");
     setPickOpen(false);
   };
   
@@ -702,65 +711,144 @@ const AdminJackpotTab: React.FC = () => {
               )}
             </div>
 
-            <div className="ml-auto flex flex-wrap items-center gap-2">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={forceCode}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setForceCode(e.target.value.toUpperCase())
-                    }
-                    placeholder="Enter code (ABCDE)"
-                    className="w-36"
-                    maxLength={5}
-                  />
-                  <Input
-                    value={confirmCode}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setConfirmCode(e.target.value.toUpperCase())
-                    }
-                    placeholder="Confirm code"
-                    className="w-36"
-                    maxLength={5}
-                  />
-                </div>
-                {forceCode && confirmCode && forceCode !== confirmCode && (
-                  <p className="text-xs text-red-500">Codes do not match</p>
-                )}
-                {forceCode && confirmCode && forceCode === confirmCode && /^[A-Z]{5}$/.test(forceCode) && (
-                  <p className="text-xs text-green-500">Codes match ✓</p>
-                )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Double-Entry Verification Draw Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Play className="w-5 h-5 text-green-600" />
+            Weekly Draw - Double Verification
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Step 1: Enter Code */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge variant={entryStep === 'enter' ? 'default' : 'secondary'}>
+                  Step 1
+                </Badge>
+                <span className="text-sm font-medium">Enter Winning Code</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={openPickCodes}
-                  disabled={runningDraw || !pool?.pool_id}
-                >
-                  <List className="w-4 h-4 mr-2" />
-                  Pick Code
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={
-                    runningDraw || 
-                    !/^[A-Z]{5}$/.test(forceCode || "") ||
-                    forceCode !== confirmCode
-                  }
-                  onClick={runForcedDraw}
-                >
-                  {runningDraw ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : null}
-                  Force Draw
-                </Button>
+                {entryStep === 'enter' ? (
+                  <Input
+                    value={firstCode}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleFirstCodeChange(e.target.value)
+                    }
+                    placeholder="Enter 5-letter code (A-Z)"
+                    className="w-48 font-mono text-lg tracking-widest uppercase"
+                    maxLength={5}
+                    disabled={runningDraw}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-48 h-10 px-3 py-2 border rounded-md bg-muted flex items-center">
+                      <span className="font-mono text-lg tracking-widest text-muted-foreground">
+                        •••••
+                      </span>
+                    </div>
+                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Hidden for verification</span>
+                  </div>
+                )}
+                {entryStep === 'enter' && firstCode.length > 0 && firstCode.length < 5 && (
+                  <span className="text-xs text-muted-foreground">
+                    {5 - firstCode.length} more letters needed
+                  </span>
+                )}
               </div>
+            </div>
+
+            {/* Step 2: Confirm Code */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge variant={entryStep === 'confirm' ? 'default' : 'secondary'}>
+                  Step 2
+                </Badge>
+                <span className="text-sm font-medium">Confirm Code</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={confirmCode}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleConfirmCodeChange(e.target.value)
+                  }
+                  placeholder={entryStep === 'enter' ? "Complete Step 1 first" : "Re-enter the code to confirm"}
+                  className="w-48 font-mono text-lg tracking-widest uppercase"
+                  maxLength={5}
+                  disabled={entryStep === 'enter' || entryStep === 'ready' || runningDraw}
+                />
+                <Eye className="w-4 h-4 text-muted-foreground" />
+                {entryStep === 'confirm' && confirmCode.length > 0 && confirmCode.length < 5 && (
+                  <span className="text-xs text-muted-foreground">
+                    {5 - confirmCode.length} more letters needed
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Status Messages */}
+            {codeError && (
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <span className="text-sm text-destructive font-medium">❌ {codeError}</span>
+              </div>
+            )}
+            
+            {entryStep === 'ready' && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md dark:bg-green-950 dark:border-green-800">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="text-sm text-green-700 dark:text-green-300 font-medium">
+                  Codes match! Ready to run draw with code: <span className="font-mono font-bold">{firstCode}</span>
+                </span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <Button
+                variant="default"
+                size="lg"
+                disabled={entryStep !== 'ready' || runningDraw}
+                onClick={runVerifiedDraw}
+                className="min-w-[200px]"
+              >
+                {runningDraw ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4 mr-2" />
+                )}
+                {entryStep === 'ready' ? `Run Draw with ${firstCode}` : 'Run Draw'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={openPickCodes}
+                disabled={runningDraw || !pool?.pool_id}
+              >
+                <List className="w-4 h-4 mr-2" />
+                Pick from List
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={resetCodeEntry}
+                disabled={runningDraw || (entryStep === 'enter' && firstCode.length === 0)}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
 
               <Button
                 variant="outline"
                 onClick={refreshAll}
                 disabled={loading || runningDraw}
+                className="ml-auto"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -769,35 +857,14 @@ const AdminJackpotTab: React.FC = () => {
                 )}
                 Refresh
               </Button>
-              <Button onClick={runDraw} disabled={runningDraw} variant="default">
-                {runningDraw ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Play className="w-4 h-4 mr-2" />
-                )}
-                Run Draw
-              </Button>
-              <Button
-                variant="outline"
-                onClick={runRolloverNow}
-                disabled={runningDraw}
-                title="Close current pool and open the next week (carries rollover)"
-              >
-                {runningDraw ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Close & Open Next
-              </Button>
+            </div>
+
+            {/* Info */}
+            <div className="text-xs text-muted-foreground pt-2 border-t">
+              <p><strong>How it works:</strong> Enter the winning code in Step 1 (it will be hidden), then re-enter in Step 2 to confirm. If codes don't match, you'll need to start over.</p>
+              <p className="mt-1"><strong>No winner?</strong> All tickets and the pool will automatically roll over to next Saturday's draw.</p>
             </div>
           </div>
-
-          {latestDrawInfo && (
-            <div className="mt-4 text-sm text-gray-600">
-              Last draw candidate (from winners list):{" "}
-              <span className="font-medium">{latestDrawInfo.code}</span> at{" "}
-              {new Date(latestDrawInfo.executed_at).toLocaleString()}
-            </div>
-          )}
         </CardContent>
       </Card>
 
