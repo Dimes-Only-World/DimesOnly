@@ -624,7 +624,7 @@ const TipPage: React.FC = () => {
 
       {/* Payment Method Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="bg-white max-w-lg min-h-[85vh] max-h-[95vh] overflow-y-auto">
+        <DialogContent className="bg-white w-[95vw] sm:w-full max-w-lg max-h-[90vh] sm:max-h-[95vh] overflow-y-auto transition-all duration-300 ease-in-out">
           <DialogHeader>
             <DialogTitle className="text-gray-900 flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
@@ -635,7 +635,7 @@ const TipPage: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-4 transition-all duration-300 ease-in-out">
             {/* Payment Method Selection */}
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-700">
@@ -671,26 +671,28 @@ const TipPage: React.FC = () => {
 
             {/* Card Payment Form */}
             {paymentFormData.paymentMethod === "debit_card" && (
-              <CreditCardForm
-                cardNumber={paymentFormData.cardNumber}
-                expiryMonth={paymentFormData.expiryMonth}
-                expiryYear={paymentFormData.expiryYear}
-                cvv={paymentFormData.cvv}
-                cardHolderName={paymentFormData.cardHolderName}
-                onCardNumberChange={(value) => updatePaymentFormData("cardNumber", value)}
-                onExpiryMonthChange={(value) => updatePaymentFormData("expiryMonth", value)}
-                onExpiryYearChange={(value) => updatePaymentFormData("expiryYear", value)}
-                onCvvChange={(value) => updatePaymentFormData("cvv", value)}
-                onCardHolderNameChange={(value) => updatePaymentFormData("cardHolderName", value)}
-                amount={tipAmount}
-                onSubmit={handlePaymentSubmit}
-                isSubmitting={submittingTip}
-              />
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <CreditCardForm
+                  cardNumber={paymentFormData.cardNumber}
+                  expiryMonth={paymentFormData.expiryMonth}
+                  expiryYear={paymentFormData.expiryYear}
+                  cvv={paymentFormData.cvv}
+                  cardHolderName={paymentFormData.cardHolderName}
+                  onCardNumberChange={(value) => updatePaymentFormData("cardNumber", value)}
+                  onExpiryMonthChange={(value) => updatePaymentFormData("expiryMonth", value)}
+                  onExpiryYearChange={(value) => updatePaymentFormData("expiryYear", value)}
+                  onCvvChange={(value) => updatePaymentFormData("cvv", value)}
+                  onCardHolderNameChange={(value) => updatePaymentFormData("cardHolderName", value)}
+                  amount={tipAmount}
+                  onSubmit={handlePaymentSubmit}
+                  isSubmitting={submittingTip}
+                />
+              </div>
             )}
 
             {/* PayPal Info */}
             {paymentFormData.paymentMethod === "paypal" && (
-              <div className="space-y-4">
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-3">
@@ -755,11 +757,11 @@ const TipPage: React.FC = () => {
               </div>
             )}
 
-            {/* Show message when no payment method selected */}
+            {/* Show message when no payment method selected - compact version */}
             {!paymentFormData.paymentMethod && (
-              <div className="text-center py-8 text-gray-500">
-                <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>Select a payment method above to continue</p>
+              <div className="text-center py-4 text-gray-500">
+                <CreditCard className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Select a payment method above to continue</p>
               </div>
             )}
           </div>
