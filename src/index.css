@@ -153,9 +153,16 @@ div[data-paypal-overlay] {
   backdrop-filter: blur(8px) !important;
 }
 
-/* Style the PayPal card fields popup/modal - INCREASED HEIGHT */
-iframe[name^="__zoid__paypal"],
-iframe[title*="PayPal"] {
+/* PayPal inline button container - prevent protruding */
+.paypal-button-container iframe {
+  min-height: auto !important;
+  height: auto !important;
+}
+
+/* Style the PayPal POPUP/OVERLAY modals only - not inline buttons */
+.paypal-checkout-sandbox iframe[name^="__zoid__paypal"],
+.paypal-overlay-context-popup iframe[name^="__zoid__paypal"],
+div[data-paypal-overlay] iframe[name^="__zoid__paypal"] {
   min-height: 1100px !important;
   max-height: 100vh !important;
   height: auto !important;
@@ -167,16 +174,15 @@ iframe[title*="PayPal"] {
 }
 
 /* Allow scrolling inside PayPal card form modals */
-body.paypal-overlay-open,
-body:has(iframe[name^="__zoid__paypal"]) {
+body.paypal-overlay-open {
   overflow: auto !important;
   position: static !important;
   height: auto !important;
 }
 
-/* PayPal overlay modal scrolling and positioning */
-div[class*="paypal"] iframe,
-.zoid-outlet iframe {
+/* PayPal overlay modal scrolling and positioning - only for popups */
+.paypal-checkout-sandbox .zoid-outlet iframe,
+.paypal-overlay-context-popup .zoid-outlet iframe {
   min-height: 1100px !important;
   max-height: 100vh !important;
   height: auto !important;
