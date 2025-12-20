@@ -624,8 +624,8 @@ const TipPage: React.FC = () => {
 
       {/* Payment Method Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="bg-white max-w-lg h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
+        <DialogContent className="bg-white max-w-lg min-h-[85vh] max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
             <DialogTitle className="text-gray-900 flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
               Payment - ${tipAmount.toFixed(2)}
@@ -635,7 +635,7 @@ const TipPage: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="space-y-6">
             {/* Payment Method Selection */}
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-700">
