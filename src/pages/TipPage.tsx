@@ -35,7 +35,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Gift,
+  Lock,
 } from "lucide-react";
+import CreditCardForm from "@/components/CreditCardForm";
 import { useMobileLayout } from "@/hooks/use-mobile";
 
 interface UserData {
@@ -622,249 +624,157 @@ const TipPage: React.FC = () => {
 
       {/* Payment Method Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="bg-white max-w-lg max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-gray-900 flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              Choose Payment Method - ${tipAmount.toFixed(2)}
+              Payment - ${tipAmount.toFixed(2)}
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Select how you'd like to pay for your tip
+              Select how you'd like to pay for your tip to @{targetUser?.username}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="overflow-y-auto max-h-[60vh] space-y-6">
+          <div className="space-y-6 py-2">
             {/* Payment Method Selection */}
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-700">
-                Payment Method *
+                Payment Method
               </Label>
-              <Select
-                value={paymentFormData.paymentMethod}
-                onValueChange={(value: "paypal" | "debit_card") =>
-                  updatePaymentFormData("paymentMethod", value)
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paypal">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="w-4 h-4" />
-                      PayPal (Redirects to PayPal)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="debit_card">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4" />
-                      Debit/Credit Card
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => updatePaymentFormData("paymentMethod", "paypal")}
+                  className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    paymentFormData.paymentMethod === "paypal"
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                  }`}
+                >
+                  <Wallet className="w-5 h-5" />
+                  <span className="font-medium">PayPal</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updatePaymentFormData("paymentMethod", "debit_card")}
+                  className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    paymentFormData.paymentMethod === "debit_card"
+                      ? "border-pink-500 bg-pink-50 text-pink-700"
+                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  <span className="font-medium">Card</span>
+                </button>
+              </div>
             </div>
 
             {/* Card Payment Form */}
             {paymentFormData.paymentMethod === "debit_card" && (
-              <Card className="border-blue-200 bg-blue-50">
-                <CardHeader>
-                  <CardTitle className="text-lg text-blue-700 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5" />
-                    Card Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label
-                      htmlFor="cardNumber"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Card Number *
-                    </Label>
-                    <Input
-                      id="cardNumber"
-                      value={paymentFormData.cardNumber}
-                      onChange={(e) =>
-                        updatePaymentFormData("cardNumber", e.target.value)
-                      }
-                      placeholder="1234 5678 9012 3456"
-                      className="mt-1"
-                      maxLength={19}
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="expiryMonth"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        Month *
-                      </Label>
-                      <Select
-                        value={paymentFormData.expiryMonth}
-                        onValueChange={(value) =>
-                          updatePaymentFormData("expiryMonth", value)
-                        }
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="MM" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                            (month) => (
-                              <SelectItem
-                                key={month}
-                                value={month.toString().padStart(2, "0")}
-                              >
-                                {month.toString().padStart(2, "0")}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="expiryYear"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        Year *
-                      </Label>
-                      <Select
-                        value={paymentFormData.expiryYear}
-                        onValueChange={(value) =>
-                          updatePaymentFormData("expiryYear", value)
-                        }
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="YYYY" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from(
-                            { length: 10 },
-                            (_, i) => new Date().getFullYear() + i
-                          ).map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="cvv"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        CVV *
-                      </Label>
-                      <Input
-                        id="cvv"
-                        value={paymentFormData.cvv}
-                        onChange={(e) =>
-                          updatePaymentFormData("cvv", e.target.value)
-                        }
-                        placeholder="123"
-                        className="mt-1"
-                        maxLength={4}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="cardHolderName"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Cardholder Name *
-                    </Label>
-                    <Input
-                      id="cardHolderName"
-                      value={paymentFormData.cardHolderName}
-                      onChange={(e) =>
-                        updatePaymentFormData("cardHolderName", e.target.value)
-                      }
-                      placeholder="John Doe"
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <CreditCardForm
+                cardNumber={paymentFormData.cardNumber}
+                expiryMonth={paymentFormData.expiryMonth}
+                expiryYear={paymentFormData.expiryYear}
+                cvv={paymentFormData.cvv}
+                cardHolderName={paymentFormData.cardHolderName}
+                onCardNumberChange={(value) => updatePaymentFormData("cardNumber", value)}
+                onExpiryMonthChange={(value) => updatePaymentFormData("expiryMonth", value)}
+                onExpiryYearChange={(value) => updatePaymentFormData("expiryYear", value)}
+                onCvvChange={(value) => updatePaymentFormData("cvv", value)}
+                onCardHolderNameChange={(value) => updatePaymentFormData("cardHolderName", value)}
+                amount={tipAmount}
+                onSubmit={handlePaymentSubmit}
+                isSubmitting={submittingTip}
+              />
             )}
 
             {/* PayPal Info */}
             {paymentFormData.paymentMethod === "paypal" && (
-              <Card className="border-yellow-200 bg-yellow-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <Wallet className="w-5 h-5 text-yellow-600 mt-0.5" />
-                    <div className="text-sm text-yellow-800">
-                      <p className="font-medium mb-1">PayPal Payment</p>
-                      <p>
-                        You will be redirected to PayPal to complete your
-                        payment securely.
-                      </p>
+              <div className="space-y-4">
+                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <Wallet className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium mb-1">PayPal Secure Checkout</p>
+                        <p className="text-blue-600">
+                          You'll be redirected to PayPal to complete your payment securely.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Security Notice */}
+                <Card className="border-green-200 bg-green-50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                      <div className="text-sm text-green-800">
+                        <p className="font-medium mb-1">Secure Payment</p>
+                        <ul className="space-y-1 text-xs text-green-700">
+                          <li className="flex items-center gap-1.5">
+                            <Lock className="w-3 h-3" />
+                            Your payment information is encrypted
+                          </li>
+                          <li>
+                            • {Math.floor(tipAmount)} jackpot ticket
+                            {Math.floor(tipAmount) !== 1 ? "s" : ""} will be added
+                          </li>
+                          {referrerUsername && (
+                            <li>
+                              • @{referrerUsername} receives 20% commission
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* PayPal Submit Button */}
+                <Button
+                  onClick={handlePaymentSubmit}
+                  disabled={submittingTip}
+                  className="w-full h-14 text-lg font-bold rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
+                >
+                  {submittingTip ? (
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <span>Connecting to PayPal...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Wallet className="w-5 h-5" />
+                      <span>Pay ${tipAmount.toFixed(2)} with PayPal</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             )}
 
-            {/* Security Notice */}
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div className="text-sm text-green-800">
-                    <p className="font-medium mb-1">Secure Payment</p>
-                    <ul className="space-y-1 text-xs">
-                      <li>
-                        • Your payment information is encrypted and secure
-                      </li>
-                      <li>
-                        • {Math.floor(tipAmount)} jackpot ticket
-                        {Math.floor(tipAmount) !== 1 ? "s" : ""} will be added
-                        automatically
-                      </li>
-                      {referrerUsername && (
-                        <li>
-                          • @{referrerUsername} will receive 20% referral
-                          commission
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Show message when no payment method selected */}
+            {!paymentFormData.paymentMethod && (
+              <div className="text-center py-8 text-gray-500">
+                <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>Select a payment method above to continue</p>
+              </div>
+            )}
           </div>
 
-          <DialogFooter className="border-t pt-4">
+          {/* Cancel button at bottom */}
+          <div className="border-t pt-4 mt-2">
             <Button
               variant="outline"
               onClick={() => setShowPaymentDialog(false)}
               disabled={submittingTip}
+              className="w-full"
             >
               Cancel
             </Button>
-            <Button
-              onClick={handlePaymentSubmit}
-              disabled={!paymentFormData.paymentMethod || submittingTip}
-              className="bg-pink-600 hover:bg-pink-700"
-            >
-              {submittingTip ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Processing...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Gift className="w-4 h-4" />
-                  Send Tip ${tipAmount.toFixed(2)}
-                </div>
-              )}
-            </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
