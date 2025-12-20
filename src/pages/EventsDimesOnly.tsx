@@ -1196,21 +1196,25 @@ const EventsDimesOnly: React.FC = () => {
 
                 {/* Videos */}
                 {selectedEvent?.video_urls &&
-                  selectedEvent.video_urls.length > 0 && (
+                  selectedEvent.video_urls.filter(Boolean).length > 0 && (
                     <div className="mb-3">
                       <h4 className="font-semibold text-gray-300 mb-2 text-sm">
-                        Videos ({selectedEvent.video_urls.length})
+                        Videos ({selectedEvent.video_urls.filter(Boolean).length})
                       </h4>
                       <div className="space-y-2">
                         {selectedEvent.video_urls
+                          .filter(Boolean)
                           .slice(0, 2)
                           .map((video, index) => (
                             <div key={index} className="relative">
                               <video
-                                src={video}
                                 className="w-full h-20 object-cover rounded"
                                 controls
-                              />
+                                playsInline
+                                preload="metadata"
+                              >
+                                <source src={video} type="video/mp4" />
+                              </video>
                             </div>
                           ))}
                       </div>

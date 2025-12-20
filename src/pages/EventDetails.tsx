@@ -548,20 +548,23 @@ const EventDetails: React.FC = () => {
                   )}
 
                   {/* Videos */}
-                  {event.video_urls && event.video_urls.length > 0 && (
+                  {event.video_urls && event.video_urls.filter(Boolean).length > 0 && (
                     <div>
                       <h4 className="font-semibold text-gray-300 mb-3 text-sm flex items-center gap-2">
                         <Play className="h-4 w-4" />
-                        Videos ({event.video_urls.length})
+                        Videos ({event.video_urls.filter(Boolean).length})
                       </h4>
                       <div className="space-y-3">
-                        {event.video_urls.map((video, index) => (
+                        {event.video_urls.filter(Boolean).map((video, index) => (
                           <div key={index} className="relative">
                             <video
-                              src={video}
                               className="w-full h-40 md:h-48 object-cover rounded-lg"
                               controls
-                            />
+                              playsInline
+                              preload="metadata"
+                            >
+                              <source src={video} type="video/mp4" />
+                            </video>
                           </div>
                         ))}
                       </div>
