@@ -23,3 +23,39 @@ verify_jwt = false
 
 [functions.capture-event-payment]
 verify_jwt = false
+
+[functions.create-paypal-order]
+verify_jwt = false
+
+[functions.create-paypal-subscription]
+verify_jwt = false
+
+[functions.paypal-config]
+verify_jwt = false
+
+[functions.paypal-webhook]
+verify_jwt = false
+
+[functions.paypal-webhook-public]
+verify_jwt = false
+
+[functions.paypal-webhook-simple]
+verify_jwt = false
+
+[functions.paypal-subscription-webhook]
+verify_jwt = false
+
+[functions.paypal-webhook-events]
+verify_jwt = false
+
+[functions.membership-webhook]
+verify_jwt = false
+
+[functions.tip-webhook]
+verify_jwt = false
+
+[functions.process-tip]
+verify_jwt = false
+
+[functions.create-membership-order]
+verify_jwt = false
