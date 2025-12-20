@@ -156,7 +156,7 @@ div[data-paypal-overlay] {
 /* Style the PayPal card fields popup/modal - INCREASED HEIGHT */
 iframe[name^="__zoid__paypal"],
 iframe[title*="PayPal"] {
-  min-height: 850px !important;
+  min-height: 1000px !important;
   max-height: 100vh !important;
   height: auto !important;
   max-width: 95vw !important;
@@ -177,7 +177,7 @@ body:has(iframe[name^="__zoid__paypal"]) {
 /* PayPal overlay modal scrolling and positioning */
 div[class*="paypal"] iframe,
 .zoid-outlet iframe {
-  min-height: 850px !important;
+  min-height: 1000px !important;
   max-height: 100vh !important;
   height: auto !important;
   overflow-y: auto !important;
