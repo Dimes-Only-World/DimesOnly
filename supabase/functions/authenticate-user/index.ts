@@ -118,19 +118,22 @@ Deno.serve(async (req) => {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Try exact username match first
+    // Check if input looks like an email
+    const isEmail = username.includes('@');
+    
+    // Try exact match first (username or email)
     let { data: user, error } = await supabase
       .from('users')
       .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type')
-      .eq('username', username)
+      .eq(isEmail ? 'email' : 'username', username.toLowerCase())
       .single();
 
-    // Fallback: case-insensitive username search
+    // Fallback: case-insensitive search by username or email
     if (error || !user) {
       const { data: users, error: searchError } = await supabase
         .from('users')
         .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type')
-        .ilike('username', username);
+        .ilike(isEmail ? 'email' : 'username', username);
       
       if (!searchError && users && users.length > 0) {
         user = users[0];
