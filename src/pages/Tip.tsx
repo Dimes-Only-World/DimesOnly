@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -97,6 +97,8 @@ const Tip: React.FC = () => {
   const [hasLiked, setHasLiked] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [paypalError, setPaypalError] = useState<string | null>(null);
+  const paypalButtonRendered = useRef(false);
+  const paypalContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (tipUsername) {
@@ -209,14 +211,18 @@ const Tip: React.FC = () => {
     }
   };
 
-  const renderPayPalButton = (containerId: string, amount: number) => {
+  const renderPayPalButton = (amount: number) => {
     if (!window.paypal || amount <= 0) return;
 
-    const container = document.getElementById(containerId);
+    const container = paypalContainerRef.current;
     if (!container) return;
 
-    // Clear any existing buttons
-    container.innerHTML = "";
+    // Prevent multiple renders
+    if (paypalButtonRendered.current) {
+      container.innerHTML = "";
+    }
+
+    paypalButtonRendered.current = true;
 
     window.paypal
       .Buttons({
@@ -286,6 +292,7 @@ const Tip: React.FC = () => {
           }
           console.error("PayPal error:", err);
           setPaypalError("Payment failed. Please try again.");
+          paypalButtonRendered.current = false;
         },
       })
       .render(container);
@@ -294,8 +301,10 @@ const Tip: React.FC = () => {
   // Re-render PayPal button when amount changes (minimum $5)
   useEffect(() => {
     if (paypalLoaded && tipAmount >= 5 && currentUser && userData) {
-      const containerId = `paypal-button-container-${tipAmount}`;
-      setTimeout(() => renderPayPalButton(containerId, tipAmount), 100);
+      // Clear previous button and re-render with new amount
+      paypalButtonRendered.current = false;
+      const timer = setTimeout(() => renderPayPalButton(tipAmount), 100);
+      return () => clearTimeout(timer);
     }
   }, [paypalLoaded, tipAmount, currentUser, userData]);
 
@@ -846,7 +855,7 @@ const Tip: React.FC = () => {
                         </div>
                       ) : (
                         <div className="w-full">
-                          <div id={`paypal-button-container-${tipAmount}`} />
+                          <div ref={paypalContainerRef} />
                         </div>
                       )}
 
