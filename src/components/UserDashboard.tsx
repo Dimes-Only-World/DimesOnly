@@ -94,11 +94,29 @@ const UserDashboard: React.FC = () => {
 
   const getCurrentUser = async () => {
     try {
+      // First check sessionStorage for custom auth user data
+      const savedUserData = sessionStorage.getItem("userData");
+      if (savedUserData) {
+        try {
+          const parsedUser = JSON.parse(savedUserData);
+          if (parsedUser?.id) {
+            console.log("Found user in sessionStorage:", parsedUser.id);
+            await fetchUserDataById(parsedUser.id);
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing saved user data:", e);
+        }
+      }
+
+      // Fallback to Supabase auth
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();
       if (currentUser?.id) {
         await fetchUserDataById(currentUser.id);
+      } else {
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error getting current user:", error);
