@@ -11,11 +11,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Calendar, Star, Heart, Play, Loader2 } from "lucide-react";
+import { MapPin, User, Calendar, Star, Heart, Play, Loader2, CreditCard } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
+import CreditCardForm from "@/components/CreditCardForm";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+
+type PaymentMethod = "paypal" | "card";
+
 const SOLD_OUT_MESSAGE =
   "Jackpot is maxed out for the upcoming drawing. Tipping will resume at Saturday 12:00 am PST.";
 
@@ -61,6 +65,14 @@ const Tip: React.FC = () => {
   const [hasLiked, setHasLiked] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paypal");
+  
+  // Credit card form state
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardHolderName, setCardHolderName] = useState("");
 
   useEffect(() => {
     if (tipUsername) {
@@ -754,7 +766,34 @@ const Tip: React.FC = () => {
                         Complete Your Tip
                       </h3>
 
-                      {paymentError ? (
+                      {/* Payment Method Tabs */}
+                      <div className="flex gap-2 mb-4">
+                        <Button
+                          onClick={() => setPaymentMethod("paypal")}
+                          variant={paymentMethod === "paypal" ? "default" : "outline"}
+                          className={`flex-1 ${
+                            paymentMethod === "paypal"
+                              ? "bg-[#0070ba] hover:bg-[#005ea6] text-white"
+                              : "border-white/30 text-white hover:bg-white/10"
+                          }`}
+                        >
+                          PayPal
+                        </Button>
+                        <Button
+                          onClick={() => setPaymentMethod("card")}
+                          variant={paymentMethod === "card" ? "default" : "outline"}
+                          className={`flex-1 ${
+                            paymentMethod === "card"
+                              ? "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
+                              : "border-white/30 text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Card
+                        </Button>
+                      </div>
+
+                      {paymentError && (
                         <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200 mb-4">
                           <p className="text-red-600">{paymentError}</p>
                           <Button
@@ -765,7 +804,9 @@ const Tip: React.FC = () => {
                             Try Again
                           </Button>
                         </div>
-                      ) : (
+                      )}
+
+                      {!paymentError && paymentMethod === "paypal" && (
                         <Button
                           onClick={handlePayWithPayPal}
                           disabled={isProcessingPayment}
@@ -780,6 +821,29 @@ const Tip: React.FC = () => {
                             <>Pay ${tipAmount} with PayPal</>
                           )}
                         </Button>
+                      )}
+
+                      {!paymentError && paymentMethod === "card" && (
+                        <CreditCardForm
+                          cardNumber={cardNumber}
+                          expiryMonth={expiryMonth}
+                          expiryYear={expiryYear}
+                          cvv={cvv}
+                          cardHolderName={cardHolderName}
+                          onCardNumberChange={setCardNumber}
+                          onExpiryMonthChange={setExpiryMonth}
+                          onExpiryYearChange={setExpiryYear}
+                          onCvvChange={setCvv}
+                          onCardHolderNameChange={setCardHolderName}
+                          amount={tipAmount}
+                          onSubmit={() => {
+                            toast({
+                              title: "Card Payments Coming Soon",
+                              description: "Card payment processing will be available soon. Please use PayPal for now.",
+                            });
+                          }}
+                          isSubmitting={isProcessingPayment}
+                        />
                       )}
 
                       <p className="text-yellow-200 text-sm text-center mt-3">
