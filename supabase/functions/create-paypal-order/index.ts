@@ -49,7 +49,7 @@ serve(async (req) => {
       );
     }
 
-    // Determine payment type: 'event' | 'membership' | 'elite_yearly'
+    // Determine payment type: 'event' | 'membership' | 'elite_yearly' | 'tip'
     const payment_type = requestBody.payment_type || "event";
 
     // Support both camelCase and snake_case parameter names
@@ -66,6 +66,12 @@ serve(async (req) => {
     const membership_upgrade_id = requestBody.membership_upgrade_id;
     const installment_number = requestBody.installment_number || 1;
 
+    // Tip specific fields
+    const tipper_id = requestBody.tipper_id;
+    const tipper_username = requestBody.tipper_username;
+    const tipped_username = requestBody.tipped_username;
+    const tip_message = requestBody.tip_message;
+
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -74,15 +80,37 @@ serve(async (req) => {
     let customId: string;
     let event: any = null;
 
-    if (payment_type === "membership") {
+    if (payment_type === "tip") {
+      // Handle tip payment
+      if (!tipper_id || !tipped_username || !amount) {
+        throw new Error(
+          "Missing required fields for tip payment: tipper_id, tipped_username, amount"
+        );
+      }
+
+      const parsedAmount = Number(amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount < 5 || parsedAmount > 1000) {
+        throw new Error("Tip amount must be between $5 and $1000");
+      }
+
+      finalAmount = parsedAmount;
+      orderDescription = `Tip for ${tipped_username}`;
+      customId = `tip_${tipper_id}_to_${tipped_username}_${Date.now()}`;
+
+      console.log("=== Tip Payment Order Creation Started ===");
+      console.log("Tip details:", {
+        tipper_id,
+        tipper_username,
+        tipped_username,
+        amount: parsedAmount,
+      });
+    } else if (payment_type === "membership") {
       // Handle Diamond Plus membership payment
       if (!membership_upgrade_id || !user_id || !amount) {
         throw new Error(
           "Missing required fields for membership payment: membership_upgrade_id, user_id, amount"
         );
-      } else if (payment_type === "elite_yearly") {
-      // No DB side-effects here; webhook will handle granting lifetime on capture
-    }
+      }
 
       // Fetch membership upgrade details
       const { data: upgrade, error: upgradeError } = await supabase
@@ -246,7 +274,9 @@ serve(async (req) => {
         return_url: return_url,
         cancel_url: cancel_url,
         brand_name:
-          payment_type === "membership"
+          payment_type === "tip"
+            ? "Dimes Only World - Tips"
+            : payment_type === "membership"
             ? "Dimes Only World - Diamond Plus"
             : payment_type === "elite_yearly"
             ? "Dimes Only World - Elite"
@@ -361,7 +391,9 @@ serve(async (req) => {
         approval_url: approvalUrl,
         amount: finalAmount,
         event_name:
-          payment_type === "membership"
+          payment_type === "tip"
+            ? `Tip for ${tipped_username}`
+            : payment_type === "membership"
             ? "Diamond Plus Membership"
             : payment_type === "elite_yearly"
             ? "Elite Lifetime"
