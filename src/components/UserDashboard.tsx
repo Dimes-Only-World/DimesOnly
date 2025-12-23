@@ -55,11 +55,25 @@ const UserDashboard: React.FC = () => {
   const [hasActiveDiamond, setHasActiveDiamond] = useState(false);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchUserDataById(user.id);
-    } else {
-      getCurrentUser();
-    }
+    const loadUserData = async () => {
+      // Check if this is a custom auth user (no Supabase session)
+      const authToken = localStorage.getItem("authToken");
+      const isCustomAuth = authToken === "authenticated" || authToken?.startsWith("authenticated_");
+      
+      if (user?.id) {
+        if (isCustomAuth) {
+          // Custom auth - use edge function to bypass RLS
+          await fetchUserViaEdgeFunction(user.id);
+        } else {
+          // Supabase auth - direct query works
+          await fetchUserDataById(user.id);
+        }
+      } else {
+        await getCurrentUser();
+      }
+    };
+    
+    loadUserData();
   }, [user?.id]);
 
   // Check for active Diamond subscription (any cadence)
