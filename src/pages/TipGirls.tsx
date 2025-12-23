@@ -16,7 +16,6 @@ import { normalizeRefParam } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 type RateFilter = "all" | "rated" | "not-rated";
-type PaymentMethod = "paypal" | "card";
 
 interface User {
   id: string;
@@ -47,7 +46,7 @@ const TipGirls: React.FC = () => {
   const [rateFilter, setRateFilter] = useState<RateFilter>("all");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paypal");
+  const [showCardForm, setShowCardForm] = useState(false);
   
   // Credit card form state
   const [cardNumber, setCardNumber] = useState("");
@@ -249,33 +248,6 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
 
                 {tipAmount >= 5 && (
                   <div className="space-y-4">
-                    {/* Payment Method Tabs */}
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setPaymentMethod("paypal")}
-                        variant={paymentMethod === "paypal" ? "default" : "outline"}
-                        className={`flex-1 ${
-                          paymentMethod === "paypal"
-                            ? "bg-[#0070ba] hover:bg-[#005ea6] text-white"
-                            : "border-white/30 text-white hover:bg-white/10"
-                        }`}
-                      >
-                        PayPal
-                      </Button>
-                      <Button
-                        onClick={() => setPaymentMethod("card")}
-                        variant={paymentMethod === "card" ? "default" : "outline"}
-                        className={`flex-1 ${
-                          paymentMethod === "card"
-                            ? "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
-                            : "border-white/30 text-white hover:bg-white/10"
-                        }`}
-                      >
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Card
-                      </Button>
-                    </div>
-
                     {paymentError && (
                       <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
                         <p className="text-red-600">{paymentError}</p>
@@ -289,44 +261,62 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                       </div>
                     )}
 
-                    {!paymentError && paymentMethod === "paypal" && (
-                      <Button
-                        onClick={handlePayWithPayPal}
-                        disabled={isProcessingPayment}
-                        className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg"
-                      >
-                        {isProcessingPayment ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Connecting to PayPal...
-                          </>
-                        ) : (
-                          <>Pay ${tipAmount} with PayPal</>
-                        )}
-                      </Button>
+                    {!paymentError && !showCardForm && (
+                      <>
+                        <Button
+                          onClick={handlePayWithPayPal}
+                          disabled={isProcessingPayment}
+                          className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg"
+                        >
+                          {isProcessingPayment ? (
+                            <>
+                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                              Connecting to PayPal...
+                            </>
+                          ) : (
+                            <>Pay ${tipAmount} with PayPal</>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => setShowCardForm(true)}
+                          className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
+                        >
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Pay with Card
+                        </Button>
+                      </>
                     )}
 
-                    {!paymentError && paymentMethod === "card" && (
-                      <CreditCardForm
-                        cardNumber={cardNumber}
-                        expiryMonth={expiryMonth}
-                        expiryYear={expiryYear}
-                        cvv={cvv}
-                        cardHolderName={cardHolderName}
-                        onCardNumberChange={setCardNumber}
-                        onExpiryMonthChange={setExpiryMonth}
-                        onExpiryYearChange={setExpiryYear}
-                        onCvvChange={setCvv}
-                        onCardHolderNameChange={setCardHolderName}
-                        amount={tipAmount}
-                        onSubmit={() => {
-                          toast({
-                            title: "Card Payments Coming Soon",
-                            description: "Card payment processing will be available soon. Please use PayPal for now.",
-                          });
-                        }}
-                        isSubmitting={isProcessingPayment}
-                      />
+                    {!paymentError && showCardForm && (
+                      <>
+                        <Button
+                          onClick={() => setShowCardForm(false)}
+                          variant="outline"
+                          className="w-full border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-2"
+                        >
+                          ← Back to PayPal
+                        </Button>
+                        <CreditCardForm
+                          cardNumber={cardNumber}
+                          expiryMonth={expiryMonth}
+                          expiryYear={expiryYear}
+                          cvv={cvv}
+                          cardHolderName={cardHolderName}
+                          onCardNumberChange={setCardNumber}
+                          onExpiryMonthChange={setExpiryMonth}
+                          onExpiryYearChange={setExpiryYear}
+                          onCvvChange={setCvv}
+                          onCardHolderNameChange={setCardHolderName}
+                          amount={tipAmount}
+                          onSubmit={() => {
+                            toast({
+                              title: "Card Payments Coming Soon",
+                              description: "Card payment processing will be available soon. Please use PayPal for now.",
+                            });
+                          }}
+                          isSubmitting={isProcessingPayment}
+                        />
+                      </>
                     )}
 
                     <p className="text-yellow-200 text-sm text-center">
