@@ -43,7 +43,7 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
 
   const handleTipWin = () => {
     const username = userData.username || "company";
-    window.open(`https://dimesonly.world/tip-girls?ref=${username}`, "_blank");
+    navigate(`/tip-girls?ref=${username}`);
   };
 
   const handleEvents = () => {
@@ -59,16 +59,12 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
 
   const handleRate = () => {
     const username = userData.username || "company";
-    window.open(
-      `https://dimesonly.world/rate-girls/?ref=${username}`,
-      "_blank"
-    );
+    navigate(`/rate-girls?ref=${username}`);
   };
 
   const handleDimes = () => {
     const username = userData.username || "company";
-    // Navigate to dedicated Dimes page
-    window.location.href = `/dimes?ref=${username}`;
+    navigate(`/dimes?ref=${username}`);
   };
 
   return (
