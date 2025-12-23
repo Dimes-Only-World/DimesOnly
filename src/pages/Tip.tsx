@@ -768,29 +768,27 @@ const Tip: React.FC = () => {
 
                       {/* Payment Method Tabs */}
                       <div className="flex gap-2 mb-4">
-                        <Button
+                        <button
                           onClick={() => setPaymentMethod("paypal")}
-                          variant={paymentMethod === "paypal" ? "default" : "outline"}
-                          className={`flex-1 ${
+                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                             paymentMethod === "paypal"
-                              ? "bg-[#0070ba] hover:bg-[#005ea6] text-white"
-                              : "border-white/30 text-white hover:bg-white/10"
+                              ? "bg-[#0070ba] text-white"
+                              : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
                           }`}
                         >
                           PayPal
-                        </Button>
-                        <Button
+                        </button>
+                        <button
                           onClick={() => setPaymentMethod("card")}
-                          variant={paymentMethod === "card" ? "default" : "outline"}
-                          className={`flex-1 ${
+                          className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
                             paymentMethod === "card"
-                              ? "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
-                              : "border-white/30 text-white hover:bg-white/10"
+                              ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
+                              : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
                           }`}
                         >
-                          <CreditCard className="w-4 h-4 mr-2" />
+                          <CreditCard className="w-4 h-4" />
                           Card
-                        </Button>
+                        </button>
                       </div>
 
                       {paymentError && (
