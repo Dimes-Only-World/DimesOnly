@@ -13,11 +13,20 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // SECURITY: Only use Supabase session for authentication
-        // localStorage/sessionStorage fallback has been removed to prevent auth bypass
+        // First, check for Supabase Auth session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          setIsAuthenticated(true);
+          return;
+        }
+        
+        // Fallback: Check for custom auth token from users table login
+        const authToken = localStorage.getItem("authToken");
+        const userData = sessionStorage.getItem("userData");
+        
+        if (authToken && userData) {
+          // Custom authentication via users table is valid
           setIsAuthenticated(true);
           return;
         }
@@ -34,9 +43,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
     checkAuth();
 
-    // Listen for auth state changes
+    // Listen for Supabase auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
+      if (event === 'SIGNED_OUT') {
+        // Also clear custom auth on Supabase signout
+        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("userData");
+        sessionStorage.removeItem("currentUser");
         setIsAuthenticated(false);
         navigate('/login');
       } else if (session) {
@@ -44,8 +57,21 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
       }
     });
 
+    // Listen for storage changes (for custom auth logout)
+    const handleStorageChange = () => {
+      const authToken = localStorage.getItem("authToken");
+      const userData = sessionStorage.getItem("userData");
+      if (!authToken && !userData) {
+        setIsAuthenticated(false);
+        navigate('/login');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [navigate]);
 
