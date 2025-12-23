@@ -108,6 +108,20 @@ serve(async (req) => {
         break;
       }
 
+      // Fetch full user data by ID (for custom auth users)
+      case 'getUserById': {
+        const { userId } = params;
+        console.log(`Fetching user by ID: ${userId}`);
+        const { data, error } = await supabaseAdmin
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       // Fetch user earnings data (for user's own dashboard)
       case 'fetchUserEarnings': {
         const { userId } = params;
