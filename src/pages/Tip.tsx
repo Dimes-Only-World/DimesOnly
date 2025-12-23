@@ -242,6 +242,92 @@ const Tip: React.FC = () => {
     }
   };
 
+  // Handle Credit Card payment via PayPal Advanced Checkout
+  const handleCardPayment = async () => {
+    if (!currentUser || !userData || tipAmount < 5) return;
+
+    setIsProcessingPayment(true);
+    setPaymentError(null);
+
+    try {
+      // Check jackpot availability first
+      const availability = await checkJackpotAvailability();
+      if (!availability.canTip) {
+        toast({
+          title: "Tip Unavailable",
+          description: availability.message || "Unable to process tip at this time.",
+          variant: "destructive",
+        });
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      console.log("Processing card payment for tip:", {
+        tipper_id: currentUser.id,
+        tipped_username: userData.username,
+        amount: tipAmount,
+      });
+
+      const { data, error } = await supabase.functions.invoke("process-card-tip", {
+        body: {
+          tipper_id: currentUser.id,
+          tipper_username: currentUser.username || currentUser.email || "anonymous",
+          tipped_username: userData.username,
+          amount: tipAmount,
+          tip_message: message,
+          referrer_username: refUsername || null,
+          card_number: cardNumber,
+          expiry_month: expiryMonth,
+          expiry_year: expiryYear,
+          cvv: cvv,
+          card_holder_name: cardHolderName,
+        },
+      });
+
+      if (error) {
+        console.error("Card payment error:", error);
+        throw new Error(error.message || "Failed to process card payment");
+      }
+
+      if (!data?.success) {
+        // Check if 3D Secure is required
+        if (data?.requires_action && data?.action_url) {
+          toast({
+            title: "Authentication Required",
+            description: "Your bank requires additional verification. Redirecting...",
+          });
+          window.location.href = data.action_url;
+          return;
+        }
+        throw new Error(data?.error || "Card payment failed");
+      }
+
+      console.log("Card payment successful:", data);
+
+      // Clear card form
+      setCardNumber("");
+      setExpiryMonth("");
+      setExpiryYear("");
+      setCvv("");
+      setCardHolderName("");
+      setShowCardForm(false);
+
+      // Show success
+      setShowSuccessDialog(true);
+    } catch (err) {
+      console.error("Card payment error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to process card payment";
+      setPaymentError(errorMessage);
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   const fetchUserData = async () => {
     try {
       setLoading(true);
@@ -826,12 +912,7 @@ const Tip: React.FC = () => {
                             onCvvChange={setCvv}
                             onCardHolderNameChange={setCardHolderName}
                             amount={tipAmount}
-                            onSubmit={() => {
-                              toast({
-                                title: "Card Payments Coming Soon",
-                                description: "Card payment processing will be available soon. Please use PayPal for now.",
-                              });
-                            }}
+                            onSubmit={handleCardPayment}
                             isSubmitting={isProcessingPayment}
                           />
                         </>

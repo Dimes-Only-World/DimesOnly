@@ -188,6 +188,88 @@ const TipGirls: React.FC = () => {
     }
   };
 
+  // Handle Credit Card payment via PayPal Advanced Checkout
+  const handleCardPayment = async () => {
+    if (!currentUser || !selectedUser || tipAmount < 5) return;
+
+    setIsProcessingPayment(true);
+    setPaymentError(null);
+
+    try {
+      console.log("Processing card payment for tip:", {
+        tipper_id: currentUser.id,
+        tipped_username: selectedUser.username,
+        amount: tipAmount,
+      });
+
+      const { data, error } = await supabase.functions.invoke("process-card-tip", {
+        body: {
+          tipper_id: currentUser.id,
+          tipper_username: currentUser.username || currentUser.email || "anonymous",
+          tipped_username: selectedUser.username,
+          amount: tipAmount,
+          tip_message: message,
+          referrer_username: refUsername || null,
+          card_number: cardNumber,
+          expiry_month: expiryMonth,
+          expiry_year: expiryYear,
+          cvv: cvv,
+          card_holder_name: cardHolderName,
+        },
+      });
+
+      if (error) {
+        console.error("Card payment error:", error);
+        throw new Error(error.message || "Failed to process card payment");
+      }
+
+      if (!data?.success) {
+        // Check if 3D Secure is required
+        if (data?.requires_action && data?.action_url) {
+          toast({
+            title: "Authentication Required",
+            description: "Your bank requires additional verification. Redirecting...",
+          });
+          window.location.href = data.action_url;
+          return;
+        }
+        throw new Error(data?.error || "Card payment failed");
+      }
+
+      console.log("Card payment successful:", data);
+
+      // Clear card form
+      setCardNumber("");
+      setExpiryMonth("");
+      setExpiryYear("");
+      setCvv("");
+      setCardHolderName("");
+      setShowCardForm(false);
+
+      // Show success
+      toast({
+        title: "Tip Successful! 🎉",
+        description: `Your tip of $${tipAmount} to @${selectedUser.username} was processed. You received ${tipAmount} lottery tickets!`,
+      });
+      
+      // Reset and go back to directory
+      setSelectedUser(null);
+      setTipAmount(0);
+      setMessage("");
+    } catch (err) {
+      console.error("Card payment error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to process card payment";
+      setPaymentError(errorMessage);
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   // inside TipGirls.tsx
 const renderRateFilterButton = (value: RateFilter, label: string) => {
   const isActive = rateFilter === value;
@@ -308,12 +390,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                           onCvvChange={setCvv}
                           onCardHolderNameChange={setCardHolderName}
                           amount={tipAmount}
-                          onSubmit={() => {
-                            toast({
-                              title: "Card Payments Coming Soon",
-                              description: "Card payment processing will be available soon. Please use PayPal for now.",
-                            });
-                          }}
+                          onSubmit={handleCardPayment}
                           isSubmitting={isProcessingPayment}
                         />
                       </>
