@@ -92,6 +92,38 @@ const UserDashboard: React.FC = () => {
     checkDiamond();
   }, [userData?.id]);
 
+  // Fetch user data via edge function (bypasses RLS for custom auth)
+  const fetchUserViaEdgeFunction = async (userId: string): Promise<boolean> => {
+    try {
+      console.log("Fetching user via edge function:", userId);
+      const response = await fetch(
+        'https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/public-data',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getUserById', userId })
+        }
+      );
+      
+      if (!response.ok) {
+        console.error("Edge function error:", response.status);
+        return false;
+      }
+      
+      const result = await response.json();
+      if (result.data) {
+        console.log("User data fetched via edge function:", result.data.username);
+        setUserData(result.data);
+        setLoading(false);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error fetching user via edge function:", error);
+      return false;
+    }
+  };
+
   const getCurrentUser = async () => {
     try {
       // First check sessionStorage for custom auth user data
@@ -101,8 +133,9 @@ const UserDashboard: React.FC = () => {
           const parsedUser = JSON.parse(savedUserData);
           if (parsedUser?.id) {
             console.log("Found user in sessionStorage:", parsedUser.id);
-            await fetchUserDataById(parsedUser.id);
-            return;
+            // Use edge function to fetch fresh data (bypasses RLS)
+            const success = await fetchUserViaEdgeFunction(parsedUser.id);
+            if (success) return;
           }
         } catch (e) {
           console.error("Error parsing saved user data:", e);
