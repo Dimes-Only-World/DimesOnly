@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,48 +11,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Calendar, Star, Heart, Play } from "lucide-react";
+import { MapPin, User, Calendar, Star, Heart, Play, Loader2 } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-
-// PayPal SDK types
-declare global {
-  interface Window {
-    paypal?: {
-      Buttons: (config: {
-        createOrder: (
-          data: unknown,
-          actions: {
-            order: {
-              create: (order: {
-                purchase_units: Array<{
-                  amount: { value: string };
-                  custom_id?: string;
-                }>;
-              }) => Promise<string>;
-            };
-          }
-        ) => Promise<string>;
-        onApprove: (
-          data: unknown,
-          actions: {
-            order: {
-              capture: () => Promise<unknown>;
-            };
-          }
-        ) => Promise<void>;
-        onError: (err: unknown) => void;
-      }) => {
-        render: (container: HTMLElement) => Promise<void>;
-      };
-    };
-  }
-}
 const SOLD_OUT_MESSAGE =
   "Jackpot is maxed out for the upcoming drawing. Tipping will resume at Saturday 12:00 am PST.";
-const JACKPOT_UNAVAILABLE_ERROR = "JACKPOT_UNAVAILABLE";
 
 interface UserData {
   id: string;
@@ -85,7 +50,6 @@ const Tip: React.FC = () => {
   const [recentPhotos, setRecentPhotos] = useState<MediaFile[]>([]);
   const [recentVideos, setRecentVideos] = useState<MediaFile[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [digitalTicket, setDigitalTicket] = useState("");
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     email?: string;
@@ -95,10 +59,8 @@ const Tip: React.FC = () => {
   const [message, setMessage] = useState("");
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
-  const [paypalError, setPaypalError] = useState<string | null>(null);
-  const paypalButtonRendered = useRef(false);
-  const paypalContainerRef = useRef<HTMLDivElement>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (tipUsername) {
@@ -106,7 +68,6 @@ const Tip: React.FC = () => {
       fetchUserMedia();
     }
     getCurrentUser();
-    initializePayPal();
   }, [tipUsername]);
 
   // Fetch likes after currentUser is loaded
@@ -141,29 +102,6 @@ const Tip: React.FC = () => {
       }
     } catch (error) {
       console.error("Error getting current user:", error);
-    }
-  };
-
-  const initializePayPal = () => {
-    if (window.paypal) {
-      setPaypalLoaded(true);
-      return;
-    }
-
-    const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb";
-    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
-    const script = document.createElement("script");
-    script.src = scriptUrl;
-    script.async = true;
-    script.onload = () => {
-      setPaypalLoaded(true);
-    };
-    script.onerror = () => {
-      setPaypalError("Failed to load PayPal SDK");
-    };
-
-    if (!document.querySelector('script[src*="paypal.com/sdk"]')) {
-      document.body.appendChild(script);
     }
   };
 
@@ -211,102 +149,86 @@ const Tip: React.FC = () => {
     }
   };
 
-  const renderPayPalButton = (amount: number) => {
-    if (!window.paypal || amount <= 0) return;
+  // Handle PayPal redirect payment
+  const handlePayWithPayPal = async () => {
+    if (!currentUser || !userData || tipAmount < 5) return;
 
-    const container = paypalContainerRef.current;
-    if (!container) return;
+    setIsProcessingPayment(true);
+    setPaymentError(null);
 
-    // Prevent multiple renders
-    if (paypalButtonRendered.current) {
-      container.innerHTML = "";
+    try {
+      // Check jackpot availability first
+      const availability = await checkJackpotAvailability();
+      if (!availability.canTip) {
+        toast({
+          title: "Tip Unavailable",
+          description: availability.message || "Unable to process tip at this time.",
+          variant: "destructive",
+        });
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // Build return URL with all necessary params for capture
+      const baseUrl = window.location.origin;
+      const returnParams = new URLSearchParams({
+        tipper_id: currentUser.id,
+        tipper_username: currentUser.username || currentUser.email || "anonymous",
+        tipped_username: userData.username,
+        amount: tipAmount.toString(),
+        referrer_username: refUsername || "",
+        tip_message: (message || "").slice(0, 60),
+      });
+      
+      const returnUrl = `${baseUrl}/tip-paypal-return?${returnParams.toString()}`;
+      const cancelUrl = `${baseUrl}/tip?tip=${userData.username}${refUsername ? `&ref=${refUsername}` : ""}`;
+
+      console.log("Creating PayPal tip order:", {
+        tipper_id: currentUser.id,
+        tipped_username: userData.username,
+        amount: tipAmount,
+        return_url: returnUrl,
+      });
+
+      // Call our edge function to create the PayPal order
+      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
+        body: {
+          payment_type: "tip",
+          tipper_id: currentUser.id,
+          tipper_username: currentUser.username || currentUser.email || "anonymous",
+          tipped_username: userData.username,
+          amount: tipAmount,
+          tip_message: message,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+        },
+      });
+
+      if (error) {
+        console.error("PayPal order creation error:", error);
+        throw new Error(error.message || "Failed to create PayPal order");
+      }
+
+      if (!data?.success || !data?.approval_url) {
+        throw new Error(data?.error || "Failed to get PayPal approval URL");
+      }
+
+      console.log("Redirecting to PayPal:", data.approval_url);
+      
+      // Redirect to PayPal for payment approval
+      window.location.href = data.approval_url;
+    } catch (err) {
+      console.error("Payment error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to process payment";
+      setPaymentError(errorMessage);
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      setIsProcessingPayment(false);
     }
-
-    paypalButtonRendered.current = true;
-
-    window.paypal
-      .Buttons({
-        createOrder: async (data: unknown, actions: unknown) => {
-          const orderActions = actions as {
-            order: {
-              create: (order: {
-                purchase_units: Array<{
-                  amount: { value: string };
-                  custom_id?: string;
-                }>;
-              }) => Promise<string>;
-            };
-          };
-  
-          const availability = await checkJackpotAvailability();
-          if (!availability.canTip) {
-            const description =
-              availability.message ||
-              "Jackpot ticket sales are unavailable right now. Please try again later.";
-  
-            toast({
-              title: description.toLowerCase().includes("maxed")
-                ? "Jackpot Sold Out"
-                : "Tip Unavailable",
-              description,
-              variant: "destructive",
-            });
-  
-            return Promise.reject(new Error(JACKPOT_UNAVAILABLE_ERROR));
-          }
-  
-          return orderActions.order.create({
-            purchase_units: [
-              {
-                amount: {
-                  value: amount.toFixed(2),
-                },
-                custom_id: JSON.stringify({
-                  tipped_username: userData?.username,
-                  referrer_username: refUsername,
-                  tipper_username:
-                    currentUser?.username || currentUser?.email || "anonymous",
-                  tip_amount: amount,
-                  tip_message: (message || "").slice(0, 60),
-                }),
-              },
-            ],
-          });
-        },
-        onApprove: (data: unknown, actions: unknown) => {
-          const captureActions = actions as {
-            order: {
-              capture: () => Promise<unknown>;
-            };
-          };
-          return captureActions.order.capture().then((details: unknown) => {
-            handlePaymentSuccess(details as { id: string });
-          });
-        },
-        onError: (err: unknown) => {
-          if (
-            err === JACKPOT_UNAVAILABLE_ERROR ||
-            (err instanceof Error && err.message === JACKPOT_UNAVAILABLE_ERROR)
-          ) {
-            return;
-          }
-          console.error("PayPal error:", err);
-          setPaypalError("Payment failed. Please try again.");
-          paypalButtonRendered.current = false;
-        },
-      })
-      .render(container);
   };
-
-  // Re-render PayPal button when amount changes (minimum $5)
-  useEffect(() => {
-    if (paypalLoaded && tipAmount >= 5 && currentUser && userData) {
-      // Clear previous button and re-render with new amount
-      paypalButtonRendered.current = false;
-      const timer = setTimeout(() => renderPayPalButton(tipAmount), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [paypalLoaded, tipAmount, currentUser, userData]);
 
   const fetchUserData = async () => {
     try {
@@ -615,7 +537,7 @@ const Tip: React.FC = () => {
       }
 
       if (payload.ticket_codes?.length) {
-        setDigitalTicket(payload.ticket_codes[0] || "");
+        console.log("Tickets received:", payload.ticket_codes);
       } else {
         console.warn(
           "process-tip returned success without ticket codes",
@@ -832,31 +754,32 @@ const Tip: React.FC = () => {
                         Complete Your Tip
                       </h3>
 
-                      {paypalError ? (
+                      {paymentError ? (
                         <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200 mb-4">
-                          <p className="text-red-600">{paypalError}</p>
+                          <p className="text-red-600">{paymentError}</p>
                           <Button
-                            onClick={() => {
-                              setPaypalError(null);
-                              initializePayPal();
-                            }}
+                            onClick={() => setPaymentError(null)}
                             variant="outline"
                             className="mt-2"
                           >
-                            Retry
+                            Try Again
                           </Button>
                         </div>
-                      ) : !paypalLoaded ? (
-                        <div className="flex items-center justify-center p-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-500"></div>
-                          <span className="ml-2 text-white">
-                            Loading PayPal...
-                          </span>
-                        </div>
                       ) : (
-                        <div className="w-full">
-                          <div ref={paypalContainerRef} />
-                        </div>
+                        <Button
+                          onClick={handlePayWithPayPal}
+                          disabled={isProcessingPayment}
+                          className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg"
+                        >
+                          {isProcessingPayment ? (
+                            <>
+                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                              Connecting to PayPal...
+                            </>
+                          ) : (
+                            <>Pay ${tipAmount} with PayPal</>
+                          )}
+                        </Button>
                       )}
 
                       <p className="text-yellow-200 text-sm text-center mt-3">
