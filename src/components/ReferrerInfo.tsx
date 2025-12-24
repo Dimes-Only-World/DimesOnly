@@ -32,7 +32,7 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('public_user_profiles')
         .select('id, username, profile_photo, user_type')
         .eq('username', referredBy)
         .single();
