@@ -472,27 +472,32 @@ const Tip: React.FC = () => {
     }
   };
 
-  // FIXED: Use same like system as Rate.tsx (users.likes and users.liked_by)
+  // Fetch likes from profile_likes table
   const fetchLikes = async () => {
-    if (!userData || !currentUser) return;
+    if (!userData) return;
 
     try {
-      // Get the user's current likes count and liked_by data (same as Rate.tsx)
-      const { data: userLikeData, error: userError } = await supabase
-        .from("users")
-        .select("likes, liked_by")
-        .eq("id", userData.id)
-        .single();
+      // Count total likes for this profile
+      const { count, error: countError } = await supabase
+        .from("profile_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("profile_user_id", userData.id);
 
-      if (!userError && userLikeData) {
-        setLikes(Number(userLikeData.likes) || 0);
+      if (!countError) {
+        setLikes(count || 0);
+      }
 
-        // Check if current user has already liked this profile
-        if (currentUser && userLikeData.liked_by) {
-          const likedByUsers = Array.isArray(userLikeData.liked_by)
-            ? userLikeData.liked_by
-            : [userLikeData.liked_by];
-          setHasLiked(likedByUsers.includes(currentUser.id));
+      // Check if current user has liked this profile
+      if (currentUser) {
+        const { data: likeData, error: likeError } = await supabase
+          .from("profile_likes")
+          .select("id")
+          .eq("profile_user_id", userData.id)
+          .eq("liker_user_id", currentUser.id)
+          .maybeSingle();
+
+        if (!likeError) {
+          setHasLiked(!!likeData);
         }
       }
     } catch (error) {
@@ -500,71 +505,41 @@ const Tip: React.FC = () => {
     }
   };
 
-  // FIXED: Use same like system as Rate.tsx
+  // Handle like/unlike using profile_likes table
   const handleLike = async () => {
     if (!currentUser || !userData) return;
 
     try {
-      // First, get current state to ensure we have latest data
-      const { data: currentUserData, error: fetchError } = await supabase
-        .from("public_user_profiles")
-        .select("likes, liked_by")
-        .eq("id", userData.id)
-        .maybeSingle();
-
-      if (fetchError || !currentUserData) {
-        console.error("Error fetching current user data:", fetchError);
-        toast({
-          title: "Error",
-          description: "Could not update like status",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const currentLikes = Number(currentUserData.likes) || 0;
-      const currentLikedBy = currentUserData.liked_by;
-
-      // Check if user has already liked
-      let userHasLiked = false;
-      if (currentLikedBy) {
-        const likedByUsers = Array.isArray(currentLikedBy)
-          ? currentLikedBy
-          : [currentLikedBy];
-        userHasLiked = likedByUsers.includes(currentUser.id);
-      }
-
-      if (userHasLiked) {
-        // Unlike - remove like (same as Rate.tsx)
+      if (hasLiked) {
+        // Unlike - remove the like record
         const { error } = await supabase
-          .from("users")
-          .update({
-            likes: Math.max(0, currentLikes - 1),
-            liked_by: null, // Simplified for now
-          })
-          .eq("id", userData.id);
+          .from("profile_likes")
+          .delete()
+          .eq("profile_user_id", userData.id)
+          .eq("liker_user_id", currentUser.id);
 
         if (!error) {
           setHasLiked(false);
-          setLikes(Math.max(0, currentLikes - 1));
+          setLikes((prev) => Math.max(0, prev - 1));
           toast({
             title: "Unliked",
             description: `You unliked ${userData.username}`,
           });
+        } else {
+          console.error("Error unliking:", error);
         }
       } else {
-        // Like - add like (same as Rate.tsx)
+        // Like - insert a new like record
         const { error } = await supabase
-          .from("users")
-          .update({
-            likes: currentLikes + 1,
-            liked_by: currentUser.id, // Simplified for now
-          })
-          .eq("id", userData.id);
+          .from("profile_likes")
+          .insert({
+            profile_user_id: userData.id,
+            liker_user_id: currentUser.id,
+          });
 
         if (!error) {
           setHasLiked(true);
-          setLikes(currentLikes + 1);
+          setLikes((prev) => prev + 1);
           toast({
             title: "Liked",
             description: `You liked ${userData.username}!`,

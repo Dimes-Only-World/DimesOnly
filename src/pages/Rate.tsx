@@ -226,22 +226,27 @@ const RatePage: React.FC = () => {
 
   const fetchLikes = async (userId: string) => {
     try {
-      // Get the user's current likes count and liked_by data
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("likes, liked_by")
-        .eq("id", userId)
-        .single();
+      // Count total likes for this profile from profile_likes table
+      const { count, error: countError } = await supabase
+        .from("profile_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("profile_user_id", userId);
 
-      if (!userError && userData) {
-        setLikes(Number(userData.likes) || 0);
+      if (!countError) {
+        setLikes(count || 0);
+      }
 
-        // Check if current user has already liked this profile
-        if (currentUser && userData.liked_by) {
-          const likedByUsers = Array.isArray(userData.liked_by)
-            ? userData.liked_by
-            : [userData.liked_by];
-          setHasLiked(likedByUsers.includes(currentUser.id));
+      // Check if current user has liked this profile
+      if (currentUser) {
+        const { data: likeData, error: likeError } = await supabase
+          .from("profile_likes")
+          .select("id")
+          .eq("profile_user_id", userId)
+          .eq("liker_user_id", currentUser.id)
+          .maybeSingle();
+
+        if (!likeError) {
+          setHasLiked(!!likeData);
         }
       }
     } catch (error) {
@@ -325,65 +330,42 @@ const RatePage: React.FC = () => {
     if (!currentUser || !userData) return;
 
     try {
-      // First, get current state to ensure we have latest data
-      const { data: currentUserData, error: fetchError } = await supabase
-        .from("users")
-        .select("likes, liked_by")
-        .eq("id", userData.id)
-        .single();
-
-      if (fetchError) {
-        console.error("Error fetching current user data:", fetchError);
-        return;
-      }
-
-      const currentLikes = Number(currentUserData.likes) || 0;
-      const currentLikedBy = currentUserData.liked_by;
-
-      // Check if user has already liked
-      let userHasLiked = false;
-      if (currentLikedBy) {
-        const likedByUsers = Array.isArray(currentLikedBy)
-          ? currentLikedBy
-          : [currentLikedBy];
-        userHasLiked = likedByUsers.includes(currentUser.id);
-      }
-
-      if (userHasLiked) {
-        // Unlike - remove like
+      if (hasLiked) {
+        // Unlike - remove the like record
         const { error } = await supabase
-          .from("users")
-          .update({
-            likes: Math.max(0, currentLikes - 1),
-            liked_by: null, 
-          })
-          .eq("id", userData.id);
+          .from("profile_likes")
+          .delete()
+          .eq("profile_user_id", userData.id)
+          .eq("liker_user_id", currentUser.id);
 
         if (!error) {
           setHasLiked(false);
-          setLikes(Math.max(0, currentLikes - 1));
+          setLikes((prev) => Math.max(0, prev - 1));
           toast({
             title: "Unliked",
             description: `You unliked ${userData.username}`,
           });
+        } else {
+          console.error("Error unliking:", error);
         }
       } else {
-        // Like - add like
+        // Like - insert a new like record
         const { error } = await supabase
-          .from("users")
-          .update({
-            likes: currentLikes + 1,
-            liked_by: currentUser.id,
-          })
-          .eq("id", userData.id);
+          .from("profile_likes")
+          .insert({
+            profile_user_id: userData.id,
+            liker_user_id: currentUser.id,
+          });
 
         if (!error) {
           setHasLiked(true);
-          setLikes(currentLikes + 1);
+          setLikes((prev) => prev + 1);
           toast({
             title: "Liked!",
             description: `You liked ${userData.username}`,
           });
+        } else {
+          console.error("Error liking:", error);
         }
       }
     } catch (error) {
