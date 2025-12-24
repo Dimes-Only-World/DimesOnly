@@ -505,15 +505,20 @@ const Tip: React.FC = () => {
     if (!currentUser || !userData) return;
 
     try {
-      // First, get current state to ensure we have latest data (same as Rate.tsx)
+      // First, get current state to ensure we have latest data
       const { data: currentUserData, error: fetchError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("likes, liked_by")
         .eq("id", userData.id)
-        .single();
+        .maybeSingle();
 
-      if (fetchError) {
+      if (fetchError || !currentUserData) {
         console.error("Error fetching current user data:", fetchError);
+        toast({
+          title: "Error",
+          description: "Could not update like status",
+          variant: "destructive",
+        });
         return;
       }
 
