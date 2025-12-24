@@ -1730,6 +1730,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          liker_user_id: string
+          profile_user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          liker_user_id: string
+          profile_user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          liker_user_id?: string
+          profile_user_id?: string
+        }
+        Relationships: []
+      }
       quarterly_requirements: {
         Row: {
           base_payout: number | null
