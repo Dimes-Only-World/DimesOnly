@@ -896,7 +896,7 @@ const Tip: React.FC = () => {
                           <Button
                             onClick={() => setShowCardForm(false)}
                             variant="outline"
-                            className="w-full border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-4"
+                            className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-4"
                           >
                             ← Back to PayPal
                           </Button>
