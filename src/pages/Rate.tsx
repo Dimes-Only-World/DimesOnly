@@ -291,7 +291,7 @@ const RatePage: React.FC = () => {
 
         if (userIds.length > 0) {
           const { data: usersData } = await supabase
-            .from("users")
+            .from("public_user_profiles")
             .select("id, username, profile_photo")
             .in("id", userIds);
 
