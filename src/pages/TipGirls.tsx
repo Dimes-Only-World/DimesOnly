@@ -374,7 +374,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                         <Button
                           onClick={() => setShowCardForm(false)}
                           variant="outline"
-                          className="w-full border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-2"
+                          className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-2"
                         >
                           ← Back to PayPal
                         </Button>
