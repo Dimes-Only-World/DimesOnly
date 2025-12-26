@@ -429,8 +429,6 @@ const EventsDimesOnly: React.FC = () => {
       return;
     }
 
-    setSelectedEvent(event);
-
     // Check if event is full
     const availableSpots = Math.max(
       0,
@@ -445,8 +443,8 @@ const EventsDimesOnly: React.FC = () => {
       return;
     }
 
-    // Always show the attendance dialog for confirmation
-    setShowAttendDialog(true);
+    // Navigate directly to event details page instead of showing popup
+    navigate(`/event-details?id=${event.id}`);
   };
 
   const handleConfirmAttendance = async () => {
@@ -855,12 +853,12 @@ const EventsDimesOnly: React.FC = () => {
                         {/* Attendance Status Badge */}
                         <div className="absolute top-3 right-3">
                           {event.isUserAttending ? (
-                            <div className="bg-green-500 rounded-full p-2 shadow-lg">
-                              <Check className="h-4 w-4 text-white" />
+                            <div className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
+                              Going
                             </div>
                           ) : (
-                            <div className="bg-red-500 rounded-full p-2 shadow-lg">
-                              <X className="h-4 w-4 text-white" />
+                            <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
+                              Not Going
                             </div>
                           )}
                         </div>
@@ -991,8 +989,7 @@ const EventsDimesOnly: React.FC = () => {
                         setCurrentPage(Math.max(1, currentPage - 1))
                       }
                       disabled={currentPage === 1}
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
+                      className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold px-4"
                     >
                       Previous
                     </Button>
@@ -1009,8 +1006,7 @@ const EventsDimesOnly: React.FC = () => {
                         currentPage ===
                         Math.ceil(filteredEvents.length / eventsPerPage)
                       }
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
+                      className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold px-4"
                     >
                       Next
                     </Button>

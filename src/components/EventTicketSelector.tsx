@@ -2,6 +2,13 @@ import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import PayPalEventButton from "@/components/PayPalEventButton";
 import { Ticket, Users, Crown, Star, Minus, Plus } from "lucide-react";
 
@@ -36,7 +43,7 @@ interface EventTicketSelectorProps {
   };
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
-  onFreeRegister: () => Promise<void>;
+  onFreeRegister: (guestName?: string) => Promise<void>;
 }
 
 const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
@@ -51,6 +58,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [selectedType, setSelectedType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showGuestDialog, setShowGuestDialog] = useState(false);
+  const [guestName, setGuestName] = useState("");
 
   // Calculate available spots
   const availableFreeSpots = useMemo(() => {
@@ -108,11 +117,18 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
     setQuantity(newQty);
   };
 
-  const handleFreeRegister = async () => {
+  const handleFreeButtonClick = () => {
+    setShowGuestDialog(true);
+  };
+
+  const handleConfirmFreeRegister = async () => {
     setIsRegistering(true);
     try {
-      await onFreeRegister();
+      // Pass the guest name - if "none" or empty, only 1 attendee will be deducted
+      await onFreeRegister(guestName.trim().toLowerCase() === "none" ? "" : guestName.trim());
       onSuccess();
+      setShowGuestDialog(false);
+      setGuestName("");
     } catch (err: any) {
       onError(err.message || "Registration failed");
     } finally {
@@ -269,7 +285,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
         <div className="pt-2">
           {selectedType === "free" ? (
             <Button
-              onClick={handleFreeRegister}
+              onClick={handleFreeButtonClick}
               disabled={isRegistering}
               className="w-full bg-green-500 hover:bg-green-600 text-white font-bold"
             >
@@ -291,6 +307,52 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
           )}
         </div>
       )}
+
+      {/* Guest Name Dialog */}
+      <Dialog open={showGuestDialog} onOpenChange={setShowGuestDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400">
+              Confirm Free Registration
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-300 text-sm">
+              Enter your guest's name below, or type "none" if attending alone.
+            </p>
+            <Input
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
+              placeholder="Guest name or 'none'"
+              className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+            />
+            <p className="text-xs text-gray-400">
+              {guestName.trim().toLowerCase() === "none" || guestName.trim() === ""
+                ? "You will be registered alone (1 spot deducted)"
+                : "You + guest will be registered (2 spots deducted)"}
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowGuestDialog(false);
+                setGuestName("");
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmFreeRegister}
+              disabled={isRegistering}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold"
+            >
+              {isRegistering ? "Registering..." : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

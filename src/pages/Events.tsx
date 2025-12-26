@@ -65,6 +65,7 @@ const Events: React.FC = () => {
     location: "",
     date: "",
   });
+  const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
 
   useEffect(() => {
     if (username) {
@@ -169,9 +170,13 @@ const Events: React.FC = () => {
         (event.name &&
           event.name.toLowerCase().includes(filters.location.toLowerCase()));
       const matchesDate = !filters.date || event.date.includes(filters.date);
-      return matchesLocation && matchesDate;
+      const matchesAttendance =
+        attendanceFilter === "all" ||
+        (attendanceFilter === "going" && event.is_attending) ||
+        (attendanceFilter === "not_going" && !event.is_attending);
+      return matchesLocation && matchesDate && matchesAttendance;
     });
-  }, [events, filters]);
+  }, [events, filters, attendanceFilter]);
 
   const getAvailableSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
@@ -286,6 +291,40 @@ const Events: React.FC = () => {
             )}
           </div>
 
+          {/* Attendance Filter Tabs */}
+          <div className="flex justify-center gap-2 mb-4">
+            <Button
+              onClick={() => setAttendanceFilter("all")}
+              className={`px-4 py-2 font-semibold ${
+                attendanceFilter === "all"
+                  ? "bg-yellow-400 text-black"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              All Events
+            </Button>
+            <Button
+              onClick={() => setAttendanceFilter("going")}
+              className={`px-4 py-2 font-semibold ${
+                attendanceFilter === "going"
+                  ? "bg-green-500 text-white"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              Going
+            </Button>
+            <Button
+              onClick={() => setAttendanceFilter("not_going")}
+              className={`px-4 py-2 font-semibold ${
+                attendanceFilter === "not_going"
+                  ? "bg-red-500 text-white"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              Not Going
+            </Button>
+          </div>
+
           {/* Filters - Mobile optimized */}
           <Card
             className={`bg-white/10 backdrop-blur border-white/20 mb-6 ${getCardClasses()}`}
@@ -373,12 +412,12 @@ const Events: React.FC = () => {
                     {/* Attendance Status Badge */}
                     <div className="absolute top-3 right-3">
                       {event.is_attending ? (
-                        <div className="bg-green-500 rounded-full p-2 shadow-lg">
-                          <Check className="h-4 w-4 text-white" />
+                        <div className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
+                          Going
                         </div>
                       ) : (
-                        <div className="bg-red-500 rounded-full p-2 shadow-lg">
-                          <X className="h-4 w-4 text-white" />
+                        <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
+                          Not Going
                         </div>
                       )}
                     </div>
