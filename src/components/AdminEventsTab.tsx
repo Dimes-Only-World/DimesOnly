@@ -1239,8 +1239,8 @@ const AdminEventsTab: React.FC = () => {
                       <p className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         {new Date(event.date).toLocaleDateString()}
-                        {event.start_time && ` at ${event.start_time}`}
-                        {event.end_time && ` - ${event.end_time}`}
+                        {event.start_time && ` at ${formatTime12Hour(event.start_time)}`}
+                        {event.end_time && ` - ${formatTime12Hour(event.end_time)}`}
                       </p>
                       {event.location && (
                         <p className="flex items-center gap-2">

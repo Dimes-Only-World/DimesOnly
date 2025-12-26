@@ -8,7 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout } from "@/hooks/use-mobile";
-import PayPalEventButton from "@/components/PayPalEventButton";
+import EventTicketSelector from "@/components/EventTicketSelector";
+import PhotoLightbox from "@/components/PhotoLightbox";
+import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
 import { formatTime12Hour, formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
 import {
   Calendar,
@@ -65,6 +67,7 @@ interface HostProfile {
 interface CurrentUser {
   id: string;
   username: string;
+  user_type?: string;
 }
 
 interface EventAttendee {
@@ -122,6 +125,18 @@ const EventDetails: React.FC = () => {
   const [checkingRegistration, setCheckingRegistration] = useState(false);
   const [hostProfile, setHostProfile] = useState<HostProfile | null>(null);
 
+  // Lightbox states
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxPhotos, setLightboxPhotos] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Video modal states
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
+
+  // Used free spots tracking
+  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0 });
+
   const ATTENDEES_PER_PAGE = 24;
 
   useEffect(() => {
@@ -137,7 +152,11 @@ const EventDetails: React.FC = () => {
     if (appUserLoading) return;
 
     if (appUser?.id && appUser.username) {
-      setCurrentUser({ id: appUser.id, username: appUser.username });
+      setCurrentUser({ 
+        id: appUser.id, 
+        username: appUser.username,
+        user_type: (appUser as any).user_type || undefined
+      });
       return;
     }
 
@@ -147,7 +166,11 @@ const EventDetails: React.FC = () => {
       try {
         const userData = JSON.parse(savedUserData);
         if (userData?.id && userData?.username) {
-          setCurrentUser({ id: userData.id, username: userData.username });
+          setCurrentUser({ 
+            id: userData.id, 
+            username: userData.username,
+            user_type: userData.user_type || undefined
+          });
           return;
         }
       } catch (e) {
@@ -225,6 +248,9 @@ const EventDetails: React.FC = () => {
           setHostProfile(hostData as HostProfile);
         }
       }
+
+      // Calculate used free spots
+      await calculateUsedFreeSpots(eventId);
     } catch (error) {
       console.error("Error fetching event details:", error);
       toast({
@@ -234,6 +260,39 @@ const EventDetails: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const calculateUsedFreeSpots = async (eventId: string) => {
+    try {
+      const { data: registrations } = await supabase
+        .from("user_events")
+        .select("user_id, ticket_type")
+        .eq("event_id", eventId)
+        .eq("payment_status", "free");
+
+      if (!registrations || registrations.length === 0) {
+        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0 });
+        return;
+      }
+
+      // Get user types for free registrations
+      const userIds = registrations.map(r => r.user_id);
+      const { data: users } = await supabase
+        .from("public_user_profiles")
+        .select("id, user_type")
+        .in("id", userIds);
+
+      const counts = { strippers: 0, exotics: 0, normal: 0 };
+      (users || []).forEach(user => {
+        if (user.user_type === "stripper") counts.strippers++;
+        else if (user.user_type === "exotic") counts.exotics++;
+        else counts.normal++;
+      });
+
+      setUsedFreeSpots(counts);
+    } catch (error) {
+      console.error("Error calculating used free spots:", error);
     }
   };
 
@@ -318,6 +377,44 @@ const EventDetails: React.FC = () => {
     navigate(-1);
   };
 
+  const openPhotoLightbox = (photos: string[], index: number) => {
+    setLightboxPhotos(photos);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const openVideoModal = (videoUrl: string) => {
+    setSelectedVideoUrl(videoUrl);
+    setVideoModalOpen(true);
+  };
+
+  const handleFreeRegister = async () => {
+    if (!currentUser || !event) return;
+    
+    const { error } = await supabase
+      .from("user_events")
+      .insert({
+        user_id: currentUser.id,
+        event_id: event.id,
+        username: currentUser.username,
+        payment_status: "free",
+        ticket_type: "free",
+      });
+    
+    if (error) throw error;
+    
+    setIsUserRegistered(true);
+    toast({
+      title: "Registered!",
+      description: `You're now registered for ${event.name}`,
+    });
+    fetchEventAttendees();
+    setEvent(prev => prev ? {
+      ...prev,
+      current_attendees: prev.current_attendees + 1
+    } : null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -346,8 +443,29 @@ const EventDetails: React.FC = () => {
     );
   }
 
+  // Collect all photos for lightbox
+  const allPhotos = [
+    event.photo_url,
+    ...(event.additional_photos || []),
+  ].filter(Boolean) as string[];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white overflow-y-auto">
+      {/* Photo Lightbox */}
+      <PhotoLightbox
+        photos={lightboxPhotos}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
+
+      {/* Video Modal */}
+      <VideoPlayerModal
+        videoUrl={selectedVideoUrl}
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+      />
+
       <div className={`${getContainerClasses()} pb-8`}>
         {/* Back Button */}
         <div className="p-4">
@@ -361,42 +479,65 @@ const EventDetails: React.FC = () => {
           </Button>
         </div>
 
-        {/* Host Banner with Profile Pic and Video */}
-        {hostProfile && (
-          <div className="px-4 pb-4">
-            <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-purple-800/50 to-blue-800/50 border border-white/20">
-              {/* Video Background */}
-              {hostProfile.video_urls && hostProfile.video_urls.length > 0 && (
+        {/* Event Banner - Photo or Video */}
+        <div className="px-4 pb-4">
+          <div className="relative rounded-xl overflow-hidden h-64 md:h-80">
+            {/* Video Banner (if available) */}
+            {event.video_urls && event.video_urls.length > 0 ? (
+              <div 
+                className="relative w-full h-full cursor-pointer group"
+                onClick={() => openVideoModal(event.video_urls![0])}
+              >
                 <video
-                  className="absolute inset-0 w-full h-full object-cover opacity-40"
+                  className="absolute inset-0 w-full h-full object-cover"
                   autoPlay
                   loop
                   muted
                   playsInline
                 >
-                  <source src={hostProfile.video_urls[hostProfile.video_urls.length - 1]} type="video/mp4" />
+                  <source src={event.video_urls[0]} type="video/mp4" />
                 </video>
-              )}
-              
-              {/* Content Overlay */}
-              <div className="relative z-10 p-6 flex items-center gap-4">
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                  <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                    <Play className="h-10 w-10 text-black fill-black ml-1" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Photo Banner */
+              <img
+                src={event.photo_url || "/placeholder.svg"}
+                alt={event.name}
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => openPhotoLightbox(allPhotos, 0)}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/placeholder.svg";
+                }}
+              />
+            )}
+            
+            {/* Host Profile Overlay */}
+            {hostProfile && (
+              <div className="absolute bottom-4 left-4 flex items-center gap-3 bg-black/60 backdrop-blur-sm rounded-lg p-3">
                 <img
                   src={hostProfile.profile_photo || "/placeholder.svg"}
                   alt={hostProfile.username}
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-yellow-400 shadow-lg"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-yellow-400"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";
                   }}
                 />
                 <div>
-                  <p className="text-sm text-gray-300 mb-1">Hosted by</p>
-                  <h3 className="text-xl md:text-2xl font-bold text-yellow-400">@{hostProfile.username}</h3>
+                  <p className="text-xs text-gray-300">Hosted by</p>
+                  <p className="text-sm font-bold text-yellow-400">@{hostProfile.username}</p>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Event Header */}
         <div className="px-4 pb-6">
@@ -417,6 +558,7 @@ const EventDetails: React.FC = () => {
               </span>
             ) : currentUser && (
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white font-bold text-sm">
+                <X className="h-4 w-4" />
                 Not Going
               </span>
             )}
@@ -449,6 +591,7 @@ const EventDetails: React.FC = () => {
                     {event.price > 0 && (
                       <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                         <span className="text-yellow-400 font-bold text-lg">${event.price}</span>
+                        <span className="text-gray-400 text-sm">General Admission</span>
                       </div>
                     )}
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
@@ -485,104 +628,46 @@ const EventDetails: React.FC = () => {
                         <X className="h-5 w-5 text-white" />
                         <span className="text-white font-bold">Sold Out</span>
                       </div>
-                    ) : event.price > 0 ? (
-                      /* Paid Event - Show PayPal Button */
-                      currentUser ? (
-                        <PayPalEventButton
-                          eventId={event.id}
-                          eventName={event.name}
-                          eventPrice={event.price}
-                          eventOwnerId={event.host_user_id}
-                          buyerId={currentUser.id}
-                          buyerUsername={currentUser.username}
-                          onSuccess={(transactionId) => {
-                            setIsUserRegistered(true);
-                            // Refresh attendees
-                            fetchEventAttendees();
-                            // Update attendee count
-                            setEvent(prev => prev ? {
-                              ...prev,
-                              current_attendees: prev.current_attendees + 1
-                            } : null);
-                          }}
-                          onError={(error) => {
-                            toast({
-                              title: "Payment Failed",
-                              description: error,
-                              variant: "destructive",
-                            });
-                          }}
-                          disabled={checkingRegistration}
-                        />
-                      ) : appUserLoading ? (
-                        <div className="flex items-center justify-center gap-2 p-4 bg-white/5 rounded-lg">
-                          <span className="text-gray-300 text-sm">Loading your account...</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <p className="text-gray-400 text-sm text-center">
-                            Please log in to purchase a ticket
-                          </p>
-                          <Button
-                            onClick={() => navigate("/login")}
-                            className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
-                          >
-                            Purchase
-                          </Button>
-                        </div>
-                      )
+                    ) : currentUser ? (
+                      /* Ticket Selector */
+                      <EventTicketSelector
+                        event={event}
+                        currentUser={currentUser}
+                        userType={currentUser.user_type}
+                        usedFreeSpots={usedFreeSpots}
+                        onSuccess={() => {
+                          setIsUserRegistered(true);
+                          fetchEventAttendees();
+                          setEvent(prev => prev ? {
+                            ...prev,
+                            current_attendees: prev.current_attendees + 1
+                          } : null);
+                        }}
+                        onError={(error) => {
+                          toast({
+                            title: "Error",
+                            description: error,
+                            variant: "destructive",
+                          });
+                        }}
+                        onFreeRegister={handleFreeRegister}
+                      />
+                    ) : appUserLoading ? (
+                      <div className="flex items-center justify-center gap-2 p-4 bg-white/5 rounded-lg">
+                        <span className="text-gray-300 text-sm">Loading your account...</span>
+                      </div>
                     ) : (
-                      /* Free Event */
-                      currentUser ? (
+                      <div className="space-y-3">
+                        <p className="text-gray-400 text-sm text-center">
+                          Please log in to purchase a ticket
+                        </p>
                         <Button
-                          onClick={async () => {
-                            try {
-                              const { error } = await supabase
-                                .from("user_events")
-                                .insert({
-                                  user_id: currentUser.id,
-                                  event_id: event.id,
-                                  username: currentUser.username,
-                                  payment_status: "free",
-                                });
-                              
-                              if (error) throw error;
-                              
-                              setIsUserRegistered(true);
-                              toast({
-                                title: "Registered!",
-                                description: `You're now registered for ${event.name}`,
-                              });
-                              fetchEventAttendees();
-                              setEvent(prev => prev ? {
-                                ...prev,
-                                current_attendees: prev.current_attendees + 1
-                              } : null);
-                            } catch (err: any) {
-                              toast({
-                                title: "Registration Failed",
-                                description: err.message || "Unable to register",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
+                          onClick={() => navigate("/login")}
                           className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
                         >
-                          Register for Free
+                          Log In to Register
                         </Button>
-                      ) : (
-                        <div className="space-y-3">
-                          <p className="text-gray-400 text-sm text-center">
-                            Please log in to register
-                          </p>
-                          <Button
-                            onClick={() => navigate("/login")}
-                            className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
-                          >
-                            Log In to Register
-                          </Button>
-                        </div>
-                      )
+                      </div>
                     )}
                   </div>
                 </CardContent>
@@ -593,18 +678,19 @@ const EventDetails: React.FC = () => {
                 <CardContent className="p-4 md:p-6">
                   <h3 className="text-lg font-semibold text-yellow-400 mb-4">Media</h3>
 
-                  {/* Main Photo */}
+                  {/* Main Photo - Clickable */}
                   <img
                     src={event.photo_url || "/placeholder.svg"}
                     alt={event.name}
-                    className="w-full h-48 md:h-56 object-cover rounded-lg mb-4"
+                    className="w-full h-48 md:h-56 object-cover rounded-lg mb-4 cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => openPhotoLightbox(allPhotos, 0)}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = "/placeholder.svg";
                     }}
                   />
 
-                  {/* Additional Photos */}
+                  {/* Additional Photos - Clickable */}
                   {event.additional_photos && event.additional_photos.length > 0 && (
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-300 mb-3 text-sm flex items-center gap-2">
@@ -617,7 +703,8 @@ const EventDetails: React.FC = () => {
                             key={index}
                             src={photo}
                             alt={`Event photo ${index + 1}`}
-                            className="w-full h-20 md:h-24 object-cover rounded-lg"
+                            className="w-full h-20 md:h-24 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => openPhotoLightbox(allPhotos, index + 1)}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = "/placeholder.svg";
@@ -628,25 +715,21 @@ const EventDetails: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Videos */}
+                  {/* Videos - With Play Button Overlay */}
                   {event.video_urls && event.video_urls.filter(Boolean).length > 0 && (
                     <div>
                       <h4 className="font-semibold text-gray-300 mb-3 text-sm flex items-center gap-2">
                         <Play className="h-4 w-4" />
                         Videos ({event.video_urls.filter(Boolean).length})
                       </h4>
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {event.video_urls.filter(Boolean).map((video, index) => (
-                          <div key={index} className="relative">
-                            <video
-                              className="w-full h-40 md:h-48 object-cover rounded-lg"
-                              controls
-                              playsInline
-                              preload="metadata"
-                            >
-                              <source src={video} type="video/mp4" />
-                            </video>
-                          </div>
+                          <VideoThumbnail
+                            key={index}
+                            videoUrl={video}
+                            className="h-32 md:h-40"
+                            onClick={() => openVideoModal(video)}
+                          />
                         ))}
                       </div>
 
