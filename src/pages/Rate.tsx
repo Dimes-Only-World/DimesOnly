@@ -420,17 +420,32 @@ const RatePage: React.FC = () => {
     try {
       const currentYear = new Date().getFullYear();
 
-      // Check if user already has a rating for this user this year
-      const existingRating = userRatings.find(
+      // First, check if this number is currently assigned to someone else (reassignment case)
+      const existingNumberRating = userRatings.find(
+        (r) => r.rating === selectedNumber && r.year === currentYear
+      );
+
+      // If we're reassigning from another user, delete that rating first
+      if (existingNumberRating && existingNumberRating.user_id !== userData.id) {
+        const { error: deleteError } = await supabase
+          .from("ratings")
+          .delete()
+          .eq("id", existingNumberRating.id);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Check if user already has a rating for this TARGET user this year
+      const existingUserRating = userRatings.find(
         (r) => r.user_id === userData.id && r.year === currentYear
       );
 
-      if (existingRating) {
-        // Update existing rating
+      if (existingUserRating) {
+        // Update existing rating for this user
         const { error } = await supabase
           .from("ratings")
           .update({ rating: selectedNumber })
-          .eq("id", existingRating.id);
+          .eq("id", existingUserRating.id);
 
         if (error) throw error;
       } else {
@@ -450,22 +465,20 @@ const RatePage: React.FC = () => {
         description: `You gave #${selectedNumber} to @${userData.username}`,
       });
 
-      // Update local state
-      const newAssignment: NumberAssignment = {
-        number: selectedNumber,
-        assigned_to_username: userData.username,
-        assigned_to_photo: userData.profile_photo,
-        is_current_page: true,
-      };
-
-      setNumberAssignments((prev) => ({
-        ...prev,
-        [selectedNumber]: newAssignment,
-      }));
-
-      // Refresh ratings
+      // Refresh ratings and standings
       await fetchUserRatings(currentUser.id);
       await fetchCurrentStanding(userData.id);
+
+      // If we reassigned from another user, redirect to that user's page
+      if (reassignFromUser) {
+        toast({
+          title: "Redirecting...",
+          description: `Redirecting to @${reassignFromUser.username}'s page`,
+        });
+        setTimeout(() => {
+          navigate(`/rate?rate=${reassignFromUser.username}`);
+        }, 1500);
+      }
     } catch (error) {
       console.error("Error saving rating:", error);
       toast({
@@ -492,10 +505,13 @@ const RatePage: React.FC = () => {
 
   const getNumberColor = (num: number) => {
     const assignment = numberAssignments[num];
-    if (!assignment) return "bg-gray-100 hover:bg-gray-200 text-gray-800";
+    // Available = GREEN
+    if (!assignment) return "bg-green-500 hover:bg-green-600 text-white";
+    // Assigned to THIS user (current page) = YELLOW
     if (assignment.is_current_page)
-      return "bg-green-500 hover:bg-green-600 text-white";
-    return "bg-blue-100 hover:bg-blue-200 text-blue-800";
+      return "bg-yellow-400 hover:bg-yellow-500 text-black font-bold";
+    // Assigned to ANOTHER user = RED
+    return "bg-red-500 hover:bg-red-600 text-white";
   };
 
   if (loading) {
@@ -639,15 +655,15 @@ const RatePage: React.FC = () => {
 
             <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gray-100 border"></div>
+                <div className="w-4 h-4 rounded bg-green-500"></div>
                 <span>Available</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500"></div>
+                <div className="w-4 h-4 rounded bg-yellow-400"></div>
                 <span>Assigned to this user</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-blue-100 border border-blue-200"></div>
+                <div className="w-4 h-4 rounded bg-red-500"></div>
                 <span>Assigned to another user</span>
               </div>
             </div>
@@ -690,32 +706,69 @@ const RatePage: React.FC = () => {
 
       {/* Reassign Dialog */}
       <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Reassign Number?</DialogTitle>
-            <DialogDescription>
-              #{selectedNumber} is currently assigned to @
-              {reassignFromUser?.username}. Do you want to reassign it to @
-              {userData?.username}?
-            </DialogDescription>
+            <DialogTitle className="text-center">Override Rating #{selectedNumber}?</DialogTitle>
           </DialogHeader>
-          {reassignFromUser?.photo && (
-            <div className="flex justify-center">
-              <img
-                src={reassignFromUser.photo}
-                alt={reassignFromUser.username}
-                className="w-16 h-16 rounded-full object-cover"
-              />
+          
+          <div className="py-4">
+            <p className="text-center text-muted-foreground mb-6">
+              Do you want to take <span className="font-bold text-red-500">#{selectedNumber}</span> from @{reassignFromUser?.username} and give it to @{userData?.username}?
+            </p>
+            
+            {/* Show both users side by side */}
+            <div className="flex items-center justify-center gap-8">
+              {/* Old user (losing the number) */}
+              <div className="text-center">
+                <div className="relative">
+                  <img
+                    src={reassignFromUser?.photo || "/placeholder.svg"}
+                    alt={reassignFromUser?.username}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-red-500 mx-auto"
+                  />
+                  <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">
+                    -{selectedNumber}
+                  </div>
+                </div>
+                <p className="mt-2 font-semibold text-red-600">@{reassignFromUser?.username}</p>
+                <p className="text-xs text-muted-foreground">Loses #{selectedNumber}</p>
+              </div>
+
+              {/* Arrow */}
+              <div className="text-3xl text-muted-foreground">→</div>
+
+              {/* New user (getting the number) */}
+              <div className="text-center">
+                <div className="relative">
+                  <img
+                    src={userData?.profile_photo || "/placeholder.svg"}
+                    alt={userData?.username}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-yellow-400 mx-auto"
+                  />
+                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-black rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">
+                    +{selectedNumber}
+                  </div>
+                </div>
+                <p className="mt-2 font-semibold text-yellow-600">@{userData?.username}</p>
+                <p className="text-xs text-muted-foreground">Gets #{selectedNumber}</p>
+              </div>
             </div>
-          )}
-          <DialogFooter>
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:gap-0">
             <Button
               variant="outline"
               onClick={() => setShowReassignDialog(false)}
+              className="flex-1"
             >
-              Cancel
+              Decline
             </Button>
-            <Button onClick={confirmReassignment}>Reassign</Button>
+            <Button 
+              onClick={confirmReassignment}
+              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black"
+            >
+              Accept
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
