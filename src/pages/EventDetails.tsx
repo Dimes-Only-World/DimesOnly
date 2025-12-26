@@ -388,8 +388,12 @@ const EventDetails: React.FC = () => {
     setVideoModalOpen(true);
   };
 
-  const handleFreeRegister = async () => {
+  const handleFreeRegister = async (guestName?: string) => {
     if (!currentUser || !event) return;
+    
+    // Determine spots to deduct based on guest name
+    const hasGuest = guestName && guestName.trim() !== "" && guestName.trim().toLowerCase() !== "none";
+    const spotsToDeduct = hasGuest ? 2 : 1;
     
     const { error } = await supabase
       .from("user_events")
@@ -399,19 +403,37 @@ const EventDetails: React.FC = () => {
         username: currentUser.username,
         payment_status: "free",
         ticket_type: "free",
+        guest_name: hasGuest ? guestName.trim() : null,
+        ticket_quantity: spotsToDeduct,
       });
     
     if (error) throw error;
     
+    // Update free spots count based on user type
+    const userType = currentUser.user_type;
+    let updateField = "free_normal";
+    if (userType === "stripper") updateField = "free_spots_strippers";
+    else if (userType === "exotic") updateField = "free_spots_exotics";
+    
+    const currentSpots = event[updateField as keyof typeof event] as number || 0;
+    if (currentSpots > 0) {
+      await supabase
+        .from("events")
+        .update({
+          [updateField]: Math.max(0, currentSpots - spotsToDeduct),
+        })
+        .eq("id", event.id);
+    }
+    
     setIsUserRegistered(true);
     toast({
       title: "Registered!",
-      description: `You're now registered for ${event.name}`,
+      description: `You're now registered for ${event.name}${hasGuest ? ` with ${guestName}` : ""}`,
     });
     fetchEventAttendees();
     setEvent(prev => prev ? {
       ...prev,
-      current_attendees: prev.current_attendees + 1
+      current_attendees: prev.current_attendees + spotsToDeduct
     } : null);
   };
 

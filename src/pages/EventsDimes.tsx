@@ -372,8 +372,7 @@ const EventsDimes: React.FC = () => {
                         setCurrentPage(Math.max(1, currentPage - 1))
                       }
                       disabled={currentPage === 1}
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
+                      className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold px-4"
                     >
                       Previous
                     </Button>
@@ -392,8 +391,7 @@ const EventsDimes: React.FC = () => {
                         currentPage ===
                         Math.ceil(filteredPerformers.length / performersPerPage)
                       }
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
+                      className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold px-4"
                     >
                       Next
                     </Button>
