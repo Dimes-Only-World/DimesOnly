@@ -11,7 +11,9 @@ interface PayPalEventButtonProps {
   eventOwnerId?: string;
   buyerId?: string;
   buyerUsername?: string;
-  onSuccess?: (transactionId: string, paymentId: string) => void;
+  ticketType?: string;
+  ticketQuantity?: number;
+  onSuccess?: (transactionId?: string, paymentId?: string) => void;
   onError?: (error: string) => void;
   disabled?: boolean;
   className?: string;
@@ -26,6 +28,8 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
   eventOwnerId,
   buyerId,
   buyerUsername,
+  ticketType = "general",
+  ticketQuantity = 1,
   onSuccess,
   onError,
   disabled = false,
