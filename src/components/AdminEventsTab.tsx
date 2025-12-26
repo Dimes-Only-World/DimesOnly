@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { formatDateForInput, formatTime12Hour } from "@/lib/timeUtils";
 import {
   Trash2,
   Edit,
@@ -51,6 +52,12 @@ interface Event {
   max_attendees: number;
   free_spots_strippers: number;
   free_spots_exotics: number;
+  free_males_females: number;
+  vip_price: number;
+  vip_section_price: number;
+  vip_section_attendees: number;
+  males_price: number;
+  females_price: number;
   photo_url?: string;
   video_urls?: string[];
   additional_photos?: string[];
@@ -89,6 +96,12 @@ const AdminEventsTab: React.FC = () => {
     max_attendees: 100,
     free_spots_strippers: 5,
     free_spots_exotics: 5,
+    free_males_females: 0,
+    vip_price: 0,
+    vip_section_price: 0,
+    vip_section_attendees: 4,
+    males_price: 0,
+    females_price: 0,
     photo_url: "",
   });
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -374,6 +387,12 @@ const AdminEventsTab: React.FC = () => {
         max_attendees: 100,
         free_spots_strippers: 5,
         free_spots_exotics: 5,
+        free_males_females: 0,
+        vip_price: 0,
+        vip_section_price: 0,
+        vip_section_attendees: 4,
+        males_price: 0,
+        females_price: 0,
         photo_url: "",
       });
 
@@ -1031,7 +1050,11 @@ const AdminEventsTab: React.FC = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        setEditingEvent(event);
+                        // Format the date for the HTML date input
+                        setEditingEvent({
+                          ...event,
+                          date: formatDateForInput(event.date),
+                        });
                         setShowEditEvent(true);
                       }}
                     >

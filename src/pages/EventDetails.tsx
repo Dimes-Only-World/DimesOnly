@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import PayPalEventButton from "@/components/PayPalEventButton";
+import { formatTime12Hour, formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
 import {
   Calendar,
   MapPin,
@@ -354,11 +355,11 @@ const EventDetails: React.FC = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Calendar className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>{new Date(event.date).toLocaleDateString()}</span>
+                      <span>{formatDateForDisplay(event.date)}</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Clock className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>{event.start_time} - {event.end_time}</span>
+                      <span>{formatTimeRange(event.start_time, event.end_time)}</span>
                     </div>
                     <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
                       <MapPin className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
