@@ -45,7 +45,6 @@ interface UserProfile {
   username: string;
   profile_photo: string;
   banner_photo: string;
-  banner_video: string;
   city: string;
   state: string;
   user_type: string;
@@ -86,7 +85,7 @@ const Events: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("username, profile_photo, banner_photo, banner_video, city, state, user_type")
+        .select("username, profile_photo, banner_photo, city, state, user_type")
         .eq("username", username)
         .single();
 
@@ -196,32 +195,17 @@ const Events: React.FC = () => {
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
-            {/* Banner - Video or Photo */}
+            {/* Banner Photo */}
             <div className="h-48 md:h-64 relative overflow-hidden">
-              {userProfile.banner_video ? (
-                <video
-                  src={userProfile.banner_video}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLVideoElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <img
-                  src={userProfile.banner_photo || "/placeholder.svg"}
-                  alt={`${userProfile.username} banner`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder.svg";
-                  }}
-                />
-              )}
+              <img
+                src={userProfile.banner_photo || "/placeholder.svg"}
+                alt={`${userProfile.username} banner`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/placeholder.svg";
+                }}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
             </div>
 
