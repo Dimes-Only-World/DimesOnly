@@ -480,9 +480,12 @@ export type Database = {
           end_time: string | null
           females_price: number | null
           free_males_females: number | null
+          free_normal: number | null
           free_spots_exotics: number | null
           free_spots_strippers: number | null
           genre: string | null
+          group_capacity: number | null
+          group_discount_price: number | null
           host_user_id: string | null
           id: string
           location: string
@@ -497,6 +500,8 @@ export type Database = {
           vip_price: number | null
           vip_section_attendees: number | null
           vip_section_price: number | null
+          vip_sections: number | null
+          vip_tickets: number | null
         }
         Insert: {
           additional_photos?: string[] | null
@@ -508,9 +513,12 @@ export type Database = {
           end_time?: string | null
           females_price?: number | null
           free_males_females?: number | null
+          free_normal?: number | null
           free_spots_exotics?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
+          group_capacity?: number | null
+          group_discount_price?: number | null
           host_user_id?: string | null
           id?: string
           location: string
@@ -525,6 +533,8 @@ export type Database = {
           vip_price?: number | null
           vip_section_attendees?: number | null
           vip_section_price?: number | null
+          vip_sections?: number | null
+          vip_tickets?: number | null
         }
         Update: {
           additional_photos?: string[] | null
@@ -536,9 +546,12 @@ export type Database = {
           end_time?: string | null
           females_price?: number | null
           free_males_females?: number | null
+          free_normal?: number | null
           free_spots_exotics?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
+          group_capacity?: number | null
+          group_discount_price?: number | null
           host_user_id?: string | null
           id?: string
           location?: string
@@ -553,6 +566,8 @@ export type Database = {
           vip_price?: number | null
           vip_section_attendees?: number | null
           vip_section_price?: number | null
+          vip_sections?: number | null
+          vip_tickets?: number | null
         }
         Relationships: [
           {

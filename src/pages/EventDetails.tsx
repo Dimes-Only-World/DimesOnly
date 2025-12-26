@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   CheckCircle,
   Ticket,
+  X,
 } from "lucide-react";
 
 interface Event {
@@ -40,10 +41,25 @@ interface Event {
   current_attendees: number;
   free_spots_strippers: number;
   free_spots_exotics: number;
+  free_normal: number;
+  vip_tickets: number;
+  vip_price: number;
+  vip_sections: number;
+  vip_section_price: number;
+  vip_section_attendees: number;
+  group_discount_price: number;
+  group_capacity: number;
   description?: string;
   video_urls?: string[];
   additional_photos?: string[];
   host_user_id?: string;
+}
+
+interface HostProfile {
+  id: string;
+  username: string;
+  profile_photo?: string;
+  video_urls?: string[];
 }
 
 interface CurrentUser {
@@ -104,6 +120,7 @@ const EventDetails: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isUserRegistered, setIsUserRegistered] = useState(false);
   const [checkingRegistration, setCheckingRegistration] = useState(false);
+  const [hostProfile, setHostProfile] = useState<HostProfile | null>(null);
 
   const ATTENDEES_PER_PAGE = 24;
 
@@ -195,6 +212,19 @@ const EventDetails: React.FC = () => {
         ...eventData,
         current_attendees: count || 0,
       } as Event);
+
+      // Fetch host profile if host_user_id exists
+      if (eventData.host_user_id) {
+        const { data: hostData } = await supabase
+          .from("public_user_profiles")
+          .select("id, username, profile_photo, video_urls")
+          .eq("id", eventData.host_user_id)
+          .single();
+        
+        if (hostData) {
+          setHostProfile(hostData as HostProfile);
+        }
+      }
     } catch (error) {
       console.error("Error fetching event details:", error);
       toast({
@@ -331,16 +361,65 @@ const EventDetails: React.FC = () => {
           </Button>
         </div>
 
+        {/* Host Banner with Profile Pic and Video */}
+        {hostProfile && (
+          <div className="px-4 pb-4">
+            <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-purple-800/50 to-blue-800/50 border border-white/20">
+              {/* Video Background */}
+              {hostProfile.video_urls && hostProfile.video_urls.length > 0 && (
+                <video
+                  className="absolute inset-0 w-full h-full object-cover opacity-40"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                >
+                  <source src={hostProfile.video_urls[hostProfile.video_urls.length - 1]} type="video/mp4" />
+                </video>
+              )}
+              
+              {/* Content Overlay */}
+              <div className="relative z-10 p-6 flex items-center gap-4">
+                <img
+                  src={hostProfile.profile_photo || "/placeholder.svg"}
+                  alt={hostProfile.username}
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-yellow-400 shadow-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder.svg";
+                  }}
+                />
+                <div>
+                  <p className="text-sm text-gray-300 mb-1">Hosted by</p>
+                  <h3 className="text-xl md:text-2xl font-bold text-yellow-400">@{hostProfile.username}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Event Header */}
         <div className="px-4 pb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">{event.name}</h1>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             {event.genre && (
               <Badge className="bg-purple-500/50 text-white">{event.genre}</Badge>
             )}
             <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
               {event.current_attendees}/{event.max_attendees} Attending
             </Badge>
+            
+            {/* Going/Not Going Indicator */}
+            {isUserRegistered ? (
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white font-bold text-sm">
+                <CheckCircle className="h-4 w-4" />
+                Going
+              </span>
+            ) : currentUser && (
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white font-bold text-sm">
+                Not Going
+              </span>
+            )}
           </div>
         </div>
 
@@ -396,14 +475,15 @@ const EventDetails: React.FC = () => {
 
                     {/* Already Registered */}
                     {isUserRegistered ? (
-                      <div className="flex items-center gap-2 p-4 bg-green-500/20 rounded-lg border border-green-500/50">
-                        <CheckCircle className="h-5 w-5 text-green-400" />
-                        <span className="text-green-400 font-medium">You're registered for this event!</span>
+                      <div className="flex items-center gap-2 p-4 bg-green-500 rounded-lg">
+                        <CheckCircle className="h-5 w-5 text-white" />
+                        <span className="text-white font-bold">Going</span>
                       </div>
                     ) : event.current_attendees >= event.max_attendees ? (
                       /* Sold Out */
-                      <div className="p-4 bg-red-500/20 rounded-lg border border-red-500/50 text-center">
-                        <span className="text-red-400 font-medium">This event is sold out</span>
+                      <div className="flex items-center gap-2 p-4 bg-red-500 rounded-lg">
+                        <X className="h-5 w-5 text-white" />
+                        <span className="text-white font-bold">Sold Out</span>
                       </div>
                     ) : event.price > 0 ? (
                       /* Paid Event - Show PayPal Button */
