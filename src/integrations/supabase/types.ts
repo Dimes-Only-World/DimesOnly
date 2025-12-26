@@ -478,12 +478,15 @@ export type Database = {
           date: string
           description: string | null
           end_time: string | null
+          females_price: number | null
+          free_males_females: number | null
           free_spots_exotics: number | null
           free_spots_strippers: number | null
           genre: string | null
           host_user_id: string | null
           id: string
           location: string
+          males_price: number | null
           max_attendees: number | null
           name: string
           photo_url: string | null
@@ -491,6 +494,9 @@ export type Database = {
           start_time: string | null
           state: string | null
           video_urls: string[] | null
+          vip_price: number | null
+          vip_section_attendees: number | null
+          vip_section_price: number | null
         }
         Insert: {
           additional_photos?: string[] | null
@@ -500,12 +506,15 @@ export type Database = {
           date: string
           description?: string | null
           end_time?: string | null
+          females_price?: number | null
+          free_males_females?: number | null
           free_spots_exotics?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
           host_user_id?: string | null
           id?: string
           location: string
+          males_price?: number | null
           max_attendees?: number | null
           name: string
           photo_url?: string | null
@@ -513,6 +522,9 @@ export type Database = {
           start_time?: string | null
           state?: string | null
           video_urls?: string[] | null
+          vip_price?: number | null
+          vip_section_attendees?: number | null
+          vip_section_price?: number | null
         }
         Update: {
           additional_photos?: string[] | null
@@ -522,12 +534,15 @@ export type Database = {
           date?: string
           description?: string | null
           end_time?: string | null
+          females_price?: number | null
+          free_males_females?: number | null
           free_spots_exotics?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
           host_user_id?: string | null
           id?: string
           location?: string
+          males_price?: number | null
           max_attendees?: number | null
           name?: string
           photo_url?: string | null
@@ -535,6 +550,9 @@ export type Database = {
           start_time?: string | null
           state?: string | null
           video_urls?: string[] | null
+          vip_price?: number | null
+          vip_section_attendees?: number | null
+          vip_section_price?: number | null
         }
         Relationships: [
           {
@@ -2197,35 +2215,59 @@ export type Database = {
       }
       user_events: {
         Row: {
+          amount_paid: number | null
+          checked_in: boolean | null
+          checked_in_at: string | null
           created_at: string | null
           event_id: string
+          first_name: string | null
           guest_name: string | null
           id: string
+          last_name: string | null
           payment_id: string | null
           payment_status: string | null
+          phone_number: string | null
           referred_by: string | null
+          ticket_quantity: number | null
+          ticket_type: string | null
           user_id: string
           username: string
         }
         Insert: {
+          amount_paid?: number | null
+          checked_in?: boolean | null
+          checked_in_at?: string | null
           created_at?: string | null
           event_id: string
+          first_name?: string | null
           guest_name?: string | null
           id?: string
+          last_name?: string | null
           payment_id?: string | null
           payment_status?: string | null
+          phone_number?: string | null
           referred_by?: string | null
+          ticket_quantity?: number | null
+          ticket_type?: string | null
           user_id: string
           username: string
         }
         Update: {
+          amount_paid?: number | null
+          checked_in?: boolean | null
+          checked_in_at?: string | null
           created_at?: string | null
           event_id?: string
+          first_name?: string | null
           guest_name?: string | null
           id?: string
+          last_name?: string | null
           payment_id?: string | null
           payment_status?: string | null
+          phone_number?: string | null
           referred_by?: string | null
+          ticket_quantity?: number | null
+          ticket_type?: string | null
           user_id?: string
           username?: string
         }
