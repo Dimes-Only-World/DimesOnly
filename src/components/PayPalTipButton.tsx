@@ -36,7 +36,7 @@ const PayPalTipButton: React.FC<PayPalTipButtonProps> = ({
     }
 
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb";
-    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&enable-funding=paylater`;
 
     const existingScript = document.querySelector(`script[src*="${clientId}"]`);
 
