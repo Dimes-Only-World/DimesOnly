@@ -62,6 +62,7 @@ const Events: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [latestSilverVideo, setLatestSilverVideo] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     location: "",
     date: "",
@@ -74,6 +75,60 @@ const Events: React.FC = () => {
       fetchEvents();
     }
   }, [username]);
+
+  // Fetch latest silver video from any dime (exotic/stripper user)
+  useEffect(() => {
+    const fetchLatestSilverVideo = async () => {
+      try {
+        // Get latest silver tier video from exotic/stripper users
+        const { data: videoData, error } = await supabase
+          .from("user_media")
+          .select(`
+            media_url,
+            storage_path,
+            user_id,
+            users!inner(user_type)
+          `)
+          .eq("content_tier", "silver")
+          .eq("media_type", "video")
+          .in("users.user_type", ["exotic", "stripper"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error || !videoData) return;
+
+        let videoUrl = videoData.media_url;
+        
+        // Get signed URL for private storage
+        let storagePath = videoData.storage_path;
+        if (!storagePath && videoUrl?.includes("/private-media/")) {
+          storagePath = videoUrl.split("/private-media/")[1];
+        }
+
+        if (storagePath) {
+          const { data: signed } = await supabase.storage
+            .from("private-media")
+            .createSignedUrl(storagePath, 60 * 60);
+
+          const signedUrl = (signed as any)?.signedUrl || (signed as any)?.signedURL;
+          if (signedUrl) {
+            if (signedUrl.startsWith("/object/sign/")) {
+              videoUrl = `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1${signedUrl}`;
+            } else {
+              videoUrl = signedUrl;
+            }
+          }
+        }
+
+        setLatestSilverVideo(videoUrl);
+      } catch (error) {
+        console.error("Error fetching latest silver video:", error);
+      }
+    };
+
+    fetchLatestSilverVideo();
+  }, []);
 
   // Cleanup function to cancel ongoing requests
   useEffect(() => {
@@ -92,47 +147,6 @@ const Events: React.FC = () => {
 
       if (error) throw error;
 
-      // Get the latest silver video from user_media (videos are stored in private-media; use a signed URL)
-      let bannerVideo: string | undefined;
-      if (profileData?.id) {
-        const { data: videoRows } = await supabase
-          .from("user_media")
-          .select("media_url, storage_path")
-          .eq("user_id", profileData.id)
-          .eq("media_type", "video")
-          .eq("content_tier", "silver")
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        const videoRow = (videoRows || [])[0] as
-          | { media_url?: string | null; storage_path?: string | null }
-          | undefined;
-
-        bannerVideo = videoRow?.media_url || undefined;
-
-        // Prefer signed URL from storage path (works for private buckets)
-        let storagePath = videoRow?.storage_path || undefined;
-        if (!storagePath && bannerVideo?.includes("/private-media/")) {
-          storagePath = bannerVideo.split("/private-media/")[1];
-        }
-
-        if (storagePath) {
-          const { data: signed } = await supabase.storage
-            .from("private-media")
-            .createSignedUrl(storagePath, 60 * 60);
-
-          // Handle both signedUrl and signedURL property names
-          const signedUrl = (signed as any)?.signedUrl || (signed as any)?.signedURL;
-          if (signedUrl) {
-            // Convert relative URL to absolute if needed
-            if (signedUrl.startsWith("/object/sign/")) {
-              bannerVideo = `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1${signedUrl}`;
-            } else {
-              bannerVideo = signedUrl;
-            }
-          }
-        }
-      }
       setUserProfile({
         username: profileData.username,
         profile_photo: profileData.profile_photo,
@@ -140,7 +154,6 @@ const Events: React.FC = () => {
         city: profileData.city,
         state: profileData.state,
         user_type: profileData.user_type,
-        banner_video: bannerVideo,
       });
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -248,7 +261,7 @@ const Events: React.FC = () => {
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width like screenshot */}
             <div className="h-64 md:h-80 lg:h-96 relative overflow-hidden">
-              {userProfile.banner_video ? (
+              {latestSilverVideo ? (
                 <video
                   autoPlay
                   muted
@@ -266,7 +279,7 @@ const Events: React.FC = () => {
                     video.parentElement?.appendChild(fallbackImg);
                   }}
                 >
-                  <source src={userProfile.banner_video} type="video/mp4" />
+                  <source src={latestSilverVideo} type="video/mp4" />
                 </video>
               ) : (
                 <img
