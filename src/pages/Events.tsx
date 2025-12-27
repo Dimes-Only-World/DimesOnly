@@ -92,22 +92,38 @@ const Events: React.FC = () => {
 
       if (error) throw error;
 
-      // Get the latest silver video from user_media
+      // Get the latest silver video from user_media (videos are stored in private-media; use a signed URL)
       let bannerVideo: string | undefined;
       if (profileData?.id) {
-        const { data: videoData } = await supabase
+        const { data: videoRows } = await supabase
           .from("user_media")
-          .select("media_url")
+          .select("media_url, storage_path")
           .eq("user_id", profileData.id)
           .eq("media_type", "video")
           .eq("content_tier", "silver")
           .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
 
-        bannerVideo = videoData?.media_url || undefined;
+        const videoRow = (videoRows || [])[0] as
+          | { media_url?: string | null; storage_path?: string | null }
+          | undefined;
+
+        bannerVideo = videoRow?.media_url || undefined;
+
+        // Prefer signed URL from storage path (works for private buckets)
+        let storagePath = videoRow?.storage_path || undefined;
+        if (!storagePath && bannerVideo?.includes("/private-media/")) {
+          storagePath = bannerVideo.split("/private-media/")[1];
+        }
+
+        if (storagePath) {
+          const { data: signed } = await supabase.storage
+            .from("private-media")
+            .createSignedUrl(storagePath, 60 * 60);
+
+          if (signed?.signedUrl) bannerVideo = signed.signedUrl;
+        }
       }
-
       setUserProfile({
         username: profileData.username,
         profile_photo: profileData.profile_photo,
