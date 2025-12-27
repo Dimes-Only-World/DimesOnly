@@ -106,7 +106,7 @@ const TipPayPalReturn: React.FC = () => {
     const tippedUsername = searchParams.get("tipped_username");
     const referrer = searchParams.get("referrer_username");
     if (tippedUsername) {
-      navigate(`/tip?tip=${tippedUsername}${referrer ? `&ref=${referrer}` : ""}`);
+      navigate(`/tip-girls?tip=${tippedUsername}${referrer ? `&ref=${referrer}` : ""}`);
     } else {
       navigate("/tip-girls");
     }
