@@ -121,7 +121,16 @@ const Events: React.FC = () => {
             .from("private-media")
             .createSignedUrl(storagePath, 60 * 60);
 
-          if (signed?.signedUrl) bannerVideo = signed.signedUrl;
+          // Handle both signedUrl and signedURL property names
+          const signedUrl = (signed as any)?.signedUrl || (signed as any)?.signedURL;
+          if (signedUrl) {
+            // Convert relative URL to absolute if needed
+            if (signedUrl.startsWith("/object/sign/")) {
+              bannerVideo = `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1${signedUrl}`;
+            } else {
+              bannerVideo = signedUrl;
+            }
+          }
         }
       }
       setUserProfile({
@@ -245,7 +254,18 @@ const Events: React.FC = () => {
                   muted
                   loop
                   playsInline
+                  poster={userProfile.banner_photo || "/placeholder.svg"}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to banner photo if video fails
+                    const video = e.currentTarget;
+                    video.style.display = "none";
+                    const fallbackImg = document.createElement("img");
+                    fallbackImg.src = userProfile.banner_photo || "/placeholder.svg";
+                    fallbackImg.alt = `${userProfile.username} banner`;
+                    fallbackImg.className = "w-full h-full object-cover";
+                    video.parentElement?.appendChild(fallbackImg);
+                  }}
                 >
                   <source src={userProfile.banner_video} type="video/mp4" />
                 </video>
