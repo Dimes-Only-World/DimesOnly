@@ -63,6 +63,7 @@ const Events: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [latestSilverVideo, setLatestSilverVideo] = useState<string | null>(null);
+  const [isPortraitVideo, setIsPortraitVideo] = useState(false);
   const [filters, setFilters] = useState({
     location: "",
     date: "",
@@ -260,27 +261,46 @@ const Events: React.FC = () => {
         {userProfile && (
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width like screenshot */}
-            <div className="h-64 md:h-80 lg:h-96 relative overflow-hidden">
+            <div className={`${isPortraitVideo ? 'h-80 md:h-[28rem] lg:h-[32rem]' : 'h-64 md:h-80 lg:h-96'} relative overflow-hidden`}>
               {latestSilverVideo ? (
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  poster={userProfile.banner_photo || "/placeholder.svg"}
-                  className="w-full h-full object-cover object-top"
-                  onError={(e) => {
-                    const video = e.currentTarget;
-                    video.style.display = "none";
-                    const fallbackImg = document.createElement("img");
-                    fallbackImg.src = userProfile.banner_photo || "/placeholder.svg";
-                    fallbackImg.alt = `${userProfile.username} banner`;
-                    fallbackImg.className = "w-full h-full object-cover object-top";
-                    video.parentElement?.appendChild(fallbackImg);
-                  }}
-                >
-                  <source src={latestSilverVideo} type="video/mp4" />
-                </video>
+                <>
+                  {/* Background layer for portrait videos - blurred fill */}
+                  {isPortraitVideo && (
+                    <video
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-60"
+                    >
+                      <source src={latestSilverVideo} type="video/mp4" />
+                    </video>
+                  )}
+                  {/* Main video */}
+                  <video
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    poster={userProfile.banner_photo || "/placeholder.svg"}
+                    className={`w-full h-full ${isPortraitVideo ? 'object-contain' : 'object-cover object-top'} relative z-10`}
+                    onLoadedMetadata={(e) => {
+                      const video = e.currentTarget;
+                      setIsPortraitVideo(video.videoHeight > video.videoWidth);
+                    }}
+                    onError={(e) => {
+                      const video = e.currentTarget;
+                      video.style.display = "none";
+                      const fallbackImg = document.createElement("img");
+                      fallbackImg.src = userProfile.banner_photo || "/placeholder.svg";
+                      fallbackImg.alt = `${userProfile.username} banner`;
+                      fallbackImg.className = "w-full h-full object-cover object-top";
+                      video.parentElement?.appendChild(fallbackImg);
+                    }}
+                  >
+                    <source src={latestSilverVideo} type="video/mp4" />
+                  </video>
+                </>
               ) : (
                 <img
                   src={userProfile.banner_photo || "/placeholder.svg"}
