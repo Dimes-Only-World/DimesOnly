@@ -246,8 +246,8 @@ const Events: React.FC = () => {
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
-            {/* Banner - Video or Photo */}
-            <div className="h-48 md:h-64 relative overflow-hidden">
+            {/* Banner - Video or Photo - Full width like screenshot */}
+            <div className="h-64 md:h-80 lg:h-96 relative overflow-hidden">
               {userProfile.banner_video ? (
                 <video
                   autoPlay
@@ -257,7 +257,6 @@ const Events: React.FC = () => {
                   poster={userProfile.banner_photo || "/placeholder.svg"}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback to banner photo if video fails
                     const video = e.currentTarget;
                     video.style.display = "none";
                     const fallbackImg = document.createElement("img");
@@ -280,67 +279,45 @@ const Events: React.FC = () => {
                   }}
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
             </div>
 
-            {/* Profile Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
-                <div className="relative">
-                  <img
-                    src={userProfile.profile_photo || "/placeholder.svg"}
-                    alt={userProfile.username}
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-yellow-400 bg-white/10"
-                  />
-                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-10">
-                    <span
-                      className={`px-2 py-1 text-xs font-bold rounded-full text-white shadow-lg ${
-                        userProfile.user_type === "stripper"
-                          ? "bg-pink-500"
-                          : userProfile.user_type === "exotic"
-                          ? "bg-purple-500"
-                          : "bg-blue-500"
-                      }`}
-                    >
-                      {userProfile.user_type}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-center md:text-left flex-1">
-                  <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
-                    @{userProfile.username}
-                  </h1>
-                  <div className="flex flex-col md:flex-row items-center gap-2 text-gray-300 mb-2">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>
-                        {userProfile.city}, {userProfile.state}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* User Profile Info Display */}
-                  <div className="flex items-center justify-center md:justify-start gap-3 mt-4 p-3 bg-white/10 backdrop-blur rounded-lg border border-white/20">
+            {/* Bottom bar with profile photo on left and title on right - matching screenshot */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
+              <div className="flex items-center justify-between px-4 py-3">
+                {/* Profile photo and info on left */}
+                <div className="flex items-center gap-3">
+                  <div className="relative">
                     <img
                       src={userProfile.profile_photo || "/placeholder.svg"}
                       alt={userProfile.username}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-yellow-400"
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-md object-cover border-2 border-yellow-400 bg-white/10"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/placeholder.svg";
                       }}
                     />
-                    <div className="text-center md:text-left">
-                      <p className="font-semibold text-white text-sm">
-                        @{userProfile.username}
-                      </p>
-                      <p className="text-xs text-gray-300">
-                        {userProfile.user_type} • {userProfile.city},{" "}
-                        {userProfile.state}
-                      </p>
-                    </div>
                   </div>
+                  <div className="text-left">
+                    <h1 className="text-lg md:text-xl font-bold text-white">
+                      @{userProfile.username}
+                    </h1>
+                    <p className="text-sm text-yellow-400 font-semibold capitalize">
+                      {userProfile.user_type}
+                    </p>
+                    <p className="text-xs text-gray-200">
+                      {userProfile.city}, {userProfile.state}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Title on right */}
+                <div className="text-right">
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
+                    Upcoming Events
+                  </h2>
+                  <p className="text-xs md:text-sm text-gray-200">
+                    All upcoming events - purchase tickets from any event page
+                  </p>
                 </div>
               </div>
             </div>
@@ -348,20 +325,13 @@ const Events: React.FC = () => {
         )}
 
         <div className={getContentClasses()}>
-          <div className="text-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {username ? `Upcoming Events` : "Events"}
-            </h2>
-            <p className="text-gray-300 text-sm md:text-base">
-              All upcoming events - purchase tickets from any event page
-            </p>
+          {/* Events attending badge */}
+          <div className="flex justify-center mb-4">
             {userProfile && (
-              <div className="mt-2">
-                <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
-                  Events attending:{" "}
-                  {events.filter((event) => event.is_attending).length}
-                </Badge>
-              </div>
+              <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
+                Events attending:{" "}
+                {events.filter((event) => event.is_attending).length}
+              </Badge>
             )}
           </div>
 
