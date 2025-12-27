@@ -3,11 +3,11 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Flag, User, Heart, Loader2, CreditCard } from "lucide-react";
+import { Search, MapPin, Flag, User, Heart } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import JackpotDisplay from "@/components/JackpotDisplay";
 import TipAmountSelector from "@/components/TipAmountSelector";
-import CreditCardForm from "@/components/CreditCardForm";
+import PayPalTipButton from "@/components/PayPalTipButton";
 import UserProfileCard from "@/components/UserProfileCard";
 import UsersList from "@/components/UsersList";
 import TipStatusChecker from "@/components/TipStatusChecker";
@@ -44,16 +44,6 @@ const TipGirls: React.FC = () => {
     username?: string;
   } | null>(null);
   const [rateFilter, setRateFilter] = useState<RateFilter>("all");
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [showCardForm, setShowCardForm] = useState(false);
-  
-  // Credit card form state
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("");
-  const [expiryYear, setExpiryYear] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardHolderName, setCardHolderName] = useState("");
 
   useEffect(() => {
     getCurrentUser();
@@ -132,142 +122,18 @@ const TipGirls: React.FC = () => {
     window.location.href = url;
   };
 
-  // Handle PayPal redirect payment
-  const handlePayWithPayPal = async () => {
-    if (!currentUser || !selectedUser || tipAmount < 5) return;
-
-    setIsProcessingPayment(true);
-    setPaymentError(null);
-
-    try {
-      const baseUrl = window.location.origin;
-      const returnParams = new URLSearchParams({
-        tipper_id: currentUser.id,
-        tipper_username: currentUser.username || currentUser.email || "anonymous",
-        tipped_username: selectedUser.username,
-        amount: tipAmount.toString(),
-        referrer_username: refUsername || "",
-        tip_message: (message || "").slice(0, 60),
-      });
-      
-      const returnUrl = `${baseUrl}/tip-paypal-return?${returnParams.toString()}`;
-      const cancelUrl = `${baseUrl}/tip-girls?tip=${selectedUser.username}${refUsername ? `&ref=${refUsername}` : ""}`;
-
-      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
-        body: {
-          payment_type: "tip",
-          tipper_id: currentUser.id,
-          tipper_username: currentUser.username || currentUser.email || "anonymous",
-          tipped_username: selectedUser.username,
-          amount: tipAmount,
-          tip_message: message,
-          return_url: returnUrl,
-          cancel_url: cancelUrl,
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || "Failed to create PayPal order");
-      }
-
-      if (!data?.success || !data?.approval_url) {
-        throw new Error(data?.error || "Failed to get PayPal approval URL");
-      }
-
-      window.location.href = data.approval_url;
-    } catch (err) {
-      console.error("Payment error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to process payment";
-      setPaymentError(errorMessage);
-      toast({
-        title: "Payment Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      setIsProcessingPayment(false);
-    }
-  };
-
-  // Handle Credit Card payment via PayPal Advanced Checkout
-  const handleCardPayment = async () => {
-    if (!currentUser || !selectedUser || tipAmount < 5) return;
-
-    setIsProcessingPayment(true);
-    setPaymentError(null);
-
-    try {
-      console.log("Processing card payment for tip:", {
-        tipper_id: currentUser.id,
-        tipped_username: selectedUser.username,
-        amount: tipAmount,
-      });
-
-      const { data, error } = await supabase.functions.invoke("process-card-tip", {
-        body: {
-          tipper_id: currentUser.id,
-          tipper_username: currentUser.username || currentUser.email || "anonymous",
-          tipped_username: selectedUser.username,
-          amount: tipAmount,
-          tip_message: message,
-          referrer_username: refUsername || null,
-          card_number: cardNumber,
-          expiry_month: expiryMonth,
-          expiry_year: expiryYear,
-          cvv: cvv,
-          card_holder_name: cardHolderName,
-        },
-      });
-
-      if (error) {
-        console.error("Card payment error:", error);
-        throw new Error(error.message || "Failed to process card payment");
-      }
-
-      if (!data?.success) {
-        // Check if 3D Secure is required
-        if (data?.requires_action && data?.action_url) {
-          toast({
-            title: "Authentication Required",
-            description: "Your bank requires additional verification. Redirecting...",
-          });
-          window.location.href = data.action_url;
-          return;
-        }
-        throw new Error(data?.error || "Card payment failed");
-      }
-
-      console.log("Card payment successful:", data);
-
-      // Clear card form
-      setCardNumber("");
-      setExpiryMonth("");
-      setExpiryYear("");
-      setCvv("");
-      setCardHolderName("");
-      setShowCardForm(false);
-
-      // Show success
-      toast({
-        title: "Tip Successful! 🎉",
-        description: `Your tip of $${tipAmount} to @${selectedUser.username} was processed. You received ${tipAmount} lottery tickets!`,
-      });
-      
-      // Reset and go back to directory
+  const handleTipSuccess = (transactionId?: string) => {
+    console.log("Tip successful, transaction:", transactionId);
+    // Reset and go back to directory after a delay
+    setTimeout(() => {
       setSelectedUser(null);
       setTipAmount(0);
       setMessage("");
-    } catch (err) {
-      console.error("Card payment error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to process card payment";
-      setPaymentError(errorMessage);
-      toast({
-        title: "Payment Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessingPayment(false);
-    }
+    }, 3000);
+  };
+
+  const handleTipError = (error: string) => {
+    console.error("Tip error:", error);
   };
 
   // inside TipGirls.tsx
@@ -328,78 +194,18 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                   />
                 </div>
 
-                {tipAmount >= 5 && (
-                  <div className="space-y-4">
-                    {paymentError && (
-                      <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                        <p className="text-red-600">{paymentError}</p>
-                        <Button
-                          onClick={() => setPaymentError(null)}
-                          variant="outline"
-                          className="mt-2"
-                        >
-                          Try Again
-                        </Button>
-                      </div>
-                    )}
-
-                    {!paymentError && !showCardForm && (
-                      <>
-                        <Button
-                          onClick={handlePayWithPayPal}
-                          disabled={isProcessingPayment}
-                          className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg"
-                        >
-                          {isProcessingPayment ? (
-                            <>
-                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                              Connecting to PayPal...
-                            </>
-                          ) : (
-                            <>Pay ${tipAmount} with PayPal</>
-                          )}
-                        </Button>
-                        <Button
-                          onClick={() => setShowCardForm(true)}
-                          className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
-                        >
-                          <CreditCard className="w-5 h-5 mr-2" />
-                          Pay with Card
-                        </Button>
-                      </>
-                    )}
-
-                    {!paymentError && showCardForm && (
-                      <>
-                        <Button
-                          onClick={() => setShowCardForm(false)}
-                          variant="outline"
-                          className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-2"
-                        >
-                          ← Back to PayPal
-                        </Button>
-                        <CreditCardForm
-                          cardNumber={cardNumber}
-                          expiryMonth={expiryMonth}
-                          expiryYear={expiryYear}
-                          cvv={cvv}
-                          cardHolderName={cardHolderName}
-                          onCardNumberChange={setCardNumber}
-                          onExpiryMonthChange={setExpiryMonth}
-                          onExpiryYearChange={setExpiryYear}
-                          onCvvChange={setCvv}
-                          onCardHolderNameChange={setCardHolderName}
-                          amount={tipAmount}
-                          onSubmit={handleCardPayment}
-                          isSubmitting={isProcessingPayment}
-                        />
-                      </>
-                    )}
-
-                    <p className="text-yellow-200 text-sm text-center">
-                      🎟️ You'll receive {tipAmount} lottery tickets!
-                    </p>
-                  </div>
+                {currentUser && (
+                  <PayPalTipButton
+                    tipAmount={tipAmount}
+                    tippedUsername={selectedUser.username}
+                    tipperUserId={currentUser.id}
+                    tipperUsername={currentUser.username || currentUser.email || "anonymous"}
+                    referrerUsername={refUsername || undefined}
+                    tipMessage={message}
+                    onSuccess={handleTipSuccess}
+                    onError={handleTipError}
+                    disabled={tipAmount < 5}
+                  />
                 )}
 
                 <Button
