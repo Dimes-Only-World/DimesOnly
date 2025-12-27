@@ -34,6 +34,10 @@ import {
   Upload,
   Image,
   Video,
+  Phone,
+  Search,
+  Check,
+  Lock,
 } from "lucide-react";
 
 interface Event {
@@ -66,6 +70,7 @@ interface Event {
   photo_url?: string;
   video_urls?: string[];
   additional_photos?: string[];
+  banner_video_url?: string;
   created_at: string;
   current_attendees?: number;
 }
@@ -77,10 +82,21 @@ interface Attendee {
   username: string;
   payment_status: string;
   created_at: string;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  ticket_quantity: number;
+  ticket_type: string;
+  amount_paid: number;
+  checked_in: boolean;
+  checked_in_at?: string;
+  guest_name?: string;
   users: {
     username: string;
     profile_photo?: string;
     user_type: string;
+    first_name?: string;
+    last_name?: string;
   };
 }
 
@@ -122,16 +138,19 @@ const AdminEventsTab: React.FC = () => {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showEditEvent, setShowEditEvent] = useState(false);
   const [showAttendees, setShowAttendees] = useState(false);
+  const [phoneSearch, setPhoneSearch] = useState("");
 
   // File upload states for creating
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [additionalPhotoFiles, setAdditionalPhotoFiles] = useState<File[]>([]);
+  const [bannerVideoFile, setBannerVideoFile] = useState<File | null>(null);
   
   // File upload states for editing
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
   const [editVideoFiles, setEditVideoFiles] = useState<File[]>([]);
   const [editAdditionalPhotoFiles, setEditAdditionalPhotoFiles] = useState<File[]>([]);
+  const [editBannerVideoFile, setEditBannerVideoFile] = useState<File | null>(null);
 
   const { toast } = useToast();
 
@@ -206,17 +225,19 @@ const AdminEventsTab: React.FC = () => {
         "events"
       );
 
-      // Get attendee counts for each event
+      // Get attendee counts for each event (sum of ticket_quantity)
       const eventsWithCounts = await Promise.all(
         (data || []).map(async (event) => {
-          const { count } = await supabase
+          const { data: attendeeData } = await supabase
             .from("user_events")
-            .select("*", { count: "exact", head: true })
+            .select("ticket_quantity")
             .eq("event_id", event.id);
+
+          const totalAttendees = attendeeData?.reduce((sum, a) => sum + (a.ticket_quantity || 1), 0) || 0;
 
           return {
             ...event,
-            current_attendees: count || 0,
+            current_attendees: totalAttendees,
           };
         })
       );
@@ -245,10 +266,21 @@ const AdminEventsTab: React.FC = () => {
           username,
           payment_status,
           created_at,
+          first_name,
+          last_name,
+          phone_number,
+          ticket_quantity,
+          ticket_type,
+          amount_paid,
+          checked_in,
+          checked_in_at,
+          guest_name,
           users (
             username,
             profile_photo,
-            user_type
+            user_type,
+            first_name,
+            last_name
           )
         `
         )
@@ -261,10 +293,45 @@ const AdminEventsTab: React.FC = () => {
       }
 
       console.log("✅ Attendees fetched:", data?.length || 0, "attendees");
-      console.log("📋 Sample attendee data:", data?.[0]); // Debug log
+      console.log("📋 Sample attendee data:", data?.[0]);
       setAttendees((data as unknown as Attendee[]) || []);
     } catch (error) {
       console.error("❌ Error in fetchEventAttendees:", error);
+    }
+  };
+
+  const handleCheckIn = async (attendeeId: string, currentStatus: boolean) => {
+    try {
+      console.log("🔄 Checking in attendee:", attendeeId);
+      const { error } = await supabase
+        .from("user_events")
+        .update({
+          checked_in: !currentStatus,
+          checked_in_at: !currentStatus ? new Date().toISOString() : null,
+        })
+        .eq("id", attendeeId);
+
+      if (error) {
+        console.error("❌ Error checking in attendee:", error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: currentStatus ? "Check-in removed" : "Attendee checked in!",
+      });
+
+      // Refresh attendees
+      if (selectedEvent) {
+        await fetchEventAttendees(selectedEvent.id);
+      }
+    } catch (error) {
+      console.error("❌ Check-in failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update check-in status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -288,11 +355,18 @@ const AdminEventsTab: React.FC = () => {
       let photoUrl = newEvent.photo_url;
       const videoUrls: string[] = [];
       const additionalPhotoUrls: string[] = [];
+      let bannerVideoUrl: string | null = null;
 
       // Upload main photo if provided
       if (photoFile) {
         console.log("📸 Uploading main photo...");
         photoUrl = (await uploadFileToStorage(photoFile, "event-photos")) || "";
+      }
+
+      // Upload banner video if provided
+      if (bannerVideoFile) {
+        console.log("🎥 Uploading banner video...");
+        bannerVideoUrl = await uploadFileToStorage(bannerVideoFile, "event-videos", "banners");
       }
 
       // Upload videos if provided
@@ -426,6 +500,7 @@ const AdminEventsTab: React.FC = () => {
       setPhotoFile(null);
       setVideoFiles([]);
       setAdditionalPhotoFiles([]);
+      setBannerVideoFile(null);
 
       setShowAddEvent(false);
       fetchEvents();
@@ -456,6 +531,7 @@ const AdminEventsTab: React.FC = () => {
       let photoUrl = editingEvent.photo_url;
       let videoUrls = editingEvent.video_urls || [];
       let additionalPhotoUrls = editingEvent.additional_photos || [];
+      let bannerVideoUrl = editingEvent.banner_video_url;
 
       // Upload new main photo if provided
       if (editPhotoFile) {
@@ -463,6 +539,15 @@ const AdminEventsTab: React.FC = () => {
         const newPhotoUrl = await uploadFileToStorage(editPhotoFile, "event-photos");
         if (newPhotoUrl) {
           photoUrl = newPhotoUrl;
+        }
+      }
+
+      // Upload new banner video if provided
+      if (editBannerVideoFile) {
+        console.log("🎥 Uploading new banner video...");
+        const newBannerUrl = await uploadFileToStorage(editBannerVideoFile, "event-videos", "banners");
+        if (newBannerUrl) {
+          bannerVideoUrl = newBannerUrl;
         }
       }
 
@@ -501,7 +586,7 @@ const AdminEventsTab: React.FC = () => {
       const updateData = {
         name: editingEvent.name,
         description: editingEvent.description,
-        date: editingEvent.date,
+        // Date is NOT updated - it's read-only after creation
         start_time: editingEvent.start_time,
         end_time: editingEvent.end_time,
         address: editingEvent.address,
@@ -548,6 +633,7 @@ const AdminEventsTab: React.FC = () => {
       setEditPhotoFile(null);
       setEditVideoFiles([]);
       setEditAdditionalPhotoFiles([]);
+      setEditBannerVideoFile(null);
       
       setEditingEvent(null);
       setShowEditEvent(false);
@@ -639,7 +725,7 @@ const AdminEventsTab: React.FC = () => {
         await fetchEventAttendees(selectedEvent.id);
       }
       await fetchEvents();
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Attendee removal failed:", error);
       toast({
         title: "Error",
@@ -653,6 +739,7 @@ const AdminEventsTab: React.FC = () => {
 
   const handleViewAttendees = (event: Event) => {
     setSelectedEvent(event);
+    setPhoneSearch("");
     fetchEventAttendees(event.id);
     setShowAttendees(true);
   };
@@ -677,7 +764,39 @@ const AdminEventsTab: React.FC = () => {
     } else if (dialogType === "attendees") {
       console.log("👥 Attendees dialog closed - Event:", selectedEvent?.name);
       setShowAttendees(false);
+      setPhoneSearch("");
     }
+  };
+
+  // Get the attendee's display name
+  const getAttendeeName = (attendee: Attendee) => {
+    const firstName = attendee.first_name || attendee.users?.first_name || "";
+    const lastName = attendee.last_name || attendee.users?.last_name || "";
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    return attendee.username || attendee.users?.username || "Unknown";
+  };
+
+  // Get guest count text
+  const getGuestCountText = (attendee: Attendee) => {
+    const qty = attendee.ticket_quantity || 1;
+    if (qty > 1) {
+      return ` + ${qty - 1}`;
+    }
+    return "";
+  };
+
+  // Filter attendees by phone number
+  const filteredAttendees = attendees.filter((attendee) => {
+    if (!phoneSearch) return true;
+    const phone = attendee.phone_number || "";
+    return phone.toLowerCase().includes(phoneSearch.toLowerCase());
+  });
+
+  // Calculate total attendees including guests
+  const getTotalAttendeeCount = () => {
+    return attendees.reduce((sum, a) => sum + (a.ticket_quantity || 1), 0);
   };
 
   return (
@@ -838,17 +957,17 @@ const AdminEventsTab: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Price ($)
+                    Males Price ($)
                   </label>
                   <Input
                     type="number"
                     min="0"
                     step="0.01"
-                    value={newEvent.price}
+                    value={newEvent.males_price}
                     onChange={(e) =>
                       setNewEvent((prev) => ({
                         ...prev,
-                        price: parseFloat(e.target.value) || 0,
+                        males_price: parseFloat(e.target.value) || 0,
                       }))
                     }
                   />
@@ -927,7 +1046,7 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Attendees per Section
+                      Attendees in Section
                     </label>
                     <Input
                       type="number"
@@ -1038,7 +1157,7 @@ const AdminEventsTab: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Free Normal (Males/Females)
+                      Free Males or Normal Females
                     </label>
                     <Input
                       type="number"
@@ -1051,6 +1170,9 @@ const AdminEventsTab: React.FC = () => {
                         }))
                       }
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      First Come First Serve - Only for Males and Normal Females
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
@@ -1071,7 +1193,7 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Females Price ($)
+                      Normal Females Price ($)
                     </label>
                     <Input
                       type="number"
@@ -1093,12 +1215,12 @@ const AdminEventsTab: React.FC = () => {
               <div className="space-y-4 border-t pt-4">
                 <h3 className="text-lg font-medium">Media Upload</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Main Photo Upload */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <Image className="w-4 h-4 inline mr-1" />
-                      Main Event Photo
+                      Banner Photo
                     </label>
                     <Input
                       type="file"
@@ -1115,6 +1237,29 @@ const AdminEventsTab: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Banner Video Upload */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Video className="w-4 h-4 inline mr-1" />
+                      Banner Video
+                    </label>
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) =>
+                        setBannerVideoFile(e.target.files?.[0] || null)
+                      }
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                    />
+                    {bannerVideoFile && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Selected: {bannerVideoFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Video Upload */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -1370,18 +1515,19 @@ const AdminEventsTab: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Date *
+                  <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    Date (Locked)
                   </label>
                   <Input
                     type="date"
                     value={editingEvent.date}
-                    onChange={(e) =>
-                      setEditingEvent((prev) =>
-                        prev ? { ...prev, date: e.target.value } : null
-                      )
-                    }
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Date cannot be changed after creation
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -1459,17 +1605,20 @@ const AdminEventsTab: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Price ($)
+                    Males Price ($)
                   </label>
                   <Input
                     type="number"
                     min="0"
                     step="0.01"
-                    value={editingEvent.price}
+                    value={editingEvent.males_price || 0}
                     onChange={(e) =>
                       setEditingEvent((prev) =>
                         prev
-                          ? { ...prev, price: parseFloat(e.target.value) || 0 }
+                          ? {
+                              ...prev,
+                              males_price: parseFloat(e.target.value) || 0,
+                            }
                           : null
                       )
                     }
@@ -1553,7 +1702,7 @@ const AdminEventsTab: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Attendees per Section</label>
+                    <label className="block text-sm font-medium mb-1">Attendees in Section</label>
                     <Input
                       type="number"
                       min="1"
@@ -1597,12 +1746,25 @@ const AdminEventsTab: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Free Normal</label>
+                    <label className="block text-sm font-medium mb-1">Free Males or Normal Females</label>
                     <Input
                       type="number"
                       min="0"
                       value={editingEvent.free_normal || 0}
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_normal: parseInt(e.target.value) || 0 } : null)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      First Come First Serve
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Normal Females Price ($)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editingEvent.females_price || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, females_price: parseFloat(e.target.value) || 0 } : null)}
                     />
                   </div>
                   <div>
@@ -1614,16 +1776,17 @@ const AdminEventsTab: React.FC = () => {
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_capacity: parseInt(e.target.value) || 10 } : null)}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Group Discount Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.group_discount_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_discount_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
-                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Group Discount Price ($)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editingEvent.group_discount_price || 0}
+                    onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_discount_price: parseFloat(e.target.value) || 0 } : null)}
+                  />
                 </div>
               </div>
 
@@ -1634,7 +1797,7 @@ const AdminEventsTab: React.FC = () => {
                 {/* Current Photo Preview */}
                 {editingEvent.photo_url && (
                   <div className="mb-2">
-                    <p className="text-xs text-muted-foreground mb-1">Current Photo:</p>
+                    <p className="text-xs text-muted-foreground mb-1">Current Banner:</p>
                     <img 
                       src={editingEvent.photo_url} 
                       alt="Current event" 
@@ -1643,12 +1806,12 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Main Photo Upload */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <Image className="w-4 h-4 inline mr-1" />
-                      {editingEvent.photo_url ? "Replace Main Photo" : "Add Main Photo"}
+                      {editingEvent.photo_url ? "Replace Banner Photo" : "Add Banner Photo"}
                     </label>
                     <Input
                       type="file"
@@ -1663,6 +1826,32 @@ const AdminEventsTab: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Banner Video Upload */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Video className="w-4 h-4 inline mr-1" />
+                      {editingEvent.banner_video_url ? "Replace Banner Video" : "Add Banner Video"}
+                    </label>
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => setEditBannerVideoFile(e.target.files?.[0] || null)}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                    />
+                    {editBannerVideoFile && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Selected: {editBannerVideoFile.name}
+                      </p>
+                    )}
+                    {editingEvent.banner_video_url && !editBannerVideoFile && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Current video exists
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Video Upload */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -1781,43 +1970,94 @@ const AdminEventsTab: React.FC = () => {
             <DialogTitle>Manage Attendees: {selectedEvent?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="text-sm text-gray-600">
-              Total Attendees: {attendees.length} /{" "}
-              {selectedEvent?.max_attendees}
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Total Attendees: {getTotalAttendeeCount()} /{" "}
+                {selectedEvent?.max_attendees}
+              </div>
+              
+              {/* Phone Search */}
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search Phone Number"
+                  value={phoneSearch}
+                  onChange={(e) => setPhoneSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
 
-            {attendees.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No attendees yet</p>
+            {filteredAttendees.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">
+                {attendees.length === 0 ? "No attendees yet" : "No matching attendees"}
+              </p>
             ) : (
               <div className="grid gap-3">
-                {attendees.map((attendee) => (
-                  <Card key={attendee.id} className="p-4">
+                {filteredAttendees.map((attendee) => (
+                  <Card key={attendee.id} className={`p-4 ${attendee.checked_in ? 'border-green-500 bg-green-50/50' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
+                        {/* Profile Photo */}
                         <img
                           src={
-                            attendee.users.profile_photo || "/placeholder.svg"
+                            attendee.users?.profile_photo || "/placeholder.svg"
                           }
-                          alt={attendee.users.username}
-                          className="w-10 h-10 rounded-full object-cover"
+                          alt={getAttendeeName(attendee)}
+                          className="w-12 h-12 rounded-full object-cover"
                         />
-                        <div>
+                        <div className="flex-1">
+                          {/* Name with guest count */}
                           <p className="font-medium">
-                            @{attendee.users.username}
+                            {getAttendeeName(attendee)}
+                            {getGuestCountText(attendee) && (
+                              <span className="text-primary font-semibold">
+                                {getGuestCountText(attendee)}
+                              </span>
+                            )}
                           </p>
-                          <div className="flex items-center gap-2">
+                          
+                          {/* Username and phone */}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>@{attendee.username || attendee.users?.username}</span>
+                            {attendee.phone_number && (
+                              <>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  {attendee.phone_number}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          
+                          {/* Badges */}
+                          <div className="flex items-center gap-2 mt-1">
                             <Badge variant="outline">
-                              {attendee.users.user_type || "User"}
+                              {attendee.users?.user_type || "User"}
                             </Badge>
                             <Badge
                               variant={
                                 attendee.payment_status === "paid"
                                   ? "default"
-                                  : "secondary"
+                                  : attendee.payment_status === "free"
+                                  ? "secondary"
+                                  : "outline"
                               }
                             >
-                              {attendee.payment_status}
+                              {attendee.ticket_type || attendee.payment_status}
                             </Badge>
+                            {attendee.amount_paid > 0 && (
+                              <Badge variant="outline" className="text-green-600">
+                                ${attendee.amount_paid}
+                              </Badge>
+                            )}
+                            {attendee.checked_in && (
+                              <Badge variant="default" className="bg-green-600">
+                                <Check className="w-3 h-3 mr-1" />
+                                Checked In
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1825,6 +2065,18 @@ const AdminEventsTab: React.FC = () => {
                         <p className="text-sm text-gray-500">
                           {new Date(attendee.created_at).toLocaleDateString()}
                         </p>
+                        
+                        {/* Check In Button */}
+                        <Button
+                          size="sm"
+                          variant={attendee.checked_in ? "outline" : "default"}
+                          onClick={() => handleCheckIn(attendee.id, attendee.checked_in)}
+                          className={attendee.checked_in ? "border-green-500 text-green-600" : ""}
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          {attendee.checked_in ? "Undo Check-in" : "Check In"}
+                        </Button>
+                        
                         <Button
                           size="sm"
                           variant="destructive"
