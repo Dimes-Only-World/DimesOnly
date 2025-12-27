@@ -48,6 +48,7 @@ interface UserProfile {
   city: string;
   state: string;
   user_type: string;
+  banner_video?: string;
 }
 
 const Events: React.FC = () => {
@@ -83,14 +84,39 @@ const Events: React.FC = () => {
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from("users")
-        .select("username, profile_photo, banner_photo, city, state, user_type")
+        .select("id, username, profile_photo, banner_photo, city, state, user_type")
         .eq("username", username)
         .single();
 
       if (error) throw error;
-      setUserProfile(data as UserProfile);
+
+      // Get the latest silver video from user_media
+      let bannerVideo: string | undefined;
+      if (profileData?.id) {
+        const { data: videoData } = await supabase
+          .from("user_media")
+          .select("media_url")
+          .eq("user_id", profileData.id)
+          .eq("media_type", "video")
+          .eq("content_tier", "silver")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        bannerVideo = videoData?.media_url || undefined;
+      }
+
+      setUserProfile({
+        username: profileData.username,
+        profile_photo: profileData.profile_photo,
+        banner_photo: profileData.banner_photo,
+        city: profileData.city,
+        state: profileData.state,
+        user_type: profileData.user_type,
+        banner_video: bannerVideo,
+      });
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
@@ -195,17 +221,29 @@ const Events: React.FC = () => {
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
-            {/* Banner Photo */}
+            {/* Banner - Video or Photo */}
             <div className="h-48 md:h-64 relative overflow-hidden">
-              <img
-                src={userProfile.banner_photo || "/placeholder.svg"}
-                alt={`${userProfile.username} banner`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "/placeholder.svg";
-                }}
-              />
+              {userProfile.banner_video ? (
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                >
+                  <source src={userProfile.banner_video} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src={userProfile.banner_photo || "/placeholder.svg"}
+                  alt={`${userProfile.username} banner`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder.svg";
+                  }}
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
             </div>
 
