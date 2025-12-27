@@ -117,10 +117,9 @@ const TipGirls: React.FC = () => {
   };
 
   const handleUserSelect = (user: User) => {
-    setSelectedUser(user);
-    setTipAmount(0);
-    setMessage("");
-    setCustomAmount("");
+    const currentUserUsername = currentUser?.username || "guest";
+    const url = `/tip/?tip=${user.username}&ref=${currentUserUsername}`;
+    window.location.href = url;
   };
 
   const handleTipSuccess = (transactionId?: string) => {

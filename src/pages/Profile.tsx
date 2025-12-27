@@ -213,7 +213,7 @@ const Profile: React.FC = () => {
   };
 
   const handleTip = () => {
-    navigate(`/tip-girls?tip=${username}`);
+    navigate(`/tip?tip=${username}`);
   };
 
   const handleRate = () => {
