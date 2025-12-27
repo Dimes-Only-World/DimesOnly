@@ -268,14 +268,14 @@ const Events: React.FC = () => {
                   loop
                   playsInline
                   poster={userProfile.banner_photo || "/placeholder.svg"}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                   onError={(e) => {
                     const video = e.currentTarget;
                     video.style.display = "none";
                     const fallbackImg = document.createElement("img");
                     fallbackImg.src = userProfile.banner_photo || "/placeholder.svg";
                     fallbackImg.alt = `${userProfile.username} banner`;
-                    fallbackImg.className = "w-full h-full object-cover";
+                    fallbackImg.className = "w-full h-full object-cover object-top";
                     video.parentElement?.appendChild(fallbackImg);
                   }}
                 >
@@ -285,7 +285,7 @@ const Events: React.FC = () => {
                 <img
                   src={userProfile.banner_photo || "/placeholder.svg"}
                   alt={`${userProfile.username} banner`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";
