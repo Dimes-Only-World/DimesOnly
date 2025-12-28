@@ -549,20 +549,32 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge */}
-                    <div className="absolute top-3 left-3">
+                    {/* Event Status Badge - Show used/total format */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">
                           SOLD OUT
                         </Badge>
-                      ) : getFreeSpots(event) > 0 ? (
-                        <Badge className="bg-green-600 text-white font-bold">
-                          Free Spots: {getFreeSpots(event)}
-                        </Badge>
                       ) : (
-                        <Badge className="bg-yellow-600 text-white font-bold">
-                          PAID ONLY
-                        </Badge>
+                        <>
+                          {/* Strippers/Exotics free spots */}
+                          {((event.free_spots_strippers || 0) > 0 || (event.free_spots_exotics || 0) > 0) && (
+                            <Badge className="bg-purple-600 text-white font-bold text-xs">
+                              Dimes: {getSpotsUsedByType(event, 'stripper') + getSpotsUsedByType(event, 'exotic')}/{(event.free_spots_strippers || 0) + (event.free_spots_exotics || 0)}
+                            </Badge>
+                          )}
+                          {/* Male/Female free spots */}
+                          {((event.free_spots_males || 0) + (event.free_spots_females || 0) + (event.free_normal || 0)) > 0 && (
+                            <Badge className="bg-blue-600 text-white font-bold text-xs">
+                              M/F Free: {getSpotsUsedByType(event, 'male') + getSpotsUsedByType(event, 'female') + getSpotsUsedByType(event, 'normal')}/{(event.free_spots_males || 0) + (event.free_spots_females || 0) + (event.free_normal || 0)}
+                            </Badge>
+                          )}
+                          {getFreeSpots(event) === 0 && (
+                            <Badge className="bg-yellow-600 text-white font-bold">
+                              PAID ONLY
+                            </Badge>
+                          )}
+                        </>
                       )}
                     </div>
 
@@ -616,13 +628,24 @@ const Events: React.FC = () => {
                           {event.address}, {event.city}, {event.state}
                         </span>
                       </div>
-                      {event.price > 0 && (
-                        <div className="flex items-center gap-2">
+                      {/* Pricing info */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {event.price > 0 && (
                           <span className="text-yellow-400 font-bold">
-                            ${event.price}
+                            General: ${event.price}
                           </span>
-                        </div>
-                      )}
+                        )}
+                        {(event as any).males_price > 0 && (
+                          <span className="text-blue-400 font-bold">
+                            Males: ${(event as any).males_price}
+                          </span>
+                        )}
+                        {(event as any).females_price > 0 && (
+                          <span className="text-pink-400 font-bold">
+                            Females: ${(event as any).females_price}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex gap-2">
