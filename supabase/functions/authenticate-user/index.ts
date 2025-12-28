@@ -145,9 +145,10 @@ Deno.serve(async (req) => {
       recordFailedAttempt(clientIP);
       console.log('User not found - failed attempt recorded');
       return new Response(JSON.stringify({
-        message: 'Invalid credentials'
+        success: false,
+        error: 'Invalid credentials'
       }), {
-        status: 401,
+        status: 200,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
@@ -164,9 +165,10 @@ Deno.serve(async (req) => {
       recordFailedAttempt(clientIP);
       console.log('No password hash stored for user');
       return new Response(JSON.stringify({
-        message: 'Invalid credentials'
+        success: false,
+        error: 'Invalid credentials'
       }), {
-        status: 401,
+        status: 200,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
@@ -204,9 +206,10 @@ Deno.serve(async (req) => {
       recordFailedAttempt(clientIP);
       console.log('Password validation failed - failed attempt recorded');
       return new Response(JSON.stringify({
-        message: 'Invalid credentials'
+        success: false,
+        error: 'Invalid credentials'
       }), {
-        status: 401,
+        status: 200,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
