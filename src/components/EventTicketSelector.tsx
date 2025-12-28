@@ -69,8 +69,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
     } else if (userType === "exotic") {
       return Math.max(0, event.free_spots_exotics - usedFreeSpots.exotics);
     } else if (userType === "male" || userType === "female" || userType === "normal") {
-      // All members share the same pool of free spots (default 10)
-      const totalMemberFreeSpots = event.free_normal || 10;
+      // All members share the same pool of free spots - always 10
+      const totalMemberFreeSpots = 10; // Always 10 free spots for all events
       return Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
     } else {
       // Unknown user type - use normal pool
