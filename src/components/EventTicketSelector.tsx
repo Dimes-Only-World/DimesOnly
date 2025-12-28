@@ -27,10 +27,6 @@ interface EventTicketSelectorProps {
     free_spots_strippers: number;
     free_spots_exotics: number;
     free_normal: number;
-    free_spots_males: number;
-    free_spots_females: number;
-    males_price: number;
-    females_price: number;
     max_attendees: number;
     current_attendees: number;
     host_user_id?: string;
@@ -40,13 +36,10 @@ interface EventTicketSelectorProps {
     username: string;
   };
   userType?: string;
-  userGender?: string;
   usedFreeSpots?: {
     strippers: number;
     exotics: number;
     normal: number;
-    males: number;
-    females: number;
   };
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
@@ -57,8 +50,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   event,
   currentUser,
   userType,
-  userGender,
-  usedFreeSpots = { strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 },
+  usedFreeSpots = { strippers: 0, exotics: 0, normal: 0 },
   onSuccess,
   onError,
   onFreeRegister,
@@ -69,50 +61,31 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestName, setGuestName] = useState("");
 
-  // Calculate available spots based on user type and gender
+  // Calculate available spots
   const availableFreeSpots = useMemo(() => {
     if (userType === "stripper") {
-      return Math.max(0, (event.free_spots_strippers || 0) - usedFreeSpots.strippers);
+      return Math.max(0, event.free_spots_strippers - usedFreeSpots.strippers);
     } else if (userType === "exotic") {
-      return Math.max(0, (event.free_spots_exotics || 0) - usedFreeSpots.exotics);
-    } else if (userGender === "male") {
-      return Math.max(0, (event.free_spots_males || 0) - usedFreeSpots.males);
-    } else if (userGender === "female") {
-      return Math.max(0, (event.free_spots_females || 0) - usedFreeSpots.females);
+      return Math.max(0, event.free_spots_exotics - usedFreeSpots.exotics);
     } else {
-      // Fallback to free_normal for unknown gender
-      return Math.max(0, (event.free_normal || 0) - usedFreeSpots.normal);
+      return Math.max(0, event.free_normal - usedFreeSpots.normal);
     }
-  }, [event, userType, userGender, usedFreeSpots]);
-
-  // Get the appropriate general admission price based on gender
-  const generalAdmissionPrice = useMemo(() => {
-    if (userType === "stripper" || userType === "exotic") {
-      return event.price || 0;
-    }
-    if (userGender === "male" && event.males_price > 0) {
-      return event.males_price;
-    }
-    if (userGender === "female" && event.females_price > 0) {
-      return event.females_price;
-    }
-    return event.price || 0;
-  }, [event, userType, userGender]);
+  }, [event, userType, usedFreeSpots]);
 
   const remainingCapacity = event.max_attendees - event.current_attendees;
   const showFreeOption = availableFreeSpots > 0;
-  const showGeneralOption = generalAdmissionPrice > 0;
+  const showGeneralOption = event.price > 0;
   const showVipOption = event.vip_tickets > 0 && event.vip_price > 0;
   const showVipSectionOption = event.vip_sections > 0 && event.vip_section_price > 0;
 
-  // Calculate total price using gender-specific pricing
+  // Calculate total price
   const totalPrice = useMemo(() => {
     if (!selectedType) return 0;
     switch (selectedType) {
       case "free":
         return 0;
       case "general":
-        return generalAdmissionPrice * quantity;
+        return event.price * quantity;
       case "vip":
         return event.vip_price * quantity;
       case "vip_section":
@@ -120,7 +93,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       default:
         return 0;
     }
-  }, [selectedType, quantity, event, generalAdmissionPrice]);
+  }, [selectedType, quantity, event]);
 
   // Max quantity based on selection
   const maxQuantity = useMemo(() => {
@@ -163,16 +136,6 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
     }
   };
 
-  // Get user type label for badge
-  const getUserTypeLabel = () => {
-    if (userType === "stripper" || userType === "exotic") {
-      return `For ${userType}s`;
-    }
-    if (userGender === "male") return "For males";
-    if (userGender === "female") return "For females";
-    return undefined;
-  };
-
   const ticketOptions = [
     {
       type: "free" as TicketType,
@@ -181,13 +144,13 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       price: 0,
       available: showFreeOption,
       description: `${availableFreeSpots} free spots remaining`,
-      badge: getUserTypeLabel(),
+      badge: userType ? `For ${userType}s` : undefined,
     },
     {
       type: "general" as TicketType,
       label: "General Admission",
       icon: Users,
-      price: generalAdmissionPrice,
+      price: event.price,
       available: showGeneralOption,
       description: `${remainingCapacity} spots available`,
     },

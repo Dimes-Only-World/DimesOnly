@@ -58,8 +58,6 @@ interface Event {
   free_spots_exotics: number;
   free_males_females: number;
   free_normal: number;
-  free_spots_males: number;
-  free_spots_females: number;
   vip_price: number;
   vip_tickets: number;
   vip_section_price: number;
@@ -121,8 +119,6 @@ const AdminEventsTab: React.FC = () => {
     free_spots_exotics: 5,
     free_males_females: 0,
     free_normal: 0,
-    free_spots_males: 5,
-    free_spots_females: 5,
     vip_price: 0,
     vip_tickets: 0,
     vip_section_price: 0,
@@ -428,8 +424,6 @@ const AdminEventsTab: React.FC = () => {
         free_spots_exotics: newEvent.free_spots_exotics || 0,
         free_males_females: newEvent.free_males_females || 0,
         free_normal: newEvent.free_normal || 0,
-        free_spots_males: newEvent.free_spots_males || 0,
-        free_spots_females: newEvent.free_spots_females || 0,
         vip_price: newEvent.vip_price || 0,
         vip_tickets: newEvent.vip_tickets || 0,
         vip_section_price: newEvent.vip_section_price || 0,
@@ -490,8 +484,6 @@ const AdminEventsTab: React.FC = () => {
         free_spots_exotics: 5,
         free_males_females: 0,
         free_normal: 0,
-        free_spots_males: 5,
-        free_spots_females: 5,
         vip_price: 0,
         vip_tickets: 0,
         vip_section_price: 0,
@@ -608,8 +600,6 @@ const AdminEventsTab: React.FC = () => {
         free_spots_exotics: editingEvent.free_spots_exotics,
         free_males_females: editingEvent.free_males_females,
         free_normal: editingEvent.free_normal,
-        free_spots_males: editingEvent.free_spots_males || 0,
-        free_spots_females: editingEvent.free_spots_females || 0,
         vip_price: editingEvent.vip_price,
         vip_tickets: editingEvent.vip_tickets,
         vip_section_price: editingEvent.vip_section_price,
@@ -1163,50 +1153,27 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Separate Male/Female Free Spots */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Free Normal Tickets */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Free Males Spots
+                      Free Males or Normal Females
                     </label>
                     <Input
                       type="number"
                       min="0"
-                      value={newEvent.free_spots_males}
+                      value={newEvent.free_normal}
                       onChange={(e) =>
                         setNewEvent((prev) => ({
                           ...prev,
-                          free_spots_males: parseInt(e.target.value) || 0,
+                          free_normal: parseInt(e.target.value) || 0,
                         }))
                       }
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Free entry spots allocated for males
+                      First Come First Serve - Only for Males and Normal Females
                     </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Free Females Spots
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={newEvent.free_spots_females}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          free_spots_females: parseInt(e.target.value) || 0,
-                        }))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free entry spots allocated for normal females
-                    </p>
-                  </div>
-                </div>
-
-                {/* Pricing for Males/Females */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Males Price ($)
@@ -1777,45 +1744,18 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Separate Male/Female Free Spots - Edit Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Free Males Spots</label>
+                    <label className="block text-sm font-medium mb-1">Free Males or Normal Females</label>
                     <Input
                       type="number"
                       min="0"
-                      value={editingEvent.free_spots_males || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_males: parseInt(e.target.value) || 0 } : null)}
+                      value={editingEvent.free_normal || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_normal: parseInt(e.target.value) || 0 } : null)}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Free entry spots for males
+                      First Come First Serve
                     </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Free Females Spots</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editingEvent.free_spots_females || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_females: parseInt(e.target.value) || 0 } : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free entry spots for normal females
-                    </p>
-                  </div>
-                </div>
-
-                {/* Pricing for Males/Females - Edit Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Males Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.males_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, males_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Normal Females Price ($)</label>
@@ -1827,9 +1767,6 @@ const AdminEventsTab: React.FC = () => {
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, females_price: parseFloat(e.target.value) || 0 } : null)}
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Group Capacity</label>
                     <Input
@@ -1839,16 +1776,17 @@ const AdminEventsTab: React.FC = () => {
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_capacity: parseInt(e.target.value) || 10 } : null)}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Group Discount Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.group_discount_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_discount_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
-                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Group Discount Price ($)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editingEvent.group_discount_price || 0}
+                    onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_discount_price: parseFloat(e.target.value) || 0 } : null)}
+                  />
                 </div>
               </div>
 

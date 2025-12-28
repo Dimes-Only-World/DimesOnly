@@ -44,10 +44,6 @@ interface Event {
   free_spots_strippers: number;
   free_spots_exotics: number;
   free_normal: number;
-  free_spots_males: number;
-  free_spots_females: number;
-  males_price: number;
-  females_price: number;
   vip_tickets: number;
   vip_price: number;
   vip_sections: number;
@@ -72,7 +68,6 @@ interface CurrentUser {
   id: string;
   username: string;
   user_type?: string;
-  gender?: string;
 }
 
 interface EventAttendee {
@@ -140,7 +135,7 @@ const EventDetails: React.FC = () => {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
 
   // Used free spots tracking
-  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
+  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0 });
 
   const ATTENDEES_PER_PAGE = 24;
 
@@ -160,8 +155,7 @@ const EventDetails: React.FC = () => {
       setCurrentUser({ 
         id: appUser.id, 
         username: appUser.username,
-        user_type: (appUser as any).user_type || undefined,
-        gender: (appUser as any).gender || undefined
+        user_type: (appUser as any).user_type || undefined
       });
       return;
     }
@@ -175,8 +169,7 @@ const EventDetails: React.FC = () => {
           setCurrentUser({ 
             id: userData.id, 
             username: userData.username,
-            user_type: userData.user_type || undefined,
-            gender: userData.gender || undefined
+            user_type: userData.user_type || undefined
           });
           return;
         }
@@ -279,23 +272,21 @@ const EventDetails: React.FC = () => {
         .eq("payment_status", "free");
 
       if (!registrations || registrations.length === 0) {
-        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
+        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0 });
         return;
       }
 
-      // Get user types and genders for free registrations
+      // Get user types for free registrations
       const userIds = registrations.map(r => r.user_id);
       const { data: users } = await supabase
         .from("public_user_profiles")
-        .select("id, user_type, gender")
+        .select("id, user_type")
         .in("id", userIds);
 
-      const counts = { strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 };
+      const counts = { strippers: 0, exotics: 0, normal: 0 };
       (users || []).forEach(user => {
         if (user.user_type === "stripper") counts.strippers++;
         else if (user.user_type === "exotic") counts.exotics++;
-        else if (user.gender === "male") counts.males++;
-        else if (user.gender === "female") counts.females++;
         else counts.normal++;
       });
 
@@ -418,14 +409,11 @@ const EventDetails: React.FC = () => {
     
     if (error) throw error;
     
-    // Update free spots count based on user type and gender
+    // Update free spots count based on user type
     const userType = currentUser.user_type;
-    const userGender = currentUser.gender;
     let updateField = "free_normal";
     if (userType === "stripper") updateField = "free_spots_strippers";
     else if (userType === "exotic") updateField = "free_spots_exotics";
-    else if (userGender === "male") updateField = "free_spots_males";
-    else if (userGender === "female") updateField = "free_spots_females";
     
     const currentSpots = event[updateField as keyof typeof event] as number || 0;
     if (currentSpots > 0) {
@@ -650,6 +638,19 @@ const EventDetails: React.FC = () => {
                       Get Your Ticket
                     </h4>
 
+                    {/* Debug info - logged in console */}
+                    {(() => {
+                      console.log("EventDetails Ticket Section Debug:", {
+                        currentUser,
+                        isUserRegistered,
+                        checkingRegistration,
+                        appUserLoading,
+                        eventCurrentAttendees: event.current_attendees,
+                        eventMaxAttendees: event.max_attendees,
+                        usedFreeSpots
+                      });
+                      return null;
+                    })()}
 
                     {/* Already Registered */}
                     {isUserRegistered ? (
@@ -675,7 +676,6 @@ const EventDetails: React.FC = () => {
                         event={event}
                         currentUser={currentUser}
                         userType={currentUser.user_type}
-                        userGender={currentUser.gender}
                         usedFreeSpots={usedFreeSpots}
                         onSuccess={() => {
                           setIsUserRegistered(true);
