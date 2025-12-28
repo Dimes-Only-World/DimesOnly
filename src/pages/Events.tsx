@@ -326,7 +326,7 @@ const Events: React.FC = () => {
         {userProfile && (
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width like screenshot */}
-            <div className="h-64 md:h-80 lg:h-96 relative overflow-hidden">
+            <div className="h-80 md:h-96 lg:h-[500px] relative overflow-hidden">
               {latestSilverVideo ? (
                 <video
                   autoPlay
@@ -362,14 +362,14 @@ const Events: React.FC = () => {
 
             {/* Bottom bar with profile photo on left and title on right - matching screenshot */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
-              <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center justify-between px-4 md:px-6 py-4 md:py-5">
                 {/* Profile photo and info on left */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <div className="relative">
                     <img
                       src={userProfile.profile_photo || "/placeholder.svg"}
                       alt={userProfile.username}
-                      className="w-16 h-16 md:w-20 md:h-20 rounded-md object-cover border-2 border-yellow-400 bg-white/10"
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-md object-cover border-2 border-yellow-400 bg-white/10"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/placeholder.svg";
@@ -377,13 +377,13 @@ const Events: React.FC = () => {
                     />
                   </div>
                   <div className="text-left">
-                    <h1 className="text-lg md:text-xl font-bold text-white">
+                    <h1 className="text-xl md:text-2xl font-bold text-white">
                       @{userProfile.username}
                     </h1>
-                    <p className="text-sm text-yellow-400 font-semibold capitalize">
+                    <p className="text-sm md:text-base text-yellow-400 font-semibold capitalize">
                       {userProfile.user_type}
                     </p>
-                    <p className="text-xs text-gray-200">
+                    <p className="text-sm text-gray-200">
                       {userProfile.city}, {userProfile.state}
                     </p>
                   </div>
@@ -391,10 +391,10 @@ const Events: React.FC = () => {
 
                 {/* Title on right */}
                 <div className="text-right">
-                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
                     Upcoming Events
                   </h2>
-                  <p className="text-xs md:text-sm text-gray-200">
+                  <p className="text-sm md:text-base text-gray-200 mt-1">
                     All upcoming events - purchase tickets from any event page
                   </p>
                 </div>
