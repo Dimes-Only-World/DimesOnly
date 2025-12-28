@@ -326,7 +326,7 @@ const Events: React.FC = () => {
         {userProfile && (
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width like screenshot */}
-            <div className="h-80 md:h-96 lg:h-[500px] relative overflow-hidden">
+            <div className="w-full aspect-video max-h-[500px] relative overflow-hidden">
               {latestSilverVideo ? (
                 <video
                   autoPlay
@@ -334,7 +334,7 @@ const Events: React.FC = () => {
                   loop
                   playsInline
                   poster={userProfile.banner_photo || "/placeholder.svg"}
-                  className="w-full h-full object-cover object-top"
+                  className="w-full h-full object-contain bg-black"
                   onError={(e) => {
                     const video = e.currentTarget;
                     video.style.display = "none";
@@ -360,10 +360,10 @@ const Events: React.FC = () => {
               )}
             </div>
 
-            {/* Bottom bar with profile photo on left and title on right - matching screenshot */}
+            {/* Bottom bar with profile photo and info */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
-              <div className="flex items-center justify-between px-4 md:px-6 py-4 md:py-5">
-                {/* Profile photo and info on left */}
+              <div className="px-4 md:px-6 py-4 md:py-5">
+                {/* Profile photo and info row */}
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <img
@@ -376,7 +376,7 @@ const Events: React.FC = () => {
                       }}
                     />
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <h1 className="text-xl md:text-2xl font-bold text-white">
                       @{userProfile.username}
                     </h1>
@@ -387,16 +387,15 @@ const Events: React.FC = () => {
                       {userProfile.city}, {userProfile.state}
                     </p>
                   </div>
-                </div>
-
-                {/* Title on right */}
-                <div className="text-right">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
-                    Upcoming Events
-                  </h2>
-                  <p className="text-sm md:text-base text-gray-200 mt-1">
-                    All upcoming events - purchase tickets from any event page
-                  </p>
+                  {/* Title on right of profile info */}
+                  <div className="text-right">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
+                      Upcoming Events
+                    </h2>
+                    <p className="text-sm md:text-base text-gray-200 mt-1">
+                      All upcoming events - purchase tickets from any event page
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
