@@ -61,12 +61,20 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestName, setGuestName] = useState("");
 
-  // Calculate available spots
+  // Calculate available spots - support male, female, normal user types
   const availableFreeSpots = useMemo(() => {
     if (userType === "stripper") {
       return Math.max(0, event.free_spots_strippers - usedFreeSpots.strippers);
     } else if (userType === "exotic") {
       return Math.max(0, event.free_spots_exotics - usedFreeSpots.exotics);
+    } else if (userType === "male") {
+      // Males use free_spots_males or fall back to free_normal
+      const maleSpots = (event as any).free_spots_males || 0;
+      return Math.max(0, maleSpots > 0 ? maleSpots - (usedFreeSpots as any).males || 0 : event.free_normal - usedFreeSpots.normal);
+    } else if (userType === "female" || userType === "normal") {
+      // Females use free_spots_females or fall back to free_normal
+      const femaleSpots = (event as any).free_spots_females || 0;
+      return Math.max(0, femaleSpots > 0 ? femaleSpots - (usedFreeSpots as any).females || 0 : event.free_normal - usedFreeSpots.normal);
     } else {
       return Math.max(0, event.free_normal - usedFreeSpots.normal);
     }

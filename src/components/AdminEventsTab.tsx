@@ -58,6 +58,8 @@ interface Event {
   free_spots_exotics: number;
   free_males_females: number;
   free_normal: number;
+  free_spots_males: number;
+  free_spots_females: number;
   vip_price: number;
   vip_tickets: number;
   vip_section_price: number;
@@ -119,6 +121,8 @@ const AdminEventsTab: React.FC = () => {
     free_spots_exotics: 5,
     free_males_females: 0,
     free_normal: 0,
+    free_spots_males: 0,
+    free_spots_females: 0,
     vip_price: 0,
     vip_tickets: 0,
     vip_section_price: 0,
@@ -424,6 +428,8 @@ const AdminEventsTab: React.FC = () => {
         free_spots_exotics: newEvent.free_spots_exotics || 0,
         free_males_females: newEvent.free_males_females || 0,
         free_normal: newEvent.free_normal || 0,
+        free_spots_males: (newEvent as any).free_spots_males || 0,
+        free_spots_females: (newEvent as any).free_spots_females || 0,
         vip_price: newEvent.vip_price || 0,
         vip_tickets: newEvent.vip_tickets || 0,
         vip_section_price: newEvent.vip_section_price || 0,
@@ -484,6 +490,8 @@ const AdminEventsTab: React.FC = () => {
         free_spots_exotics: 5,
         free_males_females: 0,
         free_normal: 0,
+        free_spots_males: 0,
+        free_spots_females: 0,
         vip_price: 0,
         vip_tickets: 0,
         vip_section_price: 0,
@@ -583,10 +591,10 @@ const AdminEventsTab: React.FC = () => {
         editingEvent.location ||
         "TBD";
 
-      const updateData = {
+const updateData = {
         name: editingEvent.name,
         description: editingEvent.description,
-        // Date is NOT updated - it's read-only after creation
+        date: editingEvent.date,
         start_time: editingEvent.start_time,
         end_time: editingEvent.end_time,
         address: editingEvent.address,
@@ -860,6 +868,9 @@ const AdminEventsTab: React.FC = () => {
                       <SelectItem value="Sports">Sports</SelectItem>
                       <SelectItem value="Arts & Culture">
                         Arts & Culture
+                      </SelectItem>
+                      <SelectItem value="Valentine's Event">
+                        Valentine's Event
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -1153,25 +1164,44 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Free Normal Tickets */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Free Normal Tickets and Male/Female Free Spots */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Free Males or Normal Females
+                      Free Males
                     </label>
                     <Input
                       type="number"
                       min="0"
-                      value={newEvent.free_normal}
+                      value={(newEvent as any).free_spots_males || 0}
                       onChange={(e) =>
                         setNewEvent((prev) => ({
                           ...prev,
-                          free_normal: parseInt(e.target.value) || 0,
-                        }))
+                          free_spots_males: parseInt(e.target.value) || 0,
+                        } as any))
                       }
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      First Come First Serve - Only for Males and Normal Females
+                      Free spots for male users
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Free Females
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={(newEvent as any).free_spots_females || 0}
+                      onChange={(e) =>
+                        setNewEvent((prev) => ({
+                          ...prev,
+                          free_spots_females: parseInt(e.target.value) || 0,
+                        } as any))
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Free spots for female users
                     </p>
                   </div>
                   <div>
@@ -1395,10 +1425,17 @@ const AdminEventsTab: React.FC = () => {
                       )}
                       <p className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4" />${event.price} • Max:{" "}
-                        {event.max_attendees} • Free:{" "}
+                        {event.max_attendees} • Free Dimes:{" "}
                         {event.free_spots_strippers} strippers,{" "}
                         {event.free_spots_exotics} exotics
+                        {(event as any).free_spots_males > 0 && ` • Males: ${(event as any).free_spots_males}`}
+                        {(event as any).free_spots_females > 0 && ` • Females: ${(event as any).free_spots_females}`}
                       </p>
+                      {event.genre && (
+                        <Badge variant="outline" className="w-fit">
+                          {event.genre}
+                        </Badge>
+                      )}
                       <p className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
                         {event.current_attendees || 0} attendees
@@ -1508,6 +1545,9 @@ const AdminEventsTab: React.FC = () => {
                       <SelectItem value="Arts & Culture">
                         Arts & Culture
                       </SelectItem>
+                      <SelectItem value="Valentine's Event">
+                        Valentine's Event
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1515,19 +1555,18 @@ const AdminEventsTab: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 flex items-center gap-1">
-                    <Lock className="w-3 h-3" />
-                    Date (Locked)
+                  <label className="block text-sm font-medium mb-1">
+                    Date
                   </label>
                   <Input
                     type="date"
                     value={editingEvent.date}
-                    disabled
-                    className="bg-muted cursor-not-allowed"
+                    onChange={(e) =>
+                      setEditingEvent((prev) =>
+                        prev ? { ...prev, date: e.target.value } : null
+                      )
+                    }
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Date cannot be changed after creation
-                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -1744,9 +1783,34 @@ const AdminEventsTab: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Free Spots for Males and Females */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Free Males or Normal Females</label>
+                    <label className="block text-sm font-medium mb-1">Free Males</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={(editingEvent as any).free_spots_males || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_males: parseInt(e.target.value) || 0 } as any : null)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Free spots for male users
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Free Females</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={(editingEvent as any).free_spots_females || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_females: parseInt(e.target.value) || 0 } as any : null)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Free spots for female users
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Free Males/Normal Females</label>
                     <Input
                       type="number"
                       min="0"
@@ -1754,7 +1818,7 @@ const AdminEventsTab: React.FC = () => {
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_normal: parseInt(e.target.value) || 0 } : null)}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      First Come First Serve
+                      Legacy: First Come First Serve
                     </p>
                   </div>
                   <div>
@@ -1767,6 +1831,9 @@ const AdminEventsTab: React.FC = () => {
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, females_price: parseFloat(e.target.value) || 0 } : null)}
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Group Capacity</label>
                     <Input
@@ -1776,17 +1843,16 @@ const AdminEventsTab: React.FC = () => {
                       onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_capacity: parseInt(e.target.value) || 10 } : null)}
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Group Discount Price ($)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editingEvent.group_discount_price || 0}
-                    onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_discount_price: parseFloat(e.target.value) || 0 } : null)}
-                  />
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Group Discount Price ($)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editingEvent.group_discount_price || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, group_discount_price: parseFloat(e.target.value) || 0 } : null)}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -2079,8 +2145,15 @@ const AdminEventsTab: React.FC = () => {
                             )}
                           </div>
                           
+                          {/* Guest Name Display */}
+                          {attendee.guest_name && (
+                            <p className="text-xs text-blue-500 mt-1">
+                              Guest: {attendee.guest_name}
+                            </p>
+                          )}
+                          
                           {/* Badges */}
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
                             <Badge variant="outline">
                               {attendee.users?.user_type || "User"}
                             </Badge>
@@ -2095,6 +2168,11 @@ const AdminEventsTab: React.FC = () => {
                             >
                               {attendee.ticket_type || attendee.payment_status}
                             </Badge>
+                            {attendee.ticket_quantity > 1 && (
+                              <Badge variant="outline" className="text-purple-600">
+                                Qty: {attendee.ticket_quantity}
+                              </Badge>
+                            )}
                             {attendee.amount_paid > 0 && (
                               <Badge variant="outline" className="text-green-600">
                                 ${attendee.amount_paid}
