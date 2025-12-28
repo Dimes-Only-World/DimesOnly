@@ -9,9 +9,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import PayPalEventButton from "@/components/PayPalEventButton";
-import EventCreditCardPayment from "@/components/EventCreditCardPayment";
-import { Ticket, Users, Crown, Star, Minus, Plus } from "lucide-react";
+import CreditCardForm from "@/components/CreditCardForm";
+import { supabase } from "@/lib/supabaseClient";
+import { Ticket, Users, Crown, Star, Minus, Plus, CreditCard, Loader2 } from "lucide-react";
 
 type TicketType = "free" | "general" | "vip" | "vip_section";
 
@@ -62,6 +62,17 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestName, setGuestName] = useState("");
   
+  // Payment state
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  
+  // Credit card form state
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardHolderName, setCardHolderName] = useState("");
 
   // Calculate available spots - unified free spots for members (male, female, normal)
   // All events have 10 free spots by default for members
@@ -145,6 +156,92 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
     }
   };
 
+  // PayPal redirect handler
+  const handlePayWithPayPal = async () => {
+    setIsProcessingPayment(true);
+    setPaymentError(null);
+    
+    try {
+      const baseUrl = window.location.origin;
+      const returnParams = new URLSearchParams({
+        event_id: event.id,
+        buyer_id: currentUser.id,
+        buyer_username: currentUser.username,
+        ticket_type: selectedType || "general",
+        ticket_quantity: quantity.toString(),
+        amount: totalPrice.toString(),
+      });
+      
+      const returnUrl = `${baseUrl}/event-payment-return?${returnParams.toString()}`;
+      const cancelUrl = `${baseUrl}/event-details?id=${event.id}`;
+
+      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
+        body: {
+          payment_type: "event",
+          event_id: event.id,
+          user_id: currentUser.id,
+          amount: totalPrice,
+          description: `Event Ticket - ${event.name}`,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+        },
+      });
+
+      if (error || !data?.success || !data?.approval_url) {
+        throw new Error(data?.error || "Failed to create PayPal order");
+      }
+
+      // Redirect to PayPal in same window
+      window.location.href = data.approval_url;
+    } catch (err: any) {
+      setPaymentError(err.message || "Failed to process payment");
+      setIsProcessingPayment(false);
+    }
+  };
+
+  // Card payment handler
+  const handleCardPayment = async () => {
+    setIsProcessingPayment(true);
+    setPaymentError(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("process-card-event-payment", {
+        body: {
+          event_id: event.id,
+          event_name: event.name,
+          buyer_id: currentUser.id,
+          buyer_username: currentUser.username,
+          event_owner_id: event.host_user_id,
+          amount: totalPrice,
+          ticket_type: selectedType,
+          ticket_quantity: quantity,
+          card_number: cardNumber.replace(/\s/g, ""),
+          expiry_month: expiryMonth,
+          expiry_year: expiryYear,
+          cvv,
+          card_holder_name: cardHolderName,
+        },
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || "Card payment failed");
+      }
+
+      // Clear form and show success
+      setCardNumber("");
+      setExpiryMonth("");
+      setExpiryYear("");
+      setCvv("");
+      setCardHolderName("");
+      setShowCardForm(false);
+      onSuccess(data.capture_id || data.order_id);
+    } catch (err: any) {
+      setPaymentError(err.message || "Failed to process card payment");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   const ticketOptions = [
     {
       type: "free" as TicketType,
@@ -202,6 +299,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
               onClick={() => {
                 setSelectedType(option.type);
                 setQuantity(1);
+                setShowCardForm(false);
+                setPaymentError(null);
               }}
               className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                 selectedType === option.type
@@ -302,41 +401,88 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
             </Button>
           ) : (
             <>
-              {/* Unified Payment Buttons - Same design as TipGirls */}
-              <div className="space-y-3">
+              {/* Payment Section - Matching Tip Page Design */}
+              <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 rounded-xl p-6 border border-yellow-500/30">
+                <h3 className="text-white font-bold mb-4 text-center">
+                  Complete Your Purchase
+                </h3>
+
                 {/* Info message */}
-                <p className="text-center text-gray-300 text-sm">
+                <p className="text-center text-gray-300 text-sm mb-4">
                   You'll be charged ${totalPrice.toFixed(2)} USD
                 </p>
-                
-                {/* PayPal Button - Green */}
-                <PayPalEventButton
-                  eventId={event.id}
-                  eventName={event.name}
-                  eventPrice={totalPrice}
-                  eventOwnerId={event.host_user_id}
-                  buyerId={currentUser.id}
-                  buyerUsername={currentUser.username}
-                  ticketType={selectedType}
-                  ticketQuantity={quantity}
-                  onSuccess={onSuccess}
-                  onError={onError}
-                  className="w-full"
-                />
 
-                {/* Credit Card Button - Pink/Magenta */}
-                <EventCreditCardPayment
-                  eventId={event.id}
-                  eventName={event.name}
-                  totalPrice={totalPrice}
-                  ticketType={selectedType}
-                  ticketQuantity={quantity}
-                  buyerId={currentUser.id}
-                  buyerUsername={currentUser.username}
-                  eventOwnerId={event.host_user_id}
-                  onSuccess={onSuccess}
-                  onError={onError}
-                />
+                {paymentError && (
+                  <div className="text-center p-4 bg-red-500/20 rounded-lg border border-red-500/30 mb-4">
+                    <p className="text-red-400">{paymentError}</p>
+                    <Button
+                      onClick={() => setPaymentError(null)}
+                      variant="outline"
+                      className="mt-2 border-red-400/50 text-red-400 hover:bg-red-400/10"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                )}
+
+                {!paymentError && !showCardForm && (
+                  <>
+                    {/* Blue PayPal Button */}
+                    <Button
+                      onClick={handlePayWithPayPal}
+                      disabled={isProcessingPayment}
+                      className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg mb-3"
+                    >
+                      {isProcessingPayment ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Connecting to PayPal...
+                        </>
+                      ) : (
+                        <>Pay ${totalPrice.toFixed(2)} with PayPal</>
+                      )}
+                    </Button>
+                    
+                    {/* Purple Card Button */}
+                    <Button
+                      onClick={() => setShowCardForm(true)}
+                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
+                    >
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Pay with Card
+                    </Button>
+                  </>
+                )}
+
+                {!paymentError && showCardForm && (
+                  <>
+                    {/* Back to PayPal Button */}
+                    <Button
+                      onClick={() => setShowCardForm(false)}
+                      variant="outline"
+                      className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-4"
+                    >
+                      ← Back to PayPal
+                    </Button>
+                    
+                    {/* Inline Credit Card Form */}
+                    <CreditCardForm
+                      cardNumber={cardNumber}
+                      expiryMonth={expiryMonth}
+                      expiryYear={expiryYear}
+                      cvv={cvv}
+                      cardHolderName={cardHolderName}
+                      onCardNumberChange={setCardNumber}
+                      onExpiryMonthChange={setExpiryMonth}
+                      onExpiryYearChange={setExpiryYear}
+                      onCvvChange={setCvv}
+                      onCardHolderNameChange={setCardHolderName}
+                      amount={totalPrice}
+                      onSubmit={handleCardPayment}
+                      isSubmitting={isProcessingPayment}
+                    />
+                  </>
+                )}
               </div>
 
               <Button
