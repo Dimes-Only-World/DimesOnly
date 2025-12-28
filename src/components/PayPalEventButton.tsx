@@ -382,12 +382,16 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
 
   // Normal PayPal button
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-2 w-full ${className}`}>
       <div className="flex items-center gap-2 mb-2">
         <CreditCard className="h-4 w-4 text-yellow-400" />
         <span className="text-sm text-gray-300">Secure Payment</span>
       </div>
-      <div ref={containerRef} className="paypal-button-container" />
+      <div 
+        ref={containerRef} 
+        className="paypal-button-container w-full min-w-[280px]"
+        style={{ minHeight: '55px' }}
+      />
       <p className="text-xs text-gray-400 text-center mt-2">
         You'll be charged ${eventPrice.toFixed(2)} USD
       </p>

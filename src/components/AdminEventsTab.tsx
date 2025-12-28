@@ -1805,6 +1805,64 @@ const AdminEventsTab: React.FC = () => {
                     />
                   </div>
                 )}
+
+                {/* Current Videos with Delete */}
+                {editingEvent.video_urls && editingEvent.video_urls.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-muted-foreground mb-2">Current Videos ({editingEvent.video_urls.length}):</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {editingEvent.video_urls.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <video 
+                            src={url} 
+                            className="w-full h-20 object-cover rounded"
+                            controls
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              const newUrls = editingEvent.video_urls?.filter((_, i) => i !== index) || [];
+                              setEditingEvent((prev) => prev ? { ...prev, video_urls: newUrls } : null);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Current Additional Photos with Delete */}
+                {editingEvent.additional_photos && editingEvent.additional_photos.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-muted-foreground mb-2">Current Photos ({editingEvent.additional_photos.length}):</p>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {editingEvent.additional_photos.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={url} 
+                            alt={`Photo ${index + 1}`}
+                            className="w-full h-16 object-cover rounded"
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute top-1 right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              const newPhotos = editingEvent.additional_photos?.filter((_, i) => i !== index) || [];
+                              setEditingEvent((prev) => prev ? { ...prev, additional_photos: newPhotos } : null);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Main Photo Upload */}
@@ -1856,7 +1914,7 @@ const AdminEventsTab: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <Video className="w-4 h-4 inline mr-1" />
-                      Add Videos
+                      Add More Videos
                     </label>
                     <Input
                       type="file"
@@ -1870,18 +1928,13 @@ const AdminEventsTab: React.FC = () => {
                         ✓ Selected: {editVideoFiles.length} video(s)
                       </p>
                     )}
-                    {editingEvent.video_urls && editingEvent.video_urls.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Existing: {editingEvent.video_urls.length} video(s)
-                      </p>
-                    )}
                   </div>
 
                   {/* Additional Photos Upload */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <Image className="w-4 h-4 inline mr-1" />
-                      Add Photos
+                      Add More Photos
                     </label>
                     <Input
                       type="file"
@@ -1893,11 +1946,6 @@ const AdminEventsTab: React.FC = () => {
                     {editAdditionalPhotoFiles.length > 0 && (
                       <p className="text-xs text-green-600 mt-1">
                         ✓ Selected: {editAdditionalPhotoFiles.length} photo(s)
-                      </p>
-                    )}
-                    {editingEvent.additional_photos && editingEvent.additional_photos.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Existing: {editingEvent.additional_photos.length} photo(s)
                       </p>
                     )}
                   </div>

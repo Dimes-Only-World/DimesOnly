@@ -24,6 +24,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
+import { formatTimeRange } from "@/lib/timeUtils";
 import {
   Search,
   MapPin,
@@ -413,10 +414,9 @@ const EventsDimesOnly: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleDetailsClick = async (event: Event) => {
-    const attendees = await fetchEventAttendees(event.id);
-    setSelectedEvent({ ...event, attendees });
-    setShowDetailsDialog(true);
+  const handleDetailsClick = (event: Event) => {
+    // Navigate to full event details page instead of showing popup
+    navigate(`/event-details?id=${event.id}`);
   };
 
   const handleAttendClick = async (event: Event) => {
@@ -925,7 +925,7 @@ const EventsDimesOnly: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-yellow-400" />
                             <span>
-                              {event.start_time} - {event.end_time}
+                              {formatTimeRange(event.start_time, event.end_time)}
                             </span>
                           </div>
                           <div className="flex items-start gap-2">
@@ -1120,7 +1120,7 @@ const EventsDimesOnly: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-yellow-400" />
                     <span>
-                      {selectedEvent?.start_time} - {selectedEvent?.end_time}
+                      {formatTimeRange(selectedEvent?.start_time, selectedEvent?.end_time)}
                     </span>
                   </div>
                   <div className="flex items-start gap-2">

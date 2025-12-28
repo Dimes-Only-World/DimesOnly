@@ -282,28 +282,42 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
 
       {/* Action Button */}
       {selectedType && (
-        <div className="pt-2">
+        <div className="pt-2 space-y-3">
           {selectedType === "free" ? (
             <Button
               onClick={handleFreeButtonClick}
               disabled={isRegistering}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold"
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3"
             >
               {isRegistering ? "Registering..." : "Register for Free"}
             </Button>
           ) : (
-            <PayPalEventButton
-              eventId={event.id}
-              eventName={event.name}
-              eventPrice={totalPrice}
-              eventOwnerId={event.host_user_id}
-              buyerId={currentUser.id}
-              buyerUsername={currentUser.username}
-              ticketType={selectedType}
-              ticketQuantity={quantity}
-              onSuccess={onSuccess}
-              onError={onError}
-            />
+            <>
+              <div className="paypal-wrapper w-full min-h-[55px]">
+                <PayPalEventButton
+                  eventId={event.id}
+                  eventName={event.name}
+                  eventPrice={totalPrice}
+                  eventOwnerId={event.host_user_id}
+                  buyerId={currentUser.id}
+                  buyerUsername={currentUser.username}
+                  ticketType={selectedType}
+                  ticketQuantity={quantity}
+                  onSuccess={onSuccess}
+                  onError={onError}
+                  className="w-full"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onSuccess();
+                }}
+                className="w-full border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 py-3"
+              >
+                Pay Later (Reserve Spot)
+              </Button>
+            </>
           )}
         </div>
       )}
