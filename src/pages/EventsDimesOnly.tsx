@@ -838,20 +838,20 @@ const EventsDimesOnly: React.FC = () => {
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Filter by month" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="all">All Months</SelectItem>
-                    <SelectItem value="1">January</SelectItem>
-                    <SelectItem value="2">February</SelectItem>
-                    <SelectItem value="3">March</SelectItem>
-                    <SelectItem value="4">April</SelectItem>
-                    <SelectItem value="5">May</SelectItem>
-                    <SelectItem value="6">June</SelectItem>
-                    <SelectItem value="7">July</SelectItem>
-                    <SelectItem value="8">August</SelectItem>
-                    <SelectItem value="9">September</SelectItem>
-                    <SelectItem value="10">October</SelectItem>
-                    <SelectItem value="11">November</SelectItem>
-                    <SelectItem value="12">December</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                    <SelectItem value="all" className="text-white hover:bg-gray-700">All Months</SelectItem>
+                    <SelectItem value="1" className="text-white hover:bg-gray-700">January</SelectItem>
+                    <SelectItem value="2" className="text-white hover:bg-gray-700">February</SelectItem>
+                    <SelectItem value="3" className="text-white hover:bg-gray-700">March</SelectItem>
+                    <SelectItem value="4" className="text-white hover:bg-gray-700">April</SelectItem>
+                    <SelectItem value="5" className="text-white hover:bg-gray-700">May</SelectItem>
+                    <SelectItem value="6" className="text-white hover:bg-gray-700">June</SelectItem>
+                    <SelectItem value="7" className="text-white hover:bg-gray-700">July</SelectItem>
+                    <SelectItem value="8" className="text-white hover:bg-gray-700">August</SelectItem>
+                    <SelectItem value="9" className="text-white hover:bg-gray-700">September</SelectItem>
+                    <SelectItem value="10" className="text-white hover:bg-gray-700">October</SelectItem>
+                    <SelectItem value="11" className="text-white hover:bg-gray-700">November</SelectItem>
+                    <SelectItem value="12" className="text-white hover:bg-gray-700">December</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
