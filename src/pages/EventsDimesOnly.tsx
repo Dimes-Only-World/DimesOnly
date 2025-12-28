@@ -50,6 +50,13 @@ interface Attendee {
   };
 }
 
+interface EventRegistration {
+  user_id: string;
+  ticket_quantity: number;
+  guest_name: string | null;
+  user_type: string;
+}
+
 interface Event {
   id: string;
   name: string;
@@ -71,6 +78,7 @@ interface Event {
   additional_photos?: string[];
   attendees?: Attendee[];
   isUserAttending?: boolean;
+  registrations?: EventRegistration[];
 }
 
 const EventsDimesOnly: React.FC = () => {
@@ -356,13 +364,33 @@ const EventsDimesOnly: React.FC = () => {
 
       const attendingEventIds = userEvents?.map((ue) => ue.event_id) || [];
 
-      // Get current attendee counts for each event
+      // Get current attendee counts and registrations for each event
       const eventsWithCounts = await Promise.all(
         (eventsData || []).map(async (event) => {
+          // Get count
           const { count } = await supabase
             .from("user_events")
             .select("*", { count: "exact", head: true })
             .eq("event_id", event.id);
+
+          // Get registrations with user types for free spot calculation
+          const { data: registrations } = await supabase
+            .from("user_events")
+            .select(`
+              user_id,
+              ticket_quantity,
+              guest_name,
+              users!inner(user_type)
+            `)
+            .eq("event_id", event.id);
+
+          // Transform registrations to include user_type at top level
+          const transformedRegistrations = (registrations || []).map((r: any) => ({
+            user_id: r.user_id,
+            ticket_quantity: r.ticket_quantity || 1,
+            guest_name: r.guest_name,
+            user_type: r.users?.user_type || 'normal'
+          }));
 
           return {
             ...event,
@@ -370,6 +398,7 @@ const EventsDimesOnly: React.FC = () => {
             isUserAttending: attendingEventIds.includes(event.id),
             video_urls: event.video_urls || [],
             additional_photos: event.additional_photos || [],
+            registrations: transformedRegistrations,
           };
         })
       );
@@ -675,9 +704,35 @@ const EventsDimesOnly: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   };
 
+  // Calculate spots used by a specific user type (each ticket + each guest = 1 spot each)
+  const getSpotsUsedByType = (event: Event | null, userType: string) => {
+    if (!event?.registrations) return 0;
+    return event.registrations
+      .filter(r => r.user_type === userType)
+      .reduce((total, r) => {
+        const ticketSpots = r.ticket_quantity || 1;
+        const guestSpots = r.guest_name && r.guest_name.trim() !== '' && r.guest_name.toLowerCase() !== 'none' ? 1 : 0;
+        return total + ticketSpots + guestSpots;
+      }, 0);
+  };
+
+  const getRemainingExoticSpots = (event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_exotics || 0;
+    const used = getSpotsUsedByType(event, 'exotic');
+    return Math.max(0, total - used);
+  };
+
+  const getRemainingStripperSpots = (event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_strippers || 0;
+    const used = getSpotsUsedByType(event, 'stripper');
+    return Math.max(0, total - used);
+  };
+
   const getFreeSpots = (event: Event | null) => {
     if (!event) return 0;
-    return (event.free_spots_strippers || 0) + (event.free_spots_exotics || 0);
+    return getRemainingExoticSpots(event) + getRemainingStripperSpots(event);
   };
 
   // Show loading state while user data is being fetched
@@ -872,8 +927,8 @@ const EventsDimesOnly: React.FC = () => {
                           ) : getFreeSpots(event) > 0 ? (
                             <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold space-y-0.5">
                               <div>Free Spots: {getFreeSpots(event)}</div>
-                              <div>Exotics: {event.free_spots_exotics || 0}</div>
-                              <div>Stripper: {event.free_spots_strippers || 0}</div>
+                              <div>Exotics: {getRemainingExoticSpots(event)}</div>
+                              <div>Stripper: {getRemainingStripperSpots(event)}</div>
                             </div>
                           ) : (
                             <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">

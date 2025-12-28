@@ -20,6 +20,13 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
+interface EventRegistration {
+  user_id: string;
+  ticket_quantity: number;
+  guest_name: string | null;
+  user_type: string;
+}
+
 interface Event {
   id: string;
   name: string;
@@ -36,10 +43,14 @@ interface Event {
   current_attendees: number;
   free_spots_strippers: number;
   free_spots_exotics: number;
+  free_normal: number;
+  free_spots_males: number;
+  free_spots_females: number;
   is_attending: boolean;
   description?: string;
   video_urls?: string[];
   additional_photos?: string[];
+  registrations?: EventRegistration[];
 }
 
 interface UserProfile {
@@ -190,10 +201,30 @@ const Events: React.FC = () => {
             .select("*", { count: "exact", head: true })
             .eq("event_id", event.id);
 
+          // Get registrations with user types for free spot calculation
+          const { data: registrations } = await supabase
+            .from("user_events")
+            .select(`
+              user_id,
+              ticket_quantity,
+              guest_name,
+              users!inner(user_type)
+            `)
+            .eq("event_id", event.id);
+
+          // Transform registrations to include user_type at top level
+          const transformedRegistrations = (registrations || []).map((r: any) => ({
+            user_id: r.user_id,
+            ticket_quantity: r.ticket_quantity || 1,
+            guest_name: r.guest_name,
+            user_type: r.users?.user_type || 'normal'
+          }));
+
           return {
             ...event,
             current_attendees: count || 0,
             is_attending: attendingEventIds.includes(event.id),
+            registrations: transformedRegistrations,
           };
         })
       );
@@ -248,10 +279,50 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
+  // Calculate spots used by a specific user type (each ticket + each guest = 1 spot each)
+  const getSpotsUsedByType = useCallback((event: Event | null, userType: string) => {
+    if (!event?.registrations) return 0;
+    return event.registrations
+      .filter(r => r.user_type === userType)
+      .reduce((total, r) => {
+        const ticketSpots = r.ticket_quantity || 1;
+        const guestSpots = r.guest_name && r.guest_name.trim() !== '' && r.guest_name.toLowerCase() !== 'none' ? 1 : 0;
+        return total + ticketSpots + guestSpots;
+      }, 0);
+  }, []);
+
+  const getRemainingExoticSpots = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_exotics || 0;
+    const used = getSpotsUsedByType(event, 'exotic');
+    return Math.max(0, total - used);
+  }, [getSpotsUsedByType]);
+
+  const getRemainingStripperSpots = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_strippers || 0;
+    const used = getSpotsUsedByType(event, 'stripper');
+    return Math.max(0, total - used);
+  }, [getSpotsUsedByType]);
+
+  const getRemainingMaleSpots = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_males || event.free_normal || 0;
+    const used = getSpotsUsedByType(event, 'male');
+    return Math.max(0, total - used);
+  }, [getSpotsUsedByType]);
+
+  const getRemainingFemaleSpots = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_females || 0;
+    const used = getSpotsUsedByType(event, 'female');
+    return Math.max(0, total - used);
+  }, [getSpotsUsedByType]);
+
   const getFreeSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
-    return (event.free_spots_strippers || 0) + (event.free_spots_exotics || 0);
-  }, []);
+    return getRemainingExoticSpots(event) + getRemainingStripperSpots(event) + getRemainingMaleSpots(event) + getRemainingFemaleSpots(event);
+  }, [getRemainingExoticSpots, getRemainingStripperSpots, getRemainingMaleSpots, getRemainingFemaleSpots]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
