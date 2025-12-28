@@ -622,7 +622,7 @@ const EventDetails: React.FC = () => {
                     </div>
                     {/* Free Spots Display - Unified for members */}
                     {(() => {
-                      const totalMemberFreeSpots = event.free_normal || 10;
+                      const totalMemberFreeSpots = 10; // Always 10 free spots for all events
                       const remainingFreeSpots = Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
                       return remainingFreeSpots > 0 ? (
                         <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">

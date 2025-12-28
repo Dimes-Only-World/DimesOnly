@@ -289,10 +289,10 @@ const Events: React.FC = () => {
     ).length;
   }, []);
 
-  // Default 10 free spots for members, calculate remaining
+  // Always 10 free spots for members, calculate remaining
   const getRemainingMemberFreeSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
-    const totalMemberFreeSpots = event.free_normal || 10; // Default to 10 if not set
+    const totalMemberFreeSpots = 10; // Always 10 free spots for all events
     const used = getMemberFreeUsed(event);
     return Math.max(0, totalMemberFreeSpots - used);
   }, [getMemberFreeUsed]);
