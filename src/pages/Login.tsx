@@ -61,14 +61,17 @@ const Login: React.FC = () => {
 
       const result = await response.json();
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error(result.message || 'Too many login attempts. Please try again later.');
-        }
-        throw new Error(result.message || 'Invalid credentials');
+      // Handle rate limiting (still uses 429 status)
+      if (response.status === 429) {
+        throw new Error(result.message || 'Too many login attempts. Please try again later.');
       }
 
-      if (!result.success || !result.user) {
+      // Check for auth failure in response body (200 with success: false)
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'Invalid credentials');
+      }
+
+      if (!result.user) {
         throw new Error('Authentication failed');
       }
 
