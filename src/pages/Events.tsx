@@ -281,46 +281,21 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Count 1 spot per registration, excluding current user's own registration
-  const getSpotsUsedByType = useCallback((event: Event | null, userType: string) => {
+  // Count free spots used by MEMBERS only (male, female, normal) - for unified display
+  const getMemberFreeUsed = useCallback((event: Event | null) => {
     if (!event?.registrations) return 0;
     return event.registrations.filter(r => 
-      r.user_type === userType && r.user_id !== userProfile?.id
+      ['male', 'female', 'normal'].includes(r.user_type)
     ).length;
-  }, [userProfile?.id]);
+  }, []);
 
-  const getRemainingExoticSpots = useCallback((event: Event | null) => {
+  // Default 10 free spots for members, calculate remaining
+  const getRemainingMemberFreeSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
-    const total = event.free_spots_exotics || 0;
-    const used = getSpotsUsedByType(event, 'exotic');
-    return Math.max(0, total - used);
-  }, [getSpotsUsedByType]);
-
-  const getRemainingStripperSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    const total = event.free_spots_strippers || 0;
-    const used = getSpotsUsedByType(event, 'stripper');
-    return Math.max(0, total - used);
-  }, [getSpotsUsedByType]);
-
-  const getRemainingMaleSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    const total = event.free_spots_males || event.free_normal || 0;
-    const used = getSpotsUsedByType(event, 'male');
-    return Math.max(0, total - used);
-  }, [getSpotsUsedByType]);
-
-  const getRemainingFemaleSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    const total = event.free_spots_females || 0;
-    const used = getSpotsUsedByType(event, 'female');
-    return Math.max(0, total - used);
-  }, [getSpotsUsedByType]);
-
-  const getFreeSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    return getRemainingExoticSpots(event) + getRemainingStripperSpots(event) + getRemainingMaleSpots(event) + getRemainingFemaleSpots(event);
-  }, [getRemainingExoticSpots, getRemainingStripperSpots, getRemainingMaleSpots, getRemainingFemaleSpots]);
+    const totalMemberFreeSpots = event.free_normal || 10; // Default to 10 if not set
+    const used = getMemberFreeUsed(event);
+    return Math.max(0, totalMemberFreeSpots - used);
+  }, [getMemberFreeUsed]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -549,32 +524,20 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge - Show used/total format */}
+                    {/* Event Status Badge - Show remaining free spots for members */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">
                           SOLD OUT
                         </Badge>
+                      ) : getRemainingMemberFreeSpots(event) > 0 ? (
+                        <Badge className="bg-green-600 text-white font-bold text-xs">
+                          Free Spots: {getRemainingMemberFreeSpots(event)}
+                        </Badge>
                       ) : (
-                        <>
-                          {/* Strippers/Exotics free spots */}
-                          {((event.free_spots_strippers || 0) > 0 || (event.free_spots_exotics || 0) > 0) && (
-                            <Badge className="bg-purple-600 text-white font-bold text-xs">
-                              Dimes: {getSpotsUsedByType(event, 'stripper') + getSpotsUsedByType(event, 'exotic')}/{(event.free_spots_strippers || 0) + (event.free_spots_exotics || 0)}
-                            </Badge>
-                          )}
-                          {/* Male/Female free spots */}
-                          {((event.free_spots_males || 0) + (event.free_spots_females || 0) + (event.free_normal || 0)) > 0 && (
-                            <Badge className="bg-blue-600 text-white font-bold text-xs">
-                              M/F Free: {getSpotsUsedByType(event, 'male') + getSpotsUsedByType(event, 'female') + getSpotsUsedByType(event, 'normal')}/{(event.free_spots_males || 0) + (event.free_spots_females || 0) + (event.free_normal || 0)}
-                            </Badge>
-                          )}
-                          {getFreeSpots(event) === 0 && (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          )}
-                        </>
+                        <Badge className="bg-yellow-600 text-white font-bold">
+                          PAID ONLY
+                        </Badge>
                       )}
                     </div>
 
