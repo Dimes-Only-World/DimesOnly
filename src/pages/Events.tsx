@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
+import { formatTimeRange } from "@/lib/timeUtils";
 import {
   Calendar,
   MapPin,
@@ -537,7 +538,7 @@ const Events: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-yellow-400" />
                         <span>
-                          {event.start_time} - {event.end_time}
+                          {formatTimeRange(event.start_time, event.end_time)}
                         </span>
                       </div>
                       <div className="flex items-start gap-2">

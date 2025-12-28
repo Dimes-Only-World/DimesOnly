@@ -482,6 +482,8 @@ export type Database = {
           free_males_females: number | null
           free_normal: number | null
           free_spots_exotics: number | null
+          free_spots_females: number | null
+          free_spots_males: number | null
           free_spots_strippers: number | null
           genre: string | null
           group_capacity: number | null
@@ -515,6 +517,8 @@ export type Database = {
           free_males_females?: number | null
           free_normal?: number | null
           free_spots_exotics?: number | null
+          free_spots_females?: number | null
+          free_spots_males?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
           group_capacity?: number | null
@@ -548,6 +552,8 @@ export type Database = {
           free_males_females?: number | null
           free_normal?: number | null
           free_spots_exotics?: number | null
+          free_spots_females?: number | null
+          free_spots_males?: number | null
           free_spots_strippers?: number | null
           genre?: string | null
           group_capacity?: number | null
