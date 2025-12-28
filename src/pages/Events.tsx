@@ -279,16 +279,10 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Calculate spots used by a specific user type (each ticket + each guest = 1 spot each)
+  // Count 1 spot per registration (not tickets or guests)
   const getSpotsUsedByType = useCallback((event: Event | null, userType: string) => {
     if (!event?.registrations) return 0;
-    return event.registrations
-      .filter(r => r.user_type === userType)
-      .reduce((total, r) => {
-        const ticketSpots = r.ticket_quantity || 1;
-        const guestSpots = r.guest_name && r.guest_name.trim() !== '' && r.guest_name.toLowerCase() !== 'none' ? 1 : 0;
-        return total + ticketSpots + guestSpots;
-      }, 0);
+    return event.registrations.filter(r => r.user_type === userType).length;
   }, []);
 
   const getRemainingExoticSpots = useCallback((event: Event | null) => {
