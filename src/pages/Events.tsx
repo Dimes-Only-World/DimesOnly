@@ -613,22 +613,13 @@ const Events: React.FC = () => {
                         </span>
                       </div>
                       {/* Pricing info */}
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        {event.price > 0 && (
-                          <span className="text-yellow-400 font-bold">
-                            General: ${event.price}
-                          </span>
-                        )}
-                        {(event as any).males_price > 0 && (
-                          <span className="text-blue-400 font-bold">
-                            Males: ${(event as any).males_price}
-                          </span>
-                        )}
-                        {(event as any).females_price > 0 && (
-                          <span className="text-pink-400 font-bold">
-                            Females: ${(event as any).females_price}
-                          </span>
-                        )}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                        <span className="text-green-400 font-bold">
+                          Males: ${(event as any).males_price ?? event.price ?? 0}
+                        </span>
+                        <span className="text-pink-400 font-bold">
+                          Females: ${(event as any).females_price ?? event.price ?? 0}
+                        </span>
                       </div>
                     </div>
 
