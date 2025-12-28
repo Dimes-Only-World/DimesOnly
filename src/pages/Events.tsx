@@ -54,6 +54,7 @@ interface Event {
 }
 
 interface UserProfile {
+  id: string;
   username: string;
   profile_photo: string;
   banner_photo: string;
@@ -160,6 +161,7 @@ const Events: React.FC = () => {
       if (error) throw error;
 
       setUserProfile({
+        id: profileData.id,
         username: profileData.username,
         profile_photo: profileData.profile_photo,
         banner_photo: profileData.banner_photo,
@@ -279,11 +281,13 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Count 1 spot per registration (not tickets or guests)
+  // Count 1 spot per registration, excluding current user's own registration
   const getSpotsUsedByType = useCallback((event: Event | null, userType: string) => {
     if (!event?.registrations) return 0;
-    return event.registrations.filter(r => r.user_type === userType).length;
-  }, []);
+    return event.registrations.filter(r => 
+      r.user_type === userType && r.user_id !== userProfile?.id
+    ).length;
+  }, [userProfile?.id]);
 
   const getRemainingExoticSpots = useCallback((event: Event | null) => {
     if (!event) return 0;

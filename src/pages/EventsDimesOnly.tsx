@@ -704,11 +704,13 @@ const EventsDimesOnly: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   };
 
-  // Calculate spots used by a specific user type (each ticket + each guest = 1 spot each)
+  // Calculate spots used by a specific user type, excluding current user
   const getSpotsUsedByType = (event: Event | null, userType: string) => {
     if (!event?.registrations) return 0;
-    // Count 1 spot per registration (not tickets or guests)
-    return event.registrations.filter(r => r.user_type === userType).length;
+    // Count 1 spot per registration, excluding current user's own registration
+    return event.registrations.filter(r => 
+      r.user_type === userType && r.user_id !== user?.id
+    ).length;
   };
 
   const getRemainingExoticSpots = (event: Event | null) => {
