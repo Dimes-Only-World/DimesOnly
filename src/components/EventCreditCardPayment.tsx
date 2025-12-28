@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import CreditCardForm from "@/components/CreditCardForm";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface EventCreditCardPaymentProps {
   eventId: string;
@@ -29,6 +35,7 @@ const EventCreditCardPayment: React.FC<EventCreditCardPaymentProps> = ({
   onSuccess,
   onError,
 }) => {
+  const [showCardDialog, setShowCardDialog] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
   const [expiryMonth, setExpiryMonth] = useState("");
   const [expiryYear, setExpiryYear] = useState("");
@@ -73,6 +80,7 @@ const EventCreditCardPayment: React.FC<EventCreditCardPaymentProps> = ({
       }
 
       setPaymentSuccess(true);
+      setShowCardDialog(false);
       onSuccess(data.capture_id || data.order_id);
     } catch (err: any) {
       console.error("Event card payment error:", err);
@@ -86,29 +94,28 @@ const EventCreditCardPayment: React.FC<EventCreditCardPaymentProps> = ({
 
   if (paymentSuccess) {
     return (
-      <div className="text-center py-8 space-y-4">
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
-        <h3 className="text-xl font-bold text-green-400">Payment Successful!</h3>
-        <p className="text-gray-300">
-          Your tickets for <span className="text-yellow-400">{eventName}</span> have been confirmed.
-        </p>
-        <p className="text-sm text-gray-400">
-          {ticketQuantity}x {ticketType.replace("_", " ")} ticket(s) - ${totalPrice.toFixed(2)}
-        </p>
+      <div className="flex items-center justify-center gap-2 p-4 bg-green-500/20 rounded-lg border border-green-500/50">
+        <CheckCircle className="h-5 w-5 text-green-400" />
+        <span className="text-green-400 font-medium">Payment Complete!</span>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !showCardDialog) {
     return (
-      <div className="text-center py-8 space-y-4">
-        <XCircle className="w-16 h-16 text-red-500 mx-auto" />
-        <h3 className="text-xl font-bold text-red-400">Payment Failed</h3>
-        <p className="text-gray-300">{error}</p>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 p-3 bg-red-500/20 rounded-lg border border-red-500/50">
+          <XCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+          <span className="text-red-400 text-sm">{error}</span>
+        </div>
         <Button
-          onClick={() => setError(null)}
-          className="bg-yellow-400 text-black hover:bg-yellow-500"
+          onClick={() => {
+            setError(null);
+            setShowCardDialog(true);
+          }}
+          className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-4 text-lg"
         >
+          <CreditCard className="w-5 h-5 mr-2" />
           Try Again
         </Button>
       </div>
@@ -116,28 +123,50 @@ const EventCreditCardPayment: React.FC<EventCreditCardPaymentProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-center mb-4">
-        <p className="text-sm text-gray-400">
-          {ticketQuantity}x {ticketType.replace("_", " ")} ticket(s)
-        </p>
-      </div>
-      <CreditCardForm
-        cardNumber={cardNumber}
-        expiryMonth={expiryMonth}
-        expiryYear={expiryYear}
-        cvv={cvv}
-        cardHolderName={cardHolderName}
-        onCardNumberChange={setCardNumber}
-        onExpiryMonthChange={setExpiryMonth}
-        onExpiryYearChange={setExpiryYear}
-        onCvvChange={setCvv}
-        onCardHolderNameChange={setCardHolderName}
-        amount={totalPrice}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
-    </div>
+    <>
+      {/* Custom styled Card button - Pink/Magenta to match TipGirls */}
+      <Button
+        onClick={() => setShowCardDialog(true)}
+        disabled={isSubmitting}
+        className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-4 text-lg"
+      >
+        <CreditCard className="w-5 h-5 mr-2" />
+        Pay ${totalPrice.toFixed(2)} with Card
+      </Button>
+
+      {/* Card Form Dialog */}
+      <Dialog open={showCardDialog} onOpenChange={setShowCardDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400 text-xl">
+              Pay ${totalPrice.toFixed(2)} with Card
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-400">
+                {ticketQuantity}x {ticketType.replace("_", " ")} ticket(s) for {eventName}
+              </p>
+            </div>
+            <CreditCardForm
+              cardNumber={cardNumber}
+              expiryMonth={expiryMonth}
+              expiryYear={expiryYear}
+              cvv={cvv}
+              cardHolderName={cardHolderName}
+              onCardNumberChange={setCardNumber}
+              onExpiryMonthChange={setExpiryMonth}
+              onExpiryYearChange={setExpiryYear}
+              onCvvChange={setCvv}
+              onCardHolderNameChange={setCardHolderName}
+              amount={totalPrice}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

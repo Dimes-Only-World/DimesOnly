@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, CreditCard, AlertCircle, CheckCircle, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -380,21 +380,29 @@ const PayPalEventButton: React.FC<PayPalEventButtonProps> = ({
     );
   }
 
-  // Normal PayPal button
+  // Custom styled PayPal button - matching TipGirls design
   return (
     <div className={`space-y-2 w-full ${className}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <CreditCard className="h-4 w-4 text-yellow-400" />
-        <span className="text-sm text-gray-300">Secure Payment</span>
-      </div>
+      <Button
+        onClick={() => {
+          // Trigger PayPal flow by clicking the hidden PayPal button
+          const paypalButton = containerRef.current?.querySelector('div[role="button"]') as HTMLElement;
+          if (paypalButton) {
+            paypalButton.click();
+          }
+        }}
+        disabled={isProcessing}
+        className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 text-lg"
+      >
+        <Wallet className="w-5 h-5 mr-2" />
+        {isProcessing ? "Processing..." : `Pay $${eventPrice.toFixed(2)} with PayPal`}
+      </Button>
+      {/* Hidden PayPal SDK button container */}
       <div 
         ref={containerRef} 
-        className="paypal-button-container w-full min-w-[280px]"
-        style={{ minHeight: '55px' }}
+        className="paypal-button-container hidden"
+        style={{ minHeight: '0px', overflow: 'hidden' }}
       />
-      <p className="text-xs text-gray-400 text-center mt-2">
-        You'll be charged ${eventPrice.toFixed(2)} USD
-      </p>
     </div>
   );
 };
