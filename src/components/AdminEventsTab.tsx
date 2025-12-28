@@ -120,7 +120,7 @@ const AdminEventsTab: React.FC = () => {
     free_spots_strippers: 5,
     free_spots_exotics: 5,
     free_males_females: 0,
-    free_normal: 0,
+    free_normal: 10, // Default 10 free spots for members
     free_spots_males: 0,
     free_spots_females: 0,
     vip_price: 0,

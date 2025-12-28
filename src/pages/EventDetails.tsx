@@ -620,6 +620,22 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
+                    {/* Free Spots Display - Unified for members */}
+                    {(() => {
+                      const totalMemberFreeSpots = event.free_normal || 10;
+                      const remainingFreeSpots = Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
+                      return remainingFreeSpots > 0 ? (
+                        <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
+                          <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
+                          <span className="text-green-400 font-bold">Free Spots: {remainingFreeSpots}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 p-3 bg-yellow-500/20 rounded-lg">
+                          <Ticket className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+                          <span className="text-yellow-400 font-bold">Paid Only</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {event.description && (

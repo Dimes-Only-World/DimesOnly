@@ -61,22 +61,21 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestName, setGuestName] = useState("");
 
-  // Calculate available spots - support male, female, normal user types
+  // Calculate available spots - unified free spots for members (male, female, normal)
+  // All events have 10 free spots by default for members
   const availableFreeSpots = useMemo(() => {
     if (userType === "stripper") {
       return Math.max(0, event.free_spots_strippers - usedFreeSpots.strippers);
     } else if (userType === "exotic") {
       return Math.max(0, event.free_spots_exotics - usedFreeSpots.exotics);
-    } else if (userType === "male") {
-      // Males use free_spots_males or fall back to free_normal
-      const maleSpots = (event as any).free_spots_males || 0;
-      return Math.max(0, maleSpots > 0 ? maleSpots - (usedFreeSpots as any).males || 0 : event.free_normal - usedFreeSpots.normal);
-    } else if (userType === "female" || userType === "normal") {
-      // Females use free_spots_females or fall back to free_normal
-      const femaleSpots = (event as any).free_spots_females || 0;
-      return Math.max(0, femaleSpots > 0 ? femaleSpots - (usedFreeSpots as any).females || 0 : event.free_normal - usedFreeSpots.normal);
+    } else if (userType === "male" || userType === "female" || userType === "normal") {
+      // All members share the same pool of free spots (default 10)
+      const totalMemberFreeSpots = event.free_normal || 10;
+      return Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
     } else {
-      return Math.max(0, event.free_normal - usedFreeSpots.normal);
+      // Unknown user type - use normal pool
+      const totalMemberFreeSpots = event.free_normal || 10;
+      return Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
     }
   }, [event, userType, usedFreeSpots]);
 
