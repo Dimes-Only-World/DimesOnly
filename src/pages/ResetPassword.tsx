@@ -9,6 +9,33 @@ import { Loader2 } from "lucide-react";
 
 const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 
+const getResetPasswordErrorCopy = (err: unknown): { title: string; description: string } => {
+  const anyErr = err as { status?: number; message?: string } | null;
+  const status = typeof anyErr?.status === "number" ? anyErr.status : undefined;
+  const message = typeof anyErr?.message === "string" ? anyErr.message : "";
+
+  // Most common: link already used/expired or session missing
+  if (status === 401 || status === 403) {
+    return {
+      title: "Recovery link invalid",
+      description: "This reset link was already used or expired. Please request a new reset email and open the latest link once.",
+    };
+  }
+
+  // Supabase rejected the password or payload
+  if (status === 422) {
+    return {
+      title: "Password rejected",
+      description: message || "Your password does not meet the requirements. Try a longer, unique password.",
+    };
+  }
+
+  return {
+    title: "Failed to update password",
+    description: message || "Please try again. If it keeps failing, request a new reset email.",
+  };
+};
+
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -124,12 +151,9 @@ const ResetPassword: React.FC = () => {
       // Redirect to login
       window.location.replace("/login");
     } catch (err) {
-      console.error('Password reset error:', err);
-      toast({ 
-        title: "Failed to update password", 
-        description: "The recovery link may be expired. Try sending a new reset email.", 
-        variant: "destructive" 
-      });
+      const copy = getResetPasswordErrorCopy(err);
+      console.error("Password reset error:", err);
+      toast({ title: copy.title, description: copy.description, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
