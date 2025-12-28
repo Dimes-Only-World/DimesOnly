@@ -1,5 +1,4 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -85,9 +84,11 @@ Deno.serve(async (req) => {
 
     console.log(`Password reset request for user: ${email}`);
 
-    // Hash the new password with bcrypt
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    // Hash the new password with bcryptjs (compatible with Edge runtime)
+    const bcryptModule = await import('https://esm.sh/bcryptjs@2.4.3');
+    const bcrypt = bcryptModule.default || bcryptModule;
+    const salt = bcrypt.genSaltSync(12);
+    const hashedPassword = bcrypt.hashSync(newPassword, salt);
 
     // Find the user in our custom users table
     const { data: userData, error: fetchError } = await supabaseAdmin
