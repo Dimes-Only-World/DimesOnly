@@ -99,27 +99,34 @@ const Events: React.FC = () => {
     }
   }, [username, currentUserId]);
 
-  // Fetch latest silver video from any dime (exotic/stripper user)
+  // Fetch latest silver video for THIS specific user (not global)
   useEffect(() => {
     const fetchLatestSilverVideo = async () => {
+      if (!userProfile?.id) {
+        setLatestSilverVideo(null);
+        return;
+      }
+
       try {
-        // Get latest silver tier video from exotic/stripper users
+        // Get latest silver tier video for THIS specific user
         const { data: videoData, error } = await supabase
           .from("user_media")
           .select(`
             media_url,
             storage_path,
-            user_id,
-            users!inner(user_type)
+            user_id
           `)
+          .eq("user_id", userProfile.id)
           .eq("content_tier", "silver")
           .eq("media_type", "video")
-          .in("users.user_type", ["exotic", "stripper"])
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (error || !videoData) return;
+        if (error || !videoData) {
+          setLatestSilverVideo(null);
+          return;
+        }
 
         let videoUrl = videoData.media_url;
         
@@ -147,11 +154,12 @@ const Events: React.FC = () => {
         setLatestSilverVideo(videoUrl);
       } catch (error) {
         console.error("Error fetching latest silver video:", error);
+        setLatestSilverVideo(null);
       }
     };
 
     fetchLatestSilverVideo();
-  }, []);
+  }, [userProfile?.id]);
 
   // Cleanup function to cancel ongoing requests
   useEffect(() => {
