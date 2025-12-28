@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import PayPalEventButton from "@/components/PayPalEventButton";
 import EventCreditCardPayment from "@/components/EventCreditCardPayment";
-import { Ticket, Users, Crown, Star, Minus, Plus, CreditCard, Wallet } from "lucide-react";
+import { Ticket, Users, Crown, Star, Minus, Plus } from "lucide-react";
 
 type TicketType = "free" | "general" | "vip" | "vip_section";
 
@@ -61,7 +61,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [isRegistering, setIsRegistering] = useState(false);
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestName, setGuestName] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"paypal" | "card">("card");
+  
 
   // Calculate available spots - unified free spots for members (male, female, normal)
   // All events have 10 free spots by default for members
@@ -302,36 +302,29 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
             </Button>
           ) : (
             <>
-              {/* Payment Method Toggle */}
-              <div className="flex gap-2 mb-4">
-                <Button
-                  variant={paymentMethod === "card" ? "default" : "outline"}
-                  onClick={() => setPaymentMethod("card")}
-                  className={`flex-1 gap-2 ${
-                    paymentMethod === "card"
-                      ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
-                      : "border-white/20 text-white hover:bg-white/10"
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Debit/Credit Card
-                </Button>
-                <Button
-                  variant={paymentMethod === "paypal" ? "default" : "outline"}
-                  onClick={() => setPaymentMethod("paypal")}
-                  className={`flex-1 gap-2 ${
-                    paymentMethod === "paypal"
-                      ? "bg-[#0070ba] text-white"
-                      : "border-white/20 text-white hover:bg-white/10"
-                  }`}
-                >
-                  <Wallet className="w-4 h-4" />
-                  PayPal
-                </Button>
-              </div>
+              {/* Unified Payment Buttons - Same design as TipGirls */}
+              <div className="space-y-3">
+                {/* Info message */}
+                <p className="text-center text-gray-300 text-sm">
+                  You'll be charged ${totalPrice.toFixed(2)} USD
+                </p>
+                
+                {/* PayPal Button - Green */}
+                <PayPalEventButton
+                  eventId={event.id}
+                  eventName={event.name}
+                  eventPrice={totalPrice}
+                  eventOwnerId={event.host_user_id}
+                  buyerId={currentUser.id}
+                  buyerUsername={currentUser.username}
+                  ticketType={selectedType}
+                  ticketQuantity={quantity}
+                  onSuccess={onSuccess}
+                  onError={onError}
+                  className="w-full"
+                />
 
-              {/* Payment Form based on selected method */}
-              {paymentMethod === "card" ? (
+                {/* Credit Card Button - Pink/Magenta */}
                 <EventCreditCardPayment
                   eventId={event.id}
                   eventName={event.name}
@@ -344,23 +337,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                   onSuccess={onSuccess}
                   onError={onError}
                 />
-              ) : (
-                <div className="paypal-wrapper w-full min-h-[55px]">
-                  <PayPalEventButton
-                    eventId={event.id}
-                    eventName={event.name}
-                    eventPrice={totalPrice}
-                    eventOwnerId={event.host_user_id}
-                    buyerId={currentUser.id}
-                    buyerUsername={currentUser.username}
-                    ticketType={selectedType}
-                    ticketQuantity={quantity}
-                    onSuccess={onSuccess}
-                    onError={onError}
-                    className="w-full"
-                  />
-                </div>
-              )}
+              </div>
 
               <Button
                 variant="outline"
