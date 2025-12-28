@@ -15,20 +15,50 @@ const ResetPassword: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [sessionCaptured, setSessionCaptured] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // When arriving from email link, Supabase sets a recovery session automatically
-    // We just verify there's a session available before allowing update
-    const check = async () => {
+    // Prevent multiple captures
+    if (sessionCaptured) return;
+
+    // Listen for auth state changes - this captures the PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth event:', event, 'Session:', !!session);
+        
+        if (event === 'PASSWORD_RECOVERY' && session) {
+          console.log('PASSWORD_RECOVERY event captured');
+          setReady(true);
+          setUserEmail(session.user?.email || null);
+          setSessionCaptured(true);
+        } else if (event === 'SIGNED_IN' && session && !sessionCaptured) {
+          // Also handle SIGNED_IN as recovery sometimes triggers this
+          console.log('SIGNED_IN event - checking if recovery session');
+          setReady(true);
+          setUserEmail(session.user?.email || null);
+          setSessionCaptured(true);
+        }
+      }
+    );
+
+    // Also check for existing session (in case the event already fired)
+    const checkExistingSession = async () => {
       const { data } = await supabase.auth.getSession();
-      setReady(Boolean(data.session));
-      if (data.session?.user?.email) {
-        setUserEmail(data.session.user.email);
+      if (data.session && !sessionCaptured) {
+        console.log('Existing session found');
+        setReady(true);
+        setUserEmail(data.session.user?.email || null);
+        setSessionCaptured(true);
       }
     };
-    check();
-  }, []);
+    
+    checkExistingSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [sessionCaptured]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
