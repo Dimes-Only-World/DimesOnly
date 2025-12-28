@@ -24,7 +24,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsLoading(true);
 
     try {
-      const redirectTo = `${window.location.origin}/reset-password`;
+      // Always use production URL to ensure token validation works correctly
+      const redirectTo = 'https://dimesonly.world/reset-password';
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
       });
