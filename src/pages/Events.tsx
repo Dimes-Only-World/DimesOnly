@@ -74,6 +74,7 @@ const Events: React.FC = () => {
 
   const [events, setEvents] = useState<Event[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [latestSilverVideo, setLatestSilverVideo] = useState<string | null>(null);
   const [filters, setFilters] = useState({
@@ -82,12 +83,21 @@ const Events: React.FC = () => {
   });
   const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
 
+  // Get current logged-in user
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getCurrentUser();
+  }, []);
+
   useEffect(() => {
     if (username) {
       fetchUserProfile();
       fetchEvents();
     }
-  }, [username]);
+  }, [username, currentUserId]);
 
   // Fetch latest silver video from any dime (exotic/stripper user)
   useEffect(() => {
@@ -185,15 +195,18 @@ const Events: React.FC = () => {
 
       if (eventsError) throw eventsError;
 
-      // Get user's event attendance to mark which ones they're attending
-      const { data: userEvents, error: userEventsError } = await supabase
-        .from("user_events")
-        .select("event_id")
-        .eq("username", username);
+      // Get CURRENT USER's event attendance to mark which ones they're attending
+      let attendingEventIds: string[] = [];
+      if (currentUserId) {
+        const { data: userEvents, error: userEventsError } = await supabase
+          .from("user_events")
+          .select("event_id")
+          .eq("user_id", currentUserId);
 
-      if (userEventsError) throw userEventsError;
-
-      const attendingEventIds = userEvents?.map((ue) => ue.event_id) || [];
+        if (!userEventsError && userEvents) {
+          attendingEventIds = userEvents.map((ue) => ue.event_id);
+        }
+      }
 
       // Get attendee counts for each event and mark attendance
       const eventsWithAttendance = await Promise.all(
@@ -242,7 +255,7 @@ const Events: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [username, toast]);
+  }, [username, currentUserId, toast]);
 
   const handleViewDetails = useCallback(
     (event: Event) => {
