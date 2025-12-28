@@ -638,6 +638,20 @@ const EventDetails: React.FC = () => {
                       Get Your Ticket
                     </h4>
 
+                    {/* Debug info - logged in console */}
+                    {(() => {
+                      console.log("EventDetails Ticket Section Debug:", {
+                        currentUser,
+                        isUserRegistered,
+                        checkingRegistration,
+                        appUserLoading,
+                        eventCurrentAttendees: event.current_attendees,
+                        eventMaxAttendees: event.max_attendees,
+                        usedFreeSpots
+                      });
+                      return null;
+                    })()}
+
                     {/* Already Registered */}
                     {isUserRegistered ? (
                       <div className="flex items-center gap-2 p-4 bg-green-500 rounded-lg">
@@ -649,6 +663,12 @@ const EventDetails: React.FC = () => {
                       <div className="flex items-center gap-2 p-4 bg-red-500 rounded-lg">
                         <X className="h-5 w-5 text-white" />
                         <span className="text-white font-bold">Sold Out</span>
+                      </div>
+                    ) : checkingRegistration || appUserLoading ? (
+                      /* Loading state - show while checking */
+                      <div className="flex items-center justify-center gap-2 p-4 bg-white/5 rounded-lg">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                        <span className="text-gray-300 text-sm">Loading tickets...</span>
                       </div>
                     ) : currentUser ? (
                       /* Ticket Selector */
@@ -674,11 +694,8 @@ const EventDetails: React.FC = () => {
                         }}
                         onFreeRegister={handleFreeRegister}
                       />
-                    ) : appUserLoading ? (
-                      <div className="flex items-center justify-center gap-2 p-4 bg-white/5 rounded-lg">
-                        <span className="text-gray-300 text-sm">Loading your account...</span>
-                      </div>
                     ) : (
+                      /* Not logged in - show login button */
                       <div className="space-y-3">
                         <p className="text-gray-400 text-sm text-center">
                           Please log in to purchase a ticket
