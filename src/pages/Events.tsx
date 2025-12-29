@@ -327,7 +327,7 @@ const Events: React.FC = () => {
         {userProfile && (
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width, larger height, object-cover for stretch */}
-            <div className="w-full h-64 md:h-80 lg:h-[500px] relative overflow-hidden bg-black">
+            <div className="w-full h-72 md:h-96 lg:h-[550px] relative overflow-hidden bg-black">
               {latestSilverVideo ? (
                 <video
                   autoPlay
