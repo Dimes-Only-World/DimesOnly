@@ -282,7 +282,8 @@ serve(async (req) => {
             ? "Dimes Only World - Elite"
             : "Dancers Events Network",
         user_action: "PAY_NOW",
-        landing_page: "BILLING",
+        landing_page: "LOGIN",
+        locale: "en-US",
         payment_method: {
           payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
         },
