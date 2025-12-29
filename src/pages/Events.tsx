@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { useMobileLayout } from "@/hooks/use-mobile";
+import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
 import { formatTimeRange } from "@/lib/timeUtils";
 import {
   Calendar,
@@ -70,6 +70,7 @@ const Events: React.FC = () => {
   const { toast } = useToast();
   const { getContainerClasses, getContentClasses, getCardClasses } =
     useMobileLayout();
+  const isMobile = useIsMobile();
   const username = searchParams.get("events") || "";
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -325,8 +326,8 @@ const Events: React.FC = () => {
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
-            {/* Banner - Video or Photo - Full width like screenshot */}
-            <div className="w-full aspect-video max-h-[500px] relative overflow-hidden">
+            {/* Banner - Video or Photo - Full width, larger height, object-cover for stretch */}
+            <div className="w-full h-64 md:h-80 lg:h-[500px] relative overflow-hidden bg-black">
               {latestSilverVideo ? (
                 <video
                   autoPlay
@@ -334,7 +335,7 @@ const Events: React.FC = () => {
                   loop
                   playsInline
                   poster={userProfile.banner_photo || "/placeholder.svg"}
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     const video = e.currentTarget;
                     video.style.display = "none";
@@ -360,43 +361,81 @@ const Events: React.FC = () => {
               )}
             </div>
 
-            {/* Bottom bar with profile photo and info */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
+            {/* Bottom bar with profile photo and info - responsive layout */}
+            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
               <div className="px-4 md:px-6 py-4 md:py-5">
-                {/* Profile photo and info row */}
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <img
-                      src={userProfile.profile_photo || "/placeholder.svg"}
-                      alt={userProfile.username}
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-md object-cover border-2 border-yellow-400 bg-white/10"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/placeholder.svg";
-                      }}
-                    />
+                {isMobile ? (
+                  /* Mobile: Stacked layout - Profile row, then Upcoming Events below */
+                  <div className="space-y-3">
+                    {/* Profile row */}
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={userProfile.profile_photo || "/placeholder.svg"}
+                        alt={userProfile.username}
+                        className="w-14 h-14 rounded-md object-cover border-2 border-yellow-400 bg-white/10"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder.svg";
+                        }}
+                      />
+                      <div className="text-left flex-1">
+                        <h1 className="text-lg font-bold text-white">
+                          @{userProfile.username}
+                        </h1>
+                        <p className="text-sm text-yellow-400 font-semibold capitalize">
+                          {userProfile.user_type}
+                        </p>
+                        <p className="text-xs text-gray-200">
+                          {userProfile.city}, {userProfile.state}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Upcoming Events title below profile */}
+                    <div className="text-center pt-2 border-t border-white/20">
+                      <h2 className="text-xl font-bold text-white">
+                        Upcoming Events
+                      </h2>
+                      <p className="text-xs text-gray-200 mt-1">
+                        All upcoming events - purchase tickets from any event page
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-left flex-1">
-                    <h1 className="text-xl md:text-2xl font-bold text-white">
-                      @{userProfile.username}
-                    </h1>
-                    <p className="text-sm md:text-base text-yellow-400 font-semibold capitalize">
-                      {userProfile.user_type}
-                    </p>
-                    <p className="text-sm text-gray-200">
-                      {userProfile.city}, {userProfile.state}
-                    </p>
+                ) : (
+                  /* Desktop: Side by side layout */
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <img
+                        src={userProfile.profile_photo || "/placeholder.svg"}
+                        alt={userProfile.username}
+                        className="w-20 h-20 md:w-24 md:h-24 rounded-md object-cover border-2 border-yellow-400 bg-white/10"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder.svg";
+                        }}
+                      />
+                    </div>
+                    <div className="text-left flex-1">
+                      <h1 className="text-xl md:text-2xl font-bold text-white">
+                        @{userProfile.username}
+                      </h1>
+                      <p className="text-sm md:text-base text-yellow-400 font-semibold capitalize">
+                        {userProfile.user_type}
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {userProfile.city}, {userProfile.state}
+                      </p>
+                    </div>
+                    {/* Title on right of profile info */}
+                    <div className="text-right">
+                      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
+                        Upcoming Events
+                      </h2>
+                      <p className="text-sm md:text-base text-gray-200 mt-1">
+                        All upcoming events - purchase tickets from any event page
+                      </p>
+                    </div>
                   </div>
-                  {/* Title on right of profile info */}
-                  <div className="text-right">
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
-                      Upcoming Events
-                    </h2>
-                    <p className="text-sm md:text-base text-gray-200 mt-1">
-                      All upcoming events - purchase tickets from any event page
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
