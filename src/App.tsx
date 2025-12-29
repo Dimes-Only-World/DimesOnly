@@ -40,6 +40,7 @@ import SubscriptionsDebug from "./pages/SubscriptionsDebug";
 import Elite from "./pages/Elite";
 import ResetPassword from "./pages/ResetPassword";
 import TipPayPalReturn from "./pages/TipPayPalReturn";
+import EventPayPalReturn from "./pages/EventPayPalReturn";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
@@ -132,6 +133,7 @@ function AppContent() {
       <Route path="/debug-subscription" element={<SubscriptionsDebug />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/tip-paypal-return" element={<TipPayPalReturn />} />
+      <Route path="/event-payment-return" element={<EventPayPalReturn />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
