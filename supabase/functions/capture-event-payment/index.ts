@@ -27,6 +27,8 @@ serve(async (req) => {
       buyer_id,
       buyer_username,
       amount,
+      ticket_type,
+      ticket_quantity,
     } = await req.json();
 
     console.log("=== CAPTURE EVENT PAYMENT STARTED ===");
@@ -229,6 +231,8 @@ serve(async (req) => {
           username: buyer_username || "guest",
           payment_status: "paid",
           payment_id: payment?.id,
+          ticket_type: ticket_type || "general",
+          ticket_quantity: ticket_quantity || 1,
         },
         { onConflict: "user_id,event_id" }
       );

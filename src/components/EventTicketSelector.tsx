@@ -66,7 +66,6 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [showCardForm, setShowCardForm] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [isReservingSpot, setIsReservingSpot] = useState(false);
   
   // Credit card form state
   const [cardNumber, setCardNumber] = useState("");
@@ -163,9 +162,6 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
     setPaymentError(null);
 
     try {
-      // Ensure the "GOING" state paints before we start network/redirect work
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-
       const baseUrl = window.location.origin;
       const returnParams = new URLSearchParams({
         event_id: event.id,
@@ -195,8 +191,12 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
         throw new Error(data?.error || "Failed to create PayPal order");
       }
 
-      // Redirect to PayPal in same window
-      window.location.href = data.approval_url;
+      // Redirect to PayPal - use top-level window to avoid iframe issues
+      if (window.top && window.top !== window) {
+        window.top.location.assign(data.approval_url);
+      } else {
+        window.location.assign(data.approval_url);
+      }
     } catch (err: any) {
       setPaymentError(err.message || "Failed to process payment");
       setIsProcessingPayment(false);
@@ -440,7 +440,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                       {isProcessingPayment ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          GOING
+                          Redirecting to PayPal...
                         </>
                       ) : (
                         <>Pay ${totalPrice.toFixed(2)} with PayPal</>
@@ -491,23 +491,17 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
 
               <Button
                 variant="outline"
-                onClick={async () => {
-                  setIsReservingSpot(true);
-                  await new Promise<void>((resolve) =>
-                    requestAnimationFrame(() => resolve())
-                  );
-                  onSuccess();
-                }}
-                disabled={isReservingSpot || isProcessingPayment}
+                onClick={handlePayWithPayPal}
+                disabled={isProcessingPayment}
                 className="w-full border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 py-3"
               >
-                {isReservingSpot ? (
+                {isProcessingPayment ? (
                   <span className="inline-flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    GOING
+                    Redirecting to PayPal...
                   </span>
                 ) : (
-                  "Pay Later (Reserve Spot)"
+                  "Pay Later"
                 )}
               </Button>
             </>

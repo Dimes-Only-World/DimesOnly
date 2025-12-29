@@ -4,6 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
@@ -25,6 +32,7 @@ import {
   CheckCircle,
   Ticket,
   X,
+  XCircle,
 } from "lucide-react";
 
 interface Event {
@@ -137,6 +145,10 @@ const EventDetails: React.FC = () => {
   // Used free spots tracking
   const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0 });
 
+  // Payment status popup
+  const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
+  const [showPaymentErrorDialog, setShowPaymentErrorDialog] = useState(false);
+
   const ATTENDEES_PER_PAGE = 24;
 
   useEffect(() => {
@@ -207,6 +219,33 @@ const EventDetails: React.FC = () => {
 
     checkRegistration();
   }, [currentUser?.id, eventId]);
+
+  // Handle payment status from PayPal redirect
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    
+    if (paymentStatus === "success") {
+      setShowPaymentSuccessDialog(true);
+      setIsUserRegistered(true);
+      // Refresh attendees
+      if (eventId) {
+        fetchEventAttendees();
+        fetchEventDetails();
+      }
+      // Clean URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("payment");
+      newParams.delete("tx");
+      navigate(`/event-details?id=${eventId}`, { replace: true });
+    } else if (paymentStatus === "error") {
+      setShowPaymentErrorDialog(true);
+      // Clean URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("payment");
+      newParams.delete("message");
+      navigate(`/event-details?id=${eventId}`, { replace: true });
+    }
+  }, [searchParams, eventId, navigate]);
 
   useEffect(() => {
     if (eventId) {
@@ -473,6 +512,54 @@ const EventDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white overflow-y-auto">
+      {/* Payment Success Dialog */}
+      <Dialog open={showPaymentSuccessDialog} onOpenChange={setShowPaymentSuccessDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
+              <span className="text-green-400">Payment Successful!</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-gray-300 text-lg mb-2">You're going to {event?.name}!</p>
+            <p className="text-gray-400">Your ticket has been confirmed.</p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowPaymentSuccessDialog(false)}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold"
+            >
+              Got it!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Error Dialog */}
+      <Dialog open={showPaymentErrorDialog} onOpenChange={setShowPaymentErrorDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              <XCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+              <span className="text-red-400">Payment Failed</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-gray-300 text-lg mb-2">Something went wrong with your payment.</p>
+            <p className="text-gray-400">Please try again or use a different payment method.</p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowPaymentErrorDialog(false)}
+              className="w-full bg-yellow-400 text-black hover:bg-yellow-500 font-bold"
+            >
+              Try Again
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Photo Lightbox */}
       <PhotoLightbox
         photos={lightboxPhotos}
