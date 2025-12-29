@@ -66,6 +66,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [showCardForm, setShowCardForm] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isReservingSpot, setIsReservingSpot] = useState(false);
   
   // Credit card form state
   const [cardNumber, setCardNumber] = useState("");
@@ -160,8 +161,11 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const handlePayWithPayPal = async () => {
     setIsProcessingPayment(true);
     setPaymentError(null);
-    
+
     try {
+      // Ensure the "GOING" state paints before we start network/redirect work
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
       const baseUrl = window.location.origin;
       const returnParams = new URLSearchParams({
         event_id: event.id,
@@ -436,7 +440,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                       {isProcessingPayment ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Connecting to PayPal...
+                          GOING
                         </>
                       ) : (
                         <>Pay ${totalPrice.toFixed(2)} with PayPal</>
@@ -487,12 +491,24 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
 
               <Button
                 variant="outline"
-                onClick={() => {
+                onClick={async () => {
+                  setIsReservingSpot(true);
+                  await new Promise<void>((resolve) =>
+                    requestAnimationFrame(() => resolve())
+                  );
                   onSuccess();
                 }}
+                disabled={isReservingSpot || isProcessingPayment}
                 className="w-full border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 py-3"
               >
-                Pay Later (Reserve Spot)
+                {isReservingSpot ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    GOING
+                  </span>
+                ) : (
+                  "Pay Later (Reserve Spot)"
+                )}
               </Button>
             </>
           )}
