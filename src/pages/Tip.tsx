@@ -863,10 +863,25 @@ const Tip: React.FC = () => {
                           </Button>
                           <Button
                             onClick={() => setShowCardForm(true)}
-                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
+                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg mb-3"
                           >
                             <CreditCard className="w-5 h-5 mr-2" />
                             Pay with Card
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={handlePayWithPayPal}
+                            disabled={isProcessingPayment}
+                            className="w-full border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 py-3"
+                          >
+                            {isProcessingPayment ? (
+                              <span className="inline-flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Redirecting to PayPal...
+                              </span>
+                            ) : (
+                              "Pay Later"
+                            )}
                           </Button>
                         </>
                       )}
