@@ -473,6 +473,7 @@ export type Database = {
         Row: {
           additional_photos: string[] | null
           address: string | null
+          banner_video_url: string | null
           city: string | null
           created_at: string | null
           date: string
@@ -508,6 +509,7 @@ export type Database = {
         Insert: {
           additional_photos?: string[] | null
           address?: string | null
+          banner_video_url?: string | null
           city?: string | null
           created_at?: string | null
           date: string
@@ -543,6 +545,7 @@ export type Database = {
         Update: {
           additional_photos?: string[] | null
           address?: string | null
+          banner_video_url?: string | null
           city?: string | null
           created_at?: string | null
           date?: string

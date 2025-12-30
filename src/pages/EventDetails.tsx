@@ -63,6 +63,7 @@ interface Event {
   video_urls?: string[];
   additional_photos?: string[];
   host_user_id?: string;
+  banner_video_url?: string;
 }
 
 interface HostProfile {
@@ -588,14 +589,14 @@ const EventDetails: React.FC = () => {
           </Button>
         </div>
 
-        {/* Event Banner - Photo or Video */}
+        {/* Event Banner - Photo or Video (prioritize banner_video_url) */}
         <div className="px-4 pb-4">
           <div className="relative rounded-xl overflow-hidden h-64 md:h-80">
-            {/* Video Banner (if available) */}
-            {event.video_urls && event.video_urls.length > 0 ? (
+            {/* Banner Video (if available - prioritize banner_video_url) */}
+            {event.banner_video_url ? (
               <div 
                 className="relative w-full h-full cursor-pointer group"
-                onClick={() => openVideoModal(event.video_urls![0])}
+                onClick={() => openVideoModal(event.banner_video_url!)}
               >
                 <video
                   className="absolute inset-0 w-full h-full object-cover"
@@ -604,7 +605,7 @@ const EventDetails: React.FC = () => {
                   muted
                   playsInline
                 >
-                  <source src={event.video_urls[0]} type="video/mp4" />
+                  <source src={event.banner_video_url} type="video/mp4" />
                 </video>
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
