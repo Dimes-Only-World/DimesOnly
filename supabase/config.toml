@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.process-card-event-payment]
 verify_jwt = false
+
+[functions.cleanup-orphaned-auth]
+verify_jwt = false
