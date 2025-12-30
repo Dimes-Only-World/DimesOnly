@@ -443,6 +443,7 @@ const AdminEventsTab: React.FC = () => {
         video_urls: videoUrls.length > 0 ? videoUrls : null,
         additional_photos:
           additionalPhotoUrls.length > 0 ? additionalPhotoUrls : null,
+        banner_video_url: bannerVideoUrl || null,
         created_at: new Date().toISOString(),
       };
 
@@ -620,6 +621,7 @@ const updateData = {
         photo_url: photoUrl || null,
         video_urls: videoUrls.length > 0 ? videoUrls : null,
         additional_photos: additionalPhotoUrls.length > 0 ? additionalPhotoUrls : null,
+        banner_video_url: bannerVideoUrl || null,
       };
 
       console.log("💾 Update data:", updateData);

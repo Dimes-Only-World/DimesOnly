@@ -43,13 +43,14 @@ export function formatDateForInput(dateString: string | null | undefined): strin
       return dateString;
     }
     
-    // Parse the date and format it
+    // Parse the date and format it using UTC to avoid timezone shifts
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
     
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // Use UTC methods to prevent timezone offset issues
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
     
     return `${year}-${month}-${day}`;
   } catch {
@@ -69,10 +70,12 @@ export function formatDateForDisplay(dateString: string | null | undefined): str
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
     
+    // Use UTC to prevent timezone offset causing dates to shift by 1 day
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
   } catch {
     return dateString;
