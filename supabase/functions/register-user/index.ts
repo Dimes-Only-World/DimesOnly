@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+import bcrypt from 'https://esm.sh/bcryptjs@3.0.2';
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -145,11 +145,32 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create Supabase Auth user first
+    // Check if email already exists in Supabase Auth
+    const { data: existingAuthUsers } = await supabaseClient.auth.admin.listUsers();
+    const emailExistsInAuth = existingAuthUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
+    
+    if (emailExistsInAuth) {
+      return new Response(JSON.stringify({ error: 'Email already registered. Please use a different email or try logging in.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // SECURITY: Use bcryptjs for password hashing (compatible with Edge Runtime)
+    const salt = bcrypt.genSaltSync(12);
+    const password_hash = bcrypt.hashSync(password, salt);
+
+    // Determine membership tier based on gender and user type
+    const isFemaleDiamond = gender === 'female' && (userType === 'exotic' || userType === 'stripper');
+    const membershipTier = isFemaleDiamond ? 'diamond' : 'free';
+    const membershipType = isFemaleDiamond ? 'diamond' : 'free';
+    const effectiveUserType = userType || 'normal';
+
+    // Create Supabase Auth user
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
       email,
       password,
-      email_confirm: true // Auto-confirm email for now
+      email_confirm: true
     });
 
     if (authError || !authData.user) {
@@ -161,17 +182,6 @@ Deno.serve(async (req) => {
     }
 
     const authUserId = authData.user.id;
-    console.log(`Auth user created with ID: ${authUserId}`);
-
-    // SECURITY: Use bcrypt for password hashing with proper cost factor
-    const salt = await bcrypt.genSalt(12);
-    const password_hash = await bcrypt.hash(password, salt);
-
-    // Determine membership tier based on gender and user type
-    const isFemaleDiamond = gender === 'female' && (userType === 'exotic' || userType === 'stripper');
-    const membershipTier = isFemaleDiamond ? 'diamond' : 'free';
-    const membershipType = isFemaleDiamond ? 'diamond' : 'free';
-    const effectiveUserType = userType || 'normal';
     const effectiveReferredBy = referredBy && referredBy.trim() !== '' ? referredBy : 'Company';
 
     // Insert new user with the auth user ID
