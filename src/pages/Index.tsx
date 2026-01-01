@@ -73,6 +73,7 @@ const Index: React.FC = () => {
       />
       <ProfileVideoSection />
       {/* <VideoWithEmbed /> */}
+      <RefAwareActionButtons />
       <ImageCarousel />
       <LatestDimesCarousel />
       <JackpotWinnersBanner />
