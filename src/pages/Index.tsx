@@ -72,12 +72,12 @@ const Index: React.FC = () => {
         srcMobile="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm"
       />
       <ProfileVideoSection />
-      <RefAwareActionButtons />
       {/* <VideoWithEmbed /> */}
       <ImageCarousel />
       <LatestDimesCarousel />
       <JackpotWinnersBanner />
       <PositionCounter />
+      <RefAwareActionButtons />
       <SecuritySection />
       <Footer />
     </div>
