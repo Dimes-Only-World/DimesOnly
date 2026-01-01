@@ -78,7 +78,6 @@ const Index: React.FC = () => {
       <LatestDimesCarousel />
       <JackpotWinnersBanner />
       <PositionCounter />
-      <RefAwareActionButtons />
       <SecuritySection />
       <Footer />
     </div>
