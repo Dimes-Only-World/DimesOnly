@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Calendar, Star, Heart, Play, Loader2, CreditCard, Info } from "lucide-react";
+import { MapPin, User, Calendar, Star, Heart, Play, Loader2, CreditCard } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
 import CreditCardForm from "@/components/CreditCardForm";
@@ -238,6 +238,89 @@ const Tip: React.FC = () => {
       
       // Redirect to PayPal for payment approval
       window.location.href = data.approval_url;
+    } catch (err) {
+      console.error("Payment error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to process payment";
+      setPaymentError(errorMessage);
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      setIsProcessingPayment(false);
+    }
+  };
+
+  // Handle PayPal Pay Later redirect payment
+  const handlePayWithPayPalLater = async () => {
+    if (!currentUser || !userData || tipAmount < 5) return;
+
+    setIsProcessingPayment(true);
+    setPaymentError(null);
+
+    try {
+      // Check jackpot availability first
+      const availability = await checkJackpotAvailability();
+      if (!availability.canTip) {
+        toast({
+          title: "Tip Unavailable",
+          description: availability.message || "Unable to process tip at this time.",
+          variant: "destructive",
+        });
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // Build return URL with all necessary params for capture
+      const baseUrl = window.location.origin;
+      const returnParams = new URLSearchParams({
+        tipper_id: currentUser.id,
+        tipper_username: currentUser.username || currentUser.email || "anonymous",
+        tipped_username: userData.username,
+        amount: tipAmount.toString(),
+        referrer_username: refUsername || "",
+        tip_message: (message || "").slice(0, 60),
+      });
+      
+      const returnUrl = `${baseUrl}/tip-paypal-return?${returnParams.toString()}`;
+      const cancelUrl = `${baseUrl}/tip?tip=${userData.username}${refUsername ? `&ref=${refUsername}` : ""}`;
+
+      console.log("Creating PayPal Pay Later order:", {
+        tipper_id: currentUser.id,
+        tipped_username: userData.username,
+        amount: tipAmount,
+        return_url: returnUrl,
+      });
+
+      // Call our edge function to create the PayPal order
+      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
+        body: {
+          payment_type: "tip",
+          tipper_id: currentUser.id,
+          tipper_username: currentUser.username || currentUser.email || "anonymous",
+          tipped_username: userData.username,
+          amount: tipAmount,
+          tip_message: message,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+        },
+      });
+
+      if (error) {
+        console.error("PayPal order creation error:", error);
+        throw new Error(error.message || "Failed to create PayPal order");
+      }
+
+      if (!data?.success || !data?.approval_url) {
+        throw new Error(data?.error || "Failed to get PayPal approval URL");
+      }
+
+      // Append fundingSource=paylater to redirect to Pay Later tab
+      const payLaterUrl = `${data.approval_url}&fundingSource=paylater`;
+      console.log("Redirecting to PayPal Pay Later:", payLaterUrl);
+      
+      // Redirect to PayPal Pay Later tab
+      window.location.href = payLaterUrl;
     } catch (err) {
       console.error("Payment error:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to process payment";
@@ -873,16 +956,26 @@ const Tip: React.FC = () => {
                             )}
                           </Button>
                           <Button
+                            onClick={handlePayWithPayPalLater}
+                            disabled={isProcessingPayment}
+                            className="w-full bg-transparent border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 font-bold py-4 text-lg mb-3"
+                          >
+                            {isProcessingPayment ? (
+                              <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Connecting to PayPal...
+                              </>
+                            ) : (
+                              <>Pay ${tipAmount} Later with PayPal</>
+                            )}
+                          </Button>
+                          <Button
                             onClick={() => setShowCardForm(true)}
-                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg mb-3"
+                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
                           >
                             <CreditCard className="w-5 h-5 mr-2" />
                             Pay with Card
                           </Button>
-                          <div className="flex items-center gap-2 text-yellow-200/80 text-sm bg-yellow-500/10 rounded-lg px-3 py-2">
-                            <Info className="w-4 h-4 flex-shrink-0" />
-                            <span>Pay Later option is available during PayPal checkout</span>
-                          </div>
                         </>
                       )}
 
