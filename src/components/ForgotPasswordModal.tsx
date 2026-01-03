@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -17,14 +17,21 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Cooldown timer
+  React.useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
+  const sendResetEmail = async () => {
     setIsLoading(true);
 
     try {
-      // Always use production URL to ensure token validation works correctly
       const redirectTo = 'https://dimesonly.world/reset-password';
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
@@ -33,9 +40,10 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       if (error) throw error;
 
       setSuccess(true);
+      setCooldown(60); // 60-second cooldown before resend
       toast({
         title: "Password Reset Email Sent",
-        description: "Check your inbox (and spam folder) for the reset link. Delivery can take up to 10 minutes—if you don’t see it, check Spam/Junk and search for ‘Supabase’.",
+        description: "Check your inbox (and spam folder). Delivery can take up to 10 minutes—check Spam/Junk and search for 'Supabase' or 'DimesOnly'.",
       });
     } catch (error) {
       console.error("Password reset error:", error);
@@ -49,9 +57,19 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendResetEmail();
+  };
+
+  const handleResend = async () => {
+    await sendResetEmail();
+  };
+
   const handleClose = () => {
     setEmail("");
     setSuccess(false);
+    setCooldown(0);
     onClose();
   };
 
@@ -66,15 +84,52 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
         </DialogHeader>
         
         {success ? (
-          <div className="py-6">
+          <div className="py-6 space-y-4">
             <Alert className="bg-green-50 border-green-200">
               <AlertDescription className="text-green-800">
-                Password reset instructions have been sent to your email address.
+                Password reset instructions have been sent to <strong>{email}</strong>.
               </AlertDescription>
             </Alert>
-            <Button onClick={handleClose} className="w-full mt-4">
-              Close
-            </Button>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+              <p className="font-medium mb-2">📧 Didn't receive the email?</p>
+              <ul className="list-disc list-inside space-y-1 text-amber-700">
+                <li>Check your Spam/Junk folder</li>
+                <li>Search for "Supabase" or "password reset"</li>
+                <li>Delivery can take up to 10 minutes</li>
+                <li>Reset link expires in 24 hours</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResend}
+                disabled={isLoading || cooldown > 0}
+                className="flex-1"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : cooldown > 0 ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Resend ({cooldown}s)
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Resend Email
+                  </>
+                )}
+              </Button>
+              <Button onClick={handleClose} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                Close
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
