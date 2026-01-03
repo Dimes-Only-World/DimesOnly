@@ -441,7 +441,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                     <Button
                       onClick={() => handlePayWithPayPal(false)}
                       disabled={isProcessingPayment}
-                      className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg mb-3"
+                      className="w-full bg-paypal hover:bg-paypal-hover text-primary-foreground font-bold py-4 text-lg rounded-xl mb-3"
                     >
                       {isProcessingPayment ? (
                         <>
@@ -452,14 +452,31 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                         <>Pay ${totalPrice.toFixed(2)} with PayPal</>
                       )}
                     </Button>
-                    
+
                     {/* Purple Card Button */}
                     <Button
                       onClick={() => setShowCardForm(true)}
-                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
+                      className="w-full bg-gradient-to-r from-card-start to-card-end hover:from-card-start/90 hover:to-card-end/90 text-primary-foreground font-bold py-4 text-lg rounded-xl mb-3"
                     >
                       <CreditCard className="w-5 h-5 mr-2" />
                       Pay with Card
+                    </Button>
+
+                    {/* Yellow Pay Later Button */}
+                    <Button
+                      variant="outline"
+                      onClick={() => handlePayWithPayPal(true)}
+                      disabled={isProcessingPayment}
+                      className="w-full border-2 border-paylater text-paylater bg-background/5 hover:bg-paylater/10 hover:text-paylater py-4 font-bold text-lg rounded-xl"
+                    >
+                      {isProcessingPayment ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Redirecting to PayPal...
+                        </span>
+                      ) : (
+                        "Pay Later"
+                      )}
                     </Button>
                   </>
                 )}
@@ -470,7 +487,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                     <Button
                       onClick={() => setShowCardForm(false)}
                       variant="outline"
-                      className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-4"
+                      className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg rounded-xl mb-4"
                     >
                       ← Back to PayPal
                     </Button>
@@ -494,22 +511,6 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                   </>
                 )}
               </div>
-
-              <Button
-                variant="outline"
-                onClick={() => handlePayWithPayPal(true)}
-                disabled={isProcessingPayment}
-                className="w-full bg-white border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 py-4 font-bold text-lg"
-              >
-                {isProcessingPayment ? (
-                  <span className="inline-flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Redirecting to PayPal...
-                  </span>
-                ) : (
-                  "Pay Later"
-                )}
-              </Button>
             </>
           )}
         </div>
