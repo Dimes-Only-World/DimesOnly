@@ -157,7 +157,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   };
 
   // PayPal redirect handler
-  const handlePayWithPayPal = async () => {
+  const handlePayWithPayPal = async (usePayLater = false) => {
     setIsProcessingPayment(true);
     setPaymentError(null);
 
@@ -191,11 +191,17 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
         throw new Error(data?.error || "Failed to create PayPal order");
       }
 
+      // Append fundingSource=paylater for Pay Later option
+      let redirectUrl = data.approval_url;
+      if (usePayLater) {
+        redirectUrl = `${data.approval_url}&fundingSource=paylater`;
+      }
+
       // Redirect to PayPal - use top-level window to avoid iframe issues
       if (window.top && window.top !== window) {
-        window.top.location.assign(data.approval_url);
+        window.top.location.assign(redirectUrl);
       } else {
-        window.location.assign(data.approval_url);
+        window.location.assign(redirectUrl);
       }
     } catch (err: any) {
       setPaymentError(err.message || "Failed to process payment");
@@ -433,7 +439,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                   <>
                     {/* Blue PayPal Button */}
                     <Button
-                      onClick={handlePayWithPayPal}
+                      onClick={() => handlePayWithPayPal(false)}
                       disabled={isProcessingPayment}
                       className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg mb-3"
                     >
@@ -491,9 +497,9 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
 
               <Button
                 variant="outline"
-                onClick={handlePayWithPayPal}
+                onClick={() => handlePayWithPayPal(true)}
                 disabled={isProcessingPayment}
-                className="w-full border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 py-3"
+                className="w-full bg-white border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 py-4 font-bold text-lg"
               >
                 {isProcessingPayment ? (
                   <span className="inline-flex items-center gap-2">
@@ -501,7 +507,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                     Redirecting to PayPal...
                   </span>
                 ) : (
-                  "Pay Later"
+                  `Pay $${totalPrice.toFixed(2)} Later`
                 )}
               </Button>
             </>
