@@ -11,10 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Calendar, Star, Heart, Play, Loader2, CreditCard } from "lucide-react";
+import { MapPin, User, Calendar, Star, Heart, Play, Loader2, CreditCard, Info } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
 import CreditCardForm from "@/components/CreditCardForm";
+import PhotoLightbox from "@/components/PhotoLightbox";
+import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +42,7 @@ interface MediaFile {
   media_url: string;
   media_type: "photo" | "video";
   created_at: string;
+  content_tier?: string;
 }
 
 const Tip: React.FC = () => {
@@ -73,6 +76,12 @@ const Tip: React.FC = () => {
   const [expiryYear, setExpiryYear] = useState("");
   const [cvv, setCvv] = useState("");
   const [cardHolderName, setCardHolderName] = useState("");
+
+  // Lightbox & Video modal state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<MediaFile | null>(null);
 
   useEffect(() => {
     if (tipUsername) {
@@ -392,81 +401,83 @@ const Tip: React.FC = () => {
         return;
       }
 
-      // Fetch recent photos (3 most recent)
-      const { data: photos, error: photosError } = await supabase
-        .from("user_media")
-        .select("id, media_url, media_type, created_at")
-        .eq("user_id", user.id)
-        .eq("media_type", "photo")
-        .order("created_at", { ascending: false })
-        .limit(3);
+      // Fetch 1 most recent photo from each tier (free, silver, gold)
+      const tiers = ["free", "silver", "gold"];
+      const allPhotos: MediaFile[] = [];
+      const allVideos: MediaFile[] = [];
 
-      if (!photosError && photos) {
-        setRecentPhotos(
-          photos.map((photo) => ({
-            id: String(photo.id),
-            media_url: String(photo.media_url),
-            media_type: photo.media_type as "photo" | "video",
-            created_at: String(photo.created_at),
-          }))
-        );
-      }
+      for (const tier of tiers) {
+        // Fetch 1 photo from this tier
+        const { data: photo } = await supabase
+          .from("user_media")
+          .select("id, media_url, media_type, created_at, content_tier")
+          .eq("user_id", user.id)
+          .eq("media_type", "photo")
+          .eq("content_tier", tier)
+          .order("created_at", { ascending: false })
+          .limit(1);
 
-      // Fetch recent videos (6 most recent)
-      const { data: videos, error: videosError } = await supabase
-        .from("user_media")
-        .select("id, media_url, media_type, created_at, storage_path")
-        .eq("user_id", user.id)
-        .eq("media_type", "video")
-        .order("created_at", { ascending: false })
-        .limit(6);
+        if (photo?.length) {
+          allPhotos.push({
+            id: String(photo[0].id),
+            media_url: String(photo[0].media_url),
+            media_type: photo[0].media_type as "photo" | "video",
+            created_at: String(photo[0].created_at),
+            content_tier: tier,
+          });
+        }
 
-      if (!videosError && videos) {
-        const transformed = await Promise.all(
-          videos.map(async (video) => {
-            const rawUrl = String(video.media_url || "");
-            const storagePath = (video as unknown as { storage_path?: string | null }).storage_path;
+        // Fetch 1 video from this tier
+        const { data: video } = await supabase
+          .from("user_media")
+          .select("id, media_url, media_type, created_at, storage_path, content_tier")
+          .eq("user_id", user.id)
+          .eq("media_type", "video")
+          .eq("content_tier", tier)
+          .order("created_at", { ascending: false })
+          .limit(1);
 
-            // Videos may be stored in the private-media bucket (requires a signed URL)
-            if (storagePath) {
-              try {
-                const { data: signedResponse, error: signErr } =
-                  await supabase.functions.invoke("public-data", {
-                    body: {
-                      action: "createSignedUrl",
-                      storagePath,
-                      expiresIn: 3600,
-                    },
-                  });
+        if (video?.length) {
+          const v = video[0];
+          const rawUrl = String(v.media_url || "");
+          const storagePath = (v as unknown as { storage_path?: string | null }).storage_path;
 
-                const signedUrl = signedResponse?.data?.signedUrl as
-                  | string
-                  | undefined;
+          let finalUrl = rawUrl;
 
-                if (!signErr && signedUrl) {
-                  return {
-                    id: String(video.id),
-                    media_url: signedUrl,
-                    media_type: video.media_type as "photo" | "video",
-                    created_at: String(video.created_at),
-                  };
-                }
-              } catch {
-                // fall back to rawUrl
+          // Videos may be stored in the private-media bucket (requires a signed URL)
+          if (storagePath) {
+            try {
+              const { data: signedResponse, error: signErr } =
+                await supabase.functions.invoke("public-data", {
+                  body: {
+                    action: "createSignedUrl",
+                    storagePath,
+                    expiresIn: 3600,
+                  },
+                });
+
+              const signedUrl = signedResponse?.data?.signedUrl as string | undefined;
+
+              if (!signErr && signedUrl) {
+                finalUrl = signedUrl;
               }
+            } catch {
+              // fall back to rawUrl
             }
+          }
 
-            return {
-              id: String(video.id),
-              media_url: rawUrl,
-              media_type: video.media_type as "photo" | "video",
-              created_at: String(video.created_at),
-            };
-          })
-        );
-
-        setRecentVideos(transformed);
+          allVideos.push({
+            id: String(v.id),
+            media_url: finalUrl,
+            media_type: v.media_type as "photo" | "video",
+            created_at: String(v.created_at),
+            content_tier: tier,
+          });
+        }
       }
+
+      setRecentPhotos(allPhotos);
+      setRecentVideos(allVideos);
     } catch (error) {
       console.error("Error fetching user media:", error);
     }
@@ -748,7 +759,7 @@ const Tip: React.FC = () => {
                         Recent Photos
                       </h3>
                       <div className="grid grid-cols-3 gap-2">
-                        {recentPhotos.map((photo) => (
+                        {recentPhotos.map((photo, index) => (
                           <div
                             key={photo.id}
                             className="aspect-square overflow-hidden rounded-lg"
@@ -757,6 +768,10 @@ const Tip: React.FC = () => {
                               src={photo.media_url}
                               alt="Recent photo"
                               className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                              onClick={() => {
+                                setSelectedPhotoIndex(index);
+                                setLightboxOpen(true);
+                              }}
                             />
                           </div>
                         ))}
@@ -772,19 +787,15 @@ const Tip: React.FC = () => {
                       </h3>
                       <div className="grid grid-cols-2 gap-2">
                         {recentVideos.map((video) => (
-                          <div
+                          <VideoThumbnail
                             key={video.id}
-                            className="aspect-video overflow-hidden rounded-lg relative"
-                          >
-                            <video
-                              className="w-full h-full object-cover"
-                              playsInline
-                              preload="metadata"
-                              controls
-                            >
-                              <source src={video.media_url} type="video/mp4" />
-                            </video>
-                          </div>
+                            videoUrl={video.media_url}
+                            className="aspect-video"
+                            onClick={() => {
+                              setSelectedVideo(video);
+                              setVideoModalOpen(true);
+                            }}
+                          />
                         ))}
                       </div>
                     </div>
@@ -868,21 +879,10 @@ const Tip: React.FC = () => {
                             <CreditCard className="w-5 h-5 mr-2" />
                             Pay with Card
                           </Button>
-                          <Button
-                            variant="outline"
-                            onClick={handlePayWithPayPal}
-                            disabled={isProcessingPayment}
-                            className="w-full border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 py-3"
-                          >
-                            {isProcessingPayment ? (
-                              <span className="inline-flex items-center gap-2">
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Redirecting to PayPal...
-                              </span>
-                            ) : (
-                              "Pay Later"
-                            )}
-                          </Button>
+                          <div className="flex items-center gap-2 text-yellow-200/80 text-sm bg-yellow-500/10 rounded-lg px-3 py-2">
+                            <Info className="w-4 h-4 flex-shrink-0" />
+                            <span>Pay Later option is available during PayPal checkout</span>
+                          </div>
                         </>
                       )}
 
@@ -962,6 +962,23 @@ const Tip: React.FC = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Photo Lightbox */}
+        <PhotoLightbox
+          photos={recentPhotos.map((p) => p.media_url)}
+          initialIndex={selectedPhotoIndex}
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+        />
+
+        {/* Video Player Modal */}
+        {selectedVideo && (
+          <VideoPlayerModal
+            videoUrl={selectedVideo.media_url}
+            isOpen={videoModalOpen}
+            onClose={() => setVideoModalOpen(false)}
+          />
+        )}
       </div>
     </AuthGuard>
   );
