@@ -507,7 +507,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                     Redirecting to PayPal...
                   </span>
                 ) : (
-                  `Pay $${totalPrice.toFixed(2)} Later`
+                  "Pay Later"
                 )}
               </Button>
             </>
