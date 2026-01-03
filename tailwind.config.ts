@@ -54,6 +54,14 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
+
+        /* Payment brand colors (semantic tokens) */
+        paypal: 'hsl(var(--brand-paypal))',
+        'paypal-hover': 'hsl(var(--brand-paypal-hover))',
+        paylater: 'hsl(var(--brand-paylater))',
+        'card-start': 'hsl(var(--brand-card-start))',
+        'card-end': 'hsl(var(--brand-card-end))',
+
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
