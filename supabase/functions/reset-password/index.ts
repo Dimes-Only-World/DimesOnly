@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import bcrypt from 'https://esm.sh/bcryptjs@2.4.3';
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -84,11 +85,9 @@ Deno.serve(async (req) => {
 
     console.log(`Password reset request for user: ${email}`);
 
-    // Hash the new password with bcryptjs (compatible with Edge runtime)
-    const bcryptModule = await import('https://esm.sh/bcryptjs@2.4.3');
-    const bcrypt = bcryptModule.default || bcryptModule;
-    const salt = bcrypt.genSaltSync(12);
-    const hashedPassword = bcrypt.hashSync(newPassword, salt);
+    // Hash the new password with bcryptjs
+    // NOTE: Using a slightly lower cost factor improves reset speed while remaining secure.
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
     // Find the user in our custom users table
     const { data: userData, error: fetchError } = await supabaseAdmin

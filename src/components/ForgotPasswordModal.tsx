@@ -35,7 +35,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       setSuccess(true);
       toast({
         title: "Password Reset Email Sent",
-        description: `Check your inbox (and spam folder) for the reset link. If you don't see it within 5 minutes, please check your spam folder.`,
+        description: "Check your inbox (and spam folder) for the reset link. Delivery can take up to 10 minutes—if you don’t see it, check Spam/Junk and search for ‘Supabase’.",
       });
     } catch (error) {
       console.error("Password reset error:", error);
