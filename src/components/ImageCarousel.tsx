@@ -309,9 +309,15 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           }
         });
 
+        // Show all performers (up to 20), sorted by score - those with ratings first
         const ranked = Object.values(scores)
-          .filter((u) => u.rating_count > 0)
-          .sort((a, b) => b.total_score - a.total_score)
+          .sort((a, b) => {
+            // First, prioritize users with ratings
+            if (a.rating_count > 0 && b.rating_count === 0) return -1;
+            if (b.rating_count > 0 && a.rating_count === 0) return 1;
+            // Then sort by total score
+            return b.total_score - a.total_score;
+          })
           .slice(0, 20)
           .map((u, i) => ({ ...u, rank: i + 1 }));
 
