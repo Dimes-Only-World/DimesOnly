@@ -95,10 +95,13 @@ const RatePage: React.FC = () => {
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (rateUsername) {
-      initializeRatingSystem();
+    if (!rateUsername) {
+      // No user specified to rate - redirect to rate-girls page
+      navigate('/rate-girls' + (refUsername ? `?ref=${refUsername}` : ''));
+      return;
     }
-  }, [rateUsername]);
+    initializeRatingSystem();
+  }, [rateUsername, navigate, refUsername]);
 
   const initializeRatingSystem = async () => {
     try {
