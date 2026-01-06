@@ -202,7 +202,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
   };
 
   return (
-    <section className={`w-full bg-gradient-to-b from-black via-gray-950 to-black py-10 ${className}`}>
+    <section className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
       <div className="text-center mb-8">
         <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
           Latest 20 Dimes to Join
@@ -242,15 +242,15 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
               className="group flex-shrink-0 w-56 h-80 md:w-72 md:h-[28rem]"
               onClick={() => openModal(performer)}
             >
-              <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/5 bg-black shadow-2xl transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-pink-500/30">
+              <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
                 <img
                   src={performer.image}
                   alt={`@${performer.username}`}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                <div className="absolute top-4 left-4 rounded-full bg-fuchsia-600/80 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-fuchsia-400 uppercase tracking-wide">
                   New Dime
                 </div>
                 <div className="absolute bottom-6 left-4 right-4 text-white">
