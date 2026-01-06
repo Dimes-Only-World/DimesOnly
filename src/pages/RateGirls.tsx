@@ -8,6 +8,7 @@ import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import { supabase } from "@/lib/supabase";
+import { getRatingSeasonYear } from "@/lib/timeUtils";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ interface RankedUser {
   state: string;
   user_type: string;
   total_score: number;
+  rating_count: number;
   rank: number;
 }
 
@@ -76,12 +78,12 @@ const RateGirls: React.FC = () => {
 
   const fetchTopRanked = async () => {
     try {
-      const currentYear = new Date().getFullYear();
+      const seasonYear = getRatingSeasonYear();
 
       const { data: ratingsData, error: ratingsError } = await supabase
         .from("ratings")
         .select("user_id, rating")
-        .eq("year", currentYear);
+        .eq("year", seasonYear);
 
       if (ratingsError) {
         console.error("Error fetching ratings:", ratingsError);
@@ -111,27 +113,31 @@ const RateGirls: React.FC = () => {
             state: String(user.state || ""),
             user_type: String(user.user_type),
             total_score: 0,
+            rating_count: 0,
             rank: 0,
           };
         });
 
         ratingsData.forEach((rating) => {
           if (userScores[String(rating.user_id)]) {
-            userScores[String(rating.user_id)].total_score += Number(
-              rating.rating
-            );
+            userScores[String(rating.user_id)].total_score += Number(rating.rating);
+            userScores[String(rating.user_id)].rating_count += 1;
           }
         });
 
+        // Show all performers (up to 20), sorted by score - those with ratings first
         const rankedUsers = Object.values(userScores)
-          .filter((user) => user.total_score > 0)
-          .sort((a, b) => b.total_score - a.total_score);
+          .sort((a, b) => {
+            // First, prioritize users with ratings
+            if (a.rating_count > 0 && b.rating_count === 0) return -1;
+            if (b.rating_count > 0 && a.rating_count === 0) return 1;
+            // Then sort by total score
+            return b.total_score - a.total_score;
+          })
+          .slice(0, 20)
+          .map((u, i) => ({ ...u, rank: i + 1 }));
 
-        rankedUsers.forEach((user, index) => {
-          user.rank = index + 1;
-        });
-
-        setTopRanked(rankedUsers.slice(0, 20));
+        setTopRanked(rankedUsers);
       }
     } catch (error) {
       console.error("Error fetching top ranked:", error);
@@ -223,7 +229,7 @@ const RateGirls: React.FC = () => {
                   <Crown className="w-8 h-8" />
                 </h2>
                 <p className="text-gray-300">
-                  Leading performers in the 2025 rankings
+                  Leading performers in the {getRatingSeasonYear()} rankings
                 </p>
               </div>
 

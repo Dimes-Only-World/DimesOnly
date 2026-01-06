@@ -3,6 +3,31 @@
  */
 
 /**
+ * Gets the current rating season year.
+ * Uses VITE_RATING_SEASON_YEAR env var if set, otherwise falls back to current year.
+ * This ensures all rating features use a consistent year.
+ */
+export function getRatingSeasonYear(): number {
+  const envYear = import.meta.env.VITE_RATING_SEASON_YEAR;
+  if (envYear) {
+    const parsed = parseInt(envYear, 10);
+    if (!isNaN(parsed) && parsed > 2000 && parsed < 3000) {
+      return parsed;
+    }
+  }
+  return new Date().getFullYear();
+}
+
+/**
+ * Normalizes a username for consistent comparison.
+ * Trims whitespace and converts to lowercase.
+ */
+export function normalizeUsername(username: string | null | undefined): string {
+  if (!username) return '';
+  return username.trim().toLowerCase();
+}
+
+/**
  * Converts military time (24-hour format) to 12-hour format with AM/PM
  * @param time24 - Time in 24-hour format (e.g., "20:00", "14:30")
  * @returns Time in 12-hour format (e.g., "8:00 PM", "2:30 PM")

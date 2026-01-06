@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { normalizeRefParam } from "@/lib/utils";
+import { getRatingSeasonYear, normalizeUsername } from "@/lib/timeUtils";
 import {
   Dialog,
   DialogContent,
@@ -170,14 +171,14 @@ const RatePage: React.FC = () => {
 
   const fetchCurrentStanding = async (userId: string) => {
     try {
-      const currentYear = new Date().getFullYear();
+      const seasonYear = getRatingSeasonYear();
 
-      // Get all ratings for this user this year
+      // Get all ratings for this user this season
       const { data: userRatingsData, error: ratingsError } = await supabase
         .from("ratings")
         .select("rating")
         .eq("user_id", userId)
-        .eq("year", currentYear);
+        .eq("year", seasonYear);
 
       if (ratingsError) {
         console.error("Error fetching user ratings:", ratingsError);
@@ -188,7 +189,7 @@ const RatePage: React.FC = () => {
       const { data: allRatingsData, error: allRatingsError } = await supabase
         .from("ratings")
         .select("user_id, rating")
-        .eq("year", currentYear);
+        .eq("year", seasonYear);
 
       if (allRatingsError) {
         console.error("Error fetching all ratings:", allRatingsError);
@@ -259,14 +260,14 @@ const RatePage: React.FC = () => {
 
   const fetchUserRatings = async (userId: string) => {
     try {
-      const currentYear = new Date().getFullYear();
+      const seasonYear = getRatingSeasonYear();
 
-      // Get all ratings made by current user this year (without join to avoid relation issues)
+      // Get all ratings made by current user this season (without join to avoid relation issues)
       const { data: ratings, error } = await supabase
         .from("ratings")
         .select("id, rater_id, user_id, rating, year, created_at")
         .eq("rater_id", userId)
-        .eq("year", currentYear);
+        .eq("year", seasonYear);
 
       if (error) {
         console.error("Error fetching user ratings:", error);
@@ -314,7 +315,7 @@ const RatePage: React.FC = () => {
                   number: Number(rating.rating),
                   assigned_to_username: String(user.username),
                   assigned_to_photo: String(user.profile_photo || ""),
-                  is_current_page: String(user.username) === rateUsername,
+                  is_current_page: normalizeUsername(user.username) === normalizeUsername(rateUsername),
                 };
               }
             });
@@ -421,11 +422,11 @@ const RatePage: React.FC = () => {
     if (!currentUser || !userData || selectedNumber === null) return;
 
     try {
-      const currentYear = new Date().getFullYear();
+      const seasonYear = getRatingSeasonYear();
 
       // First, check if this number is currently assigned to someone else (reassignment case)
       const existingNumberRating = userRatings.find(
-        (r) => r.rating === selectedNumber && r.year === currentYear
+        (r) => r.rating === selectedNumber && r.year === seasonYear
       );
 
       // If we're reassigning from another user, delete that rating first
@@ -438,9 +439,9 @@ const RatePage: React.FC = () => {
         if (deleteError) throw deleteError;
       }
 
-      // Check if user already has a rating for this TARGET user this year
+      // Check if user already has a rating for this TARGET user this season
       const existingUserRating = userRatings.find(
-        (r) => r.user_id === userData.id && r.year === currentYear
+        (r) => r.user_id === userData.id && r.year === seasonYear
       );
 
       if (existingUserRating) {
@@ -457,7 +458,7 @@ const RatePage: React.FC = () => {
           rater_id: currentUser.id,
           user_id: userData.id,
           rating: selectedNumber,
-          year: currentYear,
+          year: seasonYear,
         });
 
         if (error) throw error;

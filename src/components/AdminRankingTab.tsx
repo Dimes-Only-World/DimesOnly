@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getRatingSeasonYear } from '@/lib/timeUtils';
 
 interface RankedUser {
   id: string;
@@ -33,7 +34,7 @@ const AdminRankingTab: React.FC = () => {
   const fetchRankings = async () => {
     try {
       // Year scope to match public page
-      const currentYear = new Date().getFullYear();
+      const seasonYear = getRatingSeasonYear();
 
       // Fetch users from public_user_profiles (bypasses RLS)
       const { data: users, error: usersError } = await supabase
@@ -61,7 +62,7 @@ const AdminRankingTab: React.FC = () => {
         .from('ratings')
         .select('user_id, rating, year')
         .in('user_id', userIds)
-        .eq('year', currentYear);
+        .eq('year', seasonYear);
 
       if (ratingsError) throw ratingsError;
 
@@ -111,25 +112,25 @@ const AdminRankingTab: React.FC = () => {
   const handleResetRankings = async () => {
     if (isResetting) return;
 
+    const seasonYear = getRatingSeasonYear();
     const confirmed = window.confirm(
-      "Reset all ranking points for the current year? This cannot be undone."
+      `Reset all ranking points for season ${seasonYear}? This cannot be undone.`
     );
     if (!confirmed) return;
 
     try {
       setIsResetting(true);
-      const currentYear = new Date().getFullYear();
 
       const { error } = await supabase
         .from("ratings")
         .delete()
-        .eq("year", currentYear);
+        .eq("year", seasonYear);
 
       if (error) throw error;
 
       toast({
         title: "Rankings reset",
-        description: `All ranking points for ${currentYear} have been cleared.`,
+        description: `All ranking points for ${seasonYear} have been cleared.`,
       });
 
       setLoading(true);
@@ -168,7 +169,7 @@ const AdminRankingTab: React.FC = () => {
           <div>
             <CardTitle>User Rankings - Top 50 Strippers & Exotic Dancers</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Ranked by total score (current year)
+              Ranked by total score (Season {getRatingSeasonYear()})
             </p>
           </div>
           <Button
