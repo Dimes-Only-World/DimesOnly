@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Trophy, Medal, Award, Star, MapPin, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMobileLayout } from "@/hooks/use-mobile";
+import { getRatingSeasonYear } from "@/lib/timeUtils";
 
 interface RatingData {
   user_id: string;
@@ -61,13 +62,13 @@ const Rankings: React.FC = () => {
   const fetchRankings = async () => {
     try {
       setLoading(true);
-      const currentYear = new Date().getFullYear();
+      const seasonYear = getRatingSeasonYear();
 
-      // Get all ratings for the current year
+      // Get all ratings for the current season
       const { data: ratingsData, error: ratingsError } = await supabase
         .from("ratings")
         .select("user_id, rating")
-        .eq("year", currentYear);
+        .eq("year", seasonYear);
 
       if (ratingsError) {
         console.error("Error fetching ratings:", ratingsError);
@@ -177,7 +178,7 @@ const Rankings: React.FC = () => {
       <div className={getContainerClasses("max-w-6xl mx-auto px-4 py-8")}>
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-4">
-            🏆 2025 RANKINGS 🏆
+            🏆 {getRatingSeasonYear()} RANKINGS 🏆
           </h1>
           <p className="text-gray-300 text-lg">
             Top performers ranked by total rating scores
@@ -230,7 +231,7 @@ const Rankings: React.FC = () => {
                 No Rankings Yet
               </h3>
               <p className="text-gray-300 mb-4">
-                No ratings have been submitted for 2025 yet.
+                No ratings have been submitted for {getRatingSeasonYear()} yet.
               </p>
               <Button
                 onClick={() => navigate("/rate-girls")}
