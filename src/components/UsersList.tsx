@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { getRatingSeasonYear } from "@/lib/timeUtils";
 
 type RateFilter = "all" | "rated" | "not-rated";
 
@@ -89,10 +90,13 @@ const UsersList: React.FC<UsersListProps> = ({
 
       const performerIds = mappedUsers.map((user) => user.id);
 
+      const seasonYear = getRatingSeasonYear();
+
       const { data: ratingsData, error: ratingsError } = await supabase
         .from("ratings")
         .select("user_id")
-        .in("user_id", performerIds);
+        .in("user_id", performerIds)
+        .eq("year", seasonYear);
 
       if (ratingsError) throw ratingsError;
 
@@ -111,7 +115,8 @@ const UsersList: React.FC<UsersListProps> = ({
           .from("ratings")
           .select("user_id, rating")
           .eq("rater_id", currentUserId)
-          .in("user_id", performerIds);
+          .in("user_id", performerIds)
+          .eq("year", seasonYear);
 
         if (myRatingsError) throw myRatingsError;
 
