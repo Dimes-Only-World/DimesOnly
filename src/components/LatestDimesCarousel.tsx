@@ -274,28 +274,28 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
               ×
             </button>
 
-            <div className="flex min-h-[50vh] items-center justify-center bg-black p-4">
+            <div className="relative w-full bg-black flex items-center justify-center flex-1 overflow-hidden rounded-3xl">
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
               ) : selectedVideoUrl ? (
                <video
-               key={selectedVideoUrl}
-               src={selectedVideoUrl}
-               autoPlay
-               loop
-               muted
-               playsInline
-               controls
-               controlsList="nodownload noremoteplayback"
-               disablePictureInPicture
-               onContextMenu={(event) => event.preventDefault()}
-               className="h-full max-h-[70vh] w-full object-contain"
-             />
+                key={selectedVideoUrl}
+                src={selectedVideoUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
+                controlsList="nodownload noremoteplayback"
+                disablePictureInPicture
+                onContextMenu={(event) => event.preventDefault()}
+                className="h-full max-h-[70vh] w-full object-contain"
+              />
               ) : (
                 <img
                   src={selectedPerformer.image}
                   alt={`@${selectedPerformer.username}`}
-                  className="h-full max-h-[70vh] w-full rounded-xl object-cover"
+                  className="w-full h-full max-h-[70vh] object-cover"
                 />
               )}
             </div>
