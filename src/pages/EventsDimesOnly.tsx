@@ -55,6 +55,7 @@ interface EventRegistration {
   ticket_quantity: number;
   guest_name: string | null;
   user_type: string;
+  payment_status: string;
 }
 
 interface Event {
@@ -367,34 +368,35 @@ const EventsDimesOnly: React.FC = () => {
       // Get current attendee counts and registrations for each event
       const eventsWithCounts = await Promise.all(
         (eventsData || []).map(async (event) => {
-          // Get count
-          const { count } = await supabase
-            .from("user_events")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
-
-          // Get registrations with user types for free spot calculation
+          // Get registrations with user types and payment status for free spot calculation
           const { data: registrations } = await supabase
             .from("user_events")
             .select(`
               user_id,
               ticket_quantity,
               guest_name,
+              payment_status,
               users!inner(user_type)
             `)
             .eq("event_id", event.id);
 
-          // Transform registrations to include user_type at top level
+          // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
             user_id: r.user_id,
             ticket_quantity: r.ticket_quantity || 1,
             guest_name: r.guest_name,
-            user_type: r.users?.user_type || 'normal'
+            user_type: r.users?.user_type || 'normal',
+            payment_status: r.payment_status || 'paid'
           }));
+
+          // Sum ticket_quantity for accurate attendee count
+          const totalAttendees = transformedRegistrations.reduce(
+            (sum, r) => sum + (r.ticket_quantity || 1), 0
+          );
 
           return {
             ...event,
-            current_attendees: count || 0,
+            current_attendees: totalAttendees,
             isUserAttending: attendingEventIds.includes(event.id),
             video_urls: event.video_urls || [],
             additional_photos: event.additional_photos || [],
@@ -480,11 +482,13 @@ const EventsDimesOnly: React.FC = () => {
     if (!selectedEvent || !user) return;
 
     try {
-      const freeSpots =
-        (selectedEvent.free_spots_strippers || 0) +
-        (selectedEvent.free_spots_exotics || 0);
+      const freeSpots = getFreeSpots(selectedEvent);
 
       if (freeSpots > 0) {
+        // Determine ticket quantity based on guest name
+        const hasGuest = guestName && guestName.toLowerCase() !== 'none' && guestName.trim() !== '';
+        const ticketQuantity = hasGuest ? 2 : 1;
+
         // Free attendance
         const { error } = await supabase.from("user_events").insert({
           user_id: user.id,
@@ -492,12 +496,13 @@ const EventsDimesOnly: React.FC = () => {
           username: user.username,
           payment_status: "free",
           referred_by: referrer || null,
-          guest_name: guestName || null,
+          guest_name: hasGuest ? guestName : null,
+          ticket_quantity: ticketQuantity,
         });
 
         if (error) throw error;
 
-        // Update free spots
+        // Update free spots - deduct based on user type
         const userType = user.userType;
         const updateField =
           userType === "stripper"
@@ -518,7 +523,7 @@ const EventsDimesOnly: React.FC = () => {
 
         toast({
           title: "Success!",
-          description: "You have successfully joined the event for free!",
+          description: `You have successfully joined the event for free${hasGuest ? ' with 1 guest' : ''}!`,
         });
 
         setShowAttendDialog(false);
@@ -704,13 +709,13 @@ const EventsDimesOnly: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   };
 
-  // Calculate spots used by a specific user type, excluding current user
+  // Calculate spots used by a specific user type for FREE registrations only, excluding current user
   const getSpotsUsedByType = (event: Event | null, userType: string) => {
     if (!event?.registrations) return 0;
-    // Count 1 spot per registration, excluding current user's own registration
-    return event.registrations.filter(r => 
-      r.user_type === userType && r.user_id !== user?.id
-    ).length;
+    // Sum ticket_quantity for FREE registrations only, excluding current user's own registration
+    return event.registrations
+      .filter(r => r.user_type === userType && r.payment_status === 'free' && r.user_id !== user?.id)
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
   };
 
   const getRemainingExoticSpots = (event: Event | null) => {
@@ -1021,8 +1026,8 @@ const EventsDimesOnly: React.FC = () => {
                               : getAvailableSpots(event) === 0
                               ? "Sold Out"
                               : getFreeSpots(event) > 0
-                              ? "Attend"
-                              : `Pay $${event.price}`}
+                              ? "Attend Free"
+                              : "Purchase Tickets"}
                           </Button>
                         </div>
                       </CardContent>
