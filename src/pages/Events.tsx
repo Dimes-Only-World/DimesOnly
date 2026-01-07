@@ -303,40 +303,21 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Count free spots used by MALES only
-  const getMalesUsed = useCallback((event: Event | null) => {
-    if (!event?.registrations) return 0;
-    return event.registrations.filter(r => r.user_type === 'male').length;
-  }, []);
-
-  // Count free spots used by FEMALES only (normal users count as female for free spots)
-  const getFemalesUsed = useCallback((event: Event | null) => {
+  // Count free spots used by MEMBERS only (male, female, normal) - for unified display
+  const getMemberFreeUsed = useCallback((event: Event | null) => {
     if (!event?.registrations) return 0;
     return event.registrations.filter(r => 
-      r.user_type === 'female' || r.user_type === 'normal'
+      ['male', 'female', 'normal'].includes(r.user_type)
     ).length;
   }, []);
 
-  // Calculate remaining free spots for males
-  const getRemainingMalesFreeSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    const total = event.free_spots_males || 0;
-    const used = getMalesUsed(event);
-    return Math.max(0, total - used);
-  }, [getMalesUsed]);
-
-  // Calculate remaining free spots for females
-  const getRemainingFemalesFreeSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    const total = event.free_spots_females || 0;
-    const used = getFemalesUsed(event);
-    return Math.max(0, total - used);
-  }, [getFemalesUsed]);
-
-  // Combined remaining free spots for members
+  // Always 10 free spots for members, calculate remaining
   const getRemainingMemberFreeSpots = useCallback((event: Event | null) => {
-    return getRemainingMalesFreeSpots(event) + getRemainingFemalesFreeSpots(event);
-  }, [getRemainingMalesFreeSpots, getRemainingFemalesFreeSpots]);
+    if (!event) return 0;
+    const totalMemberFreeSpots = 10; // Always 10 free spots for all events
+    const used = getMemberFreeUsed(event);
+    return Math.max(0, totalMemberFreeSpots - used);
+  }, [getMemberFreeUsed]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -602,25 +583,16 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge - Show remaining free spots for males and females */}
+                    {/* Event Status Badge - Show remaining free spots for members */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">
                           SOLD OUT
                         </Badge>
                       ) : getRemainingMemberFreeSpots(event) > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {getRemainingMalesFreeSpots(event) > 0 && (
-                            <Badge className="bg-blue-600 text-white font-bold text-xs">
-                              Free Males: {getRemainingMalesFreeSpots(event)}
-                            </Badge>
-                          )}
-                          {getRemainingFemalesFreeSpots(event) > 0 && (
-                            <Badge className="bg-pink-600 text-white font-bold text-xs">
-                              Free Females: {getRemainingFemalesFreeSpots(event)}
-                            </Badge>
-                          )}
-                        </div>
+                        <Badge className="bg-green-600 text-white font-bold text-xs">
+                          Free Spots: {getRemainingMemberFreeSpots(event)}
+                        </Badge>
                       ) : (
                         <Badge className="bg-yellow-600 text-white font-bold">
                           PAID ONLY
