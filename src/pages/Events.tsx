@@ -25,6 +25,7 @@ interface EventRegistration {
   ticket_quantity: number;
   guest_name: string | null;
   user_type: string;
+  payment_status: string;
 }
 
 interface Event {
@@ -225,28 +226,35 @@ const Events: React.FC = () => {
             .select("*", { count: "exact", head: true })
             .eq("event_id", event.id);
 
-          // Get registrations with user types for free spot calculation
+          // Get registrations with user types and payment status for free spot calculation
           const { data: registrations } = await supabase
             .from("user_events")
             .select(`
               user_id,
               ticket_quantity,
               guest_name,
+              payment_status,
               users!inner(user_type)
             `)
             .eq("event_id", event.id);
 
-          // Transform registrations to include user_type at top level
+          // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
             user_id: r.user_id,
             ticket_quantity: r.ticket_quantity || 1,
             guest_name: r.guest_name,
-            user_type: r.users?.user_type || 'normal'
+            user_type: r.users?.user_type || 'normal',
+            payment_status: r.payment_status || 'paid'
           }));
+          
+          // Calculate total attendees by summing ticket_quantity
+          const totalAttendees = transformedRegistrations.reduce(
+            (sum, r) => sum + (r.ticket_quantity || 1), 0
+          );
 
           return {
             ...event,
-            current_attendees: count || 0,
+            current_attendees: totalAttendees,
             is_attending: attendingEventIds.includes(event.id),
             registrations: transformedRegistrations,
           };
@@ -303,18 +311,20 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Count free spots used by MALES only
+  // Count free spots used by MALES only (filter by payment_status='free' and sum ticket_quantity)
   const getMalesUsed = useCallback((event: Event | null) => {
     if (!event?.registrations) return 0;
-    return event.registrations.filter(r => r.user_type === 'male').length;
+    return event.registrations
+      .filter(r => r.user_type === 'male' && r.payment_status === 'free')
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
   }, []);
 
-  // Count free spots used by FEMALES only (normal users count as female for free spots)
+  // Count free spots used by FEMALES only (filter by payment_status='free' and sum ticket_quantity)
   const getFemalesUsed = useCallback((event: Event | null) => {
     if (!event?.registrations) return 0;
-    return event.registrations.filter(r => 
-      r.user_type === 'female' || r.user_type === 'normal'
-    ).length;
+    return event.registrations
+      .filter(r => (r.user_type === 'female' || r.user_type === 'normal') && r.payment_status === 'free')
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
   }, []);
 
   // Calculate remaining free spots for males
