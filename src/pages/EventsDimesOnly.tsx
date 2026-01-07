@@ -915,17 +915,24 @@ const EventsDimesOnly: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Event Status Badge */}
+                        {/* Event Status Badge - Show separate Stripper and Exotic spots */}
                         <div className="absolute top-3 left-3">
                           {getAvailableSpots(event) === 0 ? (
                             <div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
                               SOLD OUT
                             </div>
                           ) : getFreeSpots(event) > 0 ? (
-                            <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold space-y-0.5">
-                              <div>Free Spots: {getFreeSpots(event)}</div>
-                              <div>Exotics: {getRemainingExoticSpots(event)}</div>
-                              <div>Stripper: {getRemainingStripperSpots(event)}</div>
+                            <div className="flex flex-col gap-1">
+                              {getRemainingStripperSpots(event) > 0 && (
+                                <div className="bg-yellow-500 text-black px-2 py-1 rounded text-xs font-bold">
+                                  Free Strippers: {getRemainingStripperSpots(event)}
+                                </div>
+                              )}
+                              {getRemainingExoticSpots(event) > 0 && (
+                                <div className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                  Free Exotics: {getRemainingExoticSpots(event)}
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
