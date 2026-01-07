@@ -191,11 +191,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
         throw new Error(data?.error || "Failed to create PayPal order");
       }
 
-      // Append fundingSource=paylater for Pay Later option
-      let redirectUrl = data.approval_url;
-      if (usePayLater) {
-        redirectUrl = `${data.approval_url}&fundingSource=paylater`;
-      }
+      // Use PayPal approval URL - Pay Later eligibility is handled by PayPal automatically
+      const redirectUrl = data.approval_url;
 
       // Redirect to PayPal - use top-level window to avoid iframe issues
       if (window.top && window.top !== window) {
