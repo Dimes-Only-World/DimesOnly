@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { formatDateForInput, formatTime12Hour } from "@/lib/timeUtils";
+import { formatDateForInput, formatTime12Hour, formatDateForDisplay } from "@/lib/timeUtils";
 import {
   Trash2,
   Edit,
@@ -260,7 +260,9 @@ const AdminEventsTab: React.FC = () => {
   const fetchEventAttendees = async (eventId: string) => {
     try {
       console.log("🔄 Fetching attendees for event:", eventId);
-      const { data, error } = await supabase
+      
+      // First get user_events data
+      const { data: userEventsData, error: userEventsError } = await supabase
         .from("user_events")
         .select(
           `
@@ -278,27 +280,57 @@ const AdminEventsTab: React.FC = () => {
           amount_paid,
           checked_in,
           checked_in_at,
-          guest_name,
-          users (
-            username,
-            profile_photo,
-            user_type,
-            first_name,
-            last_name
-          )
+          guest_name
         `
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("❌ Error fetching attendees:", error);
-        throw error;
+      if (userEventsError) {
+        console.error("❌ Error fetching user_events:", userEventsError);
+        throw userEventsError;
       }
 
-      console.log("✅ Attendees fetched:", data?.length || 0, "attendees");
-      console.log("📋 Sample attendee data:", data?.[0]);
-      setAttendees((data as unknown as Attendee[]) || []);
+      if (!userEventsData || userEventsData.length === 0) {
+        console.log("📋 No attendees found for event");
+        setAttendees([]);
+        return;
+      }
+
+      // Get user IDs to fetch profile data
+      const userIds = userEventsData.map((ue) => ue.user_id).filter(Boolean);
+      
+      // Fetch profile data from public_user_profiles view (bypasses RLS)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, user_type, first_name, last_name, phone_number")
+        .in("id", userIds);
+
+      if (profilesError) {
+        console.error("❌ Error fetching profiles:", profilesError);
+        // Continue without profile data if it fails
+      }
+
+      // Map profiles to attendees
+      const attendeesWithProfiles = userEventsData.map((ue) => {
+        const profile = profilesData?.find((p) => p.id === ue.user_id);
+        return {
+          ...ue,
+          // Use phone from user_events first, fall back to profile
+          phone_number: ue.phone_number || profile?.phone_number || null,
+          users: {
+            username: profile?.username || ue.username || "Unknown",
+            profile_photo: profile?.profile_photo || "",
+            user_type: profile?.user_type || "normal",
+            first_name: profile?.first_name || ue.first_name || "",
+            last_name: profile?.last_name || ue.last_name || "",
+          },
+        };
+      });
+
+      console.log("✅ Attendees fetched:", attendeesWithProfiles.length, "attendees");
+      console.log("📋 Sample attendee data:", attendeesWithProfiles[0]);
+      setAttendees(attendeesWithProfiles as unknown as Attendee[]);
     } catch (error) {
       console.error("❌ Error in fetchEventAttendees:", error);
     }
@@ -1263,9 +1295,25 @@ const updateData = {
                       className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                     {photoFile && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Selected: {photoFile.name}
-                      </p>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-green-600">✓ {photoFile.name}</p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-red-500 hover:text-red-700"
+                            onClick={() => setPhotoFile(null)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <img
+                          src={URL.createObjectURL(photoFile)}
+                          alt="Preview"
+                          className="w-20 h-20 object-cover rounded"
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -1278,15 +1326,40 @@ const updateData = {
                     <Input
                       type="file"
                       accept="video/*"
-                      onChange={(e) =>
-                        setBannerVideoFile(e.target.files?.[0] || null)
-                      }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        if (file && file.size > 100 * 1024 * 1024) {
+                          toast({
+                            title: "File too large",
+                            description: "Banner video must be under 100MB",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        setBannerVideoFile(file);
+                      }}
                       className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                     />
                     {bannerVideoFile && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Selected: {bannerVideoFile.name}
-                      </p>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-green-600">✓ {bannerVideoFile.name}</p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-red-500 hover:text-red-700"
+                            onClick={() => setBannerVideoFile(null)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <video
+                          src={URL.createObjectURL(bannerVideoFile)}
+                          className="w-32 h-20 object-cover rounded"
+                          controls
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1308,9 +1381,29 @@ const updateData = {
                       className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                     />
                     {videoFiles.length > 0 && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Selected: {videoFiles.length} video(s)
-                      </p>
+                      <div className="mt-2 space-y-2">
+                        <p className="text-xs text-green-600">✓ {videoFiles.length} video(s) selected</p>
+                        <div className="flex flex-wrap gap-2">
+                          {videoFiles.map((file, index) => (
+                            <div key={index} className="relative group">
+                              <video
+                                src={URL.createObjectURL(file)}
+                                className="w-20 h-16 object-cover rounded"
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="destructive"
+                                className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100"
+                                onClick={() => setVideoFiles(videoFiles.filter((_, i) => i !== index))}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                              <p className="text-xs text-gray-500 truncate w-20">{file.name}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -1332,9 +1425,29 @@ const updateData = {
                       className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                     />
                     {additionalPhotoFiles.length > 0 && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Selected: {additionalPhotoFiles.length} photo(s)
-                      </p>
+                      <div className="mt-2 space-y-2">
+                        <p className="text-xs text-green-600">✓ {additionalPhotoFiles.length} photo(s) selected</p>
+                        <div className="flex flex-wrap gap-2">
+                          {additionalPhotoFiles.map((file, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="destructive"
+                                className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100"
+                                onClick={() => setAdditionalPhotoFiles(additionalPhotoFiles.filter((_, i) => i !== index))}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1415,7 +1528,7 @@ const updateData = {
                     <div className="space-y-1 mt-2 text-sm text-muted-foreground">
                       <p className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
-                        {new Date(event.date).toLocaleDateString()}
+                        {formatDateForDisplay(event.date)}
                         {event.start_time && ` at ${formatTime12Hour(event.start_time)}`}
                         {event.end_time && ` - ${formatTime12Hour(event.end_time)}`}
                       </p>
@@ -1562,7 +1675,7 @@ const updateData = {
                   </label>
                   <Input
                     type="date"
-                    value={editingEvent.date}
+                    value={formatDateForInput(editingEvent.date)}
                     onChange={(e) =>
                       setEditingEvent((prev) =>
                         prev ? { ...prev, date: e.target.value } : null
