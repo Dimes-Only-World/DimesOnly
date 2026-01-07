@@ -265,19 +265,15 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get attendee count by summing ticket_quantity
-      const { data: attendeeData } = await supabase
+      // Get attendee count
+      const { count } = await supabase
         .from("user_events")
-        .select("ticket_quantity")
+        .select("*", { count: "exact", head: true })
         .eq("event_id", eventId);
-      
-      const totalAttendees = (attendeeData || []).reduce(
-        (sum, r) => sum + (r.ticket_quantity || 1), 0
-      );
 
       setEvent({
         ...eventData,
-        current_attendees: totalAttendees,
+        current_attendees: count || 0,
       } as Event);
 
       // Fetch host profile if host_user_id exists
@@ -309,10 +305,9 @@ const EventDetails: React.FC = () => {
 
   const calculateUsedFreeSpots = async (eventId: string) => {
     try {
-      // Get free registrations with ticket_quantity
       const { data: registrations } = await supabase
         .from("user_events")
-        .select("user_id, ticket_type, ticket_quantity")
+        .select("user_id, ticket_type")
         .eq("event_id", eventId)
         .eq("payment_status", "free");
 
@@ -328,17 +323,11 @@ const EventDetails: React.FC = () => {
         .select("id, user_type")
         .in("id", userIds);
 
-      // Create a map of user_id to user_type
-      const userTypeMap = new Map((users || []).map(u => [u.id, u.user_type]));
-
-      // Sum ticket_quantity for each user type
       const counts = { strippers: 0, exotics: 0, normal: 0 };
-      registrations.forEach(reg => {
-        const userType = userTypeMap.get(reg.user_id) || 'normal';
-        const qty = reg.ticket_quantity || 1;
-        if (userType === "stripper") counts.strippers += qty;
-        else if (userType === "exotic") counts.exotics += qty;
-        else counts.normal += qty;
+      (users || []).forEach(user => {
+        if (user.user_type === "stripper") counts.strippers++;
+        else if (user.user_type === "exotic") counts.exotics++;
+        else counts.normal++;
       });
 
       setUsedFreeSpots(counts);

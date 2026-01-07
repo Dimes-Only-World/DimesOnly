@@ -280,11 +280,11 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         brand={cardBrand}
       />
       
-      {/* Card Form - Dark theme compatible */}
-      <div className="space-y-4 bg-background/50 backdrop-blur p-4 sm:p-6 rounded-xl border border-border shadow-sm">
+      {/* Card Form */}
+      <div className="space-y-4 bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
         {/* Card Number */}
         <div className="space-y-1.5">
-          <Label htmlFor="cardNumber" className="text-sm font-medium text-foreground flex items-center gap-2">
+          <Label htmlFor="cardNumber" className="text-sm font-medium text-slate-700 flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
             Card Number
           </Label>
@@ -317,7 +317,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         {/* Expiry and CVV Row */}
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-foreground">Month</Label>
+            <Label className="text-sm font-medium text-slate-700">Month</Label>
             <Select value={expiryMonth} onValueChange={onExpiryMonthChange}>
               <SelectTrigger className={cn(
                 "h-12",
@@ -337,7 +337,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           </div>
           
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-foreground">Year</Label>
+            <Label className="text-sm font-medium text-slate-700">Year</Label>
             <Select value={expiryYear} onValueChange={onExpiryYearChange}>
               <SelectTrigger className={cn(
                 "h-12",
@@ -357,9 +357,9 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           </div>
           
           <div className="space-y-1.5">
-            <Label htmlFor="cvv" className="text-sm font-medium text-foreground flex items-center gap-1">
+            <Label htmlFor="cvv" className="text-sm font-medium text-slate-700 flex items-center gap-1">
               CVV
-              <Lock className="w-3 h-3 text-muted-foreground" />
+              <Lock className="w-3 h-3 text-slate-400" />
             </Label>
             <Input
               id="cvv"
@@ -388,7 +388,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         
         {/* Cardholder Name */}
         <div className="space-y-1.5">
-          <Label htmlFor="cardHolderName" className="text-sm font-medium text-foreground">
+          <Label htmlFor="cardHolderName" className="text-sm font-medium text-slate-700">
             Cardholder Name
           </Label>
           <Input
@@ -414,10 +414,10 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
       </div>
       
       {/* Security Badge */}
-      <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm flex-wrap">
-        <Shield className="w-4 h-4 text-green-500" />
+      <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+        <Shield className="w-4 h-4 text-green-600" />
         <span>256-bit SSL Encrypted</span>
-        <Lock className="w-4 h-4 text-green-500" />
+        <Lock className="w-4 h-4 text-green-600" />
         <span>Secure Payment</span>
       </div>
       
