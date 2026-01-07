@@ -265,7 +265,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
       {isModalOpen && selectedPerformer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur p-4">
-          <div className="relative w-full max-w-md md:max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/10 bg-black/70 shadow-2xl flex flex-col">
+          <div className="relative w-full max-w-md md:max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/10 bg-black/70 shadow-2xl">
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 z-10 rounded-full bg-black/50 px-3 py-1 text-3xl font-bold text-white transition hover:bg-black/80"
@@ -274,28 +274,28 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
               ×
             </button>
 
-            <div className="relative w-full bg-black flex items-center justify-center flex-1 overflow-hidden rounded-3xl">
+            <div className="flex min-h-[50vh] items-center justify-center bg-black p-4">
               {isLoadingMedia ? (
                 <div className="text-white text-lg">Loading preview…</div>
               ) : selectedVideoUrl ? (
                <video
-                key={selectedVideoUrl}
-                src={selectedVideoUrl}
-                autoPlay
-                loop
-                muted
-                playsInline
-                controls
-                controlsList="nodownload noremoteplayback"
-                disablePictureInPicture
-                onContextMenu={(event) => event.preventDefault()}
-                className="w-full h-full object-cover"
-              />
+               key={selectedVideoUrl}
+               src={selectedVideoUrl}
+               autoPlay
+               loop
+               muted
+               playsInline
+               controls
+               controlsList="nodownload noremoteplayback"
+               disablePictureInPicture
+               onContextMenu={(event) => event.preventDefault()}
+               className="h-full max-h-[70vh] w-full object-contain"
+             />
               ) : (
                 <img
                   src={selectedPerformer.image}
                   alt={`@${selectedPerformer.username}`}
-                  className="w-full h-full object-cover"
+                  className="h-full max-h-[70vh] w-full rounded-xl object-cover"
                 />
               )}
             </div>
