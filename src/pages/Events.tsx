@@ -25,6 +25,7 @@ interface EventRegistration {
   ticket_quantity: number;
   guest_name: string | null;
   user_type: string;
+  payment_status: string | null;
 }
 
 interface Event {
@@ -84,8 +85,23 @@ const Events: React.FC = () => {
   });
   const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
 
-  // Get current logged-in user
+  // Get current logged-in user from AppContext or sessionStorage (custom auth compatible)
   useEffect(() => {
+    // Check sessionStorage first (custom auth)
+    const savedUserData = sessionStorage.getItem("userData");
+    if (savedUserData) {
+      try {
+        const userData = JSON.parse(savedUserData);
+        if (userData?.id) {
+          setCurrentUserId(userData.id);
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing saved user data:", e);
+      }
+    }
+    
+    // Fallback to Supabase auth
     const getCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
@@ -204,49 +220,53 @@ const Events: React.FC = () => {
 
       if (eventsError) throw eventsError;
 
-      // Get CURRENT USER's event attendance to mark which ones they're attending
+      // Get PERFORMER's event attendance (from URL param) to show which events THEY are attending
+      // On /events?events=<performer>, we show performer's attendance, not the viewer's
       let attendingEventIds: string[] = [];
-      if (currentUserId) {
-        const { data: userEvents, error: userEventsError } = await supabase
+      if (userProfile?.id) {
+        const { data: performerEvents, error: performerEventsError } = await supabase
           .from("user_events")
           .select("event_id")
-          .eq("user_id", currentUserId);
+          .eq("user_id", userProfile.id);
 
-        if (!userEventsError && userEvents) {
-          attendingEventIds = userEvents.map((ue) => ue.event_id);
+        if (!performerEventsError && performerEvents) {
+          attendingEventIds = performerEvents.map((ue) => ue.event_id);
         }
       }
 
       // Get attendee counts for each event and mark attendance
       const eventsWithAttendance = await Promise.all(
         (allEvents || []).map(async (event) => {
-          const { count } = await supabase
-            .from("user_events")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
-
-          // Get registrations with user types for free spot calculation
+          // Get registrations with user types and payment status for accurate counting
           const { data: registrations } = await supabase
             .from("user_events")
             .select(`
               user_id,
               ticket_quantity,
               guest_name,
+              payment_status,
               users!inner(user_type)
             `)
             .eq("event_id", event.id);
 
-          // Transform registrations to include user_type at top level
+          // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
             user_id: r.user_id,
             ticket_quantity: r.ticket_quantity || 1,
             guest_name: r.guest_name,
-            user_type: r.users?.user_type || 'normal'
+            user_type: r.users?.user_type || 'normal',
+            payment_status: r.payment_status
           }));
+
+          // Calculate total attendees using SUM(ticket_quantity) instead of COUNT(rows)
+          const totalAttendees = transformedRegistrations.reduce(
+            (sum, r) => sum + (r.ticket_quantity || 1), 
+            0
+          );
 
           return {
             ...event,
-            current_attendees: count || 0,
+            current_attendees: totalAttendees,
             is_attending: attendingEventIds.includes(event.id),
             registrations: transformedRegistrations,
           };
@@ -264,7 +284,7 @@ const Events: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [username, currentUserId, toast]);
+  }, [username, userProfile?.id, toast]);
 
   const handleViewDetails = useCallback(
     (event: Event) => {
@@ -303,21 +323,61 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Count free spots used by MEMBERS only (male, female, normal) - for unified display
-  const getMemberFreeUsed = useCallback((event: Event | null) => {
+  // Calculate used FREE spots by all member types (male, female, normal) combined
+  // This is used for events that only use free_normal as a shared bucket
+  const getUsedFreeMemberSpots = useCallback((event: Event | null) => {
     if (!event?.registrations) return 0;
-    return event.registrations.filter(r => 
-      ['male', 'female', 'normal'].includes(r.user_type)
-    ).length;
+    return event.registrations
+      .filter(r => r.payment_status === 'free' && ['male', 'female', 'normal'].includes(r.user_type))
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
   }, []);
 
-  // Always 10 free spots for members, calculate remaining
-  const getRemainingMemberFreeSpots = useCallback((event: Event | null) => {
-    if (!event) return 0;
-    const totalMemberFreeSpots = 10; // Always 10 free spots for all events
-    const used = getMemberFreeUsed(event);
-    return Math.max(0, totalMemberFreeSpots - used);
-  }, [getMemberFreeUsed]);
+  // Get remaining free spots for members
+  // Logic: If event has specific male/female allocations, show those
+  // Otherwise, show the combined free_normal bucket
+  const getRemainingFreeMemberSpots = useCallback((event: Event | null) => {
+    if (!event) return { males: 0, females: 0, normal: 0, total: 0 };
+    
+    const hasMaleAllocation = (event.free_spots_males || 0) > 0;
+    const hasFemaleAllocation = (event.free_spots_females || 0) > 0;
+    const hasNormalAllocation = (event.free_normal || 0) > 0;
+    
+    // Calculate used spots by type
+    const usedByMales = event.registrations
+      ?.filter(r => r.payment_status === 'free' && r.user_type === 'male')
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0) || 0;
+    
+    const usedByFemales = event.registrations
+      ?.filter(r => r.payment_status === 'free' && r.user_type === 'female')
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0) || 0;
+    
+    const usedByNormal = event.registrations
+      ?.filter(r => r.payment_status === 'free' && r.user_type === 'normal')
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0) || 0;
+    
+    // If there are specific male/female allocations, calculate separately
+    if (hasMaleAllocation || hasFemaleAllocation) {
+      const remainingMales = Math.max(0, (event.free_spots_males || 0) - usedByMales);
+      const remainingFemales = Math.max(0, (event.free_spots_females || 0) - usedByFemales);
+      const remainingNormal = Math.max(0, (event.free_normal || 0) - usedByNormal);
+      return {
+        males: remainingMales,
+        females: remainingFemales,
+        normal: remainingNormal,
+        total: remainingMales + remainingFemales + remainingNormal
+      };
+    }
+    
+    // Otherwise, use free_normal as combined bucket for all member types
+    const totalUsedByMembers = usedByMales + usedByFemales + usedByNormal;
+    const remainingNormal = Math.max(0, (event.free_normal || 0) - totalUsedByMembers);
+    return {
+      males: 0,
+      females: 0,
+      normal: remainingNormal,
+      total: remainingNormal
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -583,21 +643,47 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge - Show remaining free spots for members */}
+                    {/* Event Status Badge - Show remaining free spots */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
-                      {getAvailableSpots(event) === 0 ? (
-                        <Badge className="bg-red-600 text-white font-bold">
-                          SOLD OUT
-                        </Badge>
-                      ) : getRemainingMemberFreeSpots(event) > 0 ? (
-                        <Badge className="bg-green-600 text-white font-bold text-xs">
-                          Free Spots: {getRemainingMemberFreeSpots(event)}
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-yellow-600 text-white font-bold">
-                          PAID ONLY
-                        </Badge>
-                      )}
+                      {(() => {
+                        const freeSpots = getRemainingFreeMemberSpots(event);
+                        
+                        if (getAvailableSpots(event) === 0) {
+                          return (
+                            <Badge className="bg-red-600 text-white font-bold">
+                              SOLD OUT
+                            </Badge>
+                          );
+                        }
+                        
+                        if (freeSpots.total > 0) {
+                          return (
+                            <>
+                              {freeSpots.males > 0 && (
+                                <Badge className="bg-green-600 text-white font-bold text-xs">
+                                  Free Males: {freeSpots.males}
+                                </Badge>
+                              )}
+                              {freeSpots.females > 0 && (
+                                <Badge className="bg-pink-600 text-white font-bold text-xs">
+                                  Free Females: {freeSpots.females}
+                                </Badge>
+                              )}
+                              {freeSpots.normal > 0 && (
+                                <Badge className="bg-blue-600 text-white font-bold text-xs">
+                                  Free Spots: {freeSpots.normal}
+                                </Badge>
+                              )}
+                            </>
+                          );
+                        }
+                        
+                        return (
+                          <Badge className="bg-yellow-600 text-white font-bold">
+                            PAID ONLY
+                          </Badge>
+                        );
+                      })()}
                     </div>
 
                     {/* Media Indicators */}
