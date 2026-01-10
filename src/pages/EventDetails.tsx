@@ -52,8 +52,6 @@ interface Event {
   free_spots_strippers: number;
   free_spots_exotics: number;
   free_normal: number;
-  free_spots_males: number;
-  free_spots_females: number;
   vip_tickets: number;
   vip_price: number;
   vip_sections: number;
@@ -146,7 +144,7 @@ const EventDetails: React.FC = () => {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
 
   // Used free spots tracking
-  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
+  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0 });
 
   // Payment status popup
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
@@ -267,20 +265,15 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get attendee count using SUM(ticket_quantity) instead of COUNT(rows)
-      const { data: registrations } = await supabase
+      // Get attendee count
+      const { count } = await supabase
         .from("user_events")
-        .select("ticket_quantity")
+        .select("*", { count: "exact", head: true })
         .eq("event_id", eventId);
-
-      const totalAttendees = (registrations || []).reduce(
-        (sum, r) => sum + (r.ticket_quantity || 1),
-        0
-      );
 
       setEvent({
         ...eventData,
-        current_attendees: totalAttendees,
+        current_attendees: count || 0,
       } as Event);
 
       // Fetch host profile if host_user_id exists
@@ -314,12 +307,12 @@ const EventDetails: React.FC = () => {
     try {
       const { data: registrations } = await supabase
         .from("user_events")
-        .select("user_id, ticket_type, ticket_quantity, payment_status")
+        .select("user_id, ticket_type")
         .eq("event_id", eventId)
         .eq("payment_status", "free");
 
       if (!registrations || registrations.length === 0) {
-        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
+        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0 });
         return;
       }
 
@@ -330,19 +323,11 @@ const EventDetails: React.FC = () => {
         .select("id, user_type")
         .in("id", userIds);
 
-      // Create a map of user_id -> user_type
-      const userTypeMap = new Map((users || []).map(u => [u.id, u.user_type]));
-
-      // Count using ticket_quantity (sum) instead of just counting users
-      const counts = { strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 };
-      registrations.forEach(reg => {
-        const userType = userTypeMap.get(reg.user_id) || 'normal';
-        const qty = reg.ticket_quantity || 1;
-        if (userType === "stripper") counts.strippers += qty;
-        else if (userType === "exotic") counts.exotics += qty;
-        else if (userType === "male") counts.males += qty;
-        else if (userType === "female") counts.females += qty;
-        else counts.normal += qty;
+      const counts = { strippers: 0, exotics: 0, normal: 0 };
+      (users || []).forEach(user => {
+        if (user.user_type === "stripper") counts.strippers++;
+        else if (user.user_type === "exotic") counts.exotics++;
+        else counts.normal++;
       });
 
       setUsedFreeSpots(counts);
@@ -723,58 +708,16 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
-                    {/* Free Spots Display - Based on DB values */}
+                    {/* Free Spots Display - Unified for members */}
                     {(() => {
-                      const hasMaleAllocation = (event.free_spots_males || 0) > 0;
-                      const hasFemaleAllocation = (event.free_spots_females || 0) > 0;
-                      
-                      // If there are specific male/female allocations, calculate separately
-                      if (hasMaleAllocation || hasFemaleAllocation) {
-                        const remainingFreeMales = Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
-                        const remainingFreeFemales = Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
-                        const remainingFreeNormal = Math.max(0, (event.free_normal || 0) - (usedFreeSpots.normal || 0));
-                        const totalRemaining = remainingFreeMales + remainingFreeFemales + remainingFreeNormal;
-                        
-                        if (totalRemaining > 0) {
-                          return (
-                            <div className="space-y-2">
-                              {remainingFreeMales > 0 && (
-                                <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
-                                  <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
-                                  <span className="text-green-400 font-bold">Free Males: {remainingFreeMales}</span>
-                                </div>
-                              )}
-                              {remainingFreeFemales > 0 && (
-                                <div className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-lg">
-                                  <Ticket className="h-5 w-5 text-pink-400 flex-shrink-0" />
-                                  <span className="text-pink-400 font-bold">Free Females: {remainingFreeFemales}</span>
-                                </div>
-                              )}
-                              {remainingFreeNormal > 0 && (
-                                <div className="flex items-center gap-3 p-3 bg-blue-500/20 rounded-lg">
-                                  <Ticket className="h-5 w-5 text-blue-400 flex-shrink-0" />
-                                  <span className="text-blue-400 font-bold">Free Spots: {remainingFreeNormal}</span>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-                      } else {
-                        // Use free_normal as combined bucket for all member types
-                        const totalUsedByMembers = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
-                        const remainingFreeNormal = Math.max(0, (event.free_normal || 0) - totalUsedByMembers);
-                        
-                        if (remainingFreeNormal > 0) {
-                          return (
-                            <div className="flex items-center gap-3 p-3 bg-blue-500/20 rounded-lg">
-                              <Ticket className="h-5 w-5 text-blue-400 flex-shrink-0" />
-                              <span className="text-blue-400 font-bold">Free Spots: {remainingFreeNormal}</span>
-                            </div>
-                          );
-                        }
-                      }
-                      
-                      return (
+                      const totalMemberFreeSpots = 10; // Always 10 free spots for all events
+                      const remainingFreeSpots = Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
+                      return remainingFreeSpots > 0 ? (
+                        <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
+                          <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
+                          <span className="text-green-400 font-bold">Free Spots: {remainingFreeSpots}</span>
+                        </div>
+                      ) : (
                         <div className="flex items-center gap-3 p-3 bg-yellow-500/20 rounded-lg">
                           <Ticket className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                           <span className="text-yellow-400 font-bold">Paid Only</span>
