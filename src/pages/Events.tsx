@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
 import { formatTimeRange } from "@/lib/timeUtils";
 import {
@@ -25,6 +26,8 @@ interface EventRegistration {
   ticket_quantity: number;
   guest_name: string | null;
   user_type: string;
+  payment_status: string;
+  gender?: string;
 }
 
 interface Event {
@@ -68,6 +71,7 @@ const Events: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user: appUser } = useAppContext();
   const { getContainerClasses, getContentClasses, getCardClasses } =
     useMobileLayout();
   const isMobile = useIsMobile();
@@ -75,7 +79,6 @@ const Events: React.FC = () => {
 
   const [events, setEvents] = useState<Event[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [latestSilverVideo, setLatestSilverVideo] = useState<string | null>(null);
   const [filters, setFilters] = useState({
@@ -84,21 +87,18 @@ const Events: React.FC = () => {
   });
   const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
 
-  // Get current logged-in user
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getCurrentUser();
-  }, []);
-
   useEffect(() => {
     if (username) {
       fetchUserProfile();
+    }
+  }, [username]);
+
+  // Fetch events when userProfile is loaded (so we know the performer's ID)
+  useEffect(() => {
+    if (userProfile?.id) {
       fetchEvents();
     }
-  }, [username, currentUserId]);
+  }, [userProfile?.id]);
 
   // Fetch latest silver video for THIS specific user (not global)
   useEffect(() => {
@@ -194,6 +194,8 @@ const Events: React.FC = () => {
   }, [username]);
 
   const fetchEvents = useCallback(async () => {
+    if (!userProfile?.id) return;
+    
     try {
       // Get ALL events in the system
       const { data: allEvents, error: eventsError } = await supabase
@@ -204,50 +206,53 @@ const Events: React.FC = () => {
 
       if (eventsError) throw eventsError;
 
-      // Get CURRENT USER's event attendance to mark which ones they're attending
-      let attendingEventIds: string[] = [];
-      if (currentUserId) {
-        const { data: userEvents, error: userEventsError } = await supabase
-          .from("user_events")
-          .select("event_id")
-          .eq("user_id", currentUserId);
+      // Get PERFORMER's event attendance to mark which events they're attending
+      // This is the key fix: we query the performer's (userProfile) attendance, not the viewer's
+      let performerAttendingEventIds: string[] = [];
+      const { data: performerEvents, error: performerEventsError } = await supabase
+        .from("user_events")
+        .select("event_id")
+        .eq("user_id", userProfile.id);
 
-        if (!userEventsError && userEvents) {
-          attendingEventIds = userEvents.map((ue) => ue.event_id);
-        }
+      if (!performerEventsError && performerEvents) {
+        performerAttendingEventIds = performerEvents.map((ue) => ue.event_id);
       }
 
       // Get attendee counts for each event and mark attendance
       const eventsWithAttendance = await Promise.all(
         (allEvents || []).map(async (event) => {
-          const { count } = await supabase
-            .from("user_events")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
-
-          // Get registrations with user types for free spot calculation
+          // Get registrations with user info for accurate attendee count and free spot calculation
           const { data: registrations } = await supabase
             .from("user_events")
             .select(`
               user_id,
               ticket_quantity,
               guest_name,
-              users!inner(user_type)
+              payment_status,
+              users!inner(user_type, gender)
             `)
             .eq("event_id", event.id);
 
-          // Transform registrations to include user_type at top level
+          // Calculate total attendees using SUM of ticket_quantity
+          const totalAttendees = (registrations || []).reduce(
+            (sum, r: any) => sum + (r.ticket_quantity || 1), 
+            0
+          );
+
+          // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
             user_id: r.user_id,
             ticket_quantity: r.ticket_quantity || 1,
             guest_name: r.guest_name,
-            user_type: r.users?.user_type || 'normal'
+            user_type: r.users?.user_type || 'normal',
+            payment_status: r.payment_status || 'paid',
+            gender: r.users?.gender || 'unknown'
           }));
 
           return {
             ...event,
-            current_attendees: count || 0,
-            is_attending: attendingEventIds.includes(event.id),
+            current_attendees: totalAttendees,
+            is_attending: performerAttendingEventIds.includes(event.id),
             registrations: transformedRegistrations,
           };
         })
@@ -264,7 +269,7 @@ const Events: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [username, currentUserId, toast]);
+  }, [userProfile?.id, toast]);
 
   const handleViewDetails = useCallback(
     (event: Event) => {
@@ -303,21 +308,39 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Count free spots used by MEMBERS only (male, female, normal) - for unified display
-  const getMemberFreeUsed = useCallback((event: Event | null) => {
-    if (!event?.registrations) return 0;
-    return event.registrations.filter(r => 
-      ['male', 'female', 'normal'].includes(r.user_type)
-    ).length;
+  // Calculate remaining free spots for males (from DB values)
+  const getRemainingFreeMales = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const totalFreeMales = event.free_spots_males || 0;
+    if (totalFreeMales === 0) return 0;
+    
+    // Count free tickets used by males
+    const usedFreeMales = (event.registrations || [])
+      .filter(r => r.payment_status === 'free' && (r.user_type === 'male' || r.gender === 'male'))
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
+    
+    return Math.max(0, totalFreeMales - usedFreeMales);
   }, []);
 
-  // Always 10 free spots for members, calculate remaining
-  const getRemainingMemberFreeSpots = useCallback((event: Event | null) => {
+  // Calculate remaining free spots for females (from DB values)
+  const getRemainingFreeFemales = useCallback((event: Event | null) => {
     if (!event) return 0;
-    const totalMemberFreeSpots = 10; // Always 10 free spots for all events
-    const used = getMemberFreeUsed(event);
-    return Math.max(0, totalMemberFreeSpots - used);
-  }, [getMemberFreeUsed]);
+    const totalFreeFemales = event.free_spots_females || 0;
+    if (totalFreeFemales === 0) return 0;
+    
+    // Count free tickets used by females/normal
+    const usedFreeFemales = (event.registrations || [])
+      .filter(r => r.payment_status === 'free' && (r.user_type === 'female' || r.user_type === 'normal' || r.gender === 'female'))
+      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
+    
+    return Math.max(0, totalFreeFemales - usedFreeFemales);
+  }, []);
+
+  // Check if there are any free spots remaining
+  const hasAnyFreeSpots = useCallback((event: Event | null) => {
+    if (!event) return false;
+    return getRemainingFreeMales(event) > 0 || getRemainingFreeFemales(event) > 0;
+  }, [getRemainingFreeMales, getRemainingFreeFemales]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -583,16 +606,25 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge - Show remaining free spots for members */}
+                    {/* Event Status Badge - Show remaining free spots for males/females */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">
                           SOLD OUT
                         </Badge>
-                      ) : getRemainingMemberFreeSpots(event) > 0 ? (
-                        <Badge className="bg-green-600 text-white font-bold text-xs">
-                          Free Spots: {getRemainingMemberFreeSpots(event)}
-                        </Badge>
+                      ) : hasAnyFreeSpots(event) ? (
+                        <>
+                          {getRemainingFreeMales(event) > 0 && (
+                            <Badge className="bg-blue-600 text-white font-bold text-xs">
+                              Free Males: {getRemainingFreeMales(event)}
+                            </Badge>
+                          )}
+                          {getRemainingFreeFemales(event) > 0 && (
+                            <Badge className="bg-pink-600 text-white font-bold text-xs">
+                              Free Females: {getRemainingFreeFemales(event)}
+                            </Badge>
+                          )}
+                        </>
                       ) : (
                         <Badge className="bg-yellow-600 text-white font-bold">
                           PAID ONLY

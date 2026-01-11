@@ -797,11 +797,21 @@ const updateData = {
     return "";
   };
 
-  // Filter attendees by phone number
+  // Filter attendees by phone number (check both user_events phone and users phone)
   const filteredAttendees = attendees.filter((attendee) => {
     if (!phoneSearch) return true;
+    const searchLower = phoneSearch.toLowerCase();
     const phone = attendee.phone_number || "";
-    return phone.toLowerCase().includes(phoneSearch.toLowerCase());
+    const userPhone = (attendee.users as any)?.phone_number || "";
+    const username = attendee.username || attendee.users?.username || "";
+    const firstName = attendee.first_name || attendee.users?.first_name || "";
+    const lastName = attendee.last_name || attendee.users?.last_name || "";
+    
+    return phone.toLowerCase().includes(searchLower) ||
+           userPhone.toLowerCase().includes(searchLower) ||
+           username.toLowerCase().includes(searchLower) ||
+           firstName.toLowerCase().includes(searchLower) ||
+           lastName.toLowerCase().includes(searchLower);
   });
 
   // Calculate total attendees including guests
@@ -1812,18 +1822,6 @@ const updateData = {
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Free Males/Normal Females</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editingEvent.free_normal || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_normal: parseInt(e.target.value) || 0 } : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Legacy: First Come First Serve
-                    </p>
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium mb-1">Normal Females Price ($)</label>
                     <Input
                       type="number"
@@ -2092,11 +2090,11 @@ const updateData = {
                 {selectedEvent?.max_attendees}
               </div>
               
-              {/* Phone Search */}
+              {/* Phone/Name Search */}
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search Phone Number"
+                  placeholder="Search name or phone..."
                   value={phoneSearch}
                   onChange={(e) => setPhoneSearch(e.target.value)}
                   className="pl-9"
@@ -2111,7 +2109,7 @@ const updateData = {
             ) : (
               <div className="grid gap-3">
                 {filteredAttendees.map((attendee) => (
-                  <Card key={attendee.id} className={`p-4 ${attendee.checked_in ? 'border-green-500 bg-green-50/50' : ''}`}>
+                  <Card key={attendee.id} className={`p-4 bg-gray-900 text-white border-gray-700 ${attendee.checked_in ? 'border-green-500 bg-green-900/30' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {/* Profile Photo */}
@@ -2154,10 +2152,10 @@ const updateData = {
                             </p>
                           )}
                           
-                          {/* Badges */}
+                          {/* Badges - Show "Female" for normal user type */}
                           <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <Badge variant="outline">
-                              {attendee.users?.user_type || "User"}
+                            <Badge variant="outline" className="border-gray-500 text-gray-300">
+                              {attendee.users?.user_type === "normal" ? "Female" : (attendee.users?.user_type || "User")}
                             </Badge>
                             <Badge
                               variant={
@@ -2171,12 +2169,12 @@ const updateData = {
                               {attendee.ticket_type || attendee.payment_status}
                             </Badge>
                             {attendee.ticket_quantity > 1 && (
-                              <Badge variant="outline" className="text-purple-600">
+                              <Badge variant="outline" className="text-purple-400 border-purple-500">
                                 Qty: {attendee.ticket_quantity}
                               </Badge>
                             )}
                             {attendee.amount_paid > 0 && (
-                              <Badge variant="outline" className="text-green-600">
+                              <Badge variant="outline" className="text-green-400 border-green-500">
                                 ${attendee.amount_paid}
                               </Badge>
                             )}
@@ -2190,7 +2188,7 @@ const updateData = {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-400">
                           {new Date(attendee.created_at).toLocaleDateString()}
                         </p>
                         
@@ -2199,7 +2197,7 @@ const updateData = {
                           size="sm"
                           variant={attendee.checked_in ? "outline" : "default"}
                           onClick={() => handleCheckIn(attendee.id, attendee.checked_in)}
-                          className={attendee.checked_in ? "border-green-500 text-green-600" : ""}
+                          className={attendee.checked_in ? "border-green-500 text-green-400 bg-green-500/20 hover:bg-green-500/30" : "bg-green-600 hover:bg-green-700"}
                         >
                           <Check className="w-4 h-4 mr-1" />
                           {attendee.checked_in ? "Undo Check-in" : "Check In"}
