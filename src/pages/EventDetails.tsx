@@ -52,6 +52,8 @@ interface Event {
   free_spots_strippers: number;
   free_spots_exotics: number;
   free_normal: number;
+  free_spots_males: number;
+  free_spots_females: number;
   vip_tickets: number;
   vip_price: number;
   vip_sections: number;
@@ -144,7 +146,7 @@ const EventDetails: React.FC = () => {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
 
   // Used free spots tracking
-  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0 });
+  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
 
   // Payment status popup
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
@@ -265,15 +267,20 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get attendee count
-      const { count } = await supabase
+      // Get attendee count using SUM of ticket_quantity instead of COUNT
+      const { data: attendeeData } = await supabase
         .from("user_events")
-        .select("*", { count: "exact", head: true })
+        .select("ticket_quantity")
         .eq("event_id", eventId);
+
+      const totalAttendees = (attendeeData || []).reduce(
+        (sum, a) => sum + (a.ticket_quantity || 1), 
+        0
+      );
 
       setEvent({
         ...eventData,
-        current_attendees: count || 0,
+        current_attendees: totalAttendees,
       } as Event);
 
       // Fetch host profile if host_user_id exists
@@ -307,12 +314,12 @@ const EventDetails: React.FC = () => {
     try {
       const { data: registrations } = await supabase
         .from("user_events")
-        .select("user_id, ticket_type")
+        .select("user_id, ticket_type, ticket_quantity")
         .eq("event_id", eventId)
         .eq("payment_status", "free");
 
       if (!registrations || registrations.length === 0) {
-        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0 });
+        setUsedFreeSpots({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
         return;
       }
 
@@ -320,14 +327,21 @@ const EventDetails: React.FC = () => {
       const userIds = registrations.map(r => r.user_id);
       const { data: users } = await supabase
         .from("public_user_profiles")
-        .select("id, user_type")
+        .select("id, user_type, gender")
         .in("id", userIds);
 
-      const counts = { strippers: 0, exotics: 0, normal: 0 };
-      (users || []).forEach(user => {
-        if (user.user_type === "stripper") counts.strippers++;
-        else if (user.user_type === "exotic") counts.exotics++;
-        else counts.normal++;
+      const counts = { strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 };
+      
+      // Count using ticket_quantity instead of just counting users
+      (registrations || []).forEach(reg => {
+        const user = (users || []).find(u => u.id === reg.user_id);
+        const qty = reg.ticket_quantity || 1;
+        
+        if (user?.user_type === "stripper") counts.strippers += qty;
+        else if (user?.user_type === "exotic") counts.exotics += qty;
+        else if (user?.user_type === "male" || user?.gender === "male") counts.males += qty;
+        else if (user?.user_type === "female" || user?.user_type === "normal" || user?.gender === "female") counts.females += qty;
+        else counts.normal += qty;
       });
 
       setUsedFreeSpots(counts);
@@ -708,14 +722,26 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
-                    {/* Free Spots Display - Unified for members */}
+                    {/* Free Spots Display - Separate Males and Females */}
                     {(() => {
-                      const totalMemberFreeSpots = 10; // Always 10 free spots for all events
-                      const remainingFreeSpots = Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
-                      return remainingFreeSpots > 0 ? (
-                        <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
-                          <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
-                          <span className="text-green-400 font-bold">Free Spots: {remainingFreeSpots}</span>
+                      const remainingFreeMales = Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
+                      const remainingFreeFemales = Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
+                      const hasAnyFreeSpots = remainingFreeMales > 0 || remainingFreeFemales > 0;
+                      
+                      return hasAnyFreeSpots ? (
+                        <div className="space-y-2">
+                          {remainingFreeMales > 0 && (
+                            <div className="flex items-center gap-3 p-3 bg-blue-500/20 rounded-lg">
+                              <Ticket className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                              <span className="text-blue-400 font-bold">Free Males: {remainingFreeMales}</span>
+                            </div>
+                          )}
+                          {remainingFreeFemales > 0 && (
+                            <div className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-lg">
+                              <Ticket className="h-5 w-5 text-pink-400 flex-shrink-0" />
+                              <span className="text-pink-400 font-bold">Free Females: {remainingFreeFemales}</span>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 p-3 bg-yellow-500/20 rounded-lg">
@@ -729,7 +755,7 @@ const EventDetails: React.FC = () => {
                   {event.description && (
                     <div className="mt-6">
                       <h4 className="font-semibold text-gray-300 mb-3">Description</h4>
-                      <p className="text-gray-300 text-sm leading-relaxed p-3 bg-white/5 rounded-lg">
+                      <p className="text-gray-300 text-sm leading-relaxed p-3 bg-white/5 rounded-lg whitespace-pre-wrap">
                         {event.description}
                       </p>
                     </div>
