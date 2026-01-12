@@ -233,11 +233,8 @@ const Events: React.FC = () => {
             `)
             .eq("event_id", event.id);
 
-          // Calculate total attendees using SUM of ticket_quantity
-          const totalAttendees = (registrations || []).reduce(
-            (sum, r: any) => sum + (r.ticket_quantity || 1), 
-            0
-          );
+          // Calculate total attendees by counting PEOPLE (not tickets)
+          const totalAttendees = (registrations || []).length;
 
           // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
@@ -303,44 +300,54 @@ const Events: React.FC = () => {
     });
   }, [events, filters, attendanceFilter]);
 
+  // Fixed default: 10 free spots for Normal Male and Female
+  const NORMAL_FREE_SPOTS_TOTAL = 10;
+
   const getAvailableSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
-  // Calculate remaining free spots for males (from DB values)
-  const getRemainingFreeMales = useCallback((event: Event | null) => {
+  // Calculate remaining free spots for Normal Male and Female
+  // Total: 10 (fixed), Used: count of ALL male/female/normal/empty registrations
+  const getRemainingNormalFree = useCallback((event: Event | null) => {
     if (!event) return 0;
-    const totalFreeMales = event.free_spots_males || 0;
-    if (totalFreeMales === 0) return 0;
-    
-    // Count free tickets used by males
-    const usedFreeMales = (event.registrations || [])
-      .filter(r => r.payment_status === 'free' && (r.user_type === 'male' || r.gender === 'male'))
-      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
-    
-    return Math.max(0, totalFreeMales - usedFreeMales);
+    const usedNormal = (event.registrations || [])
+      .filter(r => {
+        const userType = (r.user_type || '').toLowerCase();
+        return userType === 'male' || userType === 'female' || userType === 'normal' || userType === '';
+      })
+      .length; // Count PEOPLE, not tickets
+    return Math.max(0, NORMAL_FREE_SPOTS_TOTAL - usedNormal);
   }, []);
 
-  // Calculate remaining free spots for females (from DB values)
-  const getRemainingFreeFemales = useCallback((event: Event | null) => {
+  // Calculate remaining free spots for Exotic Dancers
+  const getRemainingExoticFree = useCallback((event: Event | null) => {
     if (!event) return 0;
-    const totalFreeFemales = event.free_spots_females || 0;
-    if (totalFreeFemales === 0) return 0;
-    
-    // Count free tickets used by females/normal
-    const usedFreeFemales = (event.registrations || [])
-      .filter(r => r.payment_status === 'free' && (r.user_type === 'female' || r.user_type === 'normal' || r.gender === 'female'))
-      .reduce((sum, r) => sum + (r.ticket_quantity || 1), 0);
-    
-    return Math.max(0, totalFreeFemales - usedFreeFemales);
+    const total = event.free_spots_exotics || 0;
+    if (total === 0) return 0;
+    const usedExotic = (event.registrations || [])
+      .filter(r => (r.user_type || '').toLowerCase() === 'exotic')
+      .length;
+    return Math.max(0, total - usedExotic);
+  }, []);
+
+  // Calculate remaining free spots for Strippers
+  const getRemainingStripperFree = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_strippers || 0;
+    if (total === 0) return 0;
+    const usedStripper = (event.registrations || [])
+      .filter(r => (r.user_type || '').toLowerCase() === 'stripper')
+      .length;
+    return Math.max(0, total - usedStripper);
   }, []);
 
   // Check if there are any free spots remaining
   const hasAnyFreeSpots = useCallback((event: Event | null) => {
     if (!event) return false;
-    return getRemainingFreeMales(event) > 0 || getRemainingFreeFemales(event) > 0;
-  }, [getRemainingFreeMales, getRemainingFreeFemales]);
+    return getRemainingNormalFree(event) > 0 || getRemainingExoticFree(event) > 0 || getRemainingStripperFree(event) > 0;
+  }, [getRemainingNormalFree, getRemainingExoticFree, getRemainingStripperFree]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -606,7 +613,7 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge - Show remaining free spots for males/females */}
+                    {/* Event Status Badge - Show remaining free spots by category */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">
@@ -614,14 +621,19 @@ const Events: React.FC = () => {
                         </Badge>
                       ) : hasAnyFreeSpots(event) ? (
                         <>
-                          {getRemainingFreeMales(event) > 0 && (
-                            <Badge className="bg-blue-600 text-white font-bold text-xs">
-                              Free Males: {getRemainingFreeMales(event)}
+                          {getRemainingNormalFree(event) > 0 && (
+                            <Badge className="bg-green-600 text-white font-bold text-xs">
+                              Free Normal M/F: {getRemainingNormalFree(event)}
                             </Badge>
                           )}
-                          {getRemainingFreeFemales(event) > 0 && (
+                          {getRemainingExoticFree(event) > 0 && (
                             <Badge className="bg-pink-600 text-white font-bold text-xs">
-                              Free Females: {getRemainingFreeFemales(event)}
+                              Free Exotic: {getRemainingExoticFree(event)}
+                            </Badge>
+                          )}
+                          {getRemainingStripperFree(event) > 0 && (
+                            <Badge className="bg-purple-600 text-white font-bold text-xs">
+                              Free Stripper: {getRemainingStripperFree(event)}
                             </Badge>
                           )}
                         </>
