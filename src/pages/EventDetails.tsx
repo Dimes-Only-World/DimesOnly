@@ -267,16 +267,13 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get attendee count using SUM of ticket_quantity instead of COUNT
+      // Get attendee count by counting PEOPLE (not tickets)
       const { data: attendeeData } = await supabase
         .from("user_events")
-        .select("ticket_quantity")
+        .select("user_id")
         .eq("event_id", eventId);
 
-      const totalAttendees = (attendeeData || []).reduce(
-        (sum, a) => sum + (a.ticket_quantity || 1), 
-        0
-      );
+      const totalAttendees = (attendeeData || []).length;
 
       setEvent({
         ...eventData,
@@ -412,9 +409,15 @@ const EventDetails: React.FC = () => {
         attendee.users.username?.toLowerCase().includes(searchTerm) ||
         attendee.users.city?.toLowerCase().includes(searchTerm) ||
         attendee.users.state?.toLowerCase().includes(searchTerm);
-      const matchesType =
-        attendeeTypeFilter === "all" ||
-        attendee.users.user_type === attendeeTypeFilter;
+      
+      // Type filter - consolidate male/female/normal into "normal"
+      let matchesType = attendeeTypeFilter === "all";
+      if (attendeeTypeFilter === "normal") {
+        const userType = (attendee.users.user_type || '').toLowerCase();
+        matchesType = ['male', 'female', 'normal', ''].includes(userType);
+      } else if (attendeeTypeFilter !== "all") {
+        matchesType = (attendee.users.user_type || '').toLowerCase() === attendeeTypeFilter;
+      }
       return matchesSearch && matchesType;
     });
   }, [attendees, debouncedSearch, attendeeTypeFilter]);
@@ -722,24 +725,37 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
-                    {/* Free Spots Display - Separate Males and Females */}
+                    {/* Free Spots Display - Normal M/F (10 fixed), Exotic, Stripper */}
                     {(() => {
-                      const remainingFreeMales = Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
-                      const remainingFreeFemales = Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
-                      const hasAnyFreeSpots = remainingFreeMales > 0 || remainingFreeFemales > 0;
+                      // Normal M/F: 10 fixed, minus ALL normal/male/female registrations
+                      const NORMAL_FREE_SPOTS_TOTAL = 10;
+                      const usedNormal = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
+                      const remainingNormalFree = Math.max(0, NORMAL_FREE_SPOTS_TOTAL - usedNormal);
+                      
+                      // Exotic and Stripper from DB values
+                      const remainingExoticFree = Math.max(0, (event.free_spots_exotics || 0) - (usedFreeSpots.exotics || 0));
+                      const remainingStripperFree = Math.max(0, (event.free_spots_strippers || 0) - (usedFreeSpots.strippers || 0));
+                      
+                      const hasAnyFreeSpots = remainingNormalFree > 0 || remainingExoticFree > 0 || remainingStripperFree > 0;
                       
                       return hasAnyFreeSpots ? (
                         <div className="space-y-2">
-                          {remainingFreeMales > 0 && (
-                            <div className="flex items-center gap-3 p-3 bg-blue-500/20 rounded-lg">
-                              <Ticket className="h-5 w-5 text-blue-400 flex-shrink-0" />
-                              <span className="text-blue-400 font-bold">Free Males: {remainingFreeMales}</span>
+                          {remainingNormalFree > 0 && (
+                            <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
+                              <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
+                              <span className="text-green-400 font-bold">Free Normal M/F: {remainingNormalFree}</span>
                             </div>
                           )}
-                          {remainingFreeFemales > 0 && (
+                          {remainingExoticFree > 0 && (
                             <div className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-lg">
                               <Ticket className="h-5 w-5 text-pink-400 flex-shrink-0" />
-                              <span className="text-pink-400 font-bold">Free Females: {remainingFreeFemales}</span>
+                              <span className="text-pink-400 font-bold">Free Exotic: {remainingExoticFree}</span>
+                            </div>
+                          )}
+                          {remainingStripperFree > 0 && (
+                            <div className="flex items-center gap-3 p-3 bg-purple-500/20 rounded-lg">
+                              <Ticket className="h-5 w-5 text-purple-400 flex-shrink-0" />
+                              <span className="text-purple-400 font-bold">Free Stripper: {remainingStripperFree}</span>
                             </div>
                           )}
                         </div>
@@ -941,14 +957,12 @@ const EventDetails: React.FC = () => {
                   <select
                     value={attendeeTypeFilter}
                     onChange={(e) => setAttendeeTypeFilter(e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-md px-3 py-2 text-white"
+                    className="bg-gray-900 border border-white/20 rounded-md px-3 py-2 text-white"
                   >
-                    <option value="all">All Types</option>
-                    <option value="stripper">Strippers</option>
-                    <option value="exotic">Exotics</option>
-                    <option value="male">Males</option>
-                    <option value="female">Females</option>
-                    <option value="normal">Normal</option>
+                    <option value="all" className="bg-gray-900 text-white">All Types</option>
+                    <option value="normal" className="bg-gray-900 text-white">Normal Male and Female</option>
+                    <option value="exotic" className="bg-gray-900 text-white">Exotic Dancers</option>
+                    <option value="stripper" className="bg-gray-900 text-white">Strippers</option>
                   </select>
                 </div>
 
