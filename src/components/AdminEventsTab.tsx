@@ -229,19 +229,17 @@ const AdminEventsTab: React.FC = () => {
         "events"
       );
 
-      // Get attendee counts for each event (sum of ticket_quantity)
+      // Get attendee counts for each event (count registrations/people, not tickets)
       const eventsWithCounts = await Promise.all(
         (data || []).map(async (event) => {
-          const { data: attendeeData } = await supabase
+          const { count } = await supabase
             .from("user_events")
-            .select("ticket_quantity")
+            .select("*", { count: "exact", head: true })
             .eq("event_id", event.id);
-
-          const totalAttendees = attendeeData?.reduce((sum, a) => sum + (a.ticket_quantity || 1), 0) || 0;
 
           return {
             ...event,
-            current_attendees: totalAttendees,
+            current_attendees: count || 0,
           };
         })
       );

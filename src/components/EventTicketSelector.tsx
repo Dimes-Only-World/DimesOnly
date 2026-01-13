@@ -41,6 +41,8 @@ interface EventTicketSelectorProps {
     strippers: number;
     exotics: number;
     normal: number;
+    males: number;
+    females: number;
   };
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
@@ -74,21 +76,17 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [cvv, setCvv] = useState("");
   const [cardHolderName, setCardHolderName] = useState("");
 
-  // Calculate available spots - unified free spots for members (male, female, normal)
-  // All events have 10 free spots by default for members
+  // Calculate available spots - uses database values for free spots
   const availableFreeSpots = useMemo(() => {
     if (userType === "stripper") {
-      return Math.max(0, event.free_spots_strippers - usedFreeSpots.strippers);
+      return Math.max(0, (event.free_spots_strippers || 0) - usedFreeSpots.strippers);
     } else if (userType === "exotic") {
-      return Math.max(0, event.free_spots_exotics - usedFreeSpots.exotics);
-    } else if (userType === "male" || userType === "female" || userType === "normal") {
-      // All members share the same pool of free spots - always 10
-      const totalMemberFreeSpots = 10; // Always 10 free spots for all events
-      return Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
+      return Math.max(0, (event.free_spots_exotics || 0) - usedFreeSpots.exotics);
     } else {
-      // Unknown user type - use normal pool
-      const totalMemberFreeSpots = event.free_normal || 10;
-      return Math.max(0, totalMemberFreeSpots - usedFreeSpots.normal);
+      // Normal/male/female users - use free_normal from database
+      const totalMemberFreeSpots = event.free_normal || 0;
+      const usedNormal = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
+      return Math.max(0, totalMemberFreeSpots - usedNormal);
     }
   }, [event, userType, usedFreeSpots]);
 
