@@ -329,16 +329,15 @@ const EventDetails: React.FC = () => {
 
       const counts = { strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 };
       
-      // Count using ticket_quantity instead of just counting users
+      // Count people (1 per registration), not tickets
       (registrations || []).forEach(reg => {
         const user = (users || []).find(u => u.id === reg.user_id);
-        const qty = reg.ticket_quantity || 1;
         
-        if (user?.user_type === "stripper") counts.strippers += qty;
-        else if (user?.user_type === "exotic") counts.exotics += qty;
-        else if (user?.user_type === "male" || user?.gender === "male") counts.males += qty;
-        else if (user?.user_type === "female" || user?.user_type === "normal" || user?.gender === "female") counts.females += qty;
-        else counts.normal += qty;
+        if (user?.user_type === "stripper") counts.strippers += 1;
+        else if (user?.user_type === "exotic") counts.exotics += 1;
+        else if (user?.user_type === "male" || user?.gender === "male") counts.males += 1;
+        else if (user?.user_type === "female" || user?.user_type === "normal" || user?.gender === "female") counts.females += 1;
+        else counts.normal += 1;
       });
 
       setUsedFreeSpots(counts);
@@ -725,12 +724,12 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
-                    {/* Free Spots Display - Normal M/F (10 fixed), Exotic, Stripper */}
+                    {/* Free Spots Display - Uses database values */}
                     {(() => {
-                      // Normal M/F: 10 fixed, minus ALL normal/male/female registrations
-                      const NORMAL_FREE_SPOTS_TOTAL = 10;
+                      // Normal M/F: use database value (free_normal), minus ALL normal/male/female registrations
+                      const totalNormalFree = event.free_normal || 0;
                       const usedNormal = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
-                      const remainingNormalFree = Math.max(0, NORMAL_FREE_SPOTS_TOTAL - usedNormal);
+                      const remainingNormalFree = Math.max(0, totalNormalFree - usedNormal);
                       
                       // Exotic and Stripper from DB values
                       const remainingExoticFree = Math.max(0, (event.free_spots_exotics || 0) - (usedFreeSpots.exotics || 0));

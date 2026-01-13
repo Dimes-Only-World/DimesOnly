@@ -300,25 +300,24 @@ const Events: React.FC = () => {
     });
   }, [events, filters, attendanceFilter]);
 
-  // Fixed default: 10 free spots for Normal Male and Female
-  const NORMAL_FREE_SPOTS_TOTAL = 10;
-
   const getAvailableSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
   // Calculate remaining free spots for Normal Male and Female
-  // Total: 10 (fixed), Used: count of ALL male/female/normal/empty registrations
+  // Uses event.free_normal from database (default 0 if not set)
   const getRemainingNormalFree = useCallback((event: Event | null) => {
     if (!event) return 0;
+    const total = event.free_normal || 0;
+    if (total === 0) return 0;
     const usedNormal = (event.registrations || [])
       .filter(r => {
         const userType = (r.user_type || '').toLowerCase();
         return userType === 'male' || userType === 'female' || userType === 'normal' || userType === '';
       })
       .length; // Count PEOPLE, not tickets
-    return Math.max(0, NORMAL_FREE_SPOTS_TOTAL - usedNormal);
+    return Math.max(0, total - usedNormal);
   }, []);
 
   // Calculate remaining free spots for Exotic Dancers
