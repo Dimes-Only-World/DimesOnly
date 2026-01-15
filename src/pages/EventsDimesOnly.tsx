@@ -915,11 +915,9 @@ const EventsDimesOnly: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Event Status Badge - Show only viewer-relevant free spots */}
+                        {/* Event Status Badge - Show BOTH exotic and stripper free spots */}
                         <div className="absolute top-3 left-3">
                           {(() => {
-                            const viewerType = (user?.userType || '').toLowerCase();
-                            
                             // Check if event is sold out first
                             if (getAvailableSpots(event) === 0) {
                               return (
@@ -929,37 +927,30 @@ const EventsDimesOnly: React.FC = () => {
                               );
                             }
                             
-                            // Show only the badge relevant to the viewer's category
-                            if (viewerType === 'exotic') {
-                              const remaining = getRemainingExoticSpots(event);
-                              return remaining > 0 ? (
-                                <div className="bg-pink-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                  Free Exotic: {remaining}
-                                </div>
-                              ) : (
-                                <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                  PAID ONLY
-                                </div>
-                              );
-                            }
+                            const remainingExotic = getRemainingExoticSpots(event);
+                            const remainingStripper = getRemainingStripperSpots(event);
                             
-                            if (viewerType === 'stripper') {
-                              const remaining = getRemainingStripperSpots(event);
-                              return remaining > 0 ? (
-                                <div className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                  Free Stripper: {remaining}
-                                </div>
-                              ) : (
-                                <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                  PAID ONLY
-                                </div>
-                              );
-                            }
-                            
-                            // Fallback for any other user type
+                            // Show both categories' free spots
                             return (
-                              <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                PAID ONLY
+                              <div className="flex flex-col gap-1">
+                                {remainingExotic > 0 ? (
+                                  <div className="bg-pink-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                    Free Exotic: {remainingExotic}
+                                  </div>
+                                ) : (
+                                  <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                    Exotic: PAID ONLY
+                                  </div>
+                                )}
+                                {remainingStripper > 0 ? (
+                                  <div className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                    Free Stripper: {remainingStripper}
+                                  </div>
+                                ) : (
+                                  <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                    Stripper: PAID ONLY
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
