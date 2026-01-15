@@ -1174,44 +1174,25 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Normal Tickets and Male/Female Free Spots */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Free Normal M/F Tickets and Pricing */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Free Males
+                      Free Normal M/F
                     </label>
                     <Input
                       type="number"
                       min="0"
-                      value={(newEvent as any).free_spots_males || 0}
+                      value={newEvent.free_normal || 0}
                       onChange={(e) =>
                         setNewEvent((prev) => ({
                           ...prev,
-                          free_spots_males: parseInt(e.target.value) || 0,
-                        } as any))
+                          free_normal: parseInt(e.target.value) || 0,
+                        }))
                       }
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for male users
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Free Females
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={(newEvent as any).free_spots_females || 0}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          free_spots_females: parseInt(e.target.value) || 0,
-                        } as any))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for female users
+                      Free spots for normal male and female users
                     </p>
                   </div>
                   <div>
@@ -1438,8 +1419,7 @@ const updateData = {
                         {event.max_attendees} • Free Dimes:{" "}
                         {event.free_spots_strippers} strippers,{" "}
                         {event.free_spots_exotics} exotics
-                        {(event as any).free_spots_males > 0 && ` • Males: ${(event as any).free_spots_males}`}
-                        {(event as any).free_spots_females > 0 && ` • Females: ${(event as any).free_spots_females}`}
+                        {event.free_normal > 0 && ` • Normal M/F: ${event.free_normal}`}
                       </p>
                       {event.genre && (
                         <Badge variant="outline" className="w-fit">
@@ -1793,30 +1773,18 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Spots for Males and Females */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Free Normal M/F Spots and Pricing */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Free Males</label>
+                    <label className="block text-sm font-medium mb-1">Free Normal M/F</label>
                     <Input
                       type="number"
                       min="0"
-                      value={(editingEvent as any).free_spots_males || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_males: parseInt(e.target.value) || 0 } as any : null)}
+                      value={editingEvent.free_normal || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_normal: parseInt(e.target.value) || 0 } : null)}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for male users
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Free Females</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={(editingEvent as any).free_spots_females || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_females: parseInt(e.target.value) || 0 } as any : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for female users
+                      Free spots for normal male and female users
                     </p>
                   </div>
                   <div>
