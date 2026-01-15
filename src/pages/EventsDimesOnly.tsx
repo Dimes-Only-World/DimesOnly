@@ -915,23 +915,54 @@ const EventsDimesOnly: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Event Status Badge */}
+                        {/* Event Status Badge - Show only viewer-relevant free spots */}
                         <div className="absolute top-3 left-3">
-                          {getAvailableSpots(event) === 0 ? (
-                            <div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                              SOLD OUT
-                            </div>
-                          ) : getFreeSpots(event) > 0 ? (
-                            <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold space-y-0.5">
-                              <div>Free Spots: {getFreeSpots(event)}</div>
-                              <div>Exotics: {getRemainingExoticSpots(event)}</div>
-                              <div>Stripper: {getRemainingStripperSpots(event)}</div>
-                            </div>
-                          ) : (
-                            <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                              ${event.price}
-                            </div>
-                          )}
+                          {(() => {
+                            const viewerType = (user?.userType || '').toLowerCase();
+                            
+                            // Check if event is sold out first
+                            if (getAvailableSpots(event) === 0) {
+                              return (
+                                <div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                  SOLD OUT
+                                </div>
+                              );
+                            }
+                            
+                            // Show only the badge relevant to the viewer's category
+                            if (viewerType === 'exotic') {
+                              const remaining = getRemainingExoticSpots(event);
+                              return remaining > 0 ? (
+                                <div className="bg-pink-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                  Free Exotic: {remaining}
+                                </div>
+                              ) : (
+                                <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                  PAID ONLY
+                                </div>
+                              );
+                            }
+                            
+                            if (viewerType === 'stripper') {
+                              const remaining = getRemainingStripperSpots(event);
+                              return remaining > 0 ? (
+                                <div className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                  Free Stripper: {remaining}
+                                </div>
+                              ) : (
+                                <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                  PAID ONLY
+                                </div>
+                              );
+                            }
+                            
+                            // Fallback for any other user type
+                            return (
+                              <div className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                PAID ONLY
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Media Indicators */}
