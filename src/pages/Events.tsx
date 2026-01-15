@@ -612,35 +612,62 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Event Status Badge - Show remaining free spots by category */}
+                    {/* Event Status Badge - Show only viewer-relevant free spots badge */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
-                      {getAvailableSpots(event) === 0 ? (
-                        <Badge className="bg-red-600 text-white font-bold">
-                          SOLD OUT
-                        </Badge>
-                      ) : hasAnyFreeSpots(event) ? (
-                        <>
-                          {getRemainingNormalFree(event) > 0 && (
-                            <Badge className="bg-green-600 text-white font-bold text-xs">
-                              Free Normal M/F: {getRemainingNormalFree(event)}
+                      {(() => {
+                        // Determine viewer's category based on their user type
+                        const viewerType = (appUser?.userType || '').toLowerCase();
+                        const viewerCategory = viewerType === 'exotic' ? 'exotic' 
+                          : viewerType === 'stripper' ? 'stripper' 
+                          : 'normal'; // male, female, normal, or empty
+
+                        if (getAvailableSpots(event) === 0) {
+                          return (
+                            <Badge className="bg-red-600 text-white font-bold">
+                              SOLD OUT
                             </Badge>
-                          )}
-                          {getRemainingExoticFree(event) > 0 && (
+                          );
+                        }
+
+                        // Show only the badge relevant to the viewer's category
+                        if (viewerCategory === 'exotic') {
+                          const remaining = getRemainingExoticFree(event);
+                          return remaining > 0 ? (
                             <Badge className="bg-pink-600 text-white font-bold text-xs">
-                              Free Exotic: {getRemainingExoticFree(event)}
+                              Free Exotic: {remaining}
                             </Badge>
-                          )}
-                          {getRemainingStripperFree(event) > 0 && (
+                          ) : (
+                            <Badge className="bg-yellow-600 text-white font-bold">
+                              PAID ONLY
+                            </Badge>
+                          );
+                        }
+
+                        if (viewerCategory === 'stripper') {
+                          const remaining = getRemainingStripperFree(event);
+                          return remaining > 0 ? (
                             <Badge className="bg-purple-600 text-white font-bold text-xs">
-                              Free Stripper: {getRemainingStripperFree(event)}
+                              Free Stripper: {remaining}
                             </Badge>
-                          )}
-                        </>
-                      ) : (
-                        <Badge className="bg-yellow-600 text-white font-bold">
-                          PAID ONLY
-                        </Badge>
-                      )}
+                          ) : (
+                            <Badge className="bg-yellow-600 text-white font-bold">
+                              PAID ONLY
+                            </Badge>
+                          );
+                        }
+
+                        // Default: normal/male/female viewer
+                        const remaining = getRemainingNormalFree(event);
+                        return remaining > 0 ? (
+                          <Badge className="bg-green-600 text-white font-bold text-xs">
+                            Free Normal M/F: {remaining}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-600 text-white font-bold">
+                            PAID ONLY
+                          </Badge>
+                        );
+                      })()}
                     </div>
 
                     {/* Media Indicators */}
