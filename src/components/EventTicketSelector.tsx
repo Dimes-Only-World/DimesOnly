@@ -20,6 +20,8 @@ interface EventTicketSelectorProps {
     id: string;
     name: string;
     price: number;
+    males_price?: number;
+    females_price?: number;
     vip_price: number;
     vip_tickets: number;
     vip_sections: number;
@@ -92,7 +94,14 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
 
   const remainingCapacity = event.max_attendees - event.current_attendees;
   const showFreeOption = availableFreeSpots > 0;
-  const showGeneralOption = event.price > 0;
+  
+  // Get user-specific price for General Admission (based on gender)
+  const userSpecificPrice = userType === 'female' ? event.females_price : event.males_price;
+  const generalAdmissionPrice = event.price > 0 ? event.price : (userSpecificPrice || 0);
+  
+  // Show General option if there's a valid price OR free spots are exhausted but capacity remains
+  const showGeneralOption = generalAdmissionPrice > 0 || (availableFreeSpots === 0 && remainingCapacity > 0 && (event.price > 0 || (userSpecificPrice && userSpecificPrice > 0)));
+  
   const showVipOption = event.vip_tickets > 0 && event.vip_price > 0;
   const showVipSectionOption = event.vip_sections > 0 && event.vip_section_price > 0;
 
@@ -103,7 +112,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       case "free":
         return 0;
       case "general":
-        return event.price * quantity;
+        return generalAdmissionPrice * quantity;
       case "vip":
         return event.vip_price * quantity;
       case "vip_section":
@@ -111,7 +120,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       default:
         return 0;
     }
-  }, [selectedType, quantity, event]);
+  }, [selectedType, quantity, event, generalAdmissionPrice]);
 
   // Max quantity based on selection
   const maxQuantity = useMemo(() => {
@@ -264,8 +273,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       type: "general" as TicketType,
       label: "General Admission",
       icon: Users,
-      price: event.price,
-      available: showGeneralOption,
+      price: generalAdmissionPrice,
+      available: showGeneralOption && generalAdmissionPrice > 0,
       description: `${remainingCapacity} spots available`,
     },
     {
