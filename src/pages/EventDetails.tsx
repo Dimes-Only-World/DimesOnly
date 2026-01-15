@@ -47,6 +47,8 @@ interface Event {
   photo_url: string;
   genre: string;
   price: number;
+  males_price?: number;
+  females_price?: number;
   max_attendees: number;
   current_attendees: number;
   free_spots_strippers: number;
