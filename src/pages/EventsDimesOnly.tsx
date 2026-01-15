@@ -480,9 +480,14 @@ const EventsDimesOnly: React.FC = () => {
     if (!selectedEvent || !user) return;
 
     try {
-      const freeSpots =
-        (selectedEvent.free_spots_strippers || 0) +
-        (selectedEvent.free_spots_exotics || 0);
+      // Check free spots for the user's specific type only
+      const userType = user.userType;
+      let freeSpots = 0;
+      if (userType === "stripper") {
+        freeSpots = getRemainingStripperSpots(selectedEvent);
+      } else if (userType === "exotic") {
+        freeSpots = getRemainingExoticSpots(selectedEvent);
+      }
 
       if (freeSpots > 0) {
         // Free attendance
@@ -497,24 +502,7 @@ const EventsDimesOnly: React.FC = () => {
 
         if (error) throw error;
 
-        // Update free spots
-        const userType = user.userType;
-        const updateField =
-          userType === "stripper"
-            ? "free_spots_strippers"
-            : "free_spots_exotics";
-        const currentSpots = selectedEvent[updateField] || 0;
-
-        if (currentSpots > 0) {
-          const { error: updateError } = await supabase
-            .from("events")
-            .update({
-              [updateField]: Math.max(0, currentSpots - 1),
-            })
-            .eq("id", selectedEvent.id);
-
-          if (updateError) throw updateError;
-        }
+        // Free spots are now calculated from registrations, no need to update event fields
 
         toast({
           title: "Success!",
@@ -704,12 +692,12 @@ const EventsDimesOnly: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   };
 
-  // Calculate spots used by a specific user type, excluding current user
+  // Calculate spots used by a specific user type (all registrations count)
   const getSpotsUsedByType = (event: Event | null, userType: string) => {
     if (!event?.registrations) return 0;
-    // Count 1 spot per registration, excluding current user's own registration
+    // Count 1 spot per registration of this user type
     return event.registrations.filter(r => 
-      r.user_type === userType && r.user_id !== user?.id
+      r.user_type === userType
     ).length;
   };
 

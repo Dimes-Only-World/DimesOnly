@@ -99,8 +99,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const userSpecificPrice = userType === 'female' ? event.females_price : event.males_price;
   const generalAdmissionPrice = event.price > 0 ? event.price : (userSpecificPrice || 0);
   
-  // Show General option if there's a valid price OR free spots are exhausted but capacity remains
-  const showGeneralOption = generalAdmissionPrice > 0 || (availableFreeSpots === 0 && remainingCapacity > 0 && (event.price > 0 || (userSpecificPrice && userSpecificPrice > 0)));
+  // Show General option ONLY when free spots are exhausted (availableFreeSpots === 0) and there's a valid price
+  const showGeneralOption = availableFreeSpots === 0 && remainingCapacity > 0 && generalAdmissionPrice > 0;
   
   const showVipOption = event.vip_tickets > 0 && event.vip_price > 0;
   const showVipSectionOption = event.vip_sections > 0 && event.vip_section_price > 0;

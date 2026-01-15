@@ -172,7 +172,7 @@ const EventDetails: React.FC = () => {
       setCurrentUser({ 
         id: appUser.id, 
         username: appUser.username,
-        user_type: (appUser as any).user_type || undefined
+        user_type: appUser.userType || (appUser as any).user_type || undefined
       });
       return;
     }
@@ -186,7 +186,7 @@ const EventDetails: React.FC = () => {
           setCurrentUser({ 
             id: userData.id, 
             username: userData.username,
-            user_type: userData.user_type || undefined
+            user_type: userData.userType || userData.user_type || undefined
           });
           return;
         }
@@ -467,21 +467,7 @@ const EventDetails: React.FC = () => {
     
     if (error) throw error;
     
-    // Update free spots count based on user type
-    const userType = currentUser.user_type;
-    let updateField = "free_normal";
-    if (userType === "stripper") updateField = "free_spots_strippers";
-    else if (userType === "exotic") updateField = "free_spots_exotics";
-    
-    const currentSpots = event[updateField as keyof typeof event] as number || 0;
-    if (currentSpots > 0) {
-      await supabase
-        .from("events")
-        .update({
-          [updateField]: Math.max(0, currentSpots - spotsToDeduct),
-        })
-        .eq("id", event.id);
-    }
+    // Free spots are now calculated from registrations, no need to update event fields
     
     setIsUserRegistered(true);
     toast({
