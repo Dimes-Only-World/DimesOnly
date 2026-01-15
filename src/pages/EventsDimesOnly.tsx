@@ -922,18 +922,18 @@ const EventsDimesOnly: React.FC = () => {
                             return (
                               <div className="flex flex-col gap-1">
                                 {remainingExotic > 0 ? (
-                                  <div className="bg-pink-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                    Free Exotic: {remainingExotic}
-                                  </div>
+                          <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
+                            Free Exotic: {remainingExotic}
+                          </div>
                                 ) : (
                                   <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
                                     Exotic: PAID ONLY
                                   </div>
                                 )}
                                 {remainingStripper > 0 ? (
-                                  <div className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                    Free Stripper: {remainingStripper}
-                                  </div>
+                          <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
+                            Free Stripper: {remainingStripper}
+                          </div>
                                 ) : (
                                   <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
                                     Stripper: PAID ONLY
