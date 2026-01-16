@@ -269,13 +269,17 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get attendee count by counting PEOPLE (not tickets)
+      // Get total attendee count including guests (sum of ticket_quantity)
       const { data: attendeeData } = await supabase
         .from("user_events")
-        .select("user_id")
+        .select("ticket_quantity")
         .eq("event_id", eventId);
 
-      const totalAttendees = (attendeeData || []).length;
+      // Sum all ticket quantities to get total attendees + guests
+      const totalAttendees = (attendeeData || []).reduce(
+        (sum, record) => sum + (record.ticket_quantity || 1), 
+        0
+      );
 
       setEvent({
         ...eventData,
@@ -712,8 +716,10 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
-                    {/* Free Spots Display - Uses database values */}
+                    {/* Free Spots Display - Filtered by user type */}
                     {(() => {
+                      const userType = currentUser?.user_type || 'normal';
+                      
                       // Normal M/F: use database value (free_normal), minus ALL normal/male/female registrations
                       const totalNormalFree = event.free_normal || 0;
                       const usedNormal = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
@@ -723,23 +729,28 @@ const EventDetails: React.FC = () => {
                       const remainingExoticFree = Math.max(0, (event.free_spots_exotics || 0) - (usedFreeSpots.exotics || 0));
                       const remainingStripperFree = Math.max(0, (event.free_spots_strippers || 0) - (usedFreeSpots.strippers || 0));
                       
-                      const hasAnyFreeSpots = remainingNormalFree > 0 || remainingExoticFree > 0 || remainingStripperFree > 0;
+                      // Determine which free spots are relevant to this user
+                      const showNormal = remainingNormalFree > 0;
+                      const showExotic = userType === 'exotic' && remainingExoticFree > 0;
+                      const showStripper = userType === 'stripper' && remainingStripperFree > 0;
                       
-                      return hasAnyFreeSpots ? (
+                      const hasRelevantFreeSpots = showNormal || showExotic || showStripper;
+                      
+                      return hasRelevantFreeSpots ? (
                         <div className="space-y-2">
-                          {remainingNormalFree > 0 && (
+                          {showNormal && (
                             <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
                               <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
                               <span className="text-green-400 font-bold">Free Normal M/F: {remainingNormalFree}</span>
                             </div>
                           )}
-                          {remainingExoticFree > 0 && (
+                          {showExotic && (
                             <div className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-lg">
                               <Ticket className="h-5 w-5 text-pink-400 flex-shrink-0" />
                               <span className="text-pink-400 font-bold">Free Exotic: {remainingExoticFree}</span>
                             </div>
                           )}
-                          {remainingStripperFree > 0 && (
+                          {showStripper && (
                             <div className="flex items-center gap-3 p-3 bg-purple-500/20 rounded-lg">
                               <Ticket className="h-5 w-5 text-purple-400 flex-shrink-0" />
                               <span className="text-purple-400 font-bold">Free Stripper: {remainingStripperFree}</span>
