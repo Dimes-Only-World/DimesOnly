@@ -233,8 +233,11 @@ const Events: React.FC = () => {
             `)
             .eq("event_id", event.id);
 
-          // Calculate total attendees by counting PEOPLE (not tickets)
-          const totalAttendees = (registrations || []).length;
+          // Calculate total attendees including guests (sum ticket_quantity)
+          const totalAttendees = (registrations || []).reduce(
+            (sum: number, r: any) => sum + (r.ticket_quantity || 1), 
+            0
+          );
 
           // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
