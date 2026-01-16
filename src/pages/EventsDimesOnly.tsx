@@ -367,12 +367,6 @@ const EventsDimesOnly: React.FC = () => {
       // Get current attendee counts and registrations for each event
       const eventsWithCounts = await Promise.all(
         (eventsData || []).map(async (event) => {
-          // Get count
-          const { count } = await supabase
-            .from("user_events")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
-
           // Get registrations with user types for free spot calculation
           const { data: registrations } = await supabase
             .from("user_events")
@@ -392,9 +386,15 @@ const EventsDimesOnly: React.FC = () => {
             user_type: r.users?.user_type || 'normal'
           }));
 
+          // Sum ticket quantities for total attendees including guests
+          const totalAttendees = (registrations || []).reduce(
+            (sum: number, r: any) => sum + (r.ticket_quantity || 1), 
+            0
+          );
+
           return {
             ...event,
-            current_attendees: count || 0,
+            current_attendees: totalAttendees,
             isUserAttending: attendingEventIds.includes(event.id),
             video_urls: event.video_urls || [],
             additional_photos: event.additional_photos || [],
