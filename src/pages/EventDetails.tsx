@@ -941,7 +941,12 @@ const EventDetails: React.FC = () => {
             <Card className={`bg-white/10 backdrop-blur border-white/20 ${getCardClasses()}`}>
               <CardContent className="p-4 md:p-6">
                 <h3 className="text-lg font-semibold text-yellow-400 mb-4">
-                  Attendees ({attendees.length})
+                  Registered Users ({attendees.length})
+                  {event && event.current_attendees > attendees.length && (
+                    <span className="text-sm text-gray-400 font-normal ml-2">
+                      ({event.current_attendees} total including guests)
+                    </span>
+                  )}
                 </h3>
 
                 {/* Search and Filter */}
