@@ -4,10 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle, Loader2, ArrowLeft, CreditCard } from "lucide-react";
+import { CheckCircle, ArrowLeft } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PaymentMethodSelector, { CardData } from "@/components/PaymentMethodSelector";
 
 export default function UpgradeDiamondMonthly() {
   const [searchParams] = useSearchParams();
@@ -19,39 +20,51 @@ export default function UpgradeDiamondMonthly() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const { toast } = useToast();
 
-  const handleSubscribe = async () => {
+  const getAmount = () => {
+    if (cadence === 'yearly') {
+      return billingOption === 'full' ? 150.00 : 53.25;
+    }
+    return 14.99;
+  };
+
+  const AMOUNT = getAmount();
+
+  const resolveUserId = async (): Promise<string | null> => {
+    let userIdToUse: string | undefined = userIdFromUrl ?? undefined;
+    if (!userIdToUse) {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        toast({ title: "Auth Error", description: error.message, variant: "destructive" });
+        return null;
+      }
+      userIdToUse = user?.id;
+    }
+    if (!userIdToUse) {
+      toast({ title: "Error", description: "User ID is missing. Please log in and try again.", variant: "destructive" });
+      return null;
+    }
+    return userIdToUse;
+  };
+
+  const handlePayPal = async () => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Resolve user id from auth if not provided
-      let userIdToUse: string | undefined = userIdFromUrl ?? undefined;
-      if (!userIdToUse) {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError) {
-          toast({ title: "Auth Error", description: authError.message, variant: "destructive" });
-          return;
-        }
-        userIdToUse = user?.id;
-      }
-      if (!userIdToUse) {
-        toast({ title: "Error", description: "User ID is missing. Please log in and try again.", variant: "destructive" });
-        return;
-      }
+      const userId = await resolveUserId();
+      if (!userId) return;
 
-      if (!phoneNumber) {
-        toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
-        return;
-      }
-
-      // Update phone number on user profile
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
 
       const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=diamond&cadence=${cadence}&billing_option=${cadence==='yearly' ? billingOption : ''}`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=diamond&cadence=${cadence}&billing_option=${cadence==='yearly' ? billingOption : ''}`;
 
-      // Invoke subscription creator (generalized edge function)
       const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
         body: {
-          user_id: userIdToUse,
+          user_id: userId,
           tier: "diamond",
           cadence,
           ...(cadence === 'yearly' ? { billing_option: billingOption } : {}),
@@ -62,16 +75,102 @@ export default function UpgradeDiamondMonthly() {
       });
 
       if (error) throw error;
-      if (!data?.success) {
-        throw new Error(data?.error || "Failed to create PayPal subscription");
-      }
+      if (!data?.success) throw new Error(data?.error || "Failed to create PayPal subscription");
 
       toast({ title: "Redirecting to PayPal", description: "Please approve your subscription..." });
       window.location.href = data.approval_url as string;
     } catch (err: any) {
-      console.error("Diamond monthly subscribe error:", err);
-      const msg = typeof err?.message === "string" ? err.message : "Failed to start subscription";
-      toast({ title: "Subscription Error", description: msg, variant: "destructive" });
+      console.error("Diamond subscribe error:", err);
+      toast({ title: "Subscription Error", description: err?.message || "Failed to start subscription", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayLater = async () => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = await resolveUserId();
+      if (!userId) return;
+
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
+
+      const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=diamond&cadence=${cadence}&billing_option=${cadence==='yearly' ? billingOption : ''}`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=diamond&cadence=${cadence}&billing_option=${cadence==='yearly' ? billingOption : ''}`;
+
+      const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
+        body: {
+          user_id: userId,
+          tier: "diamond",
+          cadence,
+          ...(cadence === 'yearly' ? { billing_option: billingOption } : {}),
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+          description: `Diamond Membership - ${cadence === 'yearly' ? (billingOption === 'full' ? 'Annual (one payment)' : 'Annual (split every 4 months)') : 'Monthly'} Subscription`,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to create PayPal subscription");
+
+      toast({ title: "Redirecting to PayPal", description: "Please approve your subscription..." });
+      const approvalUrl = data.approval_url + "&fundingSource=paylater";
+      window.location.href = approvalUrl;
+    } catch (err: any) {
+      console.error("Diamond subscribe error:", err);
+      toast({ title: "Subscription Error", description: err?.message || "Failed to start subscription", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCardPayment = async (cardData: CardData) => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = await resolveUserId();
+      if (!userId) return;
+
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
+
+      const { data, error } = await supabase.functions.invoke("process-card-membership", {
+        body: {
+          user_id: userId,
+          tier: "diamond",
+          amount: AMOUNT,
+          cadence,
+          card_number: cardData.cardNumber,
+          expiry_month: cardData.expiryMonth,
+          expiry_year: cardData.expiryYear,
+          cvv: cardData.cvv,
+          card_holder_name: cardData.cardHolderName,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) {
+        if (data?.requires_action) {
+          toast({ title: "Authentication Required", description: "Please complete 3D Secure verification", variant: "destructive" });
+          if (data.action_url) window.location.href = data.action_url;
+          return;
+        }
+        throw new Error(data?.error || "Payment failed");
+      }
+
+      toast({ title: "Payment Successful!", description: "Your Diamond membership is now active." });
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Card payment error:", error);
+      toast({ title: "Payment Failed", description: error.message || "Failed to process card payment", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -159,22 +258,19 @@ export default function UpgradeDiamondMonthly() {
                     <p className="text-xs text-muted-foreground">Required for payment verification</p>
                   </div>
 
-                  <Button className="w-full py-6 text-lg" size="lg" onClick={handleSubscribe} disabled={loading || !phoneNumber}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="mr-2 h-5 w-5" /> Subscribe with PayPal
-                      </>
-                    )}
-                  </Button>
+                  <PaymentMethodSelector
+                    amount={AMOUNT}
+                    onPayPal={handlePayPal}
+                    onPayLater={handlePayLater}
+                    onCardSubmit={handleCardPayment}
+                    isProcessing={loading}
+                    disabled={!phoneNumber}
+                    paypalLabel="Subscribe with PayPal"
+                  />
                 </div>
 
                 <div className="text-center text-xs text-muted-foreground">
-                  <p>Secure subscription processed by PayPal</p>
-                  <p className="mt-1">Cancel anytime</p>
+                  <p>Cancel anytime</p>
                 </div>
               </div>
             </div>

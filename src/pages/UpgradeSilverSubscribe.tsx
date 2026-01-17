@@ -4,10 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle, Loader2, ArrowLeft, CreditCard } from "lucide-react";
+import { CheckCircle, ArrowLeft } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PaymentMethodSelector, { CardData } from "@/components/PaymentMethodSelector";
 
 export default function UpgradeSilverSubscribe() {
   const [searchParams] = useSearchParams();
@@ -17,25 +18,42 @@ export default function UpgradeSilverSubscribe() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const { toast } = useToast();
 
+  const AMOUNT = cadence === "yearly" ? 49.99 : 4.99;
   const priceLabel = cadence === "yearly" ? "$49.99" : "$4.99";
   const priceSuffix = cadence === "yearly" ? "per year" : "per month";
 
-  const handleSubscribe = async () => {
+  const resolveUserId = async (): Promise<string | null> => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) {
+      toast({ title: "Auth Error", description: error.message, variant: "destructive" });
+      return null;
+    }
+    if (!user?.id) {
+      toast({ title: "Error", description: "Please log in and try again.", variant: "destructive" });
+      return null;
+    }
+    return user.id;
+  };
+
+  const handlePayPal = async () => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      if (!user) throw new Error("Please log in and try again.");
-      if (!phoneNumber) throw new Error("Please provide your phone number");
+      const userId = await resolveUserId();
+      if (!userId) return;
 
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", user.id);
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
 
       const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=silver&cadence=${cadence}`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=silver&cadence=${cadence}`;
 
       const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
         body: {
-          user_id: user.id,
+          user_id: userId,
           tier: "silver",
           cadence,
           return_url: returnUrl,
@@ -43,6 +61,7 @@ export default function UpgradeSilverSubscribe() {
           description: `Silver Membership - ${cadence}`,
         },
       });
+
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed to create PayPal subscription");
 
@@ -51,6 +70,94 @@ export default function UpgradeSilverSubscribe() {
     } catch (err: any) {
       console.error("Silver subscribe error:", err);
       toast({ title: "Subscription Error", description: err?.message || "Failed to start subscription", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayLater = async () => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = await resolveUserId();
+      if (!userId) return;
+
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
+
+      const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=silver&cadence=${cadence}`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=silver&cadence=${cadence}`;
+
+      const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
+        body: {
+          user_id: userId,
+          tier: "silver",
+          cadence,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+          description: `Silver Membership - ${cadence}`,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to create PayPal subscription");
+
+      toast({ title: "Redirecting to PayPal", description: "Please approve your subscription..." });
+      const approvalUrl = data.approval_url + "&fundingSource=paylater";
+      window.location.href = approvalUrl;
+    } catch (err: any) {
+      console.error("Silver subscribe error:", err);
+      toast({ title: "Subscription Error", description: err?.message || "Failed to start subscription", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCardPayment = async (cardData: CardData) => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = await resolveUserId();
+      if (!userId) return;
+
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
+
+      const { data, error } = await supabase.functions.invoke("process-card-membership", {
+        body: {
+          user_id: userId,
+          tier: "silver",
+          amount: AMOUNT,
+          cadence,
+          card_number: cardData.cardNumber,
+          expiry_month: cardData.expiryMonth,
+          expiry_year: cardData.expiryYear,
+          cvv: cardData.cvv,
+          card_holder_name: cardData.cardHolderName,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) {
+        if (data?.requires_action) {
+          toast({ title: "Authentication Required", description: "Please complete 3D Secure verification", variant: "destructive" });
+          if (data.action_url) window.location.href = data.action_url;
+          return;
+        }
+        throw new Error(data?.error || "Payment failed");
+      }
+
+      toast({ title: "Payment Successful!", description: "Your Silver subscription is now active." });
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Card payment error:", error);
+      toast({ title: "Payment Failed", description: error.message || "Failed to process card payment", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -68,7 +175,6 @@ export default function UpgradeSilverSubscribe() {
             <CardTitle className="text-3xl font-bold text-gray-900">Upgrade to Silver</CardTitle>
             <CardDescription>{cadence === 'yearly' ? 'Annual' : 'Monthly'} subscription. Immediate activation after approval.</CardDescription>
           </CardHeader>
-          
 
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -113,22 +219,19 @@ export default function UpgradeSilverSubscribe() {
                     <p className="text-xs text-muted-foreground">Required for payment verification</p>
                   </div>
 
-                  <Button className="w-full py-6 text-lg" size="lg" onClick={handleSubscribe} disabled={loading || !phoneNumber}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="mr-2 h-5 w-5" /> Subscribe with PayPal
-                      </>
-                    )}
-                  </Button>
+                  <PaymentMethodSelector
+                    amount={AMOUNT}
+                    onPayPal={handlePayPal}
+                    onPayLater={handlePayLater}
+                    onCardSubmit={handleCardPayment}
+                    isProcessing={loading}
+                    disabled={!phoneNumber}
+                    paypalLabel="Subscribe with PayPal"
+                  />
                 </div>
 
                 <div className="text-center text-xs text-muted-foreground">
-                  <p>Secure subscription processed by PayPal</p>
-                  <p className="mt-1">Cancel anytime</p>
+                  <p>Cancel anytime</p>
                 </div>
               </div>
             </div>
