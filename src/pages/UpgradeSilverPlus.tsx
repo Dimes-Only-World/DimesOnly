@@ -3,18 +3,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle, Loader2, ArrowLeft, CreditCard } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, ArrowLeft } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface PaymentResponse {
-  success: boolean;
-  paymentId: string;
-  approval_url?: string;
-  error?: string;
-}
+import PaymentMethodSelector, { CardData } from "@/components/PaymentMethodSelector";
 
 interface MembershipUpdate {
   silver_plus_active: boolean;
@@ -36,114 +30,210 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const [phoneNumber, setPhoneNumber] = useState("");
   const { toast } = useToast();
 
-  const handleUpgrade = async () => {
-    if (!effectiveUserId) {
-      toast({ 
-        title: "Error", 
-        description: "User ID is missing", 
-        variant: "destructive" 
-      });
-      return;
-    }
+  const AMOUNT = 74.99;
 
-    // Validate phone number
+  const resolveUserId = async (): Promise<string | null> => {
+    if (effectiveUserId) return effectiveUserId;
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) {
+      toast({ title: "Auth Error", description: error.message, variant: "destructive" });
+      return null;
+    }
+    if (!user?.id) {
+      toast({ title: "Error", description: "User ID is missing", variant: "destructive" });
+      return null;
+    }
+    return user.id;
+  };
+
+  const checkAvailability = async (): Promise<boolean> => {
+    const { data: availability, error } = await supabase.rpc('check_silver_plus_availability');
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return false;
+    }
+    if (!availability || !availability[0]?.available) {
+      toast({ title: "Not Available", description: "No more lifetime Silver+ memberships available.", variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
+  const handlePayPal = async () => {
     if (!phoneNumber) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide your phone number",
-        variant: "destructive",
-      });
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
       return;
     }
 
     setLoading(true);
-
     try {
-      // 1. Check availability
-      const { data: availability, error: availabilityError } = await supabase
-        .rpc('check_silver_plus_availability');
-      
-      if (availabilityError) throw availabilityError;
-      
-      if (!availability || !availability[0]?.available) {
-        throw new Error("No more lifetime Silver+ memberships available. It will be available as a monthly subscription soon.");
-      }
+      const userIdToUse = await resolveUserId();
+      if (!userIdToUse) return;
 
-      // 2. Create membership upgrade record
-      const upgradePayload = {
-        user_id: effectiveUserId,
-        upgrade_type: 'silver_plus',
-        payment_amount: 74.99,
-        payment_method: 'paypal_full',
-        installment_plan: false,
-        installment_count: 1,
-        phone_number: phoneNumber,
-        payment_status: 'pending',
-        upgrade_status: 'pending',
-      };
+      if (!(await checkAvailability())) return;
 
       const { data: upgrade, error: upgradeError } = await supabase
         .from("membership_upgrades")
-        .insert(upgradePayload)
+        .insert({
+          user_id: userIdToUse,
+          upgrade_type: 'silver_plus',
+          payment_amount: AMOUNT,
+          payment_method: 'paypal_full',
+          installment_plan: false,
+          installment_count: 1,
+          phone_number: phoneNumber,
+          payment_status: 'pending',
+          upgrade_status: 'pending',
+        })
         .select()
         .single();
 
       if (upgradeError) throw upgradeError;
 
-      // 3. Update phone number on user profile
-      await supabase
-        .from("users")
-        .update({ phone_number: phoneNumber })
-        .eq("id", effectiveUserId);
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
 
-      // 4. Create PayPal order via edge function
       const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
-      const { data: orderData, error: orderError } = await supabase.functions.invoke(
-        "create-paypal-order",
-        {
-          body: {
-            payment_type: "membership",
-            membership_upgrade_id: upgrade.id,
-            user_id: effectiveUserId,
-            amount: 74.99,
-            installment_number: 1,
-            return_url: returnUrl,
-            cancel_url: cancelUrl,
-            description: "Silver+ Lifetime Membership - One-time Payment",
-          },
-        }
-      );
+      const { data: orderData, error: orderError } = await supabase.functions.invoke("create-paypal-order", {
+        body: {
+          payment_type: "membership",
+          membership_upgrade_id: upgrade.id,
+          user_id: userIdToUse,
+          amount: AMOUNT,
+          installment_number: 1,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+          description: "Silver+ Lifetime Membership - One-time Payment",
+        },
+      });
 
       if (orderError) throw orderError;
       if (!orderData?.success) throw new Error("Failed to create PayPal order");
 
-      toast({
-        title: "Redirecting to PayPal",
-        description: "Please complete your payment...",
-      });
-
-      // Store upgrade info in session storage for the return page
-      sessionStorage.setItem(
-        "membership_upgrade",
-        JSON.stringify({
-          upgrade_id: upgrade.id,
-          payment_option: "full",
-          amount: 74.99,
-        })
-      ); 
-
-      // Redirect to PayPal
+      toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
+      sessionStorage.setItem("membership_upgrade", JSON.stringify({ upgrade_id: upgrade.id, payment_option: "full", amount: AMOUNT }));
       window.location.href = orderData.approval_url;
-      
     } catch (error: any) {
       console.error("Upgrade error:", error);
-      toast({
-        title: "Upgrade Failed",
-        description: error.message || "Failed to process upgrade",
-        variant: "destructive",
+      toast({ title: "Upgrade Failed", description: error.message || "Failed to process upgrade", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayLater = async () => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userIdToUse = await resolveUserId();
+      if (!userIdToUse) return;
+
+      if (!(await checkAvailability())) return;
+
+      const { data: upgrade, error: upgradeError } = await supabase
+        .from("membership_upgrades")
+        .insert({
+          user_id: userIdToUse,
+          upgrade_type: 'silver_plus',
+          payment_amount: AMOUNT,
+          payment_method: 'paypal_paylater',
+          installment_plan: false,
+          installment_count: 1,
+          phone_number: phoneNumber,
+          payment_status: 'pending',
+          upgrade_status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (upgradeError) throw upgradeError;
+
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
+
+      const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
+
+      const { data: orderData, error: orderError } = await supabase.functions.invoke("create-paypal-order", {
+        body: {
+          payment_type: "membership",
+          membership_upgrade_id: upgrade.id,
+          user_id: userIdToUse,
+          amount: AMOUNT,
+          installment_number: 1,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+          description: "Silver+ Lifetime Membership - One-time Payment",
+        },
       });
+
+      if (orderError) throw orderError;
+      if (!orderData?.success) throw new Error("Failed to create PayPal order");
+
+      toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
+      sessionStorage.setItem("membership_upgrade", JSON.stringify({ upgrade_id: upgrade.id, payment_option: "full", amount: AMOUNT }));
+      const approvalUrl = orderData.approval_url + "&fundingSource=paylater";
+      window.location.href = approvalUrl;
+    } catch (error: any) {
+      console.error("Upgrade error:", error);
+      toast({ title: "Upgrade Failed", description: error.message || "Failed to process upgrade", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCardPayment = async (cardData: CardData) => {
+    if (!phoneNumber) {
+      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userIdToUse = await resolveUserId();
+      if (!userIdToUse) return;
+
+      if (!(await checkAvailability())) return;
+
+      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
+
+      const { data, error } = await supabase.functions.invoke("process-card-membership", {
+        body: {
+          user_id: userIdToUse,
+          tier: "silver_plus",
+          amount: AMOUNT,
+          card_number: cardData.cardNumber,
+          expiry_month: cardData.expiryMonth,
+          expiry_year: cardData.expiryYear,
+          cvv: cardData.cvv,
+          card_holder_name: cardData.cardHolderName,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) {
+        if (data?.requires_action) {
+          toast({ title: "Authentication Required", description: "Please complete 3D Secure verification", variant: "destructive" });
+          if (data.action_url) window.location.href = data.action_url;
+          return;
+        }
+        throw new Error(data?.error || "Payment failed");
+      }
+
+      toast({ title: "Payment Successful!", description: "Your Silver+ membership is now active." });
+      onMembershipUpdate?.({
+        silver_plus_active: true,
+        silver_plus_joined_at: new Date().toISOString(),
+        membership_tier: 'silver_plus',
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Card payment error:", error);
+      toast({ title: "Payment Failed", description: error.message || "Failed to process card payment", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -179,7 +269,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
               
               <div className="bg-gray-50 p-6 rounded-lg border space-y-6">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-blue-600">$74.99</div>
+                  <div className="text-4xl font-bold text-blue-600">${AMOUNT}</div>
                   <p className="text-muted-foreground">One-time payment</p>
                 </div>
 
@@ -200,29 +290,14 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
                     </p>
                   </div>
 
-                  <Button 
-                    className="w-full py-6 text-lg" 
-                    size="lg"
-                    onClick={handleUpgrade}
-                    disabled={loading || !phoneNumber}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="mr-2 h-5 w-5" />
-                        Pay with PayPal
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <div className="text-center text-xs text-muted-foreground">
-                  <p>Secure payment processed by PayPal</p>
-                  <p className="mt-1">Cancel anytime</p>
+                  <PaymentMethodSelector
+                    amount={AMOUNT}
+                    onPayPal={handlePayPal}
+                    onPayLater={handlePayLater}
+                    onCardSubmit={handleCardPayment}
+                    isProcessing={loading}
+                    disabled={!phoneNumber}
+                  />
                 </div>
               </div>
             </div>
