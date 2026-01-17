@@ -50,54 +50,30 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
 
     setLoading(true);
     try {
-      const userIdToUse = await resolveUserId();
-      if (!userIdToUse) return;
-
-      // Create membership upgrade record
-      const { data: upgrade, error: upgradeError } = await supabase
-        .from("membership_upgrades")
-        .insert({
-          user_id: userIdToUse,
-          upgrade_type: 'silver',
-          payment_amount: AMOUNT,
-          payment_method: 'paypal_full',
-          installment_plan: false,
-          installment_count: 1,
-          phone_number: phoneNumber,
-          payment_status: 'pending',
-          upgrade_status: 'pending',
-        })
-        .select()
-        .single();
-
-      if (upgradeError) throw upgradeError;
-
-      // Update phone number
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
-
-      // Create PayPal order
-      const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
+      const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
-      const { data: orderData, error: orderError } = await supabase.functions.invoke("create-paypal-order", {
+      const { data, error } = await supabase.functions.invoke("start-membership-paypal", {
         body: {
-          payment_type: "membership",
-          membership_upgrade_id: upgrade.id,
-          user_id: userIdToUse,
+          tier: "silver",
           amount: AMOUNT,
-          installment_number: 1,
+          phone_number: phoneNumber,
+          payment_method: "paypal_full",
           return_url: returnUrl,
           cancel_url: cancelUrl,
-          description: "Silver Membership - One-time Payment",
         },
       });
 
-      if (orderError) throw orderError;
-      if (!orderData?.success) throw new Error("Failed to create PayPal order");
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to start payment");
 
       toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
-      sessionStorage.setItem("membership_upgrade", JSON.stringify({ upgrade_id: upgrade.id, payment_option: "full", amount: AMOUNT }));
-      window.location.href = orderData.approval_url as string;
+      sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
+        upgrade_id: data.upgrade_id, 
+        payment_option: "full", 
+        amount: AMOUNT 
+      }));
+      window.location.href = data.approval_url;
     } catch (error: any) {
       console.error("Upgrade error:", error);
       toast({ title: "Upgrade Failed", description: error.message || "Failed to process upgrade", variant: "destructive" });
@@ -114,52 +90,31 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
 
     setLoading(true);
     try {
-      const userIdToUse = await resolveUserId();
-      if (!userIdToUse) return;
-
-      const { data: upgrade, error: upgradeError } = await supabase
-        .from("membership_upgrades")
-        .insert({
-          user_id: userIdToUse,
-          upgrade_type: 'silver',
-          payment_amount: AMOUNT,
-          payment_method: 'paypal_paylater',
-          installment_plan: false,
-          installment_count: 1,
-          phone_number: phoneNumber,
-          payment_status: 'pending',
-          upgrade_status: 'pending',
-        })
-        .select()
-        .single();
-
-      if (upgradeError) throw upgradeError;
-
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
-
-      const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
+      const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
-      const { data: orderData, error: orderError } = await supabase.functions.invoke("create-paypal-order", {
+      const { data, error } = await supabase.functions.invoke("start-membership-paypal", {
         body: {
-          payment_type: "membership",
-          membership_upgrade_id: upgrade.id,
-          user_id: userIdToUse,
+          tier: "silver",
           amount: AMOUNT,
-          installment_number: 1,
+          phone_number: phoneNumber,
+          payment_method: "paypal_paylater",
           return_url: returnUrl,
           cancel_url: cancelUrl,
-          description: "Silver Membership - One-time Payment",
         },
       });
 
-      if (orderError) throw orderError;
-      if (!orderData?.success) throw new Error("Failed to create PayPal order");
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to start payment");
 
       toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
-      sessionStorage.setItem("membership_upgrade", JSON.stringify({ upgrade_id: upgrade.id, payment_option: "full", amount: AMOUNT }));
+      sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
+        upgrade_id: data.upgrade_id, 
+        payment_option: "full", 
+        amount: AMOUNT 
+      }));
       // Append Pay Later funding source
-      const approvalUrl = orderData.approval_url + "&fundingSource=paylater";
+      const approvalUrl = data.approval_url + "&fundingSource=paylater";
       window.location.href = approvalUrl;
     } catch (error: any) {
       console.error("Upgrade error:", error);
