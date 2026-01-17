@@ -252,11 +252,17 @@ serve(async (req) => {
       console.error("Failed to update upgrade with order ID:", updateError);
     }
 
+    // Log environment info for debugging
+    const isSandbox = PAYPAL_BASE_URL.includes("sandbox");
     console.log("=== Membership PayPal order ready ===", {
       upgrade_id: upgrade.id,
       order_id: order.id,
       tier,
       amount,
+      paypal_environment: paypalEnvironment,
+      paypal_base_url: PAYPAL_BASE_URL,
+      is_sandbox: isSandbox,
+      approval_url_domain: approvalUrl.includes("sandbox") ? "sandbox.paypal.com" : "paypal.com",
     });
 
     return new Response(

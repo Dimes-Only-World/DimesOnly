@@ -94,6 +94,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
+        tier: "silver_plus",
         payment_option: "full", 
         amount: AMOUNT 
       }));
@@ -141,6 +142,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
+        tier: "silver_plus",
         payment_option: "full", 
         amount: AMOUNT 
       }));
