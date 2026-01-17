@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { toast } from "@/hooks/use-toast";
 
@@ -15,6 +16,18 @@ const formatTierName = (tier: string | null | undefined) => {
     .join(" ");
 };
 
+// Helper to get upgrade page URL from tier
+const getUpgradePageUrl = (tier: string | null | undefined): string => {
+  if (!tier) return "/upgrade";
+  const tierLower = tier.toLowerCase();
+  if (tierLower === "silver_plus") return "/upgrade-silver-plus";
+  if (tierLower === "silver") return "/upgrade-silver";
+  if (tierLower === "gold") return "/upgrade-gold";
+  if (tierLower === "diamond") return "/upgrade-diamond-monthly";
+  if (tierLower === "elite") return "/elite";
+  return "/upgrade";
+};
+
 const PaymentStatusHandler: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -23,16 +36,57 @@ const PaymentStatusHandler: React.FC = () => {
     "processing"
   );
   const [message, setMessage] = useState("");
+  const [tier, setTier] = useState<string | null>(null);
 
   useEffect(() => {
     const handlePaymentReturn = async () => {
       const paymentType = searchParams.get("payment");
-      const upgradeId = searchParams.get("upgrade_id");
+      let upgradeId = searchParams.get("upgrade_id");
       const eventPaymentId = searchParams.get("payment_id");
       const paypalToken = searchParams.get("token");
       const payerId = searchParams.get("PayerID");
 
-      // Handle Diamond Plus upgrade
+      // Fallback: get upgrade_id from sessionStorage if not in URL
+      let storedUpgrade: { upgrade_id?: string; tier?: string } | null = null;
+      if (!upgradeId) {
+        try {
+          const stored = sessionStorage.getItem("membership_upgrade");
+          if (stored) {
+            storedUpgrade = JSON.parse(stored);
+            upgradeId = storedUpgrade?.upgrade_id || null;
+          }
+        } catch (e) {
+          console.warn("Failed to parse sessionStorage membership_upgrade:", e);
+        }
+      }
+
+      // Also try to get tier from sessionStorage
+      if (storedUpgrade?.tier) {
+        setTier(storedUpgrade.tier);
+      }
+
+      // Handle cancelled payment with improved UX
+      if (paymentType === "cancelled") {
+        // Try to determine tier from sessionStorage for better redirect
+        let cancelTier: string | null = null;
+        try {
+          const stored = sessionStorage.getItem("membership_upgrade");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            cancelTier = parsed?.tier || null;
+          }
+        } catch (e) {
+          console.warn("Failed to get tier from sessionStorage:", e);
+        }
+
+        setTier(cancelTier);
+        setStatus("error");
+        setMessage("Payment was cancelled. You can try again anytime.");
+        setProcessing(false);
+        return;
+      }
+
+      // Handle membership upgrade payment success
       if (paymentType === "success" && upgradeId) {
         try {
           // Check upgrade status
@@ -44,6 +98,11 @@ const PaymentStatusHandler: React.FC = () => {
 
           if (error) {
             throw new Error("Failed to verify upgrade");
+          }
+
+          // Store tier for potential retry button
+          if (upgrade?.upgrade_type) {
+            setTier(upgrade.upgrade_type);
           }
 
           if (upgrade.upgrade_status === "completed") {
@@ -89,11 +148,13 @@ const PaymentStatusHandler: React.FC = () => {
             setStatus("processing");
             setMessage("Payment is being processed. Please wait a moment...");
 
-            // If we have PayPal token and PayerID, the payment was successful
-            // Let's manually trigger the membership activation
-            if (paypalToken && payerId) {
+            // If we have PayPal token, the user approved the payment
+            // Let's manually trigger the membership activation via membership-webhook
+            // We no longer require PayerID since PayPal v2 checkout may not always return it
+            if (paypalToken || upgrade.paypal_order_id) {
               try {
                 console.log("Manually triggering membership activation...");
+                console.log("Using order ID:", upgrade.paypal_order_id || paypalToken);
 
                 // Call the membership-webhook function directly
                 const { data: webhookResult, error: webhookError } =
@@ -101,7 +162,7 @@ const PaymentStatusHandler: React.FC = () => {
                     body: {
                       event_type: "CHECKOUT.ORDER.APPROVED",
                       resource: {
-                        id: upgrade.paypal_order_id,
+                        id: upgrade.paypal_order_id || paypalToken,
                       },
                     },
                   });
@@ -138,6 +199,45 @@ const PaymentStatusHandler: React.FC = () => {
           );
         }
       }
+      // Handle success without upgrade_id - try to find from paypal token
+      else if (paymentType === "success" && paypalToken && !upgradeId && !eventPaymentId) {
+        try {
+          // Look up upgrade by PayPal order ID
+          const { data: upgrade, error } = await supabase
+            .from("membership_upgrades")
+            .select("*")
+            .eq("paypal_order_id", paypalToken)
+            .single();
+
+          if (error || !upgrade) {
+            console.error("Could not find upgrade for token:", paypalToken);
+            setStatus("error");
+            setMessage("Could not verify payment. Please contact support.");
+            setProcessing(false);
+            return;
+          }
+
+          // Store tier and redirect with proper upgrade_id
+          setTier(upgrade.upgrade_type);
+          sessionStorage.setItem("membership_upgrade", JSON.stringify({
+            upgrade_id: upgrade.id,
+            tier: upgrade.upgrade_type,
+          }));
+
+          // Re-run with the found upgrade_id
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.set("upgrade_id", upgrade.id);
+          window.history.replaceState({}, "", newUrl.toString());
+
+          // Recurse with the upgrade_id now set
+          setTimeout(handlePaymentReturn, 100);
+          return;
+        } catch (error) {
+          console.error("Error looking up upgrade by token:", error);
+          setStatus("error");
+          setMessage("Could not verify payment. Please contact support.");
+        }
+      }
       // Handle event payment
       else if (paymentType === "success" && eventPaymentId) {
         try {
@@ -170,15 +270,6 @@ const PaymentStatusHandler: React.FC = () => {
           setMessage("Failed to verify event payment.");
         }
       }
-      // Handle cancelled payment
-      else if (paymentType === "cancelled") {
-        setStatus("error");
-        setMessage("Payment was cancelled. You can try again anytime.");
-
-        setTimeout(() => {
-          navigate(-1); // Go back
-        }, 3000);
-      }
       // No payment parameters
       else {
         navigate("/dashboard");
@@ -190,6 +281,12 @@ const PaymentStatusHandler: React.FC = () => {
 
     handlePaymentReturn();
   }, [searchParams, navigate]);
+
+  const handleRetry = () => {
+    const retryUrl = getUpgradePageUrl(tier);
+    sessionStorage.removeItem("membership_upgrade");
+    navigate(retryUrl);
+  };
 
   if (processing && status === "processing") {
     return (
@@ -237,7 +334,7 @@ const PaymentStatusHandler: React.FC = () => {
                   status === "success" ? "text-green-800" : "text-red-800"
                 }
               >
-                {status === "success" ? "Payment Successful" : "Payment Failed"}
+                {status === "success" ? "Payment Successful" : "Payment Cancelled"}
               </AlertTitle>
             </div>
             <AlertDescription
@@ -248,6 +345,26 @@ const PaymentStatusHandler: React.FC = () => {
               {message}
             </AlertDescription>
           </Alert>
+
+          {/* Show retry button for cancelled payments */}
+          {status === "error" && (
+            <div className="mt-4 flex flex-col gap-2">
+              <Button 
+                onClick={handleRetry}
+                className="w-full"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate("/dashboard")}
+                className="w-full"
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

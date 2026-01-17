@@ -70,6 +70,7 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
       toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
+        tier: "silver",
         payment_option: "full", 
         amount: AMOUNT 
       }));
@@ -110,6 +111,7 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
       toast({ title: "Redirecting to PayPal", description: "Please complete your payment..." });
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
+        tier: "silver",
         payment_option: "full", 
         amount: AMOUNT 
       }));
