@@ -54,6 +54,7 @@ serve(async (req) => {
       expiry_year,
       cvv,
       card_holder_name,
+      billing_address, // Optional: { country_code, postal_code, address_line_1, admin_area_1, admin_area_2 }
     } = requestBody;
 
     // Validate required fields
@@ -117,6 +118,31 @@ serve(async (req) => {
     // Clean card number (remove spaces/dashes)
     const cleanCardNumber = card_number.replace(/[\s-]/g, "");
 
+    // Build card object with optional billing address and 3DS verification
+    const cardPaymentSource: Record<string, unknown> = {
+      number: cleanCardNumber,
+      expiry: `${expiry_year}-${expiry_month.padStart(2, "0")}`,
+      security_code: cvv,
+      name: card_holder_name,
+      // Add 3DS verification attributes for SCA compliance
+      attributes: {
+        verification: {
+          method: "SCA_WHEN_REQUIRED", // or SCA_ALWAYS for stricter testing
+        },
+      },
+    };
+
+    // Add billing address if provided (improves success rate with PayPal)
+    if (billing_address) {
+      cardPaymentSource.billing_address = {
+        country_code: billing_address.country_code || "US",
+        postal_code: billing_address.postal_code,
+        address_line_1: billing_address.address_line_1,
+        admin_area_1: billing_address.admin_area_1, // State/province
+        admin_area_2: billing_address.admin_area_2, // City
+      };
+    }
+
     // Create order with card payment using PayPal Advanced Checkout (Orders API v2)
     const orderPayload = {
       intent: "CAPTURE",
@@ -130,12 +156,7 @@ serve(async (req) => {
         },
       ],
       payment_source: {
-        card: {
-          number: cleanCardNumber,
-          expiry: `${expiry_year}-${expiry_month.padStart(2, "0")}`,
-          security_code: cvv,
-          name: card_holder_name,
-        },
+        card: cardPaymentSource,
       },
     };
 
@@ -153,13 +174,25 @@ serve(async (req) => {
 
     const orderData = await orderResponse.json();
     console.log("PayPal order response status:", orderResponse.status);
+    console.log("PayPal order response data:", JSON.stringify(orderData));
 
     if (!orderResponse.ok) {
       console.error("PayPal order error:", JSON.stringify(orderData));
       
+      // Extract detailed error information for debugging
+      const debugId = orderData.debug_id || "unknown";
+      const paypalErrorName = orderData.name || "UNKNOWN_ERROR";
+      const paypalMessage = orderData.message || "";
+      
       // Extract user-friendly error message
       let errorMessage = "Card payment failed. Please check your card details.";
+      let errorDetails: string[] = [];
+      
       if (orderData.details && orderData.details.length > 0) {
+        errorDetails = orderData.details.map((d: { issue?: string; description?: string }) => 
+          `${d.issue || "ERROR"}: ${d.description || "Unknown issue"}`
+        );
+        
         const detail = orderData.details[0];
         if (detail.issue === "CARD_VALIDATION_ERROR") {
           errorMessage = "Invalid card details. Please check and try again.";
@@ -169,13 +202,27 @@ serve(async (req) => {
           errorMessage = "Insufficient funds on card.";
         } else if (detail.issue === "TRANSACTION_REFUSED") {
           errorMessage = "Transaction was declined by your bank.";
+        } else if (detail.issue === "PERMISSION_DENIED") {
+          errorMessage = "Card payments not enabled for this merchant account. Please use PayPal.";
+        } else if (detail.issue === "PAYEE_NOT_ENABLED_FOR_CARD_PROCESSING") {
+          errorMessage = "Card payments not enabled. Please use PayPal checkout instead.";
         } else if (detail.description) {
           errorMessage = detail.description;
         }
+      } else if (paypalErrorName === "UNPROCESSABLE_ENTITY") {
+        errorMessage = "Unable to process this card. Please try PayPal checkout or a different card.";
       }
       
+      console.error("PayPal error summary:", { debugId, paypalErrorName, paypalMessage, errorDetails });
+      
       return new Response(
-        JSON.stringify({ success: false, error: errorMessage }),
+        JSON.stringify({ 
+          success: false, 
+          error: errorMessage,
+          debug_id: debugId,
+          paypal_error: paypalErrorName,
+          details: errorDetails,
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
