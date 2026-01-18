@@ -194,7 +194,8 @@ serve(async (req) => {
         cancel_url: cancel_url,
         brand_name: "Dimes Only World",
         user_action: "PAY_NOW",
-        landing_page: "LOGIN",
+        // Use BILLING landing page for card payments to show guest checkout
+        landing_page: payment_method === "paypal_card" ? "BILLING" : "LOGIN",
         locale: "en-US",
         payment_method: {
           payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",

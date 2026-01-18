@@ -7,10 +7,12 @@ interface PaymentMethodSelectorProps {
   amount: number;
   onPayPal: () => void;
   onPayLater: () => void;
-  onCardSubmit: (cardData: CardData) => void;
+  onCardSubmit?: (cardData: CardData) => void;
+  onCardRedirect?: () => void;
   isProcessing: boolean;
   disabled?: boolean;
   paypalLabel?: string;
+  cardMode?: "form" | "redirect";
 }
 
 export interface CardData {
@@ -26,9 +28,11 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   onPayPal,
   onPayLater,
   onCardSubmit,
+  onCardRedirect,
   isProcessing,
   disabled = false,
   paypalLabel = "Pay with PayPal",
+  cardMode = "form",
 }) => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
@@ -123,7 +127,13 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       <Button
         className="w-full py-6 text-lg bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
         size="lg"
-        onClick={() => setShowCardForm(true)}
+        onClick={() => {
+          if (cardMode === "redirect" && onCardRedirect) {
+            onCardRedirect();
+          } else {
+            setShowCardForm(true);
+          }
+        }}
         disabled={disabled || isProcessing}
       >
         <CreditCard className="mr-2 h-5 w-5" />

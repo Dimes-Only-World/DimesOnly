@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { parseSupabaseFunctionError } from "@/lib/parseSupabaseFunctionError";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle, ArrowLeft } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import PaymentMethodSelector, { CardData } from "@/components/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 
 interface UpgradeSilverProps {
   userId?: string;
@@ -127,7 +127,7 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
     }
   };
 
-  const handleCardPayment = async (cardData: CardData) => {
+  const handleCardRedirect = async () => {
     if (!phoneNumber) {
       toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
       return;
@@ -135,56 +135,36 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
 
     setLoading(true);
     try {
-      const userIdToUse = await resolveUserId();
-      if (!userIdToUse) return;
+      const returnUrl = `${window.location.origin}/payment-return?payment=success`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userIdToUse);
-
-      const { data, error } = await supabase.functions.invoke("process-card-membership", {
+      const { data, error } = await supabase.functions.invoke("start-membership-paypal", {
         body: {
-          user_id: userIdToUse,
           tier: "silver",
           amount: AMOUNT,
-          card_number: cardData.cardNumber,
-          expiry_month: cardData.expiryMonth,
-          expiry_year: cardData.expiryYear,
-          cvv: cardData.cvv,
-          card_holder_name: cardData.cardHolderName,
+          phone_number: phoneNumber,
+          payment_method: "paypal_card",
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
         },
       });
 
       if (error) throw error;
-      if (!data?.success) {
-        if (data?.requires_action) {
-          toast({ title: "Authentication Required", description: "Please complete 3D Secure verification", variant: "destructive" });
-          if (data.action_url) window.location.href = data.action_url;
-          return;
-        }
-        throw new Error(data?.error || "Payment failed");
-      }
+      if (!data?.success) throw new Error(data?.error || "Failed to start payment");
 
-      toast({ title: "Payment Successful!", description: "Your Silver membership is now active." });
-      navigate("/dashboard");
+      toast({ title: "Redirecting to PayPal", description: "Please complete your card payment..." });
+      sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
+        upgrade_id: data.upgrade_id, 
+        tier: "silver",
+        payment_option: "full", 
+        amount: AMOUNT 
+      }));
+      // Redirect to PayPal with card funding source
+      const approvalUrl = data.approval_url + "&fundingSource=card";
+      window.location.href = approvalUrl;
     } catch (error: any) {
-      console.error("Card payment error:", error);
-
-      const parsed = parseSupabaseFunctionError(error, "Failed to process card payment");
-      const debugSuffix = parsed.debugId ? ` (Debug ID: ${parsed.debugId})` : "";
-
-      if (parsed.paypalError) {
-        console.error("PayPal error details:", {
-          error: parsed.paypalError,
-          debug_id: parsed.debugId,
-          details: parsed.details,
-          rawBody: parsed.rawBody,
-        });
-      }
-
-      toast({
-        title: "Payment Failed",
-        description: parsed.message + debugSuffix,
-        variant: "destructive",
-      });
+      console.error("Card redirect error:", error);
+      toast({ title: "Payment Failed", description: error.message || "Failed to start card payment", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -250,7 +230,8 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
                     amount={AMOUNT}
                     onPayPal={handlePayPal}
                     onPayLater={handlePayLater}
-                    onCardSubmit={handleCardPayment}
+                    onCardRedirect={handleCardRedirect}
+                    cardMode="redirect"
                     isProcessing={loading}
                     disabled={!phoneNumber}
                   />
