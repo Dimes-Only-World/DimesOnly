@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { parseSupabaseFunctionError } from "@/lib/parseSupabaseFunctionError";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, ArrowLeft } from "lucide-react";
@@ -203,29 +204,24 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Card payment error:", error);
-      // Extract detailed error message from Supabase FunctionsHttpError
-      let errorMessage = "Failed to process card payment";
-      let debugInfo = "";
-      if (error?.context?.body) {
-        try {
-          const body = typeof error.context.body === 'string' ? JSON.parse(error.context.body) : error.context.body;
-          errorMessage = body?.error || errorMessage;
-          // Include debug info for troubleshooting
-          if (body?.debug_id) {
-            debugInfo = ` (Debug ID: ${body.debug_id})`;
-          }
-          if (body?.paypal_error) {
-            console.error("PayPal error details:", { 
-              error: body.paypal_error, 
-              debug_id: body.debug_id,
-              details: body.details 
-            });
-          }
-        } catch { /* ignore parse errors */ }
-      } else if (error?.message) {
-        errorMessage = error.message;
+
+      const parsed = parseSupabaseFunctionError(error, "Failed to process card payment");
+      const debugSuffix = parsed.debugId ? ` (Debug ID: ${parsed.debugId})` : "";
+
+      if (parsed.paypalError) {
+        console.error("PayPal error details:", {
+          error: parsed.paypalError,
+          debug_id: parsed.debugId,
+          details: parsed.details,
+          rawBody: parsed.rawBody,
+        });
       }
-      toast({ title: "Payment Failed", description: errorMessage + debugInfo, variant: "destructive" });
+
+      toast({
+        title: "Payment Failed",
+        description: parsed.message + debugSuffix,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
