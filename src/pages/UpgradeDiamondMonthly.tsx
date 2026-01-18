@@ -8,7 +8,7 @@ import { CheckCircle, ArrowLeft } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import PaymentMethodSelector, { CardData } from "@/components/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 
 export default function UpgradeDiamondMonthly() {
   const [searchParams] = useSearchParams();
@@ -129,7 +129,7 @@ export default function UpgradeDiamondMonthly() {
     }
   };
 
-  const handleCardPayment = async (cardData: CardData) => {
+  const handleCardRedirect = async () => {
     if (!phoneNumber) {
       toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
       return;
@@ -140,37 +140,41 @@ export default function UpgradeDiamondMonthly() {
       const userId = await resolveUserId();
       if (!userId) return;
 
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
+      const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=diamond&cadence=${cadence}&billing_option=${cadence==='yearly' ? billingOption : ''}`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=diamond&cadence=${cadence}&billing_option=${cadence==='yearly' ? billingOption : ''}`;
 
-      const { data, error } = await supabase.functions.invoke("process-card-membership", {
+      const { data, error } = await supabase.functions.invoke("start-membership-paypal", {
         body: {
           user_id: userId,
           tier: "diamond",
           amount: AMOUNT,
           cadence,
-          card_number: cardData.cardNumber,
-          expiry_month: cardData.expiryMonth,
-          expiry_year: cardData.expiryYear,
-          cvv: cardData.cvv,
-          card_holder_name: cardData.cardHolderName,
+          ...(cadence === 'yearly' ? { billing_option: billingOption } : {}),
+          phone_number: phoneNumber,
+          payment_method: "paypal_card",
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
         },
       });
 
       if (error) throw error;
-      if (!data?.success) {
-        if (data?.requires_action) {
-          toast({ title: "Authentication Required", description: "Please complete 3D Secure verification", variant: "destructive" });
-          if (data.action_url) window.location.href = data.action_url;
-          return;
-        }
-        throw new Error(data?.error || "Payment failed");
+      if (!data?.success || !data?.approval_url) {
+        throw new Error(data?.error || "Failed to create payment");
       }
 
-      toast({ title: "Payment Successful!", description: "Your Diamond membership is now active." });
-      navigate("/dashboard");
+      sessionStorage.setItem("membership_upgrade", JSON.stringify({
+        upgrade_id: data.upgrade_id,
+        tier: "diamond",
+        cadence,
+        billing_option: billingOption,
+      }));
+
+      toast({ title: "Redirecting to PayPal", description: "Complete card payment on PayPal..." });
+      const approvalUrl = data.approval_url + "&fundingSource=card";
+      window.location.href = approvalUrl;
     } catch (error: any) {
-      console.error("Card payment error:", error);
-      toast({ title: "Payment Failed", description: error.message || "Failed to process card payment", variant: "destructive" });
+      console.error("Card redirect error:", error);
+      toast({ title: "Payment Error", description: error.message || "Failed to start card payment", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -262,7 +266,8 @@ export default function UpgradeDiamondMonthly() {
                     amount={AMOUNT}
                     onPayPal={handlePayPal}
                     onPayLater={handlePayLater}
-                    onCardSubmit={handleCardPayment}
+                    cardMode="redirect"
+                    onCardRedirect={handleCardRedirect}
                     isProcessing={loading}
                     disabled={!phoneNumber}
                     paypalLabel="Subscribe with PayPal"
