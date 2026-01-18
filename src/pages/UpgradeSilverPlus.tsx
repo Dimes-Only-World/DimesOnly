@@ -205,15 +205,27 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       console.error("Card payment error:", error);
       // Extract detailed error message from Supabase FunctionsHttpError
       let errorMessage = "Failed to process card payment";
+      let debugInfo = "";
       if (error?.context?.body) {
         try {
           const body = typeof error.context.body === 'string' ? JSON.parse(error.context.body) : error.context.body;
           errorMessage = body?.error || errorMessage;
+          // Include debug info for troubleshooting
+          if (body?.debug_id) {
+            debugInfo = ` (Debug ID: ${body.debug_id})`;
+          }
+          if (body?.paypal_error) {
+            console.error("PayPal error details:", { 
+              error: body.paypal_error, 
+              debug_id: body.debug_id,
+              details: body.details 
+            });
+          }
         } catch { /* ignore parse errors */ }
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      toast({ title: "Payment Failed", description: errorMessage, variant: "destructive" });
+      toast({ title: "Payment Failed", description: errorMessage + debugInfo, variant: "destructive" });
     } finally {
       setLoading(false);
     }
