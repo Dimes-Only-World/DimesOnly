@@ -85,6 +85,12 @@ serve(async (req) => {
         ? "https://api-m.paypal.com"
         : "https://api-m.sandbox.paypal.com";
 
+    console.log("PayPal API configuration:", {
+      environment: paypalEnvironment,
+      baseUrl: PAYPAL_BASE_URL,
+      timestamp: new Date().toISOString(),
+    });
+
     // Get PayPal access token
     const auth = btoa(`${paypalClientId}:${paypalClientSecret}`);
     const tokenResponse = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
