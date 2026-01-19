@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, User, Calendar, Star, Heart, Play, Loader2, CreditCard } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import TipAmountSelector from "@/components/TipAmountSelector";
-import CreditCardForm from "@/components/CreditCardForm";
+// CreditCardForm removed - using PayPal Hosted Checkout redirect for cards
 import PhotoLightbox from "@/components/PhotoLightbox";
 import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
 import { supabase } from "@/lib/supabase";
@@ -68,14 +68,7 @@ const Tip: React.FC = () => {
   const [hasLiked, setHasLiked] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [showCardForm, setShowCardForm] = useState(false);
-  
-  // Credit card form state
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("");
-  const [expiryYear, setExpiryYear] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardHolderName, setCardHolderName] = useState("");
+  // Card form state removed - using PayPal Hosted Checkout redirect
 
   // Lightbox & Video modal state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -334,8 +327,8 @@ const Tip: React.FC = () => {
     }
   };
 
-  // Handle Credit Card payment via PayPal Advanced Checkout
-  const handleCardPayment = async () => {
+  // Handle Credit Card payment via PayPal Hosted Checkout redirect
+  const handleCardRedirect = async () => {
     if (!currentUser || !userData || tipAmount < 5) return;
 
     setIsProcessingPayment(true);
@@ -354,68 +347,65 @@ const Tip: React.FC = () => {
         return;
       }
 
-      console.log("Processing card payment for tip:", {
+      // Build return URL with all necessary params for capture
+      const baseUrl = window.location.origin;
+      const returnParams = new URLSearchParams({
+        tipper_id: currentUser.id,
+        tipper_username: currentUser.username || currentUser.email || "anonymous",
+        tipped_username: userData.username,
+        amount: tipAmount.toString(),
+        referrer_username: refUsername || "",
+        tip_message: (message || "").slice(0, 60),
+      });
+      
+      const returnUrl = `${baseUrl}/tip-paypal-return?${returnParams.toString()}`;
+      const cancelUrl = `${baseUrl}/tip?tip=${userData.username}${refUsername ? `&ref=${refUsername}` : ""}`;
+
+      console.log("Creating PayPal card order for tip:", {
         tipper_id: currentUser.id,
         tipped_username: userData.username,
         amount: tipAmount,
+        return_url: returnUrl,
       });
 
-      const { data, error } = await supabase.functions.invoke("process-card-tip", {
+      // Call our edge function to create the PayPal order
+      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
         body: {
+          payment_type: "tip",
           tipper_id: currentUser.id,
           tipper_username: currentUser.username || currentUser.email || "anonymous",
           tipped_username: userData.username,
           amount: tipAmount,
           tip_message: message,
-          referrer_username: refUsername || null,
-          card_number: cardNumber,
-          expiry_month: expiryMonth,
-          expiry_year: expiryYear,
-          cvv: cvv,
-          card_holder_name: cardHolderName,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
         },
       });
 
       if (error) {
-        console.error("Card payment error:", error);
-        throw new Error(error.message || "Failed to process card payment");
+        console.error("PayPal order creation error:", error);
+        throw new Error(error.message || "Failed to create PayPal order");
       }
 
-      if (!data?.success) {
-        // Check if 3D Secure is required
-        if (data?.requires_action && data?.action_url) {
-          toast({
-            title: "Authentication Required",
-            description: "Your bank requires additional verification. Redirecting...",
-          });
-          window.location.href = data.action_url;
-          return;
-        }
-        throw new Error(data?.error || "Card payment failed");
+      if (!data?.success || !data?.approval_url) {
+        throw new Error(data?.error || "Failed to get PayPal approval URL");
       }
 
-      console.log("Card payment successful:", data);
-
-      // Clear card form
-      setCardNumber("");
-      setExpiryMonth("");
-      setExpiryYear("");
-      setCvv("");
-      setCardHolderName("");
-      setShowCardForm(false);
-
-      // Show success
-      setShowSuccessDialog(true);
+      // Append fundingSource=card to redirect to card checkout
+      const cardUrl = `${data.approval_url}&fundingSource=card`;
+      console.log("Redirecting to PayPal card checkout:", cardUrl);
+      
+      // Redirect to PayPal card checkout
+      window.location.href = cardUrl;
     } catch (err) {
-      console.error("Card payment error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to process card payment";
+      console.error("Card redirect error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to process payment";
       setPaymentError(errorMessage);
       toast({
         title: "Payment Error",
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
       setIsProcessingPayment(false);
     }
   };
@@ -939,70 +929,59 @@ const Tip: React.FC = () => {
                         </div>
                       )}
 
-                      {!paymentError && !showCardForm && (
+                      {!paymentError && (
                         <>
+                          {/* PayPal Button */}
                           <Button
                             onClick={handlePayWithPayPal}
                             disabled={isProcessingPayment}
-                            className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg mb-3"
+                            className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 text-lg rounded-xl mb-3"
                           >
                             {isProcessingPayment ? (
                               <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Connecting to PayPal...
+                                Redirecting to PayPal...
                               </>
                             ) : (
                               <>Pay ${tipAmount} with PayPal</>
                             )}
                           </Button>
+                          
+                          {/* Card Button - Redirect to PayPal Hosted Checkout */}
                           <Button
-                            onClick={handlePayWithPayPalLater}
+                            onClick={handleCardRedirect}
                             disabled={isProcessingPayment}
-                            className="w-full bg-transparent border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 font-bold py-4 text-lg mb-3"
+                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg rounded-xl mb-3"
                           >
                             {isProcessingPayment ? (
                               <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Connecting to PayPal...
+                                Redirecting...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-5 h-5 mr-2" />
+                                Pay with Card
+                              </>
+                            )}
+                          </Button>
+                          
+                          {/* Pay Later Button */}
+                          <Button
+                            onClick={handlePayWithPayPalLater}
+                            disabled={isProcessingPayment}
+                            variant="outline"
+                            className="w-full border-2 border-yellow-400 text-yellow-400 bg-transparent hover:bg-yellow-400/10 font-bold py-4 text-lg rounded-xl"
+                          >
+                            {isProcessingPayment ? (
+                              <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Redirecting to PayPal...
                               </>
                             ) : (
                               <>Pay ${tipAmount} Later with PayPal</>
                             )}
                           </Button>
-                          <Button
-                            onClick={() => setShowCardForm(true)}
-                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 text-lg"
-                          >
-                            <CreditCard className="w-5 h-5 mr-2" />
-                            Pay with Card
-                          </Button>
-                        </>
-                      )}
-
-                      {!paymentError && showCardForm && (
-                        <>
-                          <Button
-                            onClick={() => setShowCardForm(false)}
-                            variant="outline"
-                            className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg mb-4"
-                          >
-                            ← Back to PayPal
-                          </Button>
-                          <CreditCardForm
-                            cardNumber={cardNumber}
-                            expiryMonth={expiryMonth}
-                            expiryYear={expiryYear}
-                            cvv={cvv}
-                            cardHolderName={cardHolderName}
-                            onCardNumberChange={setCardNumber}
-                            onExpiryMonthChange={setExpiryMonth}
-                            onExpiryYearChange={setExpiryYear}
-                            onCvvChange={setCvv}
-                            onCardHolderNameChange={setCardHolderName}
-                            amount={tipAmount}
-                            onSubmit={handleCardPayment}
-                            isSubmitting={isProcessingPayment}
-                          />
                         </>
                       )}
 
