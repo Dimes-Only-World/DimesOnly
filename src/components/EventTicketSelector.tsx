@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import CreditCardForm from "@/components/CreditCardForm";
 import { supabase } from "@/lib/supabaseClient";
 import { Ticket, Users, Crown, Star, Minus, Plus, CreditCard, Loader2 } from "lucide-react";
 
@@ -67,16 +66,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [guestName, setGuestName] = useState("");
   
   // Payment state
-  const [showCardForm, setShowCardForm] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  
-  // Credit card form state
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("");
-  const [expiryYear, setExpiryYear] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardHolderName, setCardHolderName] = useState("");
 
   // Calculate available spots - uses database values for free spots
   const availableFreeSpots = useMemo(() => {
@@ -216,45 +207,52 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
     }
   };
 
-  // Card payment handler
-  const handleCardPayment = async () => {
+  // Card payment redirect handler (uses PayPal Hosted Checkout with card funding source)
+  const handleCardRedirect = async () => {
     setIsProcessingPayment(true);
     setPaymentError(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("process-card-event-payment", {
+      const baseUrl = window.location.origin;
+      const returnParams = new URLSearchParams({
+        event_id: event.id,
+        buyer_id: currentUser.id,
+        buyer_username: currentUser.username,
+        ticket_type: selectedType || "general",
+        ticket_quantity: quantity.toString(),
+        amount: totalPrice.toString(),
+      });
+      
+      const returnUrl = `${baseUrl}/event-payment-return?${returnParams.toString()}`;
+      const cancelUrl = `${baseUrl}/event-details?id=${event.id}`;
+
+      const { data, error } = await supabase.functions.invoke("create-paypal-order", {
         body: {
+          payment_type: "event",
           event_id: event.id,
-          event_name: event.name,
-          buyer_id: currentUser.id,
-          buyer_username: currentUser.username,
-          event_owner_id: event.host_user_id,
+          user_id: currentUser.id,
           amount: totalPrice,
-          ticket_type: selectedType,
-          ticket_quantity: quantity,
-          card_number: cardNumber.replace(/\s/g, ""),
-          expiry_month: expiryMonth,
-          expiry_year: expiryYear,
-          cvv,
-          card_holder_name: cardHolderName,
+          description: `Event Ticket - ${event.name}`,
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
         },
       });
 
-      if (error || !data?.success) {
-        throw new Error(data?.error || "Card payment failed");
+      if (error || !data?.success || !data?.approval_url) {
+        throw new Error(data?.error || "Failed to create PayPal order");
       }
 
-      // Clear form and show success
-      setCardNumber("");
-      setExpiryMonth("");
-      setExpiryYear("");
-      setCvv("");
-      setCardHolderName("");
-      setShowCardForm(false);
-      onSuccess(data.capture_id || data.order_id);
+      // Append fundingSource=card to redirect to PayPal's card checkout
+      const redirectUrl = `${data.approval_url}&fundingSource=card`;
+
+      // Redirect to PayPal - use top-level window to avoid iframe issues
+      if (window.top && window.top !== window) {
+        window.top.location.assign(redirectUrl);
+      } else {
+        window.location.assign(redirectUrl);
+      }
     } catch (err: any) {
-      setPaymentError(err.message || "Failed to process card payment");
-    } finally {
+      setPaymentError(err.message || "Failed to process payment");
       setIsProcessingPayment(false);
     }
   };
@@ -316,7 +314,6 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
               onClick={() => {
                 setSelectedType(option.type);
                 setQuantity(1);
-                setShowCardForm(false);
                 setPaymentError(null);
               }}
               className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
@@ -442,7 +439,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                   </div>
                 )}
 
-                {!paymentError && !showCardForm && (
+                {!paymentError && (
                   <>
                     {/* Blue PayPal Button */}
                     <Button
@@ -460,13 +457,23 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                       )}
                     </Button>
 
-                    {/* Purple Card Button */}
+                    {/* Purple Card Button - Redirect to PayPal Card Checkout */}
                     <Button
-                      onClick={() => setShowCardForm(true)}
+                      onClick={handleCardRedirect}
+                      disabled={isProcessingPayment}
                       className="w-full bg-gradient-to-r from-card-start to-card-end hover:from-card-start/90 hover:to-card-end/90 text-primary-foreground font-bold py-4 text-lg rounded-xl mb-3"
                     >
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Pay with Card
+                      {isProcessingPayment ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Redirecting...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Pay with Card
+                        </>
+                      )}
                     </Button>
 
                     {/* Yellow Pay Later Button */}
@@ -485,36 +492,6 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                         "Pay Later"
                       )}
                     </Button>
-                  </>
-                )}
-
-                {!paymentError && showCardForm && (
-                  <>
-                    {/* Back to PayPal Button */}
-                    <Button
-                      onClick={() => setShowCardForm(false)}
-                      variant="outline"
-                      className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 font-bold py-4 text-lg rounded-xl mb-4"
-                    >
-                      ← Back to PayPal
-                    </Button>
-                    
-                    {/* Inline Credit Card Form */}
-                    <CreditCardForm
-                      cardNumber={cardNumber}
-                      expiryMonth={expiryMonth}
-                      expiryYear={expiryYear}
-                      cvv={cvv}
-                      cardHolderName={cardHolderName}
-                      onCardNumberChange={setCardNumber}
-                      onExpiryMonthChange={setExpiryMonth}
-                      onExpiryYearChange={setExpiryYear}
-                      onCvvChange={setCvv}
-                      onCardHolderNameChange={setCardHolderName}
-                      amount={totalPrice}
-                      onSubmit={handleCardPayment}
-                      isSubmitting={isProcessingPayment}
-                    />
                   </>
                 )}
               </div>
