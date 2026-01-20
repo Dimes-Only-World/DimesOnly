@@ -6,8 +6,8 @@ import { Tables } from "@/types";
 import VideoPlayerModal from "./VideoPlayerModal";
 
 // Video URLs from Supabase Storage - upload videos to promo-videos bucket
-const CAR_VIDEO_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/promo-videos/get-a-car.mp4";
-const CLOTHES_VIDEO_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/promo-videos/clothes.mp4";
+const CAR_VIDEO_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/promo-videos/get-a-car.webm";
+const CLOTHES_VIDEO_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/promo-videos/clothes.webm";
 
 type UserData = Tables<"users">;
 
