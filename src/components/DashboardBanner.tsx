@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Camera, Gift, Star, Calendar, Car, Shirt, Heart } from "lucide-react";
 import { Tables } from "@/types";
+import VideoPlayerModal from "./VideoPlayerModal";
+
+// Video URLs from Supabase Storage - upload videos to promo-videos bucket
+const CAR_VIDEO_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/promo-videos/get-a-car.mp4";
+const CLOTHES_VIDEO_URL = "https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/promo-videos/clothes.mp4";
 
 type UserData = Tables<"users">;
 
@@ -21,6 +26,8 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bannerUrl, setBannerUrl] = useState(bannerPhoto || "");
+  const [carVideoOpen, setCarVideoOpen] = useState(false);
+  const [clothesVideoOpen, setClothesVideoOpen] = useState(false);
 
   // Update bannerUrl when bannerPhoto changes
   useEffect(() => {
@@ -146,20 +153,39 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
           </div>
         </Button>
 
-        <Button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-yellow-300 hover:text-yellow-700 group">
+        <Button 
+          onClick={() => setCarVideoOpen(true)}
+          className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-yellow-300 hover:text-yellow-700 group"
+        >
           <div className="flex flex-col items-center gap-1">
             <Car className="w-5 h-5 text-yellow-600 group-hover:text-yellow-700" />
             <span>GET A CAR</span>
           </div>
         </Button>
 
-        <Button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-purple-300 hover:text-purple-700 group">
+        <Button 
+          onClick={() => setClothesVideoOpen(true)}
+          className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-purple-300 hover:text-purple-700 group"
+        >
           <div className="flex flex-col items-center gap-1">
             <Shirt className="w-5 h-5 text-purple-600 group-hover:text-purple-700" />
             <span>CLOTHES</span>
           </div>
         </Button>
       </div>
+
+      {/* Video Modals */}
+      <VideoPlayerModal
+        videoUrl={CAR_VIDEO_URL}
+        isOpen={carVideoOpen}
+        onClose={() => setCarVideoOpen(false)}
+      />
+
+      <VideoPlayerModal
+        videoUrl={CLOTHES_VIDEO_URL}
+        isOpen={clothesVideoOpen}
+        onClose={() => setClothesVideoOpen(false)}
+      />
     </div>
   );
 };
