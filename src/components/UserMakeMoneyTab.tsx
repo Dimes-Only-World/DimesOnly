@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Share2, Facebook, Instagram, Phone, Copy } from "lucide-react";
+import { Share2, Facebook, Instagram, MessageSquare, Copy } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -189,12 +189,7 @@ const UserMakeMoneyTab: React.FC = () => {
   }, [shareMessage, shareLink, copyToClipboard]);
 
   const handleInstagramShare = useCallback(async () => {
-    // Instagram does not support prefilled web share; copy message and open Instagram.
-    await copyToClipboard(shareMessage);
-    window.open("https://www.instagram.com", "_blank");
-  }, [shareMessage, copyToClipboard]);
-
-  const handleContactsShare = useCallback(async () => {
+    // Use navigator.share so users can select Instagram from the native share picker
     if (navigator.share) {
       try {
         await navigator.share({
@@ -203,13 +198,38 @@ const UserMakeMoneyTab: React.FC = () => {
           url: shareLink,
         });
       } catch (err) {
-        // user canceled or share failed — fall back to copy
+        // User canceled - fall back to copy and open Instagram
+        await copyToClipboard(shareMessage);
+        window.open("https://www.instagram.com", "_blank");
+      }
+    } else {
+      // Fallback for browsers without share API
+      await copyToClipboard(shareMessage);
+      window.open("https://www.instagram.com", "_blank");
+    }
+  }, [shareMessage, shareLink, copyToClipboard]);
+
+  const handleNativeShare = useCallback(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check out DimesOnly",
+          text: shareMessage,
+          url: shareLink,
+        });
+      } catch (err) {
         await copyToClipboard(shareMessage);
       }
     } else {
       await copyToClipboard(shareMessage);
     }
   }, [shareMessage, shareLink, copyToClipboard]);
+
+  const handleSmsShare = useCallback(() => {
+    // Use SMS URI scheme to open messages app with pre-filled text
+    const smsUrl = `sms:?body=${encodeURIComponent(shareMessage)}`;
+    window.location.href = smsUrl;
+  }, [shareMessage]);
 
   // Pagination
   const paginatedReferrals = useMemo(
@@ -276,12 +296,20 @@ const UserMakeMoneyTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded border">
-              <p className="text-sm font-mono break-all">{shareLink}</p>
+            <div className="p-3 bg-gray-50 rounded border flex items-center justify-between gap-2">
+              <p className="text-sm font-mono break-all flex-1">{shareLink}</p>
+              <Button 
+                onClick={handleCopyMessage} 
+                variant="ghost" 
+                size="sm"
+                className="shrink-0"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Button onClick={handleCopyMessage} variant="outline">
-                <Copy className="w-4 h-4 mr-2" /> Copy
+              <Button onClick={handleNativeShare} variant="outline">
+                <Share2 className="w-4 h-4 mr-2" /> Share
               </Button>
               <Button onClick={handleFacebookShare} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Facebook className="w-4 h-4 mr-2" /> Facebook
@@ -289,8 +317,8 @@ const UserMakeMoneyTab: React.FC = () => {
               <Button onClick={handleInstagramShare} className="bg-pink-600 hover:bg-pink-700 text-white">
                 <Instagram className="w-4 h-4 mr-2" /> Instagram
               </Button>
-              <Button onClick={handleContactsShare} variant="outline">
-                <Phone className="w-4 h-4 mr-2" /> Contacts
+              <Button onClick={handleSmsShare} variant="outline">
+                <MessageSquare className="w-4 h-4 mr-2" /> Contacts
               </Button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
