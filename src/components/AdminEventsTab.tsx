@@ -38,6 +38,8 @@ import {
   Search,
   Check,
   Lock,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 interface Event {
@@ -99,6 +101,9 @@ interface Attendee {
     user_type: string;
     first_name?: string;
     last_name?: string;
+    phone_number?: string;
+    mobile_number?: string;
+    membership_tier?: string;
   };
 }
 
@@ -143,6 +148,9 @@ const AdminEventsTab: React.FC = () => {
   const [showEditEvent, setShowEditEvent] = useState(false);
   const [showAttendees, setShowAttendees] = useState(false);
   const [phoneSearch, setPhoneSearch] = useState("");
+  const [checkingInId, setCheckingInId] = useState<string | null>(null);
+  const [userTypeFilter, setUserTypeFilter] = useState<string>("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
 
   // File upload states for creating
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -288,7 +296,10 @@ const AdminEventsTab: React.FC = () => {
             profile_photo,
             user_type,
             first_name,
-            last_name
+            last_name,
+            phone_number,
+            mobile_number,
+            membership_tier
           )
         `
         )
@@ -309,6 +320,7 @@ const AdminEventsTab: React.FC = () => {
   };
 
   const handleCheckIn = async (attendeeId: string, currentStatus: boolean) => {
+    setCheckingInId(attendeeId);
     try {
       console.log("🔄 Checking in attendee:", attendeeId);
       const { error } = await supabase
@@ -340,6 +352,8 @@ const AdminEventsTab: React.FC = () => {
         description: "Failed to update check-in status",
         variant: "destructive",
       });
+    } finally {
+      setCheckingInId(null);
     }
   };
 
@@ -801,21 +815,39 @@ const updateData = {
     return "";
   };
 
-  // Filter attendees by phone number (check both user_events phone and users phone)
+  // Filter attendees by search text, user type, and plan
   const filteredAttendees = attendees.filter((attendee) => {
-    if (!phoneSearch) return true;
-    const searchLower = phoneSearch.toLowerCase();
-    const phone = attendee.phone_number || "";
-    const userPhone = (attendee.users as any)?.phone_number || "";
-    const username = attendee.username || attendee.users?.username || "";
-    const firstName = attendee.first_name || attendee.users?.first_name || "";
-    const lastName = attendee.last_name || attendee.users?.last_name || "";
+    // Text search filter
+    if (phoneSearch) {
+      const searchLower = phoneSearch.toLowerCase();
+      const phone = attendee.phone_number || "";
+      const userPhone = attendee.users?.phone_number || attendee.users?.mobile_number || "";
+      const username = attendee.username || attendee.users?.username || "";
+      const firstName = attendee.first_name || attendee.users?.first_name || "";
+      const lastName = attendee.last_name || attendee.users?.last_name || "";
+      
+      const matchesSearch = phone.toLowerCase().includes(searchLower) ||
+             userPhone.toLowerCase().includes(searchLower) ||
+             username.toLowerCase().includes(searchLower) ||
+             firstName.toLowerCase().includes(searchLower) ||
+             lastName.toLowerCase().includes(searchLower);
+      
+      if (!matchesSearch) return false;
+    }
     
-    return phone.toLowerCase().includes(searchLower) ||
-           userPhone.toLowerCase().includes(searchLower) ||
-           username.toLowerCase().includes(searchLower) ||
-           firstName.toLowerCase().includes(searchLower) ||
-           lastName.toLowerCase().includes(searchLower);
+    // User type filter
+    if (userTypeFilter !== "all") {
+      const userType = attendee.users?.user_type || "";
+      if (userType !== userTypeFilter) return false;
+    }
+    
+    // Plan/ticket type filter
+    if (planFilter !== "all") {
+      const ticketType = (attendee.ticket_type || attendee.payment_status || "").toLowerCase();
+      if (!ticketType.includes(planFilter.toLowerCase())) return false;
+    }
+    
+    return true;
   });
 
   // Calculate total attendees including guests
@@ -2056,21 +2088,50 @@ const updateData = {
             <DialogTitle>Manage Attendees: {selectedEvent?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="text-sm text-gray-600">
                 Total Attendees: {getTotalAttendeeCount()} /{" "}
                 {selectedEvent?.max_attendees}
               </div>
               
-              {/* Phone/Name Search */}
-              <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search name or phone..."
-                  value={phoneSearch}
-                  onChange={(e) => setPhoneSearch(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex flex-wrap gap-2 items-center">
+                {/* Phone/Name Search */}
+                <div className="relative w-48">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search name or phone..."
+                    value={phoneSearch}
+                    onChange={(e) => setPhoneSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                
+                {/* User Type Filter */}
+                <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="User Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="stripper">Stripper</SelectItem>
+                    <SelectItem value="exotic">Exotic</SelectItem>
+                    <SelectItem value="normal">Female</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Plan Filter */}
+                <Select value={planFilter} onValueChange={setPlanFilter}>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Plans</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="vip">VIP</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -2106,12 +2167,12 @@ const updateData = {
                           {/* Username and phone */}
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span>@{attendee.username || attendee.users?.username}</span>
-                            {attendee.phone_number && (
+                            {(attendee.phone_number || attendee.users?.phone_number || attendee.users?.mobile_number) && (
                               <>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
                                   <Phone className="w-3 h-3" />
-                                  {attendee.phone_number}
+                                  {attendee.phone_number || attendee.users?.phone_number || attendee.users?.mobile_number}
                                 </span>
                               </>
                             )}
@@ -2167,12 +2228,32 @@ const updateData = {
                         {/* Check In Button */}
                         <Button
                           size="sm"
-                          variant={attendee.checked_in ? "outline" : "default"}
+                          disabled={checkingInId === attendee.id}
                           onClick={() => handleCheckIn(attendee.id, attendee.checked_in)}
-                          className={attendee.checked_in ? "border-green-500 text-green-400 bg-green-500/20 hover:bg-green-500/30" : "bg-green-600 hover:bg-green-700"}
+                          className={
+                            checkingInId === attendee.id
+                              ? "bg-orange-500 hover:bg-orange-600 text-white"
+                              : attendee.checked_in
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-gray-600 hover:bg-gray-700 text-white"
+                          }
                         >
-                          <Check className="w-4 h-4 mr-1" />
-                          {attendee.checked_in ? "Undo Check-in" : "Check In"}
+                          {checkingInId === attendee.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              Checking In
+                            </>
+                          ) : attendee.checked_in ? (
+                            <>
+                              <Check className="w-4 h-4 mr-1" />
+                              Checked In
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              Check In
+                            </>
+                          )}
                         </Button>
                         
                         <Button
