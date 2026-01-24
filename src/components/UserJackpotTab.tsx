@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,6 +144,7 @@ const formatDate = (value: string, includeTime = false) => {
 };
 
 const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
+  const navigate = useNavigate();
   const [currentTickets, setCurrentTickets] = useState<number>(0);
   const [ticketCodes, setTicketCodes] = useState<
     { code: string; created_at: string | null }[]
@@ -675,6 +677,16 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Link to dedicated Jackpot page */}
+      <div className="text-center">
+        <Button
+          onClick={() => navigate("/jackpot")}
+          className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3"
+        >
+          Want to know more about the jackpot? Click here
+        </Button>
+      </div>
 
       <Card>
         <CardHeader>
