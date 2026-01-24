@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
-import { formatTimeRange } from "@/lib/timeUtils";
+import { formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
 import {
   Calendar,
   MapPin,
@@ -709,7 +709,7 @@ const Events: React.FC = () => {
                     <div className="space-y-2 text-sm text-gray-300 mb-4">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-yellow-400" />
-                        <span>{new Date(event.date).toLocaleDateString()}</span>
+                        <span>{formatDateForDisplay(event.date)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-yellow-400" />
