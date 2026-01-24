@@ -266,7 +266,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
             <JackpotDisplay />
             <div className="mt-4 text-center">
               <Button
-                onClick={() => navigate("/dashboard?tab=jackpot")}
+                onClick={() => navigate("/jackpot")}
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3"
               >
                 Want to know more about the jackpot? Click here
