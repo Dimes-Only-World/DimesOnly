@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ interface User {
 
 const TipGirls: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tipUsername = searchParams.get("tip");
   const refUsername = normalizeRefParam(searchParams.get("ref"));
@@ -263,6 +264,14 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
         <div className="max-w-7xl mx-auto p-4">
           <div className="mb-8">
             <JackpotDisplay />
+            <div className="mt-4 text-center">
+              <Button
+                onClick={() => navigate("/dashboard?tab=jackpot")}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3"
+              >
+                Want to know more about the jackpot? Click here
+              </Button>
+            </div>
           </div>
 
           <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
