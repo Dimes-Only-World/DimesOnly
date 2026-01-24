@@ -279,7 +279,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
               <div className="space-y-4 md:space-y-0 md:flex md:space-x-4">
                 <div className="relative flex-1">
                   <User
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 z-10"
                     size={20}
                   />
                   <Input
@@ -287,12 +287,12 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                     placeholder="Search by name..."
                     value={searchName}
                     onChange={(e) => setSearchName(e.target.value)}
-                    className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300 w-full"
+                    className="pl-10 bg-white/90 border-2 border-purple-400 text-gray-900 placeholder-gray-500 w-full focus:border-yellow-400"
                   />
                 </div>
                 <div className="relative flex-1">
                   <MapPin
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 z-10"
                     size={20}
                   />
                   <Input
@@ -300,12 +300,12 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                     placeholder="Search by city..."
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
-                    className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300 w-full"
+                    className="pl-10 bg-white/90 border-2 border-purple-400 text-gray-900 placeholder-gray-500 w-full focus:border-yellow-400"
                   />
                 </div>
                 <div className="relative flex-1">
                   <Flag
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 z-10"
                     size={20}
                   />
                   <Input
@@ -313,7 +313,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                     placeholder="Search by state..."
                     value={searchState}
                     onChange={(e) => setSearchState(e.target.value)}
-                    className="pl-10 bg-white/20 border-white/30 text-white placeholder-gray-300 w-full"
+                    className="pl-10 bg-white/90 border-2 border-purple-400 text-gray-900 placeholder-gray-500 w-full focus:border-yellow-400"
                   />
                 </div>
               </div>
