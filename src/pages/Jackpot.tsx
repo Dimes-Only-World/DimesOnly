@@ -2,16 +2,33 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Gift, Users, Ticket, ArrowLeft, DollarSign } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, Gift, Users, Ticket, ArrowLeft, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
 import JackpotDisplay from "@/components/JackpotDisplay";
 import JackpotWinnersBanner from "@/components/JackpotWinnersBanner";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
 import { supabase } from "@/lib/supabase";
 
+const formatDate = (dateStr: string | null) => {
+  if (!dateStr) return "Date unavailable";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
 const Jackpot: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<{ id: string; username?: string } | null>(null);
   const [ticketCount, setTicketCount] = useState<number>(0);
+  const [showTicketDetails, setShowTicketDetails] = useState<boolean>(false);
+  const [ticketCodes, setTicketCodes] = useState<{ code: string; created_at: string | null }[]>([]);
+  const [visibleTicketCount, setVisibleTicketCount] = useState<number>(30);
+  const [loadingTickets, setLoadingTickets] = useState<boolean>(false);
 
   useEffect(() => {
     checkUser();
@@ -67,6 +84,36 @@ const Jackpot: React.FC = () => {
     }
   };
 
+  const fetchTicketCodes = async () => {
+    if (!currentUser) return;
+    setLoadingTickets(true);
+
+    try {
+      const { data: pool } = await supabase
+        .from("jackpot_pools")
+        .select("id")
+        .eq("status", "open")
+        .single();
+
+      if (pool) {
+        const { data: tickets, error } = await supabase
+          .from("jackpot_tickets")
+          .select("code, created_at")
+          .eq("user_id", currentUser.id)
+          .eq("pool_id", pool.id)
+          .order("created_at", { ascending: false });
+
+        if (!error && tickets) {
+          setTicketCodes(tickets);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching ticket codes:", error);
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Header */}
@@ -110,12 +157,78 @@ const Jackpot: React.FC = () => {
                   {ticketCount === 1 ? "ticket" : "tickets"} in current pool
                 </p>
                 <Button
-                  onClick={() => navigate("/dashboard?tab=jackpot")}
+                  onClick={() => {
+                    if (!showTicketDetails && ticketCodes.length === 0) {
+                      fetchTicketCodes();
+                    }
+                    setShowTicketDetails(!showTicketDetails);
+                  }}
                   className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black"
+                  disabled={loadingTickets}
                 >
-                  View My Ticket Details
+                  {loadingTickets ? (
+                    "Loading..."
+                  ) : showTicketDetails ? (
+                    <>
+                      <ChevronUp className="w-4 h-4 mr-2" />
+                      Hide Ticket Details
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4 mr-2" />
+                      View My Ticket Details
+                    </>
+                  )}
                 </Button>
               </div>
+
+              {/* Ticket Codes Display */}
+              {showTicketDetails && (
+                <div className="mt-6 border-t border-white/20 pt-6">
+                  <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center gap-2">
+                    <Ticket className="w-5 h-5" />
+                    Your Ticket Codes (This Week)
+                  </h3>
+                  {ticketCodes.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {ticketCodes.slice(0, visibleTicketCount).map((ticket, idx) => (
+                          <div
+                            key={idx}
+                            className="rounded-md border border-white/20 bg-white/10 p-3 text-center"
+                          >
+                            <Badge
+                              variant="secondary"
+                              className="text-sm mb-2 bg-yellow-500 text-black font-mono"
+                            >
+                              {ticket.code}
+                            </Badge>
+                            <div className="text-xs text-gray-300">
+                              {formatDate(ticket.created_at)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {ticketCodes.length > visibleTicketCount && (
+                        <div className="text-center mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setVisibleTicketCount((prev) => prev + 30)}
+                            className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
+                          >
+                            Show more ({ticketCodes.length - visibleTicketCount} remaining)
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-400 text-center">
+                      No tickets yet. Tip to earn your first ticket!
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
