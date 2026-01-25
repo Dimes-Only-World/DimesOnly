@@ -35,6 +35,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import AuthGuard from "@/components/AuthGuard";
+import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 
 interface MembershipLimits {
   membership_type: string;
@@ -243,6 +244,7 @@ const UpgradeDiamondPage: React.FC = () => {
     "full"
   );
   const [showAgreement, setShowAgreement] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   // Calculate remaining spots (combine stripper and exotic limits)
   const diamondPlusLimits = membershipLimits.filter(
@@ -306,7 +308,7 @@ const UpgradeDiamondPage: React.FC = () => {
     }
   };
 
-  const handleUpgrade = async () => {
+  const initiatePayment = async (fundingSource?: string) => {
     if (!userData || !phoneNumber.trim()) {
       toast({
         title: "Missing Information",
@@ -328,7 +330,6 @@ const UpgradeDiamondPage: React.FC = () => {
     setUpgradeInProgress(true);
 
     try {
-      // Get current session for auth header
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session?.access_token) {
         toast({
@@ -344,7 +345,6 @@ const UpgradeDiamondPage: React.FC = () => {
       const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
-      // Use the start-membership-paypal edge function which uses service role
       const { data: orderData, error: orderError } = await supabase.functions.invoke(
         "start-membership-paypal",
         {
@@ -371,7 +371,6 @@ const UpgradeDiamondPage: React.FC = () => {
         throw new Error(orderData?.error || "PayPal order creation failed");
       }
 
-      // Store upgrade info in sessionStorage for return handling
       sessionStorage.setItem(
         "diamond_plus_upgrade",
         JSON.stringify({
@@ -386,8 +385,13 @@ const UpgradeDiamondPage: React.FC = () => {
         description: "Please complete your payment...",
       });
 
-      // Redirect to PayPal
-      window.location.href = orderData.approval_url;
+      // Append funding source if specified
+      let approvalUrl = orderData.approval_url;
+      if (fundingSource) {
+        approvalUrl += `&fundingSource=${fundingSource}`;
+      }
+
+      window.location.href = approvalUrl;
     } catch (error: any) {
       console.error("Error processing upgrade:", error);
       toast({
@@ -400,6 +404,22 @@ const UpgradeDiamondPage: React.FC = () => {
     } finally {
       setUpgradeInProgress(false);
     }
+  };
+
+  const handlePayPal = () => initiatePayment();
+  const handlePayLater = () => initiatePayment("paylater");
+  const handleCardRedirect = () => initiatePayment("card");
+
+  const handleUpgradeClick = () => {
+    if (!phoneNumber.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide your phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPaymentDialog(true);
   };
 
   if (loading) {
@@ -708,25 +728,51 @@ const UpgradeDiamondPage: React.FC = () => {
               {/* Upgrade Button */}
               <div className="text-center">
                 <Button
-                  onClick={handleUpgrade}
-                  disabled={upgradeInProgress || !phoneNumber.trim()}
+                  onClick={handleUpgradeClick}
+                  disabled={!phoneNumber.trim()}
                   className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold text-lg px-12 py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
-                  {upgradeInProgress ? (
-                    "Processing..."
-                  ) : (
-                    <>
-                      <Crown className="w-5 h-5 mr-2" />
-                      {paymentOption === "full"
-                        ? "Pay $349.99 - Upgrade Now"
-                        : "Pay First Installment $111.73"}
-                    </>
-                  )}
+                  <Crown className="w-5 h-5 mr-2" />
+                  {paymentOption === "full"
+                    ? "Pay $349.99 - Upgrade Now"
+                    : "Pay First Installment $111.73"}
                 </Button>
                 <p className="text-gray-400 text-sm mt-4">
                   After payment, you'll receive instructions for your
                   notarization video call
                 </p>
+
+                {/* Payment Method Dialog */}
+                <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+                  <DialogContent className="max-w-md bg-gray-900 border-white/20">
+                    <DialogHeader>
+                      <DialogTitle className="text-white text-center text-xl">
+                        Choose Payment Method
+                      </DialogTitle>
+                      <p className="text-gray-300 text-center text-sm pt-2">
+                        {paymentOption === "full" 
+                          ? "Total: $349.99 (One-time Payment)" 
+                          : "First Installment: $111.73"}
+                      </p>
+                    </DialogHeader>
+                    
+                    <div className="py-4">
+                      <PaymentMethodSelector
+                        amount={paymentOption === "full" ? 349.99 : 111.73}
+                        onPayPal={handlePayPal}
+                        onPayLater={handlePayLater}
+                        onCardRedirect={handleCardRedirect}
+                        cardMode="redirect"
+                        isProcessing={upgradeInProgress}
+                        disabled={false}
+                      />
+                    </div>
+                    
+                    <p className="text-gray-400 text-xs text-center">
+                      Secure payment processed by PayPal
+                    </p>
+                  </DialogContent>
+                </Dialog>
               </div>
             </>
           )}
