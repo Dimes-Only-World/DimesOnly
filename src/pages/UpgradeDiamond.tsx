@@ -328,58 +328,40 @@ const UpgradeDiamondPage: React.FC = () => {
     setUpgradeInProgress(true);
 
     try {
-      // Create membership upgrade record
-      const upgradeData = {
-        user_id: userData.id,
-        upgrade_type: "diamond_plus",
-        payment_amount: paymentOption === "full" ? 349.99 : 111.73,
-        payment_method:
-          paymentOption === "full" ? "paypal_full" : "paypal_installment",
-        installment_plan: paymentOption === "installment",
-        installment_count: paymentOption === "installment" ? 2 : 1,
-        phone_number: phoneNumber,
-        payment_status: "pending",
-        upgrade_status: "pending",
-      };
+      // Get current session for auth header
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.access_token) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in again to continue",
+          variant: "destructive",
+        });
+        setUpgradeInProgress(false);
+        return;
+      }
 
-      const { data: upgrade, error: upgradeError } = await supabase
-        .from("membership_upgrades")
-        .insert(upgradeData)
-        .select()
-        .single();
-
-      if (upgradeError) throw upgradeError;
-
-      // Update user phone number
-      await supabase
-        .from("users")
-        .update({ phone_number: phoneNumber })
-        .eq("id", userData.id);
-
-      // Create PayPal order
       const paymentAmount = paymentOption === "full" ? 349.99 : 111.73;
-      const returnUrl = `${window.location.origin}/payment-return?payment=success&upgrade_id=${upgrade.id}`;
+      const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
-      // Use the existing create-paypal-order function with membership type
-      const { data: orderData, error: orderError } =
-        await supabase.functions.invoke("create-paypal-order", {
+      // Use the start-membership-paypal edge function which uses service role
+      const { data: orderData, error: orderError } = await supabase.functions.invoke(
+        "start-membership-paypal",
+        {
           body: {
-            payment_type: "membership",
-            membership_upgrade_id: upgrade.id,
-            user_id: userData.id,
+            tier: "diamond_plus",
             amount: paymentAmount,
-            installment_number: 1,
+            phone_number: phoneNumber,
+            payment_method: paymentOption === "full" ? "paypal_full" : "paypal_installment",
+            cadence: "one_time",
+            billing_option: paymentOption,
             return_url: returnUrl,
             cancel_url: cancelUrl,
-            description:
-              paymentOption === "full"
-                ? "Diamond Plus Membership - Full Payment ($349.99)"
-                : "Diamond Plus Membership - Installment 1/2 ($111.73)",
           },
-        });
+        }
+      );
 
-      console.log({ orderData, orderError });
+      console.log("start-membership-paypal response:", { orderData, orderError });
 
       if (orderError) {
         throw new Error(orderError.message || "Failed to create PayPal order");
@@ -389,25 +371,24 @@ const UpgradeDiamondPage: React.FC = () => {
         throw new Error(orderData?.error || "PayPal order creation failed");
       }
 
-      // Redirect to PayPal
-      toast({
-        title: "Redirecting to PayPal",
-        description: "Please complete your payment...",
-      });
-
       // Store upgrade info in sessionStorage for return handling
       sessionStorage.setItem(
         "diamond_plus_upgrade",
         JSON.stringify({
-          upgrade_id: upgrade.id,
+          upgrade_id: orderData.upgrade_id,
           payment_option: paymentOption,
           amount: paymentAmount,
         })
       );
 
+      toast({
+        title: "Redirecting to PayPal",
+        description: "Please complete your payment...",
+      });
+
       // Redirect to PayPal
       window.location.href = orderData.approval_url;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing upgrade:", error);
       toast({
         title: "Upgrade Failed",
