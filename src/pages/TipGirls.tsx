@@ -267,9 +267,9 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
             <div className="mt-4 text-center">
               <Button
                 onClick={() => navigate("/jackpot")}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3"
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3 h-auto text-center"
               >
-                Want to know more about the jackpot? Click here
+                Want to know more about the jackpot?<br />Click here
               </Button>
             </div>
           </div>
