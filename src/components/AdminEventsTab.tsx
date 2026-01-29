@@ -1212,27 +1212,50 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Normal M/F Tickets and Pricing */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Free Spots Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Free Normal M/F
+                      Free Males
                     </label>
                     <Input
                       type="number"
                       min="0"
-                      value={newEvent.free_normal || 0}
+                      value={newEvent.free_spots_males || 0}
                       onChange={(e) =>
                         setNewEvent((prev) => ({
                           ...prev,
-                          free_normal: parseInt(e.target.value) || 0,
+                          free_spots_males: parseInt(e.target.value) || 0,
                         }))
                       }
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal male and female users
+                      Free spots for normal male users
                     </p>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Free Females
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={newEvent.free_spots_females || 0}
+                      onChange={(e) =>
+                        setNewEvent((prev) => ({
+                          ...prev,
+                          free_spots_females: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Free spots for normal female users
+                    </p>
+                  </div>
+                </div>
+
+                {/* Pricing Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Males Price ($)
@@ -1252,7 +1275,7 @@ const updateData = {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Normal Females Price ($)
+                      Females Price ($)
                     </label>
                     <Input
                       type="number"
@@ -1811,22 +1834,48 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Normal M/F Spots and Pricing */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Free Spots Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Free Normal M/F</label>
+                    <label className="block text-sm font-medium mb-1">Free Males</label>
                     <Input
                       type="number"
                       min="0"
-                      value={editingEvent.free_normal || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_normal: parseInt(e.target.value) || 0 } : null)}
+                      value={editingEvent.free_spots_males || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_males: parseInt(e.target.value) || 0 } : null)}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal male and female users
+                      Free spots for normal male users
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Normal Females Price ($)</label>
+                    <label className="block text-sm font-medium mb-1">Free Females</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={editingEvent.free_spots_females || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_females: parseInt(e.target.value) || 0 } : null)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Free spots for normal female users
+                    </p>
+                  </div>
+                </div>
+
+                {/* Pricing Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Males Price ($)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editingEvent.males_price || 0}
+                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, males_price: parseFloat(e.target.value) || 0 } : null)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Females Price ($)</label>
                     <Input
                       type="number"
                       min="0"
