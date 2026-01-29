@@ -1,51 +1,89 @@
 
 
-# Fix: Split "Want to know more about the jackpot?" Button into 2 Lines
+# Plan: Split "Free Normal M/F" into Separate Male and Female Inputs (2-Column Rows)
 
 ## Overview
-Modify the button on the Tip & Win page to display the text on two centered lines instead of one.
+Replace the single "Free Normal M/F" input with two separate inputs for "Free Males" and "Free Females", organized in 2-column rows.
 
-## Current State
-The button at line 268-273 in `TipGirls.tsx` currently displays:
-> "Want to know more about the jackpot? Click here"
-
-## Desired Result
-The button should display:
-- Line 1: "Want to know more about the jackpot?"
-- Line 2: "Click here" (centered below)
-
-## Solution
+## Changes Required
 
 ### File to Modify
-- `src/pages/TipGirls.tsx` (lines 268-273)
+`src/components/AdminEventsTab.tsx`
 
-### Code Change
+---
 
-**Before:**
-```tsx
-<Button
-  onClick={() => navigate("/jackpot")}
-  className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3"
->
-  Want to know more about the jackpot? Click here
-</Button>
+### 1. Add Event Form (lines 1215-1270)
+
+**Current Layout (3 columns, 1 row):**
+```text
++----------------+----------------+--------------------+
+| Free Normal MF | Males Price    | Females Price      |
++----------------+----------------+--------------------+
 ```
 
-**After:**
-```tsx
-<Button
-  onClick={() => navigate("/jackpot")}
-  className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3 flex flex-col items-center"
->
-  <span>Want to know more about the jackpot?</span>
-  <span>Click here</span>
-</Button>
+**New Layout (2 columns, 2 rows):**
+```text
+Row 1:
++--------------------+---------------------+
+| Free Males         | Free Females        |
++--------------------+---------------------+
+
+Row 2:
++--------------------+---------------------+
+| Males Price ($)    | Females Price ($)   |
++--------------------+---------------------+
 ```
 
-## Technical Details
+**Code Changes:**
+- Change grid from `md:grid-cols-3` to `md:grid-cols-2`
+- Replace single "Free Normal M/F" input with two inputs:
+  - "Free Males" bound to `free_spots_males`
+  - "Free Females" bound to `free_spots_females`
+- Add a second `grid-cols-2` row for the pricing inputs
 
-- Adding `flex flex-col items-center` to the button creates a vertical flex container
-- Each `<span>` element becomes a flex item that stacks vertically
-- The `items-center` class ensures both lines are horizontally centered
-- The button's existing gradient and padding styles remain unchanged
+---
+
+### 2. Edit Event Form (lines 1814-1838)
+
+**Current Layout (3 columns, 1 row):**
+```text
++----------------+--------------------+
+| Free Normal MF | Females Price      |
++----------------+--------------------+
+```
+
+**New Layout (2 columns, 2 rows):**
+```text
+Row 1:
++--------------------+---------------------+
+| Free Males         | Free Females        |
++--------------------+---------------------+
+
+Row 2:
++--------------------+---------------------+
+| Males Price ($)    | Females Price ($)   |
++--------------------+---------------------+
+```
+
+**Code Changes:**
+- Replace single "Free Normal M/F" input with two inputs in a 2-column grid
+- Add Males Price input (currently missing from edit form)
+- Move Females Price to second row alongside Males Price
+
+---
+
+## Technical Summary
+
+| Location | Current | After |
+|----------|---------|-------|
+| Add Form Row 1 | 3 cols: Free Normal, Males Price, Females Price | 2 cols: Free Males, Free Females |
+| Add Form Row 2 | N/A | 2 cols: Males Price, Females Price |
+| Edit Form Row 1 | 3 cols: Free Normal, Females Price | 2 cols: Free Males, Free Females |
+| Edit Form Row 2 | N/A | 2 cols: Males Price, Females Price |
+
+## Fields Used
+- `free_spots_males` - Free spots for normal male users (already exists in interface/state)
+- `free_spots_females` - Free spots for normal female users (already exists in interface/state)
+- `males_price` - Ticket price for males
+- `females_price` - Ticket price for females
 
