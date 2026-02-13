@@ -419,7 +419,7 @@ const Tip: React.FC = () => {
       // Use maybeSingle() instead of single() to handle missing users gracefully
       const { data, error } = await supabase
         .from("public_user_profiles")
-        .select("id, username, profile_photo, city, state, bio, user_type")
+        .select("id, username, profile_photo, city, state, bio, user_type, created_at")
         .eq("username", tipUsername)
         .in("user_type", ["stripper", "exotic"])
         .maybeSingle();
@@ -442,7 +442,7 @@ const Tip: React.FC = () => {
           state: String(data.state || ""),
           bio: data.bio ? String(data.bio) : undefined,
           user_type: String(data.user_type),
-          created_at: new Date().toISOString(), // Not available in public view
+          created_at: data.created_at ? String(data.created_at) : new Date().toISOString(),
         });
       } else {
         console.log("No user found for username:", tipUsername);
