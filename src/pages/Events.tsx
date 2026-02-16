@@ -80,7 +80,7 @@ const Events: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [latestSilverVideo, setLatestSilverVideo] = useState<string | null>(null);
+  const [latestFreeVideo, setLatestFreeVideo] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     location: "",
     date: "",
@@ -100,16 +100,16 @@ const Events: React.FC = () => {
     }
   }, [userProfile?.id]);
 
-  // Fetch latest silver video for THIS specific user (not global)
+  // Fetch latest free video for THIS specific user (not global)
   useEffect(() => {
-    const fetchLatestSilverVideo = async () => {
+    const fetchLatestFreeVideo = async () => {
       if (!userProfile?.id) {
-        setLatestSilverVideo(null);
+        setLatestFreeVideo(null);
         return;
       }
 
       try {
-        // Get latest silver tier video for THIS specific user
+        // Get latest free tier video for THIS specific user
         const { data: videoData, error } = await supabase
           .from("user_media")
           .select(`
@@ -118,14 +118,14 @@ const Events: React.FC = () => {
             user_id
           `)
           .eq("user_id", userProfile.id)
-          .eq("content_tier", "silver")
+          .eq("content_tier", "free")
           .eq("media_type", "video")
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
         if (error || !videoData) {
-          setLatestSilverVideo(null);
+          setLatestFreeVideo(null);
           return;
         }
 
@@ -152,14 +152,14 @@ const Events: React.FC = () => {
           }
         }
 
-        setLatestSilverVideo(videoUrl);
+        setLatestFreeVideo(videoUrl);
       } catch (error) {
-        console.error("Error fetching latest silver video:", error);
-        setLatestSilverVideo(null);
+        console.error("Error fetching latest free video:", error);
+        setLatestFreeVideo(null);
       }
     };
 
-    fetchLatestSilverVideo();
+    fetchLatestFreeVideo();
   }, [userProfile?.id]);
 
   // Cleanup function to cancel ongoing requests
@@ -360,7 +360,7 @@ const Events: React.FC = () => {
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width, larger height, object-cover for stretch */}
             <div className="w-full h-72 md:h-96 lg:h-[550px] relative overflow-hidden bg-black">
-              {latestSilverVideo ? (
+              {latestFreeVideo ? (
                 <video
                   autoPlay
                   muted
@@ -378,7 +378,7 @@ const Events: React.FC = () => {
                     video.parentElement?.appendChild(fallbackImg);
                   }}
                 >
-                  <source src={latestSilverVideo} type="video/mp4" />
+                  <source src={latestFreeVideo} type="video/mp4" />
                 </video>
               ) : (
                 <img
