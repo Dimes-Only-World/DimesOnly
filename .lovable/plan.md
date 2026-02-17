@@ -1,35 +1,41 @@
 
-# Fix: Free Males and Free Females Not Saving in Admin Events
+
+# Fix: Display and Save Free Males / Free Females Separately
 
 ## Problem
-The `free_spots_males` and `free_spots_females` fields are not being saved when editing events. They are also using unnecessary `as any` casting when creating events.
+1. **Admin event card summary** (the short description under each event) only shows "Free Dimes: X strippers, X exotics" and either omits or merges the normal male/female free spots. It should display: **"Normal M/F: X Free Males, X Free Females"**
+2. **Events page** (public-facing) uses `free_normal` (a combined field) instead of `free_spots_males` and `free_spots_females` for calculating and displaying remaining free spots for normal users.
 
 ## Root Cause
-In `src/components/AdminEventsTab.tsx`:
+- The admin summary line at line 1480-1485 in `AdminEventsTab.tsx` references `event.free_normal` as a single combined number and ignores `free_spots_males` / `free_spots_females`.
+- The Events page (`Events.tsx`) function `getRemainingNormalFree` (line 313) only uses `event.free_normal` and does not distinguish between male and female free spots.
 
-1. **Edit/Update flow (line 613-643):** The `updateData` object is completely missing `free_spots_males` and `free_spots_females` fields, so they are never sent to the database on update.
-2. **Create flow (lines 449-450):** Uses `(newEvent as any).free_spots_males` even though these fields already exist on the `NewEvent` interface (lines 63-64), which is unnecessary and error-prone.
+## Fix (2 files)
 
-## Fix (1 file, 2 changes)
+### File 1: `src/components/AdminEventsTab.tsx`
 
-**File:** `src/components/AdminEventsTab.tsx`
+**Change the event card summary (lines 1480-1486)** to display male and female free spots separately:
 
-### Change 1: Add missing fields to the edit/update data object
-Add `free_spots_males` and `free_spots_females` to the `updateData` object around line 629, after `free_normal`:
-
+Before:
 ```
-free_normal: editingEvent.free_normal,
-free_spots_males: editingEvent.free_spots_males || 0,
-free_spots_females: editingEvent.free_spots_females || 0,
+Free Dimes: {event.free_spots_strippers} strippers, {event.free_spots_exotics} exotics
+{event.free_normal > 0 && ` . Normal M/F: ${event.free_normal}`}
 ```
 
-### Change 2: Remove unnecessary `as any` casting in create flow
-On lines 449-450, change:
-- `free_spots_males: (newEvent as any).free_spots_males || 0`
-- `free_spots_females: (newEvent as any).free_spots_females || 0`
+After:
+```
+Free Dimes: {event.free_spots_strippers} strippers, {event.free_spots_exotics} exotics
+{(event.free_spots_males > 0 || event.free_spots_females > 0) &&
+  ` . Normal M/F: ${event.free_spots_males || 0} Free Males, ${event.free_spots_females || 0} Free Females`}
+```
 
-To:
-- `free_spots_males: newEvent.free_spots_males || 0`
-- `free_spots_females: newEvent.free_spots_females || 0`
+### File 2: `src/pages/Events.tsx`
 
-These fields are already defined on the interface, so the cast is not needed.
+**Update `getRemainingNormalFree` (lines 313-324)** to calculate remaining spots using the gender-specific fields and the viewer's gender, instead of the combined `free_normal` field.
+
+- For male viewers: calculate remaining from `event.free_spots_males` minus male registrations
+- For female viewers: calculate remaining from `event.free_spots_females` minus female registrations
+- Update the badge display (line 664-667) to show "Free Males: X" or "Free Females: X" based on the viewer's gender, rather than a combined "Free Normal M/F" number
+
+This ensures both the admin dashboard and the public events page correctly reflect the separate male and female free spot allocations.
+
