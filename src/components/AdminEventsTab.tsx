@@ -1482,7 +1482,8 @@ const updateData = {
                         {event.max_attendees} • Free Dimes:{" "}
                         {event.free_spots_strippers} strippers,{" "}
                         {event.free_spots_exotics} exotics
-                        {event.free_normal > 0 && ` • Normal M/F: ${event.free_normal}`}
+                        {(event.free_spots_males > 0 || event.free_spots_females > 0) &&
+                          ` • Normal M/F: ${event.free_spots_males || 0} Free Males, ${event.free_spots_females || 0} Free Females`}
                       </p>
                       {event.genre && (
                         <Badge variant="outline" className="w-fit">

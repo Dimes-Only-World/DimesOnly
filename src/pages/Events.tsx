@@ -310,17 +310,31 @@ const Events: React.FC = () => {
 
   // Calculate remaining free spots for Normal Male and Female
   // Uses event.free_normal from database (default 0 if not set)
-  const getRemainingNormalFree = useCallback((event: Event | null) => {
+  const getRemainingNormalFreeMales = useCallback((event: Event | null) => {
     if (!event) return 0;
-    const total = event.free_normal || 0;
+    const total = event.free_spots_males || 0;
     if (total === 0) return 0;
-    const usedNormal = (event.registrations || [])
+    const usedMales = (event.registrations || [])
       .filter(r => {
         const userType = (r.user_type || '').toLowerCase();
-        return userType === 'male' || userType === 'female' || userType === 'normal' || userType === '';
+        return userType === 'male' || userType === 'normal' || userType === '';
       })
-      .length; // Count PEOPLE, not tickets
-    return Math.max(0, total - usedNormal);
+      .filter(r => (r.gender || '').toLowerCase() === 'male' || (r.user_type || '').toLowerCase() === 'male')
+      .length;
+    return Math.max(0, total - usedMales);
+  }, []);
+
+  const getRemainingNormalFreeFemales = useCallback((event: Event | null) => {
+    if (!event) return 0;
+    const total = event.free_spots_females || 0;
+    if (total === 0) return 0;
+    const usedFemales = (event.registrations || [])
+      .filter(r => {
+        const userType = (r.user_type || '').toLowerCase();
+        return userType === 'female';
+      })
+      .length;
+    return Math.max(0, total - usedFemales);
   }, []);
 
   // Calculate remaining free spots for Exotic Dancers
@@ -348,8 +362,8 @@ const Events: React.FC = () => {
   // Check if there are any free spots remaining
   const hasAnyFreeSpots = useCallback((event: Event | null) => {
     if (!event) return false;
-    return getRemainingNormalFree(event) > 0 || getRemainingExoticFree(event) > 0 || getRemainingStripperFree(event) > 0;
-  }, [getRemainingNormalFree, getRemainingExoticFree, getRemainingStripperFree]);
+    return getRemainingNormalFreeMales(event) > 0 || getRemainingNormalFreeFemales(event) > 0 || getRemainingExoticFree(event) > 0 || getRemainingStripperFree(event) > 0;
+  }, [getRemainingNormalFreeMales, getRemainingNormalFreeFemales, getRemainingExoticFree, getRemainingStripperFree]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -659,17 +673,30 @@ const Events: React.FC = () => {
                           );
                         }
 
-                        // Default: normal/male/female viewer
-                        const remaining = getRemainingNormalFree(event);
-                        return remaining > 0 ? (
-                          <Badge className="bg-green-600 text-white font-bold text-xs">
-                            Free Normal M/F: {remaining}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-yellow-600 text-white font-bold">
-                            PAID ONLY
-                          </Badge>
-                        );
+                        // Default: normal/male/female viewer - show gender-specific free spots
+                        const userGender = (appUser?.gender || '').toLowerCase();
+                        const remainingMales = getRemainingNormalFreeMales(event);
+                        const remainingFemales = getRemainingNormalFreeFemales(event);
+                        
+                        if (userGender === 'female' && remainingFemales > 0) {
+                          return (
+                            <Badge className="bg-green-600 text-white font-bold text-xs">
+                              Free Females: {remainingFemales}
+                            </Badge>
+                          );
+                        } else if (userGender !== 'female' && remainingMales > 0) {
+                          return (
+                            <Badge className="bg-green-600 text-white font-bold text-xs">
+                              Free Males: {remainingMales}
+                            </Badge>
+                          );
+                        } else {
+                          return (
+                            <Badge className="bg-yellow-600 text-white font-bold">
+                              PAID ONLY
+                            </Badge>
+                          );
+                        }
                       })()}
                     </div>
 
