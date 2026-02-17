@@ -1,41 +1,35 @@
 
 
-# Fix: Display and Save Free Males / Free Females Separately
+# Fix: Event Details Page Showing "Paid Only" Despite Free Male Spots Available
 
 ## Problem
-1. **Admin event card summary** (the short description under each event) only shows "Free Dimes: X strippers, X exotics" and either omits or merges the normal male/female free spots. It should display: **"Normal M/F: X Free Males, X Free Females"**
-2. **Events page** (public-facing) uses `free_normal` (a combined field) instead of `free_spots_males` and `free_spots_females` for calculating and displaying remaining free spots for normal users.
+The Event Details page (and ticket selector) still uses the old combined `free_normal` field to calculate free spots for normal users. Since the admin now saves free spots into `free_spots_males` and `free_spots_females` (not `free_normal`), the calculation returns 0 and shows "Paid Only" even when there are 2 free male spots available.
+
+The Events listing page was already fixed in the previous update, but the Event Details page and Ticket Selector were missed.
 
 ## Root Cause
-- The admin summary line at line 1480-1485 in `AdminEventsTab.tsx` references `event.free_normal` as a single combined number and ignores `free_spots_males` / `free_spots_females`.
-- The Events page (`Events.tsx`) function `getRemainingNormalFree` (line 313) only uses `event.free_normal` and does not distinguish between male and female free spots.
+Two components still reference `event.free_normal` instead of the gender-specific fields:
+
+1. **EventDetails.tsx (lines 720-726)**: Calculates `totalNormalFree` from `event.free_normal`
+2. **EventTicketSelector.tsx (lines 78-82)**: Calculates `availableFreeSpots` from `event.free_normal`
+
+Since the admin saves values to `free_spots_males` and `free_spots_females`, `free_normal` is 0, so the system thinks there are no free spots.
 
 ## Fix (2 files)
 
-### File 1: `src/components/AdminEventsTab.tsx`
+### File 1: `src/pages/EventDetails.tsx`
 
-**Change the event card summary (lines 1480-1486)** to display male and female free spots separately:
+Update the free spots display section (lines 720-766) to use gender-specific fields:
+- For male users: show remaining from `free_spots_males` minus used male spots
+- For female users: show remaining from `free_spots_females` minus used female spots
+- Label accordingly ("Free Males: X" or "Free Females: X")
 
-Before:
-```
-Free Dimes: {event.free_spots_strippers} strippers, {event.free_spots_exotics} exotics
-{event.free_normal > 0 && ` . Normal M/F: ${event.free_normal}`}
-```
+### File 2: `src/components/EventTicketSelector.tsx`
 
-After:
-```
-Free Dimes: {event.free_spots_strippers} strippers, {event.free_spots_exotics} exotics
-{(event.free_spots_males > 0 || event.free_spots_females > 0) &&
-  ` . Normal M/F: ${event.free_spots_males || 0} Free Males, ${event.free_spots_females || 0} Free Females`}
-```
+Update the `availableFreeSpots` calculation (lines 78-82) for normal/male/female users:
+- Accept the user's gender (from props or context)
+- For male users: calculate from `event.free_spots_males` minus `usedFreeSpots.males`
+- For female users: calculate from `event.free_spots_females` minus `usedFreeSpots.females`
+- Add `free_spots_males` and `free_spots_females` to the event interface (line 31)
 
-### File 2: `src/pages/Events.tsx`
-
-**Update `getRemainingNormalFree` (lines 313-324)** to calculate remaining spots using the gender-specific fields and the viewer's gender, instead of the combined `free_normal` field.
-
-- For male viewers: calculate remaining from `event.free_spots_males` minus male registrations
-- For female viewers: calculate remaining from `event.free_spots_females` minus female registrations
-- Update the badge display (line 664-667) to show "Free Males: X" or "Free Females: X" based on the viewer's gender, rather than a combined "Free Normal M/F" number
-
-This ensures both the admin dashboard and the public events page correctly reflect the separate male and female free spot allocations.
-
+This ensures the "Free" ticket option appears when free male/female spots exist, and "Paid Only" only shows when all gender-specific free spots are exhausted.
