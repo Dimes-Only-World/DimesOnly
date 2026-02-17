@@ -1,33 +1,35 @@
 
-
-# Fix: Events Page Banner Showing Silver (X-Rated) Content Instead of Free Content
+# Fix: Free Males and Free Females Not Saving in Admin Events
 
 ## Problem
-When a normal male/female user selects a performer on the Events page, the banner video at the top shows the performer's **latest silver-tier video** instead of their **latest free-tier video**. Silver content can contain explicit/x-rated material that:
-1. Users have not paid to access
-2. Users may not want to see
+The `free_spots_males` and `free_spots_females` fields are not being saved when editing events. They are also using unnecessary `as any` casting when creating events.
 
 ## Root Cause
-In `src/pages/Events.tsx`, the `fetchLatestSilverVideo` function (lines 103-163) explicitly queries for `content_tier = "silver"` videos. The state variable is even named `latestSilverVideo`.
+In `src/components/AdminEventsTab.tsx`:
 
-## Fix (1 file)
+1. **Edit/Update flow (line 613-643):** The `updateData` object is completely missing `free_spots_males` and `free_spots_females` fields, so they are never sent to the database on update.
+2. **Create flow (lines 449-450):** Uses `(newEvent as any).free_spots_males` even though these fields already exist on the `NewEvent` interface (lines 63-64), which is unnecessary and error-prone.
 
-**File:** `src/pages/Events.tsx`
+## Fix (1 file, 2 changes)
 
-### Changes:
-1. **Rename state variable** from `latestSilverVideo` to `latestFreeVideo` for clarity (line 83 and all references)
-2. **Change the query filter** from `.eq("content_tier", "silver")` to `.eq("content_tier", "free")` (line 121)
-3. **Update the function name** from `fetchLatestSilverVideo` to `fetchLatestFreeVideo` for consistency
+**File:** `src/components/AdminEventsTab.tsx`
 
-### Affected Lines:
-- **Line 83**: Rename state `latestSilverVideo` to `latestFreeVideo`
-- **Line 107**: Rename null check variable
-- **Line 121**: Change `"silver"` to `"free"` in the query
-- **Line 128, 155**: Update state setter references
-- **Line 157**: Update error handler state
-- **Line 163**: Update dependency comment
-- **Line 363**: Update conditional check in JSX
-- **Line 381**: Update source reference in JSX
+### Change 1: Add missing fields to the edit/update data object
+Add `free_spots_males` and `free_spots_females` to the `updateData` object around line 629, after `free_normal`:
 
-This ensures only safe, free-tier content is displayed in the banner for all users visiting the Events page.
+```
+free_normal: editingEvent.free_normal,
+free_spots_males: editingEvent.free_spots_males || 0,
+free_spots_females: editingEvent.free_spots_females || 0,
+```
 
+### Change 2: Remove unnecessary `as any` casting in create flow
+On lines 449-450, change:
+- `free_spots_males: (newEvent as any).free_spots_males || 0`
+- `free_spots_females: (newEvent as any).free_spots_females || 0`
+
+To:
+- `free_spots_males: newEvent.free_spots_males || 0`
+- `free_spots_females: newEvent.free_spots_females || 0`
+
+These fields are already defined on the interface, so the cast is not needed.
