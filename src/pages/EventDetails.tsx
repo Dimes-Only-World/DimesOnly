@@ -81,6 +81,7 @@ interface CurrentUser {
   id: string;
   username: string;
   user_type?: string;
+  gender?: string;
 }
 
 interface EventAttendee {
@@ -172,7 +173,8 @@ const EventDetails: React.FC = () => {
       setCurrentUser({ 
         id: appUser.id, 
         username: appUser.username,
-        user_type: appUser.userType || (appUser as any).user_type || undefined
+        user_type: appUser.userType || (appUser as any).user_type || undefined,
+        gender: appUser.gender || undefined
       });
       return;
     }
@@ -186,7 +188,8 @@ const EventDetails: React.FC = () => {
           setCurrentUser({ 
             id: userData.id, 
             username: userData.username,
-            user_type: userData.userType || userData.user_type || undefined
+            user_type: userData.userType || userData.user_type || undefined,
+            gender: userData.gender || undefined
           });
           return;
         }
@@ -719,29 +722,36 @@ const EventDetails: React.FC = () => {
                     {/* Free Spots Display - Filtered by user type */}
                     {(() => {
                       const userType = currentUser?.user_type || 'normal';
+                      const userGender = currentUser?.gender || 'male';
                       
-                      // Normal M/F: use database value (free_normal), minus ALL normal/male/female registrations
-                      const totalNormalFree = event.free_normal || 0;
-                      const usedNormal = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
-                      const remainingNormalFree = Math.max(0, totalNormalFree - usedNormal);
+                      // Gender-specific free spots for normal/male/female users
+                      const remainingFreeMales = Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
+                      const remainingFreeFemales = Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
                       
                       // Exotic and Stripper from DB values
                       const remainingExoticFree = Math.max(0, (event.free_spots_exotics || 0) - (usedFreeSpots.exotics || 0));
                       const remainingStripperFree = Math.max(0, (event.free_spots_strippers || 0) - (usedFreeSpots.strippers || 0));
                       
                       // Determine which free spots are relevant to this user
-                      const showNormal = remainingNormalFree > 0;
+                      const showMaleFree = userType !== 'exotic' && userType !== 'stripper' && userGender !== 'female' && remainingFreeMales > 0;
+                      const showFemaleFree = userType !== 'exotic' && userType !== 'stripper' && userGender === 'female' && remainingFreeFemales > 0;
                       const showExotic = userType === 'exotic' && remainingExoticFree > 0;
                       const showStripper = userType === 'stripper' && remainingStripperFree > 0;
                       
-                      const hasRelevantFreeSpots = showNormal || showExotic || showStripper;
+                      const hasRelevantFreeSpots = showMaleFree || showFemaleFree || showExotic || showStripper;
                       
                       return hasRelevantFreeSpots ? (
                         <div className="space-y-2">
-                          {showNormal && (
+                          {showMaleFree && (
                             <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
                               <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
-                              <span className="text-green-400 font-bold">Free Normal M/F: {remainingNormalFree}</span>
+                              <span className="text-green-400 font-bold">Free Males: {remainingFreeMales}</span>
+                            </div>
+                          )}
+                          {showFemaleFree && (
+                            <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
+                              <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
+                              <span className="text-green-400 font-bold">Free Females: {remainingFreeFemales}</span>
                             </div>
                           )}
                           {showExotic && (
@@ -820,6 +830,7 @@ const EventDetails: React.FC = () => {
                         event={event}
                         currentUser={currentUser}
                         userType={currentUser.user_type}
+                        userGender={currentUser.gender}
                         usedFreeSpots={usedFreeSpots}
                         onSuccess={() => {
                           setIsUserRegistered(true);

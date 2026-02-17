@@ -29,6 +29,8 @@ interface EventTicketSelectorProps {
     free_spots_strippers: number;
     free_spots_exotics: number;
     free_normal: number;
+    free_spots_males?: number;
+    free_spots_females?: number;
     max_attendees: number;
     current_attendees: number;
     host_user_id?: string;
@@ -48,6 +50,7 @@ interface EventTicketSelectorProps {
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
   onFreeRegister: (guestName?: string) => Promise<void>;
+  userGender?: string;
 }
 
 const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
@@ -58,6 +61,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   onSuccess,
   onError,
   onFreeRegister,
+  userGender = 'male',
 }) => {
   const [selectedType, setSelectedType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -75,11 +79,11 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       return Math.max(0, (event.free_spots_strippers || 0) - usedFreeSpots.strippers);
     } else if (userType === "exotic") {
       return Math.max(0, (event.free_spots_exotics || 0) - usedFreeSpots.exotics);
+    } else if (userGender === 'female') {
+      return Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
     } else {
-      // Normal/male/female users - use free_normal from database
-      const totalMemberFreeSpots = event.free_normal || 0;
-      const usedNormal = (usedFreeSpots.males || 0) + (usedFreeSpots.females || 0) + (usedFreeSpots.normal || 0);
-      return Math.max(0, totalMemberFreeSpots - usedNormal);
+      // Male / normal users
+      return Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
     }
   }, [event, userType, usedFreeSpots]);
 
