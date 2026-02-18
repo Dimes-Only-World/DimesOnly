@@ -104,6 +104,7 @@ interface Attendee {
     phone_number?: string;
     mobile_number?: string;
     membership_tier?: string;
+    gender?: string;
   };
 }
 
@@ -299,7 +300,8 @@ const AdminEventsTab: React.FC = () => {
             last_name,
             phone_number,
             mobile_number,
-            membership_tier
+            membership_tier,
+            gender
           )
         `
         )
@@ -2240,7 +2242,9 @@ const updateData = {
                           {/* Badges - Show "Female" for normal user type */}
                           <div className="flex flex-wrap items-center gap-2 mt-1">
                             <Badge variant="outline" className="border-gray-500 text-gray-300">
-                              {attendee.users?.user_type === "normal" ? "Female" : (attendee.users?.user_type || "User")}
+                              {attendee.users?.user_type === "normal"
+                                ? (attendee.users?.gender === "male" ? "Male" : attendee.users?.gender === "female" ? "Female" : "Normal")
+                                : (attendee.users?.user_type || "User")}
                             </Badge>
                             <Badge
                               variant={
