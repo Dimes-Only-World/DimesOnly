@@ -1,35 +1,29 @@
 
-
-# Fix: Event Details Page Showing "Paid Only" Despite Free Male Spots Available
+# Fix: Attendee Gender Badge Showing "Female" for All Normal Users
 
 ## Problem
-The Event Details page (and ticket selector) still uses the old combined `free_normal` field to calculate free spots for normal users. Since the admin now saves free spots into `free_spots_males` and `free_spots_females` (not `free_normal`), the calculation returns 0 and shows "Paid Only" even when there are 2 free male spots available.
+On line 2243 of `AdminEventsTab.tsx`, the attendee badge hardcodes "Female" for any user with `user_type === "normal"`:
+```tsx
+{attendee.users?.user_type === "normal" ? "Female" : (attendee.users?.user_type || "User")}
+```
+This means every normal user (including males like "Ola") shows as "Female" in the attendees list.
 
-The Events listing page was already fixed in the previous update, but the Event Details page and Ticket Selector were missed.
+## Fix (1 file, 3 small changes)
 
-## Root Cause
-Two components still reference `event.free_normal` instead of the gender-specific fields:
+**File:** `src/components/AdminEventsTab.tsx`
 
-1. **EventDetails.tsx (lines 720-726)**: Calculates `totalNormalFree` from `event.free_normal`
-2. **EventTicketSelector.tsx (lines 78-82)**: Calculates `availableFreeSpots` from `event.free_normal`
+### Change 1: Add `gender` to the Attendee interface
+Add `gender?: string;` to the `users` object inside the `Attendee` interface (around line 106).
 
-Since the admin saves values to `free_spots_males` and `free_spots_females`, `free_normal` is 0, so the system thinks there are no free spots.
+### Change 2: Fetch `gender` from the database
+Add `gender` to the Supabase select query in `fetchEventAttendees` (around line 294-302), inside the `users(...)` join.
 
-## Fix (2 files)
+### Change 3: Fix the badge display logic
+Replace the hardcoded "Female" on line 2243 with actual gender-aware logic:
+```tsx
+{attendee.users?.user_type === "normal"
+  ? (attendee.users?.gender === "male" ? "Male" : attendee.users?.gender === "female" ? "Female" : "Normal")
+  : (attendee.users?.user_type || "User")}
+```
 
-### File 1: `src/pages/EventDetails.tsx`
-
-Update the free spots display section (lines 720-766) to use gender-specific fields:
-- For male users: show remaining from `free_spots_males` minus used male spots
-- For female users: show remaining from `free_spots_females` minus used female spots
-- Label accordingly ("Free Males: X" or "Free Females: X")
-
-### File 2: `src/components/EventTicketSelector.tsx`
-
-Update the `availableFreeSpots` calculation (lines 78-82) for normal/male/female users:
-- Accept the user's gender (from props or context)
-- For male users: calculate from `event.free_spots_males` minus `usedFreeSpots.males`
-- For female users: calculate from `event.free_spots_females` minus `usedFreeSpots.females`
-- Add `free_spots_males` and `free_spots_females` to the event interface (line 31)
-
-This ensures the "Free" ticket option appears when free male/female spots exist, and "Paid Only" only shows when all gender-specific free spots are exhausted.
+This ensures the badge displays the user's actual gender for normal users, and the user type (exotic, stripper, etc.) for other user types.
