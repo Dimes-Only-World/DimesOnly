@@ -199,11 +199,23 @@ const EventsDimes: React.FC = () => {
           {/* Overlay Content */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              <h1
+                className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg"
+                style={{ WebkitTextStroke: '1px black', textShadow: '2px 2px 6px rgba(0,0,0,0.8), -1px -1px 4px rgba(0,0,0,0.6)' }}
+              >
                 Choose Your Event Partner
               </h1>
-              <p className="text-lg md:text-xl text-gray-200 drop-shadow-md">
+              <p
+                className="text-lg md:text-xl text-gray-200 drop-shadow-md"
+                style={{ WebkitTextStroke: '0.5px black', textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}
+              >
                 Select a stripper or exotic dancer to attend events with
+              </p>
+              <p
+                className="text-sm md:text-base text-yellow-300 mt-3 font-semibold drop-shadow-md"
+                style={{ WebkitTextStroke: '0.3px black', textShadow: '1px 1px 4px rgba(0,0,0,0.8)' }}
+              >
+                Your chosen event partner will be notified to the event(s) you will attend
               </p>
             </div>
           </div>
