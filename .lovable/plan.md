@@ -1,16 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-# Update Text Styling on EventsDimes Page
+## Change
 
-## Changes
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-**File:** `src/pages/EventsDimes.tsx`
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-Remove `WebkitTextStroke` (outline) from all three text elements and keep only `textShadow` for readability. Change the notification text color from yellow to white.
-
-### Specific edits:
-
-1. **Heading (line 204):** Remove `WebkitTextStroke: '1px black'`, keep only `textShadow`
-2. **Subtitle (line 210):** Remove `WebkitTextStroke: '0.5px black'`, keep only `textShadow`
-3. **Notification text (lines 215-216):** Remove `WebkitTextStroke: '0.3px black'`, keep only `textShadow`, and change `text-yellow-300` to `text-white`
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
