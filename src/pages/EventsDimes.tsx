@@ -212,8 +212,8 @@ const EventsDimes: React.FC = () => {
                 Select a stripper or exotic dancer to attend events with
               </p>
               <p
-                className="text-sm md:text-base text-white mt-3 font-semibold drop-shadow-md"
-                style={{ textShadow: '1px 1px 4px rgba(0,0,0,0.8)' }}
+                className="text-sm md:text-base text-white mt-3 font-semibold drop-shadow-lg"
+                style={{ textShadow: '3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)' }}
               >
                 Your chosen event partner will be notified to the event(s) you will attend
               </p>
