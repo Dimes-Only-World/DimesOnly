@@ -162,7 +162,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
                 <WordFade text="Exotic Females & Strippers" />
               </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
+              <h3 className="text-2xl md:text-3xl font-bold text-[#E916D1] mt-2">
                 <WordFade text="Diamond Plus Memberships" />
               </h3>
 
@@ -172,7 +172,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
                 </span>
                 <motion.span
                   key={diamondPlusSpotsLeft}
-                  className="text-5xl font-extrabold text-indigo-300"
+                  className="text-5xl font-extrabold text-[#E916D1]"
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.4 }}>
