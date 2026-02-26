@@ -250,7 +250,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-fuchsia-400 uppercase tracking-wide">
+                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
                   New Dime
                 </div>
                 <div className="absolute bottom-6 left-4 right-4 text-white">
