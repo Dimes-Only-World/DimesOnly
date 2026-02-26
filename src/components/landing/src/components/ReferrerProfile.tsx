@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import defaultAvatar from "@/assets/default-avatar.jpg";
+import defaultAvatar from "../assets/default-avatar.jpg";
 
 const ReferrerProfile = () => {
   const [searchParams] = useSearchParams();

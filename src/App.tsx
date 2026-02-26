@@ -10,6 +10,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { Toaster } from "@/components/ui/toaster";
 import AgeVerificationWrapper from "@/components/AgeVerificationWrapper";
 import Index from "@/pages/Index";
+import NewIndex from "@/pages/NewIndex";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import Register from "@/pages/Register";
