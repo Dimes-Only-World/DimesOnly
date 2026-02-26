@@ -440,7 +440,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             Winners Every 3 Months After Spots Below Say 0
           </button>
 
-          <p className="mt-6 text-base md:text-lg font-semibold text-indigo-400 uppercase tracking-wide">
+          <p className="mt-6 text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
             AN ENTERTAINMENT APP FOR STRAIGHT MEN!
           </p>
         </div>
