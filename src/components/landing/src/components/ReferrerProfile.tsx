@@ -18,7 +18,7 @@ const ReferrerProfile = () => {
           </div>
         ) : (
           <h2 className="text-4xl md:text-5xl font-black tracking-wider text-foreground">
-            <span className="text-primary">DIMES</span> ONLY WORLD
+            <span className="text-[#E916D1]">DIMES</span> ONLY WORLD
           </h2>
         )}
       </div>

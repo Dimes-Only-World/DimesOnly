@@ -4,7 +4,7 @@ const ReadyToStart = () => (
   <section className="py-20 bg-background">
     <div className="container mx-auto px-4 text-center">
       <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-        READY TO GET <span className="text-primary">STARTED</span>?
+        READY TO GET <span className="text-[#E916D1]">STARTED</span>?
       </h2>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
         <Link
