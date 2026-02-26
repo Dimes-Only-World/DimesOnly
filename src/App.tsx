@@ -10,6 +10,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { Toaster } from "@/components/ui/toaster";
 import AgeVerificationWrapper from "@/components/AgeVerificationWrapper";
 import Index from "@/pages/Index";
+import NewIndex from "@/pages/NewIndex";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import Register from "@/pages/Register";
@@ -101,11 +102,12 @@ class AppErrorBoundary extends React.Component<
 
 function AppContent() {
   const location = useLocation();
-  const isHomePage = location.pathname === "/";
+  const isHomePage = location.pathname === "/" || location.pathname === "/failsafe";
 
   const routes = (
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<NewIndex />} />
+      <Route path="/failsafe" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/adminlogin" element={<AdminLogin />} />
       <Route path="/test-login" element={<TestLogin />} />
