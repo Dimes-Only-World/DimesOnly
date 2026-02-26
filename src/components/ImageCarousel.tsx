@@ -436,7 +436,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             Well
           </p>
 
-          <button className="mt-8 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
+          <button className="mt-8 px-8 py-3 bg-[#E916D1] hover:bg-[#E916D1]/90 transition-all duration-300 text-black font-semibold rounded-full shadow-lg">
             Winners Every 3 Months After Spots Below Say 0
           </button>
 
