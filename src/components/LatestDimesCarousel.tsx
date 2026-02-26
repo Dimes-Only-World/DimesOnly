@@ -204,8 +204,8 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
   return (
     <section className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
       <div className="text-center mb-8">
-        <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-          Latest 20 Dimes to Join
+        <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
+          Latest 20 <span className="text-[#E916D1]">Dimes</span> to Join
         </h2>
         <p className="text-base md:text-lg text-gray-300">
           See More Inside · Baddies Joining Daily
