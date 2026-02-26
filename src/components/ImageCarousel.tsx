@@ -412,11 +412,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       {/* ---------- HERO SECTION ---------- */}
       <div className="relative flex flex-col items-center justify-center bg-white text-black rounded-[50px] px-10 py-16 mx-10 my-10 md:px-16 md:py-20 shadow-2xl overflow-hidden h-[550px] md:h-[600px]">
         <img
-          src={exo}
-          alt="silhouette"
-          className="absolute inset-0 w-full h-full object-cover opacity-15"
-        />
-        <img
           src={money}
           alt="money"
           className="absolute bottom-0 w-[85%] max-w-[600px] opacity-30"
