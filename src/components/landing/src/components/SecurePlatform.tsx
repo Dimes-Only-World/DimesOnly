@@ -34,7 +34,7 @@ const SecurePlatform = () => (
         {features.map((f) => (
           <div key={f.title} className="rounded-xl border border-border bg-card p-8 text-center">
             <f.icon className={`w-10 h-10 mx-auto mb-4 ${f.color}`} />
-            <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
+            <h3 className="text-lg font-bold text-[#F4F6F8] mb-2">{f.title}</h3>
             <p className="text-muted-foreground text-sm">{f.desc}</p>
           </div>
         ))}

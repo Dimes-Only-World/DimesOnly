@@ -314,7 +314,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                 </button>
                 <button
                   onClick={navigateRegister}
-                  className="flex-1 basis-[48%] min-w-[120px] rounded-lg bg-pink-600 py-2 text-sm font-semibold text-white transition hover:bg-pink-500 md:rounded-xl md:py-3 md:text-base"
+                  className="flex-1 basis-[48%] min-w-[120px] rounded-lg bg-[#E916D1] py-2 text-sm font-semibold text-black transition hover:bg-[#E916D1]/90 md:rounded-xl md:py-3 md:text-base"
                 >
                   Sign Up
                 </button>

@@ -9,13 +9,13 @@ const ReadyToStart = () => (
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
         <Link
           to="/register"
-          className="px-10 py-4 rounded-full font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-lg"
+          className="px-10 py-4 rounded-full font-bold bg-[#E916D1] text-black hover:bg-[#E916D1]/90 transition-colors text-lg"
         >
           START FREE
         </Link>
         <Link
           to="/login"
-          className="px-10 py-4 rounded-full font-bold border border-primary text-primary hover:bg-primary/10 transition-colors text-lg"
+          className="px-10 py-4 rounded-full font-bold border border-[#E916D1] text-[#E916D1] hover:bg-[#E916D1]/10 transition-colors text-lg"
         >
           LOGIN
         </Link>
