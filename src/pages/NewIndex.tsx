@@ -16,9 +16,9 @@ const NewIndex: React.FC = () => {
       <ReferrerProfile />
       <GetStartedSteps />
       <ReadyToStart />
-      <PositionCounter />
       <LatestDimesCarousel />
       <ImageCarousel />
+      <PositionCounter />
       <SecurePlatform />
       <LandingFooter />
     </div>
