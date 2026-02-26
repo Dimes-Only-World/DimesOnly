@@ -17,8 +17,8 @@ const ReferrerProfile = () => {
             <p className="text-muted-foreground text-sm">invited you to join Dimes Only Network</p>
           </div>
         ) : (
-          <h2 className="text-4xl md:text-5xl font-black tracking-wider text-[#F4F6F8]">
-            <span className="text-[#E916D1]">DIMES</span> ONLY WORLD
+          <h2 className="text-4xl md:text-5xl font-black tracking-wider text-foreground">
+            <span className="text-primary">DIMES</span> ONLY WORLD
           </h2>
         )}
       </div>
