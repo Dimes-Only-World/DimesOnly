@@ -541,7 +541,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
               <div className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-start">
                 <button
                   onClick={handleLoginClick}
-                  className="flex-1 basis-[48%] min-w-[120px] bg-neutral-900/90 hover:bg-neutral-800 text-white text-sm md:text-base font-semibold py-2 md:py-3 rounded-lg md:rounded-xl transition"
+                  className="flex-1 basis-[48%] min-w-[120px] border border-[#E916D1] hover:bg-[#E916D1]/10 text-[#E916D1] text-sm md:text-base font-semibold py-2 md:py-3 rounded-lg md:rounded-xl transition"
                 >
                   {isAuthenticated ? "View Profile" : "Login"}
                 </button>

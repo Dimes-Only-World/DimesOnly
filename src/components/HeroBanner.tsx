@@ -128,7 +128,7 @@ const HeroBanner: React.FC = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
               // onClick={handleClick}
-              className="hidden sm:inline-block mt-8 px-8 sm:px-10 py-3 sm:py-4 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
+              className="hidden sm:inline-block mt-8 px-8 sm:px-10 py-3 sm:py-4 bg-[#E916D1] text-black font-semibold text-lg rounded-full hover:bg-[#E916D1]/90 hover:scale-105 transition duration-300 shadow-md"
             >
               Get Started Below
             </motion.button>
@@ -164,7 +164,7 @@ const HeroBanner: React.FC = () => {
         >
           <button
             // onClick={handleClick}
-            className="px-8 py-3 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
+            className="px-8 py-3 bg-[#E916D1] text-black font-semibold text-lg rounded-full hover:bg-[#E916D1]/90 hover:scale-105 transition duration-300 shadow-md"
           >
             Get Started Below
           </button>
