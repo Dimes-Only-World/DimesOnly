@@ -102,11 +102,12 @@ class AppErrorBoundary extends React.Component<
 
 function AppContent() {
   const location = useLocation();
-  const isHomePage = location.pathname === "/";
+  const isHomePage = location.pathname === "/" || location.pathname === "/failsafe";
 
   const routes = (
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<NewIndex />} />
+      <Route path="/failsafe" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/adminlogin" element={<AdminLogin />} />
       <Route path="/test-login" element={<TestLogin />} />
