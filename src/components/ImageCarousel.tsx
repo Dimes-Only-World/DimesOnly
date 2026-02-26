@@ -420,7 +420,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
         <div className="relative z-10 text-center">
           <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
             Win{" "}
-            <span className="bg-gradient-to-r from-purple-600 to-indigo-700 bg-clip-text text-transparent">
+            <span className="text-[#E916D1]">
               $10,000
             </span>
           </h2>
@@ -430,17 +430,17 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           </p>
 
           <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
-            <span className="text-green-600">#1 Top Ranked</span> = $10,000{" "}
+            <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000{" "}
             <br />
             <span className="text-yellow-500">Rank Between #2 - #20</span> Win Money As
             Well
           </p>
 
-          <button className="mt-8 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
+          <button className="mt-8 px-8 py-3 bg-[#E916D1] hover:bg-[#E916D1]/90 transition-all duration-300 text-black font-semibold rounded-full shadow-lg">
             Winners Every 3 Months After Spots Below Say 0
           </button>
 
-          <p className="mt-6 text-base md:text-lg font-semibold text-indigo-400 uppercase tracking-wide">
+          <p className="mt-6 text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
             AN ENTERTAINMENT APP FOR STRAIGHT MEN!
           </p>
         </div>
@@ -449,8 +449,8 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       {/* ---------- CAROUSEL SECTION ---------- */}
       <section className="w-full py-10">
         <div className="text-center mb-8">
-                    <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-            VIEW CURRENT TOP 20 RANKED
+          <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
+            VIEW CURRENT <span className="text-[#E916D1]">TOP 20</span> RANKED
           </h2>
           <p className="text-base md:text-lg text-gray-300">
             Top 20 Dimes win money every 3 months. Who’s Next?
@@ -547,7 +547,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
                 </button>
                 <button
                   onClick={handleRegisterClick}
-                  className="flex-1 basis-[48%] min-w-[120px] bg-amber-600 hover:bg-amber-500 text-white text-sm md:text-base font-semibold py-2 md:py-3 rounded-lg md:rounded-xl transition"
+                  className="flex-1 basis-[48%] min-w-[120px] bg-[#E916D1] hover:bg-[#E916D1]/90 text-black text-sm md:text-base font-semibold py-2 md:py-3 rounded-lg md:rounded-xl transition"
                 >
                   Sign Up
                 </button>

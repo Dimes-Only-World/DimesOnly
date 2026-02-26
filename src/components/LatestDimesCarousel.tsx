@@ -204,8 +204,8 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
   return (
     <section className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
       <div className="text-center mb-8">
-        <h2 className="text-white text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-          Latest 20 Dimes to Join
+        <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
+          Latest 20 <span className="text-[#E916D1]">Dimes</span> to Join
         </h2>
         <p className="text-base md:text-lg text-gray-300">
           See More Inside · Baddies Joining Daily
@@ -250,7 +250,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-fuchsia-400 uppercase tracking-wide">
+                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
                   New Dime
                 </div>
                 <div className="absolute bottom-6 left-4 right-4 text-white">
@@ -314,7 +314,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                 </button>
                 <button
                   onClick={navigateRegister}
-                  className="flex-1 basis-[48%] min-w-[120px] rounded-lg bg-pink-600 py-2 text-sm font-semibold text-white transition hover:bg-pink-500 md:rounded-xl md:py-3 md:text-base"
+                  className="flex-1 basis-[48%] min-w-[120px] rounded-lg bg-[#E916D1] py-2 text-sm font-semibold text-black transition hover:bg-[#E916D1]/90 md:rounded-xl md:py-3 md:text-base"
                 >
                   Sign Up
                 </button>

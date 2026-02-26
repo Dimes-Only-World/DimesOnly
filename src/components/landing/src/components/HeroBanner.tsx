@@ -55,17 +55,15 @@ const HeroBanner = () => {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40" />
 
+      {/* Translucent gradient for CTA visibility over media */}
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+
       {/* Content */}
       <div className="relative z-10 text-center px-4">
-        
-
-
-
         <button
           onClick={scrollDown}
-          className="mt-4 px-8 py-4 rounded-full bg-pink-600 text-white font-bold text-lg transition-all hover:bg-pink-500 hover:scale-105"
+          className="mt-4 px-8 py-4 rounded-full bg-[#E916D1] text-black font-bold text-lg transition-all hover:bg-[#E916D1]/90 hover:scale-105"
           style={{ boxShadow: '0 0 20px rgba(233, 22, 209, 0.5)' }}>
-
           Get Started Below ↓
         </button>
       </div>

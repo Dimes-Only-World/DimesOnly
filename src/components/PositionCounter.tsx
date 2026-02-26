@@ -136,14 +136,14 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
           viewport={{ once: true }}
           variants={fadeIn}>
 
-          <WordFade text="Incentive positions available now" />
+          <span className="text-[#F4F6F8]"><WordFade text="Incentive" /></span>{" "}<span className="text-[#E916D1]"><WordFade text="positions" /></span>{" "}<span className="text-[#F4F6F8]"><WordFade text="available now" /></span>
         </motion.h2>
 
         {/* === CARDS === */}
         <div className="grid gap-12 grid-cols-1 md:grid-cols-2">
           {/* 💎 Diamond Plus */}
           <motion.div
-            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
+            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-[#E916D1]/30 transition-all duration-500"
             initial="hidden"
             animate="show"
             variants={fadeIn}
@@ -162,7 +162,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
                 <WordFade text="Exotic Females & Strippers" />
               </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
+              <h3 className="text-2xl md:text-3xl font-bold text-[#E916D1] mt-2">
                 <WordFade text="Diamond Plus Memberships" />
               </h3>
 
@@ -172,7 +172,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
                 </span>
                 <motion.span
                   key={diamondPlusSpotsLeft}
-                  className="text-5xl font-extrabold text-indigo-300"
+                  className="text-5xl font-extrabold text-[#E916D1]"
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.4 }}>
@@ -185,7 +185,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
           {/* 🥈 Silver Plus */}
           <motion.div
-            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
+            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-[#E916D1]/30 transition-all duration-500"
             initial="hidden"
             animate="show"
             variants={fadeIn}
@@ -204,7 +204,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
                 <WordFade text="Normal Females & Males" />
               </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-indigo-400 mt-2">
+              <h3 className="text-2xl md:text-3xl font-bold text-[#E916D1] mt-2">
                 <WordFade text="Silver Plus Memberships" />
               </h3>
 
@@ -214,7 +214,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
                 </span>
                 <motion.span
                   key={silverPlusData?.remaining}
-                  className="text-5xl font-extrabold text-indigo-300"
+                  className="text-5xl font-extrabold text-[#E916D1]"
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.4 }}>
