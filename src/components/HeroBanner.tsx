@@ -164,7 +164,7 @@ const HeroBanner: React.FC = () => {
         >
           <button
             // onClick={handleClick}
-            className="px-8 py-3 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-500 hover:scale-105 transition duration-300 shadow-md"
+            className="px-8 py-3 bg-[#E916D1] text-black font-semibold text-lg rounded-full hover:bg-[#E916D1]/90 hover:scale-105 transition duration-300 shadow-md"
           >
             Get Started Below
           </button>
