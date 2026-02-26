@@ -308,7 +308,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
               <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4">
                 <button
                   onClick={navigateLogin}
-                  className="flex-1 basis-[48%] min-w-[120px] rounded-lg bg-neutral-900/90 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800 md:rounded-xl md:py-3 md:text-base"
+                  className="flex-1 basis-[48%] min-w-[120px] rounded-lg border border-[#E916D1] py-2 text-sm font-semibold text-[#E916D1] transition hover:bg-[#E916D1]/10 md:rounded-xl md:py-3 md:text-base"
                 >
                   {isAuthenticated ? "View Profile" : "Login"}
                 </button>
