@@ -1,19 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-## Plan: Place LatestDimesCarousel next to ImageCarousel
+## Change
 
-Move `LatestDimesCarousel` from its current position (line 19) to directly above `ImageCarousel` (line 21), keeping `PositionCounter` before both.
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-### Updated order in `src/pages/NewIndex.tsx`:
-1. HeroBanner
-2. ReferrerProfile
-3. GetStartedSteps
-4. ReadyToStart
-5. PositionCounter
-6. LatestDimesCarousel
-7. ImageCarousel
-8. SecurePlatform
-9. LandingFooter
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-Single edit: swap lines 19-21 to reorder the three components.
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
