@@ -425,7 +425,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             </span>
           </h2>
 
-          <p className="text-lg md:text-xl font-semibold text-gray-700 mb-4">
+          <p className="text-lg md:text-xl font-semibold text-black mb-4">
             Winner Announced at App Launch
           </p>
 
