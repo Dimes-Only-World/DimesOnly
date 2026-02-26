@@ -27,7 +27,7 @@ const SecurePlatform = () => (
   <section className="py-20 bg-card/50">
     <div className="container mx-auto px-4">
       <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
-        <span className="text-primary">SECURE</span> & TRUSTED PLATFORM
+        <span className="text-[#E916D1]">SECURE</span> & TRUSTED PLATFORM
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
