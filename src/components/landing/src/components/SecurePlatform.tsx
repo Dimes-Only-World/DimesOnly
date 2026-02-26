@@ -26,15 +26,15 @@ const paymentBrands = ["VISA", "MasterCard", "AMEX"];
 const SecurePlatform = () => (
   <section className="py-20 bg-card/50">
     <div className="container mx-auto px-4">
-      <h2 className="text-3xl md:text-4xl font-bold text-[#F4F6F8] text-center mb-12">
-        <span className="text-[#E916D1]">SECURE</span> & TRUSTED PLATFORM
+      <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
+        <span className="text-primary">SECURE</span> & TRUSTED PLATFORM
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
         {features.map((f) => (
           <div key={f.title} className="rounded-xl border border-border bg-card p-8 text-center">
             <f.icon className={`w-10 h-10 mx-auto mb-4 ${f.color}`} />
-            <h3 className="text-lg font-bold text-[#F4F6F8] mb-2">{f.title}</h3>
+            <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
             <p className="text-muted-foreground text-sm">{f.desc}</p>
           </div>
         ))}
