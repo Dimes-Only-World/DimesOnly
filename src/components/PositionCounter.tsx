@@ -185,7 +185,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
           {/* 🥈 Silver Plus */}
           <motion.div
-            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-indigo-500/30 transition-all duration-500"
+            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-[#E916D1]/30 transition-all duration-500"
             initial="hidden"
             animate="show"
             variants={fadeIn}
