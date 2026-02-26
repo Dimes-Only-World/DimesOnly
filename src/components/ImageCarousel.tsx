@@ -429,7 +429,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             Winner Announced at App Launch
           </p>
 
-          <p className="text-base md:text-lg font-semibold text-gray-800 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg font-semibold text-black max-w-2xl mx-auto leading-relaxed">
             <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000{" "}
             <br />
             <span className="text-yellow-500">Rank Between #2 - #20</span> Win Money As
