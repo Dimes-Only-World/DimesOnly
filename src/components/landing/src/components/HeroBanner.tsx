@@ -60,12 +60,12 @@ const HeroBanner = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4">
-        <button
-          onClick={scrollDown}
-          className="mt-4 px-8 py-4 rounded-full bg-[#E916D1] text-white font-bold text-lg transition-all hover:bg-[#E916D1]/90 hover:scale-105"
-          style={{ boxShadow: '0 0 20px rgba(233, 22, 209, 0.5)' }}>
-          Get Started Below ↓
-        </button>
+        
+
+
+
+
+
       </div>
     </section>);
 
