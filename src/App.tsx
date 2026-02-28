@@ -139,6 +139,7 @@ function AppContent() {
       <Route path="/tip-paypal-return" element={<TipPayPalReturn />} />
       <Route path="/event-payment-return" element={<EventPayPalReturn />} />
       <Route path="/jackpot" element={<Jackpot />} />
+      <Route path="/clothes" element={<ComingSoon />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
