@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const navLinks = [
-  { label: "Mens Clothing", href: "#" },
+  { label: "Mens Clothing", href: "/clothes" },
   { label: "Buy a Car", href: "#" },
   { label: "Profit Sharing", href: "#" },
   { label: "Apply Online", href: "#" },

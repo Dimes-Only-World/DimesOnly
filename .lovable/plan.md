@@ -1,17 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-## Plan: Link "Mens Clothing" on Homepage to Dashboard Clothes Page
+## Change
 
-### Problem
-The "Mens Clothing" link in `LandingFooter.tsx` currently points to `href="#"` (does nothing). The dashboard's CLOTHES button navigates to `/clothes`, but no route exists for it.
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-### Changes
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-1. **Create `/clothes` route** — Add a route in `src/App.tsx` that points to the `ComingSoon` page (since there's no dedicated clothes page yet). This ensures both the homepage link and the dashboard button work.
-
-2. **Update LandingFooter link** — In `src/components/landing/src/components/LandingFooter.tsx`, change the "Mens Clothing" `href` from `"#"` to `"/clothes"`.
-
-### Files to Edit
-- `src/App.tsx` — Add `<Route path="/clothes" element={<ComingSoon />} />`
-- `src/components/landing/src/components/LandingFooter.tsx` — Change `href: "#"` to `href: "/clothes"` for "Mens Clothing"
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
