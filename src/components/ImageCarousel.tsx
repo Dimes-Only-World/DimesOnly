@@ -527,7 +527,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           <div className="w-full max-w-md rounded-2xl bg-white border border-[#E916D1]/30 shadow-lg shadow-[#E916D1]/10 p-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Trophy className="w-8 h-8 text-[#E916D1]" />
-              <span className="text-2xl font-bold text-[#F4F6F8] uppercase tracking-wide">
+              <span className="text-2xl font-bold text-black uppercase tracking-wide">
                 Jackpot
               </span>
             </div>
