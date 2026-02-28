@@ -524,14 +524,14 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
 
         {/* Jackpot Display */}
         <div className="flex justify-center mt-8 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-gradient-to-br from-yellow-900 to-orange-900 border border-[#E916D1]/30 shadow-lg shadow-[#E916D1]/10 p-6 text-center">
+          <div className="w-full max-w-md rounded-2xl bg-black border border-[#E916D1]/30 shadow-lg shadow-[#E916D1]/10 p-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Trophy className="w-8 h-8 text-yellow-400" />
-              <span className="text-2xl font-bold text-yellow-100 uppercase tracking-wide">
+              <Trophy className="w-8 h-8 text-[#E916D1]" />
+              <span className="text-2xl font-bold text-[#F4F6F8] uppercase tracking-wide">
                 Jackpot
               </span>
             </div>
-            <div className="text-5xl font-bold text-yellow-300">
+            <div className="text-5xl font-bold text-[#E916D1]">
               {formatCurrency(jackpotAmount)}
             </div>
           </div>
