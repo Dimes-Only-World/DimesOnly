@@ -43,6 +43,7 @@ import ResetPassword from "./pages/ResetPassword";
 import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
+import ComingSoon from "./pages/ComingSoon";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
