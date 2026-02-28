@@ -1,12 +1,15 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+## Plan: Restyle Jackpot Card to Match Landing Page Design
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+### Change
+Update the jackpot display card in `src/components/ImageCarousel.tsx` (lines 526-538) to use the landing page's black/magenta color scheme instead of the current gold/orange gradient.
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+### Edit (`src/components/ImageCarousel.tsx`, lines 526-538)
+- **Card background**: `bg-gradient-to-br from-yellow-900 to-orange-900` → `bg-black border border-[#E916D1]/30 shadow-lg shadow-[#E916D1]/10`
+- **Trophy icon**: `text-yellow-400` → `text-[#E916D1]`
+- **"Jackpot" text**: `text-yellow-100` → `text-[#F4F6F8]`
+- **Amount text**: `text-yellow-300` → `text-[#E916D1]`
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+This aligns with the landing page's Magenta/Black/Light Gray palette used across all other sections.
+
