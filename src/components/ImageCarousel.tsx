@@ -4,7 +4,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
@@ -69,6 +69,15 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [jackpotAmount, setJackpotAmount] = useState(0);
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
 
   /* --------------------------------------------------------------
      Derived performers list (real data → fallback)
@@ -257,6 +266,37 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
   /* --------------------------------------------------------------
      Fetch top-ranked performers
      -------------------------------------------------------------- */
+  /* Fetch jackpot amount + real-time subscription */
+  useEffect(() => {
+    const fetchJackpot = async () => {
+      try {
+        const { data: poolData, error: poolError } = await supabase
+          .from("v_jackpot_active_pool")
+          .select("total")
+          .single();
+        if (!poolError && poolData?.total != null) {
+          setJackpotAmount(Number(poolData.total) || 0);
+          return;
+        }
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("jackpot")
+          .select("amount")
+          .single();
+        if (!fallbackError && fallbackData?.amount != null) {
+          setJackpotAmount(Number(fallbackData.amount) || 0);
+        }
+      } catch (e) {
+        console.error("[ImageCarousel] Jackpot fetch error:", e);
+      }
+    };
+    fetchJackpot();
+    const sub = supabase
+      .channel("homepage_jackpot")
+      .on("postgres_changes", { event: "*", schema: "public", table: "jackpot_pools" }, () => fetchJackpot())
+      .subscribe();
+    return () => { sub.unsubscribe(); };
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
@@ -310,7 +350,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           }
         });
 
-        // Show ONLY performers who have been rated (rating_count > 0), sorted by score
         const ranked = Object.values(scores)
           .filter((u) => u.rating_count > 0)
           .sort((a, b) => b.total_score - a.total_score)
@@ -481,6 +520,21 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
               right: "flex md:hidden right-2 w-10 h-10",
             }
           )}
+        </div>
+
+        {/* Jackpot Display */}
+        <div className="flex justify-center mt-8 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-gradient-to-br from-yellow-900 to-orange-900 border border-[#E916D1]/30 shadow-lg shadow-[#E916D1]/10 p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Trophy className="w-8 h-8 text-yellow-400" />
+              <span className="text-2xl font-bold text-yellow-100 uppercase tracking-wide">
+                Jackpot
+              </span>
+            </div>
+            <div className="text-5xl font-bold text-yellow-300">
+              {formatCurrency(jackpotAmount)}
+            </div>
+          </div>
         </div>
       </section>
 
