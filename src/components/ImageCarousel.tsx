@@ -69,6 +69,15 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [jackpotAmount, setJackpotAmount] = useState(0);
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
 
   /* --------------------------------------------------------------
      Derived performers list (real data → fallback)
