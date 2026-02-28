@@ -43,7 +43,6 @@ import ResetPassword from "./pages/ResetPassword";
 import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
-import ComingSoon from "./pages/ComingSoon";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
@@ -139,7 +138,6 @@ function AppContent() {
       <Route path="/tip-paypal-return" element={<TipPayPalReturn />} />
       <Route path="/event-payment-return" element={<EventPayPalReturn />} />
       <Route path="/jackpot" element={<Jackpot />} />
-      <Route path="/clothes" element={<ComingSoon />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
