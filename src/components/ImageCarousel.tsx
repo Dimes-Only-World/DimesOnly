@@ -4,7 +4,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
