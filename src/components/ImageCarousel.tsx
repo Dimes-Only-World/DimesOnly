@@ -492,48 +492,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           )}
         </div>
 
-        {/* Jackpot Display */}
-        <div className="flex justify-center mt-8 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-lg p-6 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Trophy className="w-8 h-8 text-[#E916D1]" />
-              <span className="text-2xl font-bold text-black uppercase tracking-wide">
-                Jackpot
-              </span>
-            </div>
-            <div className="text-5xl font-bold text-[#E916D1]">
-              {formatCurrency(jackpotAmount)}
-            </div>
-          </div>
-        </div>
-
-        {/* Tip & Win Info */}
-        <div className="mt-10 text-center px-4 max-w-2xl mx-auto space-y-4">
-          <h3 className="text-4xl md:text-5xl font-black text-[#E916D1] tracking-tighter italic uppercase">
-            TIP & WIN
-          </h3>
-          <p className="text-lg md:text-xl font-bold text-white">
-            TIP DIMES FOR A CHANCE AT THE JACKPOT ABOVE.
-          </p>
-          <div className="text-sm md:text-base text-gray-300 space-y-3 font-medium leading-relaxed">
-            <p>
-              <span className="text-white font-semibold">MINIMUM DRAWING $1,000</span> = Starts This
-              Saturday on YouTube Live Dimes Only Podcast when $1,000 shows above.
-            </p>
-            <p>
-              <span className="text-white font-semibold">MAXIMUM DRAWING = $1,973,400</span>
-            </p>
-            <p className="text-[#E916D1] font-bold">Max = GUARANTEED WINNER</p>
-            <p>Refer people = More tickets for you!</p>
-            <p>No winner = tickets roll over to the following Saturday drawing.</p>
-          </div>
-          <a
-            href="/jackpot"
-            className="inline-block mt-4 text-lg font-bold text-[#E916D1] underline underline-offset-4 hover:text-[#E916D1]/80 transition"
-          >
-            Details inside!
-          </a>
-        </div>
       </section>
 
       {/* ---------- MODAL ---------- */}
