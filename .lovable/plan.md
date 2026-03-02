@@ -1,12 +1,15 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+## Plan: Add Jackpot Info Text Below Jackpot Display
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+Add a styled info section directly below the jackpot card in `src/components/ImageCarousel.tsx` (after the jackpot `</div>` around line 540).
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+### Content to Add
+A centered text block with the following content, styled to match the dark theme:
+- **"TIP & WIN"** — large bold heading in pink (#E916D1)
+- **"TIP DIMES FOR A CHANCE AT THE JACKPOT ABOVE."** — white subheading
+- Bullet-style info lines covering minimum drawing ($1,000), maximum drawing ($1,973,400), referral bonus, rollover rules, and "Details inside!" as a link/button to `/jackpot`
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+### File Changed
+- `src/components/ImageCarousel.tsx` — Insert new JSX block after the jackpot display div (around line 540), before the `</section>` closing tag.
+
