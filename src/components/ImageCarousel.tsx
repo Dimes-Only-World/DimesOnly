@@ -266,36 +266,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
   /* --------------------------------------------------------------
      Fetch top-ranked performers
      -------------------------------------------------------------- */
-  /* Fetch jackpot amount + real-time subscription */
-  useEffect(() => {
-    const fetchJackpot = async () => {
-      try {
-        const { data: poolData, error: poolError } = await supabase
-          .from("v_jackpot_active_pool")
-          .select("total")
-          .single();
-        if (!poolError && poolData?.total != null) {
-          setJackpotAmount(Number(poolData.total) || 0);
-          return;
-        }
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("jackpot")
-          .select("amount")
-          .single();
-        if (!fallbackError && fallbackData?.amount != null) {
-          setJackpotAmount(Number(fallbackData.amount) || 0);
-        }
-      } catch (e) {
-        console.error("[ImageCarousel] Jackpot fetch error:", e);
-      }
-    };
-    fetchJackpot();
-    const sub = supabase
-      .channel("homepage_jackpot")
-      .on("postgres_changes", { event: "*", schema: "public", table: "jackpot_pools" }, () => fetchJackpot())
-      .subscribe();
-    return () => { sub.unsubscribe(); };
-  }, []);
 
   useEffect(() => {
     let mounted = true;
