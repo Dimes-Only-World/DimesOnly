@@ -206,7 +206,7 @@ serve(async (req) => {
         const { mediaId, message } = params;
         const { error } = await supabaseAdmin
           .from('user_media')
-          .update({ flagged: true, flagged_message: message })
+          .update({ flagged: true, warning_message: message })
           .eq('id', mediaId);
         if (error) throw error;
         result = { success: true };
