@@ -164,7 +164,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           ) : (
             <div className="aspect-square bg-gray-100 overflow-hidden relative group">
                 <video
-                  src={file.media_url}
+                  src={resolvedUrls[file.id] || file.media_url}
                   className={`w-full h-full ${playingMap[file.id] ? 'object-contain bg-black' : 'object-cover'}`}
                   controls
                   muted
