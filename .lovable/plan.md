@@ -1,12 +1,20 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+## Plan: Filter Video Previews by Content Tier
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+### Problem
+1. **Latest 20 Dimes carousel**: When clicking a dime, the video preview fetches the most recent video regardless of content tier. It should show the latest **silver** tier video.
+2. **Top 20 Ranked carousel (ImageCarousel)**: Same issue — fetches any video. It should show the latest **free** tier video.
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+### Changes
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+**`src/components/LatestDimesCarousel.tsx`** (line ~99):
+- Add `.eq("content_tier", "silver")` filter to the `user_media` query so it only fetches silver-tier videos for the preview.
+
+**`src/components/ImageCarousel.tsx`** (line ~144):
+- Add `.eq("content_tier", "free")` filter to the `user_media` query so it only fetches free-tier videos for the preview.
+
+### Files Changed
+- `src/components/LatestDimesCarousel.tsx`
+- `src/components/ImageCarousel.tsx`
+
