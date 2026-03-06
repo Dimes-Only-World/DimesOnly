@@ -51,14 +51,14 @@ const ReferrerProfile = () => {
       <div className="container mx-auto px-4 text-center">
         {ref ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-64 h-64 rounded-lg border-2 border-primary overflow-hidden">
+            <div className="max-w-sm w-full rounded-lg border-2 border-primary overflow-hidden">
               {loading ? (
-                <div className="w-full h-full bg-muted animate-pulse" />
+                <div className="w-full h-64 bg-muted animate-pulse" />
               ) : (
                 <img
                   src={photoUrl}
                   alt={`@${referrer?.username || ref} profile`}
-                  className="w-full h-full object-cover"
+                  className="w-full object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
                 />
               )}

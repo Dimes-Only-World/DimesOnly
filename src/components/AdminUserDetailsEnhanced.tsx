@@ -253,14 +253,14 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               {media.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No media uploaded</p>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {media.map((item) => (
                     <div key={item.id} className="relative border rounded-lg overflow-hidden">
                       {item.type === 'photo' ? (
                         <img 
                           src={getMediaUrl(item)} 
                           alt="User media" 
-                          className="w-full max-h-[500px] object-contain cursor-pointer hover:opacity-80"
+                          className="w-full object-contain cursor-pointer hover:opacity-80"
                           onClick={() => setExpandedImage(getMediaUrl(item))}
                         />
                       ) : (
