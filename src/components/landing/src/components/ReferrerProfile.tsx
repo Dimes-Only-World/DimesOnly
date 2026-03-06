@@ -51,7 +51,7 @@ const ReferrerProfile = () => {
       <div className="container mx-auto px-4 text-center">
         {ref ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-28 h-28 rounded-full border-2 border-primary overflow-hidden">
+            <div className="w-64 h-64 rounded-lg border-2 border-primary overflow-hidden">
               {loading ? (
                 <div className="w-full h-full bg-muted animate-pulse" />
               ) : (
