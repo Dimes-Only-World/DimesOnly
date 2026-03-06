@@ -36,7 +36,7 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
     (sum, limit) => sum + limit.current_count,
     0
   );
-  const overallMaxCount = 1000; // shared cap - client requested 1000 total spots
+  const overallMaxCount = 300; // shared cap - client requested 300 total spots
   const spotsLeft = overallMaxCount - totalCurrentCount;
 
   // Debug logging
