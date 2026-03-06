@@ -140,12 +140,13 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
     setSelectedVideoUrl(null);
 
     try {
-      // Fetch any video for this user (no content_tier filter)
+      // Fetch the latest free-tier video for this user
       const { data, error } = await supabase
         .from("user_media")
         .select("media_url, storage_path")
         .eq("user_id", performer.id)
         .eq("media_type", "video")
+        .eq("content_tier", "free")
         .order("upload_date", { ascending: false })
         .limit(1);
 
