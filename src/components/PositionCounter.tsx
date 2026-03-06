@@ -41,7 +41,7 @@ const WordFade: React.FC<{text: string;delay?: number;}> = ({ text, delay = 0 })
 };
 
 const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => {
-  const [diamondPlusSpotsLeft, setDiamondPlusSpotsLeft] = useState(1000);
+  const [diamondPlusSpotsLeft, setDiamondPlusSpotsLeft] = useState(300);
   const [silverPlusData, setSilverPlusData] = useState<CounterData | null>(null);
   const [loading, setLoading] = useState(true);
 
