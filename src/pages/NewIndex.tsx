@@ -18,8 +18,8 @@ const NewIndex: React.FC = () => {
       <GetStartedSteps />
       <ReadyToStart />
       <JackpotTipWin />
-      <LatestDimesCarousel />
       <ImageCarousel />
+      <LatestDimesCarousel />
       <PositionCounter />
       <SecurePlatform />
       <LandingFooter />
