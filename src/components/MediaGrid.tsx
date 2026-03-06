@@ -20,7 +20,7 @@ interface MediaFile {
 
 interface MediaGridProps {
   media: MediaFile[];
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onReplace?: (id: string) => void;
   showContentTier?: boolean;
   currentUserId?: string;
