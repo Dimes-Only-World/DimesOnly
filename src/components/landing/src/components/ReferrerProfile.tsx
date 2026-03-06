@@ -44,7 +44,7 @@ const ReferrerProfile = () => {
     fetchReferrer();
   }, [ref]);
 
-  const photoUrl = referrer?.profile_photo || defaultAvatar;
+  const photoUrl = referrer?.front_page_photo || referrer?.profile_photo || defaultAvatar;
 
   return (
     <section id="referrer-section" className="py-16 bg-background">
