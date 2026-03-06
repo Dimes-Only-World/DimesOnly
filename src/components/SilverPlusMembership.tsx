@@ -139,7 +139,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
         </CardHeader>
         <CardContent className="flex flex-col items-center text-center">
           <p className="text-purple-700 mb-4">
-            All 3,000 lifetime Silver Plus memberships have been claimed.<br />
+            All 300 lifetime Silver Plus memberships have been claimed.<br />
             You can now join as a Silver Plus subscriber!
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm w-full max-w-md mx-auto">
