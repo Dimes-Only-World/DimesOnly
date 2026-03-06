@@ -202,7 +202,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               <div>
                 <h3 className="font-semibold mb-2">Profile Photo</h3>
                 {user.profile_photo ? (
-                  <img src={user.profile_photo} alt="Profile" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.profile_photo!)} />
+                  <img src={user.profile_photo} alt="Profile" className="w-full max-h-96 object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.profile_photo!)} />
                 ) : (
                   <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
                 )}
@@ -210,7 +210,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               <div>
                 <h3 className="font-semibold mb-2">Banner Photo</h3>
                 {user.banner_photo ? (
-                  <img src={user.banner_photo} alt="Banner" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.banner_photo!)} />
+                  <img src={user.banner_photo} alt="Banner" className="w-full max-h-96 object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.banner_photo!)} />
                 ) : (
                   <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No banner</span></div>
                 )}
@@ -218,7 +218,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               <div>
                 <h3 className="font-semibold mb-2">Front Page Photo</h3>
                 {user.front_page_photo ? (
-                  <img src={user.front_page_photo} alt="Front Page" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.front_page_photo!)} />
+                  <img src={user.front_page_photo} alt="Front Page" className="w-full max-h-96 object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.front_page_photo!)} />
                 ) : (
                   <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
                 )}
@@ -260,13 +260,13 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                         <img 
                           src={getMediaUrl(item)} 
                           alt="User media" 
-                          className="w-full h-40 md:h-48 object-cover cursor-pointer hover:opacity-80"
+                          className="w-full max-h-[500px] object-contain cursor-pointer hover:opacity-80"
                           onClick={() => setExpandedImage(getMediaUrl(item))}
                         />
                       ) : (
                         <div className="relative">
                           <video 
-                            className="w-full h-40 md:h-48 object-cover"
+                            className="w-full max-h-[500px] object-contain"
                             preload="metadata"
                             muted
                           >
