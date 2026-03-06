@@ -5,6 +5,7 @@ import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle } fro
 import MediaLikes from "./MediaLikes";
 import MediaComments from "./MediaComments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabase";
 
 interface MediaFile {
   id: string;
