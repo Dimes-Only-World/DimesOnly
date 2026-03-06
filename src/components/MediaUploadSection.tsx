@@ -168,18 +168,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         const fileName = `${userData.username}_${Date.now()}_${file.name}`;
         const filePath = `${userData.username}/${selectedContentTier}/${type === "photo" ? "photos" : "videos"}/${fileName}`;
         
-        // Determine bucket based on type and content tier
-        let bucketName = "user-photos"; // Default fallback
-        
-        if (type === "photo") {
-          if (selectedContentTier === "free") {
-            bucketName = "user-photos"; // Keep existing for free content
-          } else {
-            bucketName = "public-media"; // New bucket for silver/gold content
-          }
-        } else if (type === "video") {
-          bucketName = "private-media"; // New bucket for all videos
-        }
+        // All uploads go to private-media bucket for consistency
+        const bucketName = "private-media";
 
         // Upload file to storage
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -188,15 +178,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
         if (uploadError) throw uploadError;
 
-        // Get public URL
-        let publicUrl;
-        if (bucketName === "user-photos") {
-          publicUrl = supabase.storage.from("user-photos").getPublicUrl(filePath).data.publicUrl;
-        } else if (bucketName === "public-media") {
-          publicUrl = supabase.storage.from("public-media").getPublicUrl(filePath).data.publicUrl;
-        } else {
-          publicUrl = supabase.storage.from("private-media").getPublicUrl(filePath).data.publicUrl;
-        }
+        // Store the public URL pattern (will be resolved via signed URLs when displayed)
+        const publicUrl = supabase.storage.from(bucketName).getPublicUrl(filePath).data.publicUrl;
 
         // Insert into database with new fields
         const { error: dbError } = await supabase

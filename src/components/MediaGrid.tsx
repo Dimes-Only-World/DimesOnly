@@ -5,6 +5,7 @@ import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle } fro
 import MediaLikes from "./MediaLikes";
 import MediaComments from "./MediaComments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabase";
 
 interface MediaFile {
   id: string;
@@ -40,6 +41,42 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   const [detectedOrientationMap, setDetectedOrientationMap] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
+
+  // Resolve signed URLs for private-media items
+  useEffect(() => {
+    const resolvePrivateUrls = async () => {
+      const toResolve = media.filter(
+        (f) => f.media_url && f.media_url.includes('/private-media/') && !resolvedUrls[f.id]
+      );
+      if (toResolve.length === 0) return;
+
+      const newUrls: Record<string, string> = {};
+      await Promise.all(
+        toResolve.map(async (file) => {
+          try {
+            // Extract storage path from the public URL
+            const marker = '/private-media/';
+            const idx = file.media_url.indexOf(marker);
+            if (idx === -1) return;
+            const storagePath = decodeURIComponent(file.media_url.substring(idx + marker.length));
+            const { data, error } = await supabase.storage
+              .from('private-media')
+              .createSignedUrl(storagePath, 3600);
+            if (!error && data?.signedUrl) {
+              newUrls[file.id] = data.signedUrl;
+            }
+          } catch (e) {
+            console.error('[MediaGrid] Failed to get signed URL for', file.id, e);
+          }
+        })
+      );
+      if (Object.keys(newUrls).length > 0) {
+        setResolvedUrls((prev) => ({ ...prev, ...newUrls }));
+      }
+    };
+    resolvePrivateUrls();
+  }, [media]);
 
   // Close zoom overlay on ESC and lock body scroll while open
   useEffect(() => {
@@ -115,10 +152,10 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           {file.media_type === "photo" ? (
             <div
               className="aspect-square bg-gray-100 overflow-hidden relative group cursor-zoom-in"
-              onClick={() => setZoomImageUrl(file.media_url)}
+              onClick={() => setZoomImageUrl(resolvedUrls[file.id] || file.media_url)}
             >
               <img
-                src={file.media_url}
+                src={resolvedUrls[file.id] || file.media_url}
                 alt="User media"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
@@ -127,7 +164,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           ) : (
             <div className="aspect-square bg-gray-100 overflow-hidden relative group">
                 <video
-                  src={file.media_url}
+                  src={resolvedUrls[file.id] || file.media_url}
                   className={`w-full h-full ${playingMap[file.id] ? 'object-contain bg-black' : 'object-cover'}`}
                   controls
                   muted
