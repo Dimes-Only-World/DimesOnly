@@ -41,6 +41,42 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   const [detectedOrientationMap, setDetectedOrientationMap] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
+
+  // Resolve signed URLs for private-media items
+  useEffect(() => {
+    const resolvePrivateUrls = async () => {
+      const toResolve = media.filter(
+        (f) => f.media_url && f.media_url.includes('/private-media/') && !resolvedUrls[f.id]
+      );
+      if (toResolve.length === 0) return;
+
+      const newUrls: Record<string, string> = {};
+      await Promise.all(
+        toResolve.map(async (file) => {
+          try {
+            // Extract storage path from the public URL
+            const marker = '/private-media/';
+            const idx = file.media_url.indexOf(marker);
+            if (idx === -1) return;
+            const storagePath = decodeURIComponent(file.media_url.substring(idx + marker.length));
+            const { data, error } = await supabase.storage
+              .from('private-media')
+              .createSignedUrl(storagePath, 3600);
+            if (!error && data?.signedUrl) {
+              newUrls[file.id] = data.signedUrl;
+            }
+          } catch (e) {
+            console.error('[MediaGrid] Failed to get signed URL for', file.id, e);
+          }
+        })
+      );
+      if (Object.keys(newUrls).length > 0) {
+        setResolvedUrls((prev) => ({ ...prev, ...newUrls }));
+      }
+    };
+    resolvePrivateUrls();
+  }, [media]);
 
   // Close zoom overlay on ESC and lock body scroll while open
   useEffect(() => {
