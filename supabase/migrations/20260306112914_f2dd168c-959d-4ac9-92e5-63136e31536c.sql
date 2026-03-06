@@ -1,4 +1,21 @@
--- Function to update user's Silver+ status
+CREATE OR REPLACE FUNCTION public.check_silver_plus_availability()
+RETURNS TABLE (
+  available BOOLEAN,
+  current_count INTEGER,
+  max_count INTEGER,
+  remaining INTEGER
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT 
+    (SELECT COUNT(*) < 300 FROM users WHERE silver_plus_active = true) as available,
+    (SELECT COUNT(*)::integer FROM users WHERE silver_plus_active = true) as current_count,
+    300 as max_count,
+    GREATEST(0, 300 - (SELECT COUNT(*)::integer FROM users WHERE silver_plus_active = true)) as remaining
+$$;
+
 CREATE OR REPLACE FUNCTION public.update_user_silver_plus(
   user_id_param UUID,
   payment_id_param UUID,
@@ -7,18 +24,17 @@ CREATE OR REPLACE FUNCTION public.update_user_silver_plus(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path TO 'public'
 AS $$
 DECLARE
   result JSONB;
   current_count INTEGER;
   max_memberships INTEGER := 300;
 BEGIN
-  -- Get current count of Silver+ members
   SELECT COUNT(*) INTO current_count 
   FROM users 
   WHERE silver_plus_active = true;
 
-  -- Check if we haven't reached the limit
   IF current_count >= max_memberships THEN
     RETURN jsonb_build_object(
       'success', false,
@@ -26,7 +42,6 @@ BEGIN
     );
   END IF;
 
-  -- Update the user's record
   UPDATE users
   SET 
     silver_plus_active = true,
@@ -38,7 +53,6 @@ BEGIN
     updated_at = NOW()
   WHERE id = user_id_param;
 
-  -- Verify the update was successful
   IF NOT FOUND THEN
     RETURN jsonb_build_object(
       'success', false,
@@ -46,7 +60,6 @@ BEGIN
     );
   END IF;
 
-  -- Return success with updated count
   RETURN jsonb_build_object(
     'success', true,
     'current_count', current_count + 1,
@@ -59,6 +72,3 @@ EXCEPTION WHEN OTHERS THEN
   );
 END;
 $$;
-
--- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION public.update_user_silver_plus(UUID, UUID, INTEGER) TO authenticated;
