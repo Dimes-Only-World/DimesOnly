@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle } from "lucide-react";
+import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle, Play } from "lucide-react";
 import MediaLikes from "./MediaLikes";
 import MediaComments from "./MediaComments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
