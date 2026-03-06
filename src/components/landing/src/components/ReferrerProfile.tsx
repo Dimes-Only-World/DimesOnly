@@ -10,6 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 interface ReferrerData {
   username: string;
   profile_photo: string | null;
+  front_page_photo: string | null;
 }
 
 const ReferrerProfile = () => {
@@ -26,7 +27,7 @@ const ReferrerProfile = () => {
       try {
         const { data, error } = await supabase
           .from("public_user_profiles")
-          .select("username, profile_photo")
+          .select("username, profile_photo, front_page_photo")
           .ilike("username", ref)
           .maybeSingle();
 
@@ -43,14 +44,14 @@ const ReferrerProfile = () => {
     fetchReferrer();
   }, [ref]);
 
-  const photoUrl = referrer?.profile_photo || defaultAvatar;
+  const photoUrl = referrer?.front_page_photo || referrer?.profile_photo || defaultAvatar;
 
   return (
     <section id="referrer-section" className="py-16 bg-background">
       <div className="container mx-auto px-4 text-center">
         {ref ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-28 h-28 rounded-full border-2 border-primary overflow-hidden">
+            <div className="w-64 h-64 rounded-lg border-2 border-primary overflow-hidden">
               {loading ? (
                 <div className="w-full h-full bg-muted animate-pulse" />
               ) : (
