@@ -266,7 +266,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                       ) : (
                         <div className="relative">
                           <video 
-                            className="w-full h-40 md:h-48 object-cover"
+                            className="w-full max-h-[500px] object-contain"
                             preload="metadata"
                             muted
                           >
