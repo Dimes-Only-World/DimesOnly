@@ -10,6 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 interface ReferrerData {
   username: string;
   profile_photo: string | null;
+  front_page_photo: string | null;
 }
 
 const ReferrerProfile = () => {
