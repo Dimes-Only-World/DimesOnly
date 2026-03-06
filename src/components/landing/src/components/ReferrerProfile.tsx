@@ -27,7 +27,7 @@ const ReferrerProfile = () => {
       try {
         const { data, error } = await supabase
           .from("public_user_profiles")
-          .select("username, profile_photo")
+          .select("username, profile_photo, front_page_photo")
           .ilike("username", ref)
           .maybeSingle();
 
