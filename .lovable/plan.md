@@ -1,12 +1,23 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+## Plan: Add Banner Video & Photo Preview to Admin Event Cards
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+### Problem
+The admin Events tab event cards only show text info (name, date, location, price). The banner video (e.g., Comedy Nights) and photos are not displayed, even though the data exists in `banner_video_url`, `video_urls`, `photo_url`, and `additional_photos`.
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+### Change
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+**Edit `src/components/AdminEventsTab.tsx`** (lines 1535-1540)
+
+After `</CardHeader>` (line 1535), before the description `<CardContent>`, insert a media preview block:
+
+1. If `event.banner_video_url` exists → render `<video controls muted loop preload="auto"><source src={event.banner_video_url} type="video/mp4" /></video>` in a max-h-64 container
+2. Else if `event.video_urls?.[0]` exists → render that video as fallback
+3. Else if `event.photo_url` exists → render `<img>`
+4. Show badge counts for videos/photos below the preview
+
+Event media uses the public `event-videos` bucket, so URLs work directly — no signed URLs needed.
+
+### Files Changed
+- `src/components/AdminEventsTab.tsx`
+
