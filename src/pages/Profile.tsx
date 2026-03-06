@@ -365,7 +365,6 @@ const Profile: React.FC = () => {
                     media={getFilteredMedia()}
                     currentUserId={user?.id || ''}
                     showLikesAndComments={true}
-                    onDelete={() => {}}
                   />
                 ) : (
                   <div className="text-center py-12">

@@ -191,7 +191,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 )}
                 <div className={`absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none ${playingMap[file.id] ? 'hidden' : ''}`}>
                   <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
-                    <Video className="w-8 h-8 text-gray-700" />
+                    <Play className="w-8 h-8 text-gray-700" fill="currentColor" />
                   </div>
                 </div>
             </div>
