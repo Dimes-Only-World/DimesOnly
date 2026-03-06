@@ -1533,9 +1533,57 @@ const updateData = {
                   </div>
                 </div>
               </CardHeader>
+
+              {/* Media Preview */}
+              {(event.banner_video_url || event.video_urls?.[0] || event.photo_url) && (
+                <div className="px-6 pb-2">
+                  <div className="rounded-lg overflow-hidden bg-muted max-h-64">
+                    {event.banner_video_url ? (
+                      <video
+                        controls
+                        muted
+                        loop
+                        preload="metadata"
+                        className="w-full max-h-64 object-contain"
+                      >
+                        <source src={event.banner_video_url} type="video/mp4" />
+                      </video>
+                    ) : event.video_urls?.[0] ? (
+                      <video
+                        controls
+                        muted
+                        loop
+                        preload="metadata"
+                        className="w-full max-h-64 object-contain"
+                      >
+                        <source src={event.video_urls[0]} type="video/mp4" />
+                      </video>
+                    ) : event.photo_url ? (
+                      <img
+                        src={event.photo_url}
+                        alt={event.name}
+                        className="w-full max-h-64 object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    {(event.video_urls?.length || 0) > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        🎬 {event.video_urls!.length} video{event.video_urls!.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                    {(event.additional_photos?.length || 0) > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        📷 {event.additional_photos!.length} photo{event.additional_photos!.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {event.description && (
                 <CardContent>
-                  <p className="text-sm text-gray-600">{event.description}</p>
+                  <p className="text-sm text-muted-foreground">{event.description}</p>
                 </CardContent>
               )}
             </Card>
