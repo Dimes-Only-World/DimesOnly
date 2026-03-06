@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
+import { getAdminUserId } from '@/lib/adminAuth';
 import { Play, Flag, X, UserX } from 'lucide-react';
 
 interface User {
@@ -32,7 +33,8 @@ interface Media {
   type: 'photo' | 'video';
   flagged?: boolean;
   warning_message?: string;
-  filename?: string;
+  content_tier?: string;
+  storage_path?: string;
 }
 
 interface AdminUserDetailsEnhancedProps {
@@ -42,6 +44,24 @@ interface AdminUserDetailsEnhancedProps {
   onUserUpdated?: () => void;
 }
 
+const callAdminData = async (action: string, params: Record<string, unknown> = {}) => {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error('Not authenticated as admin');
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-data`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({ action, adminUserId, ...params }),
+  });
+
+  const json = await res.json();
+  if (!res.ok || json.error) throw new Error(json.error || 'Request failed');
+  return json.data;
+};
+
 const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({ 
   user, 
   isOpen, 
@@ -49,6 +69,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   onUserUpdated 
 }) => {
   const [media, setMedia] = useState<Media[]>([]);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
   const [flagMessage, setFlagMessage] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
@@ -62,30 +83,48 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     }
   }, [user, isOpen]);
 
+  const resolveSignedUrls = async (items: Media[]) => {
+    const urls: Record<string, string> = {};
+    for (const item of items) {
+      const rawUrl = item.url || '';
+      if (rawUrl.includes('/private-media/') || item.storage_path) {
+        let storagePath = item.storage_path || '';
+        if (!storagePath && rawUrl.includes('/private-media/')) {
+          storagePath = rawUrl.split('/private-media/').pop() || '';
+          storagePath = decodeURIComponent(storagePath.split('?')[0]);
+        }
+        if (storagePath) {
+          try {
+            const { data } = await supabase.storage
+              .from('private-media')
+              .createSignedUrl(storagePath, 3600);
+            if (data?.signedUrl) {
+              urls[item.id] = data.signedUrl;
+            }
+          } catch (e) {
+            console.error('Signed URL error:', e);
+          }
+        }
+      }
+    }
+    setResolvedUrls(urls);
+  };
+
   const fetchUserMedia = async () => {
     if (!user) return;
-    
     try {
-      const { data, error } = await supabaseAdmin
-        .from('user_media')
-        .select('id, media_url, media_type, content_tier, flagged, warning_message, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform data to match expected format
-      const transformedMedia = (data || []).map(item => ({
-        id: item.id as string,
-        url: item.media_url as string,
+      const data = await callAdminData('fetchUserMedia', { userId: user.id });
+      const transformedMedia: Media[] = (data || []).map((item: any) => ({
+        id: item.id,
+        url: item.media_url,
         type: item.media_type as 'photo' | 'video',
-        flagged: item.flagged as boolean,
-        warning_message: item.warning_message as string,
-        content_tier: item.content_tier as string,
-        created_at: item.created_at as string
+        flagged: item.flagged,
+        warning_message: item.flagged_message || item.warning_message,
+        content_tier: item.content_tier,
+        storage_path: item.storage_path,
       }));
-      
       setMedia(transformedMedia);
+      resolveSignedUrls(transformedMedia);
     } catch (error) {
       console.error('Error fetching media:', error);
     }
@@ -93,71 +132,36 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
 
   const handleFlagMedia = async (mediaId: string) => {
     if (!flagMessage.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a warning message',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Please enter a warning message', variant: 'destructive' });
       return;
     }
-
     try {
-      const { error } = await supabaseAdmin
-        .from('user_media')
-        .update({ 
-          flagged: true, 
-          warning_message: flagMessage 
-        })
-        .eq('id', mediaId);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Media flagged successfully',
-      });
-      
+      await callAdminData('flagMedia', { mediaId, message: flagMessage });
+      toast({ title: 'Success', description: 'Media flagged successfully' });
       setFlagMessage('');
       setSelectedMedia(null);
       fetchUserMedia();
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to flag media',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to flag media', variant: 'destructive' });
     }
   };
 
   const handleDeactivateUser = async () => {
     if (!user || !confirm('Are you sure you want to deactivate this user?')) return;
-
     setDeactivating(true);
     try {
-      const { error } = await supabaseAdmin
-        .from('users')
-        .update({ status: 'deactivated' })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'User deactivated successfully',
-      });
-      
+      await callAdminData('deactivateUser', { userId: user.id });
+      toast({ title: 'Success', description: 'User deactivated successfully' });
       if (onUserUpdated) onUserUpdated();
       onClose();
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to deactivate user',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to deactivate user', variant: 'destructive' });
     } finally {
       setDeactivating(false);
     }
   };
+
+  const getMediaUrl = (item: Media) => resolvedUrls[item.id] || item.url;
 
   const getUserTypeDisplay = (userType: string) => {
     switch (userType.toLowerCase()) {
@@ -198,48 +202,25 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               <div>
                 <h3 className="font-semibold mb-2">Profile Photo</h3>
                 {user.profile_photo ? (
-                  <img 
-                    src={user.profile_photo} 
-                    alt="Profile" 
-                    className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                    onClick={() => setExpandedImage(user.profile_photo!)}
-                  />
+                  <img src={user.profile_photo} alt="Profile" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.profile_photo!)} />
                 ) : (
-                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-500">No photo</span>
-                  </div>
+                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
                 )}
               </div>
-              
               <div>
                 <h3 className="font-semibold mb-2">Banner Photo</h3>
                 {user.banner_photo ? (
-                  <img 
-                    src={user.banner_photo} 
-                    alt="Banner" 
-                    className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                    onClick={() => setExpandedImage(user.banner_photo!)}
-                  />
+                  <img src={user.banner_photo} alt="Banner" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.banner_photo!)} />
                 ) : (
-                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-500">No banner</span>
-                  </div>
+                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No banner</span></div>
                 )}
               </div>
-              
               <div>
                 <h3 className="font-semibold mb-2">Front Page Photo</h3>
                 {user.front_page_photo ? (
-                  <img 
-                    src={user.front_page_photo} 
-                    alt="Front Page" 
-                    className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                    onClick={() => setExpandedImage(user.front_page_photo!)}
-                  />
+                  <img src={user.front_page_photo} alt="Front Page" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.front_page_photo!)} />
                 ) : (
-                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-500">No photo</span>
-                  </div>
+                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
                 )}
               </div>
             </div>
@@ -255,15 +236,10 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                   <p><strong>Location:</strong> {user.city}, {user.state}</p>
                   <p><strong>Type:</strong> <Badge>{getUserTypeDisplay(user.user_type)}</Badge></p>
                   {user.referred_by && (
-                    <p><strong>Referred by:</strong> 
-                      <span className="ml-2 font-medium text-blue-600">@{user.referred_by}</span>
-                    </p>
+                    <p><strong>Referred by:</strong> <span className="ml-2 font-medium text-blue-600">@{user.referred_by}</span></p>
                   )}
                   <p><strong>Status:</strong> 
-                    <Badge 
-                      variant={user.status === 'deactivated' ? 'destructive' : 'default'}
-                      className="ml-2"
-                    >
+                    <Badge variant={user.status === 'deactivated' ? 'destructive' : 'default'} className="ml-2">
                       {user.status || 'Active'}
                     </Badge>
                   </p>
@@ -275,34 +251,31 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
             <div>
               <h3 className="font-semibold mb-3">Uploaded Media ({media.length})</h3>
               {media.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No media uploaded</p>
+                <p className="text-muted-foreground text-center py-8">No media uploaded</p>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {media.map((item) => (
                     <div key={item.id} className="relative border rounded-lg overflow-hidden">
                       {item.type === 'photo' ? (
                         <img 
-                          src={item.url} 
+                          src={getMediaUrl(item)} 
                           alt="User media" 
                           className="w-full h-40 md:h-48 object-cover cursor-pointer hover:opacity-80"
-                          onClick={() => setExpandedImage(item.url)}
+                          onClick={() => setExpandedImage(getMediaUrl(item))}
                         />
                       ) : (
                         <div className="relative">
                           <video 
-                            src={item.url} 
                             className="w-full h-40 md:h-48 object-cover"
                             preload="metadata"
                             muted
-                            onLoadedMetadata={(e) => {
-                              const video = e.target as HTMLVideoElement;
-                              video.currentTime = 1;
-                            }}
-                          />
+                          >
+                            <source src={getMediaUrl(item)} type="video/mp4" />
+                          </video>
                           <Button
                             size="sm"
                             className="absolute inset-0 bg-black bg-opacity-50 hover:bg-opacity-70"
-                            onClick={() => setPlayingVideo(item.url)}
+                            onClick={() => setPlayingVideo(getMediaUrl(item))}
                           >
                             <Play className="w-6 h-6 text-white" />
                           </Button>
@@ -310,9 +283,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                       )}
                       
                       {item.flagged && (
-                        <Badge variant="destructive" className="absolute top-1 right-1 text-xs">
-                          Flagged
-                        </Badge>
+                        <Badge variant="destructive" className="absolute top-1 right-1 text-xs">Flagged</Badge>
                       )}
                       
                       <div className="p-2">
@@ -334,12 +305,8 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                               onChange={(e) => setFlagMessage(e.target.value)}
                               rows={2}
                               className="text-xs"
-                                            />
-                            <Button
-                              size="sm"
-                              onClick={() => handleFlagMedia(item.id)}
-                              className="w-full"
-                            >
+                            />
+                            <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="w-full">
                               Submit Flag
                             </Button>
                           </div>
@@ -370,11 +337,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               </div>
             </DialogHeader>
             <div className="flex justify-center">
-              <img 
-                src={expandedImage} 
-                alt="Expanded view" 
-                className="max-w-full max-h-[70vh] object-contain"
-              />
+              <img src={expandedImage} alt="Expanded view" className="max-w-full max-h-[70vh] object-contain" />
             </div>
           </DialogContent>
         </Dialog>
@@ -392,12 +355,9 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               </div>
             </DialogHeader>
             <div className="flex justify-center">
-              <video 
-                src={playingVideo} 
-                controls 
-                autoPlay
-                className="max-w-full max-h-[70vh]"
-              />
+              <video controls autoPlay muted preload="auto" crossOrigin="anonymous" className="max-w-full max-h-[70vh]">
+                <source src={playingVideo} type="video/mp4" />
+              </video>
             </div>
           </DialogContent>
         </Dialog>
