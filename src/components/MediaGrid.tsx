@@ -152,10 +152,10 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           {file.media_type === "photo" ? (
             <div
               className="aspect-square bg-gray-100 overflow-hidden relative group cursor-zoom-in"
-              onClick={() => setZoomImageUrl(file.media_url)}
+              onClick={() => setZoomImageUrl(resolvedUrls[file.id] || file.media_url)}
             >
               <img
-                src={file.media_url}
+                src={resolvedUrls[file.id] || file.media_url}
                 alt="User media"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
