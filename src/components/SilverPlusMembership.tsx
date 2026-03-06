@@ -100,7 +100,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
       if (availability && Array.isArray(availability) && availability.length > 0 && !availability[0].available) {
         toast({
           title: "Silver Plus Unavailable",
-          description: "All 3,000 Silver Plus memberships have been claimed. It will become an annual subscription soon.",
+          description: "All 300 Silver Plus memberships have been claimed. It will become an annual subscription soon.",
           variant: "destructive",
         });
         return;
