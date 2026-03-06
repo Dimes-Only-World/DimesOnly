@@ -260,7 +260,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                         <img 
                           src={getMediaUrl(item)} 
                           alt="User media" 
-                          className="w-full h-40 md:h-48 object-cover cursor-pointer hover:opacity-80"
+                          className="w-full max-h-[500px] object-contain cursor-pointer hover:opacity-80"
                           onClick={() => setExpandedImage(getMediaUrl(item))}
                         />
                       ) : (
