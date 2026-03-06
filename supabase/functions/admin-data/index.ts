@@ -194,7 +194,7 @@ serve(async (req) => {
         const { userId } = params;
         const { data, error } = await supabaseAdmin
           .from('user_media')
-          .select('id, media_url, media_type, content_tier, flagged, created_at, storage_path, flagged_message')
+          .select('id, media_url, media_type, content_tier, flagged, created_at, storage_path, warning_message')
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
         if (error) throw error;
