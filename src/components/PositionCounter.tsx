@@ -69,7 +69,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
     try {
       const { data, error } = await supabase.rpc("get_diamond_plus_count");
       if (!error && data !== null) {
-        setDiamondPlusSpotsLeft(Math.max(0, 1000 - data));
+        setDiamondPlusSpotsLeft(Math.max(0, 300 - data));
       }
     } catch (error) {
       console.error("Diamond Plus count error:", error);

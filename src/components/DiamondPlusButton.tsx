@@ -91,7 +91,7 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
           membership_type: "diamond_plus",
           user_type: "combined",
           current_count: 0,
-          max_count: 1000,
+          max_count: 300,
         } as MembershipLimits,
       ]);
     } finally {

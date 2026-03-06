@@ -219,7 +219,7 @@ const SilverPlusMembership: React.FC<SilverPlusMembershipProps> = ({
           <CardTitle className="text-blue-800">Get Silver Plus Membership</CardTitle>
         </div>
         <Badge variant="secondary" className="bg-blue-600 hover:bg-blue-600 text-white">
-          Limited Time: Only {availability?.remaining.toLocaleString() || '3,000'} Available
+          Limited Time: Only {availability?.remaining.toLocaleString() || '300'} Available
         </Badge>
       </CardHeader>
       <CardContent className="flex flex-col items-center text-center">

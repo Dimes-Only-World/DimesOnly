@@ -10,10 +10,10 @@ LANGUAGE sql
 SECURITY DEFINER
 AS $$
   SELECT 
-    (SELECT COUNT(*) < 3000 FROM users WHERE silver_plus_active = true) as available,
+    (SELECT COUNT(*) < 300 FROM users WHERE silver_plus_active = true) as available,
     (SELECT COUNT(*) FROM users WHERE silver_plus_active = true) as current_count,
-    3000 as max_count,
-    GREATEST(0, 3000 - (SELECT COUNT(*) FROM users WHERE silver_plus_active = true)) as remaining
+    300 as max_count,
+    GREATEST(0, 300 - (SELECT COUNT(*) FROM users WHERE silver_plus_active = true)) as remaining
 $$;
 
 -- Grant execute permission

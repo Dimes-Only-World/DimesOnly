@@ -11,7 +11,7 @@ AS $$
 DECLARE
   result JSONB;
   current_count INTEGER;
-  max_memberships INTEGER := 3000;
+  max_memberships INTEGER := 300;
 BEGIN
   -- Get current count of Silver+ members
   SELECT COUNT(*) INTO current_count 
