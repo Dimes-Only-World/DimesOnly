@@ -218,7 +218,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               <div>
                 <h3 className="font-semibold mb-2">Front Page Photo</h3>
                 {user.front_page_photo ? (
-                  <img src={user.front_page_photo} alt="Front Page" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.front_page_photo!)} />
+                  <img src={user.front_page_photo} alt="Front Page" className="w-full max-h-96 object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.front_page_photo!)} />
                 ) : (
                   <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
                 )}
