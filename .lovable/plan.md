@@ -1,21 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-## Plan: Clean Up Profile Media Grid for Visitors
+## Change
 
-### Problem
-When visiting a profile page, the MediaGrid shows:
-1. A **red X delete button** on every media item (visible on mobile, hover on desktop) — this is because Profile.tsx passes a dummy `onDelete` function that throws an error.
-2. The **video play overlay** uses a camcorder-style `Video` icon inside a white circle, which looks odd as a play button.
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-### Changes
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-**`src/pages/Profile.tsx`** (~line 230):
-- Remove the `onDelete` prop from the `<MediaGrid>` call (or pass `undefined`). The MediaGrid already conditionally renders the delete/replace overlay only when `onDelete` is provided, so simply not passing it will hide the red X.
-
-**`src/components/MediaGrid.tsx`** (~lines 192-196):
-- Replace the `Video` icon in the play overlay with a proper play triangle. Use Lucide's `Play` icon (filled style) instead of `Video` to give a standard play button appearance.
-
-### Files Changed
-- `src/pages/Profile.tsx`
-- `src/components/MediaGrid.tsx`
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`

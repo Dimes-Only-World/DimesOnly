@@ -364,9 +364,8 @@ const Profile: React.FC = () => {
                   <MediaGrid 
                     media={getFilteredMedia()}
                     currentUserId={user?.id || ''}
-                    showLikesAndComments={true} onDelete={function (id: string): void {
-                      throw new Error('Function not implemented.');
-                    } }                  />
+                    showLikesAndComments={true}
+                  />
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-500">No {activeTab} content available yet</p>

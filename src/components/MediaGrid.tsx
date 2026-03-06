@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle } from "lucide-react";
+import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle, Play } from "lucide-react";
 import MediaLikes from "./MediaLikes";
 import MediaComments from "./MediaComments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,7 +20,7 @@ interface MediaFile {
 
 interface MediaGridProps {
   media: MediaFile[];
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onReplace?: (id: string) => void;
   showContentTier?: boolean;
   currentUserId?: string;
@@ -191,7 +191,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 )}
                 <div className={`absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none ${playingMap[file.id] ? 'hidden' : ''}`}>
                   <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
-                    <Video className="w-8 h-8 text-gray-700" />
+                    <Play className="w-8 h-8 text-gray-700" fill="currentColor" />
                   </div>
                 </div>
             </div>
