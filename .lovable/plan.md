@@ -1,24 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-## Plan: Replace Content Counts with Yes/No
+## Change
 
-### Change
-In `src/components/DimesDirectory.tsx` (lines 396-407), replace the numeric content counts with "Yes" or "No" based on whether the count is greater than 0.
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-**Before:**
-```
-Free Content: 1
-Nude Content: 0
-X-Rated Content: 1
-```
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-**After:**
-```
-Free Content: Yes
-Nude Content: No
-X-Rated Content: Yes
-```
-
-### File Changed
-- `src/components/DimesDirectory.tsx`: Replace `{profile.content_free_count}` with `{profile.content_free_count > 0 ? 'Yes' : 'No'}`, and same for `content_nude_count` and `content_xrated_count`. Style "Yes" in green and "No" in gray for visual clarity.
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`

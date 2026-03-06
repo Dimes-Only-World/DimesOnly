@@ -395,15 +395,21 @@ const DimesDirectory: React.FC = () => {
                         </span>
                         <span>
                           <strong className="font-semibold text-gray-900">Free Content:</strong>{" "}
-                          {profile.content_free_count}
+                          <span className={profile.content_free_count > 0 ? "text-green-600 font-semibold" : "text-gray-400"}>
+                            {profile.content_free_count > 0 ? "Yes" : "No"}
+                          </span>
                         </span>
                         <span>
                           <strong className="font-semibold text-gray-900">Nude Content:</strong>{" "}
-                          {profile.content_nude_count}
+                          <span className={profile.content_nude_count > 0 ? "text-green-600 font-semibold" : "text-gray-400"}>
+                            {profile.content_nude_count > 0 ? "Yes" : "No"}
+                          </span>
                         </span>
                         <span>
                           <strong className="font-semibold text-gray-900">X-Rated Content:</strong>{" "}
-                          {profile.content_xrated_count}
+                          <span className={profile.content_xrated_count > 0 ? "text-green-600 font-semibold" : "text-gray-400"}>
+                            {profile.content_xrated_count > 0 ? "Yes" : "No"}
+                          </span>
                         </span>
                       </div>
                     </div>
