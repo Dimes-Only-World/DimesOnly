@@ -7,7 +7,6 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import dimePlaceholder from "@/assets/dime-placeholder.jpg";
 
@@ -18,8 +17,8 @@ const mockDimes = Array.from({ length: 20 }, (_, i) => ({
 
 const LatestDimesCarousel = () => {
   const [selected, setSelected] = useState<(typeof mockDimes)[0] | null>(null);
-  const [searchParams] = useSearchParams();
-  const ref = searchParams.get("ref");
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
   const loginUrl = ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login";
   const registerUrl = ref ? `/register?ref=${encodeURIComponent(ref)}` : "/register";
 
