@@ -30,6 +30,9 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { setUser } = useAppContext();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const ref = searchParams.get("ref");
+  const registerUrl = ref ? `/register?ref=${encodeURIComponent(ref)}` : "/register";
 
   const isEmail = (input: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
