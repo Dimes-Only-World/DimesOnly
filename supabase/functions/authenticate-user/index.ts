@@ -217,6 +217,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Check if account is deactivated
+    if (user.is_active === false) {
+      console.log('Login blocked - account deactivated:', user.username);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Your account has been deactivated. Please contact support to file an appeal.'
+      }), {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
     // Clear failed attempts on successful login
     clearFailedAttempts(clientIP);
     console.log('Login successful for user:', user.username);
