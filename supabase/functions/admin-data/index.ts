@@ -60,6 +60,8 @@ serve(async (req) => {
 
       case 'deactivateUser': {
         const { userId } = params;
+        console.log('deactivateUser called for userId:', userId);
+
         // Fetch user email and username before deactivating
         const { data: userData, error: fetchErr } = await supabaseAdmin
           .from('users')
@@ -67,33 +69,48 @@ serve(async (req) => {
           .eq('id', userId)
           .single();
         if (fetchErr) throw fetchErr;
+        console.log('User data fetched:', { email: userData?.email, username: userData?.username });
 
         const { error: deactivateError } = await supabaseAdmin
           .from('users')
           .update({ is_active: false, deactivated_at: new Date().toISOString() })
           .eq('id', userId);
         if (deactivateError) throw deactivateError;
+        console.log('User deactivated in DB');
 
-        // Send deactivation email (best effort)
+        // Send deactivation email
         if (userData?.email) {
-          try {
-            await fetch('https://send.api.mailtrap.io/api/send', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${Deno.env.get('MAILTRAP_API_TOKEN') || ''}`,
-              },
-              body: JSON.stringify({
-                from: { email: Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com', name: 'Dimelot' },
-                to: [{ email: userData.email }],
-                subject: 'Your Account Has Been Deactivated',
-                text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
-                html: `<p>Hi ${userData.username},</p><p>Your account on Dimelot has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimelot Team</p>`,
-              }),
-            });
-            console.log('Deactivation email sent to', userData.email);
-          } catch (emailErr) {
-            console.error('Failed to send deactivation email:', emailErr);
+          const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          console.log('Mailtrap config:', { hasToken: !!mailtrapToken, senderEmail });
+
+          if (!mailtrapToken) {
+            console.error('MAILTRAP_API_TOKEN is not set - cannot send email');
+          } else {
+            try {
+              const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${mailtrapToken}`,
+                },
+                body: JSON.stringify({
+                  from: { email: senderEmail, name: 'Dimelot' },
+                  to: [{ email: userData.email }],
+                  subject: 'Your Account Has Been Deactivated',
+                  text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
+                  html: `<p>Hi ${userData.username},</p><p>Your account on Dimelot has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimelot Team</p>`,
+                }),
+              });
+              const responseText = await mailtrapResponse.text();
+              if (!mailtrapResponse.ok) {
+                console.error('Mailtrap API error:', mailtrapResponse.status, responseText);
+              } else {
+                console.log('Deactivation email sent successfully to', userData.email, responseText);
+              }
+            } catch (emailErr) {
+              console.error('Failed to send deactivation email:', emailErr);
+            }
           }
         }
 
