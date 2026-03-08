@@ -7,7 +7,7 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import dimePlaceholder from "@/assets/dime-placeholder.jpg";
 
@@ -18,6 +18,10 @@ const mockDimes = Array.from({ length: 20 }, (_, i) => ({
 
 const LatestDimesCarousel = () => {
   const [selected, setSelected] = useState<(typeof mockDimes)[0] | null>(null);
+  const [searchParams] = useSearchParams();
+  const ref = searchParams.get("ref");
+  const loginUrl = ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login";
+  const registerUrl = ref ? `/register?ref=${encodeURIComponent(ref)}` : "/register";
 
   return (
     <section className="py-20 bg-card/50">
@@ -75,13 +79,13 @@ const LatestDimesCarousel = () => {
           </div>
           <div className="flex gap-3">
             <Link
-              to="/login"
+              to={loginUrl}
               className="flex-1 text-center py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
             >
               Login
             </Link>
             <Link
-              to="/register"
+              to={registerUrl}
               className="flex-1 text-center py-2 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary/10 transition-colors"
             >
               Sign Up
