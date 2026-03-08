@@ -217,11 +217,12 @@ const AdminUsersListEnhanced: React.FC = () => {
     }
   };
 
-  const handleDeactivateUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
     try {
       const adminUserId = getAdminUserId();
       const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'deactivateUser', userId, adminUserId }
+        body: { action: 'deleteUser', userId, adminUserId }
       });
 
       if (error) throw error;
@@ -229,15 +230,15 @@ const AdminUsersListEnhanced: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "User deactivated successfully",
+        description: "User permanently deleted",
       });
 
       fetchUsers();
     } catch (error) {
-      console.error("Error deactivating user:", error);
+      console.error("Error deleting user:", error);
       toast({
         title: "Error",
-        description: "Failed to deactivate user",
+        description: "Failed to delete user",
         variant: "destructive",
       });
     }
@@ -346,16 +347,14 @@ const AdminUsersListEnhanced: React.FC = () => {
                         Details
                       </Button>
 
-                      {user.is_active && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeactivateUser(user.id)}
-                        >
-                          <UserX className="w-4 h-4 mr-1" />
-                          Deactivate
-                        </Button>
-                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        <UserX className="w-4 h-4 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
