@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
 import { getAdminUserId } from '@/lib/adminAuth';
-import { Play, Flag, X, UserX } from 'lucide-react';
+import { Play, Flag, X, Trash2, ShieldOff, ShieldCheck } from 'lucide-react';
 
 interface User {
   id: string;
@@ -22,7 +22,8 @@ interface User {
   banner_photo?: string;
   front_page_photo?: string;
   created_at: string;
-  status?: string;
+  is_active?: boolean;
+  deactivated_at?: string;
   referred_by?: string;
   referred_by_photo?: string;
 }
@@ -63,10 +64,7 @@ const callAdminData = async (action: string, params: Record<string, unknown> = {
 };
 
 const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({ 
-  user, 
-  isOpen, 
-  onClose, 
-  onUserUpdated 
+  user, isOpen, onClose, onUserUpdated 
 }) => {
   const [media, setMedia] = useState<Media[]>([]);
   const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
@@ -74,13 +72,11 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && isOpen) {
-      fetchUserMedia();
-    }
+    if (user && isOpen) fetchUserMedia();
   }, [user, isOpen]);
 
   const resolveSignedUrls = async (items: Media[]) => {
@@ -95,15 +91,9 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
         }
         if (storagePath) {
           try {
-            const { data } = await supabase.storage
-              .from('private-media')
-              .createSignedUrl(storagePath, 3600);
-            if (data?.signedUrl) {
-              urls[item.id] = data.signedUrl;
-            }
-          } catch (e) {
-            console.error('Signed URL error:', e);
-          }
+            const { data } = await supabase.storage.from('private-media').createSignedUrl(storagePath, 3600);
+            if (data?.signedUrl) urls[item.id] = data.signedUrl;
+          } catch (e) { console.error('Signed URL error:', e); }
         }
       }
     }
@@ -115,19 +105,13 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     try {
       const data = await callAdminData('fetchUserMedia', { userId: user.id });
       const transformedMedia: Media[] = (data || []).map((item: any) => ({
-        id: item.id,
-        url: item.media_url,
-        type: item.media_type as 'photo' | 'video',
-        flagged: item.flagged,
-        warning_message: item.flagged_message || item.warning_message,
-        content_tier: item.content_tier,
-        storage_path: item.storage_path,
+        id: item.id, url: item.media_url, type: item.media_type as 'photo' | 'video',
+        flagged: item.flagged, warning_message: item.flagged_message || item.warning_message,
+        content_tier: item.content_tier, storage_path: item.storage_path,
       }));
       setMedia(transformedMedia);
       resolveSignedUrls(transformedMedia);
-    } catch (error) {
-      console.error('Error fetching media:', error);
-    }
+    } catch (error) { console.error('Error fetching media:', error); }
   };
 
   const handleFlagMedia = async (mediaId: string) => {
@@ -138,17 +122,41 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     try {
       await callAdminData('flagMedia', { mediaId, message: flagMessage });
       toast({ title: 'Success', description: 'Media flagged successfully' });
-      setFlagMessage('');
-      setSelectedMedia(null);
-      fetchUserMedia();
+      setFlagMessage(''); setSelectedMedia(null); fetchUserMedia();
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to flag media', variant: 'destructive' });
     }
   };
 
+  const handleDeactivateUser = async () => {
+    if (!user || !confirm('Are you sure you want to deactivate this user? They will be unable to log in.')) return;
+    setActionLoading(true);
+    try {
+      await callAdminData('deactivateUser', { userId: user.id });
+      toast({ title: 'Success', description: 'User deactivated. Notification email sent.' });
+      if (onUserUpdated) onUserUpdated();
+      onClose();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to deactivate user', variant: 'destructive' });
+    } finally { setActionLoading(false); }
+  };
+
+  const handleReactivateUser = async () => {
+    if (!user || !confirm('Are you sure you want to reactivate this user?')) return;
+    setActionLoading(true);
+    try {
+      await callAdminData('reactivateUser', { userId: user.id });
+      toast({ title: 'Success', description: 'User reactivated successfully' });
+      if (onUserUpdated) onUserUpdated();
+      onClose();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to reactivate user', variant: 'destructive' });
+    } finally { setActionLoading(false); }
+  };
+
   const handleDeleteUser = async () => {
-    if (!user || !confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
-    setDeleting(true);
+    if (!user || !confirm('⚠️ PERMANENT ACTION: Are you sure you want to permanently delete this user? This cannot be undone.')) return;
+    setActionLoading(true);
     try {
       await callAdminData('deleteUser', { userId: user.id });
       toast({ title: 'Success', description: 'User permanently deleted' });
@@ -156,9 +164,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
       onClose();
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to delete user', variant: 'destructive' });
-    } finally {
-      setDeleting(false);
-    }
+    } finally { setActionLoading(false); }
   };
 
   const getMediaUrl = (item: Media) => resolvedUrls[item.id] || item.url;
@@ -168,13 +174,14 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
       case 'stripper': return 'Stripper';
       case 'exotic': return 'Exotic';
       case 'male': return 'Male';
-      case 'female':
-      case 'normal': return 'Female';
+      case 'female': case 'normal': return 'Female';
       default: return userType;
     }
   };
 
   if (!user) return null;
+
+  const isDeactivated = user.is_active === false;
 
   return (
     <>
@@ -182,17 +189,44 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>User Details - {user.username}</DialogTitle>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteUser}
-                disabled={deleting}
-                className="flex items-center gap-2"
-              >
-                <UserX className="w-4 h-4" />
-                {deleting ? 'Deleting...' : 'Delete User'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <DialogTitle>User Details - {user.username}</DialogTitle>
+                {isDeactivated && <Badge variant="destructive">Deactivated</Badge>}
+              </div>
+              <div className="flex items-center gap-2">
+                {isDeactivated ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-green-500 text-green-600 hover:bg-green-50"
+                    onClick={handleReactivateUser}
+                    disabled={actionLoading}
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-1" />
+                    {actionLoading ? 'Processing...' : 'Reactivate'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                    onClick={handleDeactivateUser}
+                    disabled={actionLoading}
+                  >
+                    <ShieldOff className="w-4 h-4 mr-1" />
+                    {actionLoading ? 'Processing...' : 'Deactivate'}
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteUser}
+                  disabled={actionLoading}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  {actionLoading ? 'Processing...' : 'Delete'}
+                </Button>
+              </div>
             </div>
           </DialogHeader>
           
@@ -235,13 +269,16 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                   <p><strong>Location:</strong> {user.city}, {user.state}</p>
                   <p><strong>Type:</strong> <Badge>{getUserTypeDisplay(user.user_type)}</Badge></p>
                   {user.referred_by && (
-                    <p><strong>Referred by:</strong> <span className="ml-2 font-medium text-blue-600">@{user.referred_by}</span></p>
+                    <p><strong>Referred by:</strong> <span className="ml-2 font-medium text-primary">@{user.referred_by}</span></p>
                   )}
-                  <p><strong>Status:</strong> 
-                    <Badge variant={user.status === 'deactivated' ? 'destructive' : 'default'} className="ml-2">
-                      {user.status || 'Active'}
+                  <p><strong>Status:</strong>{' '}
+                    <Badge variant={isDeactivated ? 'destructive' : 'default'} className="ml-2">
+                      {isDeactivated ? 'Deactivated' : 'Active'}
                     </Badge>
                   </p>
+                  {user.deactivated_at && (
+                    <p className="text-destructive"><strong>Deactivated on:</strong> {new Date(user.deactivated_at).toLocaleDateString()}</p>
+                  )}
                   <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -256,64 +293,29 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                   {media.map((item) => (
                     <div key={item.id} className="relative border rounded-lg overflow-hidden">
                       {item.type === 'photo' ? (
-                        <img 
-                          src={getMediaUrl(item)} 
-                          alt="User media" 
-                          className="w-full object-contain cursor-pointer hover:opacity-80"
-                          onClick={() => setExpandedImage(getMediaUrl(item))}
-                        />
+                        <img src={getMediaUrl(item)} alt="User media" className="w-full object-contain cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(getMediaUrl(item))} />
                       ) : (
                         <div className="relative">
-                          <video 
-                            className="w-full max-h-[500px] object-contain"
-                            preload="metadata"
-                            muted
-                          >
+                          <video className="w-full max-h-[500px] object-contain" preload="metadata" muted>
                             <source src={getMediaUrl(item)} type="video/mp4" />
                           </video>
-                          <Button
-                            size="sm"
-                            className="absolute inset-0 bg-black bg-opacity-50 hover:bg-opacity-70"
-                            onClick={() => setPlayingVideo(getMediaUrl(item))}
-                          >
+                          <Button size="sm" className="absolute inset-0 bg-black bg-opacity-50 hover:bg-opacity-70" onClick={() => setPlayingVideo(getMediaUrl(item))}>
                             <Play className="w-6 h-6 text-white" />
                           </Button>
                         </div>
                       )}
-                      
-                      {item.flagged && (
-                        <Badge variant="destructive" className="absolute top-1 right-1 text-xs">Flagged</Badge>
-                      )}
-                      
+                      {item.flagged && <Badge variant="destructive" className="absolute top-1 right-1 text-xs">Flagged</Badge>}
                       <div className="p-2">
-                        <Button
-                          size="sm"
-                          variant={selectedMedia === item.id ? "secondary" : "outline"}
-                          onClick={() => setSelectedMedia(selectedMedia === item.id ? null : item.id)}
-                          className="w-full mb-2"
-                        >
-                          <Flag className="w-3 h-3 mr-1" />
-                          {item.flagged ? 'Flagged' : 'Flag'}
+                        <Button size="sm" variant={selectedMedia === item.id ? "secondary" : "outline"} onClick={() => setSelectedMedia(selectedMedia === item.id ? null : item.id)} className="w-full mb-2">
+                          <Flag className="w-3 h-3 mr-1" /> {item.flagged ? 'Flagged' : 'Flag'}
                         </Button>
-                        
                         {selectedMedia === item.id && (
                           <div className="space-y-2">
-                            <Textarea
-                              placeholder="Warning message..."
-                              value={flagMessage}
-                              onChange={(e) => setFlagMessage(e.target.value)}
-                              rows={2}
-                              className="text-xs"
-                            />
-                            <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="w-full">
-                              Submit Flag
-                            </Button>
+                            <Textarea placeholder="Warning message..." value={flagMessage} onChange={(e) => setFlagMessage(e.target.value)} rows={2} className="text-xs" />
+                            <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="w-full">Submit Flag</Button>
                           </div>
                         )}
-                        
-                        {item.flagged && item.warning_message && (
-                          <p className="text-xs text-red-600 mt-1">{item.warning_message}</p>
-                        )}
+                        {item.flagged && item.warning_message && <p className="text-xs text-destructive mt-1">{item.warning_message}</p>}
                       </div>
                     </div>
                   ))}
@@ -330,9 +332,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
             <DialogHeader>
               <div className="flex items-center justify-between">
                 <DialogTitle>Image Preview</DialogTitle>
-                <Button variant="ghost" size="sm" onClick={() => setExpandedImage(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setExpandedImage(null)}><X className="w-4 h-4" /></Button>
               </div>
             </DialogHeader>
             <div className="flex justify-center">
@@ -348,9 +348,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
             <DialogHeader>
               <div className="flex items-center justify-between">
                 <DialogTitle>Video Player</DialogTitle>
-                <Button variant="ghost" size="sm" onClick={() => setPlayingVideo(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setPlayingVideo(null)}><X className="w-4 h-4" /></Button>
               </div>
             </DialogHeader>
             <div className="flex justify-center">

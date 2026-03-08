@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eye, UserX } from "lucide-react";
+import { Eye, UserX, ShieldOff, ShieldCheck, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { getAdminUserId } from "@/lib/adminAuth";
@@ -26,6 +26,7 @@ interface User {
   front_page_photo?: string;
   created_at: string;
   is_active: boolean;
+  deactivated_at?: string;
   referred_by?: string;
   referred_by_photo?: string;
 }
@@ -37,7 +38,6 @@ const AdminUsersListEnhanced: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Filter states
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [usernameFilter, setUsernameFilter] = useState("");
@@ -47,21 +47,11 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
   useEffect(() => {
     applyFilters();
-  }, [
-    users,
-    userTypeFilter,
-    genderFilter,
-    usernameFilter,
-    cityFilter,
-    stateFilter,
-    referredByFilter,
-  ]);
+  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter]);
 
   const fetchUsers = async () => {
     try {
@@ -69,18 +59,12 @@ const AdminUsersListEnhanced: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('admin-data', {
         body: { action: 'fetchAllUsers', adminUserId }
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
       setUsers((data?.data as User[]) || []);
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load users",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to load users", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -88,159 +72,107 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   const applyFilters = () => {
     let filtered = [...users];
-
-    // User type filter
     if (userTypeFilter !== "all") {
       filtered = filtered.filter((user) => {
         const userType = user.user_type?.toLowerCase() || "";
-        if (userTypeFilter === "female") {
-          return (
-            userType === "female" || userType === "normal" || userType === ""
-          );
-        }
+        if (userTypeFilter === "female") return userType === "female" || userType === "normal" || userType === "";
         return userType === userTypeFilter;
       });
     }
-
-    // Gender filter
     if (genderFilter !== "all") {
       filtered = filtered.filter((user) => {
         const gender = user.gender?.toLowerCase() || "";
         const userType = user.user_type?.toLowerCase() || "";
-
-        if (genderFilter === "male") {
-          return gender === "male" || userType === "male";
-        } else if (genderFilter === "female") {
-          return (
-            gender === "female" ||
-            userType === "female" ||
-            userType === "normal" ||
-            userType === "stripper" ||
-            userType === "exotic" ||
-            (!gender && !userType)
-          );
-        }
+        if (genderFilter === "male") return gender === "male" || userType === "male";
+        if (genderFilter === "female") return gender === "female" || userType === "female" || userType === "normal" || userType === "stripper" || userType === "exotic" || (!gender && !userType);
         return true;
       });
     }
-
-    // Username filter
-    if (usernameFilter) {
-      filtered = filtered.filter((user) =>
-        user.username?.toLowerCase().includes(usernameFilter.toLowerCase())
-      );
-    }
-
-    // City filter
-    if (cityFilter) {
-      filtered = filtered.filter((user) =>
-        user.city?.toLowerCase().includes(cityFilter.toLowerCase())
-      );
-    }
-
-    // State filter
-    if (stateFilter) {
-      filtered = filtered.filter((user) =>
-        user.state?.toLowerCase().includes(stateFilter.toLowerCase())
-      );
-    }
-
-    // Referred by filter
-    if (referredByFilter) {
-      filtered = filtered.filter((user) =>
-        user.referred_by?.toLowerCase().includes(referredByFilter.toLowerCase())
-      );
-    }
-
+    if (usernameFilter) filtered = filtered.filter((u) => u.username?.toLowerCase().includes(usernameFilter.toLowerCase()));
+    if (cityFilter) filtered = filtered.filter((u) => u.city?.toLowerCase().includes(cityFilter.toLowerCase()));
+    if (stateFilter) filtered = filtered.filter((u) => u.state?.toLowerCase().includes(stateFilter.toLowerCase()));
+    if (referredByFilter) filtered = filtered.filter((u) => u.referred_by?.toLowerCase().includes(referredByFilter.toLowerCase()));
     setFilteredUsers(filtered);
   };
 
   const getGenderDisplay = (user: User) => {
     const gender = user.gender?.toLowerCase() || "";
     const userType = user.user_type?.toLowerCase() || "";
-
-    // Prioritize gender field first
-    if (gender === "male") {
-      return "Male";
-    } else if (gender === "female") {
-      return "Female";
-    }
-    
-    // Fall back to user_type only if gender is not set
-    if (userType === "male") {
-      return "Male";
-    } else if (
-      userType === "female" ||
-      userType === "stripper" ||
-      userType === "exotic"
-    ) {
-      return "Female";
-    }
-    
-    // Default for normal users without gender
-    if (userType === "normal") {
-      return "Unknown";
-    }
-    
+    if (gender === "male") return "Male";
+    if (gender === "female") return "Female";
+    if (userType === "male") return "Male";
+    if (["female", "stripper", "exotic"].includes(userType)) return "Female";
     return "Unknown";
   };
 
   const getUserTypeDisplay = (userType: string) => {
     switch (userType?.toLowerCase()) {
-      case "stripper":
-        return "Stripper";
-      case "exotic":
-        return "Exotic";
-      case "normal":
-        return "Normal";
-      case "male":
-        return "Male";
-      case "female":
-        return "Female";
-      case "":
-        return "Unknown";
-      default:
-        return userType || "Unknown";
+      case "stripper": return "Stripper";
+      case "exotic": return "Exotic";
+      case "normal": return "Normal";
+      case "male": return "Male";
+      case "female": return "Female";
+      default: return userType || "Unknown";
     }
   };
 
   const getUserTypeBadgeVariant = (userType: string) => {
     switch (userType?.toLowerCase()) {
-      case "stripper":
-        return "destructive";
-      case "exotic":
-        return "secondary";
-      case "male":
-        return "outline";
-      default:
-        return "default";
+      case "stripper": return "destructive";
+      case "exotic": return "secondary";
+      case "male": return "outline";
+      default: return "default";
+    }
+  };
+
+  const handleDeactivateUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to deactivate this user? They will be unable to log in but their data will be preserved.')) return;
+    try {
+      const adminUserId = getAdminUserId();
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'deactivateUser', userId, adminUserId }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Success", description: "User deactivated. A notification email has been sent." });
+      fetchUsers();
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      toast({ title: "Error", description: "Failed to deactivate user", variant: "destructive" });
+    }
+  };
+
+  const handleReactivateUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to reactivate this user? They will be able to log in again.')) return;
+    try {
+      const adminUserId = getAdminUserId();
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: { action: 'reactivateUser', userId, adminUserId }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Success", description: "User reactivated successfully" });
+      fetchUsers();
+    } catch (error) {
+      console.error("Error reactivating user:", error);
+      toast({ title: "Error", description: "Failed to reactivate user", variant: "destructive" });
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
+    if (!confirm('⚠️ PERMANENT ACTION: Are you sure you want to permanently delete this user? This cannot be undone.')) return;
     try {
       const adminUserId = getAdminUserId();
       const { data, error } = await supabase.functions.invoke('admin-data', {
         body: { action: 'deleteUser', userId, adminUserId }
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
-      toast({
-        title: "Success",
-        description: "User permanently deleted",
-      });
-
+      toast({ title: "Success", description: "User permanently deleted" });
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete user", variant: "destructive" });
     }
   };
 
@@ -252,7 +184,7 @@ const AdminUsersListEnhanced: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -265,21 +197,15 @@ const AdminUsersListEnhanced: React.FC = () => {
         </CardHeader>
         <CardContent>
           <AdminUserFiltersEnhanced
-            userTypeFilter={userTypeFilter}
-            setUserTypeFilter={setUserTypeFilter}
-            genderFilter={genderFilter}
-            setGenderFilter={setGenderFilter}
-            usernameFilter={usernameFilter}
-            setUsernameFilter={setUsernameFilter}
-            cityFilter={cityFilter}
-            setCityFilter={setCityFilter}
-            stateFilter={stateFilter}
-            setStateFilter={setStateFilter}
-            referredByFilter={referredByFilter}
-            setReferredByFilter={setReferredByFilter}
+            userTypeFilter={userTypeFilter} setUserTypeFilter={setUserTypeFilter}
+            genderFilter={genderFilter} setGenderFilter={setGenderFilter}
+            usernameFilter={usernameFilter} setUsernameFilter={setUsernameFilter}
+            cityFilter={cityFilter} setCityFilter={setCityFilter}
+            stateFilter={stateFilter} setStateFilter={setStateFilter}
+            referredByFilter={referredByFilter} setReferredByFilter={setReferredByFilter}
           />
 
-          <div className="text-sm text-gray-600 mb-4">
+          <div className="text-sm text-muted-foreground mb-4">
             Showing {filteredUsers.length} of {users.length} users
           </div>
 
@@ -291,69 +217,61 @@ const AdminUsersListEnhanced: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={user.profile_photo} />
-                        <AvatarFallback>
-                          {user.username?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
 
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="font-semibold">{user.username}</h3>
-                          <Badge
-                            variant={getUserTypeBadgeVariant(user.user_type)}
-                          >
+                          <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
                             {getUserTypeDisplay(user.user_type)}
                           </Badge>
-                          <Badge variant="outline">
-                            {getGenderDisplay(user)}
-                          </Badge>
-                        </div>
-
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <p>
-                            <strong>Name:</strong> {user.first_name}{" "}
-                            {user.last_name}
-                          </p>
-                          <p>
-                            <strong>Email:</strong> {user.email}
-                          </p>
-                          <p>
-                            <strong>Phone:</strong>{" "}
-                            {user.mobile_number || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Location:</strong> {user.city}, {user.state}
-                          </p>
-                          {user.referred_by && (
-                            <p>
-                              <strong>Referred by:</strong> {user.referred_by}
-                            </p>
+                          <Badge variant="outline">{getGenderDisplay(user)}</Badge>
+                          {user.is_active === false && (
+                            <Badge variant="destructive">Deactivated</Badge>
                           )}
-                          <p>
-                            <strong>Joined:</strong>{" "}
-                            {new Date(user.created_at).toLocaleDateString()}
-                          </p>
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
+                          <p><strong>Email:</strong> {user.email}</p>
+                          <p><strong>Phone:</strong> {user.mobile_number || "N/A"}</p>
+                          <p><strong>Location:</strong> {user.city}, {user.state}</p>
+                          {user.referred_by && <p><strong>Referred by:</strong> {user.referred_by}</p>}
+                          <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                          {user.deactivated_at && (
+                            <p className="text-destructive"><strong>Deactivated:</strong> {new Date(user.deactivated_at).toLocaleDateString()}</p>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(user)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        Details
+                    <div className="flex flex-col gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(user)}>
+                        <Eye className="w-4 h-4 mr-1" /> Details
                       </Button>
 
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        <UserX className="w-4 h-4 mr-1" />
-                        Delete
+                      {user.is_active === false ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-green-500 text-green-600 hover:bg-green-50"
+                          onClick={() => handleReactivateUser(user.id)}
+                        >
+                          <ShieldCheck className="w-4 h-4 mr-1" /> Reactivate
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                          onClick={() => handleDeactivateUser(user.id)}
+                        >
+                          <ShieldOff className="w-4 h-4 mr-1" /> Deactivate
+                        </Button>
+                      )}
+
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteUser(user.id)}>
+                        <Trash2 className="w-4 h-4 mr-1" /> Delete
                       </Button>
                     </div>
                   </div>
@@ -364,9 +282,7 @@ const AdminUsersListEnhanced: React.FC = () => {
 
           {filteredUsers.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500">
-                No users found matching the current filters
-              </p>
+              <p className="text-muted-foreground">No users found matching the current filters</p>
             </div>
           )}
         </CardContent>
@@ -375,10 +291,8 @@ const AdminUsersListEnhanced: React.FC = () => {
       <AdminUserDetailsEnhanced
         user={selectedUser}
         isOpen={showDetails}
-        onClose={() => {
-          setShowDetails(false);
-          setSelectedUser(null);
-        }}
+        onClose={() => { setShowDetails(false); setSelectedUser(null); }}
+        onUserUpdated={fetchUsers}
       />
     </div>
   );

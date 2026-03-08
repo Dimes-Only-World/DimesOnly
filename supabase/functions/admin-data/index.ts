@@ -58,16 +58,67 @@ serve(async (req) => {
         break;
       }
 
-      case 'deactivateUser':
+      case 'deactivateUser': {
+        const { userId } = params;
+        // Fetch user email and username before deactivating
+        const { data: userData, error: fetchErr } = await supabaseAdmin
+          .from('users')
+          .select('email, username')
+          .eq('id', userId)
+          .single();
+        if (fetchErr) throw fetchErr;
+
+        const { error: deactivateError } = await supabaseAdmin
+          .from('users')
+          .update({ is_active: false, deactivated_at: new Date().toISOString() })
+          .eq('id', userId);
+        if (deactivateError) throw deactivateError;
+
+        // Send deactivation email (best effort)
+        if (userData?.email) {
+          try {
+            await fetch('https://send.api.mailtrap.io/api/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Api-Token': Deno.env.get('MAILTRAP_API_TOKEN') || '',
+              },
+              body: JSON.stringify({
+                from: { email: Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com', name: 'Dimelot' },
+                to: [{ email: userData.email }],
+                subject: 'Your Account Has Been Deactivated',
+                text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
+                html: `<p>Hi ${userData.username},</p><p>Your account on Dimelot has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimelot Team</p>`,
+              }),
+            });
+            console.log('Deactivation email sent to', userData.email);
+          } catch (emailErr) {
+            console.error('Failed to send deactivation email:', emailErr);
+          }
+        }
+
+        result = { success: true };
+        break;
+      }
+
+      case 'reactivateUser': {
+        const { userId } = params;
+        const { error: reactivateError } = await supabaseAdmin
+          .from('users')
+          .update({ is_active: true, deactivated_at: null })
+          .eq('id', userId);
+        if (reactivateError) throw reactivateError;
+        result = { success: true };
+        break;
+      }
+
       case 'deleteUser': {
         const { userId } = params;
-        // Delete from users table first
         const { error: dbError } = await supabaseAdmin
           .from('users')
           .delete()
           .eq('id', userId);
         if (dbError) throw dbError;
-        // Delete from Supabase Auth
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
         if (authError) console.error('Auth deletion failed (may not exist):', authError);
         result = { success: true };
