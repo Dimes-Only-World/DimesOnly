@@ -30,8 +30,11 @@ const Login: React.FC = () => {
   const [showForgotUsername, setShowForgotUsername] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setUser } = useAppContext();
   const { toast } = useToast();
+  const currentRef = searchParams.get('ref');
+  const registerUrl = currentRef ? `/register?ref=${encodeURIComponent(currentRef)}` : "/register?ref=company";
 
   const isEmail = (input: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
