@@ -2444,6 +2444,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           date_of_birth: string | null
+          deactivated_at: string | null
           description: string | null
           diamond_plus_active: boolean | null
           diamond_plus_payment_id: string | null
@@ -2503,6 +2504,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deactivated_at?: string | null
           description?: string | null
           diamond_plus_active?: boolean | null
           diamond_plus_payment_id?: string | null
@@ -2562,6 +2564,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deactivated_at?: string | null
           description?: string | null
           diamond_plus_active?: boolean | null
           diamond_plus_payment_id?: string | null
