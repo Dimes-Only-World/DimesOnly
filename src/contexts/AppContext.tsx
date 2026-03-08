@@ -60,6 +60,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Fetch complete user data from database
+  const forceLogout = async () => {
+    console.log("Forcing logout - account deactivated");
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("userData");
+    sessionStorage.removeItem("currentUser");
+    setUser(null);
+    setLoading(false);
+    await supabase.auth.signOut().catch(() => {});
+    toast({
+      title: "Account Deactivated",
+      description: "Your account has been deactivated. Please contact support to file an appeal.",
+      variant: "destructive",
+    });
+  };
+
   const fetchUserFromDatabase = async (
     userId: string
   ): Promise<User | null> => {
@@ -77,6 +92,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       if (userData) {
+        // Check if user is deactivated
+        if ((userData as any).is_active === false) {
+          console.log("User is deactivated, forcing logout");
+          await forceLogout();
+          return null;
+        }
+
         console.log("User data fetched from database:", userData);
         const user: User = {
           id: String((userData as any).id),
