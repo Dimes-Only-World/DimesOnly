@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     // Try exact match first (username or email)
     let { data: user, error } = await supabase
       .from('users')
-      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type')
+      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active')
       .eq(isEmail ? 'email' : 'username', username.toLowerCase())
       .single();
 
