@@ -79,13 +79,13 @@ const LatestDimesCarousel = () => {
           </div>
           <div className="flex gap-3">
             <Link
-              to="/login"
+              to={loginUrl}
               className="flex-1 text-center py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
             >
               Login
             </Link>
             <Link
-              to="/register"
+              to={registerUrl}
               className="flex-1 text-center py-2 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary/10 transition-colors"
             >
               Sign Up
