@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     // Try exact match first (username or email)
     let { data: user, error } = await supabase
       .from('users')
-      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type')
+      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active')
       .eq(isEmail ? 'email' : 'username', username.toLowerCase())
       .single();
 
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     if (error || !user) {
       const { data: users, error: searchError } = await supabase
         .from('users')
-        .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type')
+      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active')
         .ilike(isEmail ? 'email' : 'username', username);
       
       if (!searchError && users && users.length > 0) {
@@ -208,6 +208,21 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         success: false,
         error: 'Invalid credentials'
+      }), {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Check if account is deactivated
+    if (user.is_active === false) {
+      console.log('Login blocked - account deactivated:', user.username);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Your account has been deactivated. Please contact support to file an appeal.'
       }), {
         status: 200,
         headers: {
