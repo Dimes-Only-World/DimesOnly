@@ -74,7 +74,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
-  const [deactivating, setDeactivating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
