@@ -7,7 +7,7 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import dimePlaceholder from "@/assets/dime-placeholder.jpg";
 
