@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,8 +30,11 @@ const Login: React.FC = () => {
   const [showForgotUsername, setShowForgotUsername] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setUser } = useAppContext();
   const { toast } = useToast();
+  const currentRef = searchParams.get('ref');
+  const registerUrl = currentRef ? `/register?ref=${encodeURIComponent(currentRef)}` : "/register?ref=company";
 
   const isEmail = (input: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -266,7 +269,7 @@ const Login: React.FC = () => {
                     <p className="text-sm text-white/80">
                       Don't have an account?{" "}
                       <Link
-                        to="/register/?ref=company"
+                        to={registerUrl}
                         className="text-blue-300 hover:text-blue-200 hover:underline font-medium"
                       >
                         Sign up
