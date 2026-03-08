@@ -18,6 +18,10 @@ const mockDimes = Array.from({ length: 20 }, (_, i) => ({
 
 const LatestDimesCarousel = () => {
   const [selected, setSelected] = useState<(typeof mockDimes)[0] | null>(null);
+  const [searchParams] = useSearchParams();
+  const ref = searchParams.get("ref");
+  const loginUrl = ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login";
+  const registerUrl = ref ? `/register?ref=${encodeURIComponent(ref)}` : "/register";
 
   return (
     <section className="py-20 bg-card/50">
