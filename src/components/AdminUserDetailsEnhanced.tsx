@@ -146,18 +146,18 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     }
   };
 
-  const handleDeactivateUser = async () => {
-    if (!user || !confirm('Are you sure you want to deactivate this user?')) return;
-    setDeactivating(true);
+  const handleDeleteUser = async () => {
+    if (!user || !confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
+    setDeleting(true);
     try {
-      await callAdminData('deactivateUser', { userId: user.id });
-      toast({ title: 'Success', description: 'User deactivated successfully' });
+      await callAdminData('deleteUser', { userId: user.id });
+      toast({ title: 'Success', description: 'User permanently deleted' });
       if (onUserUpdated) onUserUpdated();
       onClose();
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to deactivate user', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to delete user', variant: 'destructive' });
     } finally {
-      setDeactivating(false);
+      setDeleting(false);
     }
   };
 
