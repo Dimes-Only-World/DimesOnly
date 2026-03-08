@@ -13,27 +13,55 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        let userId: string | null = null;
+
         // First, check for Supabase Auth session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          setIsAuthenticated(true);
-          return;
+          userId = session.user.id;
         }
         
         // Fallback: Check for custom auth token from users table login
-        const authToken = localStorage.getItem("authToken");
-        const userData = sessionStorage.getItem("userData");
-        
-        if (authToken && userData) {
-          // Custom authentication via users table is valid
-          setIsAuthenticated(true);
+        if (!userId) {
+          const authToken = localStorage.getItem("authToken");
+          const userData = sessionStorage.getItem("userData");
+          
+          if (authToken && userData) {
+            try {
+              const parsed = JSON.parse(userData);
+              userId = parsed.id || null;
+            } catch {
+              userId = null;
+            }
+          }
+        }
+
+        if (!userId) {
+          setIsAuthenticated(false);
+          navigate('/login');
           return;
         }
-        
-        // No valid authentication found
-        setIsAuthenticated(false);
-        navigate('/login');
+
+        // Check if user account is still active
+        const { data: userRecord, error: userError } = await supabase
+          .from('users')
+          .select('is_active')
+          .eq('id', userId)
+          .single();
+
+        if (userError || !userRecord || userRecord.is_active === false) {
+          console.log('User account is deactivated or not found, forcing logout');
+          localStorage.removeItem("authToken");
+          sessionStorage.removeItem("userData");
+          sessionStorage.removeItem("currentUser");
+          await supabase.auth.signOut().catch(() => {});
+          setIsAuthenticated(false);
+          navigate('/login');
+          return;
+        }
+
+        setIsAuthenticated(true);
       } catch (error) {
         console.error('Auth check error:', error);
         setIsAuthenticated(false);
