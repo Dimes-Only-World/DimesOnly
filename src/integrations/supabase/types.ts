@@ -2456,6 +2456,7 @@ export type Database = {
           gender: string | null
           hash_type: string | null
           id: string
+          is_active: boolean
           is_ranked: boolean | null
           last_name: string | null
           liked_by: string | null
@@ -2514,6 +2515,7 @@ export type Database = {
           gender?: string | null
           hash_type?: string | null
           id?: string
+          is_active?: boolean
           is_ranked?: boolean | null
           last_name?: string | null
           liked_by?: string | null
@@ -2572,6 +2574,7 @@ export type Database = {
           gender?: string | null
           hash_type?: string | null
           id?: string
+          is_active?: boolean
           is_ranked?: boolean | null
           last_name?: string | null
           liked_by?: string | null
