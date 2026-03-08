@@ -58,13 +58,18 @@ serve(async (req) => {
         break;
       }
 
-      case 'deactivateUser': {
+      case 'deactivateUser':
+      case 'deleteUser': {
         const { userId } = params;
-        const { error } = await supabaseAdmin
+        // Delete from users table first
+        const { error: dbError } = await supabaseAdmin
           .from('users')
-          .update({ is_active: false })
+          .delete()
           .eq('id', userId);
-        if (error) throw error;
+        if (dbError) throw dbError;
+        // Delete from Supabase Auth
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        if (authError) console.error('Auth deletion failed (may not exist):', authError);
         result = { success: true };
         break;
       }

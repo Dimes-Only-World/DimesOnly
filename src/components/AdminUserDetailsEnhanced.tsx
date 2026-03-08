@@ -186,13 +186,12 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={handleDeactivateUser}
-                disabled={deactivating || user.status === 'deactivated'}
+                onClick={handleDeleteUser}
+                disabled={deleting}
                 className="flex items-center gap-2"
               >
                 <UserX className="w-4 h-4" />
-                {deactivating ? 'Deactivating...' : 
-                 user.status === 'deactivated' ? 'Deactivated' : 'Deactivate User'}
+                {deleting ? 'Deleting...' : 'Delete User'}
               </Button>
             </div>
           </DialogHeader>

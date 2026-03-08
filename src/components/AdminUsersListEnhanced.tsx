@@ -347,16 +347,14 @@ const AdminUsersListEnhanced: React.FC = () => {
                         Details
                       </Button>
 
-                      {user.is_active && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeactivateUser(user.id)}
-                        >
-                          <UserX className="w-4 h-4 mr-1" />
-                          Deactivate
-                        </Button>
-                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        <UserX className="w-4 h-4 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
