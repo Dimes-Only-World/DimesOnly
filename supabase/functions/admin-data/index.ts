@@ -81,7 +81,7 @@ serve(async (req) => {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Api-Token': Deno.env.get('MAILTRAP_API_TOKEN') || '',
+                'Authorization': `Bearer ${Deno.env.get('MAILTRAP_API_TOKEN') || ''}`,
               },
               body: JSON.stringify({
                 from: { email: Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com', name: 'Dimelot' },
