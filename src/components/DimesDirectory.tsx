@@ -7,6 +7,7 @@ import { Search, User, Crown, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import DirectMessageModal from "./DirectMessageModal";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 interface DimeProfile {
   id: string;
