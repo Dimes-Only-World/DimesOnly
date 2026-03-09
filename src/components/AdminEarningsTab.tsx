@@ -578,7 +578,7 @@ const AdminEarningsTab: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <span>
                       Earnings Ranking - {payPeriodEarnings.payPeriod.label}
                     </span>
@@ -589,6 +589,7 @@ const AdminEarningsTab: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -677,6 +678,7 @@ const AdminEarningsTab: React.FC = () => {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </div>
