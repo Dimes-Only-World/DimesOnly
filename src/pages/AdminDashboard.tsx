@@ -105,10 +105,10 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 flex flex-wrap gap-4 justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dimes Only</h1>
-            <p className="text-gray-600 mt-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dimes Only</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">
               Admin Dashboard - Manage DimesOnly platform
             </p>
           </div>
