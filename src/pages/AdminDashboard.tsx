@@ -151,6 +151,9 @@ const AdminDashboard: React.FC = () => {
                 <TabsTrigger value="testing" className="whitespace-nowrap">
                   Testing
                 </TabsTrigger>
+                <TabsTrigger value="videos" className="whitespace-nowrap">
+                  Videos
+                </TabsTrigger>
                 <TabsTrigger value="settings" className="whitespace-nowrap">
                   Settings
                 </TabsTrigger>
