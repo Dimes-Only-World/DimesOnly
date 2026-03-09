@@ -29,6 +29,8 @@ const UserMakeMoneyTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [usernameFilter, setUsernameFilter] = useState("");
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [selectedRecipientUsername, setSelectedRecipientUsername] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [actualUsername, setActualUsername] = useState<string>("");
