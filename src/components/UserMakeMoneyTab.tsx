@@ -409,6 +409,14 @@ const UserMakeMoneyTab: React.FC = () => {
           )}
         </>
       )}
+      <DirectMessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => {
+          setIsMessageModalOpen(false);
+          setSelectedRecipientUsername(null);
+        }}
+        recipientUsername={selectedRecipientUsername}
+      />
     </div>
   );
 };
