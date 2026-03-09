@@ -539,7 +539,13 @@ export const Register: React.FC = () => {
         description: "Welcome to Dimes Only!",
       });
 
-      navigate("/dashboard");
+      const userType = formData.userType || '';
+      const username = formData.username || 'company';
+      if (userType === 'stripper' || userType === 'exotic') {
+        navigate(`/events-dimes-only?ref=${encodeURIComponent(username)}`);
+      } else {
+        navigate(`/eventsdimes?ref=${encodeURIComponent(username)}`);
+      }
     } catch (error) {
       console.error("Registration error:", error);
       const errorMessage =
