@@ -93,16 +93,30 @@ const UserDirectMessagesTab: React.FC = () => {
         .select("id, username, profile_photo, membership_tier")
         .eq("id", otherUserId)
         .single();
-      setThreadUser(
-        udata
-          ? {
-              id: (udata as any).id as string,
-              username: ((udata as any).username as string) ?? "Unknown",
-              profile_photo: ((udata as any).profile_photo as string) ?? undefined,
-              membership_tier: ((udata as any).membership_tier as string) ?? null,
-            }
-          : null
-      );
+      
+      // If user not found, check if this is an admin conversation
+      if (udata) {
+        setThreadUser({
+          id: (udata as any).id as string,
+          username: ((udata as any).username as string) ?? "Unknown",
+          profile_photo: ((udata as any).profile_photo as string) ?? undefined,
+          membership_tier: ((udata as any).membership_tier as string) ?? null,
+        });
+      } else {
+        // Could be admin - check if there are admin messages from this ID
+        const { data: adminCheck } = await supabase
+          .from("direct_messages")
+          .select("id")
+          .eq("sender_id", otherUserId)
+          .eq("is_admin_message", true)
+          .limit(1);
+        
+        setThreadUser(
+          adminCheck && adminCheck.length > 0
+            ? { id: otherUserId, username: "Admin", profile_photo: undefined, membership_tier: "admin" }
+            : null
+        );
+      }
 
       // Fetch both sent and received messages between the two users (robust filter)
       const { data: threadData, error: threadErr } = await supabase
