@@ -531,8 +531,8 @@ const AdminEarningsTab: React.FC = () => {
                       Total Payout for Period
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-800">
+                <CardContent>
+                    <div className="text-xl sm:text-2xl font-bold text-green-800">
                       {formatCurrency(payPeriodEarnings.totalPayout)}
                     </div>
                     <p className="mt-1 text-xs text-green-600">
@@ -550,7 +550,7 @@ const AdminEarningsTab: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-blue-800">
+                    <div className="text-xl sm:text-2xl font-bold text-blue-800">
                       {payPeriodEarnings.userCount}
                     </div>
                     <p className="mt-1 text-xs text-blue-600">
@@ -566,7 +566,7 @@ const AdminEarningsTab: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-purple-800">
+                    <div className="text-xl sm:text-2xl font-bold text-purple-800">
                       {payPeriodEarnings.payPeriod.payDate.toLocaleDateString()}
                     </div>
                     <p className="mt-1 text-xs text-purple-600">
@@ -618,9 +618,9 @@ const AdminEarningsTab: React.FC = () => {
                             Total Earnings {getSortIcon("earnings")}
                           </div>
                         </TableHead>
-                        <TableHead>Referral (20%/10%)</TableHead>
-                        <TableHead>Tips</TableHead>
-                        <TableHead>Event Commissions</TableHead>
+                        <TableHead className="hidden sm:table-cell">Referral (20%/10%)</TableHead>
+                        <TableHead className="hidden sm:table-cell">Tips</TableHead>
+                        <TableHead className="hidden sm:table-cell">Event Commissions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -656,21 +656,21 @@ const AdminEarningsTab: React.FC = () => {
                             <TableCell className="font-bold text-green-600">
                               {formatCurrency(user.totalEarnings)}
                             </TableCell>
-                            <TableCell className="text-blue-600">
+                            <TableCell className="hidden sm:table-cell text-blue-600">
                               {formatCurrency(user.referralEarnings)}
                             </TableCell>
                             <TableCell
-                              className={
+                              className={`hidden sm:table-cell ${
                                 user.performerTips > 0
                                   ? "text-purple-600"
                                   : user.referralTips > 0
                                   ? "text-rose-600"
                                   : "text-purple-600"
-                              }
+                              }`}
                             >
                               {formatCurrency(user.tipsReceived)}
                             </TableCell>
-                            <TableCell className="text-orange-600">
+                            <TableCell className="hidden sm:table-cell text-orange-600">
                               {formatCurrency(user.eventCommissions)}
                             </TableCell>
                           </TableRow>

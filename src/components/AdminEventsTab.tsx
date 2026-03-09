@@ -861,8 +861,8 @@ const updateData = {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Events Management</h2>
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+        <h2 className="text-xl sm:text-2xl font-bold">Events Management</h2>
         <Dialog
           open={showAddEvent}
           onOpenChange={(open) => {
@@ -1460,27 +1460,27 @@ const updateData = {
           {events.map((event) => (
             <Card key={event.id}>
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                   <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                       <Calendar className="w-5 h-5" />
                       {event.name}
                     </CardTitle>
-                    <div className="space-y-1 mt-2 text-sm text-muted-foreground">
+                    <div className="space-y-1 mt-2 text-xs sm:text-sm text-muted-foreground">
                       <p className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="w-4 h-4 flex-shrink-0" />
                         {new Date(event.date).toLocaleDateString()}
                         {event.start_time && ` at ${formatTime12Hour(event.start_time)}`}
                         {event.end_time && ` - ${formatTime12Hour(event.end_time)}`}
                       </p>
                       {event.location && (
                         <p className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-4 h-4 flex-shrink-0" />
                           {event.location}
                         </p>
                       )}
                       <p className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />${event.price} • Max:{" "}
+                        <DollarSign className="w-4 h-4 flex-shrink-0" />${event.price} • Max:{" "}
                         {event.max_attendees} • Free Dimes:{" "}
                         {event.free_spots_strippers} strippers,{" "}
                         {event.free_spots_exotics} exotics
@@ -1493,16 +1493,17 @@ const updateData = {
                         </Badge>
                       )}
                       <p className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
+                        <Users className="w-4 h-4 flex-shrink-0" />
                         {event.current_attendees || 0} attendees
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleViewAttendees(event)}
+                      className="w-full sm:w-auto"
                     >
                       <Users className="w-4 h-4 mr-1" />
                       Attendees
@@ -1511,13 +1512,13 @@ const updateData = {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        // Format the date for the HTML date input
                         setEditingEvent({
                           ...event,
                           date: formatDateForInput(event.date),
                         });
                         setShowEditEvent(true);
                       }}
+                      className="w-full sm:w-auto"
                     >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
@@ -1526,6 +1527,7 @@ const updateData = {
                       size="sm"
                       variant="destructive"
                       onClick={() => handleDeleteEvent(event.id)}
+                      className="w-full sm:w-auto"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
                       Delete
