@@ -636,10 +636,10 @@ const AdminJackpotTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <div>
-              <div className="text-sm text-gray-500">Status</div>
-              <div className="text-xl font-semibold">
+              <div className="text-xs sm:text-sm text-gray-500">Status</div>
+              <div className="text-lg sm:text-xl font-semibold">
                 <Badge
                   variant={
                     pool?.status === "sold_out" ? "destructive" : "outline"
@@ -650,67 +650,68 @@ const AdminJackpotTab: React.FC = () => {
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Total</div>
-              <div className="text-2xl font-bold">${formatMoney(pool?.total)}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Total</div>
+              <div className="text-xl sm:text-2xl font-bold">${formatMoney(pool?.total)}</div>
             </div>
 
             <div>
-              <div className="text-sm text-gray-500">Max Tickets</div>
-              <div className="text-xl font-semibold">
+              <div className="text-xs sm:text-sm text-gray-500">Max Tickets</div>
+              <div className="text-lg sm:text-xl font-semibold">
                 {pool?.max_tickets ?? "—"}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Sold Out At</div>
-              <div className="text-sm">
+              <div className="text-xs sm:text-sm text-gray-500">Sold Out At</div>
+              <div className="text-xs sm:text-sm">
                 {pool?.sold_out_at
                   ? new Date(pool.sold_out_at).toLocaleString()
                   : "—"}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Sales Resume</div>
-              <div className="text-sm">
+              <div className="text-xs sm:text-sm text-gray-500">Sales Resume</div>
+              <div className="text-xs sm:text-sm">
                 {pool?.sales_resume_at
                   ? new Date(pool.sales_resume_at).toLocaleString()
                   : "—"}
               </div>
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <Input
-                value={maxTicketsInput}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setMaxTicketsInput(e.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Weekly max tickets"
-                className="w-40"
-              />
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4">
+            <Input
+              value={maxTicketsInput}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setMaxTicketsInput(e.target.value.replace(/\D/g, ""))
+              }
+              placeholder="Weekly max tickets"
+              className="w-full sm:w-40"
+            />
+            <Button
+              variant="default"
+              disabled={updatingMaxTickets || !pool?.pool_id}
+              onClick={handleSaveMaxTickets}
+              className="w-full sm:w-auto"
+            >
+              {updatingMaxTickets ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Save Cap
+            </Button>
+            {pool?.status === "sold_out" && (
               <Button
-                variant="default"
-                disabled={updatingMaxTickets || !pool?.pool_id}
-                onClick={handleSaveMaxTickets}
+                variant="outline"
+                disabled={updatingStatus}
+                onClick={handleResumeSales}
+                className="w-full sm:w-auto"
               >
-                {updatingMaxTickets ? (
+                {updatingStatus ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : null}
-                Save Cap
+                Reopen Sales
               </Button>
-              {pool?.status === "sold_out" && (
-                <Button
-                  variant="outline"
-                  disabled={updatingStatus}
-                  onClick={handleResumeSales}
-                >
-                  {updatingStatus ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : null}
-                  Reopen Sales
-                </Button>
-              )}
-            </div>
-
+            )}
           </div>
         </CardContent>
       </Card>
