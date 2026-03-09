@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ReferralCard from "./ReferralCard";
 import ReferralFilters from "./ReferralFilters";
+import DirectMessageModal from "./DirectMessageModal";
 
 interface User {
   id: string;
