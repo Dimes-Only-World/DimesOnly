@@ -129,6 +129,7 @@ export const Register: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>("");
   const [bannerPhotoUrl, setBannerPhotoUrl] = useState<string>("");
