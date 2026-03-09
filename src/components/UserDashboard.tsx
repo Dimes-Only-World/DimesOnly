@@ -409,15 +409,6 @@ const UserDashboard: React.FC = () => {
     );
   }
 
-  const userType = (userData.user_type || "").toLowerCase();
-  const isDimeUser = ["stripper", "exotic"].includes(userType);
-  const fallbackVideo = isDimeUser
-    ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
-    : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
-  const { videoUrl: heroVideoUrl } = usePageVideo(
-    isDimeUser ? "dashboard_dimes" : "dashboard_male",
-    fallbackVideo
-  );
 
 
   return (
