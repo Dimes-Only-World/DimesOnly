@@ -589,6 +589,7 @@ const AdminEarningsTab: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
