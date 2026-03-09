@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getAdminUserId } from "@/lib/adminAuth";
 import { Search, Send, Users, User, X } from "lucide-react";
 
 interface User {
