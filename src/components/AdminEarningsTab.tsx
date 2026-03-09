@@ -531,8 +531,8 @@ const AdminEarningsTab: React.FC = () => {
                       Total Payout for Period
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-800">
+                <CardContent>
+                    <div className="text-xl sm:text-2xl font-bold text-green-800">
                       {formatCurrency(payPeriodEarnings.totalPayout)}
                     </div>
                     <p className="mt-1 text-xs text-green-600">
