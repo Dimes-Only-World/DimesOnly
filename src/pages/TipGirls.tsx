@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Flag, User, Heart } from "lucide-react";
+import { Search, MapPin, Flag, User, Heart, Home } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import JackpotDisplay from "@/components/JackpotDisplay";
 import TipAmountSelector from "@/components/TipAmountSelector";
