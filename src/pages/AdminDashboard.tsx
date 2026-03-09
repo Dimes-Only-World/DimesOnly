@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import AdminEmailSettings from "@/components/AdminEmailSettings";
 import AdminUsersListEnhanced from "@/components/AdminUsersListEnhanced";
 import AdminEarningsTab from "@/components/AdminEarningsTab";
