@@ -130,90 +130,48 @@ const AdminDirectMessageTab: React.FC = () => {
       return;
     }
 
+    const adminUserId = getAdminUserId();
+    if (!adminUserId) {
+      toast({
+        title: "Error",
+        description: "Admin session not found. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Send message to each selected user using is_admin_message flag
-      // and nullable sender_id (since admin is not in users table)
-      const messagePromises = selectedUsers.map((userId) =>
-        supabase.from("direct_messages").insert({
-          sender_id: null, // Admin messages don't have a sender_id
-          recipient_id: userId,
+      const { data, error } = await supabase.functions.invoke("send-admin-message", {
+        body: {
+          adminUserId,
+          recipientIds: selectedUsers,
           message: message.trim(),
-          is_read: false,
-          is_admin_message: true, // Mark as admin message
-          created_at: new Date().toISOString(),
-        })
-      );
+        },
+      });
 
-      const results = await Promise.allSettled(messagePromises);
-      const failures = results.filter((result) => result.status === "rejected");
-      const successes = results.filter(
-        (result) => result.status === "fulfilled"
-      );
+      if (error) throw error;
 
-      // Log detailed error information
-      if (failures.length > 0) {
-        failures.forEach((failure, index) => {
-          console.error(`Message ${index + 1} failed:`, failure.reason);
-        });
+      const result = data as { success: boolean; successCount: number; failCount: number; error?: string };
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to send messages");
       }
 
-      if (failures.length > 0) {
-        const errorMessages = failures
-          .map((failure) => {
-            if (failure.status === "rejected" && failure.reason?.message) {
-              return failure.reason.message;
-            }
-            return "Unknown error";
-          })
-          .join(", ");
-
+      if (result.failCount > 0) {
         toast({
           title: "Partial Success",
-          description: `${successes.length}/${selectedUsers.length} messages sent successfully. Errors: ${errorMessages}`,
+          description: `${result.successCount}/${selectedUsers.length} messages sent. ${result.failCount} failed.`,
           variant: "destructive",
         });
       } else {
         toast({
           title: "Success!",
-          description: `Message sent to ${selectedUsers.length} user${
-            selectedUsers.length > 1 ? "s" : ""
-          }`,
+          description: `Message sent to ${result.successCount} user${result.successCount > 1 ? "s" : ""}`,
         });
       }
 
-      // Create notifications for the recipients (only for successful messages)
-      if (successes.length > 0) {
-        const successfulUserIds = selectedUsers.slice(0, successes.length);
-        const notificationPromises = successfulUserIds.map((userId) =>
-          supabase.from("notifications").insert({
-            recipient_id: userId,
-            title: "New Message from Admin",
-            message: `You have received a new message from the admin: "${message
-              .trim()
-              .substring(0, 50)}${message.trim().length > 50 ? "..." : ""}"`,
-            is_read: false,
-            created_at: new Date().toISOString(),
-          })
-        );
-
-        const notificationResults = await Promise.allSettled(
-          notificationPromises
-        );
-        const notificationFailures = notificationResults.filter(
-          (result) => result.status === "rejected"
-        );
-
-        if (notificationFailures.length > 0) {
-          console.error(
-            "Some notifications failed to send:",
-            notificationFailures
-          );
-        }
-      }
-
-      // Reset form only if at least some messages were successful
-      if (successes.length > 0) {
+      if (result.successCount > 0) {
         setMessage("");
         setSelectedUsers([]);
         setSearchTerm("");
@@ -221,8 +179,7 @@ const AdminDirectMessageTab: React.FC = () => {
       }
     } catch (error: unknown) {
       console.error("Error sending messages:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to send messages";
+      const errorMessage = error instanceof Error ? error.message : "Failed to send messages";
       toast({
         title: "Error",
         description: `Failed to send messages: ${errorMessage}`,

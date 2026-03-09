@@ -246,13 +246,14 @@ const UserDirectMessagesTab: React.FC = () => {
 
       const msgs = (all || []) as unknown as DirectMessage[];
       // Build conversations by other user id
-      const map = new Map<string, { last: DirectMessage | null; unread: number }>();
+      const map = new Map<string, { last: DirectMessage | null; unread: number; isAdmin: boolean }>();
       for (const m of msgs) {
         const otherId = m.sender_id === user.id ? m.recipient_id : m.sender_id;
         if (!otherId) continue;
-        const current = map.get(otherId) || { last: null, unread: 0 };
+        const current = map.get(otherId) || { last: null, unread: 0, isAdmin: false };
         if (!current.last) current.last = m; // first in desc order is latest
         if (m.recipient_id === user.id && m.is_read === false) current.unread += 1;
+        if (m.is_admin_message) current.isAdmin = true;
         map.set(otherId, current);
       }
 
@@ -269,12 +270,18 @@ const UserDirectMessagesTab: React.FC = () => {
         );
       }
 
-      const convoList: Conversation[] = otherIds.map((oid) => ({
-        otherUserId: oid,
-        otherUser: usersLookup[oid] || null,
-        lastMessage: map.get(oid)?.last || null,
-        unreadCount: map.get(oid)?.unread || 0,
-      }));
+      const convoList: Conversation[] = otherIds.map((oid) => {
+        const entry = map.get(oid)!;
+        const lookup = usersLookup[oid];
+        // If the other user isn't found in users table and this is an admin message thread, show "Admin"
+        const otherUser = lookup || (entry.isAdmin ? { id: oid, username: "Admin", profile_photo: undefined, membership_tier: "admin" } : null);
+        return {
+          otherUserId: oid,
+          otherUser,
+          lastMessage: entry.last,
+          unreadCount: entry.unread,
+        };
+      });
 
       // Sort by last message time desc
       convoList.sort((a, b) => {
