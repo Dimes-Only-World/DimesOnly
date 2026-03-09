@@ -748,7 +748,7 @@ const AdminJackpotTab: React.FC = () => {
                   />
                 ) : (
                   <div className="flex items-center gap-2">
-                    <div className="w-48 h-10 px-3 py-2 border rounded-md bg-muted flex items-center">
+                    <div className="w-full sm:w-48 h-10 px-3 py-2 border rounded-md bg-muted flex items-center">
                       <span className="font-mono text-lg tracking-widest text-muted-foreground">
                         •••••
                       </span>
