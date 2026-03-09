@@ -550,6 +550,7 @@ export const Register: React.FC = () => {
       sessionStorage.setItem("userData", JSON.stringify(userData));
       sessionStorage.setItem("currentUser", result.user.username);
       localStorage.setItem("authToken", signInData.session?.access_token || result.user.id || "authenticated");
+      setUser(userData);
 
       toast({
         title: "Registration Successful!",
