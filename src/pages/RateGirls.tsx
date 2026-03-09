@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, User, MapPin, Flag, Trophy, Crown, X } from "lucide-react";
+import { Search, User, MapPin, Flag, Trophy, Crown, X, Home } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
