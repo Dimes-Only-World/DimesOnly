@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { getReferralUsername } from "@/lib/utils";
+import { useAppContext } from "@/contexts/AppContext";
 
 const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
