@@ -678,6 +678,7 @@ const AdminEarningsTab: React.FC = () => {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </div>
