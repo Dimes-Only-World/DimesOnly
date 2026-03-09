@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePageVideo } from "@/hooks/usePageVideo";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
