@@ -531,8 +531,23 @@ export const Register: React.FC = () => {
         return;
       }
 
-      localStorage.setItem("authToken", result.user.id || "authenticated");
+      const userData = {
+        id: result.user.id,
+        username: result.user.username,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        userType: formData.userType || '',
+        gender: formData.gender || '',
+        mobileNumber: formData.mobileNumber || '',
+        address: formData.address || '',
+        city: formData.city || '',
+        state: formData.state || '',
+        zip: formData.zip || '',
+      };
+      sessionStorage.setItem("userData", JSON.stringify(userData));
       sessionStorage.setItem("currentUser", result.user.username);
+      localStorage.setItem("authToken", signInData.session?.access_token || result.user.id || "authenticated");
 
       toast({
         title: "Registration Successful!",

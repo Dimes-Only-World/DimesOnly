@@ -237,8 +237,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (event === "SIGNED_OUT") {
         console.log("User signed out, clearing user data");
         setUser(null);
+      } else if (event === "SIGNED_IN" && !user) {
+        // Re-trigger initialization for new sign-ins (e.g. after registration)
+        const savedUserData = sessionStorage.getItem("userData");
+        if (savedUserData) {
+          try {
+            const parsed = JSON.parse(savedUserData);
+            console.log("Auth state SIGNED_IN: loading user from sessionStorage");
+            setUser(parsed);
+          } catch (e) {
+            console.error("Error parsing userData on SIGNED_IN:", e);
+          }
+        }
       }
-      // Don't handle SIGNED_IN here to avoid conflicts with initialization
     });
 
     return () => subscription.unsubscribe();
