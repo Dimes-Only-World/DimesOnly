@@ -618,9 +618,9 @@ const AdminEarningsTab: React.FC = () => {
                             Total Earnings {getSortIcon("earnings")}
                           </div>
                         </TableHead>
-                        <TableHead>Referral (20%/10%)</TableHead>
-                        <TableHead>Tips</TableHead>
-                        <TableHead>Event Commissions</TableHead>
+                        <TableHead className="hidden sm:table-cell">Referral (20%/10%)</TableHead>
+                        <TableHead className="hidden sm:table-cell">Tips</TableHead>
+                        <TableHead className="hidden sm:table-cell">Event Commissions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
