@@ -130,11 +130,11 @@ const AdminBannerVideoTab: React.FC = () => {
               </div>
             )}
 
-            <div className="flex gap-3 items-end">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
               <div className="flex-1">
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Video URL</label>
                 <Input
-                  placeholder="https://example.com/video.mp4"
+                  placeholder="Paste Banner video link here"
                   value={editUrls[entry.page_key] || ""}
                   onChange={(e) =>
                     setEditUrls((prev) => ({ ...prev, [entry.page_key]: e.target.value }))
@@ -144,6 +144,7 @@ const AdminBannerVideoTab: React.FC = () => {
               <Button
                 onClick={() => handleSave(entry.page_key)}
                 disabled={saving[entry.page_key]}
+                className="w-full sm:w-auto"
               >
                 {saving[entry.page_key] ? "Saving..." : "Save"}
               </Button>

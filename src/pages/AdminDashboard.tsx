@@ -121,44 +121,39 @@ const AdminDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="users" className="w-full">
           {/* Mobile Scrollable Tabs */}
-          <div className="w-full mb-8">
-            <ScrollArea className="w-full">
-              <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max min-w-full md:w-full md:grid md:grid-cols-10">
-                <TabsTrigger value="users" className="whitespace-nowrap">
-                  Users
-                </TabsTrigger>
-                <TabsTrigger value="jackpot" className="whitespace-nowrap">
-                  Jackpot
-                </TabsTrigger>
-                <TabsTrigger value="earnings" className="whitespace-nowrap">
-                  Earnings
-                </TabsTrigger>
-                <TabsTrigger value="ranking" className="whitespace-nowrap">
-                  Ranking
-                </TabsTrigger>
-                <TabsTrigger
-                  value="notifications"
-                  className="whitespace-nowrap"
-                >
-                  Notifications
-                </TabsTrigger>
-                <TabsTrigger value="messages" className="whitespace-nowrap">
-                  Messages
-                </TabsTrigger>
-                <TabsTrigger value="events" className="whitespace-nowrap">
-                  Events
-                </TabsTrigger>
-                <TabsTrigger value="testing" className="whitespace-nowrap">
-                  Testing
-                </TabsTrigger>
-                <TabsTrigger value="videos" className="whitespace-nowrap">
-                  Videos
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="whitespace-nowrap">
-                  Settings
-                </TabsTrigger>
-              </TabsList>
-            </ScrollArea>
+          <div className="w-full mb-8 overflow-x-auto -webkit-overflow-scrolling-touch pb-2">
+            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max lg:w-full lg:grid lg:grid-cols-10">
+              <TabsTrigger value="users" className="whitespace-nowrap">
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="jackpot" className="whitespace-nowrap">
+                Jackpot
+              </TabsTrigger>
+              <TabsTrigger value="earnings" className="whitespace-nowrap">
+                Earnings
+              </TabsTrigger>
+              <TabsTrigger value="ranking" className="whitespace-nowrap">
+                Ranking
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="whitespace-nowrap">
+                Notifications
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="whitespace-nowrap">
+                Messages
+              </TabsTrigger>
+              <TabsTrigger value="events" className="whitespace-nowrap">
+                Events
+              </TabsTrigger>
+              <TabsTrigger value="testing" className="whitespace-nowrap">
+                Testing
+              </TabsTrigger>
+              <TabsTrigger value="videos" className="whitespace-nowrap">
+                Videos
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="whitespace-nowrap">
+                Settings
+              </TabsTrigger>
+            </TabsList>
           </div>
 
           <TabsContent value="users">
