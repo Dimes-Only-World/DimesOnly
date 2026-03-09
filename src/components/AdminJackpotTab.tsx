@@ -741,8 +741,8 @@ const AdminJackpotTab: React.FC = () => {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleFirstCodeChange(e.target.value)
                     }
-                    placeholder="Enter 5-letter code (A-Z)"
-                    className="w-48 font-mono text-lg tracking-widest uppercase"
+                    placeholder="5-letter code (A-Z)"
+                    className="w-full sm:w-48 font-mono text-lg tracking-widest uppercase"
                     maxLength={5}
                     disabled={runningDraw}
                   />
