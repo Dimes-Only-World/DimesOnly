@@ -85,6 +85,7 @@ interface Event {
 const EventsDimesOnly: React.FC = () => {
   const { user, setUser, loading: userLoading } = useAppContext();
   const navigate = useNavigate();
+  const { videoUrl: eventsDimesVideoUrl } = usePageVideo("events_dimes_page");
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);

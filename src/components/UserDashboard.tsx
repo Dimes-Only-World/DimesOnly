@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/types";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 type UserData = Tables<"users">;
 
