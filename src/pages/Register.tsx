@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { getReferralUsername } from "@/lib/utils";
+import { useAppContext } from "@/contexts/AppContext";
 
 const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
@@ -128,6 +129,7 @@ export const Register: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>("");
   const [bannerPhotoUrl, setBannerPhotoUrl] = useState<string>("");
@@ -548,6 +550,7 @@ export const Register: React.FC = () => {
       sessionStorage.setItem("userData", JSON.stringify(userData));
       sessionStorage.setItem("currentUser", result.user.username);
       localStorage.setItem("authToken", signInData.session?.access_token || result.user.id || "authenticated");
+      setUser(userData);
 
       toast({
         title: "Registration Successful!",
