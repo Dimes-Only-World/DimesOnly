@@ -550,7 +550,7 @@ const AdminEarningsTab: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-blue-800">
+                    <div className="text-xl sm:text-2xl font-bold text-blue-800">
                       {payPeriodEarnings.userCount}
                     </div>
                     <p className="mt-1 text-xs text-blue-600">
