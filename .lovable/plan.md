@@ -1,12 +1,26 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+## Add "Home" Button to Tip & Win, Dimes, Events, and Rate Pages
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+Add a prominent "Home" button on each of these four pages that navigates the user back to `/dashboard`.
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+### Changes
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+**1. `src/pages/TipGirls.tsx`**
+- Import `Home` icon from lucide-react and `useNavigate` (already imported)
+- Add a Home button at the top of the main content area (line ~264), before the JackpotDisplay section
+
+**2. `src/pages/Dimes.tsx`**
+- Import `useNavigate` from react-router-dom and `Home` + `Button`
+- Add a Home button at the top of the page content area
+
+**3. `src/pages/RateGirls.tsx`**
+- Import `Home` icon from lucide-react
+- Add a Home button after the video banner heading area (around line 214-216)
+
+**4. `src/pages/EventsDimes.tsx`**
+- Import `Home` icon from lucide-react
+- Add a Home button after the heading area (around line 212-215)
+
+All buttons will use a consistent style: a gradient button with a Home icon, positioned at the top of the content area for easy access.
+
