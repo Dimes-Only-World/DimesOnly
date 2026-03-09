@@ -861,8 +861,8 @@ const updateData = {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Events Management</h2>
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+        <h2 className="text-xl sm:text-2xl font-bold">Events Management</h2>
         <Dialog
           open={showAddEvent}
           onOpenChange={(open) => {
