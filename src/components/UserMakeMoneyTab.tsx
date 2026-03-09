@@ -383,7 +383,13 @@ const UserMakeMoneyTab: React.FC = () => {
                 key={referral.id} 
                 user={referral} 
                 onImageClick={() => {}} 
-                onMessage={() => {}} 
+                onMessage={(userId) => {
+                  const ref = referrals.find(r => r.id === userId);
+                  if (ref) {
+                    setSelectedRecipientUsername(ref.username);
+                    setIsMessageModalOpen(true);
+                  }
+                }}
               />
             ))}
           </div>
