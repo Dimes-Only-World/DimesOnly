@@ -1,12 +1,23 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+## Changes
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+### 1. Fix admin tab bar horizontal scrolling on mobile/tablet
+**File:** `src/pages/AdminDashboard.tsx` (lines 124-161)
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+The current `ScrollArea` (Radix) doesn't provide native touch-based horizontal scrolling on mobile. Replace it with a simple `div` using `overflow-x-auto` and `-webkit-overflow-scrolling: touch` for native swipe scrolling. Remove the `md:grid md:grid-cols-10` from the `TabsList` since 10 columns is too cramped even on tablets — use `lg:grid lg:grid-cols-10` instead.
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+Also make the header responsive (lines 108-118): smaller title on mobile, wrap layout.
+
+### 2. Update placeholder text
+**File:** `src/components/AdminBannerVideoTab.tsx` (line 137)
+
+Change `placeholder="https://example.com/video.mp4"` to `placeholder="Paste Banner video link here"`. Also make the input+button row stack vertically on small screens.
+
+### 3. Make admin tab content mobile responsive
+**Files:** `AdminEarningsTab.tsx`, `AdminUsersListEnhanced.tsx`, `AdminUserFiltersEnhanced.tsx`
+
+- Wrap all `<Table>` elements in `<div className="overflow-x-auto">`
+- Adjust filter grid breakpoints from `md:grid-cols-6` to `sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6`
+- Stack user card layouts vertically on mobile
+
