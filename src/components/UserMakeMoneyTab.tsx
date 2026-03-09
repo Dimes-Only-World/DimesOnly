@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ReferralCard from "./ReferralCard";
 import ReferralFilters from "./ReferralFilters";
+import DirectMessageModal from "./DirectMessageModal";
 
 interface User {
   id: string;
@@ -28,6 +29,8 @@ const UserMakeMoneyTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [usernameFilter, setUsernameFilter] = useState("");
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [selectedRecipientUsername, setSelectedRecipientUsername] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [actualUsername, setActualUsername] = useState<string>("");
@@ -380,7 +383,13 @@ const UserMakeMoneyTab: React.FC = () => {
                 key={referral.id} 
                 user={referral} 
                 onImageClick={() => {}} 
-                onMessage={() => {}} 
+                onMessage={(userId) => {
+                  const ref = referrals.find(r => r.id === userId);
+                  if (ref) {
+                    setSelectedRecipientUsername(ref.username);
+                    setIsMessageModalOpen(true);
+                  }
+                }}
               />
             ))}
           </div>
@@ -400,6 +409,14 @@ const UserMakeMoneyTab: React.FC = () => {
           )}
         </>
       )}
+      <DirectMessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => {
+          setIsMessageModalOpen(false);
+          setSelectedRecipientUsername(null);
+        }}
+        recipientUsername={selectedRecipientUsername}
+      />
     </div>
   );
 };

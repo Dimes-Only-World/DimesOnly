@@ -1,19 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-## Problem
-In `UserMakeMoneyTab.tsx`, the `ReferralCard` component receives `onMessage={() => {}}` — an empty no-op function. Clicking "Send Message!" does nothing.
+## Change
 
-## Fix
-Wire up `DirectMessageModal` in `UserMakeMoneyTab.tsx`, following the same pattern used in `DimesDirectory.tsx`:
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-**File: `src/components/UserMakeMoneyTab.tsx`**
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-1. Import `DirectMessageModal`
-2. Add state for `isMessageModalOpen` and `selectedRecipientUsername`
-3. Replace `onMessage={() => {}}` with a handler that sets the recipient username and opens the modal
-4. Render `<DirectMessageModal>` at the bottom of the component
-
-The `onMessage` callback receives `userId`, but `DirectMessageModal` expects a `recipientUsername`. So the handler will look up the username from the referral by id, then open the modal.
-
-Since `referrals` array already contains `username`, the handler simply finds the referral by id and passes its username to the modal.
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
