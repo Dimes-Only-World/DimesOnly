@@ -10,7 +10,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { normalizeRefParam } from "@/lib/utils";
-import { Search, MapPin, User, ArrowLeft } from "lucide-react";
+import { Search, MapPin, User, ArrowLeft, Home } from "lucide-react";
 
 interface Performer {
   id: string;
