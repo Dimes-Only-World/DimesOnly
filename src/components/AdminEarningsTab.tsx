@@ -566,7 +566,7 @@ const AdminEarningsTab: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-purple-800">
+                    <div className="text-xl sm:text-2xl font-bold text-purple-800">
                       {payPeriodEarnings.payPeriod.payDate.toLocaleDateString()}
                     </div>
                     <p className="mt-1 text-xs text-purple-600">
