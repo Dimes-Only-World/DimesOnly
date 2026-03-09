@@ -12,6 +12,7 @@ import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
 import AdminJackpotTab from "@/components/AdminJackpotTab";
 import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
+import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard: React.FC = () => {
