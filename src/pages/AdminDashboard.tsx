@@ -12,6 +12,7 @@ import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
 import AdminJackpotTab from "@/components/AdminJackpotTab";
 import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
+import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard: React.FC = () => {
@@ -122,7 +123,7 @@ const AdminDashboard: React.FC = () => {
           {/* Mobile Scrollable Tabs */}
           <div className="w-full mb-8">
             <ScrollArea className="w-full">
-              <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max min-w-full md:w-full md:grid md:grid-cols-8">
+              <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max min-w-full md:w-full md:grid md:grid-cols-10">
                 <TabsTrigger value="users" className="whitespace-nowrap">
                   Users
                 </TabsTrigger>
@@ -149,6 +150,9 @@ const AdminDashboard: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger value="testing" className="whitespace-nowrap">
                   Testing
+                </TabsTrigger>
+                <TabsTrigger value="videos" className="whitespace-nowrap">
+                  Videos
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="whitespace-nowrap">
                   Settings
@@ -187,6 +191,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="testing">
             <AdminTipAllocationTest />
+          </TabsContent>
+
+          <TabsContent value="videos">
+            <AdminBannerVideoTab />
           </TabsContent>
 
           <TabsContent value="settings">

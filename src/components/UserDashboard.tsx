@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/types";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 type UserData = Tables<"users">;
 
@@ -397,16 +398,15 @@ const UserDashboard: React.FC = () => {
     );
   }
 
-  // Choose hero video based on user_type (stripper/exotic => WEBM, otherwise => MP4)
-  // Also provide a mobile-specific source like on the Home page.
   const userType = (userData.user_type || "").toLowerCase();
-
-  // Desktop sources by role
-// Desktop video by user type
-const heroVideoUrl =
-  ["stripper", "exotic"].includes(userType)
+  const isDimeUser = ["stripper", "exotic"].includes(userType);
+  const fallbackVideo = isDimeUser
     ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
     : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
+  const { videoUrl: heroVideoUrl } = usePageVideo(
+    isDimeUser ? "dashboard_dimes" : "dashboard_male",
+    fallbackVideo
+  );
 
 
   return (

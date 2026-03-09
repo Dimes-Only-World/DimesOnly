@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { usePageVideo } from "@/hooks/usePageVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +25,7 @@ interface Performer {
 const EventsDimes: React.FC = () => {
   const { user, loading: userLoading } = useAppContext();
   const navigate = useNavigate();
+  const { videoUrl: eventsMaleVideoUrl } = usePageVideo("events_male_page", "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4");
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [performers, setPerformers] = useState<Performer[]>([]);
@@ -189,36 +191,24 @@ const EventsDimes: React.FC = () => {
             poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           >
             <source
-              src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+              src={eventsMaleVideoUrl || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"}
               type="video/mp4"
             />
             Your browser does not support the video tag.
           </video>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        </div>
 
-          {/* Overlay Content */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center px-4">
-              <h1
-                className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg"
-                style={{ textShadow: '2px 2px 6px rgba(0,0,0,0.8), -1px -1px 4px rgba(0,0,0,0.6)' }}
-              >
-                Choose Your Event Partner
-              </h1>
-              <p
-                className="text-lg md:text-xl text-white font-semibold drop-shadow-lg"
-                style={{ textShadow: '3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)' }}
-              >
-                Select a stripper or exotic dancer to attend events with
-              </p>
-              <p
-                className="text-sm md:text-base text-white mt-3 font-semibold drop-shadow-lg"
-                style={{ textShadow: '3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)' }}
-              >
-                Your chosen event partner will be notified to the event(s) you will attend
-              </p>
-            </div>
-          </div>
+        <div className="text-center py-6 px-4">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+            Choose Your Event Partner
+          </h1>
+          <p className="text-lg md:text-xl text-gray-300 font-semibold">
+            Select a stripper or exotic dancer to attend events with
+          </p>
+          <p className="text-sm md:text-base text-gray-400 mt-3 font-semibold">
+            Your chosen event partner will be notified to the event(s) you will attend
+          </p>
         </div>
 
         {/* Main Content Container - Match TipGirls layout */}

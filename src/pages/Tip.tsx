@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { usePageVideo } from "@/hooks/usePageVideo";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,7 @@ interface MediaFile {
 const Tip: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { videoUrl: tipVideoUrl } = usePageVideo("tip_win_page");
   const [searchParams] = useSearchParams();
   const tipUsername = searchParams.get("tip");
   const refUsername = searchParams.get("ref") || "";
@@ -752,8 +754,20 @@ const Tip: React.FC = () => {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        {/* Banner Photo */}
-        {userData.banner_photo && (
+        {/* Banner Video or Photo */}
+        {tipVideoUrl ? (
+          <div className="w-full h-64 md:h-80 relative overflow-hidden">
+            <video
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+            >
+              <source src={tipVideoUrl} type="video/mp4" />
+            </video>
+          </div>
+        ) : userData.banner_photo ? (
           <div className="w-full h-64 relative overflow-hidden">
             <img
               src={userData.banner_photo}
@@ -762,7 +776,7 @@ const Tip: React.FC = () => {
             />
             <div className="absolute inset-0 bg-black/30" />
           </div>
-        )}
+        ) : null}
 
         <div className={`max-w-6xl mx-auto p-4 relative z-10 ${userData.banner_photo ? '-mt-16' : 'pt-8'}`}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

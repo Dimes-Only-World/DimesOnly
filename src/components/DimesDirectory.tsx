@@ -7,6 +7,7 @@ import { Search, User, Crown, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import DirectMessageModal from "./DirectMessageModal";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 interface DimeProfile {
   id: string;
@@ -71,6 +72,7 @@ const DimesDirectory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { videoUrl: dimesVideoUrl } = usePageVideo("dimes_directory_page");
   const [messageRecipient, setMessageRecipient] = useState<DimeProfile | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
@@ -297,6 +299,21 @@ const DimesDirectory: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Video Banner */}
+      {dimesVideoUrl && (
+        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg">
+          <video
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+          >
+            <source src={dimesVideoUrl} type="video/mp4" />
+          </video>
+        </div>
+      )}
+
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-4">Browse Dimes</h2>
         <p className="text-gray-600 mb-6">Full content will be available when the app is released</p>

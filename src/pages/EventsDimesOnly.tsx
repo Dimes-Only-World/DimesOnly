@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { usePageVideo } from "@/hooks/usePageVideo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ interface Event {
 const EventsDimesOnly: React.FC = () => {
   const { user, setUser, loading: userLoading } = useAppContext();
   const navigate = useNavigate();
+  const { videoUrl: eventsDimesVideoUrl } = usePageVideo("events_dimes_page");
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
@@ -778,6 +780,21 @@ const EventsDimesOnly: React.FC = () => {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+        {/* Video Banner */}
+        {eventsDimesVideoUrl && (
+          <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+            <video
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+            >
+              <source src={eventsDimesVideoUrl} type="video/mp4" />
+            </video>
+          </div>
+        )}
+
         {/* Mobile-first full width design */}
         <div className="w-full px-4 py-6 md:px-8">
           <div className="text-center mb-6">

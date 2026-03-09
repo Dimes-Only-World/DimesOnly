@@ -1555,6 +1555,30 @@ export type Database = {
           },
         ]
       }
+      page_videos: {
+        Row: {
+          id: string
+          page_key: string
+          updated_at: string | null
+          updated_by: string | null
+          video_url: string | null
+        }
+        Insert: {
+          id?: string
+          page_key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          id?: string
+          page_key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
