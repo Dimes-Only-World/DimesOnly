@@ -1,12 +1,8 @@
 
-# Increase Text Shadow on Notification Text
+The automatic referrer for new signups that do not use a referral link is **"Company"**. 
 
-## Change
+When a user signs up without a `?ref=username` parameter in their URL, the system automatically defaults their `referred_by` value to **Company** in the database.
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
-
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
-
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+This is enforced in both the frontend and backend of your application:
+- **Frontend** (`src/pages/Register.tsx`): Automatically sends "Company" if the referral field is empty.
+- **Backend** (`supabase/functions/register-user/index.ts`): Has a fallback to set the referrer to "Company" if it's missing during the account creation process.
