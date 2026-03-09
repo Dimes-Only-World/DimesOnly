@@ -193,6 +193,10 @@ const AdminDashboard: React.FC = () => {
             <AdminTipAllocationTest />
           </TabsContent>
 
+          <TabsContent value="videos">
+            <AdminBannerVideoTab />
+          </TabsContent>
+
           <TabsContent value="settings">
             <AdminEmailSettings />
           </TabsContent>

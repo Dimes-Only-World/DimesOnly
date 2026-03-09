@@ -195,22 +195,20 @@ const RateGirls: React.FC = () => {
               poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
             >
               <source
-                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+                src={rateVideoUrl || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"}
                 type="video/mp4"
               />
             </video>
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <div className="text-center">
-                <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
-                  ⭐ Rate 100 Ladies' Profiles ⭐
-                </h1>
-                <p className="text-xl text-gray-300">
-                  Search by name, city, or state to find a specific lady you want
-                  to rate!
-                </p>
-              </div>
-            </div>
           </div>
+        </div>
+
+        <div className="text-center py-6 px-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
+            ⭐ Rate 100 Ladies' Profiles ⭐
+          </h1>
+          <p className="text-xl text-gray-300">
+            Search by name, city, or state to find a specific lady you want to rate!
+          </p>
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
