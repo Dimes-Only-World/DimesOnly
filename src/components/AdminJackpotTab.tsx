@@ -810,13 +810,13 @@ const AdminJackpotTab: React.FC = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
                 variant="default"
                 size="lg"
                 disabled={entryStep !== 'ready' || runningDraw}
                 onClick={runVerifiedDraw}
-                className="min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px]"
               >
                 {runningDraw ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -831,6 +831,7 @@ const AdminJackpotTab: React.FC = () => {
                 variant="secondary"
                 onClick={openPickCodes}
                 disabled={runningDraw || !pool?.pool_id}
+                className="w-full sm:w-auto"
               >
                 <List className="w-4 h-4 mr-2" />
                 Pick from List
@@ -840,6 +841,7 @@ const AdminJackpotTab: React.FC = () => {
                 variant="ghost"
                 onClick={resetCodeEntry}
                 disabled={runningDraw || (entryStep === 'enter' && firstCode.length === 0)}
+                className="w-full sm:w-auto"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Reset
@@ -849,7 +851,7 @@ const AdminJackpotTab: React.FC = () => {
                 variant="outline"
                 onClick={refreshAll}
                 disabled={loading || runningDraw}
-                className="ml-auto"
+                className="w-full sm:w-auto sm:ml-auto"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

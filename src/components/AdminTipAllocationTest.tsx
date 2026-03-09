@@ -140,8 +140,8 @@ export const AdminTipAllocationTest = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button onClick={handleSetup} disabled={loading !== null} variant="outline">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Button onClick={handleSetup} disabled={loading !== null} variant="outline" className="w-full">
             {loading === "setup" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Settings className="h-4 w-4 mr-2" />}
             1. Setup
           </Button>
@@ -151,8 +151,8 @@ export const AdminTipAllocationTest = () => {
               type="number" 
               value={tipAmount} 
               onChange={(e) => setTipAmount(e.target.value)}
-              placeholder="Amount"
-              className="w-20"
+              placeholder="Amt"
+              className="w-full sm:w-20"
               min="1"
             />
             <Button onClick={handleTest} disabled={loading !== null} className="flex-1">

@@ -375,8 +375,8 @@ const AdminNotificationTab: React.FC = () => {
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-4 border-t">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             <p>Post Date: {new Date().toLocaleDateString()}</p>
             <p>Time: {new Date().toLocaleTimeString()}</p>
           </div>
@@ -385,7 +385,7 @@ const AdminNotificationTab: React.FC = () => {
             disabled={
               loading || !message.trim() || (mediaType !== "none" && !mediaFile)
             }
-            className="min-w-[120px]"
+            className="w-full sm:w-auto sm:min-w-[120px]"
           >
             {loading ? (
               <>

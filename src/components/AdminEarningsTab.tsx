@@ -656,21 +656,21 @@ const AdminEarningsTab: React.FC = () => {
                             <TableCell className="font-bold text-green-600">
                               {formatCurrency(user.totalEarnings)}
                             </TableCell>
-                            <TableCell className="text-blue-600">
+                            <TableCell className="hidden sm:table-cell text-blue-600">
                               {formatCurrency(user.referralEarnings)}
                             </TableCell>
                             <TableCell
-                              className={
+                              className={`hidden sm:table-cell ${
                                 user.performerTips > 0
                                   ? "text-purple-600"
                                   : user.referralTips > 0
                                   ? "text-rose-600"
                                   : "text-purple-600"
-                              }
+                              }`}
                             >
                               {formatCurrency(user.tipsReceived)}
                             </TableCell>
-                            <TableCell className="text-orange-600">
+                            <TableCell className="hidden sm:table-cell text-orange-600">
                               {formatCurrency(user.eventCommissions)}
                             </TableCell>
                           </TableRow>

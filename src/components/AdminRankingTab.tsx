@@ -213,8 +213,8 @@ const AdminRankingTab: React.FC = () => {
               </div>
               
               <div className="text-right">
-                <div className="text-lg font-bold">
-                  {user.total_score.toLocaleString()} Total Score
+                <div className="text-sm sm:text-lg font-bold">
+                  {user.total_score.toLocaleString()} <span className="hidden sm:inline">Total Score</span><span className="sm:hidden">pts</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {user.rating_count} rating{user.rating_count !== 1 ? 's' : ''}
