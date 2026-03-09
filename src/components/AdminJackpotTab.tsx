@@ -779,8 +779,8 @@ const AdminJackpotTab: React.FC = () => {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleConfirmCodeChange(e.target.value)
                   }
-                  placeholder={entryStep === 'enter' ? "Complete Step 1 first" : "Re-enter the code to confirm"}
-                  className="w-48 font-mono text-lg tracking-widest uppercase"
+                  placeholder={entryStep === 'enter' ? "Complete Step 1 first" : "Re-enter to confirm"}
+                  className="w-full sm:w-48 font-mono text-lg tracking-widest uppercase"
                   maxLength={5}
                   disabled={entryStep === 'enter' || entryStep === 'ready' || runningDraw}
                 />
