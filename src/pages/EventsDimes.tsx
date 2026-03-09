@@ -213,6 +213,14 @@ const EventsDimes: React.FC = () => {
 
         {/* Main Content Container - Match TipGirls layout */}
         <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="flex justify-start mb-4">
+            <Button
+              onClick={() => navigate("/dashboard")}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
+            >
+              <Home className="mr-2 h-4 w-4" /> Home
+            </Button>
+          </div>
           {/* Referrer Display */}
           {refParam && refParam !== user?.username && (
             <div className="mb-6 text-center">
