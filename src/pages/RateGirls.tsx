@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { usePageVideo } from "@/hooks/usePageVideo";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, User, MapPin, Flag, Trophy, Crown, X } from "lucide-react";
+import { Search, User, MapPin, Flag, Trophy, Crown, X, Home } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
@@ -43,6 +43,7 @@ interface RankedUser {
 }
 
 const RateGirls: React.FC = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { videoUrl: rateVideoUrl } = usePageVideo("rate_page", "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4");
   const rateUsername = searchParams.get("rate");
@@ -214,6 +215,14 @@ const RateGirls: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
+          <div className="flex justify-start mb-4">
+            <Button
+              onClick={() => navigate("/dashboard")}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
+            >
+              <Home className="mr-2 h-4 w-4" /> Home
+            </Button>
+          </div>
           {/* Top 20 Ranked Section */}
           {topRanked.length > 0 && (
             <div className="mb-12">
