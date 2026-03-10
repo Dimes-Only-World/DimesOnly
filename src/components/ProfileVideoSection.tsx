@@ -167,7 +167,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
           <p className="text-white text-lg mt-6 font-semibold">
             @{refValue} could not be found
           </p>
-          {process.env.NODE_ENV === "development" && (
+          {import.meta.env.DEV && (
             <div className="mt-4 p-4 bg-red-900/50 rounded text-left text-xs text-gray-300 max-w-md mx-auto">
               <p className="text-red-300 font-bold mb-2">Debug Info:</p>
               <pre className="whitespace-pre-wrap text-xs">{debugInfo}</pre>
