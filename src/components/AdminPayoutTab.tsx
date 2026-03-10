@@ -298,9 +298,10 @@ const AdminPayoutTab: React.FC = () => {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="processing">Approved</SelectItem>
+            <SelectItem value="failed">Rejected</SelectItem>
+            <SelectItem value="completed">Paid</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
