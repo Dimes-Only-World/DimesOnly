@@ -216,7 +216,7 @@ const AdminPayoutTab: React.FC = () => {
           </Button>
         </>
       )}
-      {p.request_status === "approved" && (
+      {p.request_status === "processing" && (
         <Button size="sm" variant="outline" disabled={actionLoading === p.id} onClick={() => handleAction("markPayoutPaid", p.id)}>
           Mark Paid
         </Button>
