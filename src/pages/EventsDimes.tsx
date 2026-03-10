@@ -181,9 +181,9 @@ const EventsDimes: React.FC = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {/* Video Banner - Match TipGirls styling */}
-        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+        <div className="relative w-full overflow-hidden bg-black">
           <video
-            className="w-full h-full object-cover"
+            className="w-full h-auto max-w-full"
             autoPlay
             muted
             loop
@@ -196,7 +196,6 @@ const EventsDimes: React.FC = () => {
             />
             Your browser does not support the video tag.
           </video>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
         </div>
 
         <div className="text-center py-6 px-4">
