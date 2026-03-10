@@ -373,7 +373,7 @@ const Events: React.FC = () => {
         {userProfile && (
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width, larger height, object-cover for stretch */}
-            <div className="w-full h-72 md:h-96 lg:h-[550px] relative overflow-hidden bg-black">
+            <div className="w-full bg-black">
               {latestFreeVideo ? (
                 <video
                   autoPlay
@@ -381,14 +381,14 @@ const Events: React.FC = () => {
                   loop
                   playsInline
                   poster={userProfile.banner_photo || "/placeholder.svg"}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto"
                   onError={(e) => {
                     const video = e.currentTarget;
                     video.style.display = "none";
                     const fallbackImg = document.createElement("img");
                     fallbackImg.src = userProfile.banner_photo || "/placeholder.svg";
                     fallbackImg.alt = `${userProfile.username} banner`;
-                    fallbackImg.className = "w-full h-full object-cover object-top";
+                    fallbackImg.className = "w-full h-auto";
                     video.parentElement?.appendChild(fallbackImg);
                   }}
                 >
@@ -398,7 +398,7 @@ const Events: React.FC = () => {
                 <img
                   src={userProfile.banner_photo || "/placeholder.svg"}
                   alt={`${userProfile.username} banner`}
-                  className="w-full h-full object-cover object-top"
+                  className="w-full h-auto object-top"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";

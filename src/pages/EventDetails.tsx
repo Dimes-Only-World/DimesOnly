@@ -602,15 +602,15 @@ const EventDetails: React.FC = () => {
 
         {/* Event Banner - Photo or Video (prioritize banner_video_url) */}
         <div className="px-4 pb-4">
-          <div className="relative rounded-xl overflow-hidden h-64 md:h-80">
+          <div className="relative rounded-xl overflow-hidden">
             {/* Banner Video (if available - prioritize banner_video_url) */}
             {event.banner_video_url ? (
               <div 
-                className="relative w-full h-full cursor-pointer group"
+                className="relative w-full cursor-pointer group"
                 onClick={() => openVideoModal(event.banner_video_url!)}
               >
                 <video
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="w-full h-auto"
                   autoPlay
                   loop
                   muted

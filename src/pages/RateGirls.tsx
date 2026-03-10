@@ -187,22 +187,20 @@ const RateGirls: React.FC = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {/* Video Banner */}
-        <div className="relative w-full bg-black">
-          <div className="relative w-full h-0" style={{ paddingBottom: "56.25%" }}>
-            <video
-              className="absolute inset-0 w-full h-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-            >
-              <source
-                src={rateVideoUrl || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"}
-                type="video/mp4"
-              />
-            </video>
-          </div>
+        <div className="w-full bg-black">
+          <video
+            className="w-full h-auto"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
+          >
+            <source
+              src={rateVideoUrl || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"}
+              type="video/mp4"
+            />
+          </video>
         </div>
 
         <div className="text-center py-6 px-4">

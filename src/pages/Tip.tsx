@@ -756,9 +756,9 @@ const Tip: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Banner Video or Photo */}
         {tipVideoUrl ? (
-          <div className="w-full h-64 md:h-80 relative overflow-hidden">
+          <div className="w-full bg-black">
             <video
-              className="w-full h-full object-cover"
+              className="w-full h-auto"
               autoPlay
               muted
               loop
