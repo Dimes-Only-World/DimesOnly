@@ -231,34 +231,28 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <div className="relative w-full bg-black">
-          <div
-            className="relative w-full h-0"
-            style={{ paddingBottom: "56.25%" }}
+          <video
+            className="w-full h-auto max-w-full"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
           >
-            <video
-              className="absolute inset-0 w-full h-full object-contain"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-            >
-              <source
-                src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
-                type="video/mp4"
-              />
-            </video>
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <div className="text-center">
-                <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
-                  💎 Tip & Win 💎
-                </h1>
-                <p className="text-xl text-gray-300">
-                  Tip your favorite Dimes and enter the jackpot!
-                </p>
-              </div>
-            </div>
-          </div>
+            <source
+              src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
+              type="video/mp4"
+            />
+          </video>
+        </div>
+
+        <div className="text-center py-6 px-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
+            💎 Tip & Win 💎
+          </h1>
+          <p className="text-xl text-gray-300">
+            Tip your favorite Dimes and enter the jackpot!
+          </p>
         </div>
 
         <div className="max-w-7xl mx-auto p-4">
