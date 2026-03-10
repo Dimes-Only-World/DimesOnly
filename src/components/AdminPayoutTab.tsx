@@ -103,6 +103,7 @@ const AdminPayoutTab: React.FC = () => {
   });
 
   const filteredPending = filtered.filter((p) => p.request_status === "pending");
+  // DB valid statuses: pending, processing, completed, failed, cancelled
 
   const handleApproveAll = async () => {
     if (filteredPending.length === 0) return;
@@ -130,18 +131,22 @@ const AdminPayoutTab: React.FC = () => {
   };
 
   const pending = summary("pending");
-  const approved = summary("approved");
-  const paid = summary("paid");
+  const processing = summary("processing");
+  const completed = summary("completed");
 
   const statusBadge = (status: string | null) => {
     const s = status || "pending";
     const variants: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-blue-100 text-blue-800",
-      rejected: "bg-red-100 text-red-800",
-      paid: "bg-green-100 text-green-800",
+      processing: "bg-blue-100 text-blue-800",
+      failed: "bg-red-100 text-red-800",
+      completed: "bg-green-100 text-green-800",
+      cancelled: "bg-muted text-muted-foreground",
     };
-    return <Badge className={variants[s] || "bg-muted text-muted-foreground"}>{s.charAt(0).toUpperCase() + s.slice(1)}</Badge>;
+    const labels: Record<string, string> = {
+      pending: "Pending", processing: "Approved", completed: "Paid", failed: "Rejected", cancelled: "Cancelled",
+    };
+    return <Badge className={variants[s] || "bg-muted text-muted-foreground"}>{labels[s] || s}</Badge>;
   };
 
   const methodLabel = (m: string) => {
@@ -211,7 +216,7 @@ const AdminPayoutTab: React.FC = () => {
           </Button>
         </>
       )}
-      {p.request_status === "approved" && (
+      {p.request_status === "processing" && (
         <Button size="sm" variant="outline" disabled={actionLoading === p.id} onClick={() => handleAction("markPayoutPaid", p.id)}>
           Mark Paid
         </Button>
@@ -264,8 +269,8 @@ const AdminPayoutTab: React.FC = () => {
             <CheckCircle className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${approved.total.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{approved.count} request{approved.count !== 1 ? "s" : ""}</p>
+            <div className="text-2xl font-bold">${processing.total.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{processing.count} request{processing.count !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
         <Card>
@@ -274,8 +279,8 @@ const AdminPayoutTab: React.FC = () => {
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${paid.total.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{paid.count} request{paid.count !== 1 ? "s" : ""}</p>
+            <div className="text-2xl font-bold">${completed.total.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{completed.count} request{completed.count !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
       </div>
@@ -293,9 +298,10 @@ const AdminPayoutTab: React.FC = () => {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="processing">Approved</SelectItem>
+            <SelectItem value="failed">Rejected</SelectItem>
+            <SelectItem value="completed">Paid</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
