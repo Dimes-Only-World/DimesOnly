@@ -122,7 +122,7 @@ const AdminDashboard: React.FC = () => {
         <Tabs defaultValue="users" className="w-full">
           {/* Mobile Scrollable Tabs */}
           <div className="w-full mb-8 overflow-x-auto -webkit-overflow-scrolling-touch pb-2">
-            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max lg:w-full lg:grid lg:grid-cols-10">
+            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max lg:w-full lg:grid lg:grid-cols-11">
               <TabsTrigger value="users" className="whitespace-nowrap">
                 Users
               </TabsTrigger>
