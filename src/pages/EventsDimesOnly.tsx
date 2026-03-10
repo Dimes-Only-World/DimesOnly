@@ -38,6 +38,7 @@ import {
   Clock,
   Play,
   Image as ImageIcon,
+  Home,
 } from "lucide-react";
 
 interface Attendee {
