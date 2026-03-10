@@ -129,7 +129,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
           <p className="text-white text-lg mt-6 font-semibold">
             {refValue ? `Searching for ${refValue}...` : "Loading..."}
           </p>
-          {process.env.NODE_ENV === "development" && refValue && (
+          {import.meta.env.DEV && refValue && (
             <div className="mt-4 p-4 bg-black/50 rounded text-left text-xs text-gray-300">
               <p className="text-yellow-300 font-bold mb-2">Debug Info:</p>
               <p>Ref Value: {refValue}</p>
