@@ -279,8 +279,8 @@ const AdminPayoutTab: React.FC = () => {
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${paid.total.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{paid.count} request{paid.count !== 1 ? "s" : ""}</p>
+            <div className="text-2xl font-bold">${completed.total.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{completed.count} request{completed.count !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
       </div>
