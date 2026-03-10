@@ -149,7 +149,7 @@ const EventsDimes: React.FC = () => {
               </p>
 
               {/* Debug information - remove in production */}
-              {process.env.NODE_ENV === "development" && (
+              {import.meta.env.DEV && (
                 <div className="mt-4 p-4 bg-black/20 rounded text-left text-xs">
                   <p className="text-yellow-300 font-bold mb-2">Debug Info:</p>
                   <p className="text-gray-300">

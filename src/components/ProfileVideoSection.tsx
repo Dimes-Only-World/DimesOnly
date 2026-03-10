@@ -248,7 +248,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
         <p className="text-white text-lg mt-6 font-semibold">
           Welcome to the Ultimate Experience
         </p>
-        {process.env.NODE_ENV === "development" && (
+        {import.meta.env.DEV && (
           <div className="mt-4 p-4 bg-green-900/50 rounded text-left text-xs text-gray-300 max-w-md mx-auto">
             <p className="text-green-300 font-bold mb-2">Debug Info:</p>
             <pre className="whitespace-pre-wrap text-xs">{debugInfo}</pre>
