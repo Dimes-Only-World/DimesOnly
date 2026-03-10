@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -8,53 +8,19 @@ import {
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { createClient } from "@supabase/supabase-js";
 import dimePlaceholder from "@/assets/dime-placeholder.jpg";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://qkcuykpndrolrewwnkwb.supabase.co";
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-interface DimeProfile {
-  id: string;
-  username: string;
-  image: string;
-}
+const mockDimes = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  username: `dime_${i + 1}`,
+}));
 
 const LatestDimesCarousel = () => {
-  const [dimes, setDimes] = useState<DimeProfile[]>([]);
-  const [selected, setSelected] = useState<DimeProfile | null>(null);
-
-  useEffect(() => {
-    const fetchDimes = async () => {
-      const { data, error } = await supabase
-        .from("public_user_profiles")
-        .select("id, username, profile_photo, front_page_photo")
-        .in("user_type", ["stripper", "exotic"])
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (!error && data) {
-        const mapped = data
-          .filter((u: any) => u.username)
-          .map((u: any) => ({
-            id: String(u.id),
-            username: u.username,
-            image: u.front_page_photo || u.profile_photo || dimePlaceholder,
-          }));
-        if (mapped.length > 0) setDimes(mapped);
-      }
-    };
-    fetchDimes();
-  }, []);
-
-  const registerUrl = (username: string) =>
-    `/register?ref=${encodeURIComponent(username)}`;
-
-  const loginUrl = (username: string) =>
-    `/login?ref=${encodeURIComponent(username)}&redirect=${encodeURIComponent(`/profile/${username}`)}`;
-
-  if (dimes.length === 0) return null;
+  const [selected, setSelected] = useState<(typeof mockDimes)[0] | null>(null);
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
+  const loginUrl = ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login";
+  const registerUrl = ref ? `/register?ref=${encodeURIComponent(ref)}` : "/register";
 
   return (
     <section className="py-20 bg-card/50">
@@ -66,7 +32,7 @@ const LatestDimesCarousel = () => {
         <div className="px-12">
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent>
-              {dimes.map((dime) => (
+              {mockDimes.map((dime) => (
                 <CarouselItem key={dime.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
                   <button
                     onClick={() => setSelected(dime)}
@@ -74,10 +40,9 @@ const LatestDimesCarousel = () => {
                   >
                     <div className="relative aspect-[3/4] overflow-hidden">
                       <img
-                        src={dime.image}
+                        src={dimePlaceholder}
                         alt={`@${dime.username}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
                       />
                       <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground border-0 text-[10px]">
                         New Dime
@@ -98,6 +63,7 @@ const LatestDimesCarousel = () => {
         </div>
       </div>
 
+      {/* Lightbox modal */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
         <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
@@ -105,20 +71,20 @@ const LatestDimesCarousel = () => {
           </DialogHeader>
           <div className="aspect-video rounded-lg overflow-hidden mb-4">
             <img
-              src={selected?.image || dimePlaceholder}
+              src={dimePlaceholder}
               alt={`@${selected?.username}`}
               className="w-full h-full object-cover"
             />
           </div>
           <div className="flex gap-3">
             <a
-              href={selected ? loginUrl(selected.username) : "/login"}
+              href={loginUrl}
               className="flex-1 text-center py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
             >
               Login
             </a>
             <a
-              href={selected ? registerUrl(selected.username) : "/register"}
+              href={registerUrl}
               className="flex-1 text-center py-2 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary/10 transition-colors"
             >
               Sign Up
