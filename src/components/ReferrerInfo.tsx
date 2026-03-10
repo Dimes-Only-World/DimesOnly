@@ -47,7 +47,7 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
     }
   };
 
-  const isCompany = !referredBy || referredBy.trim() === '' || referredBy.trim().toLowerCase() === 'company';
+  const isCompany = !referredBy || referredBy.trim() === '' || referredBy === 'Company';
 
   if (!isCompany && loading) {
     return (

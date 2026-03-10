@@ -68,8 +68,8 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
           id: String(user.id),
           username: user.username || `New Dime ${index + 1}`,
           image:
-            user.front_page_photo ??
             user.profile_photo ??
+            user.front_page_photo ??
             fallbackImages[index % fallbackImages.length],
           created_at: user.created_at,
         }));
@@ -185,17 +185,20 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
       return;
     }
 
+    const ref = getRefParam();
     const loginUrl = new URL("/login", window.location.origin);
-    loginUrl.searchParams.set("ref", selectedPerformer.username);
     loginUrl.searchParams.set("redirect", `/profile/${encodeURIComponent(selectedPerformer.username)}`);
+    if (ref) loginUrl.searchParams.set("ref", ref);
     window.location.href = loginUrl.toString();
   };
 
   const navigateRegister = () => {
     if (!selectedPerformer) return;
 
+    const ref = getRefParam();
     const registerUrl = new URL("/register", window.location.origin);
-    registerUrl.searchParams.set("ref", selectedPerformer.username);
+    if (ref) registerUrl.searchParams.set("ref", ref);
+    registerUrl.searchParams.set("target", selectedPerformer.username);
     window.location.href = registerUrl.toString();
   };
 
