@@ -311,6 +311,81 @@ serve(async (req) => {
         break;
       }
 
+      // Payout management
+      case 'fetchPayoutRequests': {
+        const { data: payouts, error: payoutsErr } = await supabaseAdmin
+          .from('payout_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (payoutsErr) throw payoutsErr;
+
+        // Get usernames/emails for all user_ids
+        const userIds = [...new Set((payouts || []).map((p: any) => p.user_id))];
+        let usersMap: Record<string, any> = {};
+        if (userIds.length > 0) {
+          const { data: users, error: usersErr } = await supabaseAdmin
+            .from('users')
+            .select('id, username, email')
+            .in('id', userIds);
+          if (usersErr) throw usersErr;
+          for (const u of (users || [])) {
+            usersMap[u.id] = u;
+          }
+        }
+
+        result = (payouts || []).map((p: any) => ({
+          ...p,
+          username: usersMap[p.user_id]?.username || 'Unknown',
+          email: usersMap[p.user_id]?.email || '',
+        }));
+        break;
+      }
+
+      case 'approvePayoutRequest': {
+        const { requestId, adminNotes } = params;
+        const { error } = await supabaseAdmin
+          .from('payout_requests')
+          .update({
+            request_status: 'approved',
+            processed_date: new Date().toISOString(),
+            notes: adminNotes || 'Approved by admin',
+          })
+          .eq('id', requestId);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+      case 'rejectPayoutRequest': {
+        const { requestId, reason } = params;
+        const { error } = await supabaseAdmin
+          .from('payout_requests')
+          .update({
+            request_status: 'rejected',
+            processed_date: new Date().toISOString(),
+            notes: reason || 'Rejected by admin',
+          })
+          .eq('id', requestId);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+      case 'markPayoutPaid': {
+        const { requestId, adminNotes } = params;
+        const { error } = await supabaseAdmin
+          .from('payout_requests')
+          .update({
+            request_status: 'paid',
+            processed_date: new Date().toISOString(),
+            notes: adminNotes || 'Marked as paid by admin',
+          })
+          .eq('id', requestId);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
