@@ -783,9 +783,9 @@ const EventsDimesOnly: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
         {/* Video Banner */}
         {eventsDimesVideoUrl && (
-          <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+          <div className="relative w-full overflow-hidden bg-black">
             <video
-              className="w-full h-full object-cover"
+              className="w-full h-auto max-w-full"
               autoPlay
               muted
               loop
