@@ -487,9 +487,10 @@ export const Register: React.FC = () => {
           zip: formData.zip,
           gender: formData.gender,
           userType: formData.userType || 'normal',
-          referredBy: formData.referredBy && formData.referredBy.trim() !== "" 
-            ? formData.referredBy 
-            : "Company",
+          referredBy: (() => {
+            const raw = decodeURIComponent(formData.referredBy || "").trim();
+            return raw && raw.toLowerCase() !== "company" ? raw : "Company";
+          })(),
           dateOfBirth: formData.dateOfBirth,
           profilePhotoUrl,
           bannerPhotoUrl,
