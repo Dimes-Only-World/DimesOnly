@@ -301,9 +301,9 @@ const DimesDirectory: React.FC = () => {
     <div className="space-y-6">
       {/* Video Banner */}
       {dimesVideoUrl && (
-        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg">
+        <div className="relative w-full overflow-hidden rounded-lg bg-black">
           <video
-            className="w-full h-full object-cover"
+            className="w-full h-auto max-w-full"
             autoPlay
             muted
             loop
