@@ -38,6 +38,7 @@ import {
   Clock,
   Play,
   Image as ImageIcon,
+  Home,
 } from "lucide-react";
 
 interface Attendee {
@@ -797,6 +798,14 @@ const EventsDimesOnly: React.FC = () => {
 
         {/* Mobile-first full width design */}
         <div className="w-full px-4 py-6 md:px-8">
+          <div className="flex justify-start mb-4">
+            <Button
+              onClick={() => navigate("/dashboard")}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
+            >
+              <Home className="mr-2 h-4 w-4" /> Home
+            </Button>
+          </div>
           <div className="text-center mb-6">
             <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-4">
               Events for Strippers & Exotics

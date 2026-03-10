@@ -1,25 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-## Add Home Button to EventsDimesOnly Page
+## Change
 
-The `src/pages/EventsDimesOnly.tsx` page is missing the Home button that was added to the other pages.
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-### Change
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-**`src/pages/EventsDimesOnly.tsx`**
-- Import `Home` from lucide-react (line 29-41)
-- Add a Home button at line 799, before the heading area, inside the `w-full px-4 py-6` div — matching the same style used on the other pages:
-
-```tsx
-<div className="flex justify-start mb-4">
-  <Button
-    onClick={() => navigate("/dashboard")}
-    className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
-  >
-    <Home className="mr-2 h-4 w-4" /> Home
-  </Button>
-</div>
-```
-
-Single file, single addition.
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
