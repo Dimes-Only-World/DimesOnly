@@ -195,6 +195,10 @@ const AdminDashboard: React.FC = () => {
             <AdminBannerVideoTab />
           </TabsContent>
 
+          <TabsContent value="payouts">
+            <AdminPayoutTab />
+          </TabsContent>
+
           <TabsContent value="settings">
             <AdminEmailSettings />
           </TabsContent>
