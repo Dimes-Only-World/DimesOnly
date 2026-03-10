@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { DollarSign, Clock, CheckCircle, XCircle, Search, Eye } from "lucide-react";
+import { DollarSign, Clock, CheckCircle, XCircle, Search, Eye, CheckCheck } from "lucide-react";
 
 interface PayoutRequest {
   id: string;
@@ -53,6 +53,7 @@ const AdminPayoutTab: React.FC = () => {
   const [selectedPayout, setSelectedPayout] = useState<PayoutRequest | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [approveAllLoading, setApproveAllLoading] = useState(false);
 
   const getAdminUserId = () => {
     const data = sessionStorage.getItem("adminUser");
@@ -100,6 +101,28 @@ const AdminPayoutTab: React.FC = () => {
     if (search && !p.username.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const filteredPending = filtered.filter((p) => p.request_status === "pending");
+
+  const handleApproveAll = async () => {
+    if (filteredPending.length === 0) return;
+    setApproveAllLoading(true);
+    try {
+      await Promise.all(
+        filteredPending.map((p) =>
+          supabase.functions.invoke("admin-data", {
+            body: { action: "approvePayoutRequest", adminUserId: getAdminUserId(), requestId: p.id },
+          })
+        )
+      );
+      toast.success(`Approved ${filteredPending.length} payout request(s)`);
+      fetchPayouts();
+    } catch (err: any) {
+      toast.error("Bulk approve failed: " + (err.message || "Unknown error"));
+    } finally {
+      setApproveAllLoading(false);
+    }
+  };
 
   const summary = (status: string) => {
     const items = payouts.filter((p) => p.request_status === status);
@@ -173,10 +196,58 @@ const AdminPayoutTab: React.FC = () => {
     }
   };
 
+  const renderActions = (p: PayoutRequest) => (
+    <div className="flex gap-1 flex-wrap">
+      <Button size="sm" variant="ghost" onClick={() => { setSelectedPayout(p); setDetailDialogOpen(true); }}>
+        <Eye className="h-3 w-3" />
+      </Button>
+      {p.request_status === "pending" && (
+        <>
+          <Button size="sm" variant="default" disabled={actionLoading === p.id} onClick={() => handleAction("approvePayoutRequest", p.id)}>
+            Approve
+          </Button>
+          <Button size="sm" variant="destructive" disabled={actionLoading === p.id} onClick={() => { setSelectedPayout(p); setRejectDialogOpen(true); }}>
+            Reject
+          </Button>
+        </>
+      )}
+      {p.request_status === "approved" && (
+        <Button size="sm" variant="outline" disabled={actionLoading === p.id} onClick={() => handleAction("markPayoutPaid", p.id)}>
+          Mark Paid
+        </Button>
+      )}
+    </div>
+  );
+
+  /* ---- Mobile card for a single payout ---- */
+  const renderMobileCard = (p: PayoutRequest) => (
+    <Card key={p.id} className="md:hidden">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-medium text-sm">{p.username}</div>
+            <div className="text-xs text-muted-foreground">{p.email}</div>
+          </div>
+          {statusBadge(p.request_status)}
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-semibold">${p.amount.toFixed(2)}</span>
+          <span className="text-muted-foreground">{methodLabel(p.payout_method)}</span>
+        </div>
+        <div className="text-xs text-muted-foreground truncate">{methodSummary(p)}</div>
+        <div className="flex gap-2 text-xs text-muted-foreground">
+          <span>Req: {p.request_date ? new Date(p.request_date).toLocaleDateString() : "—"}</span>
+          <span>Sched: {p.scheduled_payout_date ? new Date(p.scheduled_payout_date).toLocaleDateString() : "—"}</span>
+        </div>
+        {renderActions(p)}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
@@ -229,66 +300,63 @@ const AdminPayoutTab: React.FC = () => {
         </Select>
       </div>
 
-      {/* Table */}
+      {/* Approve All */}
+      {filteredPending.length > 0 && (
+        <div className="flex justify-end">
+          <Button onClick={handleApproveAll} disabled={approveAllLoading} className="gap-2">
+            <CheckCheck className="h-4 w-4" />
+            {approveAllLoading ? "Approving..." : `Approve All (${filteredPending.length})`}
+          </Button>
+        </div>
+      )}
+
+      {/* Content */}
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">Loading payout requests...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">No payout requests found.</div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left p-3 font-medium">User</th>
-                <th className="text-left p-3 font-medium">Amount</th>
-                <th className="text-left p-3 font-medium">Method</th>
-                <th className="text-left p-3 font-medium">Details</th>
-                <th className="text-left p-3 font-medium">Requested</th>
-                <th className="text-left p-3 font-medium">Scheduled</th>
-                <th className="text-left p-3 font-medium">Status</th>
-                <th className="text-left p-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id} className="border-t hover:bg-muted/30">
-                  <td className="p-3">
-                    <div className="font-medium">{p.username}</div>
-                    <div className="text-xs text-muted-foreground">{p.email}</div>
-                  </td>
-                  <td className="p-3 font-semibold">${p.amount.toFixed(2)}</td>
-                  <td className="p-3">{methodLabel(p.payout_method)}</td>
-                  <td className="p-3 text-xs max-w-[150px] truncate">{methodSummary(p)}</td>
-                  <td className="p-3 text-xs">{p.request_date ? new Date(p.request_date).toLocaleDateString() : "—"}</td>
-                  <td className="p-3 text-xs">{p.scheduled_payout_date ? new Date(p.scheduled_payout_date).toLocaleDateString() : "—"}</td>
-                  <td className="p-3">{statusBadge(p.request_status)}</td>
-                  <td className="p-3">
-                    <div className="flex gap-1 flex-wrap">
-                      <Button size="sm" variant="ghost" onClick={() => { setSelectedPayout(p); setDetailDialogOpen(true); }}>
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      {p.request_status === "pending" && (
-                        <>
-                          <Button size="sm" variant="default" disabled={actionLoading === p.id} onClick={() => handleAction("approvePayoutRequest", p.id)}>
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="destructive" disabled={actionLoading === p.id} onClick={() => { setSelectedPayout(p); setRejectDialogOpen(true); }}>
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      {p.request_status === "approved" && (
-                        <Button size="sm" variant="outline" disabled={actionLoading === p.id} onClick={() => handleAction("markPayoutPaid", p.id)}>
-                          Mark Paid
-                        </Button>
-                      )}
-                    </div>
-                  </td>
+        <>
+          {/* Mobile cards */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {filtered.map(renderMobileCard)}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto rounded-lg border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3 font-medium">User</th>
+                  <th className="text-left p-3 font-medium">Amount</th>
+                  <th className="text-left p-3 font-medium">Method</th>
+                  <th className="text-left p-3 font-medium hidden lg:table-cell">Details</th>
+                  <th className="text-left p-3 font-medium hidden lg:table-cell">Requested</th>
+                  <th className="text-left p-3 font-medium hidden xl:table-cell">Scheduled</th>
+                  <th className="text-left p-3 font-medium">Status</th>
+                  <th className="text-left p-3 font-medium">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((p) => (
+                  <tr key={p.id} className="border-t hover:bg-muted/30">
+                    <td className="p-3">
+                      <div className="font-medium">{p.username}</div>
+                      <div className="text-xs text-muted-foreground">{p.email}</div>
+                    </td>
+                    <td className="p-3 font-semibold">${p.amount.toFixed(2)}</td>
+                    <td className="p-3">{methodLabel(p.payout_method)}</td>
+                    <td className="p-3 text-xs max-w-[150px] truncate hidden lg:table-cell">{methodSummary(p)}</td>
+                    <td className="p-3 text-xs hidden lg:table-cell">{p.request_date ? new Date(p.request_date).toLocaleDateString() : "—"}</td>
+                    <td className="p-3 text-xs hidden xl:table-cell">{p.scheduled_payout_date ? new Date(p.scheduled_payout_date).toLocaleDateString() : "—"}</td>
+                    <td className="p-3">{statusBadge(p.request_status)}</td>
+                    <td className="p-3">{renderActions(p)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Reject Dialog */}
