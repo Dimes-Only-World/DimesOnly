@@ -68,8 +68,8 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
           id: String(user.id),
           username: user.username || `New Dime ${index + 1}`,
           image:
-            user.profile_photo ??
             user.front_page_photo ??
+            user.profile_photo ??
             fallbackImages[index % fallbackImages.length],
           created_at: user.created_at,
         }));
