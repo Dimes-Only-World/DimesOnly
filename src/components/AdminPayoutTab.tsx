@@ -269,8 +269,8 @@ const AdminPayoutTab: React.FC = () => {
             <CheckCircle className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${approved.total.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{approved.count} request{approved.count !== 1 ? "s" : ""}</p>
+            <div className="text-2xl font-bold">${processing.total.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{processing.count} request{processing.count !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
         <Card>
