@@ -8,8 +8,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
-import exo from "@/assets/exo.png";
-import money from "@/assets/money.png";
+import exo from "@/assets/exo.png" assert { type: "image" };
+import money from "@/assets/money.png" assert { type: "image" };
 
 interface RankedPerformer {
   id: string;
