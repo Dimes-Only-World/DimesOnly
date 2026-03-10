@@ -346,7 +346,7 @@ serve(async (req) => {
         const { error } = await supabaseAdmin
           .from('payout_requests')
           .update({
-            request_status: 'approved',
+            request_status: 'processing',
             processed_date: new Date().toISOString(),
             notes: adminNotes || 'Approved by admin',
           })
@@ -361,7 +361,7 @@ serve(async (req) => {
         const { error } = await supabaseAdmin
           .from('payout_requests')
           .update({
-            request_status: 'rejected',
+            request_status: 'failed',
             processed_date: new Date().toISOString(),
             notes: reason || 'Rejected by admin',
           })
@@ -376,7 +376,7 @@ serve(async (req) => {
         const { error } = await supabaseAdmin
           .from('payout_requests')
           .update({
-            request_status: 'paid',
+            request_status: 'completed',
             processed_date: new Date().toISOString(),
             notes: adminNotes || 'Marked as paid by admin',
           })

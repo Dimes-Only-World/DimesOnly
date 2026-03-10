@@ -103,6 +103,7 @@ const AdminPayoutTab: React.FC = () => {
   });
 
   const filteredPending = filtered.filter((p) => p.request_status === "pending");
+  // DB valid statuses: pending, processing, completed, failed, cancelled
 
   const handleApproveAll = async () => {
     if (filteredPending.length === 0) return;
