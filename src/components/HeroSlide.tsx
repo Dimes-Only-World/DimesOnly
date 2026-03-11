@@ -55,8 +55,7 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ isActive }) => {
         >
           <source src={phoneSrc} type="video/mp4" />
         </video>
-      )}
-      </video>
+      }
     </div>
   );
 };
