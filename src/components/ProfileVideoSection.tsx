@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
+import { usePageVideo } from "@/hooks/usePageVideo";
 import BannerVideo from "@/components/BannerVideo";
 
 interface ProfileData {
@@ -13,11 +14,10 @@ interface ProfileVideoSectionProps {
   className?: string;
 }
 
-const BG_VIDEO_SRC = "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.webm";
-
 const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
   className = "",
 }) => {
+  const { videoUrl: bgVideoSrc } = usePageVideo("home_background");
   const [refValue, setRefValue] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
   };
 
   const renderBgVideo = () => (
-    <BannerVideo src={BG_VIDEO_SRC} background loop overlay={false} className="absolute inset-0 w-full h-full object-cover z-0" />
+    bgVideoSrc ? <BannerVideo src={bgVideoSrc} background loop overlay={false} className="absolute inset-0 w-full h-full object-cover z-0" /> : null
   );
 
   if (loading) {

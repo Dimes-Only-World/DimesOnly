@@ -27,6 +27,11 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "dimes_directory_page", label: "Dimes Directory Page" },
   { page_key: "events_male_page", label: "Events Page (Males)" },
   { page_key: "events_dimes_page", label: "Events Page (Dimes / Strippers)" },
+  { page_key: "home_hero_desktop", label: "Home Hero Video (Desktop)" },
+  { page_key: "home_hero_mobile", label: "Home Hero Video (Mobile)" },
+  { page_key: "home_fullwidth_desktop", label: "Home Full-Width Video (Desktop)" },
+  { page_key: "home_fullwidth_mobile", label: "Home Full-Width Video (Mobile)" },
+  { page_key: "home_background", label: "Home Background Ladies Video" },
 ];
 
 const VideoHoverPreview: React.FC<{ url: string; anchorRef: React.RefObject<HTMLElement | null> }> = ({ url }) => {

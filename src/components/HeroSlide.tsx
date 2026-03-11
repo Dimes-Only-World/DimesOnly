@@ -1,4 +1,5 @@
 import React from "react";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 interface HeroSlideProps {
   title?: string;
@@ -12,8 +13,8 @@ interface HeroSlideProps {
 // and a desktop 16:9 source for md+ screens. Maintains the fade behavior
 // via the isActive prop to stay compatible with HeroBanner.
 const HeroSlide: React.FC<HeroSlideProps> = ({ isActive }) => {
-    const phoneSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+HOME+(2).webm';
-    const desktopSrc = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+HOME+(1).webm';
+    const { videoUrl: phoneSrc } = usePageVideo("home_hero_mobile");
+    const { videoUrl: desktopSrc } = usePageVideo("home_hero_desktop");
   return (
     <div
       className={`absolute inset-0 transition-opacity duration-700 ${
@@ -30,29 +31,31 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ isActive }) => {
         `}
       </style>
       {/* Desktop video (lg and up by default; iPad forced via media queries) */}
-      <video
-        className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        
-      >
-        <source src={desktopSrc} type="video/mp4" />
-      </video>
+      {desktopSrc && (
+        <video
+          className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        >
+          <source src={desktopSrc} type="video/mp4" />
+        </video>
+      )}
       {/* Phone video (below lg by default) - fill screen to avoid black bars */}
-      <video
-        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        
-      >
-        <source src={phoneSrc} type="video/mp4" />
-      </video>
+      {phoneSrc && (
+        <video
+          className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        >
+          <source src={phoneSrc} type="video/mp4" />
+        </video>
+      )}
     </div>
   );
 };
