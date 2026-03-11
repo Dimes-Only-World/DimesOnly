@@ -13,6 +13,9 @@ import Footer from '@/components/Footer';
 import LatestDimesCarousel from "@/components/LatestDimesCarousel";
 
 const Index: React.FC = () => {
+  const { videoUrl: fullwidthDesktop } = usePageVideo("home_fullwidth_desktop");
+  const { videoUrl: fullwidthMobile } = usePageVideo("home_fullwidth_mobile");
+
   // Use a fully populated dummyUserData to satisfy the SilverPlusMembership type
   const dummyUserData = {
     id: '',
@@ -68,10 +71,12 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen bg-black">
       <HeroBanner />
-      <FullWidthVideo
-        srcDesktop="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+CINEMA.webm"
-        srcMobile="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm"
-      />
+      {(fullwidthDesktop || fullwidthMobile) && (
+        <FullWidthVideo
+          srcDesktop={fullwidthDesktop || undefined}
+          srcMobile={fullwidthMobile || undefined}
+        />
+      )}
       <ProfileVideoSection />
       {/* <VideoWithEmbed /> */}
       <RefAwareActionButtons />

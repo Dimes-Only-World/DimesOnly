@@ -75,7 +75,7 @@ const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
   };
 
   const renderBgVideo = () => (
-    <BannerVideo src={BG_VIDEO_SRC} background loop overlay={false} className="absolute inset-0 w-full h-full object-cover z-0" />
+    bgVideoSrc ? <BannerVideo src={bgVideoSrc} background loop overlay={false} className="absolute inset-0 w-full h-full object-cover z-0" /> : null
   );
 
   if (loading) {
