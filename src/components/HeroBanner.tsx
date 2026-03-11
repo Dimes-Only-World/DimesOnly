@@ -51,7 +51,7 @@ const HeroBanner: React.FC = () => {
         />
 
         {/* Desktop Video */}
-        {!videoError && (
+        {!videoError && desktopSrc && (
           <video
             key="desktop-hero"
             className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
