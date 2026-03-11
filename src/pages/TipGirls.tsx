@@ -12,6 +12,7 @@ import PayPalTipButton from "@/components/PayPalTipButton";
 import UserProfileCard from "@/components/UserProfileCard";
 import UsersList from "@/components/UsersList";
 import TipStatusChecker from "@/components/TipStatusChecker";
+import BannerVideo from "@/components/BannerVideo";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -232,20 +233,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {tipVideoUrl && (
-          <div className="relative w-full bg-black">
-            <video
-              className="w-full h-auto max-w-full"
-              autoPlay
-              muted
-              loop
-              playsInline
-            >
-              <source
-                src={tipVideoUrl}
-                type="video/mp4"
-              />
-            </video>
-          </div>
+          <BannerVideo src={tipVideoUrl} />
         )}
 
         <div className="text-center py-6 px-4">

@@ -40,6 +40,7 @@ import {
   Image as ImageIcon,
   Home,
 } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
 
 interface Attendee {
   user_id: string;
@@ -783,17 +784,7 @@ const EventsDimesOnly: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
         {/* Video Banner */}
         {eventsDimesVideoUrl && (
-          <div className="relative w-full overflow-hidden bg-black">
-            <video
-              className="w-full h-auto max-w-full"
-              autoPlay
-              muted
-              loop
-              playsInline
-            >
-              <source src={eventsDimesVideoUrl} type="video/mp4" />
-            </video>
-          </div>
+          <BannerVideo src={eventsDimesVideoUrl} />
         )}
 
         {/* Mobile-first full width design */}

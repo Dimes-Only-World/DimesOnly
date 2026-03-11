@@ -11,6 +11,7 @@ import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { normalizeRefParam } from "@/lib/utils";
 import { Search, MapPin, User, ArrowLeft, Home } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
 
 interface Performer {
   id: string;
@@ -182,20 +183,7 @@ const EventsDimes: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {/* Video Banner */}
         {eventsMaleVideoUrl && (
-          <div className="relative w-full overflow-hidden bg-black">
-            <video
-              className="w-full h-auto max-w-full"
-              autoPlay
-              muted
-              loop
-              playsInline
-            >
-              <source
-                src={eventsMaleVideoUrl}
-                type="video/mp4"
-              />
-            </video>
-          </div>
+          <BannerVideo src={eventsMaleVideoUrl} />
         )}
 
         <div className="text-center py-6 px-4">

@@ -1,12 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import placeholderLady from "../../../../assets/weo.png";
 
 const HeroBanner = () => {
-  const [videoError, setVideoError] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const VERSION = "v2";
   const desktopSrc = `https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+CINEMA.webm?v=${VERSION}`;
   const mobileSrc = `https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+9-16+1080+FINAL.webm?v=${VERSION}`;
+  const videoSrc = isMobile ? mobileSrc : desktopSrc;
 
   const scrollDown = () => {
     const next = document.getElementById("referrer-section");
@@ -19,38 +28,20 @@ const HeroBanner = () => {
       <img
         src={placeholderLady}
         alt="Hero background"
-        className="absolute inset-0 w-full h-full object-cover object-center" />
+        className="absolute inset-0 w-full h-full object-cover object-center"
+      />
 
-
-      {/* Desktop Video */}
-      {!videoError &&
+      {/* Hero Video — uses same BannerVideo logic inline since this is a separate landing project */}
       <video
-        className="hidden md:block absolute inset-0 w-full h-full object-cover"
+        key={videoSrc}
+        className="absolute inset-0 w-full h-full object-cover"
         autoPlay
-        muted
-        loop
         playsInline
-        preload="metadata"
-        onError={() => setVideoError(true)}>
-
-          <source src={desktopSrc} type="video/webm" />
-        </video>
-      }
-
-      {/* Mobile Video */}
-      {!videoError &&
-      <video
-        className="block md:hidden absolute inset-0 w-full h-full object-cover"
-        autoPlay
-        muted
         loop
-        playsInline
         preload="metadata"
-        onError={() => setVideoError(true)}>
-
-          <source src={mobileSrc} type="video/webm" />
-        </video>
-      }
+      >
+        <source src={videoSrc} type="video/webm" />
+      </video>
 
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40" />
@@ -60,15 +51,9 @@ const HeroBanner = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4">
-        
-
-
-
-
-
       </div>
-    </section>);
-
+    </section>
+  );
 };
 
 export default HeroBanner;
