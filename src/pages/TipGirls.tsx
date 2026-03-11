@@ -28,7 +28,7 @@ interface User {
 }
 
 const TipGirls: React.FC = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
   const { videoUrl: tipVideoUrl } = usePageVideo("tip_win_page");
   const [searchParams] = useSearchParams();
   const tipUsername = searchParams.get("tip");
