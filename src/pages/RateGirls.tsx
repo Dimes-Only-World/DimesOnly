@@ -188,20 +188,7 @@ const RateGirls: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {/* Video Banner */}
         {rateVideoUrl && (
-          <div className="w-full bg-black">
-            <video
-              className="w-full h-auto"
-              autoPlay
-              muted
-              loop
-              playsInline
-            >
-              <source
-                src={rateVideoUrl}
-                type="video/mp4"
-              />
-            </video>
-          </div>
+          <BannerVideo src={rateVideoUrl} />
         )}
 
         <div className="text-center py-6 px-4">
