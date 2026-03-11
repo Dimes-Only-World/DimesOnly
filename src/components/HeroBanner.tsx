@@ -67,7 +67,7 @@ const HeroBanner: React.FC = () => {
         )}
 
         {/* Phone Video */}
-        {!videoError && (
+        {!videoError && phoneSrc && (
           <video
             key="mobile-hero"
             className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
