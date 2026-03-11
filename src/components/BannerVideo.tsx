@@ -142,7 +142,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
       className={`relative w-full overflow-hidden bg-black ${className}`}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
-      onClick={toggleMute}
+      onClick={togglePlayPause}
     >
       <video
         ref={videoRef}
@@ -160,13 +160,15 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
       )}
 
-      {/* Mute indicator flash */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          className={`transition-opacity duration-300 ${
-            showControls ? "opacity-0" : "opacity-0"
-          }`}
-        />
+      {/* Center play button */}
+      <div
+        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+          isPlaying ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="bg-black/50 rounded-full p-5">
+          <Play className="w-12 h-12 text-white fill-white" />
+        </div>
       </div>
 
       {/* Custom control bar */}
