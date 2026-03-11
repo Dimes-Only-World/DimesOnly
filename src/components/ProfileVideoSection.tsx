@@ -17,6 +17,7 @@ interface ProfileVideoSectionProps {
 const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
   className = "",
 }) => {
+  const { videoUrl: bgVideoSrc } = usePageVideo("home_background");
   const [refValue, setRefValue] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
