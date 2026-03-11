@@ -36,25 +36,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  // Autoplay with sound — don't fall back to muted
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = false;
-    const playPromise = video.play();
-    if (playPromise) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-          setIsMuted(false);
-        })
-        .catch(() => {
-          // Browser blocked unmuted autoplay — stay paused, don't mute
-          setIsPlaying(false);
-          setIsMuted(false);
-        });
-    }
-  }, [src]);
+  // No autoplay — video starts paused, user must click play
 
   // Time updates
   useEffect(() => {
