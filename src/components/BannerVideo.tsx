@@ -36,25 +36,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  // Autoplay with sound — don't fall back to muted
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = false;
-    const playPromise = video.play();
-    if (playPromise) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-          setIsMuted(false);
-        })
-        .catch(() => {
-          // Browser blocked unmuted autoplay — stay paused, don't mute
-          setIsPlaying(false);
-          setIsMuted(false);
-        });
-    }
-  }, [src]);
+  // No autoplay — video starts paused, user must click play
 
   // Time updates
   useEffect(() => {
@@ -105,8 +87,8 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
     }
   }, []);
 
-  const togglePlayPause = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const togglePlayPause = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
@@ -160,7 +142,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
       className={`relative w-full overflow-hidden bg-black ${className}`}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
-      onClick={toggleMute}
+      onClick={togglePlayPause}
     >
       <video
         ref={videoRef}
@@ -178,13 +160,15 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
       )}
 
-      {/* Mute indicator flash */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          className={`transition-opacity duration-300 ${
-            showControls ? "opacity-0" : "opacity-0"
-          }`}
-        />
+      {/* Center play button */}
+      <div
+        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+          isPlaying ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="bg-black/50 rounded-full p-5">
+          <Play className="w-12 h-12 text-white fill-white" />
+        </div>
       </div>
 
       {/* Custom control bar */}
