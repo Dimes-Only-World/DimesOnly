@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import BannerVideo from '@/components/BannerVideo';
 
 interface DashboardVideoHeaderProps {
-  srcDesktop: string;
-  srcMobile: string;
-  thumbnailUrl: string;
+  srcDesktop: string | null;
+  srcMobile: string | null;
+  thumbnailUrl?: string;
 }
 
 const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
   srcDesktop,
   srcMobile,
-  thumbnailUrl,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -23,6 +22,8 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
   }, []);
 
   const videoSrc = isMobile ? srcMobile : srcDesktop;
+
+  if (!videoSrc) return null;
 
   return (
     <div className="w-full mb-6">
