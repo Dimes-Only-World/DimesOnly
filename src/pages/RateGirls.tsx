@@ -45,7 +45,7 @@ interface RankedUser {
 const RateGirls: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { videoUrl: rateVideoUrl } = usePageVideo("rate_page", "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4");
+  const { videoUrl: rateVideoUrl } = usePageVideo("rate_page");
   const rateUsername = searchParams.get("rate");
   const refUsername = searchParams.get("ref") || "";
   const [searchName, setSearchName] = useState("");

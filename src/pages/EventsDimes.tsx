@@ -25,7 +25,7 @@ interface Performer {
 const EventsDimes: React.FC = () => {
   const { user, loading: userLoading } = useAppContext();
   const navigate = useNavigate();
-  const { videoUrl: eventsMaleVideoUrl } = usePageVideo("events_male_page", "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4");
+  const { videoUrl: eventsMaleVideoUrl } = usePageVideo("events_male_page");
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [performers, setPerformers] = useState<Performer[]>([]);

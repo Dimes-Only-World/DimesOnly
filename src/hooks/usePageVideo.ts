@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-export function usePageVideo(pageKey: string, fallbackUrl?: string) {
-  const [videoUrl, setVideoUrl] = useState<string | null>(fallbackUrl ?? null);
+export function usePageVideo(pageKey: string) {
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
