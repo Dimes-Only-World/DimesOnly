@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
+import { usePageVideo } from "@/hooks/usePageVideo";
 import BannerVideo from "@/components/BannerVideo";
 
 interface ProfileData {
@@ -12,8 +13,6 @@ interface ProfileData {
 interface ProfileVideoSectionProps {
   className?: string;
 }
-
-const BG_VIDEO_SRC = "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Background-Ladies-1.webm";
 
 const ProfileVideoSection: React.FC<ProfileVideoSectionProps> = ({
   className = "",

@@ -1,6 +1,7 @@
 import React from 'react';
 import HeroBanner from '@/components/HeroBanner';
 import FullWidthVideo from '@/components/FullWidthVideo';
+import { usePageVideo } from '@/hooks/usePageVideo';
 //import VideoWithEmbed from '@/components/VideoWithEmbed';
 import ProfileVideoSection from '@/components/ProfileVideoSection';
 import ImageCarousel from '@/components/ImageCarousel';

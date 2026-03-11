@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { normalizeRefParam } from "@/lib/utils";
+import { usePageVideo } from "@/hooks/usePageVideo";
 import heroVector from "@/assets/one.png";
 import placeholderLady from "@/assets/weo.png";
 
 const HeroBanner: React.FC = () => {
   const [videoError, setVideoError] = useState(false);
   
-  // Cache-busting version to force fresh fetch
-  const VERSION = "v2";
-  const phoneSrc = `https://dimesonlyworld.s3.us-east-2.amazonaws.com/9-16+1080+HOME+BANNER.webm?v=${VERSION}`;
-  const desktopSrc = `https://dimesonlyworld.s3.us-east-2.amazonaws.com/16-9+1080+cinema+HOME+banner.webm?v=${VERSION}`;
+  const { videoUrl: desktopSrc } = usePageVideo("home_hero_desktop");
+  const { videoUrl: phoneSrc } = usePageVideo("home_hero_mobile");
   
   const handleVideoError = () => setVideoError(true);
 
