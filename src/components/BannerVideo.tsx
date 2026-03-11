@@ -87,8 +87,8 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
     }
   }, []);
 
-  const togglePlayPause = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const togglePlayPause = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
