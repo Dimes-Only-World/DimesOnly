@@ -25,7 +25,7 @@ interface Performer {
 const EventsDimes: React.FC = () => {
   const { user, loading: userLoading } = useAppContext();
   const navigate = useNavigate();
-  const { videoUrl: eventsMaleVideoUrl } = usePageVideo("events_male_page", "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4");
+  const { videoUrl: eventsMaleVideoUrl } = usePageVideo("events_male_page");
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [performers, setPerformers] = useState<Performer[]>([]);
@@ -180,23 +180,23 @@ const EventsDimes: React.FC = () => {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        {/* Video Banner - Match TipGirls styling */}
-        <div className="relative w-full overflow-hidden bg-black">
-          <video
-            className="w-full h-auto max-w-full"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-          >
-            <source
-              src={eventsMaleVideoUrl || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"}
-              type="video/mp4"
-            />
-            Your browser does not support the video tag.
-          </video>
-        </div>
+        {/* Video Banner */}
+        {eventsMaleVideoUrl && (
+          <div className="relative w-full overflow-hidden bg-black">
+            <video
+              className="w-full h-auto max-w-full"
+              autoPlay
+              muted
+              loop
+              playsInline
+            >
+              <source
+                src={eventsMaleVideoUrl}
+                type="video/mp4"
+              />
+            </video>
+          </div>
+        )}
 
         <div className="text-center py-6 px-4">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">

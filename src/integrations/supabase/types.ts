@@ -1555,6 +1555,27 @@ export type Database = {
           },
         ]
       }
+      page_video_history: {
+        Row: {
+          id: string
+          page_key: string
+          replaced_at: string
+          video_url: string
+        }
+        Insert: {
+          id?: string
+          page_key: string
+          replaced_at?: string
+          video_url: string
+        }
+        Update: {
+          id?: string
+          page_key?: string
+          replaced_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       page_videos: {
         Row: {
           id: string
