@@ -231,21 +231,22 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        <div className="relative w-full bg-black">
-          <video
-            className="w-full h-auto max-w-full"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-          >
-            <source
-              src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/HOME+PAGE+16-9+1080+final.mp4"
-              type="video/mp4"
-            />
-          </video>
-        </div>
+        {tipVideoUrl && (
+          <div className="relative w-full bg-black">
+            <video
+              className="w-full h-auto max-w-full"
+              autoPlay
+              muted
+              loop
+              playsInline
+            >
+              <source
+                src={tipVideoUrl}
+                type="video/mp4"
+              />
+            </video>
+          </div>
+        )}
 
         <div className="text-center py-6 px-4">
           <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">

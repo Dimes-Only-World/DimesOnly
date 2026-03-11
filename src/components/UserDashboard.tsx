@@ -58,12 +58,8 @@ const UserDashboard: React.FC = () => {
   const isDimeUser = userData
     ? ["stripper", "exotic"].includes((userData.user_type || "").toLowerCase())
     : false;
-  const dashboardFallback = isDimeUser
-    ? "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Dimes+Dashboard.webm"
-    : "https://dimesonlyworld.s3.us-east-2.amazonaws.com/home+page.mp4";
   const { videoUrl: heroVideoUrl } = usePageVideo(
-    isDimeUser ? "dashboard_dimes" : "dashboard_male",
-    dashboardFallback
+    isDimeUser ? "dashboard_dimes" : "dashboard_male"
   );
 
   useEffect(() => {
