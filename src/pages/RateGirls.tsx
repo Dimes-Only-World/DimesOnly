@@ -8,6 +8,7 @@ import { Search, User, MapPin, Flag, Trophy, Crown, X, Home } from "lucide-react
 import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
+import BannerVideo from "@/components/BannerVideo";
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
 import {

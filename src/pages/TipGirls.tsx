@@ -12,6 +12,7 @@ import PayPalTipButton from "@/components/PayPalTipButton";
 import UserProfileCard from "@/components/UserProfileCard";
 import UsersList from "@/components/UsersList";
 import TipStatusChecker from "@/components/TipStatusChecker";
+import BannerVideo from "@/components/BannerVideo";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";

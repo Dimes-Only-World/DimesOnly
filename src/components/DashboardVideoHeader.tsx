@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import BannerVideo from '@/components/BannerVideo';
 
 interface DashboardVideoHeaderProps {
   srcDesktop: string;
@@ -12,7 +13,6 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
   thumbnailUrl,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
-  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -22,27 +22,11 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  const handleVideoError = () => {
-    setVideoError(true);
-  };
+  const videoSrc = isMobile ? srcMobile : srcDesktop;
 
   return (
-    <div className="relative w-full max-w-full mb-6 bg-black">
-      <div className="relative w-full">
-        <video
-          key={isMobile ? srcMobile : srcDesktop}
-          className="w-full h-auto max-w-full object-contain bg-black"
-          controls
-          autoPlay
-          muted
-          playsInline
-          poster={thumbnailUrl}
-          onError={handleVideoError}
-        >
-          <source src={isMobile ? srcMobile : srcDesktop} />
-          Your browser does not support the video tag.
-        </video>
-      </div>
+    <div className="w-full mb-6">
+      <BannerVideo src={videoSrc} />
     </div>
   );
 };

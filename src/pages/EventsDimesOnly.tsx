@@ -40,6 +40,7 @@ import {
   Image as ImageIcon,
   Home,
 } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
 
 interface Attendee {
   user_id: string;

@@ -11,6 +11,7 @@ import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { normalizeRefParam } from "@/lib/utils";
 import { Search, MapPin, User, ArrowLeft, Home } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
 
 interface Performer {
   id: string;
