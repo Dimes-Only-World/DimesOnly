@@ -31,28 +31,31 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ isActive }) => {
         `}
       </style>
       {/* Desktop video (lg and up by default; iPad forced via media queries) */}
-      <video
-        className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        
-      >
-        <source src={desktopSrc} type="video/mp4" />
-      </video>
+      {desktopSrc && (
+        <video
+          className="hidden lg:block hero-desktop-vid absolute inset-0 w-full h-full object-cover object-center"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        >
+          <source src={desktopSrc} type="video/mp4" />
+        </video>
+      )}
       {/* Phone video (below lg by default) - fill screen to avoid black bars */}
-      <video
-        className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        
-      >
-        <source src={phoneSrc} type="video/mp4" />
+      {phoneSrc && (
+        <video
+          className="block lg:hidden hero-phone-vid absolute inset-0 w-full h-full object-cover object-center"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        >
+          <source src={phoneSrc} type="video/mp4" />
+        </video>
+      )}
       </video>
     </div>
   );
