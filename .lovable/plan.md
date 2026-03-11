@@ -1,16 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-# Fix: Dashboard Crash When Banner Video URL is Removed
+## Change
 
-## Root Cause
-In `UserDashboard.tsx` line 454, `heroVideoUrl` (which can be `null`) is passed to `DashboardVideoHeader` which types its props as `string` (non-nullable). `BannerVideo` then receives `null` as `src`, causing a render crash caught by the error boundary.
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-## Fix — Two files
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-### 1. `src/components/DashboardVideoHeader.tsx`
-- Change prop types to accept `string | null`
-- If `videoSrc` is falsy, return `null` (render nothing)
-
-### 2. `src/components/UserDashboard.tsx`
-- No changes strictly needed (the child component handles it), but optionally wrap the `DashboardVideoHeader` block in a conditional for clarity
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
