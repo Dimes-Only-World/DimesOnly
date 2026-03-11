@@ -1,12 +1,34 @@
 
-# Increase Text Shadow on Notification Text
 
-## Change
+# Fix Dimes Directory Page — Use BannerVideo Component
 
-**File:** `src/pages/EventsDimes.tsx`, lines 215-216
+## Problem
+The `/dimes` page (`DimesDirectory.tsx`) was missed during the BannerVideo refactor. It still renders a raw `<video>` element (line 305-313) with `autoPlay muted` and no custom controls — inconsistent with every other page.
 
-The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
+## Fix
+Replace the inline `<video>` block in `DimesDirectory.tsx` (lines 303-315) with the `<BannerVideo>` component.
 
-### Update:
-- Change `drop-shadow-md` to `drop-shadow-lg`
-- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
+### File: `src/components/DimesDirectory.tsx`
+
+**Change**: Replace lines 303-315:
+```tsx
+{dimesVideoUrl && (
+  <div className="relative w-full overflow-hidden rounded-lg bg-black">
+    <video ...>
+      <source src={dimesVideoUrl} type="video/mp4" />
+    </video>
+  </div>
+)}
+```
+
+With:
+```tsx
+{dimesVideoUrl && (
+  <BannerVideo src={dimesVideoUrl} className="rounded-lg" />
+)}
+```
+
+Add `import BannerVideo from "./BannerVideo";` to the imports.
+
+This gives the Dimes Directory page the same YouTube-style controls, tap-to-mute, unmuted autoplay attempt, and translucent overlay as all other pages.
+
