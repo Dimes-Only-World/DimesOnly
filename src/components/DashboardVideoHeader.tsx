@@ -30,6 +30,7 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
     <div className="relative w-full max-w-full mb-6 bg-black">
       <div className="relative w-full">
         <video
+          key={isMobile ? srcMobile : srcDesktop}
           className="w-full h-auto max-w-full object-contain bg-black"
           controls
           autoPlay
@@ -38,11 +39,7 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
           poster={thumbnailUrl}
           onError={handleVideoError}
         >
-          {isMobile ? (
-            <source src={srcMobile} />
-          ) : (
-            <source src={srcDesktop} />
-          )}
+          <source src={isMobile ? srcMobile : srcDesktop} />
           Your browser does not support the video tag.
         </video>
       </div>
