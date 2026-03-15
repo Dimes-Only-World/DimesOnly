@@ -59,31 +59,33 @@ const AdminDirectMessageTab: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, username, user_type, profile_photo")
-        .order("username");
+      const adminUserId = getAdminUserId();
+      if (!adminUserId) {
+        toast({ title: "Error", description: "Admin session not found. Please log in again.", variant: "destructive" });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("admin-data", {
+        body: { action: "fetchAllUsers", adminUserId },
+      });
 
       if (error) throw error;
 
-      const typedData: User[] = (data || []).map((user) => ({
-        id: String(user.id),
-        username: String(user.username),
-        user_type: String(user.user_type),
-        profile_photo: user.profile_photo
-          ? String(user.profile_photo)
-          : undefined,
-      }));
+      const rawUsers = data?.data || [];
+      const typedData: User[] = rawUsers
+        .map((user: Record<string, unknown>) => ({
+          id: String(user.id),
+          username: String(user.username || ""),
+          user_type: String(user.user_type || ""),
+          profile_photo: user.profile_photo ? String(user.profile_photo) : undefined,
+        }))
+        .sort((a: User, b: User) => a.username.localeCompare(b.username));
 
       setUsers(typedData);
       setFilteredUsers(typedData);
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load users",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to load users", variant: "destructive" });
     }
   };
 

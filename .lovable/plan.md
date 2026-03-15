@@ -1,29 +1,12 @@
 
+# Increase Text Shadow on Notification Text
 
-# Fix: Admin Direct Message Tab Shows No Users
+## Change
 
-## Root Cause
+**File:** `src/pages/EventsDimes.tsx`, lines 215-216
 
-`AdminDirectMessageTab.tsx` queries `supabase.from("users").select(...)` directly. Since the admin uses custom authentication (sessionStorage, not a Supabase auth session), `auth.uid()` is null and RLS blocks the query, returning 0 rows.
+The notification text "Your chosen event partner will be notified to the event(s) you will attend" currently has a weak single-layer shadow (`1px 1px 4px`). It needs to match the heavier 3-layer shadow used on the subtitle above it for better readability against the video background.
 
-## Fix
-
-Replace the direct Supabase query in `fetchUsers()` with a call to the `admin-data` edge function using the existing `fetchAllUsers` action. This already exists and returns all users via `service_role`.
-
-### Changes in `src/components/AdminDirectMessageTab.tsx`
-
-**`fetchUsers` function** — replace the direct query:
-```ts
-// Before (blocked by RLS)
-const { data, error } = await supabase.from("users").select("id, username, user_type, profile_photo").order("username");
-
-// After (uses service_role via edge function)
-const adminUserId = getAdminUserId();
-const { data, error } = await supabase.functions.invoke("admin-data", {
-  body: { action: "fetchAllUsers", adminUserId }
-});
-// Then extract users from data.data and map to the User interface
-```
-
-Single file change, no database or edge function modifications needed.
-
+### Update:
+- Change `drop-shadow-md` to `drop-shadow-lg`
+- Replace the single-layer `textShadow` with the same heavy 3-layer shadow used on the subtitle: `3px 3px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9), -1px -1px 6px rgba(0,0,0,0.8)`
