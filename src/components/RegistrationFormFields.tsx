@@ -439,87 +439,88 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
         )}
 
         {showUserType && (
-          <div className="space-y-4">
-            <div className="bg-white/5 rounded-lg p-4 border border-white/20">
-              <Label className="text-sm font-medium text-white mb-3 block">
-                Choose the best that describes you{" "}
-                <span className="text-red-400">*</span>
-              </Label>
-              <RadioGroup
-                value={formData.userType}
-                onValueChange={handleInputChange("userType")}
-                className="space-y-4"
-              >
-                <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                  <RadioGroupItem
-                    value="normal"
-                    id="normal"
-                    className="border-white/40 text-blue-400 mt-1"
-                  />
-                  <div className="flex-1">
-                    <Label
-                      htmlFor="normal"
-                      className="text-white font-medium cursor-pointer"
-                    >
-                      Normal
-                    </Label>
-                    <p className="text-white/70 text-sm mt-1">
-                      Here just to make money!
-                    </p>
+          <>
+            <div className="space-y-4">
+              <div className="bg-white/5 rounded-lg p-4 border border-white/20">
+                <Label className="text-sm font-medium text-white mb-3 block">
+                  Choose the best that describes you{" "}
+                  <span className="text-red-400">*</span>
+                </Label>
+                <RadioGroup
+                  value={formData.userType}
+                  onValueChange={handleInputChange("userType")}
+                  className="space-y-4"
+                >
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                    <RadioGroupItem
+                      value="normal"
+                      id="normal"
+                      className="border-white/40 text-blue-400 mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="normal"
+                        className="text-white font-medium cursor-pointer"
+                      >
+                        Normal
+                      </Label>
+                      <p className="text-white/70 text-sm mt-1">
+                        Here just to make money!
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                  <RadioGroupItem
-                    value="exotic"
-                    id="exotic"
-                    className="border-white/40 text-blue-400 mt-1"
-                  />
-                  <div className="flex-1">
-                    <Label
-                      htmlFor="exotic"
-                      className="text-white font-medium cursor-pointer"
-                    >
-                      Exotic
-                    </Label>
-                    <p className="text-white/70 text-sm mt-1">
-                      Here to make more money than normal.
-                    </p>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                    <RadioGroupItem
+                      value="exotic"
+                      id="exotic"
+                      className="border-white/40 text-blue-400 mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="exotic"
+                        className="text-white font-medium cursor-pointer"
+                      >
+                        Exotic
+                      </Label>
+                      <p className="text-white/70 text-sm mt-1">
+                        Here to make more money than normal.
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                  <RadioGroupItem
-                    value="stripper"
-                    id="stripper"
-                    className="border-white/40 text-blue-400 mt-1"
-                  />
-                  <div className="flex-1">
-                    <Label
-                      htmlFor="stripper"
-                      className="text-white font-medium cursor-pointer"
-                    >
-                      Stripper
-                    </Label>
-                    <p className="text-white/70 text-sm mt-1">
-                      Here to be on the reality show Housing Angels.
-                    </p>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                    <RadioGroupItem
+                      value="stripper"
+                      id="stripper"
+                      className="border-white/40 text-blue-400 mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="stripper"
+                        className="text-white font-medium cursor-pointer"
+                      >
+                        Stripper
+                      </Label>
+                      <p className="text-white/70 text-sm mt-1">
+                        Here to be on the reality show Housing Angels.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </RadioGroup>
+                </RadioGroup>
+              </div>
+              {errors.userType && (
+                <p className="text-red-400 text-sm">{errors.userType}</p>
+              )}
             </div>
-            {errors.userType && (
-              <p className="text-red-400 text-sm">{errors.userType}</p>
+
+            {/* Female type explainer video */}
+            {getFemaleVideo() && (
+              <div className="mt-4 rounded-lg overflow-hidden">
+                <BannerVideo src={getFemaleVideo()!} loop={false} />
+              </div>
             )}
-          </div>
-
-          {/* Female type explainer video */}
-          {getFemaleVideo() && (
-            <div className="mt-4 rounded-lg overflow-hidden">
-              <BannerVideo src={getFemaleVideo()!} loop={false} />
-            </div>
-          )}
-        </div>
+          </>
         )}
       </div>
 
