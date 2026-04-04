@@ -645,16 +645,16 @@ const UpgradeDiamondPage: React.FC = () => {
                           2 Installments
                         </h3>
                         <div className="text-lg font-bold text-yellow-400 mb-1">
-                          $149.00
+                          $149.99
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
-                          2 installments include $11.73 installment fee
+                          $49.99 down payment
                         </div>
                         <div className="text-2xl font-bold text-yellow-400 mb-1">
-                          $111.73
+                          $50.00
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
-                          × 2 payments
+                          × 2 installments
                         </div>
                       </div>
                     </div>
