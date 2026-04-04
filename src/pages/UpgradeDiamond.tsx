@@ -77,10 +77,10 @@ const DiamondPlusAgreement = () => {
         <div>
           <h4 className="font-semibold">1. Program Overview</h4>
           <p>
-            Housing Angels, LLC offers a guaranteed $25,000 annual compensation
+            Housing Angels, LLC offers a profit sharing position of up to $200,000 a year
             to the first 300 approved Strippers and Exotic Females who meet all
             program requirements. Payments are issued quarterly in the amount of
-            $6,250.00.
+            $50,000.00.
           </p>
           <p>
             The guarantee begins once the platform DimesOnly.World has reached a
