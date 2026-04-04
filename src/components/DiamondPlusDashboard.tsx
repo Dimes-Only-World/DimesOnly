@@ -161,8 +161,8 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold">$25,000</div>
-              <div className="text-sm opacity-90">Annual Guarantee</div>
+              <div className="text-2xl font-bold">$200,000</div>
+              <div className="text-sm opacity-90">Annual Max for Life</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
@@ -383,7 +383,7 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
           </div>
           <p className="text-sm text-gray-600 mt-2">
             Your Diamond Plus membership agreement is active. Continue meeting
-            quarterly requirements to maintain your $25,000 annual guarantee.
+            quarterly requirements to maintain your $200,000 annual profit sharing position.
           </p>
         </CardContent>
       </Card>

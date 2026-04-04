@@ -77,10 +77,10 @@ const DiamondPlusAgreement = () => {
         <div>
           <h4 className="font-semibold">1. Program Overview</h4>
           <p>
-            Housing Angels, LLC offers a guaranteed $25,000 annual compensation
+            Housing Angels, LLC offers a profit sharing position of up to $200,000 a year
             to the first 300 approved Strippers and Exotic Females who meet all
             program requirements. Payments are issued quarterly in the amount of
-            $6,250.00.
+            $50,000.00.
           </p>
           <p>
             The guarantee begins once the platform DimesOnly.World has reached a
@@ -466,7 +466,7 @@ const UpgradeDiamondPage: React.FC = () => {
               <Crown className="w-12 h-12 text-yellow-400" />
             </div>
             <p className="text-xl text-gray-300 mb-4">
-              Join the elite $25,000/year guarantee program
+              Get profit Sharing Position of up to $200,000 a year max for life.
             </p>
             {spotsLeft > 0 && isEligible && (
               <Badge variant="destructive" className="text-lg px-4 py-2">
@@ -491,8 +491,8 @@ const UpgradeDiamondPage: React.FC = () => {
                     Program Benefits:
                   </h3>
                   <ul className="text-blue-200 text-sm space-y-1 text-left">
-                    <li>• $25,000 annual guarantee</li>
-                    <li>• $6,250 quarterly payments</li>
+                    <li>• $200,000/year profit sharing</li>
+                    <li>• $50,000 quarterly payments</li>
                     <li>• Priority placement in rankings</li>
                     <li>• Access to exclusive events</li>
                     <li>• Direct support channel</li>
@@ -512,7 +512,7 @@ const UpgradeDiamondPage: React.FC = () => {
                   You're Already Diamond Plus!
                 </h2>
                 <p className="text-green-300">
-                  You have access to the $25,000 annual guarantee program.
+                  You have access to the $200,000/year profit sharing program.
                 </p>
               </CardContent>
             </Card>
@@ -536,20 +536,20 @@ const UpgradeDiamondPage: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-yellow-800">
                       <DollarSign className="w-6 h-6" />
-                      Guaranteed Income
+                      Profit Sharing Income
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       <div className="text-3xl font-bold text-white">
-                        $25,000
+                        $200,000
                       </div>
-                      <div className="text-gray-600">per year guaranteed</div>
+                      <div className="text-gray-600">a year max for life</div>
                       <div className="text-lg text-gray-800">
-                        $6,250 quarterly payments
+                        $50,000 quarterly payments
                       </div>
                       <p className="text-gray-800 text-sm">
-                        Guaranteed annual compensation when you meet quarterly
+                        Profit sharing compensation when you meet quarterly
                         requirements
                       </p>
                     </div>
@@ -580,14 +580,6 @@ const UpgradeDiamondPage: React.FC = () => {
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
                         Direct support channel
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Up to $74,985 a year adding photo and video nudes
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Up to $112,500 a year adding x-rated photos and videos
                       </li>
                     </ul>
                   </CardContent>
