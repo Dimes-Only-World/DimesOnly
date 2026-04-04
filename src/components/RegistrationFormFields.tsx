@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageVideo } from "@/hooks/usePageVideo";
+import BannerVideo from "@/components/BannerVideo";
 
 interface FormData {
   firstName: string;

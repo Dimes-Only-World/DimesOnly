@@ -32,6 +32,10 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "home_fullwidth_desktop", label: "Home Full-Width Video (Desktop)" },
   { page_key: "home_fullwidth_mobile", label: "Home Full-Width Video (Mobile)" },
   { page_key: "home_background", label: "Home Background Ladies Video" },
+  { page_key: "register_male", label: "Registration – Male Explainer" },
+  { page_key: "register_female_normal", label: "Registration – Female Normal Explainer" },
+  { page_key: "register_female_exotic", label: "Registration – Female Exotic Explainer" },
+  { page_key: "register_female_stripper", label: "Registration – Female Stripper Explainer" },
 ];
 
 const VideoHoverPreview: React.FC<{ url: string; anchorRef: React.RefObject<HTMLElement | null> }> = ({ url }) => {
