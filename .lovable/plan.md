@@ -1,32 +1,31 @@
 
 
-# Update Diamond Package and Diamond Plus Pricing
+# Update Diamond Plus Membership Page Content
 
-## 1. Diamond Package — Remove "Profit share 10%" benefit
+## Changes to `src/pages/UpgradeDiamond.tsx`
 
-Remove the profit share line from the benefits array in three files:
+### 1. Header subtitle (line 469)
+- Change `"Join the elite $25,000/year guarantee program"` → `"Get profit Sharing Position of up to $200,000 a year max for life."`
 
-- **`Upgrade.tsx`** (root) — line 101: delete the "Profit share 10%..." line
-- **`src/pages/Upgrade.tsx`** — line 100: delete the "Profit share 10%..." line
-- **`src/pages/UpgradeDiamondMonthly.tsx`** — line 209: delete the "Profit share 10%..." line
+### 2. "Guaranteed Income" card (lines 537-554)
+- Title: `"Guaranteed Income"` → `"Profit Sharing Income"` (line 539)
+- Amount: `"$25,000"` → `"$200,000"` (line 545)
+- Sub-text: `"per year guaranteed"` → `"a year max for life"` (line 547)
+- Quarterly line: `"$6,250 quarterly payments"` → remove or update to `"$50,000 quarterly payments"` (line 549)
+- Description: `"Guaranteed annual compensation when you meet quarterly requirements"` → `"Profit sharing compensation when you meet quarterly requirements"` (line 552)
 
-## 2. Diamond Plus — Change price to $149.99 + new installment plan
+### 3. Remove two benefit lines from Exclusive Benefits (lines 584-591)
+- Remove `"Up to $74,985 a year adding photo and video nudes"`
+- Remove `"Up to $112,500 a year adding x-rated photos and videos"`
 
-Update across two files:
+### 4. Update other $25,000 references throughout the file
+- Line 80 (agreement text): `"guaranteed $25,000 annual compensation"` → `"profit sharing position of up to $200,000 a year"`
+- Line 83: `"$6,250.00"` → `"$50,000.00"`
+- Line 494: `"$25,000 annual guarantee"` → `"$200,000/year profit sharing"`
+- Line 495: `"$6,250 quarterly payments"` → `"$50,000 quarterly payments"`
+- Line 515: `"$25,000 annual guarantee program"` → `"$200,000/year profit sharing program"`
 
-### `src/pages/UpgradeDiamond.tsx`
-- All `$349.99` references → `$149.99` (lines 102, 217, 344, 621, 737, 754, 761)
-- All `111.73` installment amounts → `$50.00` (lines 344, 650, 738, 755, 761)
-- Line 644: `$149.00` → `$149.99`
-- Line 647: change fee text to `$49.99 down payment`
-- Line 641: change "2 Installments" heading to reflect $49.99 down + 2×$50.00
-- Line 653: update "× 2 payments" to "2 installments of $50.00"
+No installment changes needed — the $49.99 down + 2×$50.00 plan is already in place from the previous update.
 
-### `src/components/DiamondPlusButton.tsx`
-- Line 130: `$349.99` → `$149.99`
-- Line 150: `$149.00` → `$149.99`
-- Line 153: change `$11.73 installment fee` → `$49.99 down payment`
-- Line 154: `$111.73 per installment` → `$50.00 per installment`
-
-Six files total, straightforward text/number replacements.
+**Single file edit**: `src/pages/UpgradeDiamond.tsx`
 
