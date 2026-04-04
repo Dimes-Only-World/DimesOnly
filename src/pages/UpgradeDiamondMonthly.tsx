@@ -206,7 +206,7 @@ export default function UpgradeDiamondMonthly() {
                   {[
                     "GET ALL THE BENEFITS OF FREE, SILVER AND GOLD",
                     "VIP Access & VIP Section 4 times a year + 1 guest FREE",
-                    "Profit share 10% of company gross sales among first 300",
+                    
                     "Featured on our Instagram page along with cast members",
                     "Featured on the opening page of the App every day for 3 years",
                   ].map((benefit) => (

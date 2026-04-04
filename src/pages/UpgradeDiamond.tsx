@@ -758,7 +758,7 @@ const UpgradeDiamondPage: React.FC = () => {
                     
                     <div className="py-4">
                       <PaymentMethodSelector
-                        amount={paymentOption === "full" ? 349.99 : 111.73}
+                        amount={paymentOption === "full" ? 149.99 : 49.99}
                         onPayPal={handlePayPal}
                         onPayLater={handlePayLater}
                         onCardRedirect={handleCardRedirect}
