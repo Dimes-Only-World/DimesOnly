@@ -31,7 +31,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const [phoneNumber, setPhoneNumber] = useState("");
   const { toast } = useToast();
 
-  const AMOUNT = 149.99;
+  const AMOUNT = 249.99;
 
   const resolveUserId = async (): Promise<string | null> => {
     if (effectiveUserId) return effectiveUserId;
