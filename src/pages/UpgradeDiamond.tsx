@@ -536,20 +536,20 @@ const UpgradeDiamondPage: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-yellow-800">
                       <DollarSign className="w-6 h-6" />
-                      Guaranteed Income
+                      Profit Sharing Income
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       <div className="text-3xl font-bold text-white">
-                        $25,000
+                        $200,000
                       </div>
-                      <div className="text-gray-600">per year guaranteed</div>
+                      <div className="text-gray-600">a year max for life</div>
                       <div className="text-lg text-gray-800">
-                        $6,250 quarterly payments
+                        $50,000 quarterly payments
                       </div>
                       <p className="text-gray-800 text-sm">
-                        Guaranteed annual compensation when you meet quarterly
+                        Profit sharing compensation when you meet quarterly
                         requirements
                       </p>
                     </div>
