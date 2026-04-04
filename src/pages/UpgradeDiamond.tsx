@@ -341,7 +341,7 @@ const UpgradeDiamondPage: React.FC = () => {
         return;
       }
 
-      const paymentAmount = paymentOption === "full" ? 349.99 : 111.73;
+      const paymentAmount = paymentOption === "full" ? 249.99 : 49.99;
       const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
