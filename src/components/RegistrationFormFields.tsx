@@ -519,6 +519,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               <BannerVideo src={getFemaleVideo()!} loop={false} />
             </div>
           )}
+        </div>
         )}
       </div>
 
