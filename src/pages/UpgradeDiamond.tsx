@@ -589,6 +589,10 @@ const UpgradeDiamondPage: React.FC = () => {
                         <CheckCircle className="w-4 h-4 text-green-400" />
                         Up to $112,500 a year adding x-rated photos and videos
                       </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Profit share to $100,000 a year max
+                      </li>
                     </ul>
                   </CardContent>
                 </Card>
