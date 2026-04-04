@@ -140,18 +140,18 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
           <div className="flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
             <span className="text-sm">
-              PayPal button complete upgrades status
+              Profit share to $100,000/yr max
             </span>
           </div>
           <div className="text-sm font-medium">Installment option:</div>
           <div className="ml-4 text-sm">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>$149.00</span>
+              <span>$149.99 total</span>
             </div>
             <div className="ml-6 text-xs space-y-1">
-              <div>2 installments include $11.73 installment fee</div>
-              <div>$111.73 per installment</div>
+              <div>$49.99 down payment</div>
+              <div>2 installments of $50.00</div>
             </div>
           </div>
         </div>
