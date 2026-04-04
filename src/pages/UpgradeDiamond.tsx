@@ -99,7 +99,7 @@ const DiamondPlusAgreement = () => {
             enroll in Diamond Plus Membership.
           </p>
           <p>
-            <strong>Diamond Plus Membership Fee: $249.99</strong> (includes
+            <strong>Diamond Plus Membership Fee: $349.99</strong> (includes
             online notary fee)
           </p>
           <p>This is a one-time, non-refundable fee.</p>
@@ -214,7 +214,7 @@ const DiamondPlusAgreement = () => {
             for your records.
           </p>
           <p>
-            Once notarized and the $249.99 payment is received, your Diamond Plus
+            Once notarized and the $349.99 payment is received, your Diamond Plus
             Membership will be active.
           </p>
         </div>
@@ -341,7 +341,7 @@ const UpgradeDiamondPage: React.FC = () => {
         return;
       }
 
-      const paymentAmount = paymentOption === "full" ? 249.99 : 49.99;
+      const paymentAmount = paymentOption === "full" ? 349.99 : 111.73;
       const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
@@ -589,10 +589,6 @@ const UpgradeDiamondPage: React.FC = () => {
                         <CheckCircle className="w-4 h-4 text-green-400" />
                         Up to $112,500 a year adding x-rated photos and videos
                       </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Profit share to $100,000 a year max
-                      </li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -622,7 +618,7 @@ const UpgradeDiamondPage: React.FC = () => {
                           Full Payment
                         </h3>
                         <div className="text-3xl font-bold text-yellow-400 mb-2">
-                          $249.99
+                          $349.99
                         </div>
                         <p className="text-gray-300 text-sm">
                           One-time payment, immediate activation
@@ -645,16 +641,16 @@ const UpgradeDiamondPage: React.FC = () => {
                           2 Installments
                         </h3>
                         <div className="text-lg font-bold text-yellow-400 mb-1">
-                          $149.99
+                          $149.00
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
-                          $49.99 down payment
+                          2 installments include $11.73 installment fee
                         </div>
                         <div className="text-2xl font-bold text-yellow-400 mb-1">
-                          $50.00
+                          $111.73
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
-                          × 2 installments
+                          × 2 payments
                         </div>
                       </div>
                     </div>
@@ -738,8 +734,8 @@ const UpgradeDiamondPage: React.FC = () => {
                 >
                   <Crown className="w-5 h-5 mr-2" />
                   {paymentOption === "full"
-                    ? "Pay $249.99 - Upgrade Now"
-                    : "Pay $49.99 Down Payment"}
+                    ? "Pay $349.99 - Upgrade Now"
+                    : "Pay First Installment $111.73"}
                 </Button>
                 <p className="text-gray-400 text-sm mt-4">
                   After payment, you'll receive instructions for your
@@ -755,14 +751,14 @@ const UpgradeDiamondPage: React.FC = () => {
                       </DialogTitle>
                       <p className="text-gray-300 text-center text-sm pt-2">
                         {paymentOption === "full" 
-                          ? "Total: $249.99 (One-time Payment)" 
-                          : "Down Payment: $49.99"}
+                          ? "Total: $349.99 (One-time Payment)" 
+                          : "First Installment: $111.73"}
                       </p>
                     </DialogHeader>
                     
                     <div className="py-4">
                       <PaymentMethodSelector
-                        amount={paymentOption === "full" ? 249.99 : 49.99}
+                        amount={paymentOption === "full" ? 349.99 : 111.73}
                         onPayPal={handlePayPal}
                         onPayLater={handlePayLater}
                         onCardRedirect={handleCardRedirect}
