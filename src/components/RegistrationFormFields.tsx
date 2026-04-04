@@ -112,7 +112,21 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoErrors,
   handleVideoUpload,
 }) => {
+  const { videoUrl: maleVideoUrl } = usePageVideo("register_male");
+  const { videoUrl: femaleNormalVideoUrl } = usePageVideo("register_female_normal");
+  const { videoUrl: femaleExoticVideoUrl } = usePageVideo("register_female_exotic");
+  const { videoUrl: femaleStripperVideoUrl } = usePageVideo("register_female_stripper");
+
   const videoSlotLabels = ["Normal video", "Normal or Nude video", "Normal or X-rated video"];
+
+  const getFemaleVideo = () => {
+    switch (formData.userType) {
+      case "normal": return femaleNormalVideoUrl;
+      case "exotic": return femaleExoticVideoUrl;
+      case "stripper": return femaleStripperVideoUrl;
+      default: return null;
+    }
+  };
 
   return (
     <div className="space-y-6">
