@@ -755,8 +755,8 @@ const UpgradeDiamondPage: React.FC = () => {
                       </DialogTitle>
                       <p className="text-gray-300 text-center text-sm pt-2">
                         {paymentOption === "full" 
-                          ? "Total: $349.99 (One-time Payment)" 
-                          : "First Installment: $111.73"}
+                          ? "Total: $249.99 (One-time Payment)" 
+                          : "Down Payment: $49.99"}
                       </p>
                     </DialogHeader>
                     
