@@ -512,6 +512,13 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               <p className="text-red-400 text-sm">{errors.userType}</p>
             )}
           </div>
+
+          {/* Female type explainer video */}
+          {getFemaleVideo() && (
+            <div className="mt-4 rounded-lg overflow-hidden">
+              <BannerVideo src={getFemaleVideo()!} loop={false} />
+            </div>
+          )}
         )}
       </div>
 
