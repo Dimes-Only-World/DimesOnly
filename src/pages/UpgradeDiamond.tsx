@@ -622,7 +622,7 @@ const UpgradeDiamondPage: React.FC = () => {
                           Full Payment
                         </h3>
                         <div className="text-3xl font-bold text-yellow-400 mb-2">
-                          $349.99
+                          $249.99
                         </div>
                         <p className="text-gray-300 text-sm">
                           One-time payment, immediate activation
