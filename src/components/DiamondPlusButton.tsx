@@ -127,7 +127,7 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-3xl font-bold">$349.99</div>
+          <div className="text-3xl font-bold">$149.99</div>
           <div className="text-right">
             <div className="text-sm font-medium">
               Only {Math.max(0, spotsLeft)} spots left!
