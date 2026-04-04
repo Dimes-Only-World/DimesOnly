@@ -161,8 +161,8 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold">$25,000</div>
-              <div className="text-sm opacity-90">Annual Guarantee</div>
+              <div className="text-2xl font-bold">$200,000</div>
+              <div className="text-sm opacity-90">Annual Max for Life</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
