@@ -738,8 +738,8 @@ const UpgradeDiamondPage: React.FC = () => {
                 >
                   <Crown className="w-5 h-5 mr-2" />
                   {paymentOption === "full"
-                    ? "Pay $349.99 - Upgrade Now"
-                    : "Pay First Installment $111.73"}
+                    ? "Pay $249.99 - Upgrade Now"
+                    : "Pay $49.99 Down Payment"}
                 </Button>
                 <p className="text-gray-400 text-sm mt-4">
                   After payment, you'll receive instructions for your
