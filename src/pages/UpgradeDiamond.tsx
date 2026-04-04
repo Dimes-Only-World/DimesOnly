@@ -512,7 +512,7 @@ const UpgradeDiamondPage: React.FC = () => {
                   You're Already Diamond Plus!
                 </h2>
                 <p className="text-green-300">
-                  You have access to the $25,000 annual guarantee program.
+                  You have access to the $200,000/year profit sharing program.
                 </p>
               </CardContent>
             </Card>
