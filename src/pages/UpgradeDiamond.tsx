@@ -491,8 +491,8 @@ const UpgradeDiamondPage: React.FC = () => {
                     Program Benefits:
                   </h3>
                   <ul className="text-blue-200 text-sm space-y-1 text-left">
-                    <li>• $25,000 annual guarantee</li>
-                    <li>• $6,250 quarterly payments</li>
+                    <li>• $200,000/year profit sharing</li>
+                    <li>• $50,000 quarterly payments</li>
                     <li>• Priority placement in rankings</li>
                     <li>• Access to exclusive events</li>
                     <li>• Direct support channel</li>
