@@ -383,7 +383,7 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
           </div>
           <p className="text-sm text-gray-600 mt-2">
             Your Diamond Plus membership agreement is active. Continue meeting
-            quarterly requirements to maintain your $25,000 annual guarantee.
+            quarterly requirements to maintain your $200,000 annual profit sharing position.
           </p>
         </CardContent>
       </Card>
