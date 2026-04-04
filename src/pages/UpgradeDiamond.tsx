@@ -214,7 +214,7 @@ const DiamondPlusAgreement = () => {
             for your records.
           </p>
           <p>
-            Once notarized and the $349.99 payment is received, your Diamond Plus
+            Once notarized and the $149.99 payment is received, your Diamond Plus
             Membership will be active.
           </p>
         </div>
