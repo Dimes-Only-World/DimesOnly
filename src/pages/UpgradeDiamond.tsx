@@ -99,7 +99,7 @@ const DiamondPlusAgreement = () => {
             enroll in Diamond Plus Membership.
           </p>
           <p>
-            <strong>Diamond Plus Membership Fee: $349.99</strong> (includes
+            <strong>Diamond Plus Membership Fee: $249.99</strong> (includes
             online notary fee)
           </p>
           <p>This is a one-time, non-refundable fee.</p>
