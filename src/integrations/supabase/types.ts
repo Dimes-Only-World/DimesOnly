@@ -1817,6 +1817,51 @@ export type Database = {
         }
         Relationships: []
       }
+      performer_approvals: {
+        Row: {
+          created_at: string | null
+          email_sent: boolean | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performer_approvals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performer_approvals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_likes: {
         Row: {
           created_at: string | null
@@ -2484,6 +2529,7 @@ export type Database = {
           about_me: string | null
           address: string | null
           agreement_signed: boolean | null
+          approval_status: string | null
           banner_photo: string | null
           bio: string | null
           city: string | null
@@ -2544,6 +2590,7 @@ export type Database = {
           about_me?: string | null
           address?: string | null
           agreement_signed?: boolean | null
+          approval_status?: string | null
           banner_photo?: string | null
           bio?: string | null
           city?: string | null
@@ -2604,6 +2651,7 @@ export type Database = {
           about_me?: string | null
           address?: string | null
           agreement_signed?: boolean | null
+          approval_status?: string | null
           banner_photo?: string | null
           bio?: string | null
           city?: string | null
