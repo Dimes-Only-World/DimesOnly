@@ -26,6 +26,7 @@ interface User {
   deactivated_at?: string;
   referred_by?: string;
   referred_by_photo?: string;
+  approval_status?: string;
 }
 
 interface Media {
@@ -268,7 +269,16 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                   <p><strong>Phone:</strong> {user.mobile_number || 'N/A'}</p>
                   <p><strong>Location:</strong> {user.city}, {user.state}</p>
                   <p><strong>Type:</strong> <Badge>{getUserTypeDisplay(user.user_type)}</Badge></p>
-                  {user.referred_by && (
+                  {(user.user_type === 'stripper' || user.user_type === 'exotic') && (
+                    <p><strong>Approval:</strong>{' '}
+                      <Badge
+                        variant={user.approval_status === 'approved' ? 'default' : user.approval_status === 'not_approved' ? 'destructive' : 'secondary'}
+                        className="ml-1"
+                      >
+                        {user.approval_status === 'approved' ? 'Approved' : user.approval_status === 'not_approved' ? 'Not Approved' : 'Pending'}
+                      </Badge>
+                    </p>
+                  )}
                     <p><strong>Referred by:</strong> <span className="ml-2 font-medium text-primary">@{user.referred_by}</span></p>
                   )}
                   <p><strong>Status:</strong>{' '}
