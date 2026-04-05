@@ -386,6 +386,184 @@ serve(async (req) => {
         break;
       }
 
+      // Performer approval management
+      case 'fetchPendingApprovals': {
+        const { data, error } = await supabaseAdmin
+          .from('users')
+          .select('id, username, email, first_name, last_name, user_type, profile_photo, mobile_number, city, state, created_at, approval_status')
+          .in('user_type', ['stripper', 'exotic'])
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
+      case 'approvePerformer': {
+        const { userId } = params;
+        
+        // Update user approval status
+        const { error: updateError } = await supabaseAdmin
+          .from('users')
+          .update({ approval_status: 'approved' })
+          .eq('id', userId);
+        if (updateError) throw updateError;
+
+        // Insert approval record
+        const { error: insertError } = await supabaseAdmin
+          .from('performer_approvals')
+          .insert({
+            user_id: userId,
+            status: 'approved',
+            reviewed_by: adminUserId,
+            reviewed_at: new Date().toISOString(),
+          });
+        if (insertError) throw insertError;
+
+        // Get user email for notification
+        const { data: userData, error: userError } = await supabaseAdmin
+          .from('users')
+          .select('email, username')
+          .eq('id', userId)
+          .single();
+        if (userError) throw userError;
+
+        // Send approval email via Mailtrap
+        let emailSent = false;
+        if (userData?.email) {
+          const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          if (mailtrapToken) {
+            try {
+              const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${mailtrapToken}`,
+                },
+                body: JSON.stringify({
+                  from: { email: senderEmail, name: 'Dimes Only World' },
+                  to: [{ email: userData.email }],
+                  subject: "Dimes Only World — You're Approved!",
+                  html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #D35400;">Congratulations, ${userData.username}!</h1>
+                    <p>You have been approved as a performer on Dimes Only World!</p>
+                    <p>Watch this video to learn about your next steps:</p>
+                    <p><a href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Vid3o.mp4" style="color: #D35400; font-weight: bold;">Vid3o.mp4 — Dimes Only World. Watch video!</a></p>
+                    <p>You now have the option to upgrade to <strong>Diamond+ membership</strong> for exclusive benefits.</p>
+                    <p><a href="https://dimesonly.world/upgrade-diamond" style="display: inline-block; padding: 12px 24px; background-color: #D35400; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Upgrade to Diamond+</a></p>
+                    <p style="color: #666; font-size: 12px; margin-top: 30px;">— Dimes Only World Team</p>
+                  </div>`,
+                }),
+              });
+              if (mailtrapResponse.ok) {
+                emailSent = true;
+                console.log('Approval email sent to', userData.email);
+              } else {
+                console.error('Mailtrap error:', await mailtrapResponse.text());
+              }
+            } catch (emailErr) {
+              console.error('Failed to send approval email:', emailErr);
+            }
+          }
+        }
+
+        // Update email_sent status
+        if (emailSent) {
+          await supabaseAdmin
+            .from('performer_approvals')
+            .update({ email_sent: true })
+            .eq('user_id', userId)
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        }
+
+        result = { success: true, emailSent };
+        break;
+      }
+
+      case 'rejectPerformer': {
+        const { userId } = params;
+        
+        // Update user approval status
+        const { error: updateError } = await supabaseAdmin
+          .from('users')
+          .update({ approval_status: 'not_approved' })
+          .eq('id', userId);
+        if (updateError) throw updateError;
+
+        // Insert rejection record
+        const { error: insertError } = await supabaseAdmin
+          .from('performer_approvals')
+          .insert({
+            user_id: userId,
+            status: 'not_approved',
+            reviewed_by: adminUserId,
+            reviewed_at: new Date().toISOString(),
+          });
+        if (insertError) throw insertError;
+
+        // Get user email for notification
+        const { data: userData, error: userError } = await supabaseAdmin
+          .from('users')
+          .select('email, username')
+          .eq('id', userId)
+          .single();
+        if (userError) throw userError;
+
+        // Send rejection email via Mailtrap
+        let emailSent = false;
+        if (userData?.email) {
+          const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          if (mailtrapToken) {
+            try {
+              const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${mailtrapToken}`,
+                },
+                body: JSON.stringify({
+                  from: { email: senderEmail, name: 'Dimes Only World' },
+                  to: [{ email: userData.email }],
+                  subject: 'Dimes Only World — Next Steps',
+                  html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #D35400;">Hi ${userData.username},</h1>
+                    <p>Thank you for your interest in Dimes Only World.</p>
+                    <p>After reviewing your application, we'd like to share next steps with you:</p>
+                    <p><a href="https://dimesonly.world" style="color: #D35400; font-weight: bold;">DimesOnly.World — Watch Video for next step</a></p>
+                    <p>You remain a valued Diamond member. Feel free to reapply in the future.</p>
+                    <p style="color: #666; font-size: 12px; margin-top: 30px;">— Dimes Only World Team</p>
+                  </div>`,
+                }),
+              });
+              if (mailtrapResponse.ok) {
+                emailSent = true;
+                console.log('Rejection email sent to', userData.email);
+              } else {
+                console.error('Mailtrap error:', await mailtrapResponse.text());
+              }
+            } catch (emailErr) {
+              console.error('Failed to send rejection email:', emailErr);
+            }
+          }
+        }
+
+        if (emailSent) {
+          await supabaseAdmin
+            .from('performer_approvals')
+            .update({ email_sent: true })
+            .eq('user_id', userId)
+            .eq('status', 'not_approved')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        }
+
+        result = { success: true, emailSent };
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),

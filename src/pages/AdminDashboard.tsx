@@ -13,6 +13,7 @@ import AdminJackpotTab from "@/components/AdminJackpotTab";
 import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
 import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
+import AdminApprovalsTab from "@/components/AdminApprovalsTab";
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard: React.FC = () => {
@@ -122,9 +123,12 @@ const AdminDashboard: React.FC = () => {
         <Tabs defaultValue="users" className="w-full">
           {/* Mobile Scrollable Tabs */}
           <div className="w-full mb-8 overflow-x-auto -webkit-overflow-scrolling-touch pb-2">
-            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max lg:w-full lg:grid lg:grid-cols-11">
+            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max lg:w-full lg:grid lg:grid-cols-12">
               <TabsTrigger value="users" className="whitespace-nowrap">
                 Users
+              </TabsTrigger>
+              <TabsTrigger value="approvals" className="whitespace-nowrap">
+                Approvals
               </TabsTrigger>
               <TabsTrigger value="jackpot" className="whitespace-nowrap">
                 Jackpot
@@ -161,6 +165,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="users">
             <AdminUsersListEnhanced />
+          </TabsContent>
+
+          <TabsContent value="approvals">
+            <AdminApprovalsTab />
           </TabsContent>
 
           <TabsContent value="jackpot">
