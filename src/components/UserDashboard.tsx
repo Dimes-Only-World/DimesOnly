@@ -27,6 +27,7 @@ import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserJackpotTab from "./UserJackpotTab";
 import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
+import DiamondPlusPopup from "./DiamondPlusPopup";
 import SilverPlusMembership from "./SilverPlusMembership";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SubscriptionProgress from "./SubscriptionProgress";
