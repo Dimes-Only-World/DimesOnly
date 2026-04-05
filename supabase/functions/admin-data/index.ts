@@ -427,6 +427,17 @@ serve(async (req) => {
           .single();
         if (userError) throw userError;
 
+        // Fetch dynamic approval video URL from page_videos
+        let approvalVideoUrl = 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/Vid3o.mp4';
+        const { data: approvalVideoData } = await supabaseAdmin
+          .from('page_videos')
+          .select('video_url')
+          .eq('page_key', 'email_performer_approved')
+          .single();
+        if (approvalVideoData?.video_url) {
+          approvalVideoUrl = approvalVideoData.video_url;
+        }
+
         // Send approval email via Mailtrap
         let emailSent = false;
         if (userData?.email) {
@@ -448,7 +459,7 @@ serve(async (req) => {
                     <h1 style="color: #D35400;">Congratulations, ${userData.username}!</h1>
                     <p>You have been approved as a performer on Dimes Only World!</p>
                     <p>Watch this video to learn about your next steps:</p>
-                    <p><a href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Vid3o.mp4" style="color: #D35400; font-weight: bold;">Vid3o.mp4 — Dimes Only World. Watch video!</a></p>
+                    <p><a href="${approvalVideoUrl}" style="color: #D35400; font-weight: bold;">Watch Video — Dimes Only World</a></p>
                     <p>You now have the option to upgrade to <strong>Diamond+ membership</strong> for exclusive benefits.</p>
                     <p><a href="https://dimesonly.world/upgrade-diamond" style="display: inline-block; padding: 12px 24px; background-color: #D35400; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Upgrade to Diamond+</a></p>
                     <p style="color: #666; font-size: 12px; margin-top: 30px;">— Dimes Only World Team</p>
@@ -511,6 +522,17 @@ serve(async (req) => {
           .single();
         if (userError) throw userError;
 
+        // Fetch dynamic rejection video URL from page_videos
+        let rejectionVideoUrl = 'https://dimesonly.world';
+        const { data: rejectionVideoData } = await supabaseAdmin
+          .from('page_videos')
+          .select('video_url')
+          .eq('page_key', 'email_performer_not_approved')
+          .single();
+        if (rejectionVideoData?.video_url) {
+          rejectionVideoUrl = rejectionVideoData.video_url;
+        }
+
         // Send rejection email via Mailtrap
         let emailSent = false;
         if (userData?.email) {
@@ -532,7 +554,7 @@ serve(async (req) => {
                     <h1 style="color: #D35400;">Hi ${userData.username},</h1>
                     <p>Thank you for your interest in Dimes Only World.</p>
                     <p>After reviewing your application, we'd like to share next steps with you:</p>
-                    <p><a href="https://dimesonly.world" style="color: #D35400; font-weight: bold;">DimesOnly.World — Watch Video for next step</a></p>
+                    <p><a href="${rejectionVideoUrl}" style="color: #D35400; font-weight: bold;">DimesOnly.World — Watch Video for next step</a></p>
                     <p>You remain a valued Diamond member. Feel free to reapply in the future.</p>
                     <p style="color: #666; font-size: 12px; margin-top: 30px;">— Dimes Only World Team</p>
                   </div>`,
