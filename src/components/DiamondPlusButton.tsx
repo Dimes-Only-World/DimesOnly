@@ -28,7 +28,8 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
 
   // Check if user is eligible for Diamond Plus
   const isEligible =
-    userData.user_type === "stripper" || userData.user_type === "exotic";
+    (userData.user_type === "stripper" || userData.user_type === "exotic") &&
+    (userData as any).approval_status === "approved";
   const alreadyDiamondPlus = userData.diamond_plus_active;
 
   // Calculate remaining spots (shared cap of 1000 across stripper + exotic)
