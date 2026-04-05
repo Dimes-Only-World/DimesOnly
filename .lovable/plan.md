@@ -1,31 +1,52 @@
 
 
-# Update Diamond Plus Membership Page Content
+# Admin Performer Approval System — Email Notifications (not SMS)
 
-## Changes to `src/pages/UpgradeDiamond.tsx`
+## Change from Previous Plan
+Instead of sending SMS via Twilio to users' phone numbers, we will send an **email with a video link** to their Gmail/email address on file, using the existing **Mailtrap** email integration already in the project.
 
-### 1. Header subtitle (line 469)
-- Change `"Join the elite $25,000/year guarantee program"` → `"Get profit Sharing Position of up to $200,000 a year max for life."`
+This removes the need for Twilio entirely.
 
-### 2. "Guaranteed Income" card (lines 537-554)
-- Title: `"Guaranteed Income"` → `"Profit Sharing Income"` (line 539)
-- Amount: `"$25,000"` → `"$200,000"` (line 545)
-- Sub-text: `"per year guaranteed"` → `"a year max for life"` (line 547)
-- Quarterly line: `"$6,250 quarterly payments"` → remove or update to `"$50,000 quarterly payments"` (line 549)
-- Description: `"Guaranteed annual compensation when you meet quarterly requirements"` → `"Profit sharing compensation when you meet quarterly requirements"` (line 552)
+## Database Changes (1 migration)
 
-### 3. Remove two benefit lines from Exclusive Benefits (lines 584-591)
-- Remove `"Up to $74,985 a year adding photo and video nudes"`
-- Remove `"Up to $112,500 a year adding x-rated photos and videos"`
+- Add `approval_status` column (text, default 'pending') to `users` table
+- Create `performer_approvals` table: `id`, `user_id`, `status`, `reviewed_by`, `reviewed_at`, `email_sent` (boolean), `created_at`
 
-### 4. Update other $25,000 references throughout the file
-- Line 80 (agreement text): `"guaranteed $25,000 annual compensation"` → `"profit sharing position of up to $200,000 a year"`
-- Line 83: `"$6,250.00"` → `"$50,000.00"`
-- Line 494: `"$25,000 annual guarantee"` → `"$200,000/year profit sharing"`
-- Line 495: `"$6,250 quarterly payments"` → `"$50,000 quarterly payments"`
-- Line 515: `"$25,000 annual guarantee program"` → `"$200,000/year profit sharing program"`
+## Edge Function: `admin-data/index.ts` (update)
 
-No installment changes needed — the $49.99 down + 2×$50.00 plan is already in place from the previous update.
+Add 3 new actions using the existing Mailtrap email pattern already in this file:
 
-**Single file edit**: `src/pages/UpgradeDiamond.tsx`
+- **`fetchPendingApprovals`** — query users where `user_type IN ('stripper','exotic')` and `approval_status = 'pending'`
+- **`approvePerformer`** — sets `approval_status = 'approved'`, inserts `performer_approvals` record, sends email via Mailtrap:
+  - Subject: "Dimes Only World — You're Approved!"
+  - Body includes video link: "Vid3o.mp4 Dimes Only World. Watch video!" with link to upgrade page
+  - Does NOT auto-upgrade — user chooses to purchase Diamond+ themselves
+- **`rejectPerformer`** — sets `approval_status = 'not_approved'`, inserts record, sends email via Mailtrap:
+  - Subject: "Dimes Only World — Next Steps"
+  - Body: "DimesOnly.World watch Video for next step" with video link
+
+No new edge function needed — reuses the Mailtrap setup already in `admin-data`.
+
+## Frontend: `AdminApprovalsTab.tsx` (new)
+
+- Lists pending stripper/exotic users with profile photo, username, email, user type
+- **Approve** (green) and **Not Approved** (red) buttons per user
+- History section showing already-reviewed users with status badges
+- Toast notifications on success/failure
+
+## Frontend: `AdminDashboard.tsx` (update)
+
+- Add 12th tab "Approvals" with the new `AdminApprovalsTab` component
+
+## Frontend: `AdminUserDetailsEnhanced.tsx` (update)
+
+- Show approval status badge for stripper/exotic users
+- Add Approve / Not Approved buttons when status is 'pending'
+
+## Files Summary
+1. **Migration**: add `approval_status` to users, create `performer_approvals` table
+2. **Edit**: `supabase/functions/admin-data/index.ts` — add 3 actions with Mailtrap email
+3. **New**: `src/components/AdminApprovalsTab.tsx`
+4. **Edit**: `src/pages/AdminDashboard.tsx` — add Approvals tab
+5. **Edit**: `src/components/AdminUserDetailsEnhanced.tsx` — status badge + buttons
 
