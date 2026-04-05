@@ -460,6 +460,7 @@ const UserDashboard: React.FC = () => {
 
         <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
+          <DiamondPlusPopup userData={userData} />
           <DiamondPlusButton userData={userData} />
 
           {/* Subscription Progress (Diamond Yearly Split) */}
