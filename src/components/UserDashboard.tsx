@@ -27,6 +27,7 @@ import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserJackpotTab from "./UserJackpotTab";
 import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
+import DiamondPlusPopup from "./DiamondPlusPopup";
 import SilverPlusMembership from "./SilverPlusMembership";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SubscriptionProgress from "./SubscriptionProgress";
@@ -459,6 +460,7 @@ const UserDashboard: React.FC = () => {
 
         <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
+          <DiamondPlusPopup userData={userData} />
           <DiamondPlusButton userData={userData} />
 
           {/* Subscription Progress (Diamond Yearly Split) */}
