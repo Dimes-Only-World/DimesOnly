@@ -1,27 +1,27 @@
 
 
-# Diamond Plus Auto Pop-up on Dashboard
+# Add Approval Email Video Management to Admin Videos Tab
 
-## What changes
-When an approved performer (stripper/exotic with `approval_status === 'approved'`) loads their dashboard and hasn't yet upgraded to Diamond Plus, a **Dialog pop-up** will automatically appear showing the Diamond Plus offer. They can dismiss it or click to upgrade.
+## What it does
+Adds a new section in the Admin Dashboard "Videos" tab where admins can configure which video URLs are included in the approval and rejection emails sent to exotic/stripper performers. Currently these are hardcoded in the edge function.
 
 ## Implementation
 
-### 1. New component: `DiamondPlusPopup.tsx`
-- A Dialog component that auto-opens when:
-  - `userData.user_type` is "stripper" or "exotic"
-  - `userData.approval_status === 'approved'`
-  - `userData.diamond_plus_active` is falsy
-- Shows the same Diamond Plus card content (price, spots left, upgrade button)
-- Uses `sessionStorage` to avoid re-showing after dismissal within the same session
-- "Upgrade Now" button navigates to `/upgrade-diamond`
-- Dialog can be closed/dismissed
+### 1. Add two new page_key entries to `AdminBannerVideoTab.tsx`
+Add to the `PAGE_VIDEO_CONFIG` array:
+- `{ page_key: "email_performer_approved", label: "Email — Performer Approved Video" }`
+- `{ page_key: "email_performer_not_approved", label: "Email — Performer Not Approved Video" }`
 
-### 2. Edit: `src/components/UserDashboard.tsx`
-- Import and render `DiamondPlusPopup` alongside the existing `DiamondPlusButton`
-- Pass `userData` as prop
+These will use the same existing video management UI (input, save, history, preview) already built in the Videos tab.
 
-### Files
-1. **New**: `src/components/DiamondPlusPopup.tsx`
-2. **Edit**: `src/components/UserDashboard.tsx` — add the pop-up component
+### 2. Update `admin-data/index.ts` — `approvePerformer` action
+Instead of the hardcoded `Vid3o.mp4` URL, fetch the video URL from the `page_videos` table using page_key `email_performer_approved`. Fall back to the current hardcoded URL if no entry exists.
+
+### 3. Update `admin-data/index.ts` — `rejectPerformer` action
+Same pattern: fetch video URL from `page_videos` using page_key `email_performer_not_approved`. Fall back to the current hardcoded URL if no entry exists.
+
+### Files changed
+1. **Edit**: `src/components/AdminBannerVideoTab.tsx` — add 2 entries to config array
+2. **Edit**: `supabase/functions/admin-data/index.ts` — dynamic video URLs in both email actions
+3. **Deploy**: redeploy `admin-data` edge function
 
