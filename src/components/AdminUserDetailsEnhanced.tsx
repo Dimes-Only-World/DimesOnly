@@ -279,6 +279,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                       </Badge>
                     </p>
                   )}
+                  {user.referred_by && (
                     <p><strong>Referred by:</strong> <span className="ml-2 font-medium text-primary">@{user.referred_by}</span></p>
                   )}
                   <p><strong>Status:</strong>{' '}
