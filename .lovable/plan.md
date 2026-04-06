@@ -1,18 +1,22 @@
 
 
-# Use Custom Video Player for Registration Upload Previews
+# Fix Play Button Visibility on Upload Previews
 
-## What changes
-The uploaded video previews in the registration form currently use a tiny native `<video>` element (128x128px thumbnail with browser default controls). The explainer videos above use the custom `BannerVideo` component with YouTube-style controls (play/pause, seekbar, volume, fullscreen). This change makes the uploaded video previews use the same `BannerVideo` player.
+## Problem
+The `BannerVideo` container relies on the video's natural height (`h-auto`). With blob URL previews, the video metadata hasn't loaded yet, so the container collapses to 0 height - hiding the absolutely-positioned play button.
 
-## Implementation
+The explainer videos (fetched from Supabase) load metadata faster, which is why their play button appears fine.
 
-### Edit: `src/components/FileUploadField.tsx`
-- Import `BannerVideo` component
-- Replace the native `<video>` preview (lines 89-95) with `<BannerVideo src={preview} loop={false} />`
-- Expand the preview container from the small 128px thumbnail to a full-width layout so the custom controls are usable
-- Keep the remove (X) button and filename display
+## Fix
+
+### Edit: `src/components/BannerVideo.tsx`
+- Add `aspect-video` to the main container div (line 142) so it always has a minimum height based on 16:9 ratio, even before the video loads
+- This ensures the centered play button is always visible
+- Change: `relative w-full overflow-hidden bg-black` → `relative w-full overflow-hidden bg-black aspect-video`
+- Also make the video fill the container: `w-full h-auto max-w-full` → `w-full h-full object-contain`
+
+This single change fixes upload previews while keeping explainer videos looking the same.
 
 ### Files
-1. **Edit**: `src/components/FileUploadField.tsx` — swap native video for BannerVideo in preview
+1. **Edit**: `src/components/BannerVideo.tsx` — add `aspect-video` to container, adjust video sizing
 
