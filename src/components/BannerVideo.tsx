@@ -139,7 +139,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full overflow-hidden bg-black ${className}`}
+      className={`relative w-full overflow-hidden bg-black aspect-video ${className}`}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
       onClick={togglePlayPause}
@@ -150,7 +150,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         playsInline
         loop={loop}
         preload="metadata"
-        className="w-full h-auto max-w-full"
+        className="w-full h-full object-contain"
       >
         <source src={src} type={src.endsWith(".webm") ? "video/webm" : "video/mp4"} />
       </video>
