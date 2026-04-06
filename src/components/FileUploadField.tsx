@@ -85,7 +85,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
       {preview ? (
         <div className="space-y-3">
           {isVideoField ? (
-            <div className="relative w-full rounded-lg overflow-hidden border-2 border-white/20 bg-black">
+            <div className="relative w-full rounded-lg overflow-hidden">
               <BannerVideo src={preview!} loop={false} />
               <button
                 type="button"
