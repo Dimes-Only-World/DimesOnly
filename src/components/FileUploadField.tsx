@@ -85,12 +85,14 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
       {preview ? (
         <div className="space-y-3">
           {isVideoField ? (
-            <div className="relative w-full rounded-lg overflow-hidden">
-              <BannerVideo src={preview!} loop={false} />
+            <div className="relative w-full">
+              <div className="w-full rounded-lg overflow-hidden">
+                <BannerVideo src={preview!} loop={false} />
+              </div>
               <button
                 type="button"
                 onClick={handleRemove}
-                className="absolute top-2 right-2 z-30 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                className="absolute top-2 right-2 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full w-7 h-7 flex items-center justify-center transition-colors shadow-lg"
               >
                 <X className="h-4 w-4" />
               </button>
