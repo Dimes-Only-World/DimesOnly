@@ -492,10 +492,10 @@ const UpgradeDiamondPage: React.FC = () => {
                   </h3>
                   <ul className="text-blue-200 text-sm space-y-1 text-left">
                     <li>• $200,000/year profit sharing</li>
-                    <li>• $50,000 quarterly payments</li>
+                    <li>• Bi weekly pay of up to $8,000 max</li>
                     <li>• Priority placement in rankings</li>
                     <li>• Access to exclusive events</li>
-                    <li>• Direct support channel</li>
+                    <li>• Direct support channel to CEO</li>
                   </ul>
                 </div>
                 <p className="text-blue-300 text-sm">
@@ -546,10 +546,10 @@ const UpgradeDiamondPage: React.FC = () => {
                       </div>
                       <div className="text-gray-600">a year max for life</div>
                       <div className="text-lg text-gray-800">
-                        $50,000 quarterly payments
+                        Bi weekly pay of up to $8,000 max
                       </div>
                       <p className="text-gray-800 text-sm">
-                        Profit sharing compensation when you meet quarterly
+                        Profit sharing compensation when you meet bi weekly
                         requirements
                       </p>
                     </div>
@@ -571,7 +571,7 @@ const UpgradeDiamondPage: React.FC = () => {
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
-                        Guaranteed quarterly payouts
+                        Guaranteed bi weekly payouts
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
@@ -579,7 +579,7 @@ const UpgradeDiamondPage: React.FC = () => {
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
-                        Direct support channel
+                        Direct support channel to CEO
                       </li>
                     </ul>
                   </CardContent>
