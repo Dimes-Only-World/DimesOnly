@@ -1,34 +1,48 @@
 
+Goal: make the second video use the exact same control style as the first video the user is pointing to on `/register`.
 
-# Fix Upload Video Preview to Match Explainer Video Controls
+What I found:
+- The explainer videos inside `RegistrationFormFields.tsx` already use `BannerVideo`.
+- The uploaded preview videos inside `FileUploadField.tsx` also already use `BannerVideo`.
+- But the bottom video on `/register` is not using `BannerVideo` at all. In `src/pages/Register.tsx` lines 622-631, it is rendered with a plain native `<video controls>` element.
+- That means there are currently two different players on the page:
+  1. `BannerVideo` custom player
+  2. native browser `<video controls>` player
+- So the reason they “look nothing alike” is simple: they are not the same component.
 
-## Problem
-The uploaded video previews in the registration form have a `relative` positioned wrapper div around `BannerVideo`, which creates a competing stacking context. This can cause the centered play button (z-[2]) to be obscured. The explainer videos don't have this extra `relative` wrapper.
+Implementation plan:
+1. Edit `src/pages/Register.tsx`
+   - Replace the plain bottom `<video controls>` block with `<BannerVideo />`
+   - Use the same source URL currently hardcoded there
+   - Keep `loop={false}` so behavior matches the explainer-style player
 
-Additionally, the remove (X) button at `z-30` sits in this outer `relative` container, which can visually overlap or interfere with BannerVideo's internal layering.
+2. Add the missing import in `src/pages/Register.tsx`
+   - Import `BannerVideo` from `@/components/BannerVideo`
 
-## Fix
+3. Keep `src/components/FileUploadField.tsx` as-is for now
+   - It already uses `BannerVideo`
+   - No extra control-style work is needed there unless the user later wants the remove button repositioned
 
-### Edit: `src/components/FileUploadField.tsx`
-- Remove `relative` from the BannerVideo wrapper div (line 88) — it's not needed since the X button can be positioned relative to a separate wrapper
-- Restructure so the remove button is inside its own absolutely-positioned layer that doesn't conflict with BannerVideo's internal z-index stacking
-- Change the wrapper from `<div className="relative w-full rounded-lg overflow-hidden">` to `<div className="w-full rounded-lg overflow-hidden">` and wrap everything in a new `relative` parent that keeps the X button above
+Expected result:
+- The bottom `/register` video will no longer use browser-native controls
+- It will render with the same custom centered play button, bottom bar, seek slider, mute, time, and fullscreen controls as the explainer video player
 
-Specifically:
+Technical details:
+- Current mismatch source:
+  - `src/components/RegistrationFormFields.tsx` → `BannerVideo`
+  - `src/components/FileUploadField.tsx` → `BannerVideo`
+  - `src/pages/Register.tsx` bottom block → native `<video controls>`
+- Required change:
 ```tsx
-<div className="relative w-full">
-  <div className="w-full rounded-lg overflow-hidden">
-    <BannerVideo src={preview!} loop={false} />
+{showVideo && (
+  <div className="mt-6 rounded-lg overflow-hidden">
+    <BannerVideo
+      src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Copy+of+Explain+form+confirm+FINAL.webm"
+      loop={false}
+    />
   </div>
-  <button ... className="absolute top-2 right-2 z-50 ..." />
-</div>
+)}
 ```
 
-This ensures:
-1. BannerVideo's internal stacking (play button z-[2], controls z-[3]) works without interference from `overflow-hidden` on the same relative container
-2. The X button floats above everything
-3. Both videos look identical — same component, same controls, same centered play button
-
-### Files
-1. **Edit**: `src/components/FileUploadField.tsx` — restructure video preview wrapper
-
+Files to edit:
+- `src/pages/Register.tsx`
