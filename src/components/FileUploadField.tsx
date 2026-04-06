@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Image, Video } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
 
 interface FileUploadFieldProps {
   label: string;
@@ -83,32 +84,35 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
       
       {preview ? (
         <div className="space-y-3">
-          <div className="relative inline-block">
-            <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-white/20 bg-white/5">
-            {isVideoField ? (
-              <video
-                src={preview || undefined}
-                className="w-full h-full object-cover"
-                controls
-                muted
-                playsInline
-              />
-            ) : (
-              <img
-                src={preview || undefined}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            )}
+          {isVideoField ? (
+            <div className="relative w-full rounded-lg overflow-hidden border-2 border-white/20 bg-black">
+              <BannerVideo src={preview!} loop={false} />
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="absolute top-2 right-2 z-30 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
+          ) : (
+            <div className="relative inline-block">
+              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-white/20 bg-white/5">
+                <img
+                  src={preview || undefined}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
           <p className="text-white/80 text-sm truncate max-w-xs">{fileName}</p>
         </div>
       ) : (
