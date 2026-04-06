@@ -157,12 +157,12 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
 
       {/* Translucent overlay */}
       {overlay && (
-        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/20 pointer-events-none z-[1]" />
       )}
 
       {/* Center play button */}
       <div
-        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+        className={`absolute inset-0 z-[2] flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
           isPlaying ? "opacity-0" : "opacity-100"
         }`}
       >
@@ -173,7 +173,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
 
       {/* Custom control bar */}
       <div
-        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 z-[3] transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
