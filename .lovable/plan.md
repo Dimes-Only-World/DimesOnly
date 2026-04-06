@@ -1,27 +1,37 @@
 
 
-# Add Approval Email Video Management to Admin Videos Tab
+# Update Diamond Plus Text: Bi-Weekly Pay + CEO Support Channel
 
-## What it does
-Adds a new section in the Admin Dashboard "Videos" tab where admins can configure which video URLs are included in the approval and rejection emails sent to exotic/stripper performers. Currently these are hardcoded in the edge function.
+## Changes requested
+Based on the screenshot (reference only), three text changes are needed on the Diamond Plus upgrade page:
 
-## Implementation
+1. **"$50,000 quarterly payments"** → **"Bi weekly pay of up to $8,000 max"**
+2. **"Guaranteed quarterly payouts"** → **"Guaranteed bi weekly payouts"**
+3. **"Direct support channel"** → **"Direct support channel to CEO"**
 
-### 1. Add two new page_key entries to `AdminBannerVideoTab.tsx`
-Add to the `PAGE_VIDEO_CONFIG` array:
-- `{ page_key: "email_performer_approved", label: "Email — Performer Approved Video" }`
-- `{ page_key: "email_performer_not_approved", label: "Email — Performer Not Approved Video" }`
+Also update the top-level "$200,000 a year max" figure to match ($8,000 x 26 bi-weekly periods = $208,000, but we keep $200,000 as the stated cap unless told otherwise).
 
-These will use the same existing video management UI (input, save, history, preview) already built in the Videos tab.
+## Files to edit
 
-### 2. Update `admin-data/index.ts` — `approvePerformer` action
-Instead of the hardcoded `Vid3o.mp4` URL, fetch the video URL from the `page_videos` table using page_key `email_performer_approved`. Fall back to the current hardcoded URL if no entry exists.
+### 1. `src/pages/UpgradeDiamond.tsx`
+**Profit Sharing card (lines 548-553):**
+- Line 549: `$50,000 quarterly payments` → `Bi weekly pay of up to $8,000 max`
+- Line 552: `Profit sharing compensation when you meet quarterly requirements` → `Profit sharing compensation when you meet bi weekly requirements`
 
-### 3. Update `admin-data/index.ts` — `rejectPerformer` action
-Same pattern: fetch video URL from `page_videos` using page_key `email_performer_not_approved`. Fall back to the current hardcoded URL if no entry exists.
+**Exclusive Benefits card (lines 574, 582):**
+- Line 574: `Guaranteed quarterly payouts` → `Guaranteed bi weekly payouts`
+- Line 582: `Direct support channel` → `Direct support channel to CEO`
 
-### Files changed
-1. **Edit**: `src/components/AdminBannerVideoTab.tsx` — add 2 entries to config array
-2. **Edit**: `supabase/functions/admin-data/index.ts` — dynamic video URLs in both email actions
-3. **Deploy**: redeploy `admin-data` edge function
+**Program Benefits list (lines 495, 498):**
+- Line 495: `$50,000 quarterly payments` → `Bi weekly pay of up to $8,000 max`
+- Line 498: `Direct support channel` → `Direct support channel to CEO`
+
+### 2. `src/components/DiamondPlusDashboard.tsx`
+- Line 331: `Guaranteed Quarterly Amount` → `Guaranteed Bi Weekly Amount` (and any related quarterly references in this component)
+
+### 3. Other files with "quarterly" references in Diamond Plus context
+- `src/pages/Upgrade.tsx` and root `Upgrade.tsx` — update "quarterly payments" references to "bi weekly"
+- `src/components/DiamondPlusPopup.tsx` — no quarterly text currently, no change needed
+
+All changes are simple text replacements across ~3-4 files.
 
