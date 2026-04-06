@@ -1,22 +1,34 @@
 
 
-# Fix Play Button Visibility on Upload Previews
+# Fix Upload Video Preview to Match Explainer Video Controls
 
 ## Problem
-The `BannerVideo` container relies on the video's natural height (`h-auto`). With blob URL previews, the video metadata hasn't loaded yet, so the container collapses to 0 height - hiding the absolutely-positioned play button.
+The uploaded video previews in the registration form have a `relative` positioned wrapper div around `BannerVideo`, which creates a competing stacking context. This can cause the centered play button (z-[2]) to be obscured. The explainer videos don't have this extra `relative` wrapper.
 
-The explainer videos (fetched from Supabase) load metadata faster, which is why their play button appears fine.
+Additionally, the remove (X) button at `z-30` sits in this outer `relative` container, which can visually overlap or interfere with BannerVideo's internal layering.
 
 ## Fix
 
-### Edit: `src/components/BannerVideo.tsx`
-- Add `aspect-video` to the main container div (line 142) so it always has a minimum height based on 16:9 ratio, even before the video loads
-- This ensures the centered play button is always visible
-- Change: `relative w-full overflow-hidden bg-black` → `relative w-full overflow-hidden bg-black aspect-video`
-- Also make the video fill the container: `w-full h-auto max-w-full` → `w-full h-full object-contain`
+### Edit: `src/components/FileUploadField.tsx`
+- Remove `relative` from the BannerVideo wrapper div (line 88) — it's not needed since the X button can be positioned relative to a separate wrapper
+- Restructure so the remove button is inside its own absolutely-positioned layer that doesn't conflict with BannerVideo's internal z-index stacking
+- Change the wrapper from `<div className="relative w-full rounded-lg overflow-hidden">` to `<div className="w-full rounded-lg overflow-hidden">` and wrap everything in a new `relative` parent that keeps the X button above
 
-This single change fixes upload previews while keeping explainer videos looking the same.
+Specifically:
+```tsx
+<div className="relative w-full">
+  <div className="w-full rounded-lg overflow-hidden">
+    <BannerVideo src={preview!} loop={false} />
+  </div>
+  <button ... className="absolute top-2 right-2 z-50 ..." />
+</div>
+```
+
+This ensures:
+1. BannerVideo's internal stacking (play button z-[2], controls z-[3]) works without interference from `overflow-hidden` on the same relative container
+2. The X button floats above everything
+3. Both videos look identical — same component, same controls, same centered play button
 
 ### Files
-1. **Edit**: `src/components/BannerVideo.tsx` — add `aspect-video` to container, adjust video sizing
+1. **Edit**: `src/components/FileUploadField.tsx` — restructure video preview wrapper
 
