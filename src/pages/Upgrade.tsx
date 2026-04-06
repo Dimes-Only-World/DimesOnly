@@ -170,7 +170,7 @@ const UpgradePageInner: React.FC = () => {
         </DialogHeader>
         <div className="space-y-4 text-sm">
           <p className="font-semibold">Annual Compensation Guarantee Program – Diamond Plus Membership</p>
-          <p>Housing Angels, LLC offers a guaranteed <strong>$25,000 annual compensation</strong> to the first 300 approved Strippers and Exotic Females who meet all program requirements. Payments are issued quarterly in the amount of <strong>$6,250.00</strong>.</p>
+          <p>Housing Angels, LLC offers a guaranteed <strong>$200,000 annual compensation</strong> to the first 300 approved Strippers and Exotic Females who meet all program requirements. Payments are issued bi weekly in the amount of up to <strong>$8,000.00</strong> max.</p>
           <p>The guarantee begins once the platform DimesOnly.World has reached a verified user base of <strong>1,000 Female Stripper/Exotic</strong> profiles, and <strong>3,000 Male or Female "Normal"</strong> profiles.</p>
           <h3 className="font-bold text-pink-400">1. Program Overview</h3>
           <p className="ml-4">See above description of the annual compensation guarantee.</p>
@@ -178,9 +178,9 @@ const UpgradePageInner: React.FC = () => {
           <ul className="list-disc ml-6 space-y-2">
             <li>Participant must enroll in <strong>Diamond Plus Membership</strong>.</li>
             <li>Diamond Plus Membership Fee: <strong>$349.00</strong> (includes online notary fee) — one-time, non-refundable.</li>
-            <li>Payment confirms commitment and eligibility for quarterly payments upon meeting all requirements.</li>
+            <li>Payment confirms commitment and eligibility for bi weekly payments upon meeting all requirements.</li>
           </ul>
-          <h3 className="font-bold text-pink-400">3. Participant Requirements (Per Quarter)</h3>
+          <h3 className="font-bold text-pink-400">3. Participant Requirements (Per Bi Weekly Period)</h3>
           <ul className="list-disc ml-6 space-y-2">
             <li><strong>Weekly Referrals:</strong> 7 new verified referrals per week (84 per quarter) — Deduction: <strong>$28.27</strong> per missing referral per week.</li>
             <li><strong>Weekly Content Uploads:</strong> 7 new photos/videos per week (168 total) — Deduction: <strong>$14.14</strong> per missing upload.</li>
@@ -188,9 +188,9 @@ const UpgradePageInner: React.FC = () => {
             <li><strong>New User Engagement:</strong> Send 7 weekly messages to new users not referred by you (84 per quarter) — Deduction: <strong>$28.27</strong> per missing message per week.</li>
           </ul>
           <h3 className="font-bold text-pink-400">4. Compensation Terms</h3>
-          <p>If all quarterly requirements are met, Participant will receive <strong>$6,250</strong> every 3 months (<strong>$25,000</strong> annually). Proportional deductions apply for missed items.</p>
+          <p>If all bi weekly requirements are met, Participant will receive up to <strong>$8,000</strong> every 2 weeks (<strong>$200,000</strong> annually max). Proportional deductions apply for missed items.</p>
           <h3 className="font-bold text-pink-400">5. Diamond Membership Plus Clause</h3>
-          <p>If Participant earns <strong>$12,000</strong> or more in platform income during any quarter, the $6,250 guarantee becomes void permanently and future income will be based solely on earned revenue.</p>
+          <p>If Participant earns <strong>$12,000</strong> or more in platform income during any bi weekly period, the $8,000 guarantee becomes void permanently and future income will be based solely on earned revenue.</p>
           <h3 className="font-bold text-pink-400">6. Terms & Termination</h3>
           <p>Agreement remains in effect as long as the Participant is one of the first 300 approved Stripper/Exotic members, complies with all requirements, and remains in good standing. Failure to meet obligations or community standards may result in termination.</p>
           <h3 className="font-bold text-pink-400">7. Notarization & Activation</h3>

@@ -168,7 +168,7 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
               <div className="text-2xl font-bold">
                 ${estimatedPayout.toLocaleString()}
               </div>
-              <div className="text-sm opacity-90">Current Quarter Estimate</div>
+              <div className="text-sm opacity-90">Current Bi Weekly Estimate</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">Q{quarterlyData.quarter}</div>
@@ -178,7 +178,7 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Quarterly Requirements */}
+      {/* Bi Weekly Requirements */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -322,13 +322,13 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
-            Current Quarter Payout Estimate
+            Current Bi Weekly Payout Estimate
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span>Guaranteed Quarterly Amount:</span>
+              <span>Guaranteed Bi Weekly Amount:</span>
               <span className="font-semibold">
                 ${quarterlyData.guaranteed_payout?.toLocaleString()}
               </span>
@@ -357,7 +357,7 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
             {totalDeductions === 0 ? (
               <div className="flex items-center gap-2 text-green-600 text-sm">
                 <CheckCircle className="w-4 h-4" />
-                <span>On track for full quarterly payout!</span>
+                <span>On track for full bi weekly payout!</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-orange-600 text-sm">
@@ -383,7 +383,7 @@ const DiamondPlusDashboard: React.FC<DiamondPlusDashboardProps> = ({
           </div>
           <p className="text-sm text-gray-600 mt-2">
             Your Diamond Plus membership agreement is active. Continue meeting
-            quarterly requirements to maintain your $200,000 annual profit sharing position.
+            quarterly requirements to maintain your $200,000 annual profit sharing position with bi weekly payouts.
           </p>
         </CardContent>
       </Card>
