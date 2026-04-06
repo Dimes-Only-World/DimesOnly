@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
 import RotatingBackground from "@/components/RotatingBackground";
+import BannerVideo from "@/components/BannerVideo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
@@ -620,14 +621,11 @@ export const Register: React.FC = () => {
                   />
 
                   {showVideo && (
-                    <div className="mt-6">
-                      <video controls className="w-full rounded-lg shadow-lg">
-                        <source
-                          src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Copy+of+Explain+form+confirm+FINAL.webm"
-                          type="video/mp4"
-                        />
-                        Your browser does not support the video tag.
-                      </video>
+                    <div className="mt-6 rounded-lg overflow-hidden shadow-lg">
+                      <BannerVideo
+                        src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Copy+of+Explain+form+confirm+FINAL.webm"
+                        loop={false}
+                      />
                     </div>
                   )}
 
