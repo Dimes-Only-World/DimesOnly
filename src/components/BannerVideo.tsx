@@ -173,7 +173,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
 
       {/* Custom control bar */}
       <div
-        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 z-[3] transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
