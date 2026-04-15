@@ -45,9 +45,9 @@ const UserMakeMoneyTab: React.FC = () => {
 
   const shareMessage = useMemo(() => {
     const base =
-      "Xxxotics and Strippers Needed\n\n" +
-      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm\n\n" +
-      "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nDo not select normal. \nSelect exotic or stripper to get the big money...\n";
+      "Men and Sexy Ladies Needed Now!\n\n" +
+      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/New%2BHome.webm\n\n" +
+      "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nDo not select normal.\nSelect exotic or stripper to get the big money...\n";
     const link = shareLink;
     return `${base}${link}`;
   }, [shareLink]);
@@ -272,8 +272,8 @@ const UserMakeMoneyTab: React.FC = () => {
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/ExoticsandStrippersOnly.webm"
-          download="ExoticsandStrippersOnly.webm"
+          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/New%2BHome.webm"
+          download="New+Home.webm"
           className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
         >
           📥 Download Promo Video To Send
