@@ -583,7 +583,7 @@ const UserDashboard: React.FC = () => {
 
           {/* Rest of dashboard content */}
           <Card className={getCardClasses()} id="dashboard-tabs">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <div className="border-b bg-gray-50">
                 <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   <TabsTrigger
