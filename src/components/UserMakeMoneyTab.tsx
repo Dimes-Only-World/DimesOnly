@@ -271,56 +271,6 @@ const UserMakeMoneyTab: React.FC = () => {
         <h3 className="text-xl font-bold mb-2">Click Copy - Instagram - Facebook - Contacts below message to share</h3>
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
-        {/* My Money Circle */}
-        <div className="w-full max-w-md mx-auto mb-6 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-          <h3 className="text-xl font-bold text-purple-700 mb-4">My Money Circle</h3>
-          {referrals.length > 0 ? (
-            <>
-              <div className="flex justify-center gap-4 mb-4">
-                {[...referrals]
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                  .slice(0, 3)
-                  .map((ref) => (
-                    <div key={ref.id} className="flex flex-col items-center">
-                      <div className="w-16 h-16 rounded-full ring-4 ring-purple-500 ring-offset-2 overflow-hidden bg-purple-200 flex items-center justify-center">
-                        {ref.profile_photo ? (
-                          <img src={ref.profile_photo} alt={ref.username} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xl font-bold text-purple-700">
-                            {ref.username?.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs font-semibold mt-2 text-center truncate max-w-[80px]">
-                        {ref.username}
-                      </p>
-                    </div>
-                  ))}
-              </div>
-              <Button
-                onClick={() =>
-                  document.getElementById("full-money-circle")?.scrollIntoView({ behavior: "smooth" })
-                }
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                To See Your Full Money Circle - Click Here
-              </Button>
-            </>
-          ) : (
-            <>
-              <p className="text-center text-gray-700 font-semibold mb-4">No One Yet!</p>
-              <Button
-                onClick={() =>
-                  document.getElementById("referral-link-section")?.scrollIntoView({ behavior: "smooth" })
-                }
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Get Your Referral Link - Click Here
-              </Button>
-            </>
-          )}
-        </div>
-
         <a
           href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/New%2BHome.webm"
           download="New+Home.webm"
