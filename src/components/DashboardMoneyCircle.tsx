@@ -21,6 +21,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   userId,
   onGetLink,
 }) => {
+  const navigate = useNavigate();
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
