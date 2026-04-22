@@ -36,7 +36,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileLayout } from "@/hooks/use-mobile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Tables } from "@/types";
 import { usePageVideo } from "@/hooks/usePageVideo";
 
