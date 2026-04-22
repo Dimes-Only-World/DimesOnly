@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   User,
+  Users,
   Bell,
   DollarSign,
   MessageCircle,
@@ -25,6 +26,7 @@ import UserEarningsTab from "./UserEarningsTab";
 import UserDirectMessagesTab from "./UserDirectMessagesTab";
 import UserMediaUploadTab from "./UserMediaUploadTab";
 import UserMakeMoneyTab from "./UserMakeMoneyTab";
+import UserReferralsTab from "./UserReferralsTab";
 import UserJackpotTab from "./UserJackpotTab";
 import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
@@ -66,6 +68,7 @@ const UserDashboard: React.FC = () => {
     messages: "messages",
     media: "media",
     jackpot: "jackpot",
+    referrals: "referrals",
   };
   const TAB_TO_SLUG: Record<string, string> = {
     profile: "profile",
@@ -75,6 +78,7 @@ const UserDashboard: React.FC = () => {
     messages: "messages",
     media: "media",
     jackpot: "jackpot",
+    referrals: "referrals",
   };
   const { tab: tabParam } = useParams<{ tab: string }>();
   const activeTab = SLUG_TO_TAB[tabParam || "profile"] || "profile";
@@ -488,8 +492,8 @@ const UserDashboard: React.FC = () => {
         <div className={getContainerClasses()}>
           <DashboardMoneyCircle
             userId={userData.id}
-            onViewAll={() => navigate("/dashboard/make-money")}
-            onGetLink={() => navigate("/dashboard/make-money")}
+            onViewAll={() => navigate("/dashboard/referrals")}
+            onGetLink={() => navigate("/dashboard/referrals")}
           />
         </div>
 
@@ -585,7 +589,7 @@ const UserDashboard: React.FC = () => {
           <Card className={getCardClasses()} id="dashboard-tabs">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <div className="border-b bg-gray-50">
-                <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <TabsTrigger
                     value="profile"
                     className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
@@ -641,6 +645,14 @@ const UserDashboard: React.FC = () => {
                     <Trophy className="w-5 h-5 text-gray-600" />
                     <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Jackpot</span>
                   </TabsTrigger>
+
+                  <TabsTrigger
+                    value="referrals"
+                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
+                  >
+                    <Users className="w-5 h-5 text-gray-600" />
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Referrals</span>
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
@@ -690,6 +702,10 @@ const UserDashboard: React.FC = () => {
 
                 <TabsContent value="jackpot" className="mt-0">
                   <UserJackpotTab userData={userData} />
+                </TabsContent>
+
+                <TabsContent value="referrals" className="mt-0">
+                  <UserReferralsTab />
                 </TabsContent>
               </CardContent>
             </Tabs>
