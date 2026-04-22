@@ -1,34 +1,38 @@
 
 
-## Restyle "My Money Circle" to match the "Referred By" card
+## Give each dashboard tab its own URL
 
-Update `src/components/DashboardMoneyCircle.tsx` to use the same soft light-blue card style shown in the screenshot.
+Each section (Profile, Make Money, Notifications, Earnings, Messages, Media, Jackpot) becomes a directly linkable route. The dashboard layout (header, hero video, money circle, banner, upgrade button, tab bar) stays identical — only the active section changes based on the URL.
 
-### Visual style (match screenshot)
-- Container: `bg-blue-50/60 border border-blue-200 rounded-xl shadow-sm p-5`
-- Heading "My Money Circle":
-  - Small icon + label style, left-aligned (not centered)
-  - `text-blue-700 font-semibold text-base flex items-center gap-2`
-  - Use `Users` icon from `lucide-react` at `w-4 h-4`
-- Avatars (top 3 row):
-  - `w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200`
-  - No magenta ring — soft, subtle look matching the screenshot
-- Username under avatar: `text-slate-900 text-xs font-semibold mt-2 truncate max-w-[80px]`
-- Empty state "No One Yet!": `text-slate-600 text-sm`
-- Expanded scroll panel:
-  - `max-h-72 overflow-y-auto mt-4 rounded-lg bg-white/70 border border-blue-100 p-3`
-  - Grid: `grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4`
-  - Same avatar style as top 3
-- Toggle / CTA button:
-  - `bg-blue-600 hover:bg-blue-700 text-white w-full mt-4 rounded-lg`
-  - (Replaces the magenta button to stay consistent with the blue card theme)
+### New routes
 
-### Behavior (unchanged)
-- First 3 most recent referrals always shown
-- Toggle button expands/collapses the rest inline below
-- Empty state still calls `onGetLink`
-- Hide toggle when `referrals.length <= 3`
+| URL | Section |
+|---|---|
+| `/dashboard` | redirects to `/dashboard/profile` |
+| `/dashboard/profile` | Profile |
+| `/dashboard/make-money` | Make Money |
+| `/dashboard/notifications` | Notifications |
+| `/dashboard/earnings` | Earnings |
+| `/dashboard/messages` | Messages |
+| `/dashboard/media` | Media |
+| `/dashboard/jackpot` | Jackpot |
+
+### Implementation
+
+1. **`src/App.tsx`** — replace the single `/dashboard` route with:
+   - `/dashboard` → redirect (`<Navigate to="/dashboard/profile" replace />`)
+   - `/dashboard/:tab` → `<Dashboard />`
+
+2. **`src/components/UserDashboard.tsx`**
+   - Read the active tab from `useParams<{ tab: string }>()` instead of local `useState`.
+   - Validate against an allow-list `["profile","make-money","notifications","earnings","messages","media","jackpot"]`; unknown values fall back to `profile`.
+   - Map URL slug `make-money` ↔ internal Tabs value `makemoney` (keep existing TabsContent values, or rename them all to match the URL — will rename to keep things consistent: `make-money`, etc.).
+   - On `Tabs.onValueChange`, call `navigate(/dashboard/${newValue})` instead of `setActiveTab`.
+   - `DashboardMoneyCircle`'s `onViewAll` / `onGetLink` callbacks navigate to `/dashboard/make-money` instead of mutating local state.
+
+3. **Deep-link friendly** — refreshing or sharing any `/dashboard/<section>` URL lands the user directly on that section. SPA fallback already handles deep links on Lovable hosting.
 
 ### Files
-- Edit only: `src/components/DashboardMoneyCircle.tsx`
+- Edit: `src/App.tsx` (route change)
+- Edit: `src/components/UserDashboard.tsx` (URL-driven tab state + navigation)
 
