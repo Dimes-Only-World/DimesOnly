@@ -27,12 +27,34 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
     const fetchReferrals = async () => {
       if (!userId) return;
       try {
-        const { data, error } = await supabase.rpc("get_my_referrals", {
-          p_user_id: userId,
-        });
-        if (!error && Array.isArray(data)) {
-          setReferrals(data as Referral[]);
+        // Try RPC first (works when Supabase auth session exists)
+        const { data: rpcData } = await supabase.rpc("get_my_referrals");
+        if (Array.isArray(rpcData) && rpcData.length > 0) {
+          setReferrals(rpcData as Referral[]);
+          setLoading(false);
+          return;
         }
+
+        // Fallback: get current user's username, then query users referred by them
+        const { data: userRow } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", userId)
+          .maybeSingle();
+
+        const username = (userRow as any)?.username;
+        if (!username) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: refs } = await supabase
+          .from("users")
+          .select("id, username, profile_photo, created_at")
+          .ilike("referred_by", username)
+          .order("created_at", { ascending: false });
+
+        if (Array.isArray(refs)) setReferrals(refs as Referral[]);
       } catch (e) {
         console.warn("Failed to fetch referrals:", e);
       } finally {
