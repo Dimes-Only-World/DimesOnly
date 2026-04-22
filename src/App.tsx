@@ -4,6 +4,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
@@ -112,7 +113,8 @@ function AppContent() {
       <Route path="/adminlogin" element={<AdminLogin />} />
       <Route path="/test-login" element={<TestLogin />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard" element={<Navigate to="/dashboard/profile" replace />} />
+      <Route path="/dashboard/:tab" element={<Dashboard />} />
       <Route path="/events" element={<Events />} />
       <Route path="/event-details" element={<EventDetails />} />
       <Route path="/eventsdimes" element={<EventsDimes />} />

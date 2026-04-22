@@ -36,7 +36,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileLayout } from "@/hooks/use-mobile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Tables } from "@/types";
 import { usePageVideo } from "@/hooks/usePageVideo";
 
@@ -56,7 +56,32 @@ const UserDashboard: React.FC = () => {
   } = useMobileLayout();
   const navigate = useNavigate();
   const [hasActiveDiamond, setHasActiveDiamond] = useState(false);
-  const [activeTab, setActiveTab] = useState("profile");
+
+  // URL slug <-> internal Tabs value mapping
+  const SLUG_TO_TAB: Record<string, string> = {
+    profile: "profile",
+    "make-money": "makemoney",
+    notifications: "notifications",
+    earnings: "earnings",
+    messages: "messages",
+    media: "media",
+    jackpot: "jackpot",
+  };
+  const TAB_TO_SLUG: Record<string, string> = {
+    profile: "profile",
+    makemoney: "make-money",
+    notifications: "notifications",
+    earnings: "earnings",
+    messages: "messages",
+    media: "media",
+    jackpot: "jackpot",
+  };
+  const { tab: tabParam } = useParams<{ tab: string }>();
+  const activeTab = SLUG_TO_TAB[tabParam || "profile"] || "profile";
+  const handleTabChange = (value: string) => {
+    const slug = TAB_TO_SLUG[value] || "profile";
+    navigate(`/dashboard/${slug}`);
+  };
 
   const isDimeUser = userData
     ? ["stripper", "exotic"].includes((userData.user_type || "").toLowerCase())
@@ -463,18 +488,8 @@ const UserDashboard: React.FC = () => {
         <div className={getContainerClasses()}>
           <DashboardMoneyCircle
             userId={userData.id}
-            onViewAll={() => {
-              setActiveTab("makemoney");
-              setTimeout(() => {
-                document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth" });
-              }, 100);
-            }}
-            onGetLink={() => {
-              setActiveTab("makemoney");
-              setTimeout(() => {
-                document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth" });
-              }, 100);
-            }}
+            onViewAll={() => navigate("/dashboard/make-money")}
+            onGetLink={() => navigate("/dashboard/make-money")}
           />
         </div>
 
@@ -568,7 +583,7 @@ const UserDashboard: React.FC = () => {
 
           {/* Rest of dashboard content */}
           <Card className={getCardClasses()} id="dashboard-tabs">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <div className="border-b bg-gray-50">
                 <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   <TabsTrigger
