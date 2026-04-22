@@ -98,8 +98,8 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   );
 
   return (
-    <div className="w-full max-w-md mx-auto mb-6 p-4 bg-gradient-to-br from-slate-900 to-purple-900/40 rounded-xl border border-purple-500/30 shadow-lg">
-      <h3 className="text-xl font-bold text-[#E916D1] mb-4 text-center">
+    <div className="w-full max-w-md mx-auto mb-6 p-4 bg-gradient-to-br from-slate-800 via-slate-700 to-purple-400/60 rounded-xl border border-purple-300/40 shadow-lg">
+      <h3 className="text-2xl font-bold text-[#E916D1] mb-4 text-center">
         My Money Circle
       </h3>
       {firstThree.length > 0 ? (
