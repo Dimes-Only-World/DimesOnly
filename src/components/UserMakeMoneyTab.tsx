@@ -340,7 +340,7 @@ const UserMakeMoneyTab: React.FC = () => {
       </div>
 
       {/* Share Buttons */}
-      <Card className="mb-8">
+      <Card className="mb-8" id="referral-link-section">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5" />
@@ -396,7 +396,7 @@ const UserMakeMoneyTab: React.FC = () => {
       </Card>
 
       {/* Referrals Section */}
-      <div className="mb-4">
+      <div className="mb-4" id="full-money-circle">
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-xl font-semibold">Your Referrals ({filteredReferrals.length})</h2>
