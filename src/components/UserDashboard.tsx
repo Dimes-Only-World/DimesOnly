@@ -488,18 +488,8 @@ const UserDashboard: React.FC = () => {
         <div className={getContainerClasses()}>
           <DashboardMoneyCircle
             userId={userData.id}
-            onViewAll={() => {
-              setActiveTab("makemoney");
-              setTimeout(() => {
-                document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth" });
-              }, 100);
-            }}
-            onGetLink={() => {
-              setActiveTab("makemoney");
-              setTimeout(() => {
-                document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth" });
-              }, 100);
-            }}
+            onViewAll={() => navigate("/dashboard/make-money")}
+            onGetLink={() => navigate("/dashboard/make-money")}
           />
         </div>
 
