@@ -362,6 +362,31 @@ const UserDashboard: React.FC = () => {
               </Button>
             </div>
 
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6">
+              {[
+                { slug: "profile", label: "PROFILE", Icon: User, hoverBtn: "hover:border-pink-300 hover:text-pink-700", iconColor: "text-pink-600 group-hover:text-pink-700" },
+                { slug: "make-money", label: "MAKE MONEY", Icon: DollarSign, hoverBtn: "hover:border-green-300 hover:text-green-700", iconColor: "text-green-600 group-hover:text-green-700" },
+                { slug: "notifications", label: "NOTIFICATIONS", Icon: Bell, hoverBtn: "hover:border-blue-300 hover:text-blue-700", iconColor: "text-blue-600 group-hover:text-blue-700" },
+                { slug: "earnings", label: "EARNINGS", Icon: TrendingUp, hoverBtn: "hover:border-yellow-300 hover:text-yellow-700", iconColor: "text-yellow-600 group-hover:text-yellow-700" },
+                { slug: "messages", label: "MESSAGES", Icon: MessageSquare, hoverBtn: "hover:border-purple-300 hover:text-purple-700", iconColor: "text-purple-600 group-hover:text-purple-700" },
+                { slug: "media", label: "MEDIA", Icon: Image, hoverBtn: "hover:border-red-300 hover:text-red-700", iconColor: "text-red-600 group-hover:text-red-700" },
+                { slug: "jackpot", label: "JACKPOT", Icon: Trophy, hoverBtn: "hover:border-orange-300 hover:text-orange-700", iconColor: "text-orange-600 group-hover:text-orange-700" },
+                { slug: "referrals", label: "REFERRALS", Icon: Users, hoverBtn: "hover:border-cyan-300 hover:text-cyan-700", iconColor: "text-cyan-600 group-hover:text-cyan-700" },
+              ].map(({ slug: s, label, Icon, hoverBtn, iconColor }) => (
+                <Button
+                  key={s}
+                  onClick={() => navigate(`/dashboard/${s}`)}
+                  className={`group bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-xs sm:text-sm transition-all duration-200 hover:shadow-md ${hoverBtn}`}
+                  aria-label={label}
+                >
+                  <span className="flex flex-col items-center gap-1">
+                    <Icon className={`w-5 h-5 ${iconColor}`} />
+                    <span className="truncate">{label}</span>
+                  </span>
+                </Button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <ProfileSidebar
