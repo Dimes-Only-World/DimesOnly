@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, User, DollarSign, Bell, TrendingUp, MessageSquare, Image, Trophy, Users } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
@@ -254,30 +253,6 @@ const UserDashboard: React.FC = () => {
       case "profile":
         return (
           <>
-            <Tabs value="profile" className="mb-6">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto gap-1 bg-muted/50 p-1">
-                {[
-                  { slug: "profile", label: "Profile", Icon: User },
-                  { slug: "make-money", label: "Make Money", Icon: DollarSign },
-                  { slug: "notifications", label: "Notifications", Icon: Bell },
-                  { slug: "earnings", label: "Earnings", Icon: TrendingUp },
-                  { slug: "messages", label: "Messages", Icon: MessageSquare },
-                  { slug: "media", label: "Media", Icon: Image },
-                  { slug: "jackpot", label: "Jackpot", Icon: Trophy },
-                  { slug: "referrals", label: "Referrals", Icon: Users },
-                ].map(({ slug: s, label, Icon }) => (
-                  <TabsTrigger
-                    key={s}
-                    value={s}
-                    onClick={() => navigate(`/dashboard/${s}`)}
-                    className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-pink-500 data-[state=active]:text-white"
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="truncate">{label}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
 
             <div className={`${isMobile ? "py-2" : "py-4"} -mx-4 sm:-mx-6 lg:-mx-8`}>
               <DashboardVideoHeader
@@ -385,6 +360,31 @@ const UserDashboard: React.FC = () => {
               >
                 <a href="/upgrade">Upgrade Membership</a>
               </Button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6">
+              {[
+                { slug: "profile", label: "PROFILE", Icon: User, hoverBtn: "hover:border-pink-300 hover:text-pink-700", iconColor: "text-pink-600 group-hover:text-pink-700" },
+                { slug: "make-money", label: "MAKE MONEY", Icon: DollarSign, hoverBtn: "hover:border-green-300 hover:text-green-700", iconColor: "text-green-600 group-hover:text-green-700" },
+                { slug: "notifications", label: "NOTIFICATIONS", Icon: Bell, hoverBtn: "hover:border-blue-300 hover:text-blue-700", iconColor: "text-blue-600 group-hover:text-blue-700" },
+                { slug: "earnings", label: "EARNINGS", Icon: TrendingUp, hoverBtn: "hover:border-yellow-300 hover:text-yellow-700", iconColor: "text-yellow-600 group-hover:text-yellow-700" },
+                { slug: "messages", label: "MESSAGES", Icon: MessageSquare, hoverBtn: "hover:border-purple-300 hover:text-purple-700", iconColor: "text-purple-600 group-hover:text-purple-700" },
+                { slug: "media", label: "MEDIA", Icon: Image, hoverBtn: "hover:border-red-300 hover:text-red-700", iconColor: "text-red-600 group-hover:text-red-700" },
+                { slug: "jackpot", label: "JACKPOT", Icon: Trophy, hoverBtn: "hover:border-orange-300 hover:text-orange-700", iconColor: "text-orange-600 group-hover:text-orange-700" },
+                { slug: "referrals", label: "REFERRALS", Icon: Users, hoverBtn: "hover:border-cyan-300 hover:text-cyan-700", iconColor: "text-cyan-600 group-hover:text-cyan-700" },
+              ].map(({ slug: s, label, Icon, hoverBtn, iconColor }) => (
+                <Button
+                  key={s}
+                  onClick={() => navigate(`/dashboard/${s}`)}
+                  className={`group bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-xs sm:text-sm transition-all duration-200 hover:shadow-md ${hoverBtn}`}
+                  aria-label={label}
+                >
+                  <span className="flex flex-col items-center gap-1">
+                    <Icon className={`w-5 h-5 ${iconColor}`} />
+                    <span className="truncate">{label}</span>
+                  </span>
+                </Button>
+              ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
