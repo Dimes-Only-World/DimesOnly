@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
+import DashboardMoneyCircle from "./DashboardMoneyCircle";
 import ProfileSidebar from "./ProfileSidebar";
 import ProfileInfo from "./ProfileInfo";
 import AuthGuard from "./AuthGuard";
@@ -55,6 +56,7 @@ const UserDashboard: React.FC = () => {
   } = useMobileLayout();
   const navigate = useNavigate();
   const [hasActiveDiamond, setHasActiveDiamond] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
 
   const isDimeUser = userData
     ? ["stripper", "exotic"].includes((userData.user_type || "").toLowerCase())
@@ -458,6 +460,24 @@ const UserDashboard: React.FC = () => {
       />
         </div>
 
+        <div className={getContainerClasses()}>
+          <DashboardMoneyCircle
+            userId={userData.id}
+            onViewAll={() => {
+              setActiveTab("makemoney");
+              setTimeout(() => {
+                document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
+            onGetLink={() => {
+              setActiveTab("makemoney");
+              setTimeout(() => {
+                document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
+          />
+        </div>
+
         <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
           {/* Diamond Plus Button - placed under video banner, above banner photo */}
           <DiamondPlusPopup userData={userData} />
@@ -547,8 +567,8 @@ const UserDashboard: React.FC = () => {
           </div>
 
           {/* Rest of dashboard content */}
-          <Card className={getCardClasses()}>
-            <Tabs defaultValue="profile" className="w-full">
+          <Card className={getCardClasses()} id="dashboard-tabs">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b bg-gray-50">
                 <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   <TabsTrigger
