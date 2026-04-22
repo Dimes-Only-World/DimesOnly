@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, User, DollarSign, Bell, TrendingUp, MessageSquare, Image, Trophy, Users } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
