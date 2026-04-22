@@ -1,40 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Share2, Facebook, Instagram, MessageSquare, Copy } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import ReferralCard from "./ReferralCard";
-import ReferralFilters from "./ReferralFilters";
-import DirectMessageModal from "./DirectMessageModal";
-
-interface User {
-  id: string;
-  username: string;
-  city?: string;
-  state?: string;
-  created_at: string;
-  profile_photo?: string;
-  banner_photo?: string;
-  front_page_photo?: string;
-}
 
 const UserMakeMoneyTab: React.FC = () => {
   const { user } = useAppContext();
   const { toast } = useToast();
-  const [referrals, setReferrals] = useState<User[]>([]);
-  const [filteredReferrals, setFilteredReferrals] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [usernameFilter, setUsernameFilter] = useState("");
-  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
-  const [selectedRecipientUsername, setSelectedRecipientUsername] = useState<string | null>(null);
-  const [cityFilter, setCityFilter] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
   const [actualUsername, setActualUsername] = useState<string>("");
-  const itemsPerPage = 100;
 
   const referralUsername = actualUsername;
 
@@ -48,21 +23,17 @@ const UserMakeMoneyTab: React.FC = () => {
       "Men and Sexy Ladies Needed Now!\n\n" +
       "https://dimesonlyworld.s3.us-east-2.amazonaws.com/New%2BHome.webm\n\n" +
       "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nDo not select normal.\nSelect exotic or stripper to get the big money...\n";
-    const link = shareLink;
-    return `${base}${link}`;
+    return `${base}${shareLink}`;
   }, [shareLink]);
 
-  // Fetch actual username
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
-
     try {
       const { data, error } = await supabase
         .from("users")
         .select("username")
         .eq("id", user.id)
         .single();
-
       if (error) throw error;
       if (data?.username) setActualUsername(String(data.username));
     } catch (error) {
@@ -70,63 +41,10 @@ const UserMakeMoneyTab: React.FC = () => {
     }
   }, [user?.id]);
 
-  // Fetch referrals securely via RPC (bypasses users table RLS)
-  const fetchReferrals = useCallback(async () => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_my_referrals");
-      if (error) throw error;
-      setReferrals((data as User[]) || []);
-    } catch (error) {
-      console.error("Error fetching referrals:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load referrals",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, toast]);
-
-  // Filter referrals
-  const filterReferrals = useCallback(() => {
-    let filtered = referrals;
-    if (usernameFilter)
-      filtered = filtered.filter((r) =>
-        r.username.toLowerCase().includes(usernameFilter.toLowerCase())
-      );
-    if (cityFilter)
-      filtered = filtered.filter((r) =>
-        r.city?.toLowerCase().includes(cityFilter.toLowerCase())
-      );
-    if (stateFilter)
-      filtered = filtered.filter((r) =>
-        r.state?.toLowerCase().includes(stateFilter.toLowerCase())
-      );
-    setFilteredReferrals(filtered);
-    setCurrentPage(1);
-  }, [referrals, usernameFilter, cityFilter, stateFilter]);
-
-  // Effects
   useEffect(() => {
     if (user?.id) fetchActualUserData();
   }, [user?.id, fetchActualUserData]);
 
-  useEffect(() => {
-    if (user?.id) fetchReferrals();
-  }, [user?.id, fetchReferrals]);
-
-  useEffect(() => {
-    filterReferrals();
-  }, [filterReferrals]);
-
-  // Clipboard helper with fallback and feedback
   const copyToClipboard = useCallback(
     async (text: string) => {
       try {
@@ -135,7 +53,6 @@ const UserMakeMoneyTab: React.FC = () => {
           toast({ title: "Message copied to clipboard!" });
           return true;
         } else {
-          // Fallback: create temporary textarea
           const ta = document.createElement("textarea");
           ta.value = text;
           document.body.appendChild(ta);
@@ -157,7 +74,6 @@ const UserMakeMoneyTab: React.FC = () => {
     [toast]
   );
 
-  // Share handlers
   const handleWhatsAppShare = useCallback(async () => {
     await copyToClipboard(shareMessage);
     window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, "_blank");
@@ -186,13 +102,11 @@ const UserMakeMoneyTab: React.FC = () => {
   }, [shareMessage, copyToClipboard]);
 
   const handleFacebookShare = useCallback(async () => {
-    // Facebook share uses sharer with the URL to share; the message can't be pre-filled for FB due to restrictions.
     await copyToClipboard(shareMessage);
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`, "_blank");
   }, [shareMessage, shareLink, copyToClipboard]);
 
   const handleInstagramShare = useCallback(async () => {
-    // Use navigator.share so users can select Instagram from the native share picker
     if (navigator.share) {
       try {
         await navigator.share({
@@ -201,12 +115,10 @@ const UserMakeMoneyTab: React.FC = () => {
           url: shareLink,
         });
       } catch (err) {
-        // User canceled - fall back to copy and open Instagram
         await copyToClipboard(shareMessage);
         window.open("https://www.instagram.com", "_blank");
       }
     } else {
-      // Fallback for browsers without share API
       await copyToClipboard(shareMessage);
       window.open("https://www.instagram.com", "_blank");
     }
@@ -229,21 +141,9 @@ const UserMakeMoneyTab: React.FC = () => {
   }, [shareMessage, shareLink, copyToClipboard]);
 
   const handleSmsShare = useCallback(() => {
-    // Use SMS URI scheme to open messages app with pre-filled text
     const smsUrl = `sms:?body=${encodeURIComponent(shareMessage)}`;
     window.location.href = smsUrl;
   }, [shareMessage]);
-
-  // Pagination
-  const paginatedReferrals = useMemo(
-    () =>
-      filteredReferrals.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      ),
-    [filteredReferrals, currentPage, itemsPerPage]
-  );
-  const totalPages = Math.ceil(filteredReferrals.length / itemsPerPage);
 
   if (!user)
     return (
@@ -301,12 +201,7 @@ const UserMakeMoneyTab: React.FC = () => {
           <div className="space-y-4">
             <div className="p-3 bg-gray-50 rounded border flex items-center justify-between gap-2">
               <p className="text-sm font-mono break-all flex-1">{shareLink}</p>
-              <Button 
-                onClick={handleCopyMessage} 
-                variant="ghost" 
-                size="sm"
-                className="shrink-0"
-              >
+              <Button onClick={handleCopyMessage} variant="ghost" size="sm" className="shrink-0">
                 <Copy className="w-4 h-4" />
               </Button>
             </div>
@@ -328,15 +223,12 @@ const UserMakeMoneyTab: React.FC = () => {
               <Button onClick={handleWhatsAppShare} className="bg-green-500 hover:bg-green-600 text-white">
                 WhatsApp
               </Button>
-
               <Button onClick={handleTelegramShare} className="bg-blue-400 hover:bg-blue-500 text-white">
                 Telegram
               </Button>
-
               <Button onClick={handleXShare} className="bg-sky-600 hover:bg-sky-700 text-white">
                 X
               </Button>
-
               <Button onClick={handleEmailShare} className="bg-red-500 hover:bg-red-600 text-white">
                 Email
               </Button>
@@ -344,79 +236,6 @@ const UserMakeMoneyTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Referrals Section */}
-      <div className="mb-4" id="full-money-circle">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="text-xl font-semibold">Your Referrals ({filteredReferrals.length})</h2>
-            {actualUsername && <p className="text-sm text-gray-600">Checking referrals for: {actualUsername}</p>}
-          </div>
-          <Button onClick={fetchReferrals} variant="outline" disabled={loading}>
-            {loading ? "Loading..." : "Refresh"}
-          </Button>
-        </div>
-
-        <ReferralFilters
-          usernameFilter={usernameFilter}
-          cityFilter={cityFilter}
-          stateFilter={stateFilter}
-          onUsernameChange={setUsernameFilter}
-          onCityChange={setCityFilter}
-          onStateChange={setStateFilter}
-        />
-      </div>
-
-      {/* Referral List */}
-      {loading ? (
-        <div className="text-center py-8">Loading referrals...</div>
-      ) : filteredReferrals.length === 0 ? (
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">NO REFERRALS YET?</h2>
-          <p className="text-gray-500">Share your link to get your first referral!</p>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {paginatedReferrals.map((referral) => (
-              <ReferralCard 
-                key={referral.id} 
-                user={referral} 
-                onImageClick={() => {}} 
-                onMessage={(userId) => {
-                  const ref = referrals.find(r => r.id === userId);
-                  if (ref) {
-                    setSelectedRecipientUsername(ref.username);
-                    setIsMessageModalOpen(true);
-                  }
-                }}
-              />
-            ))}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <Button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} variant="outline">
-                Previous
-              </Button>
-              <span className="flex items-center px-4">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} variant="outline">
-                Next
-              </Button>
-            </div>
-          )}
-        </>
-      )}
-      <DirectMessageModal
-        isOpen={isMessageModalOpen}
-        onClose={() => {
-          setIsMessageModalOpen(false);
-          setSelectedRecipientUsername(null);
-        }}
-        recipientUsername={selectedRecipientUsername}
-      />
     </div>
   );
 };
