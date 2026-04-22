@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle2, User, DollarSign, Bell, TrendingUp, MessageSquare, Image, Trophy, Users } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
 import DashboardMoneyCircle from "./DashboardMoneyCircle";
@@ -253,6 +254,31 @@ const UserDashboard: React.FC = () => {
       case "profile":
         return (
           <>
+            <Tabs value="profile" className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto gap-1 bg-muted/50 p-1">
+                {[
+                  { slug: "profile", label: "Profile", Icon: User },
+                  { slug: "make-money", label: "Make Money", Icon: DollarSign },
+                  { slug: "notifications", label: "Notifications", Icon: Bell },
+                  { slug: "earnings", label: "Earnings", Icon: TrendingUp },
+                  { slug: "messages", label: "Messages", Icon: MessageSquare },
+                  { slug: "media", label: "Media", Icon: Image },
+                  { slug: "jackpot", label: "Jackpot", Icon: Trophy },
+                  { slug: "referrals", label: "Referrals", Icon: Users },
+                ].map(({ slug: s, label, Icon }) => (
+                  <TabsTrigger
+                    key={s}
+                    value={s}
+                    onClick={() => navigate(`/dashboard/${s}`)}
+                    className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-pink-500 data-[state=active]:text-white"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="truncate">{label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+
             <div className={`${isMobile ? "py-2" : "py-4"} -mx-4 sm:-mx-6 lg:-mx-8`}>
               <DashboardVideoHeader
                 srcDesktop={heroVideoUrl}
