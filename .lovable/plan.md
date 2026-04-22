@@ -1,31 +1,34 @@
 
 
-## Restyle "My Money Circle" + inline expand
+## Restyle "My Money Circle" to match the "Referred By" card
 
-Update `src/components/DashboardMoneyCircle.tsx` to match the dashboard's dark theme and make the list expandable inline (no tab switch).
+Update `src/components/DashboardMoneyCircle.tsx` to use the same soft light-blue card style shown in the screenshot.
 
-### Visual changes (match dashboard theme)
-- Container: replace light purple gradient with dark card style: `bg-gradient-to-br from-slate-900 to-purple-900/40 border border-purple-500/30 rounded-xl shadow-lg`
-- Heading "My Money Circle": `text-white` with magenta accent (`text-[#E916D1]`), centered, bold, no gray highlight background
-- Avatar ring: `ring-4 ring-[#E916D1] ring-offset-2 ring-offset-slate-900`
-- Username: `text-white text-xs font-semibold`
-- Primary button: magenta `bg-[#E916D1] hover:bg-[#E916D1]/90 text-white`
+### Visual style (match screenshot)
+- Container: `bg-blue-50/60 border border-blue-200 rounded-xl shadow-sm p-5`
+- Heading "My Money Circle":
+  - Small icon + label style, left-aligned (not centered)
+  - `text-blue-700 font-semibold text-base flex items-center gap-2`
+  - Use `Users` icon from `lucide-react` at `w-4 h-4`
+- Avatars (top 3 row):
+  - `w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200`
+  - No magenta ring — soft, subtle look matching the screenshot
+- Username under avatar: `text-slate-900 text-xs font-semibold mt-2 truncate max-w-[80px]`
+- Empty state "No One Yet!": `text-slate-600 text-sm`
+- Expanded scroll panel:
+  - `max-h-72 overflow-y-auto mt-4 rounded-lg bg-white/70 border border-blue-100 p-3`
+  - Grid: `grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4`
+  - Same avatar style as top 3
+- Toggle / CTA button:
+  - `bg-blue-600 hover:bg-blue-700 text-white w-full mt-4 rounded-lg`
+  - (Replaces the magenta button to stay consistent with the blue card theme)
 
-### Behavior changes
-1. Always show the **first 3 referrals** (most recent) at the top in the existing centered row.
-2. Add internal state `expanded: boolean`.
-3. Button text toggles:
-   - Collapsed + has more than 3 referrals: `To See Your Full Money Circle - Click Here`
-   - Expanded: `Hide Full Money Circle`
-   - Empty state: `Get Your Referral Link - Click Here` (still triggers `onGetLink` → switch to Make Money tab)
-4. When `expanded === true`, render the **remaining referrals** (index 3+) directly **below** the first 3, inside a scrollable container:
-   - `max-h-72 overflow-y-auto` with a subtle scrollbar
-   - Grid layout: `grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 p-3`
-   - Each item uses the same avatar + username styling as the top 3 (slightly smaller ring is fine)
-5. Remove the `onViewAll` navigation behavior — the View All button now toggles `expanded` instead. `onGetLink` prop stays for the empty state.
-6. If `referrals.length <= 3`, hide the toggle button entirely (nothing more to show).
+### Behavior (unchanged)
+- First 3 most recent referrals always shown
+- Toggle button expands/collapses the rest inline below
+- Empty state still calls `onGetLink`
+- Hide toggle when `referrals.length <= 3`
 
 ### Files
 - Edit only: `src/components/DashboardMoneyCircle.tsx`
-- No changes to `UserDashboard.tsx` (the `onViewAll` prop becomes unused but harmless; can leave as optional).
 
