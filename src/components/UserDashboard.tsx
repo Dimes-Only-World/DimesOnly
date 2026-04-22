@@ -1,26 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  User,
-  Users,
-  Bell,
-  DollarSign,
-  MessageCircle,
-  Camera,
-  Share2,
-  Trophy,
-  LogOut,
-  Heart,
-  CheckCircle2,
-} from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
 import DashboardMoneyCircle from "./DashboardMoneyCircle";
 import ProfileSidebar from "./ProfileSidebar";
 import ProfileInfo from "./ProfileInfo";
-import AuthGuard from "./AuthGuard";
+import DashboardSectionLayout from "./DashboardSectionLayout";
 import UserNotificationsTab from "./UserNotificationsTab";
 import UserEarningsTab from "./UserEarningsTab";
 import UserDirectMessagesTab from "./UserDirectMessagesTab";
@@ -28,64 +15,43 @@ import UserMediaUploadTab from "./UserMediaUploadTab";
 import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserReferralsTab from "./UserReferralsTab";
 import UserJackpotTab from "./UserJackpotTab";
-import DiamondPlusDashboard from "./DiamondPlusDashboard";
 import DiamondPlusButton from "./DiamondPlusButton";
 import DiamondPlusPopup from "./DiamondPlusPopup";
 import SilverPlusMembership from "./SilverPlusMembership";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SubscriptionProgress from "./SubscriptionProgress";
+import AuthGuard from "./AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileLayout } from "@/hooks/use-mobile";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Navigate } from "react-router-dom";
 import { Tables } from "@/types";
 import { usePageVideo } from "@/hooks/usePageVideo";
 
 type UserData = Tables<"users">;
 
+const SLUG_TITLES: Record<string, string> = {
+  profile: "Profile",
+  "make-money": "Make Money",
+  notifications: "Notifications",
+  earnings: "Earnings",
+  messages: "Messages",
+  media: "Media",
+  jackpot: "Jackpot",
+  referrals: "Referrals",
+};
+
 const UserDashboard: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user, setUser } = useAppContext();
+  const { user } = useAppContext();
   const { toast } = useToast();
-  const {
-    isMobile,
-    getContainerClasses,
-    getContentClasses,
-    getCardClasses,
-    getPaddingClasses,
-  } = useMobileLayout();
+  const { isMobile } = useMobileLayout();
   const navigate = useNavigate();
-  const [hasActiveDiamond, setHasActiveDiamond] = useState(false);
-
-  // URL slug <-> internal Tabs value mapping
-  const SLUG_TO_TAB: Record<string, string> = {
-    profile: "profile",
-    "make-money": "makemoney",
-    notifications: "notifications",
-    earnings: "earnings",
-    messages: "messages",
-    media: "media",
-    jackpot: "jackpot",
-    referrals: "referrals",
-  };
-  const TAB_TO_SLUG: Record<string, string> = {
-    profile: "profile",
-    makemoney: "make-money",
-    notifications: "notifications",
-    earnings: "earnings",
-    messages: "messages",
-    media: "media",
-    jackpot: "jackpot",
-    referrals: "referrals",
-  };
   const { tab: tabParam } = useParams<{ tab: string }>();
-  const activeTab = SLUG_TO_TAB[tabParam || "profile"] || "profile";
-  const handleTabChange = (value: string) => {
-    const slug = TAB_TO_SLUG[value] || "profile";
-    navigate(`/dashboard/${slug}`);
-  };
+  const slug = tabParam || "profile";
+  const isValidSlug = slug in SLUG_TITLES;
 
   const isDimeUser = userData
     ? ["stripper", "exotic"].includes((userData.user_type || "").toLowerCase())
@@ -96,77 +62,36 @@ const UserDashboard: React.FC = () => {
 
   useEffect(() => {
     const loadUserData = async () => {
-      // Check if this is a custom auth user (no Supabase session)
       const authToken = localStorage.getItem("authToken");
-      const isCustomAuth = authToken === "authenticated" || authToken?.startsWith("authenticated_");
-      
+      const isCustomAuth =
+        authToken === "authenticated" || authToken?.startsWith("authenticated_");
+
       if (user?.id) {
         if (isCustomAuth) {
-          // Custom auth - use edge function to bypass RLS
           await fetchUserViaEdgeFunction(user.id);
         } else {
-          // Supabase auth - direct query works
           await fetchUserDataById(user.id);
         }
       } else {
         await getCurrentUser();
       }
     };
-    
     loadUserData();
   }, [user?.id]);
 
-  // Check for active Diamond subscription (any cadence)
-  useEffect(() => {
-    const checkDiamond = async () => {
-      if (!userData?.id) return;
-      try {
-        const { data, error } = await supabase
-          .from("subscriptions")
-          .select("tier,status")
-          .eq("user_id", userData.id)
-          .order("updated_at", { ascending: false });
-        if (error) {
-          console.warn("Failed to read subscriptions:", error.message);
-          setHasActiveDiamond(false);
-          return;
-        }
-        const active = (data || []).some((r: any) => {
-          const tierOk = r.tier === "diamond";
-          const st = (r.status || "").toString().toUpperCase();
-          const inactive = st.includes("CANCEL") || st.includes("EXPIRE") || st.includes("SUSPEND");
-          return tierOk && !inactive;
-        });
-        setHasActiveDiamond(active);
-      } catch (e) {
-        console.warn("Subscriptions check failed:", e);
-        setHasActiveDiamond(false);
-      }
-    };
-    checkDiamond();
-  }, [userData?.id]);
-
-  // Fetch user data via edge function (bypasses RLS for custom auth)
   const fetchUserViaEdgeFunction = async (userId: string): Promise<boolean> => {
     try {
-      console.log("Fetching user via edge function:", userId);
       const response = await fetch(
-        'https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/public-data',
+        "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/public-data",
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getUserById', userId })
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "getUserById", userId }),
         }
       );
-      
-      if (!response.ok) {
-        console.error("Edge function error:", response.status);
-        return false;
-      }
-      
+      if (!response.ok) return false;
       const result = await response.json();
       if (result.data) {
-        console.log("User data fetched via edge function:", result.data.username);
         setUserData(result.data);
         setLoading(false);
         return true;
@@ -180,14 +105,11 @@ const UserDashboard: React.FC = () => {
 
   const getCurrentUser = async () => {
     try {
-      // First check sessionStorage for custom auth user data
       const savedUserData = sessionStorage.getItem("userData");
       if (savedUserData) {
         try {
           const parsedUser = JSON.parse(savedUserData);
           if (parsedUser?.id) {
-            console.log("Found user in sessionStorage:", parsedUser.id);
-            // Use edge function to fetch fresh data (bypasses RLS)
             const success = await fetchUserViaEdgeFunction(parsedUser.id);
             if (success) return;
           }
@@ -195,8 +117,6 @@ const UserDashboard: React.FC = () => {
           console.error("Error parsing saved user data:", e);
         }
       }
-
-      // Fallback to Supabase auth
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();
@@ -219,12 +139,7 @@ const UserDashboard: React.FC = () => {
         .select("*")
         .eq("id", userId)
         .single();
-
-      if (error) {
-        console.error("Error fetching user data:", error);
-        return false;
-      }
-
+      if (error) return false;
       if (data) {
         setUserData(data as UserData);
         return true;
@@ -232,77 +147,21 @@ const UserDashboard: React.FC = () => {
       return false;
     } catch (error) {
       console.error("Error fetching user data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load user data",
-        variant: "destructive",
-      });
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const testUserUpdate = async () => {
-    if (!userData?.id) return;
-
-    console.log("Testing simple update with minimal data...");
-    try {
-      // Test with just one field
-      const { data, error } = await supabase
-        .from("users")
-        .update({ bio: "Test update - " + new Date().toISOString() })
-        .eq("id", userData.id)
-        .select();
-
-      console.log("Test update result:", { data, error });
-
-      if (error) {
-        console.error("Test update failed:", error);
-        // Try with admin client
-        console.log("Trying with admin client...");
-        const { createClient } = await import("@supabase/supabase-js");
-        const adminClient = createClient(
-          "https://qkcuykpndrolrewwnkwb.supabase.co",
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTM4MjA3MCwiZXhwIjoyMDY0OTU4MDcwfQ.ayaH1xWQQU-KzPkS5Zufk_Ss6wHns95u6DBhtdLKFN8"
-        );
-
-        const { data: adminData, error: adminError } = await adminClient
-          .from("users")
-          .update({ bio: "Admin test update - " + new Date().toISOString() })
-          .eq("id", userData.id)
-          .select();
-
-        console.log("Admin update result:", { adminData, adminError });
-      }
-    } catch (error) {
-      console.error("Test update exception:", error);
-    }
-  };
-
   const updateUserData = async (updatedData: Partial<UserData>) => {
-    if (!userData?.id) {
-      console.error("No user ID available for update");
-      return false;
-    }
-
-    console.log("Attempting to update user data:", {
-      userId: userData.id,
-      updatedData,
-      originalData: userData,
-    });
-
+    if (!userData?.id) return false;
     try {
       const { data, error } = await supabase
         .from("users")
         .update(updatedData)
         .eq("id", userData.id)
         .select();
-
-      console.log("Supabase update response:", { data, error });
-
       if (error) {
-        console.error("Supabase error updating user data:", error);
         toast({
           title: "Error",
           description: `Failed to update profile: ${error.message}`,
@@ -310,34 +169,17 @@ const UserDashboard: React.FC = () => {
         });
         return false;
       }
-
       if (data && data.length > 0) {
-        console.log("Update successful, new data:", data[0]);
         setUserData(data[0] as UserData);
-        toast({
-          title: "Success",
-          description: "Profile updated successfully",
-        });
+        toast({ title: "Success", description: "Profile updated successfully" });
         return true;
-      } else {
-        console.log("No data returned from update, refetching...");
-        // If no data returned, refetch the user data
-        const refetchedData = await fetchUserDataById(userData.id);
-        if (refetchedData) {
-          toast({
-            title: "Success",
-            description: "Profile updated successfully",
-          });
-          return true;
-        } else {
-          toast({
-            title: "Warning",
-            description: "Profile may have been updated, but couldn't verify",
-            variant: "destructive",
-          });
-          return false;
-        }
       }
+      const refetched = await fetchUserDataById(userData.id);
+      if (refetched) {
+        toast({ title: "Success", description: "Profile updated successfully" });
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error("Exception updating user data:", error);
       toast({
@@ -354,28 +196,22 @@ const UserDashboard: React.FC = () => {
     imageType: "profile" | "banner" | "front_page"
   ) => {
     if (!userData?.username) return;
-
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `profiles/${userData.username}/${imageType}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("user-photos")
         .upload(fileName, file, { cacheControl: "3600", upsert: true });
-
       if (error) throw error;
-
       const {
         data: { publicUrl },
       } = supabase.storage.from("user-photos").getPublicUrl(fileName);
-
       const updateField =
         imageType === "profile"
           ? "profile_photo"
           : imageType === "banner"
           ? "banner_photo"
           : "front_page_photo";
-
       await updateUserData({ [updateField]: publicUrl });
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -387,35 +223,10 @@ const UserDashboard: React.FC = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-
-      // Clear local storage and session storage
-      localStorage.removeItem("authToken");
-      sessionStorage.removeItem("userData");
-      sessionStorage.removeItem("currentUser");
-
-      // Clear app context
-      setUser(null);
-
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account",
-      });
-
-      // Redirect to login
-      navigate("/login", { replace: true });
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast({
-        title: "Error",
-        description: "Failed to logout properly",
-        variant: "destructive",
-      });
-    }
-  };
+  // Redirect unknown slugs to profile
+  if (!isValidSlug) {
+    return <Navigate to="/dashboard/profile" replace />;
+  }
 
   if (loading) {
     return (
@@ -437,282 +248,160 @@ const UserDashboard: React.FC = () => {
     );
   }
 
-
-
-  return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="bg-white shadow-sm border-b">
-          <div className={getContainerClasses()}>
-            <div
-              className={`flex justify-between items-center py-4 px-4 ${getContentClasses()}`}
-            >
-              <div className="flex items-center gap-3">
-                <Heart className="w-8 h-8 md:w-10 md:h-10 text-red-600 fill-current" />
-                <h1 className="text-xl md:text-2xl font-bold text-red-600">
-                  Dimes
-                </h1>
-              </div>
-              
-              <div className="hidden md:flex items-center">
-                <p className="text-sm text-gray-600">
-                  Welcome Back {userData.username || "User"}
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="md:hidden">
-                  <p className="text-xs text-gray-600 text-right">
-                    Welcome {userData.username || "User"}
-                  </p>
-                </div>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50"
-                  title="Logout"
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Full-bleed dashboard video header (outside container) */}
-        <div className={`${isMobile ? "py-4" : "py-8"}`}>
-        <DashboardVideoHeader
-        srcDesktop={heroVideoUrl}
-        srcMobile={heroVideoUrl}
-        thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-      />
-        </div>
-
-        <div className={getContainerClasses()}>
-          <DashboardMoneyCircle
-            userId={userData.id}
-            onViewAll={() => navigate("/dashboard/referrals")}
-            onGetLink={() => navigate("/dashboard/make-money#referral-link")}
-          />
-        </div>
-
-        <div className={`${getContainerClasses()} ${isMobile ? "py-0" : "py-0"}`}>
-          {/* Diamond Plus Button - placed under video banner, above banner photo */}
-          <DiamondPlusPopup userData={userData} />
-          <DiamondPlusButton userData={userData} />
-
-          {/* Subscription Progress (Diamond Yearly Split) */}
-          <SubscriptionProgress userId={userData.id} />
-
-          {/* Silver Plus Counter and Benefits Section - Only show for eligible users who don't have Silver Plus */}
-          {userData && (userData.gender === "male" || (userData.gender === "female" && userData.user_type === "normal")) && !userData.silver_plus_active && (
-            <Card className="bg-gradient-to-br from-blue-900 to-blue-700 text-white mb-6">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-8 items-center">
-                  {/* Left side - Counter */}
-                  <div className="w-full md:w-1/3">
-                    <h3 className="text-2xl font-bold mb-4 text-center md:text-left">Silver Plus Memberships</h3>
-                    <div className="text-yellow-300 text-sm mb-4 text-center md:text-left">Limited Time Offer</div>
-                    <div className="bg-black/30 p-4 rounded-lg">
-                      <SilverPlusCounter />
-                    </div>
-                  </div>
-                  
-                  {/* Right side - Benefits */}
-                  <div className="w-full md:w-2/3">
-                    <h4 className="font-semibold text-yellow-300 text-lg mb-3">Silver Plus Referral & Compensation</h4>
-                    <ul className="space-y-3 text-sm">
-                      <li className="flex items-start">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                        <span>One Year of Flame Flix Subscription in Phase 6</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                        <span><b>10%</b> discount site wide forever from all Dimes Only related products and services.</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                        <span>Get Overrides from Strippers and Exotics</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                        <span>Earn <b>20%</b> of tips from all your strippers & exotics.</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                        <span>Earn <b>10%</b> override from your referrals' purchases of all products & services</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                        <span>View nude photos & videos from strippers & exotics</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Silver Plus Membership Section */}
-          {userData && (
-            <div className="mb-6">
-              <SilverPlusMembership 
-                userData={userData} 
-                onMembershipUpdate={(updatedData) => setUserData(prev => ({ ...prev, ...updatedData }))} 
+  const renderSection = () => {
+    switch (slug) {
+      case "profile":
+        return (
+          <>
+            <div className={`${isMobile ? "py-2" : "py-4"} -mx-4 sm:-mx-6 lg:-mx-8`}>
+              <DashboardVideoHeader
+                srcDesktop={heroVideoUrl}
+                srcMobile={heroVideoUrl}
+                thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
               />
             </div>
-          )}
 
-          <Card
-            className={`${isMobile ? "mb-4 mx-0 rounded-none" : "mb-8"} overflow-hidden`}
-          >
-            <DashboardBanner
-              bannerPhoto={userData.banner_photo}
-              userData={userData}
-              onImageUpload={(file) => handleImageUpload(file, "banner")}
+            <DashboardMoneyCircle
+              userId={userData.id}
+              onViewAll={() => navigate("/dashboard/referrals")}
+              onGetLink={() => navigate("/dashboard/make-money#referral-link")}
             />
-          </Card>
 
-          {/* Upgrade Membership Button – always visible */}
-          <div className="my-6 flex justify-center">
-            <Button
-              asChild
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
-              aria-label="Upgrade Membership"
-            >
-              <a href="/upgrade">Upgrade Membership</a>
-            </Button>
-          </div>
+            <DiamondPlusPopup userData={userData} />
+            <DiamondPlusButton userData={userData} />
 
-          {/* Rest of dashboard content */}
-          <Card className={getCardClasses()} id="dashboard-tabs">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <div className="border-b bg-gray-50">
-                <TabsList className="w-full bg-transparent p-4 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                  <TabsTrigger
-                    value="profile"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <User className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Profile</span>
-                  </TabsTrigger>
+            <SubscriptionProgress userId={userData.id} />
 
-                  <TabsTrigger
-                    value="makemoney"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <Share2 className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Make Money</span>
-                  </TabsTrigger>
+            {userData &&
+              (userData.gender === "male" ||
+                (userData.gender === "female" && userData.user_type === "normal")) &&
+              !userData.silver_plus_active && (
+                <Card className="bg-gradient-to-br from-blue-900 to-blue-700 text-white mb-6">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row gap-8 items-center">
+                      <div className="w-full md:w-1/3">
+                        <h3 className="text-2xl font-bold mb-4 text-center md:text-left">
+                          Silver Plus Memberships
+                        </h3>
+                        <div className="text-yellow-300 text-sm mb-4 text-center md:text-left">
+                          Limited Time Offer
+                        </div>
+                        <div className="bg-black/30 p-4 rounded-lg">
+                          <SilverPlusCounter />
+                        </div>
+                      </div>
+                      <div className="w-full md:w-2/3">
+                        <h4 className="font-semibold text-yellow-300 text-lg mb-3">
+                          Silver Plus Referral & Compensation
+                        </h4>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                            <span>One Year of Flame Flix Subscription in Phase 6</span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                            <span>
+                              <b>10%</b> discount site wide forever from all Dimes Only related products and services.
+                            </span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                            <span>Get Overrides from Strippers and Exotics</span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                            <span>
+                              Earn <b>20%</b> of tips from all your strippers & exotics.
+                            </span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                            <span>
+                              Earn <b>10%</b> override from your referrals' purchases of all products & services
+                            </span>
+                          </li>
+                          <li className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
+                            <span>View nude photos & videos from strippers & exotics</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                  <TabsTrigger
-                    value="notifications"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <Bell className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Notifications</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="earnings"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <DollarSign className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Earnings</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="messages"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <MessageCircle className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Messages</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="media"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <Camera className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Media</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="jackpot"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <Trophy className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Jackpot</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="referrals"
-                    className="group flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4 rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-50 data-[state=active]:to-purple-50 data-[state=active]:border-pink-300"
-                  >
-                    <Users className="w-5 h-5 text-gray-600" />
-                    <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase">Referrals</span>
-                  </TabsTrigger>
-                </TabsList>
+            {userData && (
+              <div className="mb-6">
+                <SilverPlusMembership
+                  userData={userData}
+                  onMembershipUpdate={(updatedData) =>
+                    setUserData((prev) => ({ ...prev, ...updatedData }))
+                  }
+                />
               </div>
+            )}
 
-              <CardContent className={getPaddingClasses()}>
-                <TabsContent value="profile" className="mt-0">
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <div className="lg:col-span-1">
-                      <ProfileSidebar
-                        userData={userData}
-                        referrerData={null}
-                        onImageUpload={(file) =>
-                          handleImageUpload(file, "profile")
-                        }
-                      />
-                    </div>
-                    <div className="lg:col-span-3">
-                      <ProfileInfo
-                        userData={userData}
-                        onUpdate={updateUserData}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
+            <Card className="mb-6 overflow-hidden">
+              <DashboardBanner
+                bannerPhoto={userData.banner_photo}
+                userData={userData}
+                onImageUpload={(file) => handleImageUpload(file, "banner")}
+              />
+            </Card>
 
-                <TabsContent value="notifications" className="mt-0">
-                  <UserNotificationsTab />
-                </TabsContent>
+            <div className="my-6 flex justify-center">
+              <Button
+                asChild
+                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
+                aria-label="Upgrade Membership"
+              >
+                <a href="/upgrade">Upgrade Membership</a>
+              </Button>
+            </div>
 
-                <TabsContent value="earnings" className="mt-0">
-                  <UserEarningsTab userData={userData} />
-                </TabsContent>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-1">
+                <ProfileSidebar
+                  userData={userData}
+                  referrerData={null}
+                  onImageUpload={(file) => handleImageUpload(file, "profile")}
+                />
+              </div>
+              <div className="lg:col-span-3">
+                <ProfileInfo userData={userData} onUpdate={updateUserData} />
+              </div>
+            </div>
+          </>
+        );
+      case "make-money":
+        return <UserMakeMoneyTab />;
+      case "notifications":
+        return <UserNotificationsTab />;
+      case "earnings":
+        return <UserEarningsTab userData={userData} />;
+      case "messages":
+        return <UserDirectMessagesTab />;
+      case "media":
+        return <UserMediaUploadTab userData={userData} onUpdate={updateUserData} />;
+      case "jackpot":
+        return <UserJackpotTab userData={userData} />;
+      case "referrals":
+        return <UserReferralsTab />;
+      default:
+        return null;
+    }
+  };
 
-                <TabsContent value="messages" className="mt-0">
-                  <UserDirectMessagesTab />
-                </TabsContent>
-
-                <TabsContent value="media" className="mt-0">
-                  <UserMediaUploadTab
-                    userData={userData}
-                    onUpdate={updateUserData}
-                  />
-                </TabsContent>
-
-                <TabsContent value="makemoney" className="mt-0">
-                  <UserMakeMoneyTab />
-                </TabsContent>
-
-                <TabsContent value="jackpot" className="mt-0">
-                  <UserJackpotTab userData={userData} />
-                </TabsContent>
-
-                <TabsContent value="referrals" className="mt-0">
-                  <UserReferralsTab />
-                </TabsContent>
-              </CardContent>
-            </Tabs>
-          </Card>
-        </div>
-      </div>
-    </AuthGuard>
+  return (
+    <DashboardSectionLayout
+      title={SLUG_TITLES[slug]}
+      username={userData.username}
+      profilePhoto={userData.profile_photo}
+    >
+      {renderSection()}
+    </DashboardSectionLayout>
   );
 };
 
