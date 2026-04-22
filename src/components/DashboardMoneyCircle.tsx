@@ -117,14 +117,22 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
           )}
 
           {hasMore && (
-            <Button
-              onClick={() => setExpanded((v) => !v)}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-            >
-              {expanded
-                ? "Hide Full Money Circle"
-                : "To See Your Full Money Circle - Click Here"}
-            </Button>
+            <>
+              <Button
+                onClick={() => setExpanded((v) => !v)}
+                className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+              >
+                {expanded
+                  ? "Hide Full Money Circle"
+                  : "To See Your Full Money Circle - Click Here"}
+              </Button>
+              <Button
+                onClick={() => navigate("/dashboard/referrals")}
+                className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+              >
+                Click Here for Full Details on Your Team
+              </Button>
+            </>
           )}
         </>
       ) : (
