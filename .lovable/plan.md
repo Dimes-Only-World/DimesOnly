@@ -1,33 +1,37 @@
 
 
-## Add "My Money Circle" section under the dashboard video
+## Move "My Money Circle" to under the dashboard hero video
 
-Place a new "My Money Circle" block directly under the promo video (the `<p>` paragraph showing `shareMessage`) in `src/components/UserMakeMoneyTab.tsx`, above the Download Promo Video button.
+The previous implementation placed the "My Money Circle" block inside the Make Money tab content. The user wants it on the main dashboard page itself, directly under the hero video (`DashboardVideoHeader`), visible immediately when landing on `/dashboard`.
 
-### Behavior
+### Changes
 
-**If `referrals.length >= 1`:**
-- Heading: `My Money Circle` (centered, bold)
-- Snapchat-style row of the **last 3 referrals**:
-  - Circular avatar (`w-16 h-16 rounded-full`) with thick purple ring (`ring-4 ring-purple-500 ring-offset-2`)
-  - Uses `profile_photo`, falls back to first letter of username inside a colored circle
-  - Username below avatar (`text-xs font-semibold mt-2 truncate max-w-[80px]`)
-  - Centered horizontal flex row with gap
-- Button: `To See Your Full Money Circle` / `Click Here` → smooth-scrolls to the existing referrals list section (anchor `#full-money-circle`)
+**1. Remove the block from `src/components/UserMakeMoneyTab.tsx`**
+- Delete the "My Money Circle" card I added previously (the gradient block between the share message and the Download Promo Video button).
+- Keep all referral fetching and share logic untouched.
 
-**If `referrals.length === 0`:**
-- Heading: `My Money Circle`
-- Text: `No One Yet!`
-- Button: `Get Your Referral Link` / `Click Here` → smooth-scrolls to the Referral Link card (anchor `#referral-link-section`)
+**2. Create new component `src/components/DashboardMoneyCircle.tsx`**
+- Self-contained component that:
+  - Accepts `userId` prop
+  - Fetches referrals via `supabase.rpc("get_my_referrals")`
+  - Renders the same UI block (heading "My Money Circle", Snapchat-style ring avatars for last 3 referrals + usernames, or "No One Yet!" empty state)
+  - Buttons navigate to the Make Money tab using `react-router` `useNavigate("/dashboard")` + a `?tab=makemoney` query param OR scroll target. Since tabs are in-page state, the simplest path is: dispatch a custom event or use a callback. Cleanest: accept an `onViewAll` and `onGetLink` callback prop and let parent handle tab switching.
 
-### Implementation details
+**3. Edit `src/components/UserDashboard.tsx`**
+- Import `DashboardMoneyCircle`.
+- Render it inside the container, directly after the `DashboardVideoHeader` wrapper (around line 459, before `DiamondPlusPopup`).
+- Pass `userId={userData.id}`.
+- For navigation buttons, switch the active Tabs value to the Make Money tab. This requires checking the existing `Tabs` `value`/`defaultValue` setup further down in the file. If the tabs use `defaultValue` only, convert to controlled `value`+`onValueChange` so the buttons can switch tabs programmatically.
 
-1. Reuse existing `referrals` state (already loaded via `get_my_referrals` RPC). No new fetch.
-2. `lastThreeReferrals = referrals.slice(0, 3)` (sort by `created_at` desc first to be safe).
-3. Add `id="referral-link-section"` to the existing Share Card and `id="full-money-circle"` to the existing Referrals section wrapper.
-4. Buttons use `document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })`.
-5. No new files, no new dependencies, no DB or backend changes.
+### Visual design (matches existing approved style)
+- Container: `max-w-md mx-auto mb-6 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200`
+- Heading: `text-xl font-bold text-purple-700 mb-4` centered
+- Avatars: `w-16 h-16 rounded-full ring-4 ring-purple-500 ring-offset-2 overflow-hidden`
+- Username: `text-xs font-semibold mt-2 truncate max-w-[80px]`
+- Buttons: `bg-purple-600 hover:bg-purple-700 text-white w-full`
 
-### File to edit
-- `src/components/UserMakeMoneyTab.tsx`
+### Files
+- Edit: `src/components/UserMakeMoneyTab.tsx` (remove the block)
+- Create: `src/components/DashboardMoneyCircle.tsx`
+- Edit: `src/components/UserDashboard.tsx` (mount component + wire tab switching)
 
