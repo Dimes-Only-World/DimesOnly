@@ -1,38 +1,43 @@
 
 
-## Give each dashboard tab its own URL
+## Add a "Referrals" tab containing "Your Referrals"
 
-Each section (Profile, Make Money, Notifications, Earnings, Messages, Media, Jackpot) becomes a directly linkable route. The dashboard layout (header, hero video, money circle, banner, upgrade button, tab bar) stays identical — only the active section changes based on the URL.
+Add an 8th dashboard tab called **Referrals** with its own URL `/dashboard/referrals`, move the "Your Referrals" list (filters + grid + pagination + DM modal) out of the Make Money tab, and leave Make Money focused purely on share/promo.
 
-### New routes
+### New tab + route
+- URL: `/dashboard/referrals` (works automatically — `App.tsx` already routes `/dashboard/:tab`).
+- Add to slug maps in `UserDashboard.tsx`:
+  - `SLUG_TO_TAB`: `"referrals": "referrals"`
+  - `TAB_TO_SLUG`: `"referrals": "referrals"`
+- Add an 8th `<TabsTrigger value="referrals">` styled identically to the others (Users icon from lucide-react, label "REFERRALS").
+- Add `<TabsContent value="referrals"><UserReferralsTab /></TabsContent>`.
+- Tab grid stays responsive — bump `lg:grid-cols-7` to `lg:grid-cols-8`.
 
-| URL | Section |
-|---|---|
-| `/dashboard` | redirects to `/dashboard/profile` |
-| `/dashboard/profile` | Profile |
-| `/dashboard/make-money` | Make Money |
-| `/dashboard/notifications` | Notifications |
-| `/dashboard/earnings` | Earnings |
-| `/dashboard/messages` | Messages |
-| `/dashboard/media` | Media |
-| `/dashboard/jackpot` | Jackpot |
+### New component: `src/components/UserReferralsTab.tsx`
+Self-contained, lifted directly from `UserMakeMoneyTab.tsx`. Contains:
+- `actualUsername` fetch (for the "Checking referrals for: …" line)
+- `fetchReferrals` via `supabase.rpc("get_my_referrals")`
+- `usernameFilter` / `cityFilter` / `stateFilter` state + `ReferralFilters`
+- "Your Referrals (count)" header + Refresh button
+- Paginated grid of `ReferralCard`s (100/page, Previous/Next)
+- `DirectMessageModal` wiring (Message button on each card)
+- Empty state: "NO REFERRALS YET?" + prompt to share link
 
-### Implementation
+### Trim `UserMakeMoneyTab.tsx`
+Remove from the file:
+- The "Your Referrals" header block (`#full-money-circle` div with the heading + Refresh button + filters)
+- The referral list / loading / empty-state / pagination block
+- `DirectMessageModal` and its open/recipient state
+- Unused state: `referrals`, `filteredReferrals`, `loading`, `currentPage`, `usernameFilter`, `cityFilter`, `stateFilter`, `isMessageModalOpen`, `selectedRecipientUsername`, `actualUsername` and their effects/handlers (`fetchReferrals`, `filterReferrals`, `fetchActualUserData`, pagination memos)
+- Unused imports: `ReferralCard`, `ReferralFilters`, `DirectMessageModal`
+- Keep: page header, share message block, Download Promo button, Referral Link card with all share buttons (these are the "share/get followers" tools — unchanged).
+- `shareLink` will read username straight from `user` context (or refetch) so the page still works without the referrals query.
 
-1. **`src/App.tsx`** — replace the single `/dashboard` route with:
-   - `/dashboard` → redirect (`<Navigate to="/dashboard/profile" replace />`)
-   - `/dashboard/:tab` → `<Dashboard />`
-
-2. **`src/components/UserDashboard.tsx`**
-   - Read the active tab from `useParams<{ tab: string }>()` instead of local `useState`.
-   - Validate against an allow-list `["profile","make-money","notifications","earnings","messages","media","jackpot"]`; unknown values fall back to `profile`.
-   - Map URL slug `make-money` ↔ internal Tabs value `makemoney` (keep existing TabsContent values, or rename them all to match the URL — will rename to keep things consistent: `make-money`, etc.).
-   - On `Tabs.onValueChange`, call `navigate(/dashboard/${newValue})` instead of `setActiveTab`.
-   - `DashboardMoneyCircle`'s `onViewAll` / `onGetLink` callbacks navigate to `/dashboard/make-money` instead of mutating local state.
-
-3. **Deep-link friendly** — refreshing or sharing any `/dashboard/<section>` URL lands the user directly on that section. SPA fallback already handles deep links on Lovable hosting.
+### MoneyCircle "View All" target
+- Change `DashboardMoneyCircle`'s `onViewAll` and `onGetLink` in `UserDashboard.tsx` from `/dashboard/make-money` → `/dashboard/referrals` (referrals list is the natural destination).
 
 ### Files
-- Edit: `src/App.tsx` (route change)
-- Edit: `src/components/UserDashboard.tsx` (URL-driven tab state + navigation)
+- New: `src/components/UserReferralsTab.tsx`
+- Edit: `src/components/UserDashboard.tsx` (slug maps, 8th tab trigger + content, grid-cols-8, MoneyCircle nav targets)
+- Edit: `src/components/UserMakeMoneyTab.tsx` (remove referrals list, filters, DM modal, related state/imports)
 
