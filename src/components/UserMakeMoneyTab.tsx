@@ -45,6 +45,17 @@ const UserMakeMoneyTab: React.FC = () => {
     if (user?.id) fetchActualUserData();
   }, [user?.id, fetchActualUserData]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#referral-link") {
+      const t = setTimeout(() => {
+        document
+          .getElementById("referral-link-section")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   const copyToClipboard = useCallback(
     async (text: string) => {
       try {

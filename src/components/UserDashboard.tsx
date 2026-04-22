@@ -493,7 +493,7 @@ const UserDashboard: React.FC = () => {
           <DashboardMoneyCircle
             userId={userData.id}
             onViewAll={() => navigate("/dashboard/referrals")}
-            onGetLink={() => navigate("/dashboard/referrals")}
+            onGetLink={() => navigate("/dashboard/make-money#referral-link")}
           />
         </div>
 
