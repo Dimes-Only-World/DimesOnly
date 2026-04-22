@@ -1,48 +1,33 @@
 
-Goal: make the second video use the exact same control style as the first video the user is pointing to on `/register`.
 
-What I found:
-- The explainer videos inside `RegistrationFormFields.tsx` already use `BannerVideo`.
-- The uploaded preview videos inside `FileUploadField.tsx` also already use `BannerVideo`.
-- But the bottom video on `/register` is not using `BannerVideo` at all. In `src/pages/Register.tsx` lines 622-631, it is rendered with a plain native `<video controls>` element.
-- That means there are currently two different players on the page:
-  1. `BannerVideo` custom player
-  2. native browser `<video controls>` player
-- So the reason they “look nothing alike” is simple: they are not the same component.
+## Add "My Money Circle" section under the dashboard video
 
-Implementation plan:
-1. Edit `src/pages/Register.tsx`
-   - Replace the plain bottom `<video controls>` block with `<BannerVideo />`
-   - Use the same source URL currently hardcoded there
-   - Keep `loop={false}` so behavior matches the explainer-style player
+Place a new "My Money Circle" block directly under the promo video (the `<p>` paragraph showing `shareMessage`) in `src/components/UserMakeMoneyTab.tsx`, above the Download Promo Video button.
 
-2. Add the missing import in `src/pages/Register.tsx`
-   - Import `BannerVideo` from `@/components/BannerVideo`
+### Behavior
 
-3. Keep `src/components/FileUploadField.tsx` as-is for now
-   - It already uses `BannerVideo`
-   - No extra control-style work is needed there unless the user later wants the remove button repositioned
+**If `referrals.length >= 1`:**
+- Heading: `My Money Circle` (centered, bold)
+- Snapchat-style row of the **last 3 referrals**:
+  - Circular avatar (`w-16 h-16 rounded-full`) with thick purple ring (`ring-4 ring-purple-500 ring-offset-2`)
+  - Uses `profile_photo`, falls back to first letter of username inside a colored circle
+  - Username below avatar (`text-xs font-semibold mt-2 truncate max-w-[80px]`)
+  - Centered horizontal flex row with gap
+- Button: `To See Your Full Money Circle` / `Click Here` → smooth-scrolls to the existing referrals list section (anchor `#full-money-circle`)
 
-Expected result:
-- The bottom `/register` video will no longer use browser-native controls
-- It will render with the same custom centered play button, bottom bar, seek slider, mute, time, and fullscreen controls as the explainer video player
+**If `referrals.length === 0`:**
+- Heading: `My Money Circle`
+- Text: `No One Yet!`
+- Button: `Get Your Referral Link` / `Click Here` → smooth-scrolls to the Referral Link card (anchor `#referral-link-section`)
 
-Technical details:
-- Current mismatch source:
-  - `src/components/RegistrationFormFields.tsx` → `BannerVideo`
-  - `src/components/FileUploadField.tsx` → `BannerVideo`
-  - `src/pages/Register.tsx` bottom block → native `<video controls>`
-- Required change:
-```tsx
-{showVideo && (
-  <div className="mt-6 rounded-lg overflow-hidden">
-    <BannerVideo
-      src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Copy+of+Explain+form+confirm+FINAL.webm"
-      loop={false}
-    />
-  </div>
-)}
-```
+### Implementation details
 
-Files to edit:
-- `src/pages/Register.tsx`
+1. Reuse existing `referrals` state (already loaded via `get_my_referrals` RPC). No new fetch.
+2. `lastThreeReferrals = referrals.slice(0, 3)` (sort by `created_at` desc first to be safe).
+3. Add `id="referral-link-section"` to the existing Share Card and `id="full-money-circle"` to the existing Referrals section wrapper.
+4. Buttons use `document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })`.
+5. No new files, no new dependencies, no DB or backend changes.
+
+### File to edit
+- `src/components/UserMakeMoneyTab.tsx`
+
