@@ -271,6 +271,9 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
     if (isDiamondPlus) {
       return <Badge className="bg-yellow-500"><Crown className="w-3 h-3 mr-1" />Diamond+</Badge>;
     }
+    if (rawTier === 'diamond') {
+      return <Badge className="bg-gradient-to-r from-purple-500 to-pink-500"><Crown className="w-3 h-3 mr-1" />Diamond</Badge>;
+    }
     if (isSilverPlus) {
       return <Badge className="bg-gray-500"><Star className="w-3 h-3 mr-1" />Silver+</Badge>;
     }
