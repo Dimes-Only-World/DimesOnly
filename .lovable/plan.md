@@ -1,25 +1,32 @@
 
 
-## Fix Media page banner to show "Diamond Member" for Diamond users
+## Restore "Upgrade Now" button for Diamond members on Media page
 
-The banner at the top of `/dashboard/media` shows "Free Member" for a Diamond user because `getMembershipStatus()` in `UserMediaUploadTab.tsx` doesn't have a case for the plain `diamond` tier — it only checks `diamond_plus`, `silver_plus`, `gold`, and `silver`, then falls through to "Free".
+Diamond is a free badge automatically given to exotic/stripper users — it's not a paid tier. So Diamond members should still see the "Upgrade Now" button (pointing to Diamond Plus, the actual paid upgrade) just like Free members do.
+
+Currently, the Media page banner hides the "Upgrade Now" button for any tier that isn't `Free`. This needs to change so Diamond also shows it.
 
 ### Fix
 
-**`src/components/UserMediaUploadTab.tsx` — `getMembershipStatus()` (lines 23-39)**
+**`src/components/UserMediaUploadTab.tsx`**
 
-Add a `diamond` case after the `silver_plus` check:
+1. **Show "Upgrade Now" button for Diamond too** (currently only shows when `tier === 'Free'`):
+   - Change the condition from `membershipStatus.tier === 'Free'` to `membershipStatus.tier === 'Free' || membershipStatus.tier === 'Diamond'`.
+   - For Diamond users, route the button to `/upgrade-diamond` (Diamond Plus upgrade path). For Free users, keep existing `/upgrade-silver-plus` route.
 
-```ts
-if (rawTier === 'diamond') {
-  return { tier: 'Diamond', icon: <Crown className="w-5 h-5 text-purple-200" />, color: 'from-purple-500 to-pink-500' };
-}
-```
+2. **Subtitle text**:
+   - Free: keep existing "Upgrade to unlock more features and upload limits" (unchanged, per your earlier instruction).
+   - Diamond: show "Upgrade to Diamond Plus to unlock more features and upload limits".
+   - Other paid tiers (Silver, Silver Plus, Gold, Diamond Plus): keep existing "You have access to premium features and higher upload limits".
 
-Order: Diamond Plus → Silver Plus → **Diamond (new)** → Gold → Silver → Free.
+3. **Bottom "Unlock Premium Features" section**:
+   - Currently only renders for Free. Leave as-is for Free; do NOT show the Silver Plus / Diamond Plus comparison cards for Diamond users (they already have Diamond — the inline "Upgrade Now" button is enough).
 
-The existing banner subtitle logic already handles non-Free tiers correctly ("You have access to premium features and higher upload limits"), and the "Upgrade Now" button only shows for Free users — both stay unchanged. The Free-tier subtitle text "Upgrade to unlock more features and upload limits" is not modified.
+### Resulting behavior
+- Free user → "Free Member" badge + "Upgrade Now" button (→ Silver Plus) + bottom comparison cards.
+- Diamond user → "Diamond Member" badge + "Upgrade Now" button (→ Diamond Plus). No bottom cards.
+- Silver / Silver Plus / Gold / Diamond Plus → badge + "premium features" subtitle, no upgrade button.
 
 ### Files
-- Edit: `src/components/UserMediaUploadTab.tsx` (add `diamond` case to `getMembershipStatus`)
+- Edit: `src/components/UserMediaUploadTab.tsx`
 
