@@ -1,26 +1,36 @@
+## Fix Media page banner to show "Diamond Member" for Diamond users
 
-
-## Fix "Free" badge showing on Media page for Diamond members
-
-The Profile page correctly shows "Diamond Member", but the Media page shows "Free" for the same user. This is a logic gap in `MediaUploadSection.tsx`'s `getMembershipBadge()` function — it only recognizes `silver`, `gold`, `silver_plus`, and `diamond_plus`, but **not plain `diamond`** (the user's actual `membership_tier`). So Diamond members fall through to the default `Free` badge.
+The Media page banner currently shows "Free Member" with the subtitle "Upgrade to unlock more features and upload limits" for Diamond members. The badge fix already landed in `MediaUploadSection.tsx`, but the top banner in `UserMediaUploadTab.tsx` still falls through to the Free state because `getMembershipStatus()` doesn't recognize the plain `diamond` tier.
 
 ### Fix
 
-**`src/components/MediaUploadSection.tsx` — `getMembershipBadge()` (lines 266-284)**
+**`src/components/UserMediaUploadTab.tsx` — `getMembershipStatus()`**
 
-Add a case for `diamond` between the Diamond+ and Gold checks:
+Add a `diamond` case between the Diamond Plus and Gold checks:
 
 ```ts
 if (rawTier === 'diamond') {
-  return <Badge className="bg-gradient-to-r from-purple-500 to-pink-500"><Crown className="w-3 h-3 mr-1" />Diamond</Badge>;
+  return { 
+    tier: 'Diamond', 
+    icon: <Crown className="w-5 h-5 text-purple-300" />, 
+    color: 'from-purple-500 to-pink-500' 
+  };
 }
 ```
 
-Order: Diamond+ → **Diamond (new)** → Silver+ → Gold → Silver → Free.
+### Banner subtitle for Diamond
 
-### Bonus: align upload limits with tier
-While we're at line 86-100, Diamond members are likely expected to get the higher upload limits (260 photos / 48 videos) the same as Silver+/Diamond+. Currently `calculateUploadLimits` only bases limits on the selected `content_tier`, not the user's membership. The plan keeps current limit behavior unchanged unless you want me to expand it — confirm if you'd like the badge fix only, or also adjust limits for Diamond members.
+Update the subtitle conditional so Diamond members see:
+**"Upgrade to Diamond Plus to unlock more features and upload limits"**
+
+While Free members keep the existing exact text:
+**"Upgrade to unlock more features and upload limit"** (unchanged per user instruction)
+
+Other tiers (Silver, Gold, Silver Plus, Diamond Plus) keep the existing "premium features" message.
+
+### Upgrade button
+
+Show an "Upgrade Now" button for Diamond members too, routing to `/upgrade-diamond` (the Diamond Plus upgrade page). Free members keep their existing button to `/upgrade-silver-plus`.
 
 ### Files
-- Edit: `src/components/MediaUploadSection.tsx` (add `diamond` case to `getMembershipBadge`)
-
+- Edit: `src/components/UserMediaUploadTab.tsx` (add `diamond` case to `getMembershipStatus`, add Diamond-specific subtitle, show upgrade button for Diamond)
