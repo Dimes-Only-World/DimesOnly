@@ -1,20 +1,26 @@
 
 
-## Show "Full Team Details" button only when Money Circle is expanded
+## Fix "Free" badge showing on Media page for Diamond members
 
-Currently the "Click Here for Full Details on Your Team" button shows whenever there are more than 3 referrals (alongside the expand toggle). Move it so it only appears **after** the user clicks "To See Your Full Money Circle - Click Here", positioned directly under the "Hide Full Money Circle" button.
+The Profile page correctly shows "Diamond Member", but the Media page shows "Free" for the same user. This is a logic gap in `MediaUploadSection.tsx`'s `getMembershipBadge()` function — it only recognizes `silver`, `gold`, `silver_plus`, and `diamond_plus`, but **not plain `diamond`** (the user's actual `membership_tier`). So Diamond members fall through to the default `Free` badge.
 
-### Implementation
+### Fix
 
-**`src/components/DashboardMoneyCircle.tsx`**
-- Move the purple "Click Here for Full Details on Your Team" button so it renders only when `expanded && hasMore` is true.
-- Place it immediately after the expand/hide toggle button (which then reads "Hide Full Money Circle").
-- Keep existing styling (`bg-purple-600 hover:bg-purple-700 text-white rounded-lg mt-2`) and navigation to `/dashboard/referrals`.
+**`src/components/MediaUploadSection.tsx` — `getMembershipBadge()` (lines 266-284)**
 
-### Resulting behavior
-- Collapsed state (default): only "To See Your Full Money Circle - Click Here" is visible.
-- Expanded state: "Hide Full Money Circle" button shows, with "Click Here for Full Details on Your Team" directly beneath it.
+Add a case for `diamond` between the Diamond+ and Gold checks:
+
+```ts
+if (rawTier === 'diamond') {
+  return <Badge className="bg-gradient-to-r from-purple-500 to-pink-500"><Crown className="w-3 h-3 mr-1" />Diamond</Badge>;
+}
+```
+
+Order: Diamond+ → **Diamond (new)** → Silver+ → Gold → Silver → Free.
+
+### Bonus: align upload limits with tier
+While we're at line 86-100, Diamond members are likely expected to get the higher upload limits (260 photos / 48 videos) the same as Silver+/Diamond+. Currently `calculateUploadLimits` only bases limits on the selected `content_tier`, not the user's membership. The plan keeps current limit behavior unchanged unless you want me to expand it — confirm if you'd like the badge fix only, or also adjust limits for Diamond members.
 
 ### Files
-- Edit: `src/components/DashboardMoneyCircle.tsx` (relocate the team-details button inside the `expanded && hasMore` conditional)
+- Edit: `src/components/MediaUploadSection.tsx` (add `diamond` case to `getMembershipBadge`)
 
