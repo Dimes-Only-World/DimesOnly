@@ -54,17 +54,19 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
             <div>
               <h3 className="font-semibold text-lg">{membershipStatus.tier} Member</h3>
               <p className="text-sm opacity-90">
-                {membershipStatus.tier === 'Free' 
+                {membershipStatus.tier === 'Free'
                   ? 'Upgrade to unlock more features and upload limits'
+                  : membershipStatus.tier === 'Diamond'
+                  ? 'Upgrade to Diamond Plus to unlock more features and upload limits'
                   : 'You have access to premium features and higher upload limits'
                 }
               </p>
             </div>
           </div>
           
-          {membershipStatus.tier === 'Free' && (
+          {(membershipStatus.tier === 'Free' || membershipStatus.tier === 'Diamond') && (
             <Button 
-              onClick={() => navigate('/upgrade-silver-plus')}
+              onClick={() => navigate(membershipStatus.tier === 'Diamond' ? '/upgrade-diamond' : '/upgrade-silver-plus')}
               variant="secondary"
               className="bg-white text-gray-800 hover:bg-gray-100 font-semibold"
             >
