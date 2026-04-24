@@ -30,6 +30,9 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
     if (isSilverPlus) {
       return { tier: 'Silver Plus', icon: <Star className="w-5 h-5 text-yellow-400" />, color: 'from-yellow-500 to-yellow-600' };
     }
+    if (rawTier === 'diamond') {
+      return { tier: 'Diamond', icon: <Crown className="w-5 h-5 text-purple-300" />, color: 'from-purple-500 to-pink-500' };
+    }
     if (rawTier === 'gold') {
       return { tier: 'Gold', icon: <Crown className="w-5 h-5 text-orange-500" />, color: 'from-yellow-400 to-orange-500' };
     }
@@ -51,8 +54,10 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
             <div>
               <h3 className="font-semibold text-lg">{membershipStatus.tier} Member</h3>
               <p className="text-sm opacity-90">
-                {membershipStatus.tier === 'Free' 
-                  ? 'Upgrade to unlock more features and upload limits'
+                {membershipStatus.tier === 'Free'
+                  ? 'Upgrade to unlock more features and upload limit'
+                  : membershipStatus.tier === 'Diamond'
+                  ? 'Upgrade to Diamond Plus to unlock more features and upload limits'
                   : 'You have access to premium features and higher upload limits'
                 }
               </p>
@@ -62,6 +67,16 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
           {membershipStatus.tier === 'Free' && (
             <Button 
               onClick={() => navigate('/upgrade-silver-plus')}
+              variant="secondary"
+              className="bg-white text-gray-800 hover:bg-gray-100 font-semibold"
+            >
+              Upgrade Now
+            </Button>
+          )}
+
+          {membershipStatus.tier === 'Diamond' && (
+            <Button 
+              onClick={() => navigate('/upgrade-diamond')}
               variant="secondary"
               className="bg-white text-gray-800 hover:bg-gray-100 font-semibold"
             >
