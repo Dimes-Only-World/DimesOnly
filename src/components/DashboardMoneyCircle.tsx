@@ -76,8 +76,8 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const hasMore = remaining.length > 0;
 
   const renderAvatar = (ref: Referral) => (
-    <div key={ref.id} className="flex flex-col items-center">
-      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200 bg-blue-100 flex items-center justify-center">
+    <div key={ref.id} className="flex flex-col items-center min-w-0 w-full">
+      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200 bg-blue-100 flex items-center justify-center flex-shrink-0">
         {ref.profile_photo ? (
           <img
             src={ref.profile_photo}
@@ -90,7 +90,10 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
           </span>
         )}
       </div>
-      <p className="text-xs font-semibold mt-2 text-center truncate max-w-[80px] text-slate-900">
+      <p
+        className="text-xs font-semibold mt-2 text-center truncate text-slate-900 w-full max-w-[64px]"
+        title={ref.username}
+      >
         {ref.username}
       </p>
     </div>
