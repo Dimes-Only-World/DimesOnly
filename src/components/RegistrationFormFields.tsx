@@ -500,9 +500,9 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                         htmlFor="normal"
                         className="text-white font-medium cursor-pointer"
                       >
-                        Normal
+                        Normal Female
                       </Label>
-                      <p className="text-white/70 text-sm mt-1">
+                      <p className="text-white/70 text-sm mt-4">
                         Here just to make money!
                       </p>
                     </div>
