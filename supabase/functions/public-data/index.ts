@@ -29,7 +29,9 @@ serve(async (req) => {
       // Fetch public user profile by username
       case 'fetchProfile': {
         const { username } = params;
-        const normalizedUsername = String(username).trim().toLowerCase();
+        // Escape SQL LIKE wildcards from user input
+        const escapeWildcards = (s: string) => s.replace(/[%_\\]/g, '\\$&');
+        const normalizedUsername = escapeWildcards(String(username).trim().toLowerCase());
 
         // Try exact match first
         let { data, error } = await supabaseAdmin
@@ -48,6 +50,7 @@ serve(async (req) => {
           data = res.data;
           error = res.error;
         }
+
 
         // Try contains match
         if (!data) {
@@ -108,13 +111,34 @@ serve(async (req) => {
         break;
       }
 
-      // Fetch full user data by ID (for custom auth users)
+      // Fetch user data by ID — requires authenticated JWT matching userId.
+      // Sensitive columns (password_hash, hash_type) are NEVER returned.
       case 'getUserById': {
         const { userId } = params;
-        console.log(`Fetching user by ID: ${userId}`);
+        const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
+        let callerId: string | null = null;
+        if (authHeader?.startsWith('Bearer ')) {
+          const token = authHeader.replace('Bearer ', '');
+          const { data: userRes } = await supabaseAdmin.auth.getUser(token);
+          callerId = userRes?.user?.id ?? null;
+        }
+        if (!callerId || callerId !== userId) {
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        // Explicit allowlist — exclude password_hash, hash_type, and other secrets
         const { data, error } = await supabaseAdmin
           .from('users')
-          .select('*')
+          .select(`
+            id, username, email, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo,
+            user_type, gender, city, state, zip, address, phone_number, mobile_number, date_of_birth,
+            membership_type, membership_tier, silver_plus_active, silver_plus_joined_at,
+            silver_plus_membership_number, diamond_plus_active, paypal_email, referred_by,
+            tips_earned, referral_fees, referral_earnings, event_total_earnings,
+            is_active, is_ranked, rank_number, created_at, updated_at
+          `)
           .eq('id', userId)
           .maybeSingle();
         if (error) throw error;
@@ -122,11 +146,23 @@ serve(async (req) => {
         break;
       }
 
-      // Fetch user earnings data (for user's own dashboard)
+      // Fetch user earnings data — requires authenticated JWT matching userId
       case 'fetchUserEarnings': {
         const { userId } = params;
-        
-        // Tips received by user
+        const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
+        let callerId: string | null = null;
+        if (authHeader?.startsWith('Bearer ')) {
+          const token = authHeader.replace('Bearer ', '');
+          const { data: userRes } = await supabaseAdmin.auth.getUser(token);
+          callerId = userRes?.user?.id ?? null;
+        }
+        if (!callerId || callerId !== userId) {
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         const { data: tips, error: tipsError } = await supabaseAdmin
           .from('tips')
           .select('*')
@@ -134,14 +170,12 @@ serve(async (req) => {
           .order('created_at', { ascending: false });
         if (tipsError) throw tipsError;
 
-        // Tickets owned
         const { data: tickets, error: ticketsError } = await supabaseAdmin
           .from('tickets')
           .select('*')
           .eq('user_Id', userId);
         if (ticketsError) throw ticketsError;
 
-        // Current jackpot
         const { data: jackpot, error: jackpotError } = await supabaseAdmin
           .from('jackpot')
           .select('amount')
@@ -152,6 +186,7 @@ serve(async (req) => {
         result = { tips, tickets, jackpot };
         break;
       }
+
 
       default:
         return new Response(

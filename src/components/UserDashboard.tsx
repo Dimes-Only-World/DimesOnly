@@ -81,18 +81,13 @@ const UserDashboard: React.FC = () => {
 
   const fetchUserViaEdgeFunction = async (userId: string): Promise<boolean> => {
     try {
-      const response = await fetch(
-        "https://qkcuykpndrolrewwnkwb.supabase.co/functions/v1/public-data",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "getUserById", userId }),
-        }
-      );
-      if (!response.ok) return false;
-      const result = await response.json();
-      if (result.data) {
-        setUserData(result.data);
+      // Use the SDK so the user's JWT is automatically forwarded
+      const { data: response, error } = await supabase.functions.invoke('public-data', {
+        body: { action: 'getUserById', userId },
+      });
+      if (error) return false;
+      if (response?.data) {
+        setUserData(response.data);
         setLoading(false);
         return true;
       }
@@ -102,6 +97,7 @@ const UserDashboard: React.FC = () => {
       return false;
     }
   };
+
 
   const getCurrentUser = async () => {
     try {
