@@ -464,7 +464,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                       >
                         Exotic
                       </Label>
-                      <p className="text-white/70 text-sm mt-1">
+                      <p className="text-white/70 text-sm mt-4">
                         Here to make more money than normal.
                       </p>
                     </div>
@@ -483,7 +483,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                       >
                         Stripper
                       </Label>
-                      <p className="text-white/70 text-sm mt-1">
+                      <p className="text-white/70 text-sm mt-4">
                         Here to be on the reality show Housing Angels.
                       </p>
                     </div>
