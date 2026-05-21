@@ -12,64 +12,63 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { userId, newPassword, adminKey } = await req.json();
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Simple admin key check for security
-    if (adminKey !== 'dimesonly-admin-2024') {
+    // Require a valid Supabase JWT belonging to an admin user
+    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+    const callerId = userRes?.user?.id;
+    if (userErr || !callerId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { data: isAdmin, error: adminErr } = await supabase.rpc('check_admin_by_user_id', { _user_id: callerId });
+    if (adminErr || !isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden: admin only' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!userId || !newPassword) {
-      return new Response(JSON.stringify({ error: 'userId and newPassword are required' }), {
+    const { userId, newPassword } = await req.json();
+    if (!userId || !newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      return new Response(JSON.stringify({ error: 'userId and newPassword (min 8 chars) are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Hash the password with bcrypt
     const salt = bcrypt.genSaltSync(10);
     const passwordHash = bcrypt.hashSync(newPassword, salt);
 
-    console.log('Generated hash for user:', userId);
-    console.log('Hash starts with:', passwordHash.substring(0, 10));
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Update the user's password
     const { data, error } = await supabase
       .from('users')
-      .update({ 
-        password_hash: passwordHash,
-        hash_type: 'bcrypt'
-      })
+      .update({ password_hash: passwordHash, hash_type: 'bcrypt' })
       .eq('id', userId)
       .select('id, username, email');
 
     if (error) {
-      console.error('Update error:', error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Password updated successfully for:', data);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: 'Password updated successfully',
-      user: data?.[0]
-    }), {
+    return new Response(JSON.stringify({ success: true, user: data?.[0] }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (err) {
-    console.error('Error:', err);
     const message = err instanceof Error ? err.message : 'Unknown error';
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
