@@ -29,7 +29,9 @@ serve(async (req) => {
       // Fetch public user profile by username
       case 'fetchProfile': {
         const { username } = params;
-        const normalizedUsername = String(username).trim().toLowerCase();
+        // Escape SQL LIKE wildcards from user input
+        const escapeWildcards = (s: string) => s.replace(/[%_\\]/g, '\\$&');
+        const normalizedUsername = escapeWildcards(String(username).trim().toLowerCase());
 
         // Try exact match first
         let { data, error } = await supabaseAdmin
@@ -48,6 +50,7 @@ serve(async (req) => {
           data = res.data;
           error = res.error;
         }
+
 
         // Try contains match
         if (!data) {
