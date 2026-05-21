@@ -453,25 +453,6 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                 >
                   <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                     <RadioGroupItem
-                      value="normal"
-                      id="normal"
-                      className="border-white/40 text-blue-400 mt-1"
-                    />
-                    <div className="flex-1">
-                      <Label
-                        htmlFor="normal"
-                        className="text-white font-medium cursor-pointer"
-                      >
-                        Normal
-                      </Label>
-                      <p className="text-white/70 text-sm mt-1">
-                        Here just to make money!
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                    <RadioGroupItem
                       value="exotic"
                       id="exotic"
                       className="border-white/40 text-blue-400 mt-1"
@@ -504,6 +485,25 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                       </Label>
                       <p className="text-white/70 text-sm mt-1">
                         Here to be on the reality show Housing Angels.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                    <RadioGroupItem
+                      value="normal"
+                      id="normal"
+                      className="border-white/40 text-blue-400 mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="normal"
+                        className="text-white font-medium cursor-pointer"
+                      >
+                        Normal
+                      </Label>
+                      <p className="text-white/70 text-sm mt-1">
+                        Here just to make money!
                       </p>
                     </div>
                   </div>
