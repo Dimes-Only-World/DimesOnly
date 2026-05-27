@@ -560,9 +560,7 @@ export const Register: React.FC = () => {
 
       const userType = formData.userType || '';
       const username = formData.username || 'company';
-      if (formData.gender === 'business_owner') {
-        navigate(`/dashboard`);
-      } else if (userType === 'stripper' || userType === 'exotic') {
+      if (userType === 'stripper' || userType === 'exotic') {
         navigate(`/events-dimes-only?ref=${encodeURIComponent(username)}`);
       } else {
         navigate(`/eventsdimes?ref=${encodeURIComponent(username)}`);
