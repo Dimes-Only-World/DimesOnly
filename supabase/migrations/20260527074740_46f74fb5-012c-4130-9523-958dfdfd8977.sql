@@ -1,0 +1,1 @@
+INSERT INTO public.page_videos (page_key, video_url) VALUES ('register_business_owner', 'https://www.w3schools.com/html/mov_bbb.mp4'), ('dashboard_business_owner', 'https://www.w3schools.com/html/mov_bbb.mp4') ON CONFLICT (page_key) DO NOTHING;
