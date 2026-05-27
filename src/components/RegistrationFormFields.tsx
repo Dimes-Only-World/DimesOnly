@@ -449,6 +449,13 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           </div>
         )}
 
+        {/* Business Owner explainer video */}
+        {formData.gender === "business_owner" && businessOwnerVideoUrl && (
+          <div className="mt-4 rounded-lg overflow-hidden">
+            <BannerVideo src={businessOwnerVideoUrl} loop={false} />
+          </div>
+        )}
+
         {showUserType && (
           <>
             <div className="space-y-4">
