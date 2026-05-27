@@ -100,6 +100,20 @@ serve(async (req) => {
       }
     }
 
+    // Capacity check for Business Owner Elite (100 seats)
+    if (tier === "business_owner_elite" || tier === "business_owner_elite_installment") {
+      const { data: boStats } = await supabase
+        .from("business_owner_elite_seat_stats")
+        .select("seats_available")
+        .single();
+      if (!boStats || (boStats as any).seats_available <= 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: "All 100 Business Owner Elite seats are taken", code: "SOLD_OUT" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 }
+        );
+      }
+    }
+
     // Update user's phone number
     const { error: phoneError } = await supabase
       .from("users")
