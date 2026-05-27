@@ -487,7 +487,7 @@ export const Register: React.FC = () => {
           state: formData.state,
           zip: formData.zip,
           gender: formData.gender,
-          userType: formData.userType || 'normal',
+          userType: formData.gender === 'business_owner' ? 'business_owner' : (formData.userType || 'normal'),
           referredBy: formData.referredBy && formData.referredBy.trim() !== "" 
             ? formData.referredBy 
             : "Company",
