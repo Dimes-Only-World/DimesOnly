@@ -231,6 +231,7 @@ Deno.serve(async (req) => {
           banner_photo: bannerPhotoUrl || null,
           front_page_photo: frontPagePhotoUrl || null,
           video_urls: videoUrls || [],
+          is_business_owner: isBusinessOwner,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])
