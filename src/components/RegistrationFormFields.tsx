@@ -398,12 +398,12 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
         <div className="space-y-2">
           <Label className="text-sm font-medium text-white">
-            Gender <span className="text-red-400">*</span>
+            How do you want to register? <span className="text-red-400">*</span>
           </Label>
           <RadioGroup
             value={formData.gender}
             onValueChange={handleInputChange("gender")}
-            className="flex gap-6"
+            className="flex flex-wrap gap-6"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem
@@ -423,6 +423,16 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
               />
               <Label htmlFor="female" className="text-white">
                 Female
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem
+                value="business_owner"
+                id="business_owner"
+                className="border-white/40 text-blue-400"
+              />
+              <Label htmlFor="business_owner" className="text-white">
+                Business Owner
               </Label>
             </div>
           </RadioGroup>
