@@ -53,12 +53,12 @@ const UserDashboard: React.FC = () => {
   const slug = tabParam || "profile";
   const isValidSlug = slug in SLUG_TITLES;
 
-  const isDimeUser = userData
-    ? ["stripper", "exotic"].includes((userData.user_type || "").toLowerCase())
-    : false;
-  const { videoUrl: heroVideoUrl } = usePageVideo(
-    isDimeUser ? "dashboard_dimes" : "dashboard_male"
-  );
+  const userType = (userData?.user_type || "").toLowerCase();
+  const isDimeUser = ["stripper", "exotic"].includes(userType);
+  const isBusinessOwner = userType === "business_owner" || (userData as any)?.is_business_owner === true;
+  const boEliteActive = (userData as any)?.business_owner_elite_active === true;
+  const heroKey = isBusinessOwner ? "dashboard_business_owner" : (isDimeUser ? "dashboard_dimes" : "dashboard_male");
+  const { videoUrl: heroVideoUrl } = usePageVideo(heroKey);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -422,6 +422,25 @@ const UserDashboard: React.FC = () => {
       username={userData.username}
       profilePhoto={userData.profile_photo}
     >
+      {isBusinessOwner && !boEliteActive && (
+        <div className="mb-4 rounded-lg border border-fuchsia-500/60 bg-gradient-to-r from-fuchsia-900/60 to-purple-900/60 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>
+            <div className="text-white font-semibold">Upgrade to Business Owner Elite</div>
+            <div className="text-fuchsia-200 text-sm">$15,000 lifetime — full access to every area of the site. Only 100 seats.</div>
+          </div>
+          <button
+            onClick={() => navigate("/business-owner-elite")}
+            className="px-5 py-2 rounded-md bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-semibold whitespace-nowrap"
+          >
+            Upgrade to Elite — $15,000
+          </button>
+        </div>
+      )}
+      {isBusinessOwner && boEliteActive && (
+        <div className="mb-4 rounded-lg border border-yellow-400/60 bg-black/40 px-4 py-2 text-yellow-300 text-sm font-semibold">
+          Business Owner Elite Member · Seat #{(userData as any)?.business_owner_elite_seat_number ?? "—"}
+        </div>
+      )}
       {renderSection()}
     </DashboardSectionLayout>
   );

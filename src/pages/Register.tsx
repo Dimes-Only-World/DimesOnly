@@ -487,7 +487,7 @@ export const Register: React.FC = () => {
           state: formData.state,
           zip: formData.zip,
           gender: formData.gender,
-          userType: formData.userType || 'normal',
+          userType: formData.gender === 'business_owner' ? 'business_owner' : (formData.userType || 'normal'),
           referredBy: formData.referredBy && formData.referredBy.trim() !== "" 
             ? formData.referredBy 
             : "Company",
@@ -560,7 +560,9 @@ export const Register: React.FC = () => {
 
       const userType = formData.userType || '';
       const username = formData.username || 'company';
-      if (userType === 'stripper' || userType === 'exotic') {
+      if (formData.gender === 'business_owner') {
+        navigate(`/dashboard`);
+      } else if (userType === 'stripper' || userType === 'exotic') {
         navigate(`/events-dimes-only?ref=${encodeURIComponent(username)}`);
       } else {
         navigate(`/eventsdimes?ref=${encodeURIComponent(username)}`);

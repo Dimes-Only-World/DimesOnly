@@ -40,6 +40,7 @@ import DimesPage from "./pages/Dimes";
 import Profile from "./pages/Profile";
 import SubscriptionsDebug from "./pages/SubscriptionsDebug";
 import Elite from "./pages/Elite";
+import BusinessOwnerElite from "./pages/BusinessOwnerElite";
 import ResetPassword from "./pages/ResetPassword";
 import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
@@ -133,6 +134,7 @@ function AppContent() {
       <Route path="/upgrade-gold" element={<UpgradeGold />} />
       <Route path="/upgrade-diamond-monthly" element={<UpgradeDiamondMonthly />} />
       <Route path="/elite" element={<Elite />} />
+      <Route path="/business-owner-elite" element={<BusinessOwnerElite />} />
       <Route path="/profile/:username" element={<Profile />} />
       <Route path="/payment-return" element={<PaymentStatusHandler />} />
       <Route path="/debug-subscription" element={<SubscriptionsDebug />} />

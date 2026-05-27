@@ -29,6 +29,45 @@ export type Database = {
         }
         Relationships: []
       }
+      business_owner_elite_seats: {
+        Row: {
+          created_at: string
+          id: string
+          last_payment_at: string | null
+          lifetime_granted_at: string | null
+          months_paid_count: number
+          seat_number: number | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_payment_at?: string | null
+          lifetime_granted_at?: string | null
+          months_paid_count?: number
+          seat_number?: number | null
+          started_at?: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_payment_at?: string | null
+          lifetime_granted_at?: string | null
+          months_paid_count?: number
+          seat_number?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       commission_payouts: {
         Row: {
           amount: number
@@ -2532,6 +2571,9 @@ export type Database = {
           approval_status: string | null
           banner_photo: string | null
           bio: string | null
+          business_owner_elite_active: boolean
+          business_owner_elite_granted_at: string | null
+          business_owner_elite_seat_number: number | null
           city: string | null
           created_at: string | null
           date_of_birth: string | null
@@ -2549,6 +2591,7 @@ export type Database = {
           hash_type: string | null
           id: string
           is_active: boolean
+          is_business_owner: boolean
           is_ranked: boolean | null
           last_name: string | null
           liked_by: string | null
@@ -2593,6 +2636,9 @@ export type Database = {
           approval_status?: string | null
           banner_photo?: string | null
           bio?: string | null
+          business_owner_elite_active?: boolean
+          business_owner_elite_granted_at?: string | null
+          business_owner_elite_seat_number?: number | null
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -2610,6 +2656,7 @@ export type Database = {
           hash_type?: string | null
           id?: string
           is_active?: boolean
+          is_business_owner?: boolean
           is_ranked?: boolean | null
           last_name?: string | null
           liked_by?: string | null
@@ -2654,6 +2701,9 @@ export type Database = {
           approval_status?: string | null
           banner_photo?: string | null
           bio?: string | null
+          business_owner_elite_active?: boolean
+          business_owner_elite_granted_at?: string | null
+          business_owner_elite_seat_number?: number | null
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -2671,6 +2721,7 @@ export type Database = {
           hash_type?: string | null
           id?: string
           is_active?: boolean
+          is_business_owner?: boolean
           is_ranked?: boolean | null
           last_name?: string | null
           liked_by?: string | null
@@ -2781,6 +2832,14 @@ export type Database = {
       }
     }
     Views: {
+      business_owner_elite_seat_stats: {
+        Row: {
+          seats_available: number | null
+          seats_max: number | null
+          seats_taken: number | null
+        }
+        Relationships: []
+      }
       elite_seat_stats: {
         Row: {
           seats_available: number | null

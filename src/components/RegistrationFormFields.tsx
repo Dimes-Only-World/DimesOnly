@@ -116,6 +116,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   const { videoUrl: femaleNormalVideoUrl } = usePageVideo("register_female_normal");
   const { videoUrl: femaleExoticVideoUrl } = usePageVideo("register_female_exotic");
   const { videoUrl: femaleStripperVideoUrl } = usePageVideo("register_female_stripper");
+  const { videoUrl: businessOwnerVideoUrl } = usePageVideo("register_business_owner");
 
   const videoSlotLabels = ["Normal video", "Normal or Nude video", "Normal or X-rated video"];
 
@@ -445,6 +446,13 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
         {formData.gender === "male" && maleVideoUrl && (
           <div className="mt-4 rounded-lg overflow-hidden">
             <BannerVideo src={maleVideoUrl} loop={false} />
+          </div>
+        )}
+
+        {/* Business Owner explainer video */}
+        {formData.gender === "business_owner" && businessOwnerVideoUrl && (
+          <div className="mt-4 rounded-lg overflow-hidden">
+            <BannerVideo src={businessOwnerVideoUrl} loop={false} />
           </div>
         )}
 

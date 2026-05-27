@@ -170,10 +170,11 @@ Deno.serve(async (req) => {
     const password_hash = bcrypt.hashSync(password, salt);
 
     // Determine membership tier based on gender and user type
+    const isBusinessOwner = gender === 'business_owner';
     const isFemaleDiamond = gender === 'female' && (userType === 'exotic' || userType === 'stripper');
-    const membershipTier = isFemaleDiamond ? 'diamond' : 'free';
-    const membershipType = isFemaleDiamond ? 'diamond' : 'free';
-    const effectiveUserType = userType || 'normal';
+    const membershipTier = isBusinessOwner ? 'silver' : (isFemaleDiamond ? 'diamond' : 'free');
+    const membershipType = isBusinessOwner ? 'silver' : (isFemaleDiamond ? 'diamond' : 'free');
+    const effectiveUserType = isBusinessOwner ? 'business_owner' : (userType || 'normal');
     const effectiveReferredBy = referredBy && referredBy.trim() !== '' ? referredBy : 'Company';
 
     // Create Supabase Auth user
@@ -230,6 +231,7 @@ Deno.serve(async (req) => {
           banner_photo: bannerPhotoUrl || null,
           front_page_photo: frontPagePhotoUrl || null,
           video_urls: videoUrls || [],
+          is_business_owner: isBusinessOwner,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])

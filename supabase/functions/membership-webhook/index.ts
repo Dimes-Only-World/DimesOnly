@@ -494,6 +494,75 @@ async function activateMembership(supabase: any, upgrade: any) {
       }
     }
 
+    // Business Owner Elite: $15,000 lifetime — grant seat (max 100)
+    if (tier === "business_owner_elite" || tier === "business_owner_elite_installment") {
+      // For installment, only activate on the first payment
+      const isInstallment = tier === "business_owner_elite_installment";
+      const { data: existingSeat } = await supabase
+        .from("business_owner_elite_seats")
+        .select("id, seat_number, status, months_paid_count")
+        .eq("user_id", upgrade.user_id)
+        .maybeSingle();
+
+      if (existingSeat) {
+        const newCount = (existingSeat.months_paid_count || 0) + 1;
+        const reachedLifetime = isInstallment ? newCount >= 12 : true;
+        await supabase
+          .from("business_owner_elite_seats")
+          .update({
+            months_paid_count: newCount,
+            status: reachedLifetime ? "lifetime" : "monthly_active",
+            lifetime_granted_at: reachedLifetime ? new Date().toISOString() : null,
+            last_payment_at: new Date().toISOString(),
+          })
+          .eq("id", existingSeat.id);
+      } else {
+        // Capacity check
+        const { data: stats } = await supabase
+          .from("business_owner_elite_seat_stats")
+          .select("seats_available")
+          .single();
+        if (!stats || (stats as any).seats_available <= 0) {
+          console.error("Business Owner Elite seats full; cannot assign seat");
+        } else {
+          // Find smallest available seat 1..100
+          const { data: currentSeats } = await supabase
+            .from("business_owner_elite_seats")
+            .select("seat_number")
+            .in("status", ["monthly_active", "lifetime"]);
+          const taken = new Set<number>((currentSeats || []).map((r: any) => r.seat_number).filter((n: number) => !!n));
+          let s = 1;
+          while (s <= 100 && taken.has(s)) s++;
+          const seatNumber = s <= 100 ? s : null;
+
+          if (seatNumber == null) {
+            console.error("No seat number available for Business Owner Elite");
+          } else {
+            const grantsLifetimeNow = !isInstallment;
+            await supabase.from("business_owner_elite_seats").insert({
+              user_id: upgrade.user_id,
+              status: grantsLifetimeNow ? "lifetime" : "monthly_active",
+              months_paid_count: 1,
+              seat_number: seatNumber,
+              lifetime_granted_at: grantsLifetimeNow ? new Date().toISOString() : null,
+              last_payment_at: new Date().toISOString(),
+            });
+
+            await supabase.from("users").update({
+              business_owner_elite_active: true,
+              business_owner_elite_seat_number: seatNumber,
+              business_owner_elite_granted_at: new Date().toISOString(),
+            }).eq("id", upgrade.user_id);
+          }
+        }
+      }
+      // Force tier label on user
+      userPayload.membership_tier = "business_owner_elite";
+      userPayload.membership_type = "Business Owner Elite";
+      userPayload.business_owner_elite_active = true;
+    }
+
+
     const { data: user, error: userUpdateError } = await supabase
       .from("users")
       .update(userPayload)
