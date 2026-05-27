@@ -144,6 +144,8 @@ serve(async (req) => {
       gold: cadence === "yearly" ? "Gold Membership - Yearly" : "Gold Membership - Monthly",
       diamond: cadence === "yearly" ? "Diamond Membership - Yearly" : "Diamond Membership - Monthly",
       elite: "Elite Membership - Lifetime",
+      business_owner_elite: "Business Owner Elite - Lifetime ($15,000)",
+      business_owner_elite_installment: "Business Owner Elite - 12-Month Plan (First Payment)",
     };
     const description = tierDescriptions[tier] || `${tier} Membership`;
 
