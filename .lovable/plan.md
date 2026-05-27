@@ -1,27 +1,14 @@
-## Goal
-On the registration form, when "Business Owner" is selected, show the explanation video and treat the user the same as "Male" on completing registration.
+## Problem
+The "Business Owner" radio is selected but no explainer video appears. `RegistrationFormFields.tsx` reads the video URL via `usePageVideo("register_business_owner")`, which pulls from the `page_videos` DB table. No row exists for that key (only `register_male` etc. were seeded), so `businessOwnerVideoUrl` is empty and the `<BannerVideo>` block is skipped.
 
-## Current state
-- The explainer video for Business Owner already renders (`RegistrationFormFields.tsx`, lines 452-457) using the `register_business_owner` page video slot, the same pattern Male uses (lines 446-450). No change needed there.
-- On submit (`Register.tsx`, lines 561-569), Business Owner is currently redirected to `/dashboard`, while Male falls through to `/eventsdimes?ref={username}`.
+## Fix
+Add a Supabase migration that inserts default `page_videos` rows for the two BO keys already wired in code:
 
-## Change
-In `src/pages/Register.tsx`, remove the special `business_owner` branch so Business Owner falls into the same `else` path as Male:
+- `register_business_owner` → placeholder URL (same sample used for `register_male` until admin uploads the real one)
+- `dashboard_business_owner` → placeholder URL
 
-```text
-- if (formData.gender === 'business_owner') {
--   navigate(`/dashboard`);
-- } else if (userType === 'stripper' || userType === 'exotic') {
-+ if (userType === 'stripper' || userType === 'exotic') {
-    navigate(`/events-dimes-only?ref=${encodeURIComponent(username)}`);
-  } else {
-    navigate(`/eventsdimes?ref=${encodeURIComponent(username)}`);
-  }
-```
-
-Everything else (edge function payload already sends `userType: 'business_owner'`, the BO Elite gating elsewhere, dashboard banner logic) stays untouched.
+Use `ON CONFLICT (page_key) DO NOTHING` so existing/edited rows aren't overwritten. Admin can swap the URL anytime via the existing Banner Video tab.
 
 ## Out of scope
-- No DB changes
-- No edge function changes
-- No changes to Elite upgrade flow, profile page, or admin video manager
+- No frontend changes (component logic already handles BO correctly once a URL exists).
+- No edge function or registration flow changes.
