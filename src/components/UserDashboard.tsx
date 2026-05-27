@@ -53,12 +53,12 @@ const UserDashboard: React.FC = () => {
   const slug = tabParam || "profile";
   const isValidSlug = slug in SLUG_TITLES;
 
-  const isDimeUser = userData
-    ? ["stripper", "exotic"].includes((userData.user_type || "").toLowerCase())
-    : false;
-  const { videoUrl: heroVideoUrl } = usePageVideo(
-    isDimeUser ? "dashboard_dimes" : "dashboard_male"
-  );
+  const userType = (userData?.user_type || "").toLowerCase();
+  const isDimeUser = ["stripper", "exotic"].includes(userType);
+  const isBusinessOwner = userType === "business_owner" || (userData as any)?.is_business_owner === true;
+  const boEliteActive = (userData as any)?.business_owner_elite_active === true;
+  const heroKey = isBusinessOwner ? "dashboard_business_owner" : (isDimeUser ? "dashboard_dimes" : "dashboard_male");
+  const { videoUrl: heroVideoUrl } = usePageVideo(heroKey);
 
   useEffect(() => {
     const loadUserData = async () => {
