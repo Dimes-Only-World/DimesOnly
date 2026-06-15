@@ -286,7 +286,7 @@ serve(async (req) => {
       const { data: refUser, error: refErr } = await supabase
         .from("users")
         .select("id")
-        .eq("username", referrerUsername)
+        .ilike("username", referrerUsername)
         .maybeSingle();
 
       if (refErr) {
