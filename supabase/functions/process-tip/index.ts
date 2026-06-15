@@ -217,8 +217,8 @@ serve(async (req) => {
     const { data: tippedUser, error: tippedErr } = await supabase
       .from("users")
       .select("id, username, referred_by")
-      .eq("username", tipped_username)
-      .single();
+      .ilike("username", tipped_username)
+      .maybeSingle();
 
     if (tippedErr || !tippedUser) {
       throw new Error("Tipped user not found");
@@ -242,7 +242,7 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from("users")
         .select("id, username, referred_by")
-        .eq("username", cleaned)
+        .ilike("username", cleaned)
         .maybeSingle();
 
       if (error) {
@@ -286,7 +286,7 @@ serve(async (req) => {
       const { data: refUser, error: refErr } = await supabase
         .from("users")
         .select("id")
-        .eq("username", referrerUsername)
+        .ilike("username", referrerUsername)
         .maybeSingle();
 
       if (refErr) {
