@@ -242,7 +242,7 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from("users")
         .select("id, username, referred_by")
-        .eq("username", cleaned)
+        .ilike("username", cleaned)
         .maybeSingle();
 
       if (error) {
