@@ -217,8 +217,8 @@ serve(async (req) => {
     const { data: tippedUser, error: tippedErr } = await supabase
       .from("users")
       .select("id, username, referred_by")
-      .eq("username", tipped_username)
-      .single();
+      .ilike("username", tipped_username)
+      .maybeSingle();
 
     if (tippedErr || !tippedUser) {
       throw new Error("Tipped user not found");
