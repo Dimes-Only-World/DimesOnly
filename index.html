@@ -72,6 +72,15 @@
   gtag('js', new Date());
   gtag('config', 'G-Z6XX851W8E');
 </script>
+<script>
+  window.addEventListener('load', function () {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref && typeof gtag === 'function') {
+      gtag('event', 'referral_visit', { ref_username: ref });
+    }
+  });
+</script>
   </head>
 
   <body>
