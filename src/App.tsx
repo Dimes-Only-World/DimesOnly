@@ -150,6 +150,7 @@ function AppContent() {
 
   return (
     <div className="App">
+      <GARefTracker />
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (
