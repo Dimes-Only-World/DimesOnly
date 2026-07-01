@@ -14,8 +14,9 @@ const GARefTracker: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref && typeof window.gtag === "function") {
-      window.gtag("event", "page_view", {
-        page_path: location.pathname + "?ref=" + ref,
+      window.gtag("event", "referral_visit", {
+        ref_username: ref,
+        page_path: location.pathname,
       });
     }
   }, [location.pathname, location.search]);

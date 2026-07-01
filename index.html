@@ -78,7 +78,6 @@
     const ref = params.get('ref');
     if (ref && typeof gtag === 'function') {
       gtag('event', 'referral_visit', { ref_username: ref });
-      gtag('event', 'page_view', { page_path: '/?ref=' + ref });
     }
   });
 </script>
