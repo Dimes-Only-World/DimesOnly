@@ -45,6 +45,7 @@ import ResetPassword from "./pages/ResetPassword";
 import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
+import GARefTracker from "./components/GARefTracker";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
