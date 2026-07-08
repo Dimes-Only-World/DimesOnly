@@ -80,21 +80,16 @@ const Login: React.FC = () => {
 
       const userData = result.user;
 
-      // Also sign in with Supabase Auth if it's an email login for session management
-      if (isEmail(identifier)) {
-        await supabase.auth.signInWithPassword({
-          email: identifier,
-          password: password,
-        });
-      } else if (userData.email) {
-        // Try to sign in with the user's email for session management
-        await supabase.auth.signInWithPassword({
-          email: userData.email,
-          password: password,
-        }).catch(() => {
-          // Silently ignore if Supabase Auth sync fails - edge function auth is primary
-          console.log('Supabase Auth session sync skipped');
-        });
+      // Fire-and-forget Supabase Auth sync so it doesn't block navigation.
+      // Custom auth (users table + edge function) is primary; the Supabase
+      // session is only used opportunistically for RLS-protected reads.
+      const emailForAuth = isEmail(identifier) ? identifier : userData.email;
+      if (emailForAuth) {
+        supabase.auth
+          .signInWithPassword({ email: emailForAuth, password })
+          .catch(() => {
+            console.log('Supabase Auth session sync skipped');
+          });
       }
 
       const user = {
