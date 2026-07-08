@@ -60,6 +60,40 @@ const UserDashboard: React.FC = () => {
   const heroKey = isBusinessOwner ? "dashboard_business_owner" : (isDimeUser ? "dashboard_dimes" : "dashboard_male");
   const { videoUrl: heroVideoUrl } = usePageVideo(heroKey);
 
+  // Seed userData immediately from sessionStorage so the dashboard renders
+  // instantly after login (no spinner while we wait on network).
+  useEffect(() => {
+    if (userData) return;
+    try {
+      const cached = sessionStorage.getItem("userData");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.id) {
+          // Map camelCase context shape -> snake_case row shape used here
+          const seeded: any = {
+            ...parsed,
+            first_name: parsed.first_name ?? parsed.firstName,
+            last_name: parsed.last_name ?? parsed.lastName,
+            user_type: parsed.user_type ?? parsed.userType,
+            profile_photo: parsed.profile_photo ?? parsed.profilePhoto,
+            banner_photo: parsed.banner_photo ?? parsed.bannerPhoto,
+            mobile_number: parsed.mobile_number ?? parsed.mobileNumber,
+            membership_type: parsed.membership_type ?? parsed.membershipType,
+            tips_earned: parsed.tips_earned ?? parsed.tipsEarned,
+            referral_fees: parsed.referral_fees ?? parsed.referralFees,
+            weekly_hours: parsed.weekly_hours ?? parsed.weeklyHours,
+            is_ranked: parsed.is_ranked ?? parsed.isRanked,
+            rank_number: parsed.rank_number ?? parsed.rankNumber,
+          };
+          setUserData(seeded as UserData);
+          setLoading(false);
+        }
+      }
+    } catch (e) {
+      console.error("Error seeding userData from sessionStorage:", e);
+    }
+  }, []);
+
   useEffect(() => {
     const loadUserData = async () => {
       const authToken = localStorage.getItem("authToken");
@@ -72,7 +106,7 @@ const UserDashboard: React.FC = () => {
         } else {
           await fetchUserDataById(user.id);
         }
-      } else {
+      } else if (!userData) {
         await getCurrentUser();
       }
     };
@@ -97,6 +131,8 @@ const UserDashboard: React.FC = () => {
       return false;
     }
   };
+
+
 
 
   const getCurrentUser = async () => {
