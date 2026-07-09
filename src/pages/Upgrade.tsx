@@ -276,8 +276,8 @@ const UpgradePageInner: React.FC = () => {
                         {isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>}
                         {(isSilverPlusLock || isDiamondPlusLock) && <Badge variant="secondary" className="bg-gray-700 text-white">Lifetime Plus</Badge>}
                       </div>
-                      <CardDescription className="text-3xl font-bold text-white">
-                        ${displayPrice(pkg.id).toFixed(2)}
+                      <CardDescription className="text-3xl font-bold text-white whitespace-pre-line">
+                        ${displayPrice(pkg.id).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         <span className="block text-xs text-gray-300 mt-1">
                           {cadence === 'yearly' ? 'per year' : 'per month'}
                         </span>
