@@ -213,7 +213,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         </p>
       </div>
 
-      <div className="relative">
+      <div className="relative mx-auto max-w-7xl">
         <button
           type="button"
           onClick={() => scrollByCards(-1)}
@@ -234,8 +234,9 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-4 py-2 scrollbar-hide scroll-smooth snap-x snap-mandatory"
+          className="flex gap-6 overflow-x-auto px-4 py-2 scroll-smooth snap-x snap-mandatory justify-start md:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
+
           {performers.map((performer) => (
             <div
               key={performer.id}
