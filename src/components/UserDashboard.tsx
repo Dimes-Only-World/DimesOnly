@@ -15,6 +15,7 @@ import UserMediaUploadTab from "./UserMediaUploadTab";
 import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserReferralsTab from "./UserReferralsTab";
 import UserJackpotTab from "./UserJackpotTab";
+import Top20DimesCarousel from "./Top20DimesCarousel";
 import DiamondPlusButton from "./DiamondPlusButton";
 import DiamondPlusPopup from "./DiamondPlusPopup";
 import SilverPlusMembership from "./SilverPlusMembership";
@@ -504,6 +505,7 @@ const UserDashboard: React.FC = () => {
       username={userData.username}
       profilePhoto={userData.profile_photo}
     >
+      <Top20DimesCarousel />
       {isBusinessOwner && !boEliteActive && (
         <div className="mb-4 rounded-lg border border-fuchsia-500/60 bg-gradient-to-r from-fuchsia-900/60 to-purple-900/60 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
