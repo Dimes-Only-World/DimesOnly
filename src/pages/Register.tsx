@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
 import RotatingBackground from "@/components/RotatingBackground";
 import BannerVideo from "@/components/BannerVideo";
+import LatestDimesCarousel from "@/components/LatestDimesCarousel";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
