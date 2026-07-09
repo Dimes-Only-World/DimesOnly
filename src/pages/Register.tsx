@@ -599,7 +599,7 @@ export const Register: React.FC = () => {
                 )} border-b border-white/20`}
               >
                 <h1 className="text-4xl font-bold text-white font-inter tracking-tight">
-                  Join Dimes Only Below
+                  Join Dimes Below
                 </h1>
                 <p className="text-white/80 mt-2 font-inter">
                   Create your account and start your journey
