@@ -6,86 +6,91 @@ interface AuthGuardProps {
   children: React.ReactNode;
 }
 
+const hasLocalSession = (): string | null => {
+  const authToken = localStorage.getItem("authToken");
+  const userData = sessionStorage.getItem("userData");
+  if (authToken && userData) {
+    try {
+      const parsed = JSON.parse(userData);
+      return parsed?.id || null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // Optimistic: if we have a local session, render immediately.
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    return hasLocalSession() ? true : null;
+  });
 
   useEffect(() => {
-    const checkAuth = async () => {
+    let cancelled = false;
+
+    const validate = async () => {
       try {
-        let userId: string | null = null;
+        let userId: string | null = hasLocalSession();
 
-        // First, check for Supabase Auth session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          userId = session.user.id;
-        }
-        
-        // Fallback: Check for custom auth token from users table login
         if (!userId) {
-          const authToken = localStorage.getItem("authToken");
-          const userData = sessionStorage.getItem("userData");
-          
-          if (authToken && userData) {
-            try {
-              const parsed = JSON.parse(userData);
-              userId = parsed.id || null;
-            } catch {
-              userId = null;
-            }
+          // Fall back to Supabase session
+          const { data: { session } } = await supabase.auth.getSession();
+          userId = session?.user?.id ?? null;
+        }
+
+        if (!userId) {
+          if (!cancelled) {
+            setIsAuthenticated(false);
+            navigate('/login');
           }
-        }
-
-        if (!userId) {
-          setIsAuthenticated(false);
-          navigate('/login');
           return;
         }
 
-        // Check if user account is still active
-        const { data: userRecord, error: userError } = await supabase
+        // Ensure children render while we validate is_active in background
+        if (!cancelled) setIsAuthenticated(true);
+
+        // Background is_active check - only force logout on explicit false
+        const { data: userRecord, error } = await supabase
           .from('users')
           .select('is_active')
           .eq('id', userId)
           .single();
 
-        if (userError || !userRecord || userRecord.is_active === false) {
-          console.log('User account is deactivated or not found, forcing logout');
+        if (cancelled) return;
+
+        if (!error && userRecord && userRecord.is_active === false) {
+          console.log('User account is deactivated, forcing logout');
           localStorage.removeItem("authToken");
           sessionStorage.removeItem("userData");
           sessionStorage.removeItem("currentUser");
           await supabase.auth.signOut().catch(() => {});
           setIsAuthenticated(false);
           navigate('/login');
-          return;
         }
-
-        setIsAuthenticated(true);
       } catch (error) {
         console.error('Auth check error:', error);
-        setIsAuthenticated(false);
-        navigate('/login');
+        // Don't force-logout on transient network errors if we have a local session
+        if (!hasLocalSession() && !cancelled) {
+          setIsAuthenticated(false);
+          navigate('/login');
+        }
       }
     };
 
-    checkAuth();
+    validate();
 
-    // Listen for Supabase auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        // Also clear custom auth on Supabase signout
         localStorage.removeItem("authToken");
         sessionStorage.removeItem("userData");
         sessionStorage.removeItem("currentUser");
         setIsAuthenticated(false);
         navigate('/login');
-      } else if (session) {
-        setIsAuthenticated(true);
       }
     });
 
-    // Listen for storage changes (for custom auth logout)
     const handleStorageChange = () => {
       const authToken = localStorage.getItem("authToken");
       const userData = sessionStorage.getItem("userData");
@@ -94,16 +99,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         navigate('/login');
       }
     };
-
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [navigate]);
 
-  // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -112,7 +116,6 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     );
   }
 
-  // Only render children if authenticated
   if (!isAuthenticated) {
     return null;
   }
