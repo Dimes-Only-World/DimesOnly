@@ -31,6 +31,63 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 
 type UserData = Tables<"users">;
 
+type StoredDashboardUser = Partial<UserData> & {
+  firstName?: string;
+  lastName?: string;
+  userType?: string;
+  profilePhoto?: string;
+  bannerPhoto?: string;
+  mobileNumber?: string;
+  membershipType?: string;
+  tipsEarned?: number;
+  referralFees?: number;
+  weeklyHours?: number;
+  isRanked?: boolean;
+  rankNumber?: number;
+};
+
+const normalizeStoredUser = (raw: StoredDashboardUser | null | undefined): UserData | null => {
+  if (!raw?.id) return null;
+
+  return {
+    ...raw,
+    id: String(raw.id),
+    username: String(raw.username || ""),
+    email: String(raw.email || ""),
+    first_name: raw.first_name ?? raw.firstName ?? null,
+    last_name: raw.last_name ?? raw.lastName ?? null,
+    user_type: raw.user_type ?? raw.userType ?? null,
+    profile_photo: raw.profile_photo ?? raw.profilePhoto ?? null,
+    banner_photo: raw.banner_photo ?? raw.bannerPhoto ?? null,
+    mobile_number: raw.mobile_number ?? raw.mobileNumber ?? null,
+    membership_type: raw.membership_type ?? raw.membershipType ?? null,
+    membership_tier: raw.membership_tier ?? raw.membershipType ?? null,
+    tips_earned: raw.tips_earned ?? raw.tipsEarned ?? 0,
+    referral_fees: raw.referral_fees ?? raw.referralFees ?? 0,
+    overrides: raw.overrides ?? 0,
+    weekly_hours: raw.weekly_hours ?? raw.weeklyHours ?? 0,
+    is_ranked: raw.is_ranked ?? raw.isRanked ?? false,
+    rank_number: raw.rank_number ?? raw.rankNumber ?? null,
+    gender: raw.gender ?? null,
+    address: raw.address ?? null,
+    city: raw.city ?? null,
+    state: raw.state ?? null,
+    zip: raw.zip ?? null,
+  } as UserData;
+};
+
+const readStoredUser = (): UserData | null => {
+  if (typeof window === "undefined") return null;
+  const savedUserData = sessionStorage.getItem("userData");
+  if (!savedUserData) return null;
+  try {
+    return normalizeStoredUser(JSON.parse(savedUserData));
+  } catch (error) {
+    console.error("Error parsing saved dashboard user:", error);
+    return null;
+  }
+};
+
 const SLUG_TITLES: Record<string, string> = {
   profile: "Profile",
   "make-money": "Make Money",
@@ -43,9 +100,10 @@ const SLUG_TITLES: Record<string, string> = {
 };
 
 const UserDashboard: React.FC = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
+  const initialUserData = normalizeStoredUser(user as StoredDashboardUser | null) || readStoredUser();
+  const [userData, setUserData] = useState<UserData | null>(initialUserData);
+  const [loading, setLoading] = useState(!initialUserData);
   const { toast } = useToast();
   const { isMobile } = useMobileLayout();
   const navigate = useNavigate();
@@ -61,22 +119,39 @@ const UserDashboard: React.FC = () => {
   const { videoUrl: heroVideoUrl } = usePageVideo(heroKey);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadUserData = async () => {
+      const localUserData = normalizeStoredUser(user as StoredDashboardUser | null) || readStoredUser();
+      if (localUserData) {
+        setUserData((prev) => prev ?? localUserData);
+        setLoading(false);
+      }
+
       const authToken = localStorage.getItem("authToken");
       const isCustomAuth =
         authToken === "authenticated" || authToken?.startsWith("authenticated_");
+      const userId = user?.id || localUserData?.id;
 
-      if (user?.id) {
+      if (userId) {
         if (isCustomAuth) {
-          await fetchUserViaEdgeFunction(user.id);
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!cancelled && session?.user?.id === userId) {
+            await fetchUserViaEdgeFunction(userId);
+          }
+          if (!cancelled) setLoading(false);
         } else {
-          await fetchUserDataById(user.id);
+          await fetchUserDataById(userId, { showLoading: !localUserData });
         }
       } else {
         await getCurrentUser();
       }
     };
     loadUserData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   const fetchUserViaEdgeFunction = async (userId: string): Promise<boolean> => {
@@ -85,16 +160,20 @@ const UserDashboard: React.FC = () => {
       const { data: response, error } = await supabase.functions.invoke('public-data', {
         body: { action: 'getUserById', userId },
       });
-      if (error) return false;
+      if (error) {
+        console.error("Error fetching user via edge function:", error);
+        return false;
+      }
       if (response?.data) {
         setUserData(response.data);
-        setLoading(false);
         return true;
       }
       return false;
     } catch (error) {
       console.error("Error fetching user via edge function:", error);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,9 +206,12 @@ const UserDashboard: React.FC = () => {
     }
   };
 
-  const fetchUserDataById = async (userId: string): Promise<boolean> => {
+  const fetchUserDataById = async (
+    userId: string,
+    options: { showLoading?: boolean } = {}
+  ): Promise<boolean> => {
     try {
-      setLoading(true);
+      if (options.showLoading ?? !userData) setLoading(true);
       const { data, error } = await supabase
         .from("users")
         .select("*")
