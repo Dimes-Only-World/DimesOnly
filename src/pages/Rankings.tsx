@@ -186,10 +186,10 @@ const Rankings: React.FC = () => {
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 px-4">
           <Button
             onClick={() => setSelectedType("all")}
-            className={`px-6 py-3 font-semibold ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
               selectedType === "all"
                 ? "bg-yellow-500 text-black hover:bg-yellow-600"
                 : "bg-white/10 text-white hover:bg-white/20"
@@ -199,7 +199,7 @@ const Rankings: React.FC = () => {
           </Button>
           <Button
             onClick={() => setSelectedType("stripper")}
-            className={`px-6 py-3 font-semibold ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
               selectedType === "stripper"
                 ? "bg-pink-500 text-white hover:bg-pink-600"
                 : "bg-white/10 text-white hover:bg-white/20"
@@ -209,7 +209,7 @@ const Rankings: React.FC = () => {
           </Button>
           <Button
             onClick={() => setSelectedType("exotic")}
-            className={`px-6 py-3 font-semibold ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
               selectedType === "exotic"
                 ? "bg-purple-500 text-white hover:bg-purple-600"
                 : "bg-white/10 text-white hover:bg-white/20"
