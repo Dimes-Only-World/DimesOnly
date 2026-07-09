@@ -208,8 +208,10 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
           Latest 20 <span className="text-[#E916D1]">Dimes</span> to Join
         </h2>
-        <p className="text-base md:text-lg text-gray-300">
-          See More Inside · Baddies Joining Daily
+        <p className="text-base md:text-lg text-gray-300 whitespace-pre-line">
+          See More Inside{"\n"}
+          Baddies Joining Daily{"\n"}
+          Click a Dime to Preview
         </p>
       </div>
 
