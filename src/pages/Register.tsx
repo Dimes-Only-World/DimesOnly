@@ -603,7 +603,17 @@ export const Register: React.FC = () => {
                 <p className="text-white/80 mt-2 font-inter">
                   Create your account and start your journey
                 </p>
+                <p className="text-sm text-white/80 mt-3">
+                  Already have an account?{" "}
+                  <a
+                    href="/login"
+                    className="text-blue-300 hover:text-blue-200 underline"
+                  >
+                    Sign in here
+                  </a>
+                </p>
               </div>
+
 
               <div className={getPaddingClasses("p-8")}>
                 <form onSubmit={handleSubmit} className="space-y-6">
