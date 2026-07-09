@@ -181,7 +181,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
         <div className="space-y-2">
           <Label htmlFor="dateOfBirth" className="text-sm font-medium text-white">
-            Date of Birth <span className="text-red-400">*</span>
+            Date of Birth <span className="text-red-400">*</span> (Must be 18 Years or Older)
           </Label>
           <Input
             id="dateOfBirth"
