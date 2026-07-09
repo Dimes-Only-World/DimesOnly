@@ -15,6 +15,7 @@ import UserMediaUploadTab from "./UserMediaUploadTab";
 import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserReferralsTab from "./UserReferralsTab";
 import UserJackpotTab from "./UserJackpotTab";
+import Top20DimesCarousel from "./Top20DimesCarousel";
 import DiamondPlusButton from "./DiamondPlusButton";
 import DiamondPlusPopup from "./DiamondPlusPopup";
 import SilverPlusMembership from "./SilverPlusMembership";
