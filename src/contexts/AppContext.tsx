@@ -228,6 +228,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user]);
 
   // Handle Supabase auth state changes (simplified)
+  const userIdRef = React.useRef<string | null>(null);
+  useEffect(() => {
+    userIdRef.current = user?.id || null;
+  }, [user?.id]);
+
   useEffect(() => {
     const {
       data: { subscription },
@@ -237,23 +242,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (event === "SIGNED_OUT") {
         console.log("User signed out, clearing user data");
         setUser(null);
-      } else if (event === "SIGNED_IN" && !user) {
-        // Re-trigger initialization for new sign-ins (e.g. after registration)
-        const savedUserData = sessionStorage.getItem("userData");
-        if (savedUserData) {
-          try {
-            const parsed = JSON.parse(savedUserData);
-            console.log("Auth state SIGNED_IN: loading user from sessionStorage");
-            setUser(parsed);
-          } catch (e) {
-            console.error("Error parsing userData on SIGNED_IN:", e);
+        return;
+      }
+
+      if (event === "SIGNED_IN") {
+        const sessionUserId = session?.user?.id;
+        // Skip if we already have this user set - avoids double-load on login
+        if (sessionUserId && userIdRef.current === sessionUserId) {
+          return;
+        }
+        if (!userIdRef.current) {
+          const savedUserData = sessionStorage.getItem("userData");
+          if (savedUserData) {
+            try {
+              const parsed = JSON.parse(savedUserData);
+              console.log("Auth state SIGNED_IN: loading user from sessionStorage");
+              setUser(parsed);
+            } catch (e) {
+              console.error("Error parsing userData on SIGNED_IN:", e);
+            }
           }
         }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []); // Remove user dependency to avoid infinite loops
+  }, []);
 
   return (
     <AppContext.Provider
