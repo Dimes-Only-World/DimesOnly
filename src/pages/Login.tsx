@@ -80,23 +80,6 @@ const Login: React.FC = () => {
 
       const userData = result.user;
 
-      // Also sign in with Supabase Auth if it's an email login for session management
-      if (isEmail(identifier)) {
-        await supabase.auth.signInWithPassword({
-          email: identifier,
-          password: password,
-        });
-      } else if (userData.email) {
-        // Try to sign in with the user's email for session management
-        await supabase.auth.signInWithPassword({
-          email: userData.email,
-          password: password,
-        }).catch(() => {
-          // Silently ignore if Supabase Auth sync fails - edge function auth is primary
-          console.log('Supabase Auth session sync skipped');
-        });
-      }
-
       const user = {
         id: userData.id,
         username: userData.username,
@@ -121,19 +104,31 @@ const Login: React.FC = () => {
         rankNumber: userData.rank_number,
       };
 
-      setUser(user);
-
-      // Store auth token
+      // Store auth token FIRST so AuthGuard sees it immediately
       localStorage.setItem("authToken", result.token || "authenticated");
       sessionStorage.setItem("currentUser", userData.username);
       sessionStorage.setItem("userData", JSON.stringify(user));
+
+      setUser(user);
 
       toast({
         title: "Login Successful!",
         description: `Welcome back, ${userData.username}!`,
       });
 
+      // Navigate immediately - don't wait for Supabase Auth sync
       navigate("/dashboard", { replace: true });
+
+      // Fire-and-forget: sync Supabase Auth session in the background
+      const emailForSync = isEmail(identifier) ? identifier : userData.email;
+      if (emailForSync) {
+        supabase.auth.signInWithPassword({
+          email: emailForSync,
+          password: password,
+        }).catch(() => {
+          console.log('Supabase Auth session sync skipped');
+        });
+      }
     } catch (error) {
       console.error("Login error:", error);
       const errorMessage =
