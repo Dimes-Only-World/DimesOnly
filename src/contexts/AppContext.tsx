@@ -220,12 +220,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     if (user) {
       sessionStorage.setItem("userData", JSON.stringify(user));
       sessionStorage.setItem("currentUser", user.username);
-    } else {
+    } else if (initialized && !loading) {
       sessionStorage.removeItem("userData");
       sessionStorage.removeItem("currentUser");
       localStorage.removeItem("authToken");
     }
-  }, [user]);
+  }, [user, initialized, loading]);
 
   // Handle Supabase auth state changes (simplified)
   const userIdRef = React.useRef<string | null>(null);
