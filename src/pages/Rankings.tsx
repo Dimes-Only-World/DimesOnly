@@ -257,53 +257,63 @@ const Rankings: React.FC = () => {
                   ${isMobile ? "rounded-none mx-0" : ""}
                 `}
               >
-                <CardContent className={getPaddingClasses()}>
-                  <div className="flex items-center gap-6">
+                <CardContent className={getPaddingClasses("p-4 sm:p-6")}>
+                  <div className="flex items-center gap-3 sm:gap-6">
                     {/* Rank */}
                     <div className="flex-shrink-0 text-center">
                       <div
                         className={`
-                        w-16 h-16 rounded-full flex items-center justify-center
+                        w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center
                         ${getRankColor(user.rank)}
                       `}
                       >
                         {getRankIcon(user.rank)}
                       </div>
-                      <div className="mt-2 font-bold text-lg text-yellow-400">
+                      <div className="mt-1 sm:mt-2 font-bold text-sm sm:text-lg text-yellow-400">
                         #{user.rank}
                       </div>
                     </div>
 
                     {/* User Info */}
-                    <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
                       <img
                         src={user.profile_photo || "/placeholder.svg"}
                         alt={user.username}
-                        className="w-20 h-20 rounded-full object-cover border-2 border-yellow-400"
+                        className="w-12 h-12 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-yellow-400 flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-yellow-400 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-2xl font-bold text-yellow-400 mb-1 sm:mb-2 truncate">
                           @{user.username}
                         </h3>
-                        <div className="flex items-center gap-4 text-gray-300 text-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-gray-300 text-xs sm:text-sm">
                           <div className="flex items-center gap-1">
-                            <User size={14} />
+                            <User size={12} />
                             <span className="capitalize">{user.user_type}</span>
                           </div>
                           {user.city && user.state && (
-                            <div className="flex items-center gap-1">
-                              <MapPin size={14} />
-                              <span>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <MapPin size={12} className="flex-shrink-0" />
+                              <span className="truncate">
                                 {user.city}, {user.state}
                               </span>
                             </div>
                           )}
                         </div>
+                        {/* Stats inline on mobile */}
+                        <div className="sm:hidden mt-1 flex items-baseline gap-2">
+                          <span className="text-lg font-bold text-yellow-400">
+                            {user.total_score.toLocaleString()}
+                          </span>
+                          <span className="text-gray-300 text-xs">pts</span>
+                          <span className="text-gray-400 text-xs">
+                            · {user.rating_count} ratings
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="text-right">
+                    {/* Stats (desktop) */}
+                    <div className="hidden sm:block text-right flex-shrink-0">
                       <div className="text-3xl font-bold text-yellow-400 mb-1">
                         {user.total_score.toLocaleString()}
                       </div>
