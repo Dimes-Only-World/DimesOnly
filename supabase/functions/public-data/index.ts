@@ -136,8 +136,9 @@ serve(async (req) => {
             user_type, gender, city, state, zip, address, phone_number, mobile_number, date_of_birth,
             membership_type, membership_tier, silver_plus_active, silver_plus_joined_at,
             silver_plus_membership_number, diamond_plus_active, paypal_email, referred_by,
-            tips_earned, referral_fees, referral_earnings, event_total_earnings,
-            is_active, is_ranked, rank_number, created_at, updated_at
+            tips_earned, referral_fees, event_total_earnings,
+            is_active, is_ranked, rank_number, created_at, updated_at,
+            business_owner_elite_active, business_owner_elite_seat_number, business_owner_elite_granted_at
           `)
           .eq('id', userId)
           .maybeSingle();
