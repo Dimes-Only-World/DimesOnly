@@ -203,7 +203,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
   };
 
   return (
-    <section className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
+    <section className={`w-full bg-transparent py-10 ${className}`}>
       <div className="text-center mb-8">
         <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
           Latest 20 <span className="text-[#E916D1]">Dimes</span> to Join
@@ -213,7 +213,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         </p>
       </div>
 
-      <div className="relative">
+      <div className="relative mx-auto max-w-7xl">
         <button
           type="button"
           onClick={() => scrollByCards(-1)}
@@ -234,8 +234,9 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-4 py-2 scrollbar-hide scroll-smooth snap-x snap-mandatory"
+          className="flex gap-6 overflow-x-auto px-4 py-2 scroll-smooth snap-x snap-mandatory justify-start md:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
+
           {performers.map((performer) => (
             <div
               key={performer.id}
