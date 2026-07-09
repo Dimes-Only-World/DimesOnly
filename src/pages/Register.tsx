@@ -615,9 +615,11 @@ export const Register: React.FC = () => {
                 </p>
               </div>
 
+              <LatestDimesCarousel />
 
               <div className={getPaddingClasses("p-8")}>
                 <form onSubmit={handleSubmit} className="space-y-6">
+
                   <RegistrationFormFields
                     formData={formData}
                     errors={errors}
