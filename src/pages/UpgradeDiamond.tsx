@@ -491,8 +491,8 @@ const UpgradeDiamondPage: React.FC = () => {
                     Program Benefits:
                   </h3>
                   <ul className="text-blue-200 text-sm space-y-1 text-left">
-                    <li>• $200,000/year profit sharing</li>
-                    <li>• Bi weekly pay of up to $8,000 max</li>
+                    <li>• $150,000/year profit sharing</li>
+                    <li>• Bi weekly pay of up to $5,769.23 max</li>
                     <li>• Priority placement in rankings</li>
                     <li>• Access to exclusive events</li>
                     <li>• Direct support channel to CEO</li>
