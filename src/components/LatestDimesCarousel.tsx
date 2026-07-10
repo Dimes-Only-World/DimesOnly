@@ -205,10 +205,10 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
   return (
     <section className={`w-full bg-transparent py-10 ${className}`}>
       <div className="text-center mb-8">
-        <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
+        <h2 className="text-black text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
           Latest 20 <span className="text-[#E916D1]">Dimes</span> to Join
         </h2>
-        <p className="text-base md:text-lg text-gray-300 whitespace-pre-line">
+        <p className="text-base md:text-lg text-black whitespace-pre-line">
           See More Inside{"\n"}
           Baddies Joining Daily
         </p>
