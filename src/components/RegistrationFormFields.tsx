@@ -630,6 +630,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           </div>
         </div>
       )}
+      </>
+      )}
     </div>
   );
 };
