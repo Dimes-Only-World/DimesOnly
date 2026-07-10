@@ -767,14 +767,14 @@ const Tip: React.FC = () => {
           <div className="w-full bg-black">
             <video
               className="w-full h-auto"
-              autoPlay
-              muted
-              loop
+              controls
               playsInline
+              preload="metadata"
             >
               <source src={tipVideoUrl} type="video/mp4" />
             </video>
           </div>
+
         ) : userData.banner_photo ? (
           <div className="w-full h-64 relative overflow-hidden">
             <img
