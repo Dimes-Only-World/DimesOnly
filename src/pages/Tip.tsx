@@ -476,26 +476,64 @@ const Tip: React.FC = () => {
         return;
       }
 
+      const resolveMediaUrl = async (media: {
+        media_url?: string | null;
+        storage_path?: string | null;
+      }) => {
+        const rawUrl = String(media.media_url || "");
+        const storagePath = media.storage_path || rawUrl.split("/private-media/")[1];
+
+        if (!storagePath) return rawUrl;
+
+        try {
+          const { data: signedResponse, error: signErr } =
+            await supabase.functions.invoke("public-data", {
+              body: {
+                action: "createSignedUrl",
+                storagePath,
+                expiresIn: 3600,
+              },
+            });
+
+          const signedUrl = signedResponse?.data?.signedUrl as string | undefined;
+          return !signErr && signedUrl ? signedUrl : rawUrl;
+        } catch {
+          return rawUrl;
+        }
+      };
+
+      const { data: mediaResponse, error: mediaError } =
+        await supabase.functions.invoke("public-data", {
+          body: {
+            action: "fetchUserMedia",
+            userId: user.id,
+          },
+        });
+
+      if (mediaError) {
+        console.error("Error fetching recent media:", mediaError);
+        return;
+      }
+
+      const mediaRows = Array.isArray(mediaResponse?.data)
+        ? mediaResponse.data
+        : [];
+
       // Fetch 1 most recent photo from each tier (free, silver, gold)
       const tiers = ["free", "silver", "gold"];
       const allPhotos: MediaFile[] = [];
 
       for (const tier of tiers) {
-        const { data: photo } = await supabase
-          .from("user_media")
-          .select("id, media_url, media_type, created_at, content_tier")
-          .eq("user_id", user.id)
-          .eq("media_type", "photo")
-          .eq("content_tier", tier)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        const photo = mediaRows.find(
+          (item) => item.media_type === "photo" && item.content_tier === tier,
+        );
 
-        if (photo?.length) {
+        if (photo) {
           allPhotos.push({
-            id: String(photo[0].id),
-            media_url: String(photo[0].media_url),
-            media_type: photo[0].media_type as "photo" | "video",
-            created_at: String(photo[0].created_at),
+            id: String(photo.id),
+            media_url: await resolveMediaUrl(photo),
+            media_type: photo.media_type as "photo" | "video",
+            created_at: String(photo.created_at),
             content_tier: tier,
           });
         }
@@ -506,46 +544,14 @@ const Tip: React.FC = () => {
 
       const allVideos: MediaFile[] = [];
       for (const tier of tiers) {
-        const { data: video } = await supabase
-          .from("user_media")
-          .select("id, media_url, media_type, created_at, storage_path, content_tier")
-          .eq("user_id", user.id)
-          .eq("media_type", "video")
-          .eq("content_tier", tier)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        const v = mediaRows.find(
+          (item) => item.media_type === "video" && item.content_tier === tier,
+        );
 
-        if (video?.length) {
-          const v = video[0];
-          const rawUrl = String(v.media_url || "");
-          const storagePath = (v as unknown as { storage_path?: string | null }).storage_path;
-
-          let finalUrl = rawUrl;
-
-          if (storagePath) {
-            try {
-              const { data: signedResponse, error: signErr } =
-                await supabase.functions.invoke("public-data", {
-                  body: {
-                    action: "createSignedUrl",
-                    storagePath,
-                    expiresIn: 3600,
-                  },
-                });
-
-              const signedUrl = signedResponse?.data?.signedUrl as string | undefined;
-
-              if (!signErr && signedUrl) {
-                finalUrl = signedUrl;
-              }
-            } catch {
-              // fall back to rawUrl
-            }
-          }
-
+        if (v) {
           allVideos.push({
             id: String(v.id),
-            media_url: finalUrl,
+            media_url: await resolveMediaUrl(v),
             media_type: v.media_type as "photo" | "video",
             created_at: String(v.created_at),
             content_tier: tier,
