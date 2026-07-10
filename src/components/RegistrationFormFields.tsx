@@ -134,6 +134,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
   return (
     <div className="space-y-6">
+      {showStep(1) && (
+      <>
       {/* Personal Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
