@@ -45,6 +45,7 @@ interface RegistrationFormFieldsProps {
   videoUrls: string[];
   videoErrors: string[];
   handleVideoUpload: (slot: number) => (file: File | null) => void;
+  currentStep?: number;
 }
 
 const US_STATES = [
