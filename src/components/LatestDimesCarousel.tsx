@@ -227,7 +227,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         <button
           type="button"
           onClick={() => scrollByCards(1)}
-          className="flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:right-4 md:h-12 md:w-12"
+          className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:right-4 md:h-12 md:w-12"
           aria-label="Scroll right"
         >
           <ChevronRight className="h-6 w-6" />
