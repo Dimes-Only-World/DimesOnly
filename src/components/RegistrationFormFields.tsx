@@ -112,7 +112,9 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoUrls,
   videoErrors,
   handleVideoUpload,
+  currentStep = 0,
 }) => {
+  const showStep = (step: number) => currentStep === 0 || currentStep === step;
   const { videoUrl: maleVideoUrl } = usePageVideo("register_male");
   const { videoUrl: femaleNormalVideoUrl } = usePageVideo("register_female_normal");
   const { videoUrl: femaleExoticVideoUrl } = usePageVideo("register_female_exotic");
