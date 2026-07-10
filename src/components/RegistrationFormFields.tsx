@@ -115,6 +115,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoErrors,
   handleVideoUpload,
   currentStep = 0,
+  usernameStatus = 'idle',
+
 }) => {
   const showStep = (step: number) => currentStep === 0 || currentStep === step;
   const { videoUrl: maleVideoUrl } = usePageVideo("register_male");
