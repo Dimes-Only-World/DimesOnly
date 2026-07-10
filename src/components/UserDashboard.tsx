@@ -342,6 +342,8 @@ const UserDashboard: React.FC = () => {
               />
             </div>
 
+            <LatestDimesCarousel />
+
             <DashboardMoneyCircle
               userId={userData.id}
               onViewAll={() => navigate("/dashboard/referrals")}
