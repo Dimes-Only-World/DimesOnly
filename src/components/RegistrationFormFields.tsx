@@ -46,6 +46,8 @@ interface RegistrationFormFieldsProps {
   videoErrors: string[];
   handleVideoUpload: (slot: number) => (file: File | null) => void;
   currentStep?: number;
+  usernameStatus?: 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+
 }
 
 const US_STATES = [
@@ -113,6 +115,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoErrors,
   handleVideoUpload,
   currentStep = 0,
+  usernameStatus = 'idle',
+
 }) => {
   const showStep = (step: number) => currentStep === 0 || currentStep === step;
   const { videoUrl: maleVideoUrl } = usePageVideo("register_male");
@@ -216,6 +220,13 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           {errors.username && (
             <p className="text-red-400 text-sm">{errors.username}</p>
           )}
+          {!errors.username && formData.username && usernameStatus === 'checking' && (
+            <p className="text-blue-300 text-sm">Checking availability…</p>
+          )}
+          {!errors.username && formData.username && usernameStatus === 'available' && (
+            <p className="text-green-400 text-sm">✓ Username available</p>
+          )}
+
           {formData.gender === "male" && (
             <p className="text-blue-300 text-xs">
               Choose your preferred username

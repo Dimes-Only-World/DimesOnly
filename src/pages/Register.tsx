@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -150,7 +150,9 @@ export const Register: React.FC = () => {
   });
   const [showVideo, setShowVideo] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
+
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -169,6 +171,47 @@ export const Register: React.FC = () => {
     dateOfBirth: "",
     referredBy: getReferralUsername(searchParams),
   });
+
+  // Debounced username availability check
+  useEffect(() => {
+    const uname = formData.username.trim().toLowerCase();
+    if (!uname) {
+      setUsernameStatus('idle');
+      return;
+    }
+    if (!/^[a-z0-9._-]{3,}$/.test(uname)) {
+      setUsernameStatus('invalid');
+      setErrors((prev) => ({ ...prev, username: 'Username must be 3+ chars (letters, numbers, . _ -)' }));
+      return;
+    }
+    setUsernameStatus('checking');
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('public-data', {
+          body: { action: 'checkUsername', username: uname },
+        });
+        if (error) throw error;
+        const available = !!(data as any)?.data?.available;
+        if (formData.username.trim().toLowerCase() !== uname) return;
+        if (available) {
+          setUsernameStatus('available');
+          setErrors((prev) => {
+            const { username: _u, ...rest } = prev;
+            return rest;
+          });
+        } else {
+          setUsernameStatus('taken');
+          setErrors((prev) => ({ ...prev, username: 'Username is already taken' }));
+        }
+      } catch (e) {
+        console.error('Username check failed', e);
+        setUsernameStatus('idle');
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [formData.username]);
+
+
 
   const handleInputChange = (field: keyof FormData) => (value: string) => {
     let processedValue = value;
@@ -398,6 +441,11 @@ export const Register: React.FC = () => {
       if (!formData.lastName) newErrors.lastName = "Last name is required";
       if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
       if (!formData.username) newErrors.username = "Username is required";
+      else if (usernameStatus === 'taken') newErrors.username = "Username is already taken";
+      else if (usernameStatus === 'invalid') newErrors.username = "Invalid username";
+      else if (usernameStatus === 'checking') newErrors.username = "Checking username availability...";
+      else if (usernameStatus !== 'available') newErrors.username = "Please wait for username check";
+
     } else if (step === 2) {
       if (!formData.email) newErrors.email = "Email is required";
       else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email";
@@ -694,6 +742,8 @@ export const Register: React.FC = () => {
                     videoErrors={videoErrors}
                     handleVideoUpload={handleVideoUpload}
                     currentStep={currentStep}
+                    usernameStatus={usernameStatus}
+
                   />
 
                   {showVideo && currentStep === 4 && (
@@ -718,6 +768,7 @@ export const Register: React.FC = () => {
                     {currentStep < totalSteps ? (
                       <Button
                         type="button"
+                        disabled={currentStep === 1 && (usernameStatus === 'checking' || usernameStatus === 'taken' || usernameStatus === 'invalid' || (!!formData.username && usernameStatus !== 'available'))}
                         onClick={() => {
                           if (validateStep(currentStep)) {
                             setCurrentStep((s) => Math.min(totalSteps, s + 1));
@@ -729,11 +780,12 @@ export const Register: React.FC = () => {
                             });
                           }
                         }}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {currentStep === 1 && usernameStatus === 'checking' ? 'Checking username…' : 'Next'}
                       </Button>
                     ) : (
+
                       <Button
                         type="submit"
                         disabled={isLoading}
