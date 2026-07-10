@@ -95,9 +95,10 @@ const HeroBanner: React.FC = () => {
           {/* Left Section */}
           <div className="text-center md:text-left space-y-6 md:w-1/2">
             <motion.div
-              initial={{ opacity: 0, x: -40 }}
+              initial={{ opacity: 0, x: -200 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+              viewport={{ once: true }}
               className="flex items-center justify-center md:justify-start gap-4"
             >
               <h1 className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-indigo-500 to-indigo-700 text-transparent bg-clip-text drop-shadow-lg">
@@ -107,9 +108,10 @@ const HeroBanner: React.FC = () => {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              initial={{ opacity: 0, x: -200 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+              viewport={{ once: true }}
             >
               <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white">
                 ONLY WORLD
