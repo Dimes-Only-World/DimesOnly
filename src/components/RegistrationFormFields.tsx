@@ -403,7 +403,11 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           </div>
         </div>
       </div>
+      </>
+      )}
 
+      {showStep(4) && (
+      <>
       {/* Profile Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
