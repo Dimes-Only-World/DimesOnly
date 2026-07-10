@@ -119,6 +119,9 @@ const Top20DimesCarousel: React.FC = () => {
                         #{d.rank}
                       </div>
                     </div>
+                    <div className="mt-1 text-center text-xs font-semibold text-gray-800 truncate px-1">
+                      @{d.username}
+                    </div>
                   </button>
                 </CarouselItem>
               ))}
