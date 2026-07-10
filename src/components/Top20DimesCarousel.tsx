@@ -66,7 +66,7 @@ const Top20DimesCarousel: React.FC = () => {
   }, []);
 
   return (
-    <div className="mb-6 rounded-xl border border-pink-300/60 bg-gradient-to-r from-pink-50 via-white to-yellow-50 p-4 shadow-sm">
+    <div className="mb-6 w-full">
       <div className="flex flex-col items-center gap-3 mb-3">
         <div className="flex items-center gap-2">
           <Trophy className="w-5 h-5 text-yellow-500" />
@@ -91,7 +91,7 @@ const Top20DimesCarousel: React.FC = () => {
           No ranked dimes yet this season — be the first!
         </div>
       ) : (
-        <div className="px-2 md:px-8">
+        <div className="w-full px-0 md:px-8">
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent>
               {dimes.map((d) => (
