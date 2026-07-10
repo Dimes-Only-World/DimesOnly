@@ -46,6 +46,8 @@ interface RegistrationFormFieldsProps {
   videoErrors: string[];
   handleVideoUpload: (slot: number) => (file: File | null) => void;
   currentStep?: number;
+  usernameStatus?: 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+
 }
 
 const US_STATES = [
