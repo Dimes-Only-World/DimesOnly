@@ -91,7 +91,7 @@ const Top20DimesCarousel: React.FC = () => {
           No ranked dimes yet this season — be the first!
         </div>
       ) : (
-        <div className="px-2 md:px-8">
+        <div className="w-full px-0 md:px-8">
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent>
               {dimes.map((d) => (
