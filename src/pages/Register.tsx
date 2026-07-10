@@ -441,6 +441,11 @@ export const Register: React.FC = () => {
       if (!formData.lastName) newErrors.lastName = "Last name is required";
       if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
       if (!formData.username) newErrors.username = "Username is required";
+      else if (usernameStatus === 'taken') newErrors.username = "Username is already taken";
+      else if (usernameStatus === 'invalid') newErrors.username = "Invalid username";
+      else if (usernameStatus === 'checking') newErrors.username = "Checking username availability...";
+      else if (usernameStatus !== 'available') newErrors.username = "Please wait for username check";
+
     } else if (step === 2) {
       if (!formData.email) newErrors.email = "Email is required";
       else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email";
