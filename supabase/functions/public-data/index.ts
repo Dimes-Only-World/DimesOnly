@@ -189,11 +189,30 @@ serve(async (req) => {
       }
 
 
+      // Check if a username is already taken
+      case 'checkUsername': {
+        const { username } = params;
+        const normalized = String(username || '').trim().toLowerCase();
+        if (!normalized) {
+          result = { available: false, reason: 'empty' };
+          break;
+        }
+        const { data, error } = await supabaseAdmin
+          .from('users')
+          .select('username')
+          .ilike('username', normalized)
+          .maybeSingle();
+        if (error) throw error;
+        result = { available: !data };
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+
     }
 
     return new Response(
