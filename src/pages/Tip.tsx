@@ -796,7 +796,7 @@ const Tip: React.FC = () => {
                     <img
                       src={userData.profile_photo || "/placeholder.svg"}
                       alt={userData.username}
-                      className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-yellow-400 shadow-lg object-cover"
+                      className="w-48 h-48 rounded-full mx-auto mb-4 border-4 border-yellow-400 shadow-lg object-cover"
                     />
                     <h2 className="text-2xl font-bold text-white mb-2">
                       @{userData.username}
