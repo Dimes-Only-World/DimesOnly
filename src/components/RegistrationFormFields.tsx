@@ -125,7 +125,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   const { videoUrl: femaleStripperVideoUrl } = usePageVideo("register_female_stripper");
   const { videoUrl: businessOwnerVideoUrl } = usePageVideo("register_business_owner");
 
-  const videoSlotLabels = ["Normal video", "Normal or Nude video", "Normal or X-rated video"];
+  const videoSlotLabels = ["Normal video", "Nude or Normal video", "X-rated, Nude or Normal video"];
 
   const getFemaleVideo = () => {
     switch (formData.userType) {
