@@ -218,7 +218,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         <button
           type="button"
           onClick={() => scrollByCards(-1)}
-          className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:left-4 md:h-12 md:w-12"
+          className="flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:left-4 md:h-12 md:w-12"
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-6 w-6" />
@@ -227,7 +227,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         <button
           type="button"
           onClick={() => scrollByCards(1)}
-          className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:right-4 md:h-12 md:w-12"
+          className="flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:right-4 md:h-12 md:w-12"
           aria-label="Scroll right"
         >
           <ChevronRight className="h-6 w-6" />
@@ -235,14 +235,14 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-4 py-2 scroll-smooth snap-x snap-mandatory justify-start md:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-6 overflow-x-auto px-4 py-2 scroll-smooth snap-x snap-mandatory justify-start lg:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
 
           {performers.map((performer) => (
             <div
               key={performer.id}
               data-carousel-card
-              className="group flex-shrink-0 w-56 h-80 md:w-72 md:h-[28rem]"
+              className="group flex-shrink-0 w-56 h-80 md:w-72 md:h-[28rem] snap-start"
               onClick={() => openModal(performer)}
             >
               <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
@@ -250,7 +250,13 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   src={performer.image}
                   alt={`@${performer.username}`}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
+                  loading="eager"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (img.src !== fallbackImages[0]) {
+                      img.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                    }
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
