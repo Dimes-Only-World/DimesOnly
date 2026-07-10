@@ -6,7 +6,7 @@ import ReadyToStart from '../components/landing/src/components/ReadyToStart';
 import SecurePlatform from '../components/landing/src/components/SecurePlatform';
 import LandingFooter from '../components/landing/src/components/LandingFooter';
 import JackpotTipWin from '@/components/JackpotTipWin';
-import LatestDimesCarousel from '@/components/LatestDimesCarousel';
+
 import PositionCounter from '@/components/PositionCounter';
 import ImageCarousel from '@/components/ImageCarousel';
 
