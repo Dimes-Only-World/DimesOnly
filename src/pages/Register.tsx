@@ -621,6 +621,41 @@ export const Register: React.FC = () => {
               <LatestDimesCarousel />
 
               <div className={getPaddingClasses("p-8")}>
+                {/* Step indicator */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    {stepTitles.map((title, idx) => {
+                      const step = idx + 1;
+                      const active = step === currentStep;
+                      const done = step < currentStep;
+                      return (
+                        <div key={title} className="flex-1 flex flex-col items-center text-center px-1">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border-2 ${
+                              active
+                                ? "bg-blue-500 border-blue-400 text-white"
+                                : done
+                                ? "bg-green-500 border-green-400 text-white"
+                                : "bg-white/10 border-white/30 text-white/60"
+                            }`}
+                          >
+                            {step}
+                          </div>
+                          <span className={`mt-1 text-[10px] md:text-xs ${active ? "text-white" : "text-white/60"}`}>
+                            {title}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="h-1 bg-white/10 rounded overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
+                      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-6">
 
                   <RegistrationFormFields
@@ -634,9 +669,10 @@ export const Register: React.FC = () => {
                     videoUrls={videoUrls}
                     videoErrors={videoErrors}
                     handleVideoUpload={handleVideoUpload}
+                    currentStep={currentStep}
                   />
 
-                  {showVideo && (
+                  {showVideo && currentStep === 4 && (
                     <div className="mt-6 rounded-lg overflow-hidden shadow-lg">
                       <BannerVideo
                         src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Copy+of+Explain+form+confirm+FINAL.webm"
@@ -645,21 +681,53 @@ export const Register: React.FC = () => {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-lg"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Creating Account...
-                      </>
+                  <div className="flex items-center justify-between gap-3 pt-2">
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
+                      disabled={currentStep === 1 || isLoading}
+                      className="bg-white/10 hover:bg-white/20 text-white py-4 px-6 rounded-lg font-semibold disabled:opacity-40"
+                    >
+                      Back
+                    </Button>
+
+                    {currentStep < totalSteps ? (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (validateStep(currentStep)) {
+                            setCurrentStep((s) => Math.min(totalSteps, s + 1));
+                          } else {
+                            toast({
+                              title: "Missing Information",
+                              description: "Please complete the required fields before continuing.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg"
+                      >
+                        Next
+                      </Button>
                     ) : (
-                      "Create Account"
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Creating Account...
+                          </>
+                        ) : (
+                          "Create Account"
+                        )}
+                      </Button>
                     )}
-                  </Button>
+                  </div>
                 </form>
+
 
               </div>
 
