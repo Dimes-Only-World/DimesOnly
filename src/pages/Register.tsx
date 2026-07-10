@@ -172,6 +172,47 @@ export const Register: React.FC = () => {
     referredBy: getReferralUsername(searchParams),
   });
 
+  // Debounced username availability check
+  useEffect(() => {
+    const uname = formData.username.trim().toLowerCase();
+    if (!uname) {
+      setUsernameStatus('idle');
+      return;
+    }
+    if (!/^[a-z0-9._-]{3,}$/.test(uname)) {
+      setUsernameStatus('invalid');
+      setErrors((prev) => ({ ...prev, username: 'Username must be 3+ chars (letters, numbers, . _ -)' }));
+      return;
+    }
+    setUsernameStatus('checking');
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('public-data', {
+          body: { action: 'checkUsername', username: uname },
+        });
+        if (error) throw error;
+        const available = !!(data as any)?.data?.available;
+        if (formData.username.trim().toLowerCase() !== uname) return;
+        if (available) {
+          setUsernameStatus('available');
+          setErrors((prev) => {
+            const { username: _u, ...rest } = prev;
+            return rest;
+          });
+        } else {
+          setUsernameStatus('taken');
+          setErrors((prev) => ({ ...prev, username: 'Username is already taken' }));
+        }
+      } catch (e) {
+        console.error('Username check failed', e);
+        setUsernameStatus('idle');
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [formData.username]);
+
+
+
   const handleInputChange = (field: keyof FormData) => (value: string) => {
     let processedValue = value;
 
