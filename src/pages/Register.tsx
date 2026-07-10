@@ -133,6 +133,9 @@ export const Register: React.FC = () => {
   const { toast } = useToast();
   const { setUser } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
+  const stepTitles = ["Personal Information", "Account Information", "Contact Information", "Profile Information"];
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>("");
   const [bannerPhotoUrl, setBannerPhotoUrl] = useState<string>("");
   const [frontPagePhotoUrl, setFrontPagePhotoUrl] = useState<string>("");
