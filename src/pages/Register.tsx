@@ -391,6 +391,30 @@ export const Register: React.FC = () => {
       }
     };
 
+  const validateStep = (step: number): boolean => {
+    const newErrors: Partial<Record<keyof FormData, string>> = {};
+    if (step === 1) {
+      if (!formData.firstName) newErrors.firstName = "First name is required";
+      if (!formData.lastName) newErrors.lastName = "Last name is required";
+      if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
+      if (!formData.username) newErrors.username = "Username is required";
+    } else if (step === 2) {
+      if (!formData.email) newErrors.email = "Email is required";
+      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email";
+      if (!formData.password) newErrors.password = "Password is required";
+      else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+      if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    } else if (step === 3) {
+      if (!formData.mobileNumber) newErrors.mobileNumber = "Phone number is required";
+      if (!formData.address) newErrors.address = "Address is required";
+      if (!formData.city) newErrors.city = "City is required";
+      if (!formData.state) newErrors.state = "State is required";
+      if (!formData.zip) newErrors.zip = "Zip code is required";
+    }
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
     if (!formData.firstName) newErrors.firstName = "First name is required";
