@@ -125,7 +125,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   const { videoUrl: femaleStripperVideoUrl } = usePageVideo("register_female_stripper");
   const { videoUrl: businessOwnerVideoUrl } = usePageVideo("register_business_owner");
 
-  const videoSlotLabels = ["Normal video", "Normal or Nude video", "Normal or X-rated video"];
+  const videoSlotLabels = ["Normal video", "Nude or Normal video", "X-rated, Nude or Normal video"];
 
   const getFemaleVideo = () => {
     switch (formData.userType) {
@@ -619,7 +619,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             Required Videos
           </h3>
           <p className="text-sm text-white/70">
-            Upload each recommended video type to complete your premium application. A combination of or just normal, nude or x-rated.
+            Upload each recommended video type to complete your premium application. A combination of or just normal, nude or x-rated is suggested. If you do not have the content now, upload anything because you can change your videos later. Upload videos you feel will get the most attention from our subscribers.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[0, 1, 2].map((slot) => (
