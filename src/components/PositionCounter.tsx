@@ -136,7 +136,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
           viewport={{ once: true }}
           variants={fadeIn}>
 
-          <span className="text-[#F4F6F8]"><WordFade text="Incentive" /></span>{" "}<span className="text-[#E916D1]"><WordFade text="positions" /></span>{" "}<span className="text-[#F4F6F8]"><WordFade text="available now" /></span>
+          <span className="text-[#F4F6F8]"><WordFade text="Profit Sharing" /></span>{" "}<span className="text-[#E916D1]"><WordFade text="Positions" /></span>{" "}<span className="text-[#F4F6F8]"><WordFade text="Available Now!" /></span>
         </motion.h2>
 
         {/* === CARDS === */}
