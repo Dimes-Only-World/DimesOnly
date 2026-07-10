@@ -150,7 +150,9 @@ export const Register: React.FC = () => {
   });
   const [showVideo, setShowVideo] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
+
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
