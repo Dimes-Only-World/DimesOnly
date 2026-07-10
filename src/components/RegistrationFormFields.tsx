@@ -619,7 +619,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             Required Videos
           </h3>
           <p className="text-sm text-white/70">
-            Upload each recommended video type to complete your premium application. A combination of or just normal, nude or x-rated.
+            Upload each recommended video type to complete your premium application. A combination of or just normal, nude or x-rated is suggested. If you do not have the content now, upload anything because you can change your videos later. Upload videos you feel will get the most attention from our subscribers.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[0, 1, 2].map((slot) => (
