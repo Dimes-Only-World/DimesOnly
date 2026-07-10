@@ -91,19 +91,19 @@ const Top20DimesCarousel: React.FC = () => {
           No ranked dimes yet this season — be the first!
         </div>
       ) : (
-        <div className="px-8">
+        <div className="px-2 md:px-8">
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent>
               {dimes.map((d) => (
                 <CarouselItem
                   key={d.id}
-                  className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6"
+                  className="basis-1/2 md:basis-1/4 lg:basis-1/6"
                 >
                   <button
                     onClick={() => navigate(`/profile/${d.username}`)}
-                    className="w-full rounded-lg overflow-hidden border border-gray-200 bg-white hover:border-pink-400 hover:shadow-md transition-all group"
+                    className="w-full rounded-lg overflow-hidden hover:shadow-md transition-all group"
                   >
-                    <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+                    <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 rounded-lg">
                       {d.profile_photo ? (
                         <img
                           src={d.profile_photo}
@@ -119,17 +119,12 @@ const Top20DimesCarousel: React.FC = () => {
                         #{d.rank}
                       </div>
                     </div>
-                    <div className="p-2">
-                      <p className="text-gray-900 text-xs font-semibold truncate group-hover:text-pink-600">
-                        @{d.username}
-                      </p>
-                    </div>
                   </button>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious className="hidden lg:flex" />
+            <CarouselNext className="hidden lg:flex" />
           </Carousel>
         </div>
       )}
