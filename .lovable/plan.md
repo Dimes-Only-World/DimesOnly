@@ -1,27 +1,11 @@
-## Plan
+Plan:
+1. Restore a single explicit favicon setup in `index.html` instead of relying on Settings injection alone.
+2. Use the existing angel PNG assets as the source for standard browser icons: 16x16, 32x32, 192x192, and Apple touch icon.
+3. Remove/avoid the ambiguous `/favicon.ico` fallback so Chrome cannot keep choosing an old/default ICO over the PNG links.
+4. Add cache-busted icon URLs so Chrome requests the fresh files after publish.
+5. Verify in the live preview that the page head contains the icon links and that the favicon asset resolves to the angel image.
 
-1. **Verify what the deployed preview is serving**
-   - Check the favicon HTML tags and direct `/favicon.ico`, `/favicon.png`, and versioned icon URLs on the running preview/published URLs.
-   - Confirm whether the browser tab is showing a cached icon, a served file mismatch, or Chrome UI/account autofill icon caching.
-
-2. **Replace every browser fallback icon path**
-   - Regenerate all favicon variants from the uploaded angel image:
-     - `/favicon.ico`
-     - `/favicon.png`
-     - `/favicon-16x16.png`
-     - `/favicon-32x32.png`
-     - `/apple-touch-icon.png`
-     - brand-new versioned filenames for cache busting.
-   - Ensure the icon is tightly cropped and visible at small tab size.
-
-3. **Update head icon tags to prioritize the new versioned files**
-   - Point `index.html` to new unique filenames with a fresh cache-buster.
-   - Keep `/favicon.ico` updated too because Chrome requests it even when tags exist.
-
-4. **Add a web manifest if missing**
-   - Add `/site.webmanifest` pointing to the new angel icons.
-   - Link it from `index.html` so installed/PWA/browser surfaces stop using older cached assets.
-
-5. **Validate in browser and explain remaining cache behavior**
-   - Use Playwright to confirm the DOM icon tags and network/icon files are the new angel files.
-   - If Chrome still shows the old icon in password/autofill/account suggestions, explain that those are Chrome profile caches, not site files, and require clearing site data/password icon cache or waiting for Chrome to refresh.
+Technical details:
+- Chrome often prioritizes `/favicon.ico` and caches it aggressively, even when Lovable Settings shows a different icon.
+- The current `index.html` has no favicon links, so the browser/default hosting behavior is controlling the tab icon.
+- The safest fix is to make the app explicitly point to the known angel PNG files and remove conflicting fallback behavior.
