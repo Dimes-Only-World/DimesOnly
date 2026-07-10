@@ -530,7 +530,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                         Stripper
                       </Label>
                       <p className="text-white/70 text-sm mt-4">
-                        Here to be on the reality show Housing Angels.
+                        Make money & be on the reality show Housing Angels.
                       </p>
                     </div>
                   </div>
