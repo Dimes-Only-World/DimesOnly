@@ -742,6 +742,8 @@ export const Register: React.FC = () => {
                     videoErrors={videoErrors}
                     handleVideoUpload={handleVideoUpload}
                     currentStep={currentStep}
+                    usernameStatus={usernameStatus}
+
                   />
 
                   {showVideo && currentStep === 4 && (
