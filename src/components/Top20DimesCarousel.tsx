@@ -67,23 +67,24 @@ const Top20DimesCarousel: React.FC = () => {
 
   return (
     <div className="mb-6 rounded-xl border border-pink-300/60 bg-gradient-to-r from-pink-50 via-white to-yellow-50 p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+      <div className="flex flex-col items-center gap-3 mb-3">
         <div className="flex items-center gap-2">
           <Trophy className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 text-center">
             View Current Top 20 Ranked
           </h3>
         </div>
         <button
           onClick={() => navigate("/rankings")}
-          className="text-xs font-semibold text-pink-600 hover:text-pink-700 underline"
+          className="text-xs font-semibold text-pink-600 hover:text-pink-700 underline text-center"
         >
           View all rankings
         </button>
       </div>
-      <p className="text-sm text-gray-600 mb-4">
+      <p className="text-sm text-gray-600 mb-4 text-center">
         Top 20 Dimes win money every 3 months. Who's Next?
       </p>
+
 
       {dimes.length === 0 ? (
         <div className="text-sm text-gray-500 py-6 text-center">
