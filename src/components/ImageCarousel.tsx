@@ -456,44 +456,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
         </div>
       </div>
 
-      {/* ---------- CAROUSEL SECTION ---------- */}
-      <section className="w-full py-10">
-        <div className="text-center mb-8">
-          <h2 className="text-[#F4F6F8] text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-            VIEW CURRENT <span className="text-[#E916D1]">TOP 20</span> RANKED
-          </h2>
-          <p className="text-base md:text-lg text-gray-300">
-            Top 20 Dimes win money every 3 months. Who’s Next?
-          </p>
-        </div>
-
-        {/* Desktop */}
-        <div className="hidden md:block overflow-hidden">
-          {renderCarousel(
-            performers,
-            desktopScrollRef,
-            "flex-shrink-0 w-72 h-[28rem]",
-            {
-              left: "hidden md:flex left-4 w-12 h-12",
-              right: "hidden md:flex right-4 w-12 h-12",
-            }
-          )}
-        </div>
-
-        {/* Mobile */}
-        <div className="block md:hidden overflow-hidden">
-          {renderCarousel(
-            performers,
-            mobileScrollRef,
-            "flex-shrink-0 w-56 h-80",
-            {
-              left: "flex md:hidden left-2 w-10 h-10",
-              right: "flex md:hidden right-2 w-10 h-10",
-            }
-          )}
-        </div>
-
-      </section>
 
       {/* ---------- MODAL ---------- */}
       {isModalOpen && selectedPerformer && (
