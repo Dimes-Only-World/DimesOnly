@@ -766,6 +766,7 @@ export const Register: React.FC = () => {
                     {currentStep < totalSteps ? (
                       <Button
                         type="button"
+                        disabled={currentStep === 1 && (usernameStatus === 'checking' || usernameStatus === 'taken' || usernameStatus === 'invalid' || (!!formData.username && usernameStatus !== 'available'))}
                         onClick={() => {
                           if (validateStep(currentStep)) {
                             setCurrentStep((s) => Math.min(totalSteps, s + 1));
@@ -777,11 +778,12 @@ export const Register: React.FC = () => {
                             });
                           }
                         }}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {currentStep === 1 && usernameStatus === 'checking' ? 'Checking username…' : 'Next'}
                       </Button>
                     ) : (
+
                       <Button
                         type="submit"
                         disabled={isLoading}
