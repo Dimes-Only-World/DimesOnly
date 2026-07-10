@@ -220,6 +220,13 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           {errors.username && (
             <p className="text-red-400 text-sm">{errors.username}</p>
           )}
+          {!errors.username && formData.username && usernameStatus === 'checking' && (
+            <p className="text-blue-300 text-sm">Checking availability…</p>
+          )}
+          {!errors.username && formData.username && usernameStatus === 'available' && (
+            <p className="text-green-400 text-sm">✓ Username available</p>
+          )}
+
           {formData.gender === "male" && (
             <p className="text-blue-300 text-xs">
               Choose your preferred username
