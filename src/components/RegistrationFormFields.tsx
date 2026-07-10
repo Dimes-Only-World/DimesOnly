@@ -45,6 +45,7 @@ interface RegistrationFormFieldsProps {
   videoUrls: string[];
   videoErrors: string[];
   handleVideoUpload: (slot: number) => (file: File | null) => void;
+  currentStep?: number;
 }
 
 const US_STATES = [
@@ -111,7 +112,9 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
   videoUrls,
   videoErrors,
   handleVideoUpload,
+  currentStep = 0,
 }) => {
+  const showStep = (step: number) => currentStep === 0 || currentStep === step;
   const { videoUrl: maleVideoUrl } = usePageVideo("register_male");
   const { videoUrl: femaleNormalVideoUrl } = usePageVideo("register_female_normal");
   const { videoUrl: femaleExoticVideoUrl } = usePageVideo("register_female_exotic");
@@ -131,6 +134,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
 
   return (
     <div className="space-y-6">
+      {showStep(1) && (
+      <>
       {/* Personal Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
@@ -218,7 +223,11 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           )}
         </div>
       </div>
+      </>
+      )}
 
+      {showStep(2) && (
+      <>
       {/* Account Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
@@ -286,7 +295,11 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           </div>
         </div>
       </div>
+      </>
+      )}
 
+      {showStep(3) && (
+      <>
       {/* Contact Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
@@ -390,7 +403,11 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
           </div>
         </div>
       </div>
+      </>
+      )}
 
+      {showStep(4) && (
+      <>
       {/* Profile Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
@@ -612,6 +629,8 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
             ))}
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
