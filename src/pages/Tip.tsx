@@ -798,7 +798,7 @@ const Tip: React.FC = () => {
                       alt={userData.username}
                       className="w-48 h-48 rounded-full mx-auto mb-4 border-4 border-yellow-400 shadow-lg object-cover"
                     />
-                    <h2 className="text-2xl font-bold text-white mb-2">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
                       @{userData.username}
                     </h2>
                     <div className="flex items-center justify-center gap-2 text-gray-300 mb-2">
