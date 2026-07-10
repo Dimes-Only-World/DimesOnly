@@ -479,10 +479,8 @@ const Tip: React.FC = () => {
       // Fetch 1 most recent photo from each tier (free, silver, gold)
       const tiers = ["free", "silver", "gold"];
       const allPhotos: MediaFile[] = [];
-      const allVideos: MediaFile[] = [];
 
       for (const tier of tiers) {
-        // Fetch 1 photo from this tier
         const { data: photo } = await supabase
           .from("user_media")
           .select("id, media_url, media_type, created_at, content_tier")
@@ -501,8 +499,13 @@ const Tip: React.FC = () => {
             content_tier: tier,
           });
         }
+      }
 
-        // Fetch 1 video from this tier
+      // Show photos immediately, don't block on video signed URLs
+      setRecentPhotos(allPhotos);
+
+      const allVideos: MediaFile[] = [];
+      for (const tier of tiers) {
         const { data: video } = await supabase
           .from("user_media")
           .select("id, media_url, media_type, created_at, storage_path, content_tier")
@@ -519,7 +522,6 @@ const Tip: React.FC = () => {
 
           let finalUrl = rawUrl;
 
-          // Videos may be stored in the private-media bucket (requires a signed URL)
           if (storagePath) {
             try {
               const { data: signedResponse, error: signErr } =
@@ -551,8 +553,8 @@ const Tip: React.FC = () => {
         }
       }
 
-      setRecentPhotos(allPhotos);
       setRecentVideos(allVideos);
+
     } catch (error) {
       console.error("Error fetching user media:", error);
     }
