@@ -813,13 +813,6 @@ const Tip: React.FC = () => {
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
-                      <Calendar size={14} />
-                      <span>
-                        Joined{" "}
-                        {new Date(userData.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
 
                     {/* Like Button */}
                     <Button
