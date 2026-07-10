@@ -90,7 +90,7 @@ const HeroBanner: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           viewport={{ once: true }}
-          className="relative flex flex-col md:flex-row items-center justify-between rounded-[2rem] p-8 sm:p-10 md:p-14 lg:p-16 max-w-6xl w-full border border-gray-700 shadow-2xl sm:border-gray-700 border-transparent"
+          className="relative flex flex-col md:flex-row items-center justify-between rounded-[2rem] p-8 sm:p-10 md:p-14 lg:p-16 max-w-6xl w-full border border-gray-700 shadow-2xl sm:border-gray-700 border-transparent overflow-x-hidden"
         >
           {/* Left Section */}
           <div className="text-center md:text-left space-y-6 md:w-1/2">
