@@ -24,7 +24,7 @@ const ReadyToStart = () => {
             MEMBERS LOGIN
           </a>
         </div>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-white text-sm">
           Join thousands of entertainers already earning on Dimes Only Network
         </p>
       </div>
