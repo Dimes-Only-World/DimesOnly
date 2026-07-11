@@ -420,15 +420,15 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}
     >
       {/* ---------- HERO SECTION ---------- */}
-      <div className="relative flex flex-col items-center justify-center bg-white text-black rounded-[50px] px-10 py-16 mx-10 my-10 md:px-16 md:py-20 shadow-2xl overflow-hidden h-[550px] md:h-[600px]">
+      <div className="relative flex flex-col items-center justify-center bg-white text-black rounded-[30px] md:rounded-[50px] px-5 py-10 mx-4 my-6 sm:px-8 sm:mx-6 md:px-16 md:py-20 md:mx-10 md:my-10 shadow-2xl overflow-hidden min-h-[550px] md:min-h-[600px]">
         <img
           src={money}
           alt="money"
-          className="absolute bottom-0 w-[85%] max-w-[600px] opacity-30"
+          className="absolute bottom-0 w-[85%] max-w-[600px] opacity-30 pointer-events-none"
         />
 
-        <div className="relative z-10 text-center">
-          <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
+        <div className="relative z-10 text-center w-full max-w-3xl mx-auto break-words">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-3 tracking-tight leading-tight">
             $trippers & Exxxotic Females
             <br />
             Top Baddie Wins{" "}
@@ -437,22 +437,22 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             </span>
           </h2>
 
-          <p className="text-lg md:text-xl font-semibold text-black mb-4">
+          <p className="text-base sm:text-lg md:text-xl font-semibold text-black mb-4">
             Winner Announced at App Launch
           </p>
 
-          <p className="text-base md:text-lg font-semibold text-black max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg font-semibold text-black max-w-2xl mx-auto leading-relaxed">
             <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000{" "}
             <br />
             <span className="text-yellow-500">Rank Between #2 & #20</span> Win Money As
             Well
           </p>
 
-          <button className="mt-8 px-8 py-3 bg-[#E916D1] hover:bg-[#E916D1]/90 transition-all duration-300 text-white font-semibold rounded-full shadow-lg">
+          <button className="mt-6 md:mt-8 px-5 sm:px-8 py-3 bg-[#E916D1] hover:bg-[#E916D1]/90 transition-all duration-300 text-white text-sm sm:text-base font-semibold rounded-full shadow-lg max-w-full whitespace-normal">
             Winners Every 3 Months After Spots Below Say 0
           </button>
 
-          <p className="mt-6 text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
+          <p className="mt-5 md:mt-6 text-sm sm:text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
             THE ULTIMATE ENTERTAINMENT APP FOR STRAIGHT MEN!
           </p>
         </div>
