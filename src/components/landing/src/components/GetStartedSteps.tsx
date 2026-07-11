@@ -19,8 +19,15 @@ const steps = [
 const GetStartedSteps = () => (
   <section className="py-20 bg-transparent relative z-10">
     <div className="container mx-auto px-4">
-      <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
-        <span className="text-[#E916D1]">3 Easy Steps</span>
+      <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12 whitespace-pre-line leading-tight">
+        <span className="text-[#E916D1]">{`3 Easy Steps For
+Content Creators
+Business Owners
+Exotic Dancers
+Exotic Females
+or
+Anyone That Wants
+Easy Extra Money`}</span>
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {steps.map((step) => (
