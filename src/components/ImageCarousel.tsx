@@ -429,7 +429,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
 
         <div className="relative z-10 text-center">
           <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
-            Strippers & Exotic Females
+            $trippers & Exxxotic Females
             <br />
             Top Baddie Wins{" "}
             <span className="text-[#E916D1]">
