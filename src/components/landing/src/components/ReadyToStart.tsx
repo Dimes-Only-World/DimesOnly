@@ -21,7 +21,7 @@ const ReadyToStart = () => {
             href={loginUrl}
             className="px-10 py-4 rounded-full font-bold border border-[#E916D1] text-[#E916D1] hover:bg-[#E916D1]/10 transition-colors text-lg"
           >
-            LOGIN
+            MEMBERS LOGIN
           </a>
         </div>
         <p className="text-muted-foreground text-sm">
