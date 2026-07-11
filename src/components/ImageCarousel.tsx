@@ -10,6 +10,8 @@ import { normalizeRefParam } from "@/lib/utils";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
 import exo from "@/assets/exo.png";
 import money from "@/assets/money.png";
+import heroBg from "@/assets/hero-dime-bg.png.asset.json";
+
 
 interface RankedPerformer {
   id: string;
