@@ -429,7 +429,9 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
 
         <div className="relative z-10 text-center">
           <h2 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
-            Win{" "}
+            Strippers & Exotic Females
+            <br />
+            Top Baddie Wins{" "}
             <span className="text-[#E916D1]">
               $10,000
             </span>
@@ -442,7 +444,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           <p className="text-base md:text-lg font-semibold text-black max-w-2xl mx-auto leading-relaxed">
             <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000{" "}
             <br />
-            <span className="text-yellow-500">Rank Between #2 - #20</span> Win Money As
+            <span className="text-yellow-500">Rank Between #2 & #20</span> Win Money As
             Well
           </p>
 
@@ -451,7 +453,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           </button>
 
           <p className="mt-6 text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
-            AN ENTERTAINMENT APP FOR STRAIGHT MEN!
+            THE ULTIMATE ENTERTAINMENT APP FOR STRAIGHT MEN!
           </p>
         </div>
       </div>
