@@ -419,7 +419,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
           </button>
 
           <p className="mt-5 md:mt-6 text-sm sm:text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
-            THE ULTIMATE ENTERTAINMENT APP FOR STRAIGHT MEN!
+            THE ULTIMATE ENTERTAINMENT APP COMING SOON!
           </p>
         </div>
       </div>
