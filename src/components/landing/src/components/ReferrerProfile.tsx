@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import defaultAvatar from "../assets/default-avatar.jpg";
+import dimesLogo from "@/assets/dimes-only-world-logo.jpg.asset.json";
 
 const supabaseUrl = "https://qkcuykpndrolrewwnkwb.supabase.co";
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs";
