@@ -17,11 +17,11 @@ const NewIndex: React.FC = () => {
       <LandingHeroBanner />
       <ReferrerProfile />
 
-      {/* Fixed background video area wrapping Get Started + Join Free Now */}
-      <div className="relative">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Fixed-feel background video wrapping Get Started + Join Free Now */}
+      <div className="relative bg-black">
+        <div className="sticky top-0 h-screen w-full overflow-hidden">
           <video
-            className="fixed top-0 left-0 w-screen h-screen object-cover -z-0"
+            className="w-full h-full object-cover"
             autoPlay
             muted
             loop
@@ -30,13 +30,14 @@ const NewIndex: React.FC = () => {
           >
             <source src={bgVideo.url} type="video/webm" />
           </video>
-          <div className="fixed top-0 left-0 w-screen h-screen bg-black/60 -z-0" />
+          <div className="absolute inset-0 bg-black/60" />
         </div>
-        <div className="relative z-10">
+        <div className="relative -mt-[100vh]">
           <GetStartedSteps />
           <ReadyToStart />
         </div>
       </div>
+
 
       <JackpotTipWin />
       <ImageCarousel />
