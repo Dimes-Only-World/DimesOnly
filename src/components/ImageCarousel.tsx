@@ -420,12 +420,13 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}
     >
       {/* ---------- HERO SECTION ---------- */}
-      <div className="relative flex flex-col items-center justify-center bg-white text-black rounded-[30px] md:rounded-[50px] px-5 py-10 mx-4 my-6 sm:px-8 sm:mx-6 md:px-16 md:py-20 md:mx-10 md:my-10 shadow-2xl overflow-hidden min-h-[550px] md:min-h-[600px]">
+      <div className="relative flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 via-white to-pink-200 text-black rounded-[30px] md:rounded-[50px] px-5 py-10 mx-4 my-6 sm:px-8 sm:mx-6 md:px-16 md:py-20 md:mx-10 md:my-10 shadow-2xl overflow-hidden min-h-[550px] md:min-h-[600px]">
         <img
           src={money}
           alt="money"
           className="absolute bottom-0 w-[85%] max-w-[600px] opacity-30 pointer-events-none"
         />
+
 
         <div className="relative z-10 text-center w-full max-w-3xl mx-auto break-words">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-3 tracking-tight leading-tight">
