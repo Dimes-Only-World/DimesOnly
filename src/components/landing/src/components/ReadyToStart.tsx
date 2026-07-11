@@ -8,7 +8,7 @@ const ReadyToStart = () => {
     <section className="py-20 bg-transparent relative z-10">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-          JOIN FREE <span className="text-[#E916D1]">NOW</span>
+          <span className="text-[#E916D1]">JOIN FREE TODAY</span>
         </h2>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
           <a
