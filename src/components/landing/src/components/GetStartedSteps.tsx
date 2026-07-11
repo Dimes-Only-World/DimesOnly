@@ -36,9 +36,7 @@ Easy Extra Money`}</span>
             className="rounded-xl border border-[#E916D1]/30 bg-card/80 p-8 text-center shadow-lg shadow-[#E916D1]/10 transition-transform duration-300 hover:-translate-y-2"
           >
             <div className="text-5xl font-black text-primary-light mb-4">{step.num}</div>
-            <h3 className="text-xl font-bold mb-3 text-foreground">
-              {step.title}
-            </h3>
+            <h3 className="text-xl font-bold mb-3 text-foreground">{step.title}</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
           </div>
         ))}
