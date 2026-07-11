@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
@@ -11,7 +6,6 @@ import { getRatingSeasonYear } from "@/lib/timeUtils";
 import exo from "@/assets/exo.png";
 import money from "@/assets/money.png";
 import heroBg from "@/assets/hero-dime-bg.png.asset.json";
-
 
 interface RankedPerformer {
   id: string;
@@ -44,34 +38,27 @@ const fallbackImages = [
   "https://dimesonly.s3.us-east-2.amazonaws.com/Home-Dimes-2-768x1250.png",
 ];
 
-const fallbackPerformers: CarouselPerformer[] = Array.from(
-  { length: 20 },
-  (_, i) => ({
-    id: `fallback-${i}`,
-    username: `Model ${i + 1}`,
-    image: fallbackImages[i % fallbackImages.length],
-    rank: i + 1,
-  })
-);
+const fallbackPerformers: CarouselPerformer[] = Array.from({ length: 20 }, (_, i) => ({
+  id: `fallback-${i}`,
+  username: `Model ${i + 1}`,
+  image: fallbackImages[i % fallbackImages.length],
+  rank: i + 1,
+}));
 
 /* --------------------------------------------------------------
    Main Component
    -------------------------------------------------------------- */
-const ImageCarousel: React.FC<{ className?: string }> = ({
-  className = "",
-}) => {
+const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => {
   const desktopScrollRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
 
   const [topRanked, setTopRanked] = useState<RankedPerformer[]>([]);
-  const [selectedPerformer, setSelectedPerformer] =
-    useState<CarouselPerformer | null>(null);
+  const [selectedPerformer, setSelectedPerformer] = useState<CarouselPerformer | null>(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
   const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLandscape, setIsLandscape] = useState(false);
-  
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US", {
@@ -89,10 +76,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
       ? topRanked.map((u, i) => ({
           id: u.id,
           username: u.username,
-          image:
-            u.profile_photo ||
-            u.front_page_photo ||
-            fallbackPerformers[i % fallbackPerformers.length].image,
+          image: u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length].image,
           rank: u.rank,
         }))
       : fallbackPerformers;
@@ -109,27 +93,19 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
     window.location.href = `/profile/${encodeURIComponent(username)}`;
   };
 
-  const scrollByCards = useCallback(
-    (ref: React.RefObject<HTMLDivElement>, direction: number) => {
-      const container = ref.current;
-      if (!container || typeof window === "undefined") return;
+  const scrollByCards = useCallback((ref: React.RefObject<HTMLDivElement>, direction: number) => {
+    const container = ref.current;
+    if (!container || typeof window === "undefined") return;
 
-      const card = container.querySelector<HTMLElement>("[data-carousel-card]");
-      if (!card) return;
+    const card = container.querySelector<HTMLElement>("[data-carousel-card]");
+    if (!card) return;
 
-      const styles = window.getComputedStyle(container);
-      const gap =
-        parseFloat(
-          styles.getPropertyValue("column-gap") ||
-            styles.getPropertyValue("gap") ||
-            "0"
-        ) || 0;
+    const styles = window.getComputedStyle(container);
+    const gap = parseFloat(styles.getPropertyValue("column-gap") || styles.getPropertyValue("gap") || "0") || 0;
 
-      const scrollAmount = direction * (card.offsetWidth + gap);
-      container.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    },
-    []
-  );
+    const scrollAmount = direction * (card.offsetWidth + gap);
+    container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  }, []);
 
   const fetchPreviewVideo = async (performer: CarouselPerformer) => {
     if (performer.id.startsWith("fallback-")) {
@@ -158,7 +134,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
         console.error("[ImageCarousel] Error fetching video:", error);
       } else if (data?.[0]?.media_url) {
         const mediaUrl = String(data[0].media_url);
-        
+
         // Check if video is in private-media bucket (needs signed URL)
         if (mediaUrl.includes("/private-media/")) {
           // Extract the path after the bucket name
@@ -168,7 +144,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
             const { data: signedData, error: signedError } = await supabase.storage
               .from("private-media")
               .createSignedUrl(storagePath, 3600); // 1 hour expiry
-            
+
             if (signedError) {
               console.error("[ImageCarousel] Error creating signed URL:", signedError);
               // Fall back to public URL (might work for some)
@@ -236,10 +212,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
 
     const ref = getRefParam();
     const url = new URL("/login", window.location.origin);
-    url.searchParams.set(
-      "redirect",
-      `/profile/${encodeURIComponent(selectedPerformer.username)}`
-    );
+    url.searchParams.set("redirect", `/profile/${encodeURIComponent(selectedPerformer.username)}`);
     if (ref) url.searchParams.set("ref", ref);
     window.location.href = url.toString();
   };
@@ -305,9 +278,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           scores[u.id] = {
             id: String(u.id),
             username: String(u.username),
-            front_page_photo: u.front_page_photo
-              ? String(u.front_page_photo)
-              : null,
+            front_page_photo: u.front_page_photo ? String(u.front_page_photo) : null,
             profile_photo: u.profile_photo ? String(u.profile_photo) : null,
             total_score: 0,
             rating_count: 0,
@@ -348,7 +319,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
     data: CarouselPerformer[],
     ref: React.RefObject<HTMLDivElement>,
     cardClass: string,
-    controlClasses?: { left: string; right: string }
+    controlClasses?: { left: string; right: string },
   ) => {
     const btnBase =
       "absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-yellow-400";
@@ -399,12 +370,8 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
                   Rank #{p.rank}
                 </div>
                 <div className="absolute bottom-6 left-4 right-4 text-white">
-                  <p className="font-semibold text-xl md:text-2xl">
-                    @{p.username}
-                  </p>
-                  <p className="text-sm md:text-base text-gray-200 opacity-80">
-                    Tap to preview
-                  </p>
+                  <p className="font-semibold text-xl md:text-2xl">@{p.username}</p>
+                  <p className="text-sm md:text-base text-gray-200 opacity-80">Tap to preview</p>
                 </div>
               </div>
             </div>
@@ -418,9 +385,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
      JSX
      -------------------------------------------------------------- */
   return (
-    <div
-      className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}
-    >
+    <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
       {/* ---------- HERO SECTION ---------- */}
       <div
         className="relative flex flex-col items-center justify-center bg-cover bg-center text-black rounded-[30px] md:rounded-[50px] px-5 py-10 mx-4 my-6 sm:px-8 sm:mx-6 md:px-16 md:py-20 md:mx-10 md:my-10 shadow-2xl overflow-hidden min-h-[550px] md:min-h-[600px]"
@@ -433,16 +398,11 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           className="absolute bottom-0 w-[85%] max-w-[600px] opacity-20 pointer-events-none"
         />
 
-
-
         <div className="relative z-10 text-center w-full max-w-3xl mx-auto break-words">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-3 tracking-tight leading-tight">
             $trippers & Exxxotic Females
             <br />
-            Top Baddie Wins{" "}
-            <span className="text-[#E916D1]">
-              $10,000
-            </span>
+            Top Baddie Wins <span className="text-[#E916D1]">$10,000</span>
           </h2>
 
           <p className="text-base sm:text-lg md:text-xl font-semibold text-black mb-4">
@@ -450,10 +410,8 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           </p>
 
           <p className="text-sm sm:text-base md:text-lg font-semibold text-black max-w-2xl mx-auto leading-relaxed">
-            <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000.00{" "}
-            <br />
-            <span className="text-yellow-500">Rank Between #2 & #20</span> Win Money As
-            Well
+            <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000.00 <br />
+            <span className="text-black">Rank Between #2 & #20</span> Win Money As Well
           </p>
 
           <button className="mt-6 md:mt-8 px-5 sm:px-8 py-3 bg-[#E916D1] hover:bg-[#E916D1]/90 transition-all duration-300 text-white text-sm sm:text-base font-semibold rounded-full shadow-lg max-w-full whitespace-normal">
@@ -465,7 +423,6 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
           </p>
         </div>
       </div>
-
 
       {/* ---------- MODAL ---------- */}
       {isModalOpen && selectedPerformer && (
@@ -517,9 +474,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({
 
             {/* Bottom CTA */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-5 md:p-6">
-              <p className="text-white text-lg md:text-2xl font-bold mb-3">
-                @{selectedPerformer.username}
-              </p>
+              <p className="text-white text-lg md:text-2xl font-bold mb-3">@{selectedPerformer.username}</p>
 
               <div className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-start">
                 <button
