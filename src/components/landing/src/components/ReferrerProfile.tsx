@@ -48,7 +48,7 @@ const ReferrerProfile = () => {
   const photoUrl = referrer?.front_page_photo || referrer?.profile_photo || defaultAvatar;
 
   return (
-    <section id="referrer-section" className="py-16 bg-background">
+    <section id="referrer-section" className="py-16 bg-black">
       <div className="container mx-auto px-4 text-center">
         {ref ? (
           <div className="flex flex-col items-center gap-4">
@@ -68,13 +68,14 @@ const ReferrerProfile = () => {
             <p className="text-muted-foreground text-sm">invited you to join Dimes Only Network</p>
           </div>
         ) : (
-          <h2 className="text-4xl md:text-5xl font-black tracking-wider text-foreground">
-            <span className="text-[#E916D1]">DIMES</span> ONLY WORLD
-          </h2>
+          <img
+            src={dimesLogo.url}
+            alt="Dimes Only World"
+            className="mx-auto w-full max-w-2xl h-auto object-contain"
+          />
         )}
       </div>
-    </section>
-  );
+    </section>);
 };
 
 export default ReferrerProfile;
