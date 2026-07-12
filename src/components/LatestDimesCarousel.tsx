@@ -67,10 +67,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         const mapped = rows.map((user, index) => ({
           id: String(user.id),
           username: user.username || `New Dime ${index + 1}`,
-          image:
-            user.profile_photo ??
-            user.front_page_photo ??
-            fallbackImages[index % fallbackImages.length],
+          image: user.profile_photo ?? user.front_page_photo ?? fallbackImages[index % fallbackImages.length],
           created_at: user.created_at,
         }));
         setPerformers(mapped);
@@ -108,7 +105,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
       if (!error && data && data.length > 0) {
         const row = data[0] as { media_url: string | null; storage_path: string | null };
         const url = row?.media_url?.trim();
-        
+
         if (url) {
           // Check if this is from private-media bucket and needs a signed URL
           if (url.includes("/private-media/")) {
@@ -117,7 +114,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
               const { data: signedData, error: signedError } = await supabase.storage
                 .from("private-media")
                 .createSignedUrl(storagePath, 3600);
-              
+
               if (!signedError && signedData?.signedUrl) {
                 setSelectedVideoUrl(signedData.signedUrl);
               } else {
@@ -170,8 +167,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     if (!card) return;
 
     const styles = window.getComputedStyle(container);
-    const gapValue =
-      parseFloat(styles.getPropertyValue("column-gap") || styles.getPropertyValue("gap") || "0") || 0;
+    const gapValue = parseFloat(styles.getPropertyValue("column-gap") || styles.getPropertyValue("gap") || "0") || 0;
 
     const scrollAmount = direction * (card.offsetWidth + gapValue || card.offsetWidth);
     container.scrollBy({ left: scrollAmount, behavior: "smooth" });
@@ -206,7 +202,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     <section className={`w-full bg-transparent py-10 ${className}`}>
       <div className="text-center mb-8">
         <h2 className="text-black text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-          Latest 20 <span className="text-[#E916D1]">Dimes</span> to Join
+          Last 20 <span className="text-[#E916D1]">Dimes</span> to Join
         </h2>
         <p className="text-base md:text-lg text-black whitespace-pre-line">
           See More Inside{"\n"}
@@ -237,7 +233,6 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto px-4 py-2 scroll-smooth snap-x snap-mandatory justify-start [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-
           {performers.map((performer) => (
             <div
               key={performer.id}
@@ -311,9 +306,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
             </div>
 
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/70 to-transparent p-5 md:p-6">
-              <p className="mb-3 text-center text-lg md:text-2xl font-bold text-white">
-                @{selectedPerformer.username}
-              </p>
+              <p className="mb-3 text-center text-lg md:text-2xl font-bold text-white">@{selectedPerformer.username}</p>
               <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4">
                 <button
                   onClick={navigateLogin}
