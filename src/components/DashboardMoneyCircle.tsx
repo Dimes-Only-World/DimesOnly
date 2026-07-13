@@ -25,6 +25,8 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [brokenPhotoIds, setBrokenPhotoIds] = useState<Set<string>>(new Set());
+  const [photoVersion, setPhotoVersion] = useState(() => Date.now());
 
   const normalizeUsername = (value: string | null | undefined) =>
     String(value || "")
@@ -35,7 +37,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const appendPhotoCacheBuster = (url: string | null | undefined) => {
     if (!url) return null;
     const separator = url.includes("?") ? "&" : "?";
-    return `${url}${separator}v=${Date.now()}`;
+    return `${url}${separator}v=${photoVersion}`;
   };
 
   const syncFreshProfilePhotos = async (rows: Referral[]) => {
@@ -79,6 +81,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
       const { data: rpcData } = await supabase.rpc("get_my_referrals");
       if (Array.isArray(rpcData) && rpcData.length > 0) {
         setReferrals(await syncFreshProfilePhotos(rpcData as Referral[]));
+        setPhotoVersion(Date.now());
         return;
       }
 
@@ -92,13 +95,14 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
       if (!username) return;
 
       const { data: refs } = await supabase
-        .from("public_user_profiles")
+        .from("users")
         .select("id, username, profile_photo, created_at")
         .ilike("referred_by", username)
         .order("created_at", { ascending: false });
 
       if (Array.isArray(refs)) {
         setReferrals(await syncFreshProfilePhotos(refs as Referral[]));
+        setPhotoVersion(Date.now());
       }
     } catch (e) {
       console.warn("Failed to fetch referrals:", e);
@@ -133,13 +137,13 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const renderAvatar = (ref: Referral) => (
     <div key={ref.id} className="flex flex-col items-center min-w-0 w-full">
       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200 bg-blue-100 flex items-center justify-center flex-shrink-0">
-        {ref.profile_photo ? (
+        {ref.profile_photo && !brokenPhotoIds.has(ref.id) ? (
           <img
             src={appendPhotoCacheBuster(ref.profile_photo) || undefined}
             alt={ref.username}
             className="w-full h-full object-cover"
             onError={(event) => {
-              event.currentTarget.style.display = "none";
+              setBrokenPhotoIds((prev) => new Set(prev).add(ref.id));
             }}
           />
         ) : (
