@@ -47,14 +47,6 @@ const AgeVerification = () => {
           >
             ENTER - I am 18 years old or older
           </button>{" "}
-          <button
-            onClick={() => {
-              window.location.href = "/login";
-            }}
-            className="w-full mt-3 py-3 px-6 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary/10 transition-colors"
-          >
-            SIGN IN
-          </button>
         </div>
       </div>
     </div>
