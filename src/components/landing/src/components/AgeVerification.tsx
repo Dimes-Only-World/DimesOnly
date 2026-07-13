@@ -22,7 +22,9 @@ const AgeVerification = () => {
         <div className="md:w-1/2 bg-background flex items-center justify-center p-8 min-h-[200px]">
           <div className="text-center">
             <h2 className="text-3xl font-black tracking-wider text-foreground">
-              DIMES<br />ONLY
+              DIMES
+              <br />
+              ONLY
             </h2>
             <p className="text-xs text-muted-foreground mt-2 tracking-widest uppercase">Network</p>
             {/* Replace with uploaded branding image later */}
@@ -34,19 +36,24 @@ const AgeVerification = () => {
 
         {/* Right side — warning & button */}
         <div className="md:w-1/2 p-8 flex flex-col justify-center">
-          <h3 className="text-xl font-bold text-primary mb-4">
-            WARNING: This site is for adults only!
-          </h3>
+          <h3 className="text-xl font-bold text-primary mb-4">WARNING: This site is for adults only!</h3>
           <p className="text-foreground text-sm leading-relaxed mb-6">
-            By entering this website, I acknowledge that I am 18 years old or older
-            and agree to the Terms of Service, which are available per request at the
-            footer of the website.
+            By entering this website, I acknowledge that I am 18 years old or older and agree to the Terms of Service,
+            which are available per request at the footer of the website.
           </p>
           <button
             onClick={handleEnter}
             className="w-full py-3 px-6 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
           >
             ENTER - I am 18 years old or older
+          </button>
+          <button
+            onClick={() => {
+              window.location.href = "/login";
+            }}
+            className="w-full mt-3 py-3 px-6 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary/10 transition-colors"
+          >
+            SIGN IN
           </button>
         </div>
       </div>
