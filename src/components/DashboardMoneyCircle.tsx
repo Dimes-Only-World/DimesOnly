@@ -28,12 +28,6 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [brokenPhotoIds, setBrokenPhotoIds] = useState<Set<string>>(new Set());
   const [photoVersion, setPhotoVersion] = useState(() => Date.now());
 
-  const normalizeUsername = (value: string | null | undefined) =>
-    String(value || "")
-      .trim()
-      .replace(/^@+/, "")
-      .toLowerCase();
-
   const appendPhotoCacheBuster = (url: string | null | undefined) => {
     if (!url) return null;
     const separator = url.includes("?") ? "&" : "?";
@@ -43,29 +37,23 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const syncFreshProfilePhotos = async (rows: Referral[]) => {
     if (!rows.length) return rows;
 
-    const usernames = rows.map((row) => row.username).filter(Boolean);
     const ids = rows.map((row) => row.id).filter(Boolean);
+    if (!ids.length) return rows;
 
     const { data: profiles, error } = await supabase
       .from("public_user_profiles")
       .select("id, username, profile_photo, created_at")
-      .or(
-        `id.in.(${ids.join(",")}),username.in.(${usernames
-          .map((username) => `"${String(username).replace(/"/g, '\\"')}"`)
-          .join(",")})`
-      );
+      .in("id", ids);
 
     if (error || !Array.isArray(profiles)) return rows;
 
     const byId = new Map<string, any>();
-    const byUsername = new Map<string, any>();
     profiles.forEach((profile: any) => {
       if (profile.id) byId.set(profile.id, profile);
-      if (profile.username) byUsername.set(normalizeUsername(profile.username), profile);
     });
 
     return rows.map((row) => {
-      const fresh = byId.get(row.id) || byUsername.get(normalizeUsername(row.username));
+      const fresh = byId.get(row.id);
       return {
         ...row,
         username: fresh?.username || row.username,
@@ -81,6 +69,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
       const { data: rpcData } = await supabase.rpc("get_my_referrals");
       if (Array.isArray(rpcData) && rpcData.length > 0) {
         setReferrals(await syncFreshProfilePhotos(rpcData as Referral[]));
+        setBrokenPhotoIds(new Set());
         setPhotoVersion(Date.now());
         return;
       }
@@ -102,6 +91,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
 
       if (Array.isArray(refs)) {
         setReferrals(await syncFreshProfilePhotos(refs as Referral[]));
+        setBrokenPhotoIds(new Set());
         setPhotoVersion(Date.now());
       }
     } catch (e) {
