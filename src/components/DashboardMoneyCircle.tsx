@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
@@ -25,94 +25,45 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const [brokenPhotoIds, setBrokenPhotoIds] = useState<Set<string>>(new Set());
-  const [photoVersion, setPhotoVersion] = useState(() => Date.now());
-
-  const appendPhotoCacheBuster = (url: string | null | undefined) => {
-    if (!url) return null;
-    const separator = url.includes("?") ? "&" : "?";
-    return `${url}${separator}v=${photoVersion}`;
-  };
-
-  const syncFreshProfilePhotos = async (rows: Referral[]) => {
-    if (!rows.length) return rows;
-
-    const ids = rows.map((row) => row.id).filter(Boolean);
-    if (!ids.length) return rows;
-
-    const { data: profiles, error } = await supabase
-      .from("public_user_profiles")
-      .select("id, username, profile_photo, created_at")
-      .in("id", ids);
-
-    if (error || !Array.isArray(profiles)) return rows;
-
-    const byId = new Map<string, any>();
-    profiles.forEach((profile: any) => {
-      if (profile.id) byId.set(profile.id, profile);
-    });
-
-    return rows.map((row) => {
-      const fresh = byId.get(row.id);
-      return {
-        ...row,
-        username: fresh?.username || row.username,
-        profile_photo: fresh?.profile_photo || row.profile_photo || null,
-        created_at: fresh?.created_at || row.created_at,
-      };
-    });
-  };
-
-  const fetchReferrals = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const { data: rpcData } = await supabase.rpc("get_my_referrals");
-      if (Array.isArray(rpcData) && rpcData.length > 0) {
-        setReferrals(await syncFreshProfilePhotos(rpcData as Referral[]));
-        setBrokenPhotoIds(new Set());
-        setPhotoVersion(Date.now());
-        return;
-      }
-
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("username")
-        .eq("id", userId)
-        .maybeSingle();
-
-      const username = (userRow as any)?.username;
-      if (!username) return;
-
-      const { data: refs } = await supabase
-        .from("users")
-        .select("id, username, profile_photo, created_at")
-        .ilike("referred_by", username)
-        .order("created_at", { ascending: false });
-
-      if (Array.isArray(refs)) {
-        setReferrals(await syncFreshProfilePhotos(refs as Referral[]));
-        setBrokenPhotoIds(new Set());
-        setPhotoVersion(Date.now());
-      }
-    } catch (e) {
-      console.warn("Failed to fetch referrals:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
 
   useEffect(() => {
-    fetchReferrals();
+    const fetchReferrals = async () => {
+      if (!userId) return;
+      try {
+        const { data: rpcData } = await supabase.rpc("get_my_referrals");
+        if (Array.isArray(rpcData) && rpcData.length > 0) {
+          setReferrals(rpcData as Referral[]);
+          setLoading(false);
+          return;
+        }
 
-    const handleFocus = () => fetchReferrals();
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleFocus);
+        const { data: userRow } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", userId)
+          .maybeSingle();
 
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleFocus);
+        const username = (userRow as any)?.username;
+        if (!username) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: refs } = await supabase
+          .from("users")
+          .select("id, username, profile_photo, created_at")
+          .ilike("referred_by", username)
+          .order("created_at", { ascending: false });
+
+        if (Array.isArray(refs)) setReferrals(refs as Referral[]);
+      } catch (e) {
+        console.warn("Failed to fetch referrals:", e);
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [fetchReferrals]);
+    fetchReferrals();
+  }, [userId]);
 
   if (loading) return null;
 
@@ -127,14 +78,11 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const renderAvatar = (ref: Referral) => (
     <div key={ref.id} className="flex flex-col items-center min-w-0 w-full">
       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200 bg-blue-100 flex items-center justify-center flex-shrink-0">
-        {ref.profile_photo && !brokenPhotoIds.has(ref.id) ? (
+        {ref.profile_photo ? (
           <img
-            src={appendPhotoCacheBuster(ref.profile_photo) || undefined}
+            src={ref.profile_photo}
             alt={ref.username}
             className="w-full h-full object-cover"
-            onError={(event) => {
-              setBrokenPhotoIds((prev) => new Set(prev).add(ref.id));
-            }}
           />
         ) : (
           <span className="text-lg font-bold text-blue-700">

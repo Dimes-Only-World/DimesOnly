@@ -16,58 +16,29 @@ interface ReferrerInfoProps {
   referredBy?: string;
 }
 
-const normalizeReferrerUsername = (value?: string) =>
-  String(value || "")
-    .trim()
-    .replace(/^@+/, "");
-
-const isCompanyReference = (value?: string) => {
-  const normalized = normalizeReferrerUsername(value).toLowerCase();
-  return normalized === "" || normalized === "company";
-};
-
 const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
   const [referrerData, setReferrerData] = useState<ReferrerData | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!isCompanyReference(referredBy)) {
+    if (referredBy && referredBy !== 'Company') {
       fetchReferrerData();
-    } else {
-      setReferrerData(null);
     }
   }, [referredBy]);
 
   const fetchReferrerData = async () => {
-    const normalizedUsername = normalizeReferrerUsername(referredBy);
-    if (!normalizedUsername) return;
+    if (!referredBy) return;
     
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('public_user_profiles')
         .select('id, username, profile_photo, user_type')
-        .ilike('username', normalizedUsername)
-        .maybeSingle();
+        .eq('username', referredBy)
+        .single();
 
       if (data && !error) {
         setReferrerData(data);
-        return;
-      }
-
-      const { data: functionResponse, error: functionError } = await supabase.functions.invoke('public-data', {
-        body: { action: 'fetchProfile', username: normalizedUsername },
-      });
-
-      if (functionError) throw functionError;
-      if (functionResponse?.data) {
-        const profile = functionResponse.data;
-        setReferrerData({
-          id: profile.id,
-          username: profile.username,
-          profile_photo: profile.profile_photo || undefined,
-          user_type: profile.user_type || undefined,
-        });
       }
     } catch (error) {
       console.error('Error fetching referrer data:', error);
@@ -76,8 +47,7 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
     }
   };
 
-  const isCompany = isCompanyReference(referredBy);
-  const displayUsername = referrerData?.username || normalizeReferrerUsername(referredBy);
+  const isCompany = !referredBy || referredBy.trim() === '' || referredBy === 'Company';
 
   if (!isCompany && loading) {
     return (
@@ -144,14 +114,14 @@ const ReferrerInfo: React.FC<ReferrerInfoProps> = ({ referredBy }) => {
               alt={referrerData?.username || referredBy}
             />
             <AvatarFallback className="bg-blue-100 text-blue-700 text-lg font-semibold">
-              {displayUsername.charAt(0).toUpperCase()}
+              {(referrerData?.username || referredBy).charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-gray-900">
-                @{displayUsername}
+                @{referrerData?.username || referredBy}
               </h3>
               {referrerData?.user_type && (
                 <Badge 
