@@ -84,9 +84,9 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {title !== "Profile" && (
-            <div className="mb-4">
+        {title !== "Profile" && (
+          <div className="bg-white border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <Button
                 onClick={() => navigate("/dashboard/profile")}
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
@@ -94,7 +94,10 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
                 <Home className="mr-2 h-4 w-4" /> Home
               </Button>
             </div>
-          )}
+          </div>
+        )}
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {children}
         </div>
       </div>
