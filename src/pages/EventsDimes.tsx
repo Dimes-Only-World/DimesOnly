@@ -10,8 +10,9 @@ import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { normalizeRefParam } from "@/lib/utils";
-import { Search, MapPin, User, ArrowLeft, Home } from "lucide-react";
+import { Search, MapPin, User, ArrowLeft } from "lucide-react";
 import BannerVideo from "@/components/BannerVideo";
+import HomeProfileButton from "@/components/HomeProfileButton";
 
 interface Performer {
   id: string;
@@ -201,12 +202,7 @@ const EventsDimes: React.FC = () => {
         {/* Main Content Container - Match TipGirls layout */}
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="flex justify-start mb-4">
-            <Button
-              onClick={() => navigate("/dashboard")}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
-            >
-              <Home className="mr-2 h-4 w-4" /> Home
-            </Button>
+            <HomeProfileButton />
           </div>
           {/* Referrer Display */}
           {refParam && refParam !== user?.username && (
