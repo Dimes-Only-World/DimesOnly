@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
@@ -85,6 +85,16 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {title !== "Profile" && (
+            <div className="mb-4">
+              <Button
+                onClick={() => navigate("/dashboard/profile")}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
+              >
+                <Home className="mr-2 h-4 w-4" /> Home
+              </Button>
+            </div>
+          )}
           {children}
         </div>
       </div>
