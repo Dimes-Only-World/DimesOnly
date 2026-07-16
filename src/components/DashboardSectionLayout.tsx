@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
