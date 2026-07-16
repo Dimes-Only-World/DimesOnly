@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, DollarSign, Star, Lock, Crown } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { useAppContext } from '@/contexts/AppContext';
-import { useToast } from '@/hooks/use-toast';
-import MediaGrid from '@/components/MediaGrid';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Heart, MessageCircle, DollarSign, Star, Lock, Crown } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useAppContext } from "@/contexts/AppContext";
+import { useToast } from "@/hooks/use-toast";
+import MediaGrid from "@/components/MediaGrid";
 
 interface UserProfile {
   id: string;
@@ -26,7 +26,7 @@ interface UserProfile {
 interface UserMedia {
   id: string;
   url: string;
-  type: 'photo' | 'video';
+  type: "photo" | "video";
   content_tier: string;
   flagged: boolean;
   created_at: string;
@@ -37,12 +37,12 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAppContext();
   const { toast } = useToast();
-  
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [media, setMedia] = useState<UserMedia[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'free' | 'silver' | 'gold'>('free');
-  const [userMembership, setUserMembership] = useState<string>('free');
+  const [activeTab, setActiveTab] = useState<"free" | "silver" | "gold">("free");
+  const [userMembership, setUserMembership] = useState<string>("free");
 
   useEffect(() => {
     if (username) {
@@ -61,32 +61,32 @@ const Profile: React.FC = () => {
   const fetchProfile = async () => {
     try {
       // Use public-data edge function to fetch profile
-      const { data: response, error } = await supabase.functions.invoke('public-data', {
-        body: { action: 'fetchProfile', username }
+      const { data: response, error } = await supabase.functions.invoke("public-data", {
+        body: { action: "fetchProfile", username },
       });
 
       if (error) throw error;
-      
+
       const data = response?.data;
 
       if (!data) {
         toast({
           title: "Profile not found",
           description: "The requested profile does not exist.",
-          variant: "destructive"
+          variant: "destructive",
         });
-        navigate('/dashboard');
+        navigate("/dashboard");
         return;
       }
 
       setProfile(data as UserProfile);
       await fetchMedia(data.id);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
       toast({
         title: "Error",
         description: "Failed to load profile.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -96,43 +96,45 @@ const Profile: React.FC = () => {
   const fetchMedia = async (userId: string) => {
     try {
       // Use public-data edge function to fetch media
-      const { data: response, error } = await supabase.functions.invoke('public-data', {
-        body: { action: 'fetchUserMedia', userId }
+      const { data: response, error } = await supabase.functions.invoke("public-data", {
+        body: { action: "fetchUserMedia", userId },
       });
 
       if (error) throw error;
 
       const data = response?.data || [];
 
-      const transformedMedia = await Promise.all(data.map(async (item: any) => {
-        let effectiveUrl = item.media_url as string;
-        // Videos are stored in the private bucket; generate a signed URL
-        if (item.media_type === 'video' && item.storage_path) {
-          try {
-            const { data: signedResponse, error: signErr } = await supabase.functions.invoke('public-data', {
-              body: { action: 'createSignedUrl', storagePath: item.storage_path, expiresIn: 3600 }
-            });
-            if (!signErr && signedResponse?.data?.signedUrl) {
-              effectiveUrl = signedResponse.data.signedUrl;
+      const transformedMedia = await Promise.all(
+        data.map(async (item: any) => {
+          let effectiveUrl = item.media_url as string;
+          // Videos are stored in the private bucket; generate a signed URL
+          if (item.media_type === "video" && item.storage_path) {
+            try {
+              const { data: signedResponse, error: signErr } = await supabase.functions.invoke("public-data", {
+                body: { action: "createSignedUrl", storagePath: item.storage_path, expiresIn: 3600 },
+              });
+              if (!signErr && signedResponse?.data?.signedUrl) {
+                effectiveUrl = signedResponse.data.signedUrl;
+              }
+            } catch (e) {
+              console.warn("Failed to create signed URL for video", item.id, e);
             }
-          } catch (e) {
-            console.warn('Failed to create signed URL for video', item.id, e);
           }
-        }
 
-        return {
-          id: item.id,
-          url: effectiveUrl,
-          type: item.media_type as 'photo' | 'video',
-          content_tier: item.content_tier,
-          flagged: item.flagged,
-          created_at: item.created_at,
-        };
-      }));
+          return {
+            id: item.id,
+            url: effectiveUrl,
+            type: item.media_type as "photo" | "video",
+            content_tier: item.content_tier,
+            flagged: item.flagged,
+            created_at: item.created_at,
+          };
+        }),
+      );
 
       setMedia(transformedMedia);
     } catch (error) {
-      console.error('Error fetching media:', error);
+      console.error("Error fetching media:", error);
     }
   };
 
@@ -141,74 +143,80 @@ const Profile: React.FC = () => {
     try {
       // 1) Trust the users table first (updated by webhook)
       const { data: userRow, error: userErr } = await supabase
-        .from('users')
-        .select('membership_tier, membership_type, silver_plus_active, diamond_plus_active')
-        .eq('id', user.id)
+        .from("users")
+        .select("membership_tier, membership_type, silver_plus_active, diamond_plus_active")
+        .eq("id", user.id)
         .single();
 
       if (!userErr && userRow) {
-        const rawTier = (userRow.membership_tier || userRow.membership_type || '').toString().toLowerCase();
-        const normalizedTier = rawTier === 'gold' || rawTier === 'diamond' ? 'diamond_plus'
-          : rawTier === 'silver' ? 'silver_plus'
-          : rawTier;
+        const rawTier = (userRow.membership_tier || userRow.membership_type || "").toString().toLowerCase();
+        const normalizedTier =
+          rawTier === "gold" || rawTier === "diamond" ? "diamond_plus" : rawTier === "silver" ? "silver_plus" : rawTier;
 
-        if (userRow.diamond_plus_active || normalizedTier === 'diamond_plus') {
-          setUserMembership('diamond_plus');
+        if (userRow.diamond_plus_active || normalizedTier === "diamond_plus") {
+          setUserMembership("diamond_plus");
           return;
         }
-        if (userRow.silver_plus_active || normalizedTier === 'silver_plus') {
-          setUserMembership('silver_plus');
+        if (userRow.silver_plus_active || normalizedTier === "silver_plus") {
+          setUserMembership("silver_plus");
           return;
         }
       }
 
       // 2) Fallback to completed upgrades in membership_upgrades
       const { data: upgrades, error: upgErr } = await supabase
-        .from('membership_upgrades')
-        .select('upgrade_type, upgrade_status')
-        .eq('user_id', user.id)
-        .eq('upgrade_status', 'completed')
-        .order('created_at', { ascending: false })
+        .from("membership_upgrades")
+        .select("upgrade_type, upgrade_status")
+        .eq("user_id", user.id)
+        .eq("upgrade_status", "completed")
+        .order("created_at", { ascending: false })
         .limit(1);
 
       if (!upgErr && upgrades && upgrades.length > 0) {
-        const rawUpgrade = String(upgrades[0].upgrade_type || '').toLowerCase();
-        const normalizedUpgrade = rawUpgrade === 'gold' || rawUpgrade === 'diamond' ? 'diamond_plus'
-          : rawUpgrade === 'silver' ? 'silver_plus'
-          : rawUpgrade;
+        const rawUpgrade = String(upgrades[0].upgrade_type || "").toLowerCase();
+        const normalizedUpgrade =
+          rawUpgrade === "gold" || rawUpgrade === "diamond"
+            ? "diamond_plus"
+            : rawUpgrade === "silver"
+              ? "silver_plus"
+              : rawUpgrade;
         setUserMembership(normalizedUpgrade);
         return;
       }
 
       // Default
-      setUserMembership('free');
+      setUserMembership("free");
     } catch (error) {
-      console.error('Error fetching membership:', error);
-      setUserMembership('free');
+      console.error("Error fetching membership:", error);
+      setUserMembership("free");
     }
   };
 
   const getFilteredMedia = () => {
-    const filtered = media.filter(item => {
-      if (activeTab === 'free') return item.content_tier === 'free';
-      if (activeTab === 'silver') return item.content_tier === 'silver';
-      if (activeTab === 'gold') return item.content_tier === 'gold';
+    const filtered = media.filter((item) => {
+      if (activeTab === "free") return item.content_tier === "free";
+      if (activeTab === "silver") return item.content_tier === "silver";
+      if (activeTab === "gold") return item.content_tier === "gold";
       return false;
     });
 
     // Transform for MediaGrid: ensure media_type is set and URLs are absolute
-    return filtered.map(item => ({
+    return filtered.map((item) => ({
       ...item,
       media_type: item.type, // required by MediaGrid
-      media_url: item.url.startsWith('http') ? item.url : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
-      url: item.url.startsWith('http') ? item.url : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`
+      media_url: item.url.startsWith("http")
+        ? item.url
+        : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
+      url: item.url.startsWith("http")
+        ? item.url
+        : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
     }));
   };
 
   const canAccessTier = (tier: string) => {
-    if (tier === 'free') return true;
-    if (tier === 'silver') return ['silver_plus', 'diamond_plus'].includes(userMembership);
-    if (tier === 'gold') return userMembership === 'diamond_plus';
+    if (tier === "free") return true;
+    if (tier === "silver") return ["silver_plus", "diamond_plus"].includes(userMembership);
+    if (tier === "gold") return userMembership === "diamond_plus";
     return false;
   };
 
@@ -221,10 +229,10 @@ const Profile: React.FC = () => {
   };
 
   const handleUpgrade = (tier: string) => {
-    if (tier === 'silver') {
-      navigate('/upgrade-silver-plus');
-    } else if (tier === 'gold') {
-      navigate('/upgrade');
+    if (tier === "silver") {
+      navigate("/upgrade-silver-plus");
+    } else if (tier === "gold") {
+      navigate("/upgrade");
     }
   };
 
@@ -251,32 +259,31 @@ const Profile: React.FC = () => {
         <Card className="mb-4 sm:mb-6 overflow-hidden">
           <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {profile.banner_photo && (
-              <img 
-                src={profile.banner_photo} 
-                alt="Banner" 
-                className="w-full h-full object-cover"
-              />
+              <img src={profile.banner_photo} alt="Banner" className="w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-black bg-opacity-30" />
-            
+
             {/* Profile Picture & Info */}
             <div className="absolute bottom-0 left-0 right-0 p-3 pt-8 sm:p-6 sm:pt-10">
               <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6">
                 <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg mt-6 sm:mt-0">
-                  <img 
-                    src={profile.profile_photo || '/placeholder.svg'} 
+                  <img
+                    src={profile.profile_photo || "/placeholder.svg"}
                     alt={profile.username}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                
+
                 <div className="flex-1 text-white text-center sm:text-left">
                   <h1 className="text-xl sm:text-3xl font-bold">@{profile.username}</h1>
                   <p className="text-sm sm:text-xl opacity-90 break-words">
-                    {profile.city && profile.state ? `${profile.city}, ${profile.state}` : 
-                     profile.city ? profile.city : 
-                     profile.state ? profile.state : 
-                     'Location not specified'}
+                    {profile.city && profile.state
+                      ? `${profile.city}, ${profile.state}`
+                      : profile.city
+                        ? profile.city
+                        : profile.state
+                          ? profile.state
+                          : "Location not specified"}
                   </p>
                   <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                     <Badge variant="secondary" className="bg-white/20 text-white text-xs">
@@ -289,18 +296,18 @@ const Profile: React.FC = () => {
                 </div>
 
                 {/* Action Buttons (hidden for normal female) */}
-                {!(profile.gender?.toLowerCase() === 'female' && profile.user_type?.toLowerCase() === 'normal') && (
+                {!(profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal") && (
                   <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-                    <Button 
-                      onClick={handleTip} 
+                    <Button
+                      onClick={handleTip}
                       className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
                       size="sm"
                     >
                       <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Tip
                     </Button>
-                    <Button 
-                      onClick={handleRate} 
+                    <Button
+                      onClick={handleRate}
                       className="bg-yellow-600 hover:bg-yellow-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
                       size="sm"
                     >
@@ -310,7 +317,7 @@ const Profile: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {profile.bio && (
                 <div className="mt-3 sm:mt-4 text-white/90 text-center sm:text-left">
                   <p className="text-sm sm:text-base">{profile.bio}</p>
@@ -326,34 +333,34 @@ const Profile: React.FC = () => {
             {/* Tier Tabs */}
             <div className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
               <Button
-                variant={activeTab === 'free' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('free')}
+                variant={activeTab === "free" ? "default" : "outline"}
+                onClick={() => setActiveTab("free")}
                 className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
                 size="sm"
               >
-                Free Content
+                Silver Content
               </Button>
-              
+
               <Button
-                variant={activeTab === 'silver' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('silver')}
+                variant={activeTab === "silver" ? "default" : "outline"}
+                onClick={() => setActiveTab("silver")}
                 className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
                 size="sm"
               >
                 <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
-                Silver Content
-                {!canAccessTier('silver') && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
+                Gold Content
+                {!canAccessTier("silver") && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
-              
+
               <Button
-                variant={activeTab === 'gold' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('gold')}
+                variant={activeTab === "gold" ? "default" : "outline"}
+                onClick={() => setActiveTab("gold")}
                 className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
                 size="sm"
               >
                 <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
-                Gold Content
-                {!canAccessTier('gold') && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
+                Diamond Content
+                {!canAccessTier("gold") && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
             </div>
 
@@ -361,11 +368,7 @@ const Profile: React.FC = () => {
             {canAccessTier(activeTab) ? (
               <div>
                 {getFilteredMedia().length > 0 ? (
-                  <MediaGrid 
-                    media={getFilteredMedia()}
-                    currentUserId={user?.id || ''}
-                    showLikesAndComments={true}
-                  />
+                  <MediaGrid media={getFilteredMedia()} currentUserId={user?.id || ""} showLikesAndComments={true} />
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-500">No {activeTab} content available yet</p>
@@ -376,13 +379,11 @@ const Profile: React.FC = () => {
               <div className="text-center py-12">
                 <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-xl font-semibold mb-2">
-                  {activeTab === 'silver' ? 'Silver' : 'Gold'} Content Locked
+                  {activeTab === "silver" ? "Silver" : "Gold"} Content Locked
                 </h3>
-                <p className="text-gray-500 mb-4">
-                  Upgrade your membership to access {activeTab} content
-                </p>
+                <p className="text-gray-500 mb-4">Upgrade your membership to access {activeTab} content</p>
                 <Button onClick={() => handleUpgrade(activeTab)}>
-                  Upgrade to {activeTab === 'silver' ? 'Silver Plus' : 'Diamond Plus'}
+                  Upgrade to {activeTab === "silver" ? "Silver Plus" : "Diamond Plus"}
                 </Button>
               </div>
             )}
