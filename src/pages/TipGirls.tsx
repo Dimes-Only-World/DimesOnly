@@ -4,7 +4,8 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Flag, User, Heart, Home } from "lucide-react";
+import { Search, MapPin, Flag, User, Heart } from "lucide-react";
+import HomeProfileButton from "@/components/HomeProfileButton";
 import AuthGuard from "@/components/AuthGuard";
 import JackpotDisplay from "@/components/JackpotDisplay";
 import TipAmountSelector from "@/components/TipAmountSelector";
@@ -247,12 +248,7 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
 
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex justify-start mb-4">
-            <Button
-              onClick={() => navigate("/dashboard")}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
-            >
-              <Home className="mr-2 h-4 w-4" /> Home
-            </Button>
+            <HomeProfileButton />
           </div>
           <div className="mb-8">
             <JackpotDisplay />
