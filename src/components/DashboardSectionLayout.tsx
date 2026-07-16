@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User as UserIcon, Home } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
@@ -46,8 +46,8 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-3 gap-3">
               <Link
-                to="/dashboard"
-                aria-label="Back to dashboard home"
+                to="/dashboard/profile"
+                aria-label="Go to your profile"
                 className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-pink-400 shadow-md hover:ring-pink-500 transition-all bg-slate-200"
               >
                 {profilePhoto ? (
@@ -83,19 +83,6 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
             </div>
           </div>
         </div>
-
-        {title !== "Profile" && (
-          <div className="bg-white border-b">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-              <Button
-                onClick={() => navigate("/dashboard/profile")}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold"
-              >
-                <Home className="mr-2 h-4 w-4" /> Home
-              </Button>
-            </div>
-          </div>
-        )}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {children}

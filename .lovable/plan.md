@@ -1,25 +1,29 @@
-## Goal
+## Plan
 
-On the Tip & Win, Rate, Dimes, and Events pages, replace the yellow "Home" button with a circular **profile-picture button** at the top of the page. Clicking it navigates the logged-in user back to their dashboard home (`/dashboard/profile`).
+1. **Remove the old yellow Home button everywhere it is still injected**
+   - Remove the separate yellow/orange `Home` button bar from the shared dashboard section layout.
+   - Keep the circular profile image in the dashboard header as the navigation control.
 
-## Pages to update
+2. **Make the circular profile button always show the user profile photo when available**
+   - Update the profile button so it does not rely only on cached app context.
+   - If the profile photo is missing from context, load the current user’s `profile_photo` from Supabase/session data.
+   - If no photo exists, keep the round user icon fallback.
 
-- `src/pages/TipGirls.tsx` (Tip & Win)
-- `src/pages/RateGirls.tsx` (Rate)
-- `src/pages/Dimes.tsx` (Dimes)
-- `src/pages/EventsDimes.tsx` and `src/pages/EventsDimesOnly.tsx` (Events)
+3. **Place the profile button at the top of these pages**
+   - Tip & Win
+   - Rate
+   - Dimes
+   - Events pages
+   - Keep it above page content so it is clearly visible.
 
-## Change
+4. **Verify the result**
+   - Search for remaining yellow/orange `Home` button text.
+   - Check the affected pages in preview to confirm the button is circular/profile-based, not the yellow `Home` button.
 
-1. Create a small shared component `src/components/HomeProfileButton.tsx`:
-   - Reads the current user from `useAppContext()`.
-   - Renders a round avatar (48–56px) using `profile_photo`, with a `User` icon fallback if none.
-   - Ring/border in the site's pink/magenta accent, subtle hover.
-   - `onClick` → `navigate("/dashboard/profile")`.
-   - If no user is logged in, falls back to navigating to `/login`.
+## Technical details
 
-2. In each of the pages above:
-   - Remove the existing `<Button ...>Home</Button>` block and its `Home` import if unused.
-   - Render `<HomeProfileButton />` at the very top of the page content (left-aligned, above headings/carousels).
-
-No changes to dashboard tabs, business logic, routing, or other pages.
+- Main files likely affected:
+  - `src/components/DashboardSectionLayout.tsx`
+  - `src/components/HomeProfileButton.tsx`
+  - Existing page placements in `TipGirls.tsx`, `RateGirls.tsx`, `Dimes.tsx`, `EventsDimes.tsx`, and `EventsDimesOnly.tsx`
+- No database changes are needed.

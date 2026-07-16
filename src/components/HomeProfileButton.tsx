@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User as UserIcon } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
+import { supabase } from "@/lib/supabase";
 
 interface HomeProfileButtonProps {
   className?: string;
@@ -10,6 +11,68 @@ interface HomeProfileButtonProps {
 const HomeProfileButton: React.FC<HomeProfileButtonProps> = ({ className = "" }) => {
   const navigate = useNavigate();
   const { user } = useAppContext();
+  const [fallbackPhoto, setFallbackPhoto] = useState("");
+
+  useEffect(() => {
+    const loadProfilePhoto = async () => {
+      const contextPhoto = user?.profilePhoto;
+      if (contextPhoto) {
+        setFallbackPhoto(contextPhoto);
+        return;
+      }
+
+      const savedUserData = sessionStorage.getItem("userData");
+      if (savedUserData) {
+        try {
+          const parsedUser = JSON.parse(savedUserData);
+          const storedPhoto = parsedUser?.profilePhoto || parsedUser?.profile_photo;
+          if (storedPhoto) {
+            setFallbackPhoto(String(storedPhoto));
+            return;
+          }
+        } catch (error) {
+          console.error("Error reading saved profile photo:", error);
+        }
+      }
+
+      try {
+        const savedToken = localStorage.getItem("authToken");
+        let userId = user?.id || "";
+
+        if (!userId && savedToken?.startsWith("authenticated_")) {
+          userId = savedToken.replace("authenticated_", "");
+        }
+
+        if (!userId) {
+          const {
+            data: { user: authUser },
+          } = await supabase.auth.getUser();
+          userId = authUser?.id || "";
+        }
+
+        if (!userId) return;
+
+        const { data, error } = await supabase
+          .from("users")
+          .select("profile_photo")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error loading profile photo:", error);
+          return;
+        }
+
+        if (data?.profile_photo) {
+          setFallbackPhoto(String(data.profile_photo));
+        }
+      } catch (error) {
+        console.error("Error loading profile photo:", error);
+      }
+    };
+
+    loadProfilePhoto();
+  }, [user?.id, user?.profilePhoto]);
 
   const handleClick = () => {
     if (user) {
@@ -19,7 +82,7 @@ const HomeProfileButton: React.FC<HomeProfileButtonProps> = ({ className = "" })
     }
   };
 
-  const photo = user?.profilePhoto;
+  const photo = user?.profilePhoto || fallbackPhoto;
 
   return (
     <button
