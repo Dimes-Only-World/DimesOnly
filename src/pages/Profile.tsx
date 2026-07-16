@@ -383,7 +383,7 @@ const Profile: React.FC = () => {
                 </h3>
                 <p className="text-gray-500 mb-4">Upgrade your membership to access {activeTab} content</p>
                 <Button onClick={() => handleUpgrade(activeTab)}>
-                  Upgrade to {activeTab === "silver" ? "Silver Plus" : "Diamond Plus"}
+                  Upgrade to {activeTab === "silver" ? "Silver Plus" : "Gold"}
                 </Button>
               </div>
             )}
