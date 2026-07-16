@@ -1,21 +1,25 @@
 ## Goal
-Add a "Home" button to every dashboard tab page (Profile, Make Money, Notifications, Earnings, Messages, Media, Jackpot, Referrals) so users can quickly return to the main dashboard.
 
-## Where
-The tab pages all render through `DashboardSectionLayout` (used by `src/components/UserDashboard.tsx` line 506). Adding the button in the layout gives us a single change that covers all 8 tabs.
+On the Tip & Win, Rate, Dimes, and Events pages, replace the yellow "Home" button with a circular **profile-picture button** at the top of the page. Clicking it navigates the logged-in user back to their dashboard home (`/dashboard/profile`).
+
+## Pages to update
+
+- `src/pages/TipGirls.tsx` (Tip & Win)
+- `src/pages/RateGirls.tsx` (Rate)
+- `src/pages/Dimes.tsx` (Dimes)
+- `src/pages/EventsDimes.tsx` and `src/pages/EventsDimesOnly.tsx` (Events)
 
 ## Change
-In `src/components/DashboardSectionLayout.tsx`, add a "Home" button just above the section content (below the sticky header) that navigates to `/dashboard/profile`. Use the standard yellow-orange gradient home button pattern already used elsewhere in the app (per project memory), with the `Home` icon from lucide-react.
 
-```text
-[sticky header]
-[Home button]  <-- new, left-aligned
-[Top20 carousel + tab content]
-```
+1. Create a small shared component `src/components/HomeProfileButton.tsx`:
+   - Reads the current user from `useAppContext()`.
+   - Renders a round avatar (48–56px) using `profile_photo`, with a `User` icon fallback if none.
+   - Ring/border in the site's pink/magenta accent, subtle hover.
+   - `onClick` → `navigate("/dashboard/profile")`.
+   - If no user is logged in, falls back to navigating to `/login`.
 
-The button is hidden on the Profile tab itself (since that's already home) by passing a prop, or shown on every tab for consistency — I'll show it on every tab except when `title === "Profile"` to avoid a redundant "Home" on the home tab.
+2. In each of the pages above:
+   - Remove the existing `<Button ...>Home</Button>` block and its `Home` import if unused.
+   - Render `<HomeProfileButton />` at the very top of the page content (left-aligned, above headings/carousels).
 
-## Files touched
-- `src/components/DashboardSectionLayout.tsx` — add Home button + import `Home` icon and `useNavigate`.
-
-No business logic changes.
+No changes to dashboard tabs, business logic, routing, or other pages.
