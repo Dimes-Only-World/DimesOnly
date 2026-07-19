@@ -46,6 +46,7 @@ import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
 import GARefTracker from "./components/GARefTracker";
+import GlobalProfileButton from "./components/GlobalProfileButton";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
@@ -151,6 +152,7 @@ function AppContent() {
   return (
     <div className="App">
       <GARefTracker />
+      <GlobalProfileButton />
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (
