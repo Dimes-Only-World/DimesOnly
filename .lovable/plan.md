@@ -1,29 +1,31 @@
 ## Plan
 
-1. **Remove the old yellow Home button everywhere it is still injected**
-   - Remove the separate yellow/orange `Home` button bar from the shared dashboard section layout.
-   - Keep the circular profile image in the dashboard header as the navigation control.
+Make sure the circular profile button (used on Make Money and other dashboard tabs) is at the top of every user-facing page reachable from the dashboard, not just the dashboard tabs themselves.
 
-2. **Make the circular profile button always show the user profile photo when available**
-   - Update the profile button so it does not rely only on cached app context.
-   - If the profile photo is missing from context, load the current user’s `profile_photo` from Supabase/session data.
-   - If no photo exists, keep the round user icon fallback.
+1. **Confirm dashboard tabs already have it**
+   - `DashboardSectionLayout` already renders the circular profile avatar linking to `/dashboard/profile` on every dashboard subpage (Profile, Make Money, Notifications, Earnings, Messages, Media, Jackpot, Referrals). No change needed there.
 
-3. **Place the profile button at the top of these pages**
-   - Tip & Win
-   - Rate
-   - Dimes
-   - Events pages
-   - Keep it above page content so it is clearly visible.
+2. **Add the circular profile button at the top of the non-dashboard user pages**
+   Add `<HomeProfileButton />` at the top of each of these pages (and remove any old yellow/orange Home button on them):
+   - `src/pages/Tip.tsx` (`/tip` — the page in the current screenshot)
+   - `src/pages/Rate.tsx` (`/rate`)
+   - `src/pages/Events.tsx` (`/events`)
+   - `src/pages/EventDetails.tsx` (`/event-details`)
+   - `src/pages/Rankings.tsx` (`/rankings`)
+   - `src/pages/Jackpot.tsx` (`/jackpot`)
+   - `src/pages/Upgrade.tsx` and the specific upgrade pages: `UpgradeSilver`, `UpgradeSilverPlus`, `UpgradeSilverSubscribe`, `UpgradeGold`, `UpgradeDiamond`, `UpgradeDiamondMonthly`
+   - `src/pages/Elite.tsx`, `src/pages/BusinessOwnerElite.tsx`
+   - `src/pages/Profile.tsx` (public profile view)
+   - Leave the already-updated pages as-is: `Dimes`, `TipGirls`, `RateGirls`, `EventsDimes`, `EventsDimesOnly`.
 
-4. **Verify the result**
-   - Search for remaining yellow/orange `Home` button text.
-   - Check the affected pages in preview to confirm the button is circular/profile-based, not the yellow `Home` button.
+3. **Keep behavior identical to the dashboard**
+   - Shows the user's profile photo when available; round user icon fallback otherwise.
+   - Clicking navigates logged-in users to `/dashboard/profile`; signed-out users to `/login`.
 
-## Technical details
+4. **Exclusions (not touched)**
+   - Auth/entry pages: Login, Register, Reset Password, Admin Login, Test Login, home/age-gate.
+   - Admin dashboard pages.
 
-- Main files likely affected:
-  - `src/components/DashboardSectionLayout.tsx`
-  - `src/components/HomeProfileButton.tsx`
-  - Existing page placements in `TipGirls.tsx`, `RateGirls.tsx`, `Dimes.tsx`, `EventsDimes.tsx`, and `EventsDimesOnly.tsx`
-- No database changes are needed.
+5. **Verify**
+   - Search remaining pages for the old yellow `Home` button and remove.
+   - Open Tip & Win (`/tip`), Rate (`/rate`), Events, Jackpot, and an Upgrade page in preview and confirm the circular profile button appears at the top.
