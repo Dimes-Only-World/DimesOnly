@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminUserId } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,29 @@ import { Trash2, Plus, Upload, ExternalLink } from "lucide-react";
 
 const RENTAL_OPTS = ["daily", "weekly", "monthly", "long_term", "rent_to_own"];
 
+async function callAdmin(action: string, extra: Record<string, any> = {}) {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error("Admin session missing. Please re-login.");
+  const { data, error } = await supabase.functions.invoke("rental-admin", {
+    body: { action, adminUserId, ...extra },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const s = String(r.result || "");
+      const idx = s.indexOf(",");
+      resolve(idx >= 0 ? s.slice(idx + 1) : s);
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+
 const AdminRentalsTab: React.FC = () => {
   const [tab, setTab] = useState("vehicles");
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -22,14 +46,18 @@ const AdminRentalsTab: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
 
   const loadAll = async () => {
-    const [{ data: vs }, { data: bs }, { data: cs }] = await Promise.all([
-      (supabase as any).from("vehicles").select("*").order("created_at", { ascending: false }),
-      (supabase as any).from("rental_bookings").select("*, vehicles(year,make,model)").order("created_at", { ascending: false }),
-      (supabase as any).from("rental_commissions").select("*").order("created_at", { ascending: false }),
-    ]);
-    setVehicles(vs || []);
-    setBookings(bs || []);
-    setCommissions(cs || []);
+    try {
+      const [vs, bs, cs] = await Promise.all([
+        callAdmin("listVehicles"),
+        callAdmin("listBookings"),
+        callAdmin("listCommissions"),
+      ]);
+      setVehicles(vs?.data || []);
+      setBookings(bs?.data || []);
+      setCommissions(cs?.data || []);
+    } catch (e: any) {
+      toast({ title: "Load failed", description: e.message, variant: "destructive" });
+    }
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -53,7 +81,7 @@ const AdminRentalsTab: React.FC = () => {
             <VehicleForm
               initial={editing}
               onClose={() => setShowForm(false)}
-              onSaved={() => { setShowForm(false); loadAll(); }}
+              onSaved={(v) => { setEditing(v); loadAll(); }}
             />
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -70,8 +98,8 @@ const AdminRentalsTab: React.FC = () => {
                     <Button size="sm" variant="outline" onClick={() => { setEditing(v); setShowForm(true); }}>Edit</Button>
                     <Button size="sm" variant="destructive" onClick={async () => {
                       if (!confirm("Delete vehicle and all its media?")) return;
-                      await (supabase as any).from("vehicles").delete().eq("id", v.id);
-                      loadAll();
+                      try { await callAdmin("deleteVehicle", { id: v.id }); loadAll(); }
+                      catch (e: any) { toast({ title: "Delete failed", description: e.message, variant: "destructive" }); }
                     }}><Trash2 className="w-3 h-3" /></Button>
                   </div>
                 </CardContent>
@@ -96,8 +124,8 @@ const AdminRentalsTab: React.FC = () => {
               </div>
               {c.status === "pending" && (
                 <Button size="sm" onClick={async () => {
-                  await (supabase as any).from("rental_commissions").update({ status: "paid" }).eq("id", c.id);
-                  loadAll();
+                  try { await callAdmin("updateCommissionStatus", { id: c.id, status: "paid" }); loadAll(); }
+                  catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
                 }}>Mark paid</Button>
               )}
             </CardContent></Card>
@@ -109,75 +137,87 @@ const AdminRentalsTab: React.FC = () => {
   );
 };
 
-const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved: () => void }> = ({ initial, onClose, onSaved }) => {
+const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved: (v: any) => void }> = ({ initial, onClose, onSaved }) => {
   const [f, setF] = useState<any>(initial || {
     year: new Date().getFullYear(), make: "", model: "", vin: "", license_plate: "",
     mileage: 0, description: "", vehicle_type: "", pickup_location: "",
     day_rate: 0, weekly_rate: 0, monthly_rate: 0, down_payment: 0,
     rental_options: ["daily"], availability_status: "available", is_active: true,
   });
+  const [currentId, setCurrentId] = useState<string | null>(initial?.id || null);
   const [saving, setSaving] = useState(false);
   const [media, setMedia] = useState<any[]>([]);
 
   const loadMedia = async (vehicleId: string) => {
-    const { data } = await (supabase as any).from("vehicle_media").select("*").eq("vehicle_id", vehicleId).order("sort_order");
-    const withUrls = await Promise.all((data || []).map(async (m: any) => {
-      const { data: s } = await supabase.storage.from("vehicle-media").createSignedUrl(m.storage_path, 3600);
-      return { ...m, url: s?.signedUrl };
-    }));
-    setMedia(withUrls);
+    try {
+      const res = await callAdmin("listMedia", { vehicleId });
+      setMedia(res?.data || []);
+    } catch (e: any) {
+      toast({ title: "Media load failed", description: e.message, variant: "destructive" });
+    }
   };
 
-  useEffect(() => { if (initial?.id) loadMedia(initial.id); }, [initial?.id]);
+  useEffect(() => { if (currentId) loadMedia(currentId); }, [currentId]);
 
   const save = async () => {
     setSaving(true);
     try {
-      let vid = initial?.id;
-      const payload = { ...f, mileage: Number(f.mileage) || 0,
-        day_rate: Number(f.day_rate) || null, weekly_rate: Number(f.weekly_rate) || null,
-        monthly_rate: Number(f.monthly_rate) || null, down_payment: Number(f.down_payment) || null };
-      if (vid) {
-        const { error } = await (supabase as any).from("vehicles").update(payload).eq("id", vid);
-        if (error) throw error;
+      const payload = { ...f,
+        mileage: Number(f.mileage) || 0,
+        day_rate: Number(f.day_rate) || null,
+        weekly_rate: Number(f.weekly_rate) || null,
+        monthly_rate: Number(f.monthly_rate) || null,
+        down_payment: Number(f.down_payment) || null,
+      };
+      delete payload.id; delete payload.created_at; delete payload.updated_at; delete payload.created_by;
+      let saved;
+      if (currentId) {
+        saved = await callAdmin("updateVehicle", { id: currentId, payload });
       } else {
-        const { data, error } = await (supabase as any).from("vehicles").insert(payload).select().single();
-        if (error) throw error;
-        vid = data.id;
+        saved = await callAdmin("createVehicle", { payload });
       }
+      const v = saved?.data;
+      if (v?.id) setCurrentId(v.id);
       toast({ title: "Saved" });
-      onSaved();
+      onSaved(v);
     } catch (e: any) {
       toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally { setSaving(false); }
   };
 
   const uploadMedia = async (files: FileList | null, mediaType: "photo" | "video") => {
-    if (!initial?.id) { toast({ title: "Save vehicle first", variant: "destructive" }); return; }
+    if (!currentId) { toast({ title: "Save vehicle first", variant: "destructive" }); return; }
     if (!files) return;
     for (const file of Array.from(files)) {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `${initial.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("vehicle-media").upload(path, file, { contentType: file.type });
-      if (upErr) { toast({ title: "Upload failed", description: upErr.message, variant: "destructive" }); continue; }
-      const { error: insErr } = await (supabase as any).from("vehicle_media").insert({
-        vehicle_id: initial.id, media_type: mediaType, url: path, storage_path: path,
-        sort_order: media.filter((m) => m.media_type === mediaType).length,
-      });
-      if (insErr) { toast({ title: "Save failed", description: insErr.message, variant: "destructive" }); }
+      try {
+        const base64 = await fileToBase64(file);
+        await callAdmin("uploadMedia", {
+          vehicleId: currentId,
+          mediaType,
+          fileName: file.name,
+          contentType: file.type,
+          base64,
+          sortOrder: media.filter((m) => m.media_type === mediaType).length,
+        });
+      } catch (e: any) {
+        toast({ title: "Upload failed", description: e.message, variant: "destructive" });
+      }
     }
-    loadMedia(initial.id);
+    loadMedia(currentId);
   };
 
   const removeMedia = async (m: any) => {
-    await supabase.storage.from("vehicle-media").remove([m.storage_path]);
-    await (supabase as any).from("vehicle_media").delete().eq("id", m.id);
-    loadMedia(initial.id);
+    try {
+      await callAdmin("deleteMedia", { id: m.id, storagePath: m.storage_path });
+      loadMedia(currentId!);
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e.message, variant: "destructive" });
+    }
   };
 
   return (
     <Card><CardContent className="p-4 space-y-3">
-      <div className="flex justify-between items-center"><h3 className="font-semibold">{initial ? "Edit" : "Add"} Vehicle</h3>
+      <div className="flex justify-between items-center"><h3 className="font-semibold">{currentId ? "Edit" : "Add"} Vehicle</h3>
         <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -227,67 +267,63 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
       </label>
       <Button onClick={save} disabled={saving}>{saving ? "Saving..." : "Save Vehicle"}</Button>
 
-      {initial?.id && (
-        <div className="border-t pt-3 space-y-2">
-          <h4 className="font-semibold">Media (max 25 photos, 3 videos)</h4>
-          <div className="flex flex-wrap gap-2">
-            {media.map((m) => (
-              <div key={m.id} className="relative w-24 h-24 bg-muted rounded overflow-hidden">
-                {m.media_type === "photo" ? (
-                  <img src={m.url} className="w-full h-full object-cover" />
-                ) : (
-                  <video src={m.url} className="w-full h-full object-cover" />
-                )}
-                <button onClick={() => removeMedia(m)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1">
-                  <Trash2 className="w-3 h-3 text-white" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <label className="cursor-pointer">
-              <span className="inline-flex items-center gap-1 text-sm px-3 py-2 rounded border">
-                <Upload className="w-3 h-3" /> Add Photos
-              </span>
-              <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => uploadMedia(e.target.files, "photo")} />
-            </label>
-            <label className="cursor-pointer">
-              <span className="inline-flex items-center gap-1 text-sm px-3 py-2 rounded border">
-                <Upload className="w-3 h-3" /> Add Videos
-              </span>
-              <input type="file" multiple accept="video/*" className="hidden" onChange={(e) => uploadMedia(e.target.files, "video")} />
-            </label>
-          </div>
-        </div>
-      )}
+      <div className="border-t pt-3 space-y-2">
+        <h4 className="font-semibold">Media (max 25 photos, 3 videos)</h4>
+        {!currentId && <p className="text-xs text-muted-foreground">Save the vehicle first, then upload photos and videos.</p>}
+        {currentId && (
+          <>
+            <div className="flex flex-wrap gap-2">
+              {media.map((m) => (
+                <div key={m.id} className="relative w-24 h-24 bg-muted rounded overflow-hidden">
+                  {m.media_type === "photo" ? (
+                    <img src={m.url} className="w-full h-full object-cover" />
+                  ) : (
+                    <video src={m.url} className="w-full h-full object-cover" />
+                  )}
+                  <button onClick={() => removeMedia(m)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1">
+                    <Trash2 className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <label className="cursor-pointer">
+                <span className="inline-flex items-center gap-1 text-sm px-3 py-2 rounded border">
+                  <Upload className="w-3 h-3" /> Add Photos
+                </span>
+                <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => uploadMedia(e.target.files, "photo")} />
+              </label>
+              <label className="cursor-pointer">
+                <span className="inline-flex items-center gap-1 text-sm px-3 py-2 rounded border">
+                  <Upload className="w-3 h-3" /> Add Videos
+                </span>
+                <input type="file" multiple accept="video/*" className="hidden" onChange={(e) => uploadMedia(e.target.files, "video")} />
+              </label>
+            </div>
+          </>
+        )}
+      </div>
     </CardContent></Card>
   );
 };
 
 const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange }) => {
   const openDoc = async (path: string) => {
-    const { data } = await supabase.storage.from("rental-documents").createSignedUrl(path, 300);
-    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+    try {
+      const res = await callAdmin("signBookingDoc", { path });
+      if (res?.url) window.open(res.url, "_blank");
+    } catch (e: any) {
+      toast({ title: "Open failed", description: e.message, variant: "destructive" });
+    }
   };
 
   const setStatus = async (status: string) => {
-    await (supabase as any).from("rental_bookings").update({ status }).eq("id", b.id);
-
-    if (status === "paid") {
-      // Trigger commissions (client-side; simple version)
-      const commissionAmt = Number(b.total_price) * 0.10;
-      const rows: any[] = [];
-      if (b.referrer_username) {
-        const { data: refUser } = await (supabase as any).from("users").select("id").ilike("username", b.referrer_username).maybeSingle();
-        if (refUser) rows.push({ booking_id: b.id, user_id: refUser.id, commission_type: "direct", amount: commissionAmt });
-      }
-      if (b.upline_referrer_username) {
-        const { data: upUser } = await (supabase as any).from("users").select("id").ilike("username", b.upline_referrer_username).maybeSingle();
-        if (upUser) rows.push({ booking_id: b.id, user_id: upUser.id, commission_type: "upline", amount: commissionAmt });
-      }
-      if (rows.length) await (supabase as any).from("rental_commissions").insert(rows);
+    try {
+      await callAdmin("updateBookingStatus", { id: b.id, status });
+      onChange();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
     }
-    onChange();
   };
 
   return (
