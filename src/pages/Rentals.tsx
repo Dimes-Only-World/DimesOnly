@@ -93,8 +93,8 @@ const Rentals: React.FC = () => {
       )}
       <div className="max-w-7xl mx-auto px-4 pt-8">
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3">
-            Luxury & Exotic Car Rentals
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 whitespace-pre-line">
+            Economic - Luxury - Exotic{"\n"}Rentals
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Rent the ride you deserve. Daily, weekly, monthly, long-term, or rent-to-own.
