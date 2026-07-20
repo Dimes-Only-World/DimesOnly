@@ -87,6 +87,11 @@ const Rentals: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-20 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
+        {headerVideo && (
+          <div className="mb-8 rounded-xl overflow-hidden border border-border/50 shadow-lg">
+            <BannerVideo src={headerVideo} />
+          </div>
+        )}
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3">
             Luxury & Exotic Car Rentals
