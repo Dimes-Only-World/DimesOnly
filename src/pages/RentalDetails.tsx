@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload } from "lucide-react";
+import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand } from "lucide-react";
+import PhotoLightbox from "@/components/PhotoLightbox";
 
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
