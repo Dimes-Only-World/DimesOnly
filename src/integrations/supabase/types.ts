@@ -2071,6 +2071,127 @@ export type Database = {
           },
         ]
       }
+      rental_bookings: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          down_payment_amount: number
+          end_date: string | null
+          id: string
+          insurance_path: string | null
+          license_path: string | null
+          paypal_order_id: string | null
+          pickup_location: string | null
+          referrer_username: string | null
+          rental_type: string
+          renter_user_id: string
+          signature_text: string | null
+          signed_at: string | null
+          start_date: string
+          status: string
+          total_price: number
+          updated_at: string
+          upline_referrer_username: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          down_payment_amount?: number
+          end_date?: string | null
+          id?: string
+          insurance_path?: string | null
+          license_path?: string | null
+          paypal_order_id?: string | null
+          pickup_location?: string | null
+          referrer_username?: string | null
+          rental_type: string
+          renter_user_id: string
+          signature_text?: string | null
+          signed_at?: string | null
+          start_date: string
+          status?: string
+          total_price: number
+          updated_at?: string
+          upline_referrer_username?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          down_payment_amount?: number
+          end_date?: string | null
+          id?: string
+          insurance_path?: string | null
+          license_path?: string | null
+          paypal_order_id?: string | null
+          pickup_location?: string | null
+          referrer_username?: string | null
+          rental_type?: string
+          renter_user_id?: string
+          signature_text?: string | null
+          signed_at?: string | null
+          start_date?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+          upline_referrer_username?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_commissions: {
+        Row: {
+          amount: number
+          booking_id: string
+          commission_type: string
+          created_at: string
+          id: string
+          payout_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          commission_type: string
+          created_at?: string
+          id?: string
+          payout_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          commission_type?: string
+          created_at?: string
+          id?: string
+          payout_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_commissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "rental_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       silver_plus_counter: {
         Row: {
           current_count: number | null
@@ -2775,6 +2896,116 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vehicle_media: {
+        Row: {
+          created_at: string
+          id: string
+          media_type: string
+          sort_order: number
+          storage_path: string | null
+          url: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          media_type: string
+          sort_order?: number
+          storage_path?: string | null
+          url: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          media_type?: string
+          sort_order?: number
+          storage_path?: string | null
+          url?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_media_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          availability_status: string
+          created_at: string
+          created_by: string | null
+          day_rate: number | null
+          description: string | null
+          down_payment: number | null
+          features: Json
+          id: string
+          is_active: boolean
+          license_plate: string | null
+          make: string
+          mileage: number | null
+          model: string
+          monthly_rate: number | null
+          pickup_location: string | null
+          rental_options: string[]
+          updated_at: string
+          vehicle_type: string | null
+          vin: string | null
+          weekly_rate: number | null
+          year: number
+        }
+        Insert: {
+          availability_status?: string
+          created_at?: string
+          created_by?: string | null
+          day_rate?: number | null
+          description?: string | null
+          down_payment?: number | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          license_plate?: string | null
+          make: string
+          mileage?: number | null
+          model: string
+          monthly_rate?: number | null
+          pickup_location?: string | null
+          rental_options?: string[]
+          updated_at?: string
+          vehicle_type?: string | null
+          vin?: string | null
+          weekly_rate?: number | null
+          year: number
+        }
+        Update: {
+          availability_status?: string
+          created_at?: string
+          created_by?: string | null
+          day_rate?: number | null
+          description?: string | null
+          down_payment?: number | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          license_plate?: string | null
+          make?: string
+          mileage?: number | null
+          model?: string
+          monthly_rate?: number | null
+          pickup_location?: string | null
+          rental_options?: string[]
+          updated_at?: string
+          vehicle_type?: string | null
+          vin?: string | null
+          weekly_rate?: number | null
+          year?: number
+        }
+        Relationships: []
       }
       weekly_earnings: {
         Row: {
