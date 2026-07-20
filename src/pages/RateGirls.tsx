@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, User, MapPin, Flag, Trophy, Crown, X } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import type { CarouselApi } from "@/components/ui/carousel";
 import HomeProfileButton from "@/components/HomeProfileButton";
 import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
@@ -64,6 +72,24 @@ const RateGirls: React.FC = () => {
     username: string;
   } | null>(null);
   const [rateFilter, setRateFilter] = useState<RateFilter>("all");
+  const [topApi, setTopApi] = useState<CarouselApi | null>(null);
+  const [topCurrent, setTopCurrent] = useState(0);
+  const [topCount, setTopCount] = useState(0);
+
+  useEffect(() => {
+    if (!topApi) return;
+    setTopCount(topApi.scrollSnapList().length);
+    setTopCurrent(topApi.selectedScrollSnap());
+    const onSelect = () => setTopCurrent(topApi.selectedScrollSnap());
+    topApi.on("select", onSelect);
+    topApi.on("reInit", () => {
+      setTopCount(topApi.scrollSnapList().length);
+      setTopCurrent(topApi.selectedScrollSnap());
+    });
+    return () => {
+      topApi.off("select", onSelect);
+    };
+  }, [topApi]);
 
   useEffect(() => {
     getCurrentUser();
@@ -220,66 +246,97 @@ const RateGirls: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-8">
-                {topRanked.map((user) => (
-                  <Card
-                    key={user.id}
-                    className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 backdrop-blur border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 group cursor-pointer overflow-hidden"
-                    onClick={() => handleUserSelect(user)}
-                  >
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="relative mb-3 sm:mb-4">
-                        <img
-                          src={user.profile_photo || "/placeholder.svg"}
-                          alt={user.username}
-                          className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                          onClick={(e) =>
-                            handleImageClick(
-                              user.profile_photo || "/placeholder.svg",
-                              user.username,
-                              e
-                            )
-                          }
-                        />
-                        <div className="absolute top-2 left-2">
-                          <div className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
-                            <Trophy className="w-3 h-3" />#{user.rank}
-                          </div>
-                        </div>
-                        <div className="absolute top-2 right-2">
-                          <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
-                            {user.user_type}
-                          </span>
-                        </div>
-                      </div>
+              <div className="relative px-0 md:px-10 mb-8">
+                <Carousel
+                  setApi={setTopApi}
+                  opts={{ align: "start", loop: true }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {topRanked.map((user) => (
+                      <CarouselItem
+                        key={user.id}
+                        className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+                      >
+                        <Card
+                          className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 backdrop-blur border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 group cursor-pointer overflow-hidden"
+                          onClick={() => handleUserSelect(user)}
+                        >
+                          <CardContent className="p-3 sm:p-4">
+                            <div className="relative mb-3 sm:mb-4">
+                              <img
+                                src={user.profile_photo || "/placeholder.svg"}
+                                alt={user.username}
+                                className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                                onClick={(e) =>
+                                  handleImageClick(
+                                    user.profile_photo || "/placeholder.svg",
+                                    user.username,
+                                    e
+                                  )
+                                }
+                              />
+                              <div className="absolute top-2 left-2">
+                                <div className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+                                  <Trophy className="w-3 h-3" />#{user.rank}
+                                </div>
+                              </div>
+                              <div className="absolute top-2 right-2">
+                                <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
+                                  {user.user_type}
+                                </span>
+                              </div>
+                            </div>
 
-                      <div className="space-y-2">
-                        <h3 className="text-violet-600 font-bold text-sm sm:text-base md:text-lg truncate">
-                          @{user.username}
-                        </h3>
+                            <div className="space-y-2">
+                              <h3 className="text-violet-600 font-bold text-sm sm:text-base md:text-lg truncate">
+                                @{user.username}
+                              </h3>
 
-                        {user.city && user.state && (
-                          <div className="flex items-center text-gray-900 text-xs sm:text-sm">
-                            <MapPin size={12} className="mr-1 flex-shrink-0" />
-                            <span className="truncate">
-                              {user.city}, {user.state}
-                            </span>
-                          </div>
-                        )}
+                              {user.city && user.state && (
+                                <div className="flex items-center text-gray-900 text-xs sm:text-sm">
+                                  <MapPin size={12} className="mr-1 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {user.city}, {user.state}
+                                  </span>
+                                </div>
+                              )}
 
-                        <div className="text-center pt-2 border-t border-white/10">
-                          <div className="text-violet-600 font-bold text-sm sm:text-base md:text-lg">
-                            {user.total_score.toLocaleString()}
-                          </div>
-                          <div className="text-gray-900 text-xs">
-                            Total Score
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                              <div className="text-center pt-2 border-t border-white/10">
+                                <div className="text-violet-600 font-bold text-sm sm:text-base md:text-lg">
+                                  {user.total_score.toLocaleString()}
+                                </div>
+                                <div className="text-gray-900 text-xs">
+                                  Total Score
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-1 md:-left-2 bg-yellow-500/90 hover:bg-yellow-400 text-black border-yellow-400" />
+                  <CarouselNext className="right-1 md:-right-2 bg-yellow-500/90 hover:bg-yellow-400 text-black border-yellow-400" />
+                </Carousel>
+                {topCount > 1 && (
+                  <div className="flex justify-center gap-1.5 mt-4">
+                    {Array.from({ length: topCount }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => topApi?.scrollTo(i)}
+                        className={`h-2 rounded-full transition-all ${
+                          i === topCurrent
+                            ? "w-6 bg-yellow-400"
+                            : "w-2 bg-white/30 hover:bg-white/50"
+                        }`}
+                        aria-label={`Go to slide ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
+
             </div>
           )}
 
