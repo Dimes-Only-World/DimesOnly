@@ -45,6 +45,8 @@ const RentalDetails: React.FC = () => {
 
   // booking form
   const [showBook, setShowBook] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [rentalType, setRentalType] = useState<string>("daily");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
