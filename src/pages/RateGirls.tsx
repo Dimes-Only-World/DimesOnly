@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, User, MapPin, Flag, Trophy, Crown, X } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import type { CarouselApi } from "@/components/ui/carousel";
 import HomeProfileButton from "@/components/HomeProfileButton";
 import AuthGuard from "@/components/AuthGuard";
 import UsersList from "@/components/UsersList";
