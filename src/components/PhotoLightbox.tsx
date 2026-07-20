@@ -67,8 +67,17 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none">
-        <div className="relative w-full h-full flex items-center justify-center min-h-[60vh]">
+      <DialogContent
+        className="max-w-[100vw] w-[100vw] h-[100vh] sm:max-w-[95vw] sm:h-[95vh] p-0 bg-black/95 border-none rounded-none sm:rounded-lg"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
+        <div
+          className="relative w-full h-full flex items-center justify-center min-h-[60vh]"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
           {/* Close Button */}
           <Button
             variant="ghost"
