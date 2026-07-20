@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Car, MapPin, DollarSign } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 interface Vehicle {
   id: string;
