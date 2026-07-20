@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload } from "lucide-react";
+import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand } from "lucide-react";
+import PhotoLightbox from "@/components/PhotoLightbox";
 
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
@@ -44,6 +45,8 @@ const RentalDetails: React.FC = () => {
 
   // booking form
   const [showBook, setShowBook] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [rentalType, setRentalType] = useState<string>("daily");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -178,9 +181,21 @@ const RentalDetails: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="space-y-3">
-            <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+            <div
+              className="group relative aspect-video rounded-lg overflow-hidden bg-muted cursor-zoom-in ring-1 ring-border/50 hover:ring-primary/60 transition-all"
+              onClick={() => photos.length && (setLightboxIndex(0), setLightboxOpen(true))}
+            >
               {photos[0]?.signedUrl ? (
-                <img src={photos[0].signedUrl} alt="hero" className="w-full h-full object-cover" />
+                <>
+                  <img
+                    src={photos[0].signedUrl}
+                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1 opacity-90">
+                    <Expand className="w-3.5 h-3.5" /> {photos.length} photo{photos.length > 1 ? "s" : ""}
+                  </div>
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Car className="w-16 h-16 text-muted-foreground/50" />
@@ -189,9 +204,25 @@ const RentalDetails: React.FC = () => {
             </div>
             {photos.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {photos.slice(1, 9).map((p) => (
-                  <img key={p.id} src={p.signedUrl} alt="" className="aspect-square object-cover rounded" />
+                {photos.slice(1, 9).map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => { setLightboxIndex(i + 1); setLightboxOpen(true); }}
+                    className="relative aspect-square overflow-hidden rounded ring-1 ring-border/40 hover:ring-primary/60 transition-all cursor-zoom-in group"
+                  >
+                    <img src={p.signedUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </button>
                 ))}
+                {photos.length > 9 && (
+                  <button
+                    type="button"
+                    onClick={() => { setLightboxIndex(9); setLightboxOpen(true); }}
+                    className="aspect-square rounded bg-black/60 text-white text-sm font-medium flex items-center justify-center ring-1 ring-border/40 hover:ring-primary/60"
+                  >
+                    +{photos.length - 9}
+                  </button>
+                )}
               </div>
             )}
             {videos.length > 0 && (
@@ -315,6 +346,12 @@ const RentalDetails: React.FC = () => {
           </div>
         </div>
       </div>
+      <PhotoLightbox
+        photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
     </div>
   );
 };
