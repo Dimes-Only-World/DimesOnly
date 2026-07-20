@@ -346,6 +346,12 @@ const RentalDetails: React.FC = () => {
           </div>
         </div>
       </div>
+      <PhotoLightbox
+        photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
     </div>
   );
 };
