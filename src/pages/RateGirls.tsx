@@ -316,8 +316,9 @@ const RateGirls: React.FC = () => {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="left-1 md:-left-2 bg-yellow-500/90 hover:bg-yellow-400 text-black border-yellow-400" />
-                  <CarouselNext className="right-1 md:-right-2 bg-yellow-500/90 hover:bg-yellow-400 text-black border-yellow-400" />
+                  <CarouselPrevious className="hidden lg:flex -left-2 bg-yellow-500/90 hover:bg-yellow-400 text-black border-yellow-400" />
+                  <CarouselNext className="hidden lg:flex -right-2 bg-yellow-500/90 hover:bg-yellow-400 text-black border-yellow-400" />
+
                 </Carousel>
                 {topCount > 1 && (
                   <div className="flex justify-center gap-1.5 mt-4">
