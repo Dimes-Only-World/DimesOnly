@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Car, MapPin, DollarSign } from "lucide-react";
+import BannerVideo from "@/components/BannerVideo";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 interface Vehicle {
   id: string;
@@ -29,6 +31,7 @@ const Rentals: React.FC = () => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [optionFilter, setOptionFilter] = useState<string>("all");
+  const { videoUrl: headerVideo } = usePageVideo("rentals_page");
 
   useEffect(() => {
     const load = async () => {
@@ -84,6 +87,11 @@ const Rentals: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-20 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
+        {headerVideo && (
+          <div className="mb-8 rounded-xl overflow-hidden border border-border/50 shadow-lg">
+            <BannerVideo src={headerVideo} />
+          </div>
+        )}
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3">
             Luxury & Exotic Car Rentals

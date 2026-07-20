@@ -1,0 +1,1 @@
+INSERT INTO public.page_videos (page_key, video_url, updated_at) VALUES ('rentals_page', 'https://dimesonlyworld.s3.us-east-2.amazonaws.com/Best+Home+1080+DESKTOP+FINAL+4.webm', now()) ON CONFLICT (page_key) DO UPDATE SET video_url = EXCLUDED.video_url, updated_at = now();
