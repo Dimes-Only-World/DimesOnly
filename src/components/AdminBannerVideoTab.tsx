@@ -41,6 +41,7 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "profile_business_owner_banner", label: "Business Owner Profile Top Banner" },
   { page_key: "email_performer_approved", label: "Email — Performer Approved Video" },
   { page_key: "email_performer_not_approved", label: "Email — Performer Not Approved Video" },
+  { page_key: "rentals_page", label: "Rentals Page Header Video" },
 ];
 
 const VideoHoverPreview: React.FC<{ url: string; anchorRef: React.RefObject<HTMLElement | null> }> = ({ url }) => {
