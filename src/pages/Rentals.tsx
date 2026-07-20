@@ -27,8 +27,6 @@ interface Vehicle {
 
 const Rentals: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-const Rentals: React.FC = () => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
