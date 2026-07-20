@@ -72,6 +72,24 @@ const RateGirls: React.FC = () => {
     username: string;
   } | null>(null);
   const [rateFilter, setRateFilter] = useState<RateFilter>("all");
+  const [topApi, setTopApi] = useState<CarouselApi | null>(null);
+  const [topCurrent, setTopCurrent] = useState(0);
+  const [topCount, setTopCount] = useState(0);
+
+  useEffect(() => {
+    if (!topApi) return;
+    setTopCount(topApi.scrollSnapList().length);
+    setTopCurrent(topApi.selectedScrollSnap());
+    const onSelect = () => setTopCurrent(topApi.selectedScrollSnap());
+    topApi.on("select", onSelect);
+    topApi.on("reInit", () => {
+      setTopCount(topApi.scrollSnapList().length);
+      setTopCurrent(topApi.selectedScrollSnap());
+    });
+    return () => {
+      topApi.off("select", onSelect);
+    };
+  }, [topApi]);
 
   useEffect(() => {
     getCurrentUser();
