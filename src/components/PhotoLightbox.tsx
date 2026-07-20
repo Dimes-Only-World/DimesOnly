@@ -17,6 +17,8 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   onClose,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const touchStartX = React.useRef<number | null>(null);
+  const touchDeltaX = React.useRef<number>(0);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -43,6 +45,23 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, handlePrevious, handleNext, onClose]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+  };
+  const onTouchEnd = () => {
+    const dx = touchDeltaX.current;
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
+    if (Math.abs(dx) < 50) return;
+    if (dx > 0) handlePrevious();
+    else handleNext();
+  };
 
   if (!photos.length) return null;
 
