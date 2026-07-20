@@ -346,7 +346,7 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
                 EVENTS
               </Button>
               <Button
-                onClick={() => handleButtonClick("/cars-girls")}
+                onClick={() => handleButtonClick("/rentals")}
                 className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-semibold py-3 px-4 h-auto"
               >
                 GET A CAR

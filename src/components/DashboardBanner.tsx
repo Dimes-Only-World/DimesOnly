@@ -154,7 +154,7 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
         </Button>
 
         <Button 
-          onClick={() => setCarVideoOpen(true)}
+          onClick={() => navigate("/rentals")}
           className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-yellow-300 hover:text-yellow-700 group"
         >
           <div className="flex flex-col items-center gap-1">

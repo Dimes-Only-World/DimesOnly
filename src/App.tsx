@@ -45,6 +45,8 @@ import ResetPassword from "./pages/ResetPassword";
 import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
+import Rentals from "./pages/Rentals";
+import RentalDetails from "./pages/RentalDetails";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
 import "./App.css";
@@ -144,6 +146,9 @@ function AppContent() {
       <Route path="/tip-paypal-return" element={<TipPayPalReturn />} />
       <Route path="/event-payment-return" element={<EventPayPalReturn />} />
       <Route path="/jackpot" element={<Jackpot />} />
+      <Route path="/rentals" element={<Rentals />} />
+      <Route path="/rental" element={<Rentals />} />
+      <Route path="/rentals/:id" element={<RentalDetails />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
