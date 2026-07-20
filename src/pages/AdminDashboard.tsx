@@ -9,6 +9,7 @@ import AdminRankingTab from "@/components/AdminRankingTab";
 import AdminNotificationTab from "@/components/AdminNotificationTab";
 import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
+import AdminRentalsTab from "@/components/AdminRentalsTab";
 import AdminJackpotTab from "@/components/AdminJackpotTab";
 import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
 import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
@@ -148,6 +149,9 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="events" className="whitespace-nowrap">
                 Events
               </TabsTrigger>
+              <TabsTrigger value="rentals" className="whitespace-nowrap">
+                Rentals
+              </TabsTrigger>
               <TabsTrigger value="testing" className="whitespace-nowrap">
                 Testing
               </TabsTrigger>
@@ -193,6 +197,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="events">
             <AdminEventsTab />
+          </TabsContent>
+
+          <TabsContent value="rentals">
+            <AdminRentalsTab />
           </TabsContent>
 
           <TabsContent value="testing">
