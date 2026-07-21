@@ -367,11 +367,26 @@ const RentalDetails: React.FC = () => {
                   </div>
 
                   <div className="border-t pt-3 space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Estimated total</span><span className="font-semibold">${total.toLocaleString()}</span></div>
+                    {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>
+                          ${breakdown.unitRate.toLocaleString()} × {breakdown.units} {breakdown.unitLabel}
+                        </span>
+                        <span>${breakdown.total.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Estimated total</span>
+                      <span className="font-semibold">${total.toLocaleString()}</span>
+                    </div>
                     {downPayment > 0 && (
-                      <div className="flex justify-between text-primary"><span>Down payment</span><span>${downPayment.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-primary">
+                        <span>Down payment</span>
+                        <span>${downPayment.toLocaleString()}</span>
+                      </div>
                     )}
                   </div>
+
 
                   <Button className="w-full" onClick={submitBooking} disabled={submitting}>
                     {submitting ? "Submitting..." : "Submit Booking Request"}
