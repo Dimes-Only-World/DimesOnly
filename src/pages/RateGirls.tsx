@@ -349,10 +349,10 @@ const RateGirls: React.FC = () => {
             </h2>
 
             <p className="text-white text-lg leading-relaxed max-w-4xl mx-auto">
-              Begin by rating the ladies. For every 100 new females who join,
-              you will receive a text notification to rate the next group of 100
-              images during your available time. The top-rated females will be
-              featured at the top of each subsequent group of 100.
+              Begin by rating the ladies. For every new female that joins, you
+              will receive a text notification to rate the next stripper or
+              exotic during your available time. The top-rated females will be
+              featured at the top of each subsequent group of 50.
             </p>
           </div>
 
