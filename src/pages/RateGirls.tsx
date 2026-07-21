@@ -351,7 +351,7 @@ const RateGirls: React.FC = () => {
             <p className="text-white text-lg leading-relaxed max-w-4xl mx-auto whitespace-pre-line">
               Begin by rating the ladies below.
               {"\n"}For every new female that joins, you will receive a text notification to rate the next stripper or exotic during your available time.
-              {"\n"}The top-rated females will be featured at the top of each subsequent group of 50.
+              {"\n"}The top 20 rated females will be featured at the top to show who will be in the semi finals for the reality show housing angels.
             </p>
           </div>
 
