@@ -122,6 +122,96 @@ serve(async (req) => {
         if (error) throw error;
         return json({ url: data.signedUrl });
       }
+
+      // ============ Themed Packages ============
+      case "listPackages": {
+        const { data, error } = await admin.from("themed_packages").select("*").order("price");
+        if (error) throw error;
+        return json({ data });
+      }
+      case "upsertPackage": {
+        const { payload } = params;
+        const row = { ...payload };
+        delete row.created_at; delete row.updated_at;
+        if (!row.id) delete row.id;
+        const { data, error } = await admin.from("themed_packages").upsert(row).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "deletePackage": {
+        const { id } = params;
+        const { error } = await admin.from("themed_packages").delete().eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+
+      // ============ Captures ============
+      case "listCaptures": {
+        const { status } = params;
+        let q = admin.from("rental_captures").select("*, vehicles(year,make,model)").order("created_at", { ascending: false });
+        if (status) q = q.eq("moderation_status", status);
+        const { data, error } = await q;
+        if (error) throw error;
+        const withUrls = await Promise.all((data || []).map(async (c: any) => {
+          const { data: s } = await admin.storage.from("rental-captures").createSignedUrl(c.storage_path, 60 * 60);
+          return { ...c, url: s?.signedUrl };
+        }));
+        return json({ data: withUrls });
+      }
+      case "moderateCapture": {
+        const { id, status } = params;
+        const { data, error } = await admin.from("rental_captures").update({ moderation_status: status }).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "toggleFeaturedCapture": {
+        const { id, is_featured } = params;
+        const { data, error } = await admin.from("rental_captures").update({ is_featured }).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "assignCaptureToContest": {
+        const { id, contest_id } = params;
+        const { data, error } = await admin.from("rental_captures").update({ contest_id: contest_id || null }).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "deleteCapture": {
+        const { id, storagePath } = params;
+        if (storagePath) await admin.storage.from("rental-captures").remove([storagePath]);
+        const { error } = await admin.from("rental_captures").delete().eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+
+      // ============ Contests ============
+      case "listContests": {
+        const { data, error } = await admin.from("capture_contests").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        return json({ data });
+      }
+      case "upsertContest": {
+        const { payload } = params;
+        const row = { ...payload };
+        delete row.created_at; delete row.updated_at;
+        if (!row.id) delete row.id;
+        const { data, error } = await admin.from("capture_contests").upsert(row).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "pickContestWinner": {
+        const { id, winner_capture_id } = params;
+        const { data, error } = await admin.from("capture_contests").update({ winner_capture_id, status: "ended" }).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "deleteContest": {
+        const { id } = params;
+        const { error } = await admin.from("capture_contests").delete().eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+
       default:
         return json({ error: "Unknown action" }, 400);
     }

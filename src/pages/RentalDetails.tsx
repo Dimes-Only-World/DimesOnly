@@ -11,6 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
+import CapturesGallery from "@/components/rentals/CapturesGallery";
 
 type Review = {
   id: string;
@@ -78,6 +80,8 @@ const RentalDetails: React.FC = () => {
   const [signature, setSignature] = useState<string>("");
   const [agree, setAgree] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
+  const [addonTotal, setAddonTotal] = useState(0);
 
   useEffect(() => {
     // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
@@ -145,11 +149,24 @@ const RentalDetails: React.FC = () => {
   const breakdown = vehicle
     ? priceBreakdown(vehicle, rentalType, startDate, endDate)
     : { unitRate: 0, units: 1, unitLabel: "", total: 0 };
-  const total = breakdown.total;
+  const total = breakdown.total + addonTotal;
   const downPayment =
     rentalType === "long_term" || rentalType === "rent_to_own"
-      ? Number(vehicle?.down_payment || 0)
+      ? Number(vehicle?.down_payment || 0) + addonTotal
       : 0;
+
+  // Recompute add-on subtotal when selection changes
+  useEffect(() => {
+    (async () => {
+      if (!selectedPackageIds.length) { setAddonTotal(0); return; }
+      const { data } = await (supabase as any)
+        .from("themed_packages")
+        .select("id, price")
+        .in("id", selectedPackageIds);
+      const sum = (data || []).reduce((s: number, p: any) => s + Number(p.price || 0), 0);
+      setAddonTotal(sum);
+    })();
+  }, [selectedPackageIds]);
 
   const submitBooking = async () => {
     if (!user) {
@@ -193,7 +210,7 @@ const RentalDetails: React.FC = () => {
         uplineRef = refRow?.referred_by || null;
       }
 
-      const { error: insErr } = await (supabase as any).from("rental_bookings").insert({
+      const { data: bookingRow, error: insErr } = await (supabase as any).from("rental_bookings").insert({
         vehicle_id: id,
         renter_user_id: user.id,
         rental_type: rentalType,
@@ -209,8 +226,26 @@ const RentalDetails: React.FC = () => {
         referrer_username: directRef,
         upline_referrer_username: uplineRef,
         status: "pending",
-      });
+      }).select().single();
       if (insErr) throw insErr;
+
+      // Persist selected themed packages as booking add-ons
+      if (bookingRow?.id && selectedPackageIds.length) {
+        const { data: pkgs } = await (supabase as any)
+          .from("themed_packages")
+          .select("id, name, price")
+          .in("id", selectedPackageIds);
+        const addonRows = (pkgs || []).map((p: any) => ({
+          booking_id: bookingRow.id,
+          package_id: p.id,
+          package_name: p.name,
+          price: p.price,
+        }));
+        if (addonRows.length) {
+          await (supabase as any).from("booking_addons").insert(addonRows);
+        }
+      }
+
       toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
       navigate("/dashboard/profile");
     } catch (e: any) {
@@ -399,12 +434,21 @@ const RentalDetails: React.FC = () => {
                     <Input value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Full legal name" />
                   </div>
 
+
+                  <div className="border-t pt-3">
+                    <ThemedPackageSelector
+                      selected={selectedPackageIds}
+                      onChange={setSelectedPackageIds}
+                    />
+                  </div>
+
                   <div className="flex items-start gap-2">
                     <Checkbox checked={agree} onCheckedChange={(v) => setAgree(!!v)} id="agree" />
                     <Label htmlFor="agree" className="text-xs leading-snug">
                       I agree to the rental terms and confirm the uploaded documents are authentic.
                     </Label>
                   </div>
+
 
                   <div className="border-t pt-3 space-y-1 text-sm">
                     {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
@@ -413,6 +457,12 @@ const RentalDetails: React.FC = () => {
                           ${breakdown.unitRate.toLocaleString()} × {breakdown.units} {breakdown.unitLabel}
                         </span>
                         <span>${breakdown.total.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {addonTotal > 0 && (
+                      <div className="flex justify-between text-primary">
+                        <span>Themed add-ons</span>
+                        <span>+${addonTotal.toLocaleString()}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
@@ -426,6 +476,7 @@ const RentalDetails: React.FC = () => {
                       </div>
                     )}
                   </div>
+
 
 
                   <Button className="w-full" onClick={submitBooking} disabled={submitting}>
@@ -475,7 +526,10 @@ const RentalDetails: React.FC = () => {
             </div>
           </section>
         )}
+
+        {id && <CapturesGallery vehicleId={id} limit={12} />}
       </div>
+
 
       <PhotoLightbox
         photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}

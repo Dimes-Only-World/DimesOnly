@@ -65,10 +65,13 @@ const AdminRentalsTab: React.FC = () => {
   return (
     <div>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
+          <TabsTrigger value="packages">Themed Packages</TabsTrigger>
+          <TabsTrigger value="captures">Captures</TabsTrigger>
+          <TabsTrigger value="contests">Contests</TabsTrigger>
         </TabsList>
 
         <TabsContent value="vehicles" className="space-y-4">
@@ -132,7 +135,238 @@ const AdminRentalsTab: React.FC = () => {
           ))}
           {commissions.length === 0 && <p className="text-muted-foreground">No commissions yet.</p>}
         </TabsContent>
+
+        <TabsContent value="packages"><PackagesPanel /></TabsContent>
+        <TabsContent value="captures"><CapturesPanel /></TabsContent>
+        <TabsContent value="contests"><ContestsPanel /></TabsContent>
       </Tabs>
+    </div>
+  );
+};
+
+// ============ Themed Packages Admin ============
+const PackagesPanel: React.FC = () => {
+  const [rows, setRows] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
+  const load = async () => {
+    try { const r = await callAdmin("listPackages"); setRows(r?.data || []); }
+    catch (e: any) { toast({ title: "Load failed", description: e.message, variant: "destructive" }); }
+  };
+  useEffect(() => { load(); }, []);
+  const blank = { name: "", slug: "", description: "", icon: "", price: 0, is_active: true };
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button onClick={() => setEditing(blank)}><Plus className="w-4 h-4 mr-1" /> New Package</Button>
+      </div>
+      {editing && (
+        <Card><CardContent className="p-4 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div><Label>Name</Label><Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
+            <div><Label>Slug</Label><Input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} placeholder="date-night" /></div>
+            <div><Label>Icon (emoji)</Label><Input value={editing.icon || ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} placeholder="💎" /></div>
+            <div><Label>Price ($)</Label><Input type="number" value={editing.price} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></div>
+          </div>
+          <div><Label>Description</Label><Textarea value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: !!v })} /> Active
+          </label>
+          <div className="flex gap-2">
+            <Button onClick={async () => {
+              try { await callAdmin("upsertPackage", { payload: editing }); setEditing(null); load(); }
+              catch (e: any) { toast({ title: "Save failed", description: e.message, variant: "destructive" }); }
+            }}>Save</Button>
+            <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+          </div>
+        </CardContent></Card>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {rows.map((p) => (
+          <Card key={p.id}><CardContent className="p-3 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">{p.icon} {p.name} <span className="text-primary">${p.price}</span></p>
+              <p className="text-xs text-muted-foreground">{p.slug} · {p.is_active ? "active" : "inactive"}</p>
+              {p.description && <p className="text-xs mt-1">{p.description}</p>}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>
+              <Button size="sm" variant="destructive" onClick={async () => {
+                if (!confirm("Delete package?")) return;
+                try { await callAdmin("deletePackage", { id: p.id }); load(); }
+                catch (e: any) { toast({ title: "Delete failed", description: e.message, variant: "destructive" }); }
+              }}><Trash2 className="w-3 h-3" /></Button>
+            </div>
+          </CardContent></Card>
+        ))}
+        {rows.length === 0 && <p className="text-muted-foreground text-sm">No packages yet.</p>}
+      </div>
+    </div>
+  );
+};
+
+// ============ Captures Admin ============
+const CapturesPanel: React.FC = () => {
+  const [filter, setFilter] = useState<string>("pending");
+  const [rows, setRows] = useState<any[]>([]);
+  const [contests, setContests] = useState<any[]>([]);
+  const load = async () => {
+    try {
+      const r = await callAdmin("listCaptures", { status: filter || undefined });
+      setRows(r?.data || []);
+      const c = await callAdmin("listContests");
+      setContests(c?.data || []);
+    } catch (e: any) { toast({ title: "Load failed", description: e.message, variant: "destructive" }); }
+  };
+  useEffect(() => { load(); }, [filter]);
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Label>Status</Label>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {rows.map((c) => (
+          <Card key={c.id}><CardContent className="p-3 space-y-2">
+            <div className="aspect-video bg-muted rounded overflow-hidden">
+              {c.media_type === "video"
+                ? <video src={c.url} controls className="w-full h-full object-cover" />
+                : <img src={c.url} className="w-full h-full object-cover" />}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {c.vehicles ? `${c.vehicles.year} ${c.vehicles.make} ${c.vehicles.model}` : "—"} · {new Date(c.created_at).toLocaleDateString()}
+            </p>
+            {c.caption && <p className="text-sm line-clamp-2">{c.caption}</p>}
+            <div className="flex flex-wrap gap-1">
+              {c.moderation_status !== "approved" && (
+                <Button size="sm" onClick={async () => { await callAdmin("moderateCapture", { id: c.id, status: "approved" }); load(); }}>Approve</Button>
+              )}
+              {c.moderation_status !== "rejected" && (
+                <Button size="sm" variant="destructive" onClick={async () => { await callAdmin("moderateCapture", { id: c.id, status: "rejected" }); load(); }}>Reject</Button>
+              )}
+              <Button size="sm" variant={c.is_featured ? "default" : "outline"}
+                onClick={async () => { await callAdmin("toggleFeaturedCapture", { id: c.id, is_featured: !c.is_featured }); load(); }}>
+                {c.is_featured ? "Unfeature" : "Feature"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={async () => {
+                if (!confirm("Delete capture?")) return;
+                await callAdmin("deleteCapture", { id: c.id, storagePath: c.storage_path }); load();
+              }}><Trash2 className="w-3 h-3" /></Button>
+            </div>
+            {contests.length > 0 && (
+              <Select value={c.contest_id || "__none"} onValueChange={async (v) => {
+                await callAdmin("assignCaptureToContest", { id: c.id, contest_id: v === "__none" ? null : v }); load();
+              }}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Assign contest" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">No contest</SelectItem>
+                  {contests.map((ct) => <SelectItem key={ct.id} value={ct.id}>{ct.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          </CardContent></Card>
+        ))}
+        {rows.length === 0 && <p className="text-muted-foreground text-sm">No captures.</p>}
+      </div>
+    </div>
+  );
+};
+
+// ============ Contests Admin ============
+const ContestsPanel: React.FC = () => {
+  const [rows, setRows] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [entries, setEntries] = useState<any[]>([]);
+  const load = async () => {
+    try { const r = await callAdmin("listContests"); setRows(r?.data || []); }
+    catch (e: any) { toast({ title: "Load failed", description: e.message, variant: "destructive" }); }
+  };
+  const loadEntries = async (contestId: string) => {
+    try {
+      const r = await callAdmin("listCaptures", { status: "approved" });
+      setEntries((r?.data || []).filter((c: any) => c.contest_id === contestId));
+    } catch (e: any) { toast({ title: "Load failed", description: e.message, variant: "destructive" }); }
+  };
+  useEffect(() => { load(); }, []);
+  const blank = { title: "", description: "", prize: "", starts_at: "", ends_at: "", status: "active" };
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button onClick={() => setEditing(blank)}><Plus className="w-4 h-4 mr-1" /> New Contest</Button>
+      </div>
+      {editing && (
+        <Card><CardContent className="p-4 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div><Label>Title</Label><Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} /></div>
+            <div><Label>Prize</Label><Input value={editing.prize || ""} onChange={(e) => setEditing({ ...editing, prize: e.target.value })} /></div>
+            <div><Label>Starts at</Label><Input type="datetime-local" value={editing.starts_at || ""} onChange={(e) => setEditing({ ...editing, starts_at: e.target.value })} /></div>
+            <div><Label>Ends at</Label><Input type="datetime-local" value={editing.ends_at || ""} onChange={(e) => setEditing({ ...editing, ends_at: e.target.value })} /></div>
+            <div><Label>Status</Label>
+              <Select value={editing.status} onValueChange={(v) => setEditing({ ...editing, status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="ended">Ended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div><Label>Description</Label><Textarea value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
+          <div className="flex gap-2">
+            <Button onClick={async () => {
+              try { await callAdmin("upsertContest", { payload: editing }); setEditing(null); load(); }
+              catch (e: any) { toast({ title: "Save failed", description: e.message, variant: "destructive" }); }
+            }}>Save</Button>
+            <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+          </div>
+        </CardContent></Card>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {rows.map((c) => (
+          <Card key={c.id}><CardContent className="p-3 space-y-2">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-semibold">{c.title}</p>
+                <p className="text-xs text-muted-foreground">{c.status} · Prize: {c.prize || "—"}</p>
+                <p className="text-xs text-muted-foreground">{c.starts_at ? new Date(c.starts_at).toLocaleDateString() : "—"} → {c.ends_at ? new Date(c.ends_at).toLocaleDateString() : "—"}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button size="sm" variant="outline" onClick={() => setEditing(c)}>Edit</Button>
+                <Button size="sm" variant="outline" onClick={() => loadEntries(c.id)}>View entries</Button>
+                <Button size="sm" variant="destructive" onClick={async () => {
+                  if (!confirm("Delete contest?")) return;
+                  await callAdmin("deleteContest", { id: c.id }); load();
+                }}><Trash2 className="w-3 h-3" /></Button>
+              </div>
+            </div>
+            {c.winner_capture_id && <p className="text-xs text-primary">Winner picked</p>}
+            {entries.length > 0 && entries[0]?.contest_id === c.id && (
+              <div className="border-t pt-2 space-y-1">
+                <p className="text-xs font-semibold">Approved entries ({entries.length})</p>
+                <div className="grid grid-cols-3 gap-1">
+                  {entries.map((e) => (
+                    <div key={e.id} className="relative">
+                      <img src={e.url} className="w-full aspect-square object-cover rounded" />
+                      <Button size="sm" className="absolute inset-x-0 bottom-0 text-[10px] h-6"
+                        onClick={async () => { await callAdmin("pickContestWinner", { id: c.id, winner_capture_id: e.id }); setEntries([]); load(); }}>
+                        Pick winner
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent></Card>
+        ))}
+        {rows.length === 0 && <p className="text-muted-foreground text-sm">No contests yet.</p>}
+      </div>
     </div>
   );
 };

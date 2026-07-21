@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Car, MapPin, DollarSign } from "lucide-react";
 import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
+import CapturesGallery from "@/components/rentals/CapturesGallery";
 
 interface Vehicle {
   id: string;
@@ -223,6 +224,8 @@ const Rentals: React.FC = () => {
             })}
           </div>
         )}
+
+        <CapturesGallery limit={12} />
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle } from "lucide-react";
+import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
 
 type Booking = {
   id: string;
@@ -181,6 +182,10 @@ const MyBookings: React.FC = () => {
   const canCancel = (b: Booking) => statusMeta(b.status).label === "Upcoming";
   const canReview = (b: Booking) =>
     statusMeta(b.status).label === "Completed" && !b.review;
+  const canCapture = (b: Booking) => {
+    const label = statusMeta(b.status).label;
+    return label === "Active" || label === "Completed";
+  };
 
   const confirmCancel = async () => {
     if (!cancelTarget) return;
@@ -333,6 +338,14 @@ const MyBookings: React.FC = () => {
                   >
                     <Star className="w-4 h-4 mr-1" /> Leave Review
                   </Button>
+                )}
+                {canCapture(b) && userId && (
+                  <CaptureMomentUploader
+                    userId={userId}
+                    bookingId={b.id}
+                    vehicleId={b.vehicle_id}
+                    vehicleTitle={v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim() : undefined}
+                  />
                 )}
                 {canCancel(b) && (
                   <Button

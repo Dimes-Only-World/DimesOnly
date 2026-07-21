@@ -29,6 +29,48 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_addons: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          name_snapshot: string | null
+          package_id: string
+          price_snapshot: number
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          name_snapshot?: string | null
+          package_id: string
+          price_snapshot?: number
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          name_snapshot?: string | null
+          package_id?: string
+          price_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_addons_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "rental_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_addons_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "themed_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_owner_elite_seats: {
         Row: {
           created_at: string
@@ -67,6 +109,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      capture_contests: {
+        Row: {
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          prize: string | null
+          rules: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+          winner_capture_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          prize?: string | null
+          rules?: string | null
+          starts_at?: string
+          title: string
+          updated_at?: string
+          winner_capture_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          prize?: string | null
+          rules?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+          winner_capture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capture_contests_winner_fk"
+            columns: ["winner_capture_id"]
+            isOneToOne: false
+            referencedRelation: "rental_captures"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commission_payouts: {
         Row: {
@@ -2148,6 +2240,76 @@ export type Database = {
           },
         ]
       }
+      rental_captures: {
+        Row: {
+          booking_id: string | null
+          caption: string | null
+          contest_id: string | null
+          created_at: string
+          id: string
+          is_featured: boolean
+          likes_count: number
+          media_type: string
+          moderation_status: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          caption?: string | null
+          contest_id?: string | null
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          likes_count?: number
+          media_type: string
+          moderation_status?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          caption?: string | null
+          contest_id?: string | null
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          likes_count?: number
+          media_type?: string
+          moderation_status?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_captures_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "rental_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_captures_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "capture_contests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_captures_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rental_commissions: {
         Row: {
           amount: number
@@ -2275,6 +2437,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      themed_packages: {
+        Row: {
+          applies_to_all: boolean
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          perks: Json
+          price: number
+          slug: string
+          sort_order: number
+          updated_at: string
+          vehicle_ids: string[]
+        }
+        Insert: {
+          applies_to_all?: boolean
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          perks?: Json
+          price?: number
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          vehicle_ids?: string[]
+        }
+        Update: {
+          applies_to_all?: boolean
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          perks?: Json
+          price?: number
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          vehicle_ids?: string[]
+        }
+        Relationships: []
       }
       tickets: {
         Row: {
