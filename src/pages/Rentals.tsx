@@ -155,15 +155,23 @@ const Rentals: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((v) => {
-              const startingRate =
-                v.day_rate || v.weekly_rate || v.monthly_rate || v.down_payment || 0;
-              const rateLabel = v.day_rate
-                ? "/day"
-                : v.weekly_rate
-                ? "/week"
-                : v.monthly_rate
-                ? "/month"
-                : "";
+              const rateFor = (opt: string): { amount: number; label: string } | null => {
+                if (opt === "daily" && v.day_rate) return { amount: v.day_rate, label: "/day" };
+                if (opt === "weekly" && v.weekly_rate) return { amount: v.weekly_rate, label: "/week" };
+                if (opt === "monthly" && v.monthly_rate) return { amount: v.monthly_rate, label: "/month" };
+                if (opt === "long_term" && v.down_payment) return { amount: v.down_payment, label: " down" };
+                if (opt === "rent_to_own" && v.down_payment) return { amount: v.down_payment, label: " down" };
+                return null;
+              };
+              const preferred =
+                optionFilter !== "all" ? rateFor(optionFilter) : null;
+              const fallback =
+                rateFor("daily") ||
+                rateFor("weekly") ||
+                rateFor("monthly") ||
+                rateFor("long_term") ||
+                { amount: 0, label: "" };
+              const { amount: startingRate, label: rateLabel } = preferred || fallback;
               return (
                 <Card
                   key={v.id}
