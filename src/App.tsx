@@ -150,6 +150,7 @@ function AppContent() {
       <Route path="/rentals" element={<Rentals />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
+      <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
