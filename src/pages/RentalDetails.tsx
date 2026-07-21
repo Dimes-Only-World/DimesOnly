@@ -11,6 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
+import CapturesGallery from "@/components/rentals/CapturesGallery";
 
 type Review = {
   id: string;
