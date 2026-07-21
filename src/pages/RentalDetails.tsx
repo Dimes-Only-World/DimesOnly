@@ -459,6 +459,12 @@ const RentalDetails: React.FC = () => {
                         <span>${breakdown.total.toLocaleString()}</span>
                       </div>
                     )}
+                    {addonTotal > 0 && (
+                      <div className="flex justify-between text-primary">
+                        <span>Themed add-ons</span>
+                        <span>+${addonTotal.toLocaleString()}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span>Estimated total</span>
                       <span className="font-semibold">${total.toLocaleString()}</span>
@@ -470,6 +476,7 @@ const RentalDetails: React.FC = () => {
                       </div>
                     )}
                   </div>
+
 
 
                   <Button className="w-full" onClick={submitBooking} disabled={submitting}>
