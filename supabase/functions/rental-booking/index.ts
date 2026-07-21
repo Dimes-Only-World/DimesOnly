@@ -12,6 +12,16 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const cleanExt = (fileName?: string) => {
+  const raw = fileName?.split(".").pop()?.toLowerCase() || "bin";
+  return raw.replace(/[^a-z0-9]/g, "").slice(0, 8) || "bin";
+};
+
+const decodeBase64 = (value: string) => {
+  const base64 = value.includes(",") ? value.split(",").pop() || "" : value;
+  return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -36,10 +46,36 @@ serve(async (req) => {
 
     switch (action) {
       case "createBooking": {
-        const { booking, addonPackageIds } = params as {
+        const { booking, addonPackageIds, documentFiles } = params as {
           booking: Record<string, unknown>;
           addonPackageIds?: string[];
+          documentFiles?: {
+            license?: { name?: string; type?: string; base64: string };
+            insurance?: { name?: string; type?: string; base64: string };
+          };
         };
+
+        const uploadDocument = async (
+          file: { name?: string; type?: string; base64: string },
+          label: "license" | "insurance",
+        ) => {
+          const path = `${userId}/${crypto.randomUUID()}-${label}.${cleanExt(file.name)}`;
+          const { error } = await admin.storage
+            .from("rental-documents")
+            .upload(path, decodeBase64(file.base64), {
+              contentType: file.type || "application/octet-stream",
+              upsert: false,
+            });
+          if (error) throw error;
+          return path;
+        };
+
+        const licensePath = documentFiles?.license
+          ? await uploadDocument(documentFiles.license, "license")
+          : booking.license_path;
+        const insurancePath = documentFiles?.insurance
+          ? await uploadDocument(documentFiles.insurance, "insurance")
+          : booking.insurance_path;
 
         // Derive referral chain server-side (do not trust client)
         const directRef = (userRow as any).referred_by || null;
@@ -55,6 +91,8 @@ serve(async (req) => {
 
         const insertPayload = {
           ...booking,
+          license_path: licensePath,
+          insurance_path: insurancePath,
           renter_user_id: userId, // force from verified user
           referrer_username: directRef,
           upline_referrer_username: uplineRef,

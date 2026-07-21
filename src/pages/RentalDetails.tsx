@@ -180,23 +180,26 @@ const RentalDetails: React.FC = () => {
     }
     setSubmitting(true);
     try {
-      const upload = async (file: File, label: string) => {
-        const ext = file.name.split(".").pop() || "bin";
-        const path = `${user.id}/${crypto.randomUUID()}-${label}.${ext}`;
-        const { error } = await supabase.storage.from("rental-documents").upload(path, file, {
-          upsert: false,
-          contentType: file.type,
+      const fileToBase64 = (file: File) => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Could not read uploaded document."));
+          reader.readAsDataURL(file);
         });
-        if (error) throw error;
-        return path;
       };
-      const licensePath = await upload(licenseFile, "license");
-      const insurancePath = await upload(insuranceFile, "insurance");
 
       // Route insert through edge function to bypass RLS (custom sessionStorage auth).
-      // Referral chain is derived server-side from the verified user.
-      const { data: fnData, error: fnErr } = await supabase.functions.invoke("rental-booking", {
-        body: {
+      // Document upload and referral chain are handled server-side from the verified user.
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rental-booking`;
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
           action: "createBooking",
           userId: user.id,
           booking: {
@@ -209,13 +212,24 @@ const RentalDetails: React.FC = () => {
             down_payment_amount: downPayment,
             signature_text: signature,
             signed_at: new Date().toISOString(),
-            license_path: licensePath,
-            insurance_path: insurancePath,
+          },
+          documentFiles: {
+            license: {
+              name: licenseFile.name,
+              type: licenseFile.type,
+              base64: await fileToBase64(licenseFile),
+            },
+            insurance: {
+              name: insuranceFile.name,
+              type: insuranceFile.type,
+              base64: await fileToBase64(insuranceFile),
+            },
           },
           addonPackageIds: selectedPackageIds,
-        },
+        }),
       });
-      if (fnErr) throw fnErr;
+      const fnData = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(fnData?.error || "Booking service failed.");
       if ((fnData as any)?.error) throw new Error((fnData as any).error);
 
       toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
