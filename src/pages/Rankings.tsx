@@ -77,7 +77,7 @@ const Rankings: React.FC = () => {
 
       // Get all users who are strippers or exotics
       const { data: usersData, error: usersError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username, profile_photo, city, state, user_type")
         .in("user_type", ["stripper", "exotic"]);
 
