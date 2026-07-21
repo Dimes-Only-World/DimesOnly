@@ -24,6 +24,7 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "dashboard_dimes", label: "Stripper / Exotic Dashboard" },
   { page_key: "tip_win_page", label: "Tip & Win Page" },
   { page_key: "rate_page", label: "Rate Girls Page" },
+  { page_key: "rate_how_it_works", label: "Rate Girls — How It Works Video" },
   { page_key: "dimes_directory_page", label: "Dimes Directory Page" },
   { page_key: "events_male_page", label: "Events Page (Males)" },
   { page_key: "events_dimes_page", label: "Events Page (Dimes / Strippers)" },
