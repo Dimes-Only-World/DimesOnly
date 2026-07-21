@@ -241,14 +241,18 @@ const RentalDetails: React.FC = () => {
         addonPackageIds: selectedPackageIds,
       };
 
-      // Route insert through the Edge Function. The function performs the table
-      // insert with its server-only service role client, not this browser client.
-      console.info("[rental-booking] invoking Edge Function", redactBookingPayloadForLogs(payload));
+      // Booking submit path MUST go through the Edge Function. Do not insert
+      // into public.rental_bookings directly from the browser; custom auth makes
+      // auth.uid() null and RLS will reject browser-side inserts.
+      console.log("[rental-booking] FRONTEND_V2_BEFORE_INVOKE", {
+        functionName: "rental-booking",
+        redactedPayload: redactBookingPayloadForLogs(payload),
+      });
       const { data: fnData, error: fnError } = await supabase.functions.invoke("rental-booking", {
         body: payload,
       });
 
-      console.info("[rental-booking] Edge Function response", { data: fnData, error: fnError });
+      console.log("[rental-booking] FRONTEND_V2_AFTER_INVOKE", { data: fnData, error: fnError });
 
       if (fnError) {
         console.error("[rental-booking] Edge Function error", fnError);
