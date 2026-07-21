@@ -65,10 +65,13 @@ const AdminRentalsTab: React.FC = () => {
   return (
     <div>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
+          <TabsTrigger value="packages">Themed Packages</TabsTrigger>
+          <TabsTrigger value="captures">Captures</TabsTrigger>
+          <TabsTrigger value="contests">Contests</TabsTrigger>
         </TabsList>
 
         <TabsContent value="vehicles" className="space-y-4">
