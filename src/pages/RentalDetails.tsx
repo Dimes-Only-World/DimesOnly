@@ -526,7 +526,10 @@ const RentalDetails: React.FC = () => {
             </div>
           </section>
         )}
+
+        {id && <CapturesGallery vehicleId={id} limit={12} />}
       </div>
+
 
       <PhotoLightbox
         photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}
