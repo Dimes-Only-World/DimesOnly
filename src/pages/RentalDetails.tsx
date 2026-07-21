@@ -121,7 +121,10 @@ const RentalDetails: React.FC = () => {
     })();
   }, [id]);
 
-  const total = vehicle ? rateFor(vehicle, rentalType, startDate, endDate) : 0;
+  const breakdown = vehicle
+    ? priceBreakdown(vehicle, rentalType, startDate, endDate)
+    : { unitRate: 0, units: 1, unitLabel: "", total: 0 };
+  const total = breakdown.total;
   const downPayment =
     rentalType === "long_term" || rentalType === "rent_to_own"
       ? Number(vehicle?.down_payment || 0)
