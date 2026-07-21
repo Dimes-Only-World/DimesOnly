@@ -339,6 +339,14 @@ const MyBookings: React.FC = () => {
                     <Star className="w-4 h-4 mr-1" /> Leave Review
                   </Button>
                 )}
+                {canCapture(b) && userId && (
+                  <CaptureMomentUploader
+                    userId={userId}
+                    bookingId={b.id}
+                    vehicleId={b.vehicle_id}
+                    vehicleTitle={v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim() : undefined}
+                  />
+                )}
                 {canCancel(b) && (
                   <Button
                     size="sm"
