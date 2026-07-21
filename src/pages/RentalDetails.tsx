@@ -244,6 +244,7 @@ const RentalDetails: React.FC = () => {
           signature_text: signature,
           signed_at: new Date().toISOString(),
           admin_notes: JSON.stringify({ contact_email: email, contact_phone: phone }),
+        },
         documentFiles: {
           license: {
             name: licenseFile.name,
