@@ -80,6 +80,8 @@ const RentalDetails: React.FC = () => {
   const [signature, setSignature] = useState<string>("");
   const [agree, setAgree] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
+  const [addonTotal, setAddonTotal] = useState(0);
 
   useEffect(() => {
     // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
