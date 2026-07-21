@@ -9,8 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand } from "lucide-react";
+import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
+
+type Review = {
+  id: string;
+  rating: number;
+  review_text: string | null;
+  created_at: string;
+};
 
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
@@ -56,6 +63,7 @@ const RentalDetails: React.FC = () => {
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   // booking form
   const [showBook, setShowBook] = useState(false);
@@ -117,9 +125,22 @@ const RentalDetails: React.FC = () => {
         })
       );
       setMedia(withUrls);
+
+      const { data: rvs } = await (supabase as any)
+        .from("vehicle_reviews")
+        .select("id, rating, review_text, created_at")
+        .eq("vehicle_id", id)
+        .order("created_at", { ascending: false });
+      setReviews((rvs || []) as Review[]);
+
       setLoading(false);
     })();
   }, [id]);
+
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length
+      : 0;
 
   const breakdown = vehicle
     ? priceBreakdown(vehicle, rentalType, startDate, endDate)
@@ -278,7 +299,26 @@ const RentalDetails: React.FC = () => {
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
             {vehicle.vehicle_type && (
-              <p className="text-primary uppercase text-sm tracking-wider mb-4">{vehicle.vehicle_type}</p>
+              <p className="text-primary uppercase text-sm tracking-wider mb-2">{vehicle.vehicle_type}</p>
+            )}
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < Math.round(avgRating)
+                          ? "fill-primary text-primary"
+                          : "text-muted-foreground/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {avgRating.toFixed(1)} · {reviews.length} review{reviews.length > 1 ? "s" : ""}
+                </span>
+              </div>
             )}
             {vehicle.description && <p className="text-muted-foreground mb-4">{vehicle.description}</p>}
 
@@ -399,7 +439,44 @@ const RentalDetails: React.FC = () => {
             )}
           </div>
         </div>
+
+        {reviews.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-2xl font-semibold mb-4">
+              Reviews <span className="text-base text-muted-foreground">({reviews.length})</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {reviews.map((r) => (
+                <Card key={r.id} className="bg-card/60 border-border/60">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < r.rating
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground/40"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {r.review_text && (
+                      <p className="text-sm text-foreground/90">{r.review_text}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
+
       <PhotoLightbox
         photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}
         initialIndex={lightboxIndex}

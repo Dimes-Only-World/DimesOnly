@@ -352,6 +352,12 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
                 GET A CAR
               </Button>
               <Button
+                onClick={() => handleButtonClick("/my-bookings")}
+                className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-3 px-4 h-auto"
+              >
+                MY BOOKINGS
+              </Button>
+              <Button
                 onClick={() => handleButtonClick("/clothes")}
                 className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-4 h-auto"
               >

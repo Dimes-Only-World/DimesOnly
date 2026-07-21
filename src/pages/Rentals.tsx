@@ -99,7 +99,16 @@ const Rentals: React.FC = () => {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Rent the ride you deserve. Daily, weekly, monthly, long-term, or rent-to-own.
           </p>
+          <div className="mt-4">
+            <Link
+              to="/my-bookings"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              View my bookings →
+            </Link>
+          </div>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8">
           <Input

@@ -47,6 +47,7 @@ import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
 import Rentals from "./pages/Rentals";
 import RentalDetails from "./pages/RentalDetails";
+import MyBookings from "./pages/MyBookings";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
 import "./App.css";
@@ -149,6 +150,7 @@ function AppContent() {
       <Route path="/rentals" element={<Rentals />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
+      <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
