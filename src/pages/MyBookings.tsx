@@ -182,6 +182,10 @@ const MyBookings: React.FC = () => {
   const canCancel = (b: Booking) => statusMeta(b.status).label === "Upcoming";
   const canReview = (b: Booking) =>
     statusMeta(b.status).label === "Completed" && !b.review;
+  const canCapture = (b: Booking) => {
+    const label = statusMeta(b.status).label;
+    return label === "Active" || label === "Completed";
+  };
 
   const confirmCancel = async () => {
     if (!cancelTarget) return;
