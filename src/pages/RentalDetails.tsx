@@ -111,12 +111,16 @@ const RentalDetails: React.FC = () => {
   useEffect(() => {
     // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
     (async () => {
+      let currentId: string | null = null;
       try {
         const userDataStr = sessionStorage.getItem("userData");
         if (userDataStr) {
           const parsed = JSON.parse(userDataStr);
           if (parsed?.id) {
+            currentId = parsed.id;
             setUser({ id: parsed.id, email: parsed.email, username: parsed.username });
+            if (parsed.email) setEmail(parsed.email);
+            if (parsed.mobileNumber || parsed.phone) setPhone(parsed.mobileNumber || parsed.phone);
           }
         }
       } catch {
@@ -125,6 +129,18 @@ const RentalDetails: React.FC = () => {
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
         setUser((prev: any) => prev || data.user);
+        currentId = currentId || data.user.id;
+      }
+      if (currentId) {
+        const { data: u } = await (supabase as any)
+          .from("users")
+          .select("email, mobile_number, phone_number")
+          .eq("id", currentId)
+          .maybeSingle();
+        if (u) {
+          setEmail((prev) => prev || u.email || "");
+          setPhone((prev) => prev || u.mobile_number || u.phone_number || "");
+        }
       }
     })();
 
