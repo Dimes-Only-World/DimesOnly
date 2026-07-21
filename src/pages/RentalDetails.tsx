@@ -125,9 +125,22 @@ const RentalDetails: React.FC = () => {
         })
       );
       setMedia(withUrls);
+
+      const { data: rvs } = await (supabase as any)
+        .from("vehicle_reviews")
+        .select("id, rating, review_text, created_at")
+        .eq("vehicle_id", id)
+        .order("created_at", { ascending: false });
+      setReviews((rvs || []) as Review[]);
+
       setLoading(false);
     })();
   }, [id]);
+
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length
+      : 0;
 
   const breakdown = vehicle
     ? priceBreakdown(vehicle, rentalType, startDate, endDate)
