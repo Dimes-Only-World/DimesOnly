@@ -15,25 +15,39 @@ import PhotoLightbox from "@/components/PhotoLightbox";
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
 
-const rateFor = (v: Vehicle, type: string, start?: string, end?: string) => {
-  if (!v) return 0;
+const priceBreakdown = (v: Vehicle, type: string, start?: string, end?: string) => {
+  if (!v) return { unitRate: 0, units: 1, unitLabel: "", total: 0 };
   const startD = start ? new Date(start) : null;
   const endD = end ? new Date(end) : null;
-  const days = startD && endD ? Math.max(1, Math.ceil((+endD - +startD) / 86400000)) : 1;
+  const days =
+    startD && endD ? Math.max(1, Math.ceil((+endD - +startD) / 86400000)) : 1;
   switch (type) {
-    case "daily":
-      return Number(v.day_rate || 0) * days;
-    case "weekly":
-      return Number(v.weekly_rate || 0) * Math.max(1, Math.ceil(days / 7));
-    case "monthly":
-      return Number(v.monthly_rate || 0) * Math.max(1, Math.ceil(days / 30));
+    case "daily": {
+      const unitRate = Number(v.day_rate || 0);
+      return { unitRate, units: days, unitLabel: days === 1 ? "day" : "days", total: unitRate * days };
+    }
+    case "weekly": {
+      const unitRate = Number(v.weekly_rate || 0);
+      const units = Math.max(1, Math.ceil(days / 7));
+      return { unitRate, units, unitLabel: units === 1 ? "week" : "weeks", total: unitRate * units };
+    }
+    case "monthly": {
+      const unitRate = Number(v.monthly_rate || 0);
+      const units = Math.max(1, Math.ceil(days / 30));
+      return { unitRate, units, unitLabel: units === 1 ? "month" : "months", total: unitRate * units };
+    }
     case "long_term":
-    case "rent_to_own":
-      return Number(v.down_payment || 0);
+    case "rent_to_own": {
+      const unitRate = Number(v.down_payment || 0);
+      return { unitRate, units: 1, unitLabel: "down payment", total: unitRate };
+    }
     default:
-      return 0;
+      return { unitRate: 0, units: 1, unitLabel: "", total: 0 };
   }
 };
+
+const rateFor = (v: Vehicle, type: string, start?: string, end?: string) =>
+  priceBreakdown(v, type, start, end).total;
 
 const RentalDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,7 +72,25 @@ const RentalDetails: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
+    (async () => {
+      try {
+        const userDataStr = sessionStorage.getItem("userData");
+        if (userDataStr) {
+          const parsed = JSON.parse(userDataStr);
+          if (parsed?.id) {
+            setUser({ id: parsed.id, email: parsed.email, username: parsed.username });
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUser((prev: any) => prev || data.user);
+      }
+    })();
+
     (async () => {
       const { data: v } = await (supabase as any).from("vehicles").select("*").eq("id", id).single();
       if (!v) {
@@ -67,6 +99,10 @@ const RentalDetails: React.FC = () => {
       }
       setVehicle(v);
       setPickup(v.pickup_location || "");
+      // Default rental type to first available option
+      if (Array.isArray(v.rental_options) && v.rental_options.length) {
+        setRentalType(v.rental_options[0]);
+      }
       const { data: ms } = await (supabase as any)
         .from("vehicle_media")
         .select("*")
@@ -85,7 +121,10 @@ const RentalDetails: React.FC = () => {
     })();
   }, [id]);
 
-  const total = vehicle ? rateFor(vehicle, rentalType, startDate, endDate) : 0;
+  const breakdown = vehicle
+    ? priceBreakdown(vehicle, rentalType, startDate, endDate)
+    : { unitRate: 0, units: 1, unitLabel: "", total: 0 };
+  const total = breakdown.total;
   const downPayment =
     rentalType === "long_term" || rentalType === "rent_to_own"
       ? Number(vehicle?.down_payment || 0)
@@ -328,11 +367,26 @@ const RentalDetails: React.FC = () => {
                   </div>
 
                   <div className="border-t pt-3 space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Estimated total</span><span className="font-semibold">${total.toLocaleString()}</span></div>
+                    {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>
+                          ${breakdown.unitRate.toLocaleString()} × {breakdown.units} {breakdown.unitLabel}
+                        </span>
+                        <span>${breakdown.total.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Estimated total</span>
+                      <span className="font-semibold">${total.toLocaleString()}</span>
+                    </div>
                     {downPayment > 0 && (
-                      <div className="flex justify-between text-primary"><span>Down payment</span><span>${downPayment.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-primary">
+                        <span>Down payment</span>
+                        <span>${downPayment.toLocaleString()}</span>
+                      </div>
                     )}
                   </div>
+
 
                   <Button className="w-full" onClick={submitBooking} disabled={submitting}>
                     {submitting ? "Submitting..." : "Submit Booking Request"}
