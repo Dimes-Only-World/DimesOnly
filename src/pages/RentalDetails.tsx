@@ -13,6 +13,7 @@ import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "l
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
 
 type Review = {
   id: string;
@@ -191,13 +192,13 @@ const RentalDetails: React.FC = () => {
 
       // Route insert through edge function to bypass RLS (custom sessionStorage auth).
       // Document upload and referral chain are handled server-side from the verified user.
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rental-booking`;
+      const functionUrl = `${SUPABASE_URL}/functions/v1/rental-booking`;
       const response = await fetch(functionUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           action: "createBooking",
@@ -229,7 +230,10 @@ const RentalDetails: React.FC = () => {
         }),
       });
       const fnData = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(fnData?.error || "Booking service failed.");
+      if (!response.ok) {
+        const requestId = fnData?.requestId ? ` Request ID: ${fnData.requestId}` : "";
+        throw new Error(`${fnData?.error || "Booking service failed."}${requestId}`);
+      }
       if ((fnData as any)?.error) throw new Error((fnData as any).error);
 
       toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
