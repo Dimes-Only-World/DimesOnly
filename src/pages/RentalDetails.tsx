@@ -210,7 +210,7 @@ const RentalDetails: React.FC = () => {
         uplineRef = refRow?.referred_by || null;
       }
 
-      const { error: insErr } = await (supabase as any).from("rental_bookings").insert({
+      const { data: bookingRow, error: insErr } = await (supabase as any).from("rental_bookings").insert({
         vehicle_id: id,
         renter_user_id: user.id,
         rental_type: rentalType,
@@ -226,8 +226,26 @@ const RentalDetails: React.FC = () => {
         referrer_username: directRef,
         upline_referrer_username: uplineRef,
         status: "pending",
-      });
+      }).select().single();
       if (insErr) throw insErr;
+
+      // Persist selected themed packages as booking add-ons
+      if (bookingRow?.id && selectedPackageIds.length) {
+        const { data: pkgs } = await (supabase as any)
+          .from("themed_packages")
+          .select("id, name, price")
+          .in("id", selectedPackageIds);
+        const addonRows = (pkgs || []).map((p: any) => ({
+          booking_id: bookingRow.id,
+          package_id: p.id,
+          package_name: p.name,
+          price: p.price,
+        }));
+        if (addonRows.length) {
+          await (supabase as any).from("booking_addons").insert(addonRows);
+        }
+      }
+
       toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
       navigate("/dashboard/profile");
     } catch (e: any) {
