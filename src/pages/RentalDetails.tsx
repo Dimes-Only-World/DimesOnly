@@ -58,7 +58,25 @@ const RentalDetails: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
+    (async () => {
+      try {
+        const userDataStr = sessionStorage.getItem("userData");
+        if (userDataStr) {
+          const parsed = JSON.parse(userDataStr);
+          if (parsed?.id) {
+            setUser({ id: parsed.id, email: parsed.email, username: parsed.username });
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUser((prev: any) => prev || data.user);
+      }
+    })();
+
     (async () => {
       const { data: v } = await (supabase as any).from("vehicles").select("*").eq("id", id).single();
       if (!v) {
@@ -67,6 +85,10 @@ const RentalDetails: React.FC = () => {
       }
       setVehicle(v);
       setPickup(v.pickup_location || "");
+      // Default rental type to first available option
+      if (Array.isArray(v.rental_options) && v.rental_options.length) {
+        setRentalType(v.rental_options[0]);
+      }
       const { data: ms } = await (supabase as any)
         .from("vehicle_media")
         .select("*")
