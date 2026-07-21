@@ -149,11 +149,24 @@ const RentalDetails: React.FC = () => {
   const breakdown = vehicle
     ? priceBreakdown(vehicle, rentalType, startDate, endDate)
     : { unitRate: 0, units: 1, unitLabel: "", total: 0 };
-  const total = breakdown.total;
+  const total = breakdown.total + addonTotal;
   const downPayment =
     rentalType === "long_term" || rentalType === "rent_to_own"
-      ? Number(vehicle?.down_payment || 0)
+      ? Number(vehicle?.down_payment || 0) + addonTotal
       : 0;
+
+  // Recompute add-on subtotal when selection changes
+  useEffect(() => {
+    (async () => {
+      if (!selectedPackageIds.length) { setAddonTotal(0); return; }
+      const { data } = await (supabase as any)
+        .from("themed_packages")
+        .select("id, price")
+        .in("id", selectedPackageIds);
+      const sum = (data || []).reduce((s: number, p: any) => s + Number(p.price || 0), 0);
+      setAddonTotal(sum);
+    })();
+  }, [selectedPackageIds]);
 
   const submitBooking = async () => {
     if (!user) {
