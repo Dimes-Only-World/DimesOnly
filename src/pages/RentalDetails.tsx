@@ -299,7 +299,26 @@ const RentalDetails: React.FC = () => {
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
             {vehicle.vehicle_type && (
-              <p className="text-primary uppercase text-sm tracking-wider mb-4">{vehicle.vehicle_type}</p>
+              <p className="text-primary uppercase text-sm tracking-wider mb-2">{vehicle.vehicle_type}</p>
+            )}
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < Math.round(avgRating)
+                          ? "fill-primary text-primary"
+                          : "text-muted-foreground/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {avgRating.toFixed(1)} · {reviews.length} review{reviews.length > 1 ? "s" : ""}
+                </span>
+              </div>
             )}
             {vehicle.description && <p className="text-muted-foreground mb-4">{vehicle.description}</p>}
 
