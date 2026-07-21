@@ -98,6 +98,8 @@ const RentalDetails: React.FC = () => {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [pickup, setPickup] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
   const [signature, setSignature] = useState<string>("");
@@ -109,12 +111,16 @@ const RentalDetails: React.FC = () => {
   useEffect(() => {
     // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
     (async () => {
+      let currentId: string | null = null;
       try {
         const userDataStr = sessionStorage.getItem("userData");
         if (userDataStr) {
           const parsed = JSON.parse(userDataStr);
           if (parsed?.id) {
+            currentId = parsed.id;
             setUser({ id: parsed.id, email: parsed.email, username: parsed.username });
+            if (parsed.email) setEmail(parsed.email);
+            if (parsed.mobileNumber || parsed.phone) setPhone(parsed.mobileNumber || parsed.phone);
           }
         }
       } catch {
@@ -123,6 +129,18 @@ const RentalDetails: React.FC = () => {
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
         setUser((prev: any) => prev || data.user);
+        currentId = currentId || data.user.id;
+      }
+      if (currentId) {
+        const { data: u } = await (supabase as any)
+          .from("users")
+          .select("email, mobile_number, phone_number")
+          .eq("id", currentId)
+          .maybeSingle();
+        if (u) {
+          setEmail((prev) => prev || u.email || "");
+          setPhone((prev) => prev || u.mobile_number || u.phone_number || "");
+        }
       }
     })();
 
@@ -225,6 +243,7 @@ const RentalDetails: React.FC = () => {
           down_payment_amount: downPayment,
           signature_text: signature,
           signed_at: new Date().toISOString(),
+          admin_notes: JSON.stringify({ contact_email: email, contact_phone: phone }),
         },
         documentFiles: {
           license: {
@@ -436,6 +455,17 @@ const RentalDetails: React.FC = () => {
                   <div>
                     <Label>Pickup location</Label>
                     <Input value={pickup} onChange={(e) => setPickup(e.target.value)} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Email</Label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                    </div>
+                    <div>
+                      <Label>Phone</Label>
+                      <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-5555" />
+                    </div>
                   </div>
 
                   <div>
