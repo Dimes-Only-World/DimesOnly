@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle } from "lucide-react";
+import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
 
 type Booking = {
   id: string;
