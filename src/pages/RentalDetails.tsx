@@ -63,6 +63,7 @@ const RentalDetails: React.FC = () => {
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   // booking form
   const [showBook, setShowBook] = useState(false);
