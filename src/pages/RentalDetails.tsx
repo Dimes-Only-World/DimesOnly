@@ -13,7 +13,6 @@ import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "l
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
 
 type Review = {
   id: string;
@@ -190,51 +189,46 @@ const RentalDetails: React.FC = () => {
         });
       };
 
-      // Route insert through edge function to bypass RLS (custom sessionStorage auth).
-      // Document upload and referral chain are handled server-side from the verified user.
-      const functionUrl = `${SUPABASE_URL}/functions/v1/rental-booking`;
-      const response = await fetch(functionUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      const payload = {
+        action: "createBooking",
+        userId: user.id,
+        booking: {
+          vehicle_id: id,
+          rental_type: rentalType,
+          start_date: startDate,
+          end_date: endDate || null,
+          pickup_location: pickup,
+          total_price: total,
+          down_payment_amount: downPayment,
+          signature_text: signature,
+          signed_at: new Date().toISOString(),
         },
-        body: JSON.stringify({
-          action: "createBooking",
-          userId: user.id,
-          booking: {
-            vehicle_id: id,
-            rental_type: rentalType,
-            start_date: startDate,
-            end_date: endDate || null,
-            pickup_location: pickup,
-            total_price: total,
-            down_payment_amount: downPayment,
-            signature_text: signature,
-            signed_at: new Date().toISOString(),
+        documentFiles: {
+          license: {
+            name: licenseFile.name,
+            type: licenseFile.type,
+            base64: await fileToBase64(licenseFile),
           },
-          documentFiles: {
-            license: {
-              name: licenseFile.name,
-              type: licenseFile.type,
-              base64: await fileToBase64(licenseFile),
-            },
-            insurance: {
-              name: insuranceFile.name,
-              type: insuranceFile.type,
-              base64: await fileToBase64(insuranceFile),
-            },
+          insurance: {
+            name: insuranceFile.name,
+            type: insuranceFile.type,
+            base64: await fileToBase64(insuranceFile),
           },
-          addonPackageIds: selectedPackageIds,
-        }),
+        },
+        addonPackageIds: selectedPackageIds,
+      };
+
+      // Route insert through the Edge Function. The function performs the table
+      // insert with its server-only service role client, not this browser client.
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("rental-booking", {
+        body: payload,
       });
-      const fnData = await response.json().catch(() => null);
-      if (!response.ok) {
-        const requestId = fnData?.requestId ? ` Request ID: ${fnData.requestId}` : "";
-        throw new Error(`${fnData?.error || "Booking service failed."}${requestId}`);
+
+      if (fnError) throw new Error(fnError.message || "Booking service failed.");
+      if ((fnData as any)?.error) {
+        const requestId = (fnData as any)?.requestId ? ` Request ID: ${(fnData as any).requestId}` : "";
+        throw new Error(`${(fnData as any).error}${requestId}`);
       }
-      if ((fnData as any)?.error) throw new Error((fnData as any).error);
 
       toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
       navigate("/dashboard/profile");
