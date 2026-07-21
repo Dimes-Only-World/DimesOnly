@@ -47,6 +47,7 @@ import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
 import Rentals from "./pages/Rentals";
 import RentalDetails from "./pages/RentalDetails";
+import MyBookings from "./pages/MyBookings";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
 import "./App.css";
