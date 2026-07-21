@@ -434,12 +434,21 @@ const RentalDetails: React.FC = () => {
                     <Input value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Full legal name" />
                   </div>
 
+
+                  <div className="border-t pt-3">
+                    <ThemedPackageSelector
+                      selected={selectedPackageIds}
+                      onChange={setSelectedPackageIds}
+                    />
+                  </div>
+
                   <div className="flex items-start gap-2">
                     <Checkbox checked={agree} onCheckedChange={(v) => setAgree(!!v)} id="agree" />
                     <Label htmlFor="agree" className="text-xs leading-snug">
                       I agree to the rental terms and confirm the uploaded documents are authentic.
                     </Label>
                   </div>
+
 
                   <div className="border-t pt-3 space-y-1 text-sm">
                     {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
