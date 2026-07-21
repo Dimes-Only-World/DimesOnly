@@ -193,58 +193,30 @@ const RentalDetails: React.FC = () => {
       const licensePath = await upload(licenseFile, "license");
       const insurancePath = await upload(insuranceFile, "insurance");
 
-      // Look up referral chain
-      const { data: renterRow } = await (supabase as any)
-        .from("users")
-        .select("referred_by")
-        .eq("id", user.id)
-        .single();
-      const directRef = renterRow?.referred_by || null;
-      let uplineRef: string | null = null;
-      if (directRef) {
-        const { data: refRow } = await (supabase as any)
-          .from("users")
-          .select("referred_by")
-          .ilike("username", directRef)
-          .maybeSingle();
-        uplineRef = refRow?.referred_by || null;
-      }
-
-      const { data: bookingRow, error: insErr } = await (supabase as any).from("rental_bookings").insert({
-        vehicle_id: id,
-        renter_user_id: user.id,
-        rental_type: rentalType,
-        start_date: startDate,
-        end_date: endDate || null,
-        pickup_location: pickup,
-        total_price: total,
-        down_payment_amount: downPayment,
-        signature_text: signature,
-        signed_at: new Date().toISOString(),
-        license_path: licensePath,
-        insurance_path: insurancePath,
-        referrer_username: directRef,
-        upline_referrer_username: uplineRef,
-        status: "pending",
-      }).select().single();
-      if (insErr) throw insErr;
-
-      // Persist selected themed packages as booking add-ons
-      if (bookingRow?.id && selectedPackageIds.length) {
-        const { data: pkgs } = await (supabase as any)
-          .from("themed_packages")
-          .select("id, name, price")
-          .in("id", selectedPackageIds);
-        const addonRows = (pkgs || []).map((p: any) => ({
-          booking_id: bookingRow.id,
-          package_id: p.id,
-          package_name: p.name,
-          price: p.price,
-        }));
-        if (addonRows.length) {
-          await (supabase as any).from("booking_addons").insert(addonRows);
-        }
-      }
+      // Route insert through edge function to bypass RLS (custom sessionStorage auth).
+      // Referral chain is derived server-side from the verified user.
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke("rental-booking", {
+        body: {
+          action: "createBooking",
+          userId: user.id,
+          booking: {
+            vehicle_id: id,
+            rental_type: rentalType,
+            start_date: startDate,
+            end_date: endDate || null,
+            pickup_location: pickup,
+            total_price: total,
+            down_payment_amount: downPayment,
+            signature_text: signature,
+            signed_at: new Date().toISOString(),
+            license_path: licensePath,
+            insurance_path: insurancePath,
+          },
+          addonPackageIds: selectedPackageIds,
+        },
+      });
+      if (fnErr) throw fnErr;
+      if ((fnData as any)?.error) throw new Error((fnData as any).error);
 
       toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
       navigate("/dashboard/profile");

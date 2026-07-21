@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.rental-admin]
 verify_jwt = false
+
+[functions.rental-booking]
+verify_jwt = false
