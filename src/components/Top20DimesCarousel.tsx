@@ -33,7 +33,7 @@ const Top20DimesCarousel: React.FC = () => {
           .select("user_id, rating")
           .eq("year", seasonYear);
         const { data: users } = await supabase
-          .from("users")
+          .from("public_user_profiles")
           .select("id, username, profile_photo, user_type")
           .in("user_type", ["stripper", "exotic"]);
         if (!ratings || !users || cancelled) return;
