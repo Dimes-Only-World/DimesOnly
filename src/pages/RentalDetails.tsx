@@ -98,6 +98,8 @@ const RentalDetails: React.FC = () => {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [pickup, setPickup] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
   const [signature, setSignature] = useState<string>("");
