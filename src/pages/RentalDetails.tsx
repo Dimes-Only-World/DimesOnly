@@ -15,25 +15,39 @@ import PhotoLightbox from "@/components/PhotoLightbox";
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
 
-const rateFor = (v: Vehicle, type: string, start?: string, end?: string) => {
-  if (!v) return 0;
+const priceBreakdown = (v: Vehicle, type: string, start?: string, end?: string) => {
+  if (!v) return { unitRate: 0, units: 1, unitLabel: "", total: 0 };
   const startD = start ? new Date(start) : null;
   const endD = end ? new Date(end) : null;
-  const days = startD && endD ? Math.max(1, Math.ceil((+endD - +startD) / 86400000)) : 1;
+  const days =
+    startD && endD ? Math.max(1, Math.ceil((+endD - +startD) / 86400000)) : 1;
   switch (type) {
-    case "daily":
-      return Number(v.day_rate || 0) * days;
-    case "weekly":
-      return Number(v.weekly_rate || 0) * Math.max(1, Math.ceil(days / 7));
-    case "monthly":
-      return Number(v.monthly_rate || 0) * Math.max(1, Math.ceil(days / 30));
+    case "daily": {
+      const unitRate = Number(v.day_rate || 0);
+      return { unitRate, units: days, unitLabel: days === 1 ? "day" : "days", total: unitRate * days };
+    }
+    case "weekly": {
+      const unitRate = Number(v.weekly_rate || 0);
+      const units = Math.max(1, Math.ceil(days / 7));
+      return { unitRate, units, unitLabel: units === 1 ? "week" : "weeks", total: unitRate * units };
+    }
+    case "monthly": {
+      const unitRate = Number(v.monthly_rate || 0);
+      const units = Math.max(1, Math.ceil(days / 30));
+      return { unitRate, units, unitLabel: units === 1 ? "month" : "months", total: unitRate * units };
+    }
     case "long_term":
-    case "rent_to_own":
-      return Number(v.down_payment || 0);
+    case "rent_to_own": {
+      const unitRate = Number(v.down_payment || 0);
+      return { unitRate, units: 1, unitLabel: "down payment", total: unitRate };
+    }
     default:
-      return 0;
+      return { unitRate: 0, units: 1, unitLabel: "", total: 0 };
   }
 };
+
+const rateFor = (v: Vehicle, type: string, start?: string, end?: string) =>
+  priceBreakdown(v, type, start, end).total;
 
 const RentalDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
