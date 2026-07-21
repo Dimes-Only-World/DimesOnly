@@ -224,6 +224,8 @@ const Rentals: React.FC = () => {
             })}
           </div>
         )}
+
+        <CapturesGallery limit={12} />
       </div>
     </div>
   );
