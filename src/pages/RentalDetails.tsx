@@ -58,6 +58,29 @@ const priceBreakdown = (v: Vehicle, type: string, start?: string, end?: string) 
 const rateFor = (v: Vehicle, type: string, start?: string, end?: string) =>
   priceBreakdown(v, type, start, end).total;
 
+const redactBookingPayloadForLogs = (payload: any) => ({
+  action: payload?.action,
+  userId: payload?.userId,
+  booking: payload?.booking,
+  documentFiles: {
+    license: payload?.documentFiles?.license
+      ? {
+          name: payload.documentFiles.license.name,
+          type: payload.documentFiles.license.type,
+          base64Length: payload.documentFiles.license.base64?.length || 0,
+        }
+      : null,
+    insurance: payload?.documentFiles?.insurance
+      ? {
+          name: payload.documentFiles.insurance.name,
+          type: payload.documentFiles.insurance.type,
+          base64Length: payload.documentFiles.insurance.base64?.length || 0,
+        }
+      : null,
+  },
+  addonPackageIds: payload?.addonPackageIds || [],
+});
+
 const RentalDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -220,13 +243,20 @@ const RentalDetails: React.FC = () => {
 
       // Route insert through the Edge Function. The function performs the table
       // insert with its server-only service role client, not this browser client.
+      console.info("[rental-booking] invoking Edge Function", redactBookingPayloadForLogs(payload));
       const { data: fnData, error: fnError } = await supabase.functions.invoke("rental-booking", {
         body: payload,
       });
 
-      if (fnError) throw new Error(fnError.message || "Booking service failed.");
+      console.info("[rental-booking] Edge Function response", { data: fnData, error: fnError });
+
+      if (fnError) {
+        console.error("[rental-booking] Edge Function error", fnError);
+        throw new Error(fnError.message || "Booking service failed.");
+      }
       if ((fnData as any)?.error) {
         const requestId = (fnData as any)?.requestId ? ` Request ID: ${(fnData as any).requestId}` : "";
+        console.error("[rental-booking] Edge Function returned application error", fnData);
         throw new Error(`${(fnData as any).error}${requestId}`);
       }
 
