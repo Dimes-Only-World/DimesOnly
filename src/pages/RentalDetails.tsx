@@ -439,7 +439,44 @@ const RentalDetails: React.FC = () => {
             )}
           </div>
         </div>
+
+        {reviews.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-2xl font-semibold mb-4">
+              Reviews <span className="text-base text-muted-foreground">({reviews.length})</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {reviews.map((r) => (
+                <Card key={r.id} className="bg-card/60 border-border/60">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < r.rating
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground/40"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {r.review_text && (
+                      <p className="text-sm text-foreground/90">{r.review_text}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
+
       <PhotoLightbox
         photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}
         initialIndex={lightboxIndex}
