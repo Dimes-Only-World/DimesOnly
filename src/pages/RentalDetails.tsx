@@ -456,6 +456,17 @@ const RentalDetails: React.FC = () => {
                     <Input value={pickup} onChange={(e) => setPickup(e.target.value)} />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Email</Label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                    </div>
+                    <div>
+                      <Label>Phone</Label>
+                      <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-5555" />
+                    </div>
+                  </div>
+
                   <div>
                     <Label className="flex items-center gap-1"><Upload className="w-3 h-3" /> Driver's License</Label>
                     <Input type="file" accept="image/*,application/pdf" onChange={(e) => setLicenseFile(e.target.files?.[0] || null)} />
