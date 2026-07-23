@@ -29,19 +29,19 @@ const GetStartedSteps = () => (
       <div className="max-w-3xl mx-auto text-center mb-16">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 mb-6">
           <span className="h-1.5 w-1.5 rounded-full bg-[#E916D1] animate-pulse" />
-          <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[#E916D1]">
+          <span className="text-xs font-semibold tracking-[0.2em] uppercase text-white">
             Get Started
           </span>
         </div>
 
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.05]">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.05]">
           Three simple steps to
           <span className="block mt-2 bg-gradient-to-r from-[#E916D1] via-[#ff5ad9] to-[#E916D1] bg-clip-text text-transparent">
             start earning today
           </span>
         </h2>
 
-        <p className="mt-6 text-base md:text-lg text-muted-foreground leading-relaxed">
+        <p className="mt-6 text-base md:text-lg text-white leading-relaxed">
           Built for creators, entrepreneurs, and anyone ready to turn their
           influence into effortless income.
         </p>
@@ -50,12 +50,12 @@ const GetStartedSteps = () => (
           {AUDIENCES.map((label) => (
             <span
               key={label}
-              className="px-3 py-1 rounded-full text-xs md:text-sm font-medium text-foreground/80 border border-white/10 bg-white/5 backdrop-blur-sm"
+              className="px-3 py-1 rounded-full text-xs md:text-sm font-medium text-white border border-white/10 bg-white/5 backdrop-blur-sm"
             >
               {label}
             </span>
           ))}
-          <span className="px-3 py-1 rounded-full text-xs md:text-sm font-semibold text-[#E916D1] border border-[#E916D1]/40 bg-[#E916D1]/10">
+          <span className="px-3 py-1 rounded-full text-xs md:text-sm font-semibold text-white border border-[#E916D1]/40 bg-[#E916D1]/10">
             + Anyone ready for extra income
           </span>
         </div>
