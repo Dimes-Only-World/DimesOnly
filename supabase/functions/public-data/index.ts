@@ -98,6 +98,60 @@ serve(async (req) => {
         break;
       }
 
+      // Fetch the newest playable video for public profile previews.
+      // Some older media rows point at storage objects that no longer exist, so try recent rows in order.
+      case 'fetchLatestUserVideo': {
+        const { userId, expiresIn } = params;
+        const { data: mediaRows, error: mediaError } = await supabaseAdmin
+          .from('user_media')
+          .select('id, media_url, media_type, content_tier, flagged, created_at, storage_path')
+          .eq('user_id', userId)
+          .eq('media_type', 'video')
+          .eq('flagged', false)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (mediaError) throw mediaError;
+
+        const getPrivateMediaPath = (mediaUrl?: string | null, storagePath?: string | null) => {
+          if (storagePath) return String(storagePath).split('?')[0];
+          if (!mediaUrl?.includes('/private-media/')) return null;
+          return mediaUrl.split('/private-media/')[1]?.split('?')[0] || null;
+        };
+
+        result = null;
+        for (const row of mediaRows || []) {
+          const rawUrl = String(row.media_url || '').trim();
+          const storagePath = getPrivateMediaPath(rawUrl, row.storage_path);
+
+          if (storagePath) {
+            const { data: signedData, error: signedError } = await supabaseAdmin
+              .storage
+              .from('private-media')
+              .createSignedUrl(storagePath, expiresIn || 3600);
+
+            if (signedData?.signedUrl && !signedError) {
+              result = { ...row, media_url: signedData.signedUrl, signedUrl: signedData.signedUrl };
+              break;
+            }
+
+            console.warn('Skipping unavailable preview video', {
+              userId,
+              mediaId: row.id,
+              storagePath,
+              error: signedError?.message,
+            });
+            continue;
+          }
+
+          if (rawUrl) {
+            result = { ...row, media_url: rawUrl, signedUrl: rawUrl };
+            break;
+          }
+        }
+        break;
+      }
+
       // Fetch media counts for directory
       case 'fetchMediaCounts': {
         const { userIds } = params;

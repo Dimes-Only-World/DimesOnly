@@ -20,9 +20,10 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
+      videoRef.current.load();
       videoRef.current.play().catch(console.error);
     }
-  }, [isOpen]);
+  }, [isOpen, videoUrl]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -40,16 +41,15 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
           {/* Video Player */}
           <video
+            key={videoUrl}
             ref={videoRef}
+            src={videoUrl}
             className="max-w-full max-h-[85vh] object-contain"
             controls
             autoPlay
             playsInline
             poster={thumbnail}
-          >
-            <source src={videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          />
         </div>
       </DialogContent>
     </Dialog>
@@ -119,12 +119,11 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = ({
       ) : (
         <video
           ref={videoRef}
+          src={videoUrl}
           className="w-full h-full object-cover rounded-lg"
           muted
           preload="metadata"
-        >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
+        />
       )}
 
       {/* Play Button Overlay */}
