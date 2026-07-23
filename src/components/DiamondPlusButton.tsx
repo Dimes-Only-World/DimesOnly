@@ -119,54 +119,73 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
   }
 
   return (
-    <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black mb-6 shadow-lg">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold">
-          <Crown className="w-6 h-6" />
-          DIAMOND PLUS
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="text-3xl font-bold">$149.99</div>
-          <div className="text-right">
-            <div className="text-sm font-medium">
-              Only {Math.max(0, spotsLeft)} spots left!
+    <Card className="relative overflow-hidden border-0 mb-6 shadow-2xl bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
+      {/* Decorative glow */}
+      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-fuchsia-500/20 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
+
+      <CardHeader className="relative pb-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 shadow-lg">
+              <Crown className="w-6 h-6 text-black" />
             </div>
-            <div className="text-xs opacity-80">No referral fees attached</div>
+            <div>
+              <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-semibold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Approved · Invitation Unlocked
+              </div>
+              <CardTitle className="text-2xl md:text-3xl font-black bg-gradient-to-r from-amber-200 via-fuchsia-200 to-amber-200 bg-clip-text text-transparent mt-1">
+                Diamond Plus Membership
+              </CardTitle>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-widest text-white/60">Seats Remaining</div>
+            <div className="text-2xl font-bold text-white">
+              {Math.max(0, spotsLeft)}<span className="text-white/40 text-base"> / 300</span>
+            </div>
           </div>
         </div>
+      </CardHeader>
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
-            <span className="text-sm">
-              PayPal button complete upgrades status
-            </span>
+      <CardContent className="relative space-y-5 pt-0">
+        <p className="text-white/80 text-sm md:text-base leading-relaxed max-w-2xl">
+          You've been personally approved as a top-tier Dime. Diamond Plus unlocks priority ranking,
+          exclusive earning tiers, and a permanent seat among the platform's elite. Only 300 members
+          worldwide will ever hold this position.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3 backdrop-blur-sm">
+            <div className="text-[10px] uppercase tracking-widest text-amber-300/80">One-Time</div>
+            <div className="text-xl font-bold text-white mt-1">$149.99</div>
+            <div className="text-[11px] text-white/60">Lifetime seat</div>
           </div>
-          <div className="text-sm font-medium">Installment option:</div>
-          <div className="ml-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>$149.99</span>
-            </div>
-            <div className="ml-6 text-xs space-y-1">
-              <div>$49.99 down payment</div>
-              <div>2 installments of $50.00</div>
-            </div>
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3 backdrop-blur-sm">
+            <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Installments</div>
+            <div className="text-xl font-bold text-white mt-1">$49.99<span className="text-sm text-white/60"> down</span></div>
+            <div className="text-[11px] text-white/60">+ 2 × $50.00</div>
+          </div>
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3 backdrop-blur-sm">
+            <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Referral Fees</div>
+            <div className="text-xl font-bold text-white mt-1">$0</div>
+            <div className="text-[11px] text-white/60">Keep 100%</div>
           </div>
         </div>
 
         <Button
           onClick={handleUpgrade}
-          className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 text-lg shadow-md"
+          className="w-full h-14 text-base md:text-lg font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 hover:from-amber-200 hover:to-amber-400 text-black shadow-xl shadow-amber-500/30 transition-transform hover:scale-[1.01]"
         >
           <Crown className="w-5 h-5 mr-2" />
-          DIAMOND PLUS
+          Claim Your Diamond Plus Seat
+          <DollarSign className="w-5 h-5 ml-2" />
         </Button>
 
-        <div className="text-xs text-center opacity-80">
-          When transaction is complete, update to Diamond Plus
+        <div className="flex items-center justify-center gap-2 text-[11px] text-white/50">
+          <AlertCircle className="w-3 h-3" />
+          <span>Secure PayPal checkout · Membership activates instantly on payment</span>
         </div>
       </CardContent>
     </Card>
