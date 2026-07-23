@@ -187,9 +187,9 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
           <DialogHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <DialogTitle>User Details - {user.username}</DialogTitle>
                 {isDeactivated && <Badge variant="destructive">Deactivated</Badge>}
@@ -219,6 +219,14 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                   </Button>
                 )}
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onClose}
+                  disabled={actionLoading}
+                >
+                  Close
+                </Button>
+                <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleDeleteUser}
@@ -232,29 +240,29 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
           </DialogHeader>
           
           <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <h3 className="font-semibold mb-2">Profile Photo</h3>
+                <h3 className="font-semibold mb-2 text-sm">Profile Photo</h3>
                 {user.profile_photo ? (
-                  <img src={user.profile_photo} alt="Profile" className="w-full object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.profile_photo!)} />
+                  <img src={user.profile_photo} alt="Profile" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 border" onClick={() => setExpandedImage(user.profile_photo!)} />
                 ) : (
-                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
+                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-xs text-muted-foreground">No photo</span></div>
                 )}
               </div>
               <div>
-                <h3 className="font-semibold mb-2">Banner Photo</h3>
+                <h3 className="font-semibold mb-2 text-sm">Banner Photo</h3>
                 {user.banner_photo ? (
-                  <img src={user.banner_photo} alt="Banner" className="w-full object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.banner_photo!)} />
+                  <img src={user.banner_photo} alt="Banner" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 border" onClick={() => setExpandedImage(user.banner_photo!)} />
                 ) : (
-                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No banner</span></div>
+                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-xs text-muted-foreground">No banner</span></div>
                 )}
               </div>
               <div>
-                <h3 className="font-semibold mb-2">Front Page Photo</h3>
+                <h3 className="font-semibold mb-2 text-sm">Front Page Photo</h3>
                 {user.front_page_photo ? (
-                  <img src={user.front_page_photo} alt="Front Page" className="w-full object-contain rounded-lg cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(user.front_page_photo!)} />
+                  <img src={user.front_page_photo} alt="Front Page" className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 border" onClick={() => setExpandedImage(user.front_page_photo!)} />
                 ) : (
-                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-muted-foreground">No photo</span></div>
+                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center"><span className="text-xs text-muted-foreground">No photo</span></div>
                 )}
               </div>
             </div>
