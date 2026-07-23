@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 
 interface LatestPerformer {
@@ -21,6 +21,11 @@ type RawUserRow = {
 type RawMediaRow = {
   media_url: string | null;
   content_tier?: string | null;
+};
+
+type LatestVideoRow = {
+  media_url?: string | null;
+  signedUrl?: string | null;
 };
 
 const fallbackImages = [
@@ -92,42 +97,23 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     setSelectedVideoUrl(null);
 
     try {
-      // Fetch the latest video for this user (any tier)
-      const { data, error } = await supabase
-        .from("user_media")
-        .select("media_url, storage_path, content_tier")
-        .eq("user_id", performer.id)
-        .eq("media_type", "video")
-        .order("upload_date", { ascending: false })
-        .limit(1);
+      const { data, error } = await supabase.functions.invoke("public-data", {
+        body: {
+          action: "fetchLatestUserVideo",
+          userId: performer.id,
+          expiresIn: 3600,
+        },
+      });
 
+      if (error) {
+        console.error("[LatestDimesCarousel] Preview video function error:", error);
+        return;
+      }
 
-      if (!error && data && data.length > 0) {
-        const row = data[0] as { media_url: string | null; storage_path: string | null };
-        const url = row?.media_url?.trim();
-
-        if (url) {
-          // Check if this is from private-media bucket and needs a signed URL
-          if (url.includes("/private-media/")) {
-            const storagePath = row.storage_path || url.split("/private-media/")[1]?.split("?")[0];
-            if (storagePath) {
-              const { data: signedData, error: signedError } = await supabase.storage
-                .from("private-media")
-                .createSignedUrl(storagePath, 3600);
-
-              if (!signedError && signedData?.signedUrl) {
-                setSelectedVideoUrl(signedData.signedUrl);
-              } else {
-                console.error("[LatestDimesCarousel] Signed URL error:", signedError);
-                setSelectedVideoUrl(url);
-              }
-            } else {
-              setSelectedVideoUrl(url);
-            }
-          } else {
-            setSelectedVideoUrl(url);
-          }
-        }
+      const row = data?.data as LatestVideoRow | null | undefined;
+      const videoUrl = row?.signedUrl || row?.media_url;
+      if (videoUrl) {
+        setSelectedVideoUrl(videoUrl);
       }
     } catch (err) {
       console.error("[LatestDimesCarousel] Failed to load preview:", err);
@@ -285,6 +271,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
               ) : selectedVideoUrl ? (
                 <video
                   key={selectedVideoUrl}
+                  src={selectedVideoUrl}
                   autoPlay
                   loop
                   muted
@@ -294,9 +281,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   disablePictureInPicture
                   onContextMenu={(event) => event.preventDefault()}
                   className="w-full h-full object-cover"
-                >
-                  <source src={selectedVideoUrl} type="video/mp4" />
-                </video>
+                />
               ) : (
                 <img
                   src={selectedPerformer.image}
