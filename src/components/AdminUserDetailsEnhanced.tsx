@@ -308,33 +308,33 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               {media.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No media uploaded</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {media.map((item) => (
-                    <div key={item.id} className="relative border rounded-lg overflow-hidden">
+                    <div key={item.id} className="relative border rounded-lg overflow-hidden bg-muted/30">
                       {item.type === 'photo' ? (
-                        <img src={getMediaUrl(item)} alt="User media" className="w-full object-contain cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(getMediaUrl(item))} />
+                        <img src={getMediaUrl(item)} alt="User media" className="w-full h-32 object-cover cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(getMediaUrl(item))} />
                       ) : (
-                        <div className="relative">
-                          <video className="w-full max-h-[500px] object-contain" preload="metadata" muted>
+                        <div className="relative w-full h-32">
+                          <video className="w-full h-32 object-cover" preload="metadata" muted>
                             <source src={getMediaUrl(item)} type="video/mp4" />
                           </video>
-                          <Button size="sm" className="absolute inset-0 bg-black bg-opacity-50 hover:bg-opacity-70" onClick={() => setPlayingVideo(getMediaUrl(item))}>
-                            <Play className="w-6 h-6 text-white" />
-                          </Button>
+                          <button className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition" onClick={() => setPlayingVideo(getMediaUrl(item))}>
+                            <Play className="w-8 h-8 text-white" />
+                          </button>
                         </div>
                       )}
-                      {item.flagged && <Badge variant="destructive" className="absolute top-1 right-1 text-xs">Flagged</Badge>}
+                      {item.flagged && <Badge variant="destructive" className="absolute top-1 right-1 text-[10px] px-1.5 py-0">Flagged</Badge>}
                       <div className="p-2">
-                        <Button size="sm" variant={selectedMedia === item.id ? "secondary" : "outline"} onClick={() => setSelectedMedia(selectedMedia === item.id ? null : item.id)} className="w-full mb-2">
+                        <Button size="sm" variant={selectedMedia === item.id ? "secondary" : "outline"} onClick={() => setSelectedMedia(selectedMedia === item.id ? null : item.id)} className="w-full h-7 text-xs">
                           <Flag className="w-3 h-3 mr-1" /> {item.flagged ? 'Flagged' : 'Flag'}
                         </Button>
                         {selectedMedia === item.id && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 mt-2">
                             <Textarea placeholder="Warning message..." value={flagMessage} onChange={(e) => setFlagMessage(e.target.value)} rows={2} className="text-xs" />
-                            <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="w-full">Submit Flag</Button>
+                            <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="w-full h-7 text-xs">Submit Flag</Button>
                           </div>
                         )}
-                        {item.flagged && item.warning_message && <p className="text-xs text-destructive mt-1">{item.warning_message}</p>}
+                        {item.flagged && item.warning_message && <p className="text-[11px] text-destructive mt-1 line-clamp-2">{item.warning_message}</p>}
                       </div>
                     </div>
                   ))}
