@@ -3,10 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
 import { getAdminUserId } from '@/lib/adminAuth';
 import { Play, Flag, X, Trash2, ShieldOff, ShieldCheck } from 'lucide-react';
+
+type ContentTier = 'free' | 'silver' | 'gold';
 
 interface User {
   id: string;
@@ -32,12 +35,19 @@ interface User {
 interface Media {
   id: string;
   url: string;
+  signed_url?: string;
   type: 'photo' | 'video';
   flagged?: boolean;
   warning_message?: string;
-  content_tier?: string;
+  content_tier?: ContentTier;
   storage_path?: string;
 }
+
+const contentTiers: Array<{ key: ContentTier; label: string; description: string }> = [
+  { key: 'free', label: 'Silver Content', description: 'Entry-level member content' },
+  { key: 'silver', label: 'Gold Content', description: 'Gold member content' },
+  { key: 'gold', label: 'Diamond Content', description: 'Diamond member content' },
+];
 
 interface AdminUserDetailsEnhancedProps {
   user: User | null;
@@ -68,50 +78,28 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   user, isOpen, onClose, onUserUpdated 
 }) => {
   const [media, setMedia] = useState<Media[]>([]);
-  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
   const [flagMessage, setFlagMessage] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [tierUpdatingId, setTierUpdatingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (user && isOpen) fetchUserMedia();
   }, [user, isOpen]);
 
-  const resolveSignedUrls = async (items: Media[]) => {
-    const urls: Record<string, string> = {};
-    for (const item of items) {
-      const rawUrl = item.url || '';
-      if (rawUrl.includes('/private-media/') || item.storage_path) {
-        let storagePath = item.storage_path || '';
-        if (!storagePath && rawUrl.includes('/private-media/')) {
-          storagePath = rawUrl.split('/private-media/').pop() || '';
-          storagePath = decodeURIComponent(storagePath.split('?')[0]);
-        }
-        if (storagePath) {
-          try {
-            const { data } = await supabase.storage.from('private-media').createSignedUrl(storagePath, 3600);
-            if (data?.signedUrl) urls[item.id] = data.signedUrl;
-          } catch (e) { console.error('Signed URL error:', e); }
-        }
-      }
-    }
-    setResolvedUrls(urls);
-  };
-
   const fetchUserMedia = async () => {
     if (!user) return;
     try {
       const data = await callAdminData('fetchUserMedia', { userId: user.id });
       const transformedMedia: Media[] = (data || []).map((item: any) => ({
-        id: item.id, url: item.media_url, type: item.media_type as 'photo' | 'video',
+        id: item.id, url: item.media_url, signed_url: item.signed_url, type: item.media_type as 'photo' | 'video',
         flagged: item.flagged, warning_message: item.flagged_message || item.warning_message,
-        content_tier: item.content_tier, storage_path: item.storage_path,
+        content_tier: item.content_tier as ContentTier, storage_path: item.storage_path,
       }));
       setMedia(transformedMedia);
-      resolveSignedUrls(transformedMedia);
     } catch (error) { console.error('Error fetching media:', error); }
   };
 
@@ -168,7 +156,20 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     } finally { setActionLoading(false); }
   };
 
-  const getMediaUrl = (item: Media) => resolvedUrls[item.id] || item.url;
+  const handleTierChange = async (mediaId: string, contentTier: ContentTier) => {
+    setTierUpdatingId(mediaId);
+    try {
+      await callAdminData('updateMediaTier', { mediaId, contentTier });
+      setMedia((current) => current.map((item) => item.id === mediaId ? { ...item, content_tier: contentTier } : item));
+      toast({ title: 'Success', description: 'Media tier updated' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update media tier', variant: 'destructive' });
+    } finally {
+      setTierUpdatingId(null);
+    }
+  };
+
+  const getMediaUrl = (item: Media) => item.signed_url || item.url;
 
   const getUserTypeDisplay = (userType: string) => {
     switch (userType.toLowerCase()) {
@@ -183,6 +184,92 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   if (!user) return null;
 
   const isDeactivated = user.is_active === false;
+
+  const renderMediaCard = (item: Media) => {
+    const mediaUrl = getMediaUrl(item);
+
+    return (
+      <div key={item.id} className="overflow-hidden rounded-lg border bg-card shadow-sm">
+        <div className="relative bg-muted">
+          {item.type === 'photo' ? (
+            <img
+              src={mediaUrl}
+              alt="Uploaded user media"
+              className="h-32 w-full cursor-pointer object-cover transition-opacity hover:opacity-80"
+              loading="lazy"
+              onClick={() => setExpandedImage(mediaUrl)}
+            />
+          ) : (
+            <button
+              type="button"
+              className="group relative h-32 w-full overflow-hidden bg-muted text-left"
+              onClick={() => setPlayingVideo(mediaUrl)}
+              aria-label="Play uploaded video"
+            >
+              <video
+                key={mediaUrl}
+                className="h-32 w-full object-cover"
+                preload="metadata"
+                muted
+                playsInline
+                src={mediaUrl}
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-background/55 transition-colors group-hover:bg-background/70">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+                  <Play className="h-5 w-5" />
+                </span>
+              </span>
+            </button>
+          )}
+          {item.flagged && <Badge variant="destructive" className="absolute right-2 top-2">Flagged</Badge>}
+        </div>
+
+        <div className="space-y-2 p-3">
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Move content to</p>
+            <Select
+              value={item.content_tier || 'free'}
+              onValueChange={(value) => handleTierChange(item.id, value as ContentTier)}
+              disabled={tierUpdatingId === item.id}
+            >
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Select tier" />
+              </SelectTrigger>
+              <SelectContent>
+                {contentTiers.map((tier) => (
+                  <SelectItem key={tier.key} value={tier.key}>{tier.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button
+            size="sm"
+            variant={selectedMedia === item.id ? 'secondary' : 'outline'}
+            onClick={() => setSelectedMedia(selectedMedia === item.id ? null : item.id)}
+            className="h-8 w-full text-xs"
+          >
+            <Flag className="mr-1 h-3 w-3" /> {item.flagged ? 'Flagged' : 'Flag'}
+          </Button>
+
+          {selectedMedia === item.id && (
+            <div className="space-y-2">
+              <Textarea
+                placeholder="Warning message..."
+                value={flagMessage}
+                onChange={(e) => setFlagMessage(e.target.value)}
+                rows={2}
+                className="text-xs"
+              />
+              <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="h-8 w-full text-xs">Submit Flag</Button>
+            </div>
+          )}
+
+          {item.flagged && item.warning_message && <p className="line-clamp-2 text-xs text-destructive">{item.warning_message}</p>}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -304,40 +391,39 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
             </div>
 
             <div>
-              <h3 className="font-semibold mb-3">Uploaded Media ({media.length})</h3>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold">Uploaded Media ({media.length})</h3>
+                  <p className="text-sm text-muted-foreground">Review, preview, and move each item to the correct member tier.</p>
+                </div>
+              </div>
               {media.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No media uploaded</p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                  {media.map((item) => (
-                    <div key={item.id} className="relative border rounded-lg overflow-hidden bg-muted/30">
-                      {item.type === 'photo' ? (
-                        <img src={getMediaUrl(item)} alt="User media" className="w-full h-32 object-cover cursor-pointer hover:opacity-80" onClick={() => setExpandedImage(getMediaUrl(item))} />
-                      ) : (
-                        <div className="relative w-full h-32">
-                          <video className="w-full h-32 object-cover" preload="metadata" muted>
-                            <source src={getMediaUrl(item)} type="video/mp4" />
-                          </video>
-                          <button className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition" onClick={() => setPlayingVideo(getMediaUrl(item))}>
-                            <Play className="w-8 h-8 text-white" />
-                          </button>
+                <div className="space-y-6">
+                  {contentTiers.map((tier) => {
+                    const tierMedia = media.filter((item) => (item.content_tier || 'free') === tier.key);
+
+                    return (
+                      <section key={tier.key} className="rounded-lg border bg-muted/20 p-4">
+                        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <h4 className="font-semibold">{tier.label}</h4>
+                            <p className="text-xs text-muted-foreground">{tier.description}</p>
+                          </div>
+                          <Badge variant="secondary">{tierMedia.length} item{tierMedia.length === 1 ? '' : 's'}</Badge>
                         </div>
-                      )}
-                      {item.flagged && <Badge variant="destructive" className="absolute top-1 right-1 text-[10px] px-1.5 py-0">Flagged</Badge>}
-                      <div className="p-2">
-                        <Button size="sm" variant={selectedMedia === item.id ? "secondary" : "outline"} onClick={() => setSelectedMedia(selectedMedia === item.id ? null : item.id)} className="w-full h-7 text-xs">
-                          <Flag className="w-3 h-3 mr-1" /> {item.flagged ? 'Flagged' : 'Flag'}
-                        </Button>
-                        {selectedMedia === item.id && (
-                          <div className="space-y-2 mt-2">
-                            <Textarea placeholder="Warning message..." value={flagMessage} onChange={(e) => setFlagMessage(e.target.value)} rows={2} className="text-xs" />
-                            <Button size="sm" onClick={() => handleFlagMedia(item.id)} className="w-full h-7 text-xs">Submit Flag</Button>
+
+                        {tierMedia.length === 0 ? (
+                          <div className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">No media in this tier</div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                            {tierMedia.map(renderMediaCard)}
                           </div>
                         )}
-                        {item.flagged && item.warning_message && <p className="text-[11px] text-destructive mt-1 line-clamp-2">{item.warning_message}</p>}
-                      </div>
-                    </div>
-                  ))}
+                      </section>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -371,9 +457,7 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
               </div>
             </DialogHeader>
             <div className="flex justify-center">
-              <video controls autoPlay muted preload="auto" crossOrigin="anonymous" className="max-w-full max-h-[70vh]">
-                <source src={playingVideo} type="video/mp4" />
-              </video>
+              <video key={playingVideo} controls autoPlay playsInline preload="auto" className="max-h-[70vh] max-w-full" src={playingVideo} />
             </div>
           </DialogContent>
         </Dialog>
