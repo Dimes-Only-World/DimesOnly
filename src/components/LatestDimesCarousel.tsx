@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
 
 interface LatestPerformer {
