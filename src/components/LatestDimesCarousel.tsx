@@ -92,15 +92,15 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     setSelectedVideoUrl(null);
 
     try {
-      // Fetch the latest silver-tier video for this user
+      // Fetch the latest video for this user (any tier)
       const { data, error } = await supabase
         .from("user_media")
-        .select("media_url, storage_path")
+        .select("media_url, storage_path, content_tier")
         .eq("user_id", performer.id)
         .eq("media_type", "video")
-        .eq("content_tier", "silver")
         .order("upload_date", { ascending: false })
         .limit(1);
+
 
       if (!error && data && data.length > 0) {
         const row = data[0] as { media_url: string | null; storage_path: string | null };
@@ -188,15 +188,16 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     window.location.href = loginUrl.toString();
   };
 
-  const navigateRegister = () => {
+  const navigateTip = () => {
     if (!selectedPerformer) return;
 
     const ref = getRefParam();
-    const registerUrl = new URL("/register", window.location.origin);
-    if (ref) registerUrl.searchParams.set("ref", ref);
-    registerUrl.searchParams.set("target", selectedPerformer.username);
-    window.location.href = registerUrl.toString();
+    const tipUrl = new URL("/tip", window.location.origin);
+    tipUrl.searchParams.set("tip", selectedPerformer.username);
+    if (ref) tipUrl.searchParams.set("ref", ref);
+    window.location.href = tipUrl.toString();
   };
+
 
   return (
     <section className={`w-full bg-transparent py-10 ${className}`}>
@@ -315,11 +316,12 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   {isAuthenticated ? "View Profile" : "Login"}
                 </button>
                 <button
-                  onClick={navigateRegister}
+                  onClick={navigateTip}
                   className="flex-1 basis-[48%] min-w-[120px] rounded-lg bg-[#E916D1] py-2 text-sm font-semibold text-black transition hover:bg-[#E916D1]/90 md:rounded-xl md:py-3 md:text-base"
                 >
-                  Sign Up
+                  Tip Her
                 </button>
+
               </div>
             </div>
           </div>
