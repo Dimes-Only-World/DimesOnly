@@ -188,15 +188,16 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     window.location.href = loginUrl.toString();
   };
 
-  const navigateRegister = () => {
+  const navigateTip = () => {
     if (!selectedPerformer) return;
 
     const ref = getRefParam();
-    const registerUrl = new URL("/register", window.location.origin);
-    if (ref) registerUrl.searchParams.set("ref", ref);
-    registerUrl.searchParams.set("target", selectedPerformer.username);
-    window.location.href = registerUrl.toString();
+    const tipUrl = new URL("/tip", window.location.origin);
+    tipUrl.searchParams.set("tip", selectedPerformer.username);
+    if (ref) tipUrl.searchParams.set("ref", ref);
+    window.location.href = tipUrl.toString();
   };
+
 
   return (
     <section className={`w-full bg-transparent py-10 ${className}`}>
