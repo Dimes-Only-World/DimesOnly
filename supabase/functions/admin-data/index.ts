@@ -13,11 +13,20 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Supabase admin configuration missing' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Create admin client for privileged operations
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
     
     const body = await req.json();
     const { action, adminUserId, ...params } = body;
@@ -271,6 +280,70 @@ serve(async (req) => {
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
         if (error) throw error;
+        const signedMedia = await Promise.all((data || []).map(async (item: any) => {
+          let storagePath = item.storage_path || '';
+
+          if (!storagePath && item.media_url?.includes('/private-media/')) {
+            storagePath = decodeURIComponent((item.media_url.split('/private-media/').pop() || '').split('?')[0]);
+          }
+
+          if (!storagePath) {
+            return { ...item, signed_url: item.media_url };
+          }
+
+          const { data: signed, error: signedError } = await supabaseAdmin
+            .storage
+            .from('private-media')
+            .createSignedUrl(storagePath, 3600);
+
+          if (signedError) {
+            console.error('Admin media signed URL failed:', {
+              mediaId: item.id,
+              storagePath,
+              message: signedError.message,
+            });
+            return { ...item, signed_url: item.media_url };
+          }
+
+          return { ...item, signed_url: signed?.signedUrl || item.media_url };
+        }));
+
+        result = signedMedia;
+        break;
+      }
+
+      case 'updateMediaTier': {
+        const { mediaId, contentTier } = params;
+        const allowedTiers = ['free', 'silver', 'gold'];
+
+        if (!mediaId || typeof mediaId !== 'string') {
+          return new Response(
+            JSON.stringify({ error: 'Valid media ID required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!contentTier || typeof contentTier !== 'string' || !allowedTiers.includes(contentTier)) {
+          return new Response(
+            JSON.stringify({ error: 'Valid content tier required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data, error } = await supabaseAdmin
+          .from('user_media')
+          .update({
+            content_tier: contentTier,
+            is_nude: contentTier === 'silver',
+            is_xrated: contentTier === 'gold',
+            access_restricted: contentTier !== 'free',
+          })
+          .eq('id', mediaId)
+          .select('id, content_tier, is_nude, is_xrated, access_restricted')
+          .single();
+
+        if (error) throw error;
+        console.log('Admin media tier updated:', { mediaId, contentTier, adminUserId });
         result = data;
         break;
       }
