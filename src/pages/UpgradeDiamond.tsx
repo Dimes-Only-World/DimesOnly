@@ -466,7 +466,7 @@ const UpgradeDiamondPage: React.FC = () => {
               <Crown className="w-12 h-12 text-yellow-400" />
             </div>
             <p className="text-xl text-gray-300 mb-4">
-              Get profit Sharing Position of up to $150,000 a year max for life.
+              Get profit Sharing Position of up to $125,000 a year max for life.
             </p>
             {spotsLeft > 0 && isEligible && (
               <Badge variant="destructive" className="text-lg px-4 py-2">
