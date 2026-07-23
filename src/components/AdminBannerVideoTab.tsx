@@ -168,25 +168,13 @@ const AdminBannerVideoTab: React.FC = () => {
   };
 
   const saveToHistory = async (pageKey: string, oldUrl: string) => {
-    // Insert old URL into history
-    await supabase
-      .from("page_video_history")
-      .insert({ page_key: pageKey, video_url: oldUrl });
-
-    // Check count and delete oldest if >= 6
-    const { data: historyRows } = await supabase
-      .from("page_video_history")
-      .select("id, replaced_at")
-      .eq("page_key", pageKey)
-      .order("replaced_at", { ascending: true });
-
-    if (historyRows && historyRows.length > 5) {
-      const toDelete = historyRows.slice(0, historyRows.length - 5);
-      for (const row of toDelete) {
-        await supabase.from("page_video_history").delete().eq("id", row.id);
-      }
-    }
+    const adminUserId = getAdminUserId();
+    if (!adminUserId) return;
+    await supabase.functions.invoke("admin-data", {
+      body: { action: "insertPageVideoHistory", adminUserId, pageKey, videoUrl: oldUrl },
+    });
   };
+
 
   const handleSave = async (pageKey: string) => {
     const adminUserId = getAdminUserId();
