@@ -192,19 +192,18 @@ const AdminBannerVideoTab: React.FC = () => {
         await saveToHistory(pageKey, currentEntry.video_url);
       }
 
-      const { error } = await supabase
-        .from("page_videos")
-        .upsert(
-          {
-            page_key: pageKey,
-            video_url: editUrls[pageKey] || null,
-            updated_at: new Date().toISOString(),
-            updated_by: adminUserId,
-          },
-          { onConflict: "page_key" }
-        );
+      const { data: resp, error } = await supabase.functions.invoke("admin-data", {
+        body: {
+          action: "upsertPageVideo",
+          adminUserId,
+          pageKey,
+          videoUrl: editUrls[pageKey] || null,
+        },
+      });
 
       if (error) throw error;
+      if ((resp as any)?.error) throw new Error((resp as any).error);
+
 
       toast({ title: "Saved", description: `Video URL updated for ${PAGE_VIDEO_CONFIG.find((c) => c.page_key === pageKey)?.label}` });
 
