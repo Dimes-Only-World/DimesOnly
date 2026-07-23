@@ -388,38 +388,62 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
       {/* ---------- HERO SECTION ---------- */}
       <div
-        className="relative flex flex-col items-center justify-center bg-cover bg-center text-black rounded-[30px] md:rounded-[50px] px-5 py-10 mx-4 my-6 sm:px-8 sm:mx-6 md:px-16 md:py-20 md:mx-10 md:my-10 shadow-2xl overflow-hidden min-h-[550px] md:min-h-[600px]"
+        className="relative flex flex-col items-center justify-center bg-cover bg-center rounded-[30px] md:rounded-[50px] mx-4 my-6 sm:mx-6 md:mx-10 md:my-10 shadow-2xl overflow-hidden border border-white/10"
         style={{ backgroundImage: `url(${heroBg.url})` }}
       >
-        <div className="absolute inset-0 bg-white/70 pointer-events-none" />
-        <img
-          src={money}
-          alt="money"
-          className="absolute bottom-0 w-[85%] max-w-[600px] opacity-20 pointer-events-none"
+        {/* Dark professional overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-[#1a0a1f]/90 pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(600px circle at 50% 20%, rgba(233,22,209,0.28), transparent 60%)",
+          }}
         />
 
-        <div className="relative z-10 text-center w-full max-w-3xl mx-auto break-words">
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-3 tracking-tight leading-tight">
-            $trippers & Exxxotic Females
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-6 py-16 md:px-16 md:py-24 text-center">
+          {/* Eyebrow */}
+          <div className="flex justify-center mb-6">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-[#E916D1] backdrop-blur">
+              Launch Prize Competition
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight text-white leading-[1.05]">
+            Top Ranked Performer
             <br />
-            Top Baddie Wins <span className="text-[#E916D1]">$10,000</span>
+            <span className="bg-gradient-to-r from-[#E916D1] to-[#ff6bd6] bg-clip-text text-transparent">
+              Wins $10,000
+            </span>
           </h2>
 
-          <p className="text-base sm:text-lg md:text-xl font-semibold text-black mb-4">
+          <p className="mt-5 text-sm md:text-base uppercase tracking-[0.3em] text-white/60">
             Winner Announced at App Launch
           </p>
 
-          <p className="text-sm sm:text-base md:text-lg font-semibold text-black max-w-2xl mx-auto leading-relaxed">
-            <span className="text-[#E916D1]">#1 Top Ranked</span> = $10,000.00 <br />
-            <span className="text-black">Rank Between #2 & #20</span> Win Money As Well
-          </p>
+          {/* Prize Grid */}
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            <div className="rounded-2xl border border-[#E916D1]/40 bg-gradient-to-b from-[#E916D1]/15 to-transparent p-6 backdrop-blur-md">
+              <div className="text-xs uppercase tracking-widest text-[#E916D1] mb-2">Grand Prize</div>
+              <div className="text-3xl font-black text-white tabular-nums">$10,000</div>
+              <div className="mt-2 text-xs text-white/60">#1 Ranked</div>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-md">
+              <div className="text-xs uppercase tracking-widest text-white/60 mb-2">Runner-Ups</div>
+              <div className="text-3xl font-black text-white tabular-nums">#2 – #20</div>
+              <div className="mt-2 text-xs text-white/60">Additional Cash Prizes</div>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-md">
+              <div className="text-xs uppercase tracking-widest text-white/60 mb-2">Recurring</div>
+              <div className="text-3xl font-black text-white">Quarterly</div>
+              <div className="mt-2 text-xs text-white/60">New Winners Every 3 Months</div>
+            </div>
+          </div>
 
-          <button className="mt-6 md:mt-8 px-5 sm:px-8 py-3 bg-[#E916D1] hover:bg-[#E916D1]/90 transition-all duration-300 text-white text-sm sm:text-base font-semibold rounded-full shadow-lg max-w-full whitespace-normal">
-            Winners Every 3 Months After Spots Below Say 0
-          </button>
-
-          <p className="mt-5 md:mt-6 text-sm sm:text-base md:text-lg font-semibold text-[#E916D1] uppercase tracking-wide">
-            THE ULTIMATE ENTERTAINMENT APP COMING SOON!
+          <p className="mt-10 text-xs md:text-sm uppercase tracking-[0.35em] text-white/70">
+            The Ultimate Entertainment App
+            <span className="ml-2 text-[#E916D1]">— Coming Soon</span>
           </p>
         </div>
       </div>
