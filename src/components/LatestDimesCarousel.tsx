@@ -92,15 +92,15 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
     setSelectedVideoUrl(null);
 
     try {
-      // Fetch the latest silver-tier video for this user
+      // Fetch the latest video for this user (any tier)
       const { data, error } = await supabase
         .from("user_media")
-        .select("media_url, storage_path")
+        .select("media_url, storage_path, content_tier")
         .eq("user_id", performer.id)
         .eq("media_type", "video")
-        .eq("content_tier", "silver")
         .order("upload_date", { ascending: false })
         .limit(1);
+
 
       if (!error && data && data.length > 0) {
         const row = data[0] as { media_url: string | null; storage_path: string | null };
