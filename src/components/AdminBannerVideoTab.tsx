@@ -237,26 +237,28 @@ const AdminBannerVideoTab: React.FC = () => {
       }
 
       // Remove the reverted URL from history (it's becoming current)
-      await supabase
-        .from("page_video_history")
-        .delete()
-        .eq("page_key", pageKey)
-        .eq("video_url", revertUrl);
+      await supabase.functions.invoke("admin-data", {
+        body: {
+          action: "deletePageVideoHistory",
+          adminUserId,
+          pageKey,
+          videoUrl: revertUrl,
+        },
+      });
 
       // Set as current
-      const { error } = await supabase
-        .from("page_videos")
-        .upsert(
-          {
-            page_key: pageKey,
-            video_url: revertUrl,
-            updated_at: new Date().toISOString(),
-            updated_by: adminUserId,
-          },
-          { onConflict: "page_key" }
-        );
+      const { data: resp, error } = await supabase.functions.invoke("admin-data", {
+        body: {
+          action: "upsertPageVideo",
+          adminUserId,
+          pageKey,
+          videoUrl: revertUrl,
+        },
+      });
 
       if (error) throw error;
+      if ((resp as any)?.error) throw new Error((resp as any).error);
+
 
       toast({ title: "Reverted", description: `Video reverted for ${PAGE_VIDEO_CONFIG.find((c) => c.page_key === pageKey)?.label}` });
 
