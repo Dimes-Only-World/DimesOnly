@@ -586,7 +586,58 @@ serve(async (req) => {
         break;
       }
 
+      case 'upsertPageVideo': {
+        const { pageKey, videoUrl } = params;
+        const { error } = await supabaseAdmin
+          .from('page_videos')
+          .upsert(
+            {
+              page_key: pageKey,
+              video_url: videoUrl || null,
+              updated_at: new Date().toISOString(),
+              updated_by: adminUserId,
+            },
+            { onConflict: 'page_key' }
+          );
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+      case 'insertPageVideoHistory': {
+        const { pageKey, videoUrl } = params;
+        const { error } = await supabaseAdmin
+          .from('page_video_history')
+          .insert({ page_key: pageKey, video_url: videoUrl });
+        if (error) throw error;
+
+        const { data: rows } = await supabaseAdmin
+          .from('page_video_history')
+          .select('id, replaced_at')
+          .eq('page_key', pageKey)
+          .order('replaced_at', { ascending: true });
+        if (rows && rows.length > 5) {
+          const toDelete = rows.slice(0, rows.length - 5).map((r: any) => r.id);
+          await supabaseAdmin.from('page_video_history').delete().in('id', toDelete);
+        }
+        result = { success: true };
+        break;
+      }
+
+      case 'deletePageVideoHistory': {
+        const { pageKey, videoUrl } = params;
+        const { error } = await supabaseAdmin
+          .from('page_video_history')
+          .delete()
+          .eq('page_key', pageKey)
+          .eq('video_url', videoUrl);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       default:
+
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
