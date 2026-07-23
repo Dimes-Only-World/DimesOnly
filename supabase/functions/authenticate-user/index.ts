@@ -118,27 +118,30 @@ Deno.serve(async (req) => {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if input looks like an email
-    const isEmail = username.includes('@');
-    
-    // Try exact match first (username or email)
-    let { data: user, error } = await supabase
-      .from('users')
-      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active')
-      .eq(isEmail ? 'email' : 'username', username.toLowerCase())
-      .single();
+    // Normalize identifier and look up user by either username OR email (case-insensitive)
+    const identifier = String(username).trim();
+    const SELECT_COLS = 'id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active';
 
-    // Fallback: case-insensitive search by username or email
-    if (error || !user) {
-      const { data: users, error: searchError } = await supabase
-        .from('users')
-      .select('id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active')
-        .ilike(isEmail ? 'email' : 'username', username);
-      
-      if (!searchError && users && users.length > 0) {
-        user = users[0];
-        error = null;
-      }
+    // Escape commas/parens for PostgREST .or() filter
+    const safe = identifier.replace(/[,()]/g, '');
+
+    let user: any = null;
+    let error: any = null;
+
+    const { data: users, error: searchError } = await supabase
+      .from('users')
+      .select(SELECT_COLS)
+      .or(`username.ilike.${safe},email.ilike.${safe}`)
+      .limit(2);
+
+    if (!searchError && users && users.length > 0) {
+      // Prefer an exact case-insensitive match on either field
+      user = users.find((u: any) =>
+        (u.username && u.username.toLowerCase() === identifier.toLowerCase()) ||
+        (u.email && u.email.toLowerCase() === identifier.toLowerCase())
+      ) || users[0];
+    } else {
+      error = searchError;
     }
 
     if (error || !user) {
