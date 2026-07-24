@@ -243,13 +243,18 @@ serve(async (req) => {
 });
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-async function activateMembership(supabase: any, upgrade: any) {
+async function activateMembership(
+  supabase: any,
+  upgrade: any,
+  opts: { skipReferralCommissions?: boolean } = {}
+) {
   /* eslint-enable @typescript-eslint/no-explicit-any */
   const tier = upgrade.upgrade_type || "silver";
   console.log(
     `Activating membership tier '${tier}' for user:`,
     upgrade.user_id
   );
+
 
   try {
     // Base user update payload
