@@ -11,6 +11,8 @@ const EXCLUDED_PREFIXES = [
   "/admin",
   "/test-login",
   "/dashboard", // dashboard already has its own profile button in the header
+  "/feed", // feed has its own home button
+
 ];
 
 const EXCLUDED_EXACT = ["/", "/failsafe"];
