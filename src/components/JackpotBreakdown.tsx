@@ -220,57 +220,74 @@ const JackpotBreakdown: React.FC = () => {
       </Card>
 
       {/* Payment Structure */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-500" />
-            Payment Structure
+      <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-background via-background to-primary/5">
+        <CardHeader className="border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <div className="font-bold tracking-tight">Payment Structure</div>
+              <p className="text-xs font-normal text-muted-foreground mt-0.5">
+                Referral & override commission breakdown
+              </p>
+            </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-green-700 flex items-center gap-2">
-                  <Badge className="bg-green-100 text-green-800">PAID</Badge>
-                  Members
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Referrer:</span>
-                    <span className="font-medium">20% Upfront</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Override:</span>
-                    <span className="font-medium">10%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Dimes Referred User & User Tipped You:</span>
-                    <span className="font-medium">30%</span>
-                  </div>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* PAID Tier */}
+            <div className="relative rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent p-5 transition-shadow hover:shadow-lg hover:shadow-emerald-500/10">
+              <div className="absolute -top-3 left-5">
+                <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white shadow-md px-3 py-1 text-xs font-bold tracking-wider">
+                  PAID MEMBERS
+                </Badge>
+              </div>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center justify-between rounded-lg bg-background/60 px-3 py-2.5 border border-border/50">
+                  <span className="text-sm text-muted-foreground">Referrer</span>
+                  <span className="font-bold text-emerald-600 tabular-nums">20% <span className="text-xs font-medium text-muted-foreground">Upfront</span></span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-background/60 px-3 py-2.5 border border-border/50">
+                  <span className="text-sm text-muted-foreground">Override</span>
+                  <span className="font-bold text-emerald-600 tabular-nums">10%</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-background/60 px-3 py-2.5 border border-border/50">
+                  <span className="text-sm text-muted-foreground pr-2">Tipped User</span>
+                  <span className="font-bold text-emerald-600 tabular-nums">30%</span>
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-3">
-                <h4 className="font-semibold text-blue-700 flex items-center gap-2">
-                  <Badge className="bg-blue-100 text-blue-800">FREE</Badge>
-                  Members (All Dimes who started early are paid members!)
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Referrer:</span>
-                    <span className="font-medium">10%</span>
+            {/* FREE Tier */}
+            <div className="relative rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-500/5 to-transparent p-5 transition-shadow hover:shadow-lg hover:shadow-sky-500/10">
+              <div className="absolute -top-3 left-5">
+                <Badge className="bg-sky-600 hover:bg-sky-600 text-white shadow-md px-3 py-1 text-xs font-bold tracking-wider">
+                  FREE MEMBERS
+                </Badge>
+              </div>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center justify-between rounded-lg bg-background/60 px-3 py-2.5 border border-border/50">
+                  <span className="text-sm text-muted-foreground">Referrer</span>
+                  <span className="font-bold text-sky-600 tabular-nums">10%</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-background/60 px-3 py-2.5 border border-border/50">
+                  <span className="text-sm text-muted-foreground pr-2">Tipped User</span>
+                  <span className="font-bold text-sky-600 tabular-nums">20% <span className="text-xs font-medium text-muted-foreground">Upfront</span></span>
+                </div>
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+                  <div className="flex items-center gap-2 text-destructive font-bold text-sm">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
+                    NO OVERRIDES
                   </div>
-                  <div className="flex justify-between">
-                    <span>Dimes Referred User & User Tipped You:</span>
-                    <span className="font-medium">20% Upfront</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-red-500">NO OVERRIDES</span>
-                    <span className="font-medium text-red-500">UPGRADE TO SILVER MINIMUM $4.99 MONTHLY TO OVERRIDE</span>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                    Upgrade to <span className="font-semibold text-foreground">Silver ($4.99/mo)</span> minimum to unlock overrides.
+                  </p>
                 </div>
               </div>
+              <p className="mt-3 text-[11px] text-muted-foreground italic text-center">
+                All Dimes who started early are paid members
+              </p>
             </div>
           </div>
         </CardContent>
