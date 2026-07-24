@@ -94,6 +94,7 @@ export default function FeedGridCell({ post, media, author, onOpen }: Props) {
       : { data: [] as any[] };
     const nameMap = new Map((usersRows || []).map((u: any) => [u.id, u.username]));
     setComments(data.map((c: any) => ({ ...c, username: nameMap.get(c.user_id) })));
+    setCommentCount(data.length);
   };
 
   const toggleComments = async () => {
