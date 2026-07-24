@@ -110,6 +110,7 @@ const Login: React.FC = () => {
       sessionStorage.setItem("userData", JSON.stringify(user));
 
       setUser(user);
+      window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));
 
       toast({
         title: "Login Successful!",
@@ -125,6 +126,10 @@ const Login: React.FC = () => {
         supabase.auth.signInWithPassword({
           email: emailForSync,
           password: password,
+        }).then(({ data }) => {
+          if (data.session?.user) {
+            window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));
+          }
         }).catch(() => {
           console.log('Supabase Auth session sync skipped');
         });
