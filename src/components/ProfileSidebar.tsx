@@ -272,13 +272,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Tips Earned:</span>
                 <span className="font-bold text-green-600">
-                  ${safeToFixed(userData.tips_earned)}
+                  ${safeToFixed(tipsEarnedDisplay)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Referral Fees:</span>
                 <span className="font-bold text-blue-600">
-                  ${safeToFixed(userData.referral_fees)}
+                  ${safeToFixed(referralFeesDisplay)}
                 </span>
               </div>
               <div className="pt-2 border-t border-gray-200">
@@ -287,11 +287,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                     Total:
                   </span>
                   <span className="font-bold text-lg text-gray-900">
-                    $
-                    {safeToFixed(
-                      (userData.tips_earned || 0) +
-                        (userData.referral_fees || 0)
-                    )}
+                    ${safeToFixed(tipsEarnedDisplay + referralFeesDisplay)}
                   </span>
                 </div>
               </div>
