@@ -6,7 +6,8 @@ import { Plus, Users, Home } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
 import { fetchFeed, FeedPostRow, FeedMediaRow } from "@/lib/feedApi";
-import FeedPostCard from "@/components/feed/FeedPostCard";
+import FeedGridItem from "@/components/feed/FeedGridItem";
+import FeedMediaModal from "@/components/feed/FeedMediaModal";
 import { supabase } from "@/lib/supabase";
 
 export default function Feed() {
@@ -18,6 +19,7 @@ export default function Feed() {
   const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [circleCount, setCircleCount] = useState(0);
+  const [modal, setModal] = useState<{ url: string; type: "photo" | "video" } | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -58,7 +60,7 @@ export default function Feed() {
     <AuthGuard>
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Link to="/dashboard">
                 <Button variant="ghost" size="icon" aria-label="Home">
@@ -78,9 +80,9 @@ export default function Feed() {
           </div>
         </header>
 
-        <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="max-w-6xl mx-auto px-4 py-4">
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-            <TabsList className="grid grid-cols-2 w-full">
+            <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto">
               <TabsTrigger value="all">Everyone</TabsTrigger>
               <TabsTrigger value="circle" className="gap-2">
                 <Users className="w-4 h-4" /> Money Circle
@@ -89,49 +91,124 @@ export default function Feed() {
             </TabsList>
 
             <TabsContent value="all" className="mt-4">
-              <FeedList loading={loading} posts={posts} media={media} authors={authors} />
+              <FeedGrid
+                loading={loading}
+                posts={posts}
+                media={media}
+                authors={authors}
+                onOpen={(url, type) => setModal({ url, type })}
+              />
             </TabsContent>
             <TabsContent value="circle" className="mt-4">
-              <div className="mb-3 p-3 rounded-lg bg-card border border-border">
+              <div className="mb-3 p-3 rounded-lg bg-card border border-border max-w-2xl mx-auto">
                 <h2 className="font-semibold text-foreground">Your Money Circle</h2>
                 <p className="text-sm text-muted-foreground">
                   Posts from the {circleCount} {circleCount === 1 ? "person" : "people"} you referred.
                 </p>
               </div>
-              <FeedList loading={loading} posts={posts} media={media} authors={authors} emptyLabel="No posts from your circle yet." />
+              <FeedGrid
+                loading={loading}
+                posts={posts}
+                media={media}
+                authors={authors}
+                onOpen={(url, type) => setModal({ url, type })}
+                emptyLabel="No posts from your circle yet."
+              />
             </TabsContent>
           </Tabs>
         </div>
+
+        <FeedMediaModal
+          url={modal?.url ?? null}
+          mediaType={modal?.type ?? null}
+          onClose={() => setModal(null)}
+        />
       </div>
     </AuthGuard>
   );
 }
 
-function FeedList({
+interface GridItem {
+  post: FeedPostRow;
+  media: FeedMediaRow;
+  author?: { id: string; username: string; profile_photo: string | null };
+}
+
+function FeedGrid({
   loading,
   posts,
   media,
   authors,
+  onOpen,
   emptyLabel = "No posts yet — be the first to create one!",
 }: {
   loading: boolean;
   posts: FeedPostRow[];
   media: FeedMediaRow[];
   authors: any[];
+  onOpen: (url: string, type: "photo" | "video") => void;
   emptyLabel?: string;
 }) {
   if (loading) return <p className="text-center text-muted-foreground py-12">Loading feed…</p>;
   if (posts.length === 0) return <p className="text-center text-muted-foreground py-12">{emptyLabel}</p>;
+
   const authorMap = new Map(authors.map((a) => [a.id, a]));
+  const mediaByPost = new Map<string, FeedMediaRow[]>();
+  media.forEach((m) => {
+    const arr = mediaByPost.get(m.post_id) || [];
+    arr.push(m);
+    mediaByPost.set(m.post_id, arr);
+  });
+
+  // Flatten: one grid cell per media item, preserving chronological (newest first) order.
+  const items: GridItem[] = [];
+  posts.forEach((post) => {
+    const postMedia = (mediaByPost.get(post.id) || []).sort(
+      (a, b) => a.display_order - b.display_order
+    );
+    postMedia.forEach((m) => {
+      items.push({ post, media: m, author: authorMap.get(post.user_id) });
+    });
+  });
+
+  if (items.length === 0) return <p className="text-center text-muted-foreground py-12">{emptyLabel}</p>;
+
   return (
-    <div>
-      {posts.map((p) => (
-        <FeedPostCard
-          key={p.id}
-          post={p}
-          media={media.filter((m) => m.post_id === p.id)}
-          author={authorMap.get(p.user_id)}
-        />
+    <div
+      className="grid gap-2 sm:gap-3
+        grid-cols-1
+        portrait:grid-cols-1 landscape:grid-cols-2
+        sm:grid-cols-2
+        lg:grid-cols-3"
+    >
+      {items.map(({ post, media, author }) => (
+        <figure
+          key={media.id}
+          className="bg-card border border-border rounded-lg overflow-hidden shadow-sm flex flex-col"
+        >
+          <FeedGridItem media={media} onOpen={onOpen} />
+          <figcaption className="px-3 py-2 flex items-center gap-2 min-w-0">
+            <Link
+              to={author?.username ? `/profile/${author.username}` : "#"}
+              className="shrink-0"
+            >
+              <img
+                src={author?.profile_photo || "/placeholder.svg"}
+                alt=""
+                className="w-7 h-7 rounded-full object-cover border border-primary/40"
+              />
+            </Link>
+            <Link
+              to={author?.username ? `/profile/${author.username}` : "#"}
+              className="text-sm font-semibold truncate hover:underline"
+            >
+              @{author?.username || "user"}
+            </Link>
+            <span className="ml-auto text-[11px] text-muted-foreground shrink-0">
+              {new Date(post.created_at).toLocaleDateString()}
+            </span>
+          </figcaption>
+        </figure>
       ))}
     </div>
   );
