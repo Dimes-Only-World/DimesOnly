@@ -726,6 +726,147 @@ export type Database = {
           },
         ]
       }
+      feed_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_post_media: {
+        Row: {
+          created_at: string
+          display_order: number
+          duration_seconds: number | null
+          id: string
+          media_type: string
+          post_id: string
+          public_url: string | null
+          storage_bucket: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          duration_seconds?: number | null
+          id?: string
+          media_type: string
+          post_id: string
+          public_url?: string | null
+          storage_bucket: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          duration_seconds?: number | null
+          id?: string
+          media_type?: string
+          post_id?: string
+          public_url?: string | null
+          storage_bucket?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_posts: {
+        Row: {
+          caption: string | null
+          comment_count: number
+          created_at: string
+          id: string
+          like_count: number
+          post_type: string
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          caption?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          post_type: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          caption?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          post_type?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       installment_payments: {
         Row: {
           amount: number
