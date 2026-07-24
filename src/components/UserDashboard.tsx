@@ -350,6 +350,15 @@ const UserDashboard: React.FC = () => {
               onGetLink={() => navigate("/dashboard/make-money#referral-link")}
             />
 
+            <div className="w-full max-w-md mx-auto mb-6">
+              <button
+                onClick={() => navigate("/feed")}
+                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-fuchsia-500 to-pink-600 hover:from-fuchsia-600 hover:to-pink-700 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2"
+              >
+                📱 SOCIAL FEED — Post Photos & Reels
+              </button>
+            </div>
+
             <DiamondPlusPopup userData={userData} />
             <DiamondPlusButton userData={userData} />
 
