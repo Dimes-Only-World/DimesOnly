@@ -332,6 +332,26 @@ serve(async (req) => {
 
     if (payErr) throw new Error(payErr.message);
 
+    // Record a first-class referral commission payment row so it shows up
+    // in earnings-query for the referrer (dime who referred the performer).
+    if (refUserId && refCommission > 0) {
+      const { error: refPayErr } = await supabase
+        .from("payments")
+        .insert({
+          user_id: refUserId,
+          amount: refCommission,
+          payment_status: "completed",
+          payment_type: "tip_referral_commission",
+          paypal_transaction_id: paypal_capture_id,
+          referred_by: referrerUsername,
+          referrer_commission: refCommission,
+        });
+      if (refPayErr) {
+        console.error("tip_referral_commission payment insert failed", refPayErr);
+      }
+    }
+
+
     const { data: tipRow, error: tipErr } = await supabase
       .from("tips")
       .insert({

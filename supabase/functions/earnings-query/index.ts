@@ -47,8 +47,13 @@ serve(async (req) => {
       'referral_commission',
       'upline_referral_commission',
       'diamond_plus_referral_commission',
-      'diamond_plus_upline_referral_commission'
+      'diamond_plus_upline_referral_commission',
+      'elite_plus_referral_commission',
+      'elite_plus_upline_referral_commission',
+      'tip_referral_commission',
+      'tip_upline_referral_commission'
     ];
+
     const types = (typeParam ? typeParam.split(',').map((s) => s.trim()).filter(Boolean) : defaultTypes);
 
     // Query payments for this earner

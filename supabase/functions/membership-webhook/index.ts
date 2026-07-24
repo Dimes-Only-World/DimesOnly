@@ -141,35 +141,70 @@ serve(async (req) => {
           );
         }
 
+        // Look up the just-paid installment to know its amount
+        const { data: paidInstallment } = await supabase
+          .from("installment_payments")
+          .select("amount")
+          .eq("paypal_order_id", orderId)
+          .maybeSingle();
+        const installmentAmount = Number(
+          paidInstallment?.amount ||
+            (upgrade.payment_amount && upgrade.installment_count
+              ? upgrade.payment_amount / upgrade.installment_count
+              : 0)
+        );
+
         // Check if all installments are paid
         const { data: installments, error: installmentsError } = await supabase
           .from("installment_payments")
           .select("payment_status")
           .eq("membership_upgrade_id", upgrade.id);
 
-        if (!installmentsError && installments) {
-          const allPaid = installments.every(
-            (inst) => inst.payment_status === "completed"
+        const allPaid = !installmentsError && installments &&
+          installments.every((inst) => inst.payment_status === "completed");
+
+        const isElite =
+          upgrade.upgrade_type === "business_owner_elite" ||
+          upgrade.upgrade_type === "business_owner_elite_installment";
+
+        if (isElite) {
+          // Activate Elite Plus seat + membership status on EVERY installment
+          // (idempotent in activateMembership for existing seats), and process
+          // per-installment referral commissions.
+          await activateMembership(supabase, upgrade, {
+            skipReferralCommissions: true,
+          });
+          await processElitePlusReferralCommissions(
+            supabase,
+            upgrade,
+            installmentAmount
           );
 
-          if (allPaid) {
-            // Activate membership based on upgrade type
-            await activateMembership(supabase, upgrade);
-          } else {
-            // Mark upgrade as partially paid
-            await supabase
-              .from("membership_upgrades")
-              .update({
-                payment_status: "partially_paid",
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", upgrade.id);
-          }
+          await supabase
+            .from("membership_upgrades")
+            .update({
+              payment_status: allPaid ? "completed" : "partially_paid",
+              upgrade_status: allPaid ? "completed" : "in_progress",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", upgrade.id);
+        } else if (allPaid) {
+          // Non-elite installment plans: activate only when fully paid
+          await activateMembership(supabase, upgrade);
+        } else {
+          await supabase
+            .from("membership_upgrades")
+            .update({
+              payment_status: "partially_paid",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", upgrade.id);
         }
       } else {
         // Full payment - activate immediately
         await activateMembership(supabase, upgrade);
       }
+
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
@@ -208,13 +243,18 @@ serve(async (req) => {
 });
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-async function activateMembership(supabase: any, upgrade: any) {
+async function activateMembership(
+  supabase: any,
+  upgrade: any,
+  opts: { skipReferralCommissions?: boolean } = {}
+) {
   /* eslint-enable @typescript-eslint/no-explicit-any */
   const tier = upgrade.upgrade_type || "silver";
   console.log(
     `Activating membership tier '${tier}' for user:`,
     upgrade.user_id
   );
+
 
   try {
     // Base user update payload
@@ -560,7 +600,17 @@ async function activateMembership(supabase: any, upgrade: any) {
       userPayload.membership_tier = "business_owner_elite";
       userPayload.membership_type = "Business Owner Elite";
       userPayload.business_owner_elite_active = true;
+
+      // Elite Plus lifetime full-payment referral commissions
+      if (
+        !opts.skipReferralCommissions &&
+        upgrade.upgrade_type === "business_owner_elite"
+      ) {
+        const grossAmount = Number(upgrade.payment_amount || 15000);
+        await processElitePlusReferralCommissions(supabase, upgrade, grossAmount);
+      }
     }
+
 
 
     const { data: user, error: userUpdateError } = await supabase
@@ -903,5 +953,130 @@ async function activateMembership(supabase: any, upgrade: any) {
   } catch (error) {
     console.error(`Error activating ${tier}:`, error);
     throw error;
+  }
+}
+
+// Elite Plus (Business Owner) — 20% direct + 10% upline referral commissions.
+// Called per-installment (grossAmount = installment amount) and for lifetime
+// full payment (grossAmount = 15000). Fees mirror Silver Plus / Diamond Plus.
+async function processElitePlusReferralCommissions(
+  supabase: any,
+  upgrade: any,
+  grossAmount: number
+) {
+  try {
+    if (!grossAmount || grossAmount <= 0) return;
+
+    const { data: buyer, error: buyerErr } = await supabase
+      .from("users")
+      .select("id, referred_by")
+      .eq("id", upgrade.user_id)
+      .single();
+    if (buyerErr || !buyer?.referred_by) {
+      console.log("Elite Plus: no direct referrer for", upgrade.user_id);
+      return;
+    }
+    const isCompany = String(buyer.referred_by).trim().toLowerCase() === "company";
+    if (isCompany) return;
+
+    const { data: referrer, error: refErr } = await supabase
+      .from("users")
+      .select("id, username, referred_by")
+      .ilike("username", buyer.referred_by)
+      .maybeSingle();
+    if (refErr || !referrer) {
+      console.log("Elite Plus: referrer not found:", buyer.referred_by);
+      return;
+    }
+
+    // Net after PayPal fees ($0.50 flat + 2.75%)
+    const netAmount = grossAmount - (0.5 + grossAmount * 0.0275);
+    const directAmount = Number((netAmount * 0.20).toFixed(2));
+    const uplineAmount = Number((netAmount * 0.10).toFixed(2));
+
+    // Weekly bounds (Mon-Sun)
+    const now = new Date();
+    const dow = now.getDay();
+    const daysToMonday = dow === 0 ? 6 : dow - 1;
+    const wkStart = new Date(now);
+    wkStart.setDate(now.getDate() - daysToMonday);
+    wkStart.setHours(0, 0, 0, 0);
+    const wkEnd = new Date(wkStart);
+    wkEnd.setDate(wkStart.getDate() + 6);
+    const wkStartStr = wkStart.toISOString().split("T")[0];
+    const wkEndStr = wkEnd.toISOString().split("T")[0];
+
+    const upsertWeekly = async (userId: string, amount: number) => {
+      const { data: existing } = await supabase
+        .from("weekly_earnings")
+        .select("id, referral_earnings, amount")
+        .eq("user_id", userId)
+        .eq("week_start", wkStartStr)
+        .maybeSingle();
+      if (existing) {
+        await supabase
+          .from("weekly_earnings")
+          .update({
+            referral_earnings: Number(existing.referral_earnings || 0) + amount,
+            amount: Number(existing.amount || 0) + amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("weekly_earnings").insert({
+          user_id: userId,
+          week_start: wkStartStr,
+          week_end: wkEndStr,
+          amount,
+          tip_earnings: 0,
+          referral_earnings: amount,
+          bonus_earnings: 0,
+        });
+      }
+    };
+
+    // Direct referrer — 20%
+    if (directAmount > 0) {
+      const { error: payErr } = await supabase.from("payments").insert({
+        user_id: referrer.id,
+        amount: directAmount,
+        payment_type: "elite_plus_referral_commission",
+        payment_status: "completed",
+        paypal_order_id: upgrade.paypal_order_id,
+        referred_by: buyer.referred_by,
+        referrer_commission: directAmount,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      if (payErr) console.error("elite_plus direct commission insert failed", payErr);
+      await upsertWeekly(referrer.id, directAmount);
+    }
+
+    // Upline referrer — 10%
+    const uplineUsername = String(referrer.referred_by || "").trim();
+    if (uplineUsername && uplineUsername.toLowerCase() !== "company") {
+      const { data: upline } = await supabase
+        .from("users")
+        .select("id, username")
+        .ilike("username", uplineUsername)
+        .maybeSingle();
+      if (upline?.id && uplineAmount > 0) {
+        const { error: uPayErr } = await supabase.from("payments").insert({
+          user_id: upline.id,
+          amount: uplineAmount,
+          payment_type: "elite_plus_upline_referral_commission",
+          payment_status: "completed",
+          paypal_order_id: upgrade.paypal_order_id,
+          referred_by: upline.username,
+          referrer_commission: uplineAmount,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        if (uPayErr) console.error("elite_plus upline commission insert failed", uPayErr);
+        await upsertWeekly(upline.id, uplineAmount);
+      }
+    }
+  } catch (e) {
+    console.error("processElitePlusReferralCommissions error", e);
   }
 }
