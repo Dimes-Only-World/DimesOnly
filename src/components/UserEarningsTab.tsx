@@ -239,9 +239,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       role: "referral" as const,
       counterparty: row.tipped_username,
       original_tip_amount: roundCurrency(row.tip_amount || 0),
-      tipper_username:
-        row.tipper_user?.username ??
-        (row.tipper_user_id ? row.tipper_user_id : null),
+      tipper_username: row.tipper_user?.username ?? null,
       tipped_username: row.tipped_username ?? null,
     }));
 
