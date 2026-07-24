@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Star, Sparkles, Users, TrendingUp, CheckCircle2 } from "lucide-react";
-import { useApp } from "@/contexts/AppContext";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface Plan {
   name: string;
