@@ -42,7 +42,7 @@ const goldBg = "bg-[#F4C860]";
 const goldBorder = "border-[#F4C860]/40";
 
 const Memberships: React.FC = () => {
-  const { user } = useApp();
+  const { user } = useAppContext();
   const gender = (user?.gender || "").toLowerCase();
   const userType = (user?.userType || "").toLowerCase();
 
