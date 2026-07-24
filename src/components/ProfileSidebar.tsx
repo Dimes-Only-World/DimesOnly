@@ -16,7 +16,13 @@ import { Button } from "@/components/ui/button";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SilverPlusMembership from "./SilverPlusMembership";
-import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
+import {
+  fetchReferralEarnings,
+  loadReferralEarningsFilters,
+  REFERRAL_EARNINGS_FILTERS_EVENT,
+  type ReferralEarningsFilters,
+} from "@/lib/referralEarnings";
 
 type UserData = Tables<"users"> & {
   diamond_plus_active?: boolean;
@@ -48,7 +54,8 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   useEffect(() => {
     if (!isExoticOrDancer || !userData?.id) return;
     let cancelled = false;
-    (async () => {
+
+    const loadLiveEarnings = async (filters: ReferralEarningsFilters = loadReferralEarningsFilters(userData.id)) => {
       try {
         const [profileResult, referralResult] = await Promise.all([
           supabase
@@ -56,24 +63,18 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             .select("tips_earned, referral_fees")
             .eq("id", userData.id)
             .maybeSingle(),
-          fetch(
-            `${SUPABASE_URL}/functions/v1/earnings-query?user_id=${encodeURIComponent(
-              userData.id,
-            )}&page=1&page_size=1`,
-            {
-              headers: {
-                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                apikey: SUPABASE_ANON_KEY,
-              },
-            },
-          ),
+          fetchReferralEarnings({
+            userId: userData.id,
+            filters,
+            page: 1,
+            pageSize: 1,
+          }),
         ]);
 
         const profileData = profileResult.data as
           | { tips_earned?: number | string | null; referral_fees?: number | string | null }
           | null;
-        const referralBody = referralResult.ok ? await referralResult.json() : null;
-        const referralTotal = Number(referralBody?.total_amount);
+        const referralTotal = Number(referralResult.total_amount);
 
         if (!cancelled) {
           setLiveEarnings({
@@ -86,7 +87,18 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       } catch (e) {
         console.warn("live earnings fetch failed", e);
       }
-    })();
+    };
+
+    loadLiveEarnings();
+
+    const handleFiltersChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{ userId?: string; filters?: ReferralEarningsFilters }>;
+      if (customEvent.detail?.userId === userData.id) {
+        loadLiveEarnings(customEvent.detail.filters || {});
+      }
+    };
+
+    window.addEventListener(REFERRAL_EARNINGS_FILTERS_EVENT, handleFiltersChanged);
     return () => { cancelled = true; };
   }, [isExoticOrDancer, userData?.id]);
 

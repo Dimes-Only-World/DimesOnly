@@ -38,6 +38,13 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
+import {
+  buildReferralEarningsUrl,
+  expandCommissionLabels,
+  fetchReferralEarnings as fetchReferralEarningsFromQuery,
+  saveReferralEarningsFilters,
+  type ReferralEarningsItem,
+} from "@/lib/referralEarnings";
 import { useAppContext } from "@/contexts/AppContext";
 import PaymentStatus from "@/components/PaymentStatus";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
@@ -113,27 +120,7 @@ interface TipDisplayEntry {
   tipped_username?: string | null;
 }
 
-interface EarningsItem {
-  id: string;
-  created_at: string;
-  amount: number;
-  currency: string;
-  payment_type: string;
-  payment_status: string | null;
-  buyer_id: string | null;
-  buyer_username: string | null;
-  buyer_avatar_url?: string | null;
-  buyer_location?: string | null;
-  buyer_joined_at?: string | null;
-  buyer_membership_tier: string | null;
-  plan_tier: string | null;
-  cadence: string | null;
-  billing_option: string | null;
-  subscription_id: string | null;
-  source_label: string;
-  override_badge: boolean;
-  referrer_username?: string | null;
-}
+type EarningsItem = ReferralEarningsItem;
 
 interface JackpotData {
   currentTickets: number;
@@ -321,10 +308,17 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
   useEffect(() => {
     const handle = setTimeout(() => {
+      saveReferralEarningsFilters(userData.id, {
+        startDate,
+        endDate,
+        q,
+        membershipType,
+        commissionTypes,
+      });
       fetchReferralEarnings(1, pageSize);
     }, 300);
     return () => clearTimeout(handle);
-  }, [membershipType, startDate, endDate, q, commissionTypes, pageSize]);
+  }, [membershipType, startDate, endDate, q, commissionTypes, pageSize, userData.id]);
 
   const toggleCommissionType = (t: string) => {
     setCommissionTypes((prev) =>
@@ -333,25 +327,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   };
 
   const defaultCommissionOptions = ["subscription", "membership"] as const;
-
-  const expandCommissionLabels = (labels: string[]): string[] => {
-    const set = new Set<string>();
-    for (const label of labels) {
-      const l = label.toLowerCase();
-      if (l === "subscription") {
-        set.add("subscription_referral_commission");
-        set.add("subscription_upline_referral_commission");
-      } else if (l === "membership") {
-        set.add("referral_commission");
-        set.add("upline_referral_commission");
-        set.add("diamond_plus_referral_commission");
-        set.add("diamond_plus_upline_referral_commission");
-      } else {
-        set.add(label);
-      }
-    }
-    return Array.from(set);
-  };
 
   const getCurrentPayPeriod = () => {
     const now = new Date();
@@ -525,39 +500,28 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   }, []);
 
   const buildEarningsUrl = (p: number, ps: number, format: "json" | "csv" = "json") => {
-    const params = new URLSearchParams();
-    params.set("user_id", userData.id);
-    if (startDate) params.set("start_date", startDate);
-    if (endDate) params.set("end_date", endDate);
-    if (q) params.set("q", q);
-    if (membershipType && membershipType !== "all") params.set("membership_type", membershipType);
-    if (commissionTypes.length > 0) {
-      const expanded = expandCommissionLabels(commissionTypes);
-      if (expanded.length > 0) params.set("commission_type", expanded.join(","));
-    }
-    params.set("page", String(p));
-    params.set("page_size", String(ps));
-    params.set("format", format);
-    return `${SUPABASE_URL}/functions/v1/earnings-query?${params.toString()}`;
+    return buildReferralEarningsUrl({
+      userId: userData.id,
+      filters: { startDate, endDate, q, membershipType, commissionTypes },
+      page: p,
+      pageSize: ps,
+      format,
+    });
   };
 
   const fetchReferralEarnings = async (p = page, ps = pageSize) => {
     if (!userData?.id) return;
     try {
       setEarningsLoading(true);
-      const url = buildEarningsUrl(p, ps, "json");
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          apikey: SUPABASE_ANON_KEY,
-        },
+      const body = await fetchReferralEarningsFromQuery({
+        userId: userData.id,
+        filters: { startDate, endDate, q, membershipType, commissionTypes },
+        page: p,
+        pageSize: ps,
       });
-      if (!res.ok) throw new Error(`earnings-query failed: ${res.status}`);
-      const body = await res.json();
-      const items = (body.items || []) as EarningsItem[];
+      const items = body.items as EarningsItem[];
       setEarningsItems(items);
-      setEarningsTotal(Number(body.total || items.length));
+      setEarningsTotal(body.total);
       setPage(p);
       setPageSize(ps);
       if (supabaseError) setSupabaseError("");
