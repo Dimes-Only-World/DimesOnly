@@ -48,6 +48,8 @@ import Jackpot from "./pages/Jackpot";
 import Rentals from "./pages/Rentals";
 import RentalDetails from "./pages/RentalDetails";
 import MyBookings from "./pages/MyBookings";
+import Feed from "./pages/Feed";
+import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
 import "./App.css";
@@ -151,6 +153,8 @@ function AppContent() {
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
       <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/feed" element={<Feed />} />
+      <Route path="/feed/create" element={<FeedCreate />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
