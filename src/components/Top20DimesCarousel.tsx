@@ -66,24 +66,28 @@ const Top20DimesCarousel: React.FC = () => {
   }, []);
 
   return (
-    <div className="mb-6 w-full">
-      <div className="flex flex-col items-center gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-lg font-bold text-gray-900 text-center">
-            View Current Top 20 Ranked
-          </h3>
+    <div className="mb-8 w-full">
+      <div className="text-center mb-6 px-4">
+        <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full border border-yellow-400/40 bg-yellow-400/10 backdrop-blur">
+          <Trophy className="w-4 h-4 text-yellow-500" />
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-600">
+            Seasonal Leaderboard
+          </span>
         </div>
+        <h3 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight text-gray-900">
+          Current <span className="text-[#E916D1]">Top 20</span> Ranked
+        </h3>
+        <div className="mx-auto mt-3 h-[3px] w-20 rounded-full bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
+        <p className="mt-4 text-sm md:text-base text-gray-600 max-w-md mx-auto leading-relaxed">
+          The Top 20 Dimes share prize money every 3 months. Who's next on the podium?
+        </p>
         <button
           onClick={() => navigate("/rankings")}
-          className="text-xs font-semibold text-pink-600 hover:text-pink-700 underline text-center"
+          className="mt-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-pink-600 hover:text-pink-700 border-b border-pink-600/40 hover:border-pink-700 pb-0.5 transition"
         >
-          View all rankings
+          View All Rankings →
         </button>
       </div>
-      <p className="text-sm text-gray-600 mb-4 text-center">
-        Top 20 Dimes win money every 3 months. Who's Next?
-      </p>
 
 
       {dimes.length === 0 ? (
