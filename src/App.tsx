@@ -31,6 +31,7 @@ import TestLogin from "@/pages/TestLogin";
 import NotFound from "@/pages/NotFound";
 import PaymentStatusHandler from "./components/PaymentStatusHandler";
 import UpgradeDiamond from "./pages/UpgradeDiamond";
+import Memberships from "./pages/Memberships";
 import UpgradeSilverPlus from "./pages/UpgradeSilverPlus";
 import UpgradeSilver from "./pages/UpgradeSilver";
 import UpgradeGold from "./pages/UpgradeGold";
@@ -135,6 +136,7 @@ function AppContent() {
       <Route path="/dimes" element={<DimesPage />} />
       <Route path="/upgrade" element={<Upgrade />} />
       <Route path="/upgrade-diamond" element={<UpgradeDiamond />} />
+      <Route path="/memberships" element={<Memberships />} />
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
       <Route path="/upgrade-silver" element={<UpgradeSilver />} />
       <Route path="/upgrade-silver-subscribe" element={<UpgradeSilverSubscribe />} />
