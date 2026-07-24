@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SilverPlusMembership from "./SilverPlusMembership";
-import { supabase } from "@/lib/supabase";
+import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
 
 type UserData = Tables<"users"> & {
   diamond_plus_active?: boolean;
@@ -50,15 +50,37 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await supabase
-          .from("public_user_profiles")
-          .select("tips_earned, referral_fees")
-          .eq("id", userData.id)
-          .maybeSingle();
-        if (!cancelled && data) {
+        const [profileResult, referralResult] = await Promise.all([
+          supabase
+            .from("public_user_profiles")
+            .select("tips_earned, referral_fees")
+            .eq("id", userData.id)
+            .maybeSingle(),
+          fetch(
+            `${SUPABASE_URL}/functions/v1/earnings-query?user_id=${encodeURIComponent(
+              userData.id,
+            )}&page=1&page_size=1`,
+            {
+              headers: {
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                apikey: SUPABASE_ANON_KEY,
+              },
+            },
+          ),
+        ]);
+
+        const profileData = profileResult.data as
+          | { tips_earned?: number | string | null; referral_fees?: number | string | null }
+          | null;
+        const referralBody = referralResult.ok ? await referralResult.json() : null;
+        const referralTotal = Number(referralBody?.total_amount);
+
+        if (!cancelled) {
           setLiveEarnings({
-            tips_earned: Number((data as any).tips_earned) || 0,
-            referral_fees: Number((data as any).referral_fees) || 0,
+            tips_earned: Number(profileData?.tips_earned ?? userData.tips_earned) || 0,
+            referral_fees: Number.isFinite(referralTotal)
+              ? referralTotal
+              : Number(profileData?.referral_fees ?? userData.referral_fees) || 0,
           });
         }
       } catch (e) {
