@@ -40,7 +40,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import {
   buildReferralEarningsUrl,
-  expandCommissionLabels,
   fetchReferralEarnings as fetchReferralEarningsFromQuery,
   saveReferralEarningsFilters,
   type ReferralEarningsItem,
@@ -1237,8 +1236,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const overridesTotal = earningsItems
     .filter((i) => i.override_badge)
     .reduce((sum, i) => sum + (i.amount || 0), 0);
-  const totalReferralAmount = earningsItems.reduce(
-    (sum, i) => sum + (i.amount || 0),
+  const totalReferralAmount = referralCommissions.reduce(
+    (sum, i) => sum + (i.referrer_commission || 0),
     0,
   );
   const directTotalAmount = earningsItems

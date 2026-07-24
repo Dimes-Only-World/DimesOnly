@@ -45,8 +45,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const normalizedUserType = String(userData.user_type || "").toLowerCase();
   const isExoticOrDancer =
-    userData.user_type === "exotic" || userData.user_type === "stripper";
+    normalizedUserType === "exotic" || normalizedUserType === "stripper";
   const [isUploading, setIsUploading] = useState(false);
   const [liveEarnings, setLiveEarnings] = useState<{ tips_earned: number; referral_fees: number } | null>(null);
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
@@ -99,7 +100,10 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     };
 
     window.addEventListener(REFERRAL_EARNINGS_FILTERS_EVENT, handleFiltersChanged);
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      window.removeEventListener(REFERRAL_EARNINGS_FILTERS_EVENT, handleFiltersChanged);
+    };
   }, [isExoticOrDancer, userData?.id]);
 
   const tipsEarnedDisplay = liveEarnings?.tips_earned ?? Number(userData.tips_earned) ?? 0;
