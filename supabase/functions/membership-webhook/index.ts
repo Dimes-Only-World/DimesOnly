@@ -141,35 +141,70 @@ serve(async (req) => {
           );
         }
 
+        // Look up the just-paid installment to know its amount
+        const { data: paidInstallment } = await supabase
+          .from("installment_payments")
+          .select("amount")
+          .eq("paypal_order_id", orderId)
+          .maybeSingle();
+        const installmentAmount = Number(
+          paidInstallment?.amount ||
+            (upgrade.payment_amount && upgrade.installment_count
+              ? upgrade.payment_amount / upgrade.installment_count
+              : 0)
+        );
+
         // Check if all installments are paid
         const { data: installments, error: installmentsError } = await supabase
           .from("installment_payments")
           .select("payment_status")
           .eq("membership_upgrade_id", upgrade.id);
 
-        if (!installmentsError && installments) {
-          const allPaid = installments.every(
-            (inst) => inst.payment_status === "completed"
+        const allPaid = !installmentsError && installments &&
+          installments.every((inst) => inst.payment_status === "completed");
+
+        const isElite =
+          upgrade.upgrade_type === "business_owner_elite" ||
+          upgrade.upgrade_type === "business_owner_elite_installment";
+
+        if (isElite) {
+          // Activate Elite Plus seat + membership status on EVERY installment
+          // (idempotent in activateMembership for existing seats), and process
+          // per-installment referral commissions.
+          await activateMembership(supabase, upgrade, {
+            skipReferralCommissions: true,
+          });
+          await processElitePlusReferralCommissions(
+            supabase,
+            upgrade,
+            installmentAmount
           );
 
-          if (allPaid) {
-            // Activate membership based on upgrade type
-            await activateMembership(supabase, upgrade);
-          } else {
-            // Mark upgrade as partially paid
-            await supabase
-              .from("membership_upgrades")
-              .update({
-                payment_status: "partially_paid",
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", upgrade.id);
-          }
+          await supabase
+            .from("membership_upgrades")
+            .update({
+              payment_status: allPaid ? "completed" : "partially_paid",
+              upgrade_status: allPaid ? "completed" : "in_progress",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", upgrade.id);
+        } else if (allPaid) {
+          // Non-elite installment plans: activate only when fully paid
+          await activateMembership(supabase, upgrade);
+        } else {
+          await supabase
+            .from("membership_upgrades")
+            .update({
+              payment_status: "partially_paid",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", upgrade.id);
         }
       } else {
         // Full payment - activate immediately
         await activateMembership(supabase, upgrade);
       }
+
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
