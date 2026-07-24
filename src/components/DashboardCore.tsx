@@ -358,6 +358,12 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
                 MY BOOKINGS
               </Button>
               <Button
+                onClick={() => (window.location.href = "/feed")}
+                className="bg-gradient-to-r from-fuchsia-500 to-pink-600 hover:from-fuchsia-600 hover:to-pink-700 text-white font-semibold py-3 px-4 h-auto"
+              >
+                SOCIAL FEED
+              </Button>
+              <Button
                 onClick={() => handleButtonClick("/clothes")}
                 className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-4 h-auto"
               >
