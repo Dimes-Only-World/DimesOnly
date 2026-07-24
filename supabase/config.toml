@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.rental-booking]
 verify_jwt = false
+
+[functions.media-upload]
+verify_jwt = false
