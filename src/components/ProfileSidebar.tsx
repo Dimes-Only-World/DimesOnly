@@ -42,7 +42,34 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   const isExoticOrDancer =
     userData.user_type === "exotic" || userData.user_type === "stripper";
   const [isUploading, setIsUploading] = useState(false);
+  const [liveEarnings, setLiveEarnings] = useState<{ tips_earned: number; referral_fees: number } | null>(null);
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
+
+  useEffect(() => {
+    if (!isExoticOrDancer || !userData?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("public_user_profiles")
+          .select("tips_earned, referral_fees")
+          .eq("id", userData.id)
+          .maybeSingle();
+        if (!cancelled && data) {
+          setLiveEarnings({
+            tips_earned: Number((data as any).tips_earned) || 0,
+            referral_fees: Number((data as any).referral_fees) || 0,
+          });
+        }
+      } catch (e) {
+        console.warn("live earnings fetch failed", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isExoticOrDancer, userData?.id]);
+
+  const tipsEarnedDisplay = liveEarnings?.tips_earned ?? Number(userData.tips_earned) ?? 0;
+  const referralFeesDisplay = liveEarnings?.referral_fees ?? Number(userData.referral_fees) ?? 0;
 
   const handlePhotoChange = () => {
     fileInputRef.current?.click();
