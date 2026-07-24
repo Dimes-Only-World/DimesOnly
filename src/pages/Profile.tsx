@@ -334,7 +334,11 @@ const Profile: React.FC = () => {
         {/* Content Tiers */}
         <Card>
           <CardContent className="p-3 sm:p-6">
-            {/* Tier Tabs */}
+            {/* Tier Tabs (hidden for male or normal female) */}
+            {!(
+              profile.gender?.toLowerCase() === "male" ||
+              (profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal")
+            ) && (
             <div className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
               <Button
                 variant={activeTab === "free" ? "default" : "outline"}
@@ -367,6 +371,8 @@ const Profile: React.FC = () => {
                 {!canAccessTier("gold") && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
             </div>
+            )}
+
 
             {/* Content Display */}
             {canAccessTier(activeTab) ? (
