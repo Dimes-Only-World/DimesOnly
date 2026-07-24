@@ -20,13 +20,11 @@ export default function Feed() {
   const [circleCount, setCircleCount] = useState(0);
 
   useEffect(() => {
-    if (!user?.id || !user?.username) return;
+    if (!user?.id) return;
     supabase
-      .from("users")
-      .select("id", { count: "exact", head: true })
-      .ilike("referred_by", user.username)
-      .then(({ count }) => setCircleCount(count || 0));
-  }, [user?.id, user?.username]);
+      .rpc("get_my_referrals_count")
+      .then(({ data }) => setCircleCount(Number(data) || 0));
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
