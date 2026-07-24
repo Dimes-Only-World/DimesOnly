@@ -107,17 +107,29 @@ const Profile: React.FC = () => {
       const transformedMedia = await Promise.all(
         data.map(async (item: any) => {
           let effectiveUrl = item.media_url as string;
-          // Videos are stored in the private bucket; generate a signed URL
-          if (item.media_type === "video" && item.storage_path) {
-            try {
-              const { data: signedResponse, error: signErr } = await supabase.functions.invoke("public-data", {
-                body: { action: "createSignedUrl", storagePath: item.storage_path, expiresIn: 3600 },
-              });
-              if (!signErr && signedResponse?.data?.signedUrl) {
-                effectiveUrl = signedResponse.data.signedUrl;
+          const rawUrl = String(item.media_url || "");
+          const isPrivate =
+            (item.storage_path && !rawUrl.startsWith("http")) ||
+            rawUrl.includes("/private-media/");
+
+          // Both photos and videos may live in the private-media bucket; sign them.
+          if (isPrivate || item.media_type === "video") {
+            const storagePath =
+              item.storage_path ||
+              (rawUrl.includes("/private-media/")
+                ? rawUrl.split("/private-media/")[1]?.split("?")[0]
+                : null);
+            if (storagePath) {
+              try {
+                const { data: signedResponse, error: signErr } = await supabase.functions.invoke("public-data", {
+                  body: { action: "createSignedUrl", storagePath, expiresIn: 3600 },
+                });
+                if (!signErr && signedResponse?.data?.signedUrl) {
+                  effectiveUrl = signedResponse.data.signedUrl;
+                }
+              } catch (e) {
+                console.warn("Failed to create signed URL for media", item.id, e);
               }
-            } catch (e) {
-              console.warn("Failed to create signed URL for video", item.id, e);
             }
           }
 
@@ -131,6 +143,7 @@ const Profile: React.FC = () => {
           };
         }),
       );
+
 
       setMedia(transformedMedia);
     } catch (error) {
