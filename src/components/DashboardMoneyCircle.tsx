@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -76,8 +76,13 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const hasMore = remaining.length > 0;
 
   const renderAvatar = (ref: Referral) => (
-    <div key={ref.id} className="flex flex-col items-center min-w-0 w-full">
-      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200 bg-blue-100 flex items-center justify-center flex-shrink-0">
+    <Link
+      to={`/profile/${ref.username}`}
+      key={ref.id}
+      className="flex flex-col items-center min-w-0 w-full group"
+      title={`View @${ref.username}'s page`}
+    >
+      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white ring-1 ring-blue-200 bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:ring-2 group-hover:ring-pink-500 transition">
         {ref.profile_photo ? (
           <img
             src={ref.profile_photo}
@@ -91,12 +96,12 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
         )}
       </div>
       <p
-        className="text-xs font-semibold mt-2 text-center truncate text-slate-900 w-full max-w-[64px]"
+        className="text-xs font-semibold mt-2 text-center truncate text-slate-900 w-full max-w-[64px] group-hover:text-pink-600"
         title={ref.username}
       >
         {ref.username}
       </p>
-    </div>
+    </Link>
   );
 
   return (
