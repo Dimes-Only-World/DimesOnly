@@ -6,7 +6,7 @@ import { Plus, Users, Home } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
 import { fetchFeed, FeedPostRow, FeedMediaRow } from "@/lib/feedApi";
-import FeedGridItem from "@/components/feed/FeedGridItem";
+import FeedGridCell from "@/components/feed/FeedGridCell";
 import FeedMediaModal from "@/components/feed/FeedMediaModal";
 import { supabase } from "@/lib/supabase";
 
