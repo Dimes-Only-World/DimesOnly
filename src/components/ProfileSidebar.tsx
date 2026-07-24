@@ -55,7 +55,21 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   const getMembershipBadge = () => {
-    // Diamond Plus always takes priority
+    // Elite Plus (Business Owner) — top priority
+    if (
+      (userData as any).business_owner_elite_active === true ||
+      String(userData.membership_tier || "").toLowerCase() === "business_owner_elite" ||
+      String(userData.membership_tier || "").toLowerCase() === "business_owner_elite_installment"
+    ) {
+      return (
+        <Badge className="bg-gradient-to-r from-fuchsia-500 to-yellow-400 text-black border-0 font-bold">
+          <Award className="w-3 h-3 mr-1" />
+          Elite Plus
+        </Badge>
+      );
+    }
+
+    // Diamond Plus
     if (
       userData.diamond_plus_active ||
       userData.membership_tier === "diamond_plus"
@@ -77,6 +91,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
         </Badge>
       );
     }
+
 
     // Membership tier logic
     const membershipTier = userData.membership_tier || userData.membership_type;
