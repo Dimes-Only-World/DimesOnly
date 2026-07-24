@@ -51,11 +51,9 @@ export async function fetchFeed(mode: "all" | "circle", currentUserId?: string) 
     .limit(50);
 
   if (mode === "circle" && currentUserId) {
-    // fetch usernames referred by current user
-    const { data: me } = await supabase.from("users").select("username").eq("id", currentUserId).maybeSingle();
-    if (!me?.username) return { posts: [], media: [], authors: [] };
-    const { data: refs } = await supabase.from("users").select("id").ilike("referred_by", me.username);
-    const ids = (refs || []).map((r: any) => r.id);
+    // fetch usernames referred by current user via RPC (bypasses users RLS)
+    const { data: refs } = await supabase.rpc("get_my_referrals");
+    const ids = ((refs as any[]) || []).map((r: any) => r.id);
     if (ids.length === 0) return { posts: [], media: [], authors: [] };
     query = supabase
       .from("feed_posts")
@@ -75,7 +73,7 @@ export async function fetchFeed(mode: "all" | "circle", currentUserId?: string) 
       ? supabase.from("feed_post_media").select("*").in("post_id", postIds).order("display_order")
       : Promise.resolve({ data: [] as any[] }),
     userIds.length
-      ? supabase.from("users").select("id, username, profile_photo").in("id", userIds)
+      ? supabase.from("public_user_profiles").select("id, username, profile_photo").in("id", userIds)
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
