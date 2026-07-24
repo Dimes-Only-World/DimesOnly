@@ -136,6 +136,7 @@ function AppContent() {
       <Route path="/dimes" element={<DimesPage />} />
       <Route path="/upgrade" element={<Upgrade />} />
       <Route path="/upgrade-diamond" element={<UpgradeDiamond />} />
+      <Route path="/memberships" element={<Memberships />} />
       <Route path="/upgrade-silver-plus" element={<UpgradeSilverPlus />} />
       <Route path="/upgrade-silver" element={<UpgradeSilver />} />
       <Route path="/upgrade-silver-subscribe" element={<UpgradeSilverSubscribe />} />
