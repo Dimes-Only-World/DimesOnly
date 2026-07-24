@@ -186,14 +186,20 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
 
   return (
-    <section className={`w-full bg-transparent py-10 ${className}`}>
-      <div className="text-center mb-8">
-        <h2 className="text-black text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wide">
-          Last 20 <span className="text-[#E916D1]">Dimes</span> to Join
+    <section className={`w-full bg-transparent py-12 md:py-16 ${className}`}>
+      <div className="text-center mb-10 md:mb-12 px-4">
+        <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full border border-[#E916D1]/30 bg-[#E916D1]/5 backdrop-blur">
+          <span className="h-2 w-2 rounded-full bg-[#E916D1] animate-pulse" />
+          <span className="text-xs md:text-sm font-semibold uppercase tracking-[0.2em] text-[#E916D1]">
+            Newest Members
+          </span>
+        </div>
+        <h2 className="text-black text-3xl md:text-5xl font-extrabold uppercase tracking-tight leading-tight">
+          The Latest <span className="text-[#E916D1]">20 Dimes</span> to Join
         </h2>
-        <p className="text-base md:text-lg text-black whitespace-pre-line">
-          See More Inside{"\n"}
-          Baddies Joining Daily
+        <div className="mx-auto mt-4 h-[3px] w-24 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
+        <p className="mt-5 text-base md:text-lg text-neutral-700 max-w-xl mx-auto leading-relaxed">
+          Fresh talent joining daily — tap any profile for an exclusive preview inside.
         </p>
       </div>
 
