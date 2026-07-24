@@ -140,14 +140,15 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       );
     }
 
-    // Default: Normal Member for new users
+    // Default: Silver Member for males, business owners, and normal females
     return (
-      <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-        <User className="w-3 h-3 mr-1" />
-        Free member
+      <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
+        <Award className="w-3 h-3 mr-1" />
+        Silver Member
       </Badge>
     );
   };
+
 
   const safeToFixed = (
     value: number | null | undefined,
