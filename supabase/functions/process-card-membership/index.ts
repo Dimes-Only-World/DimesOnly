@@ -106,8 +106,15 @@ serve(async (req) => {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error("PayPal token error:", errorText);
+      let parsed: any = {};
+      try { parsed = JSON.parse(errorText); } catch {}
+      const env = Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox";
+      const isAuthMismatch = parsed?.error === "invalid_client" || tokenResponse.status === 401;
+      const friendly = isAuthMismatch
+        ? `PayPal rejected the credentials for PAYPAL_ENVIRONMENT="${env}". The PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET in Supabase secrets are for a different environment (or a different PayPal app). Update them to a matching ${env} REST app and redeploy.`
+        : "Failed to authenticate with payment processor.";
       return new Response(
-        JSON.stringify({ success: false, error: "Failed to authenticate with payment processor" }),
+        JSON.stringify({ success: false, error: friendly, paypal_environment: env, debug_id: parsed?.debug_id }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }

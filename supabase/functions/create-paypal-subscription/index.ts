@@ -102,6 +102,13 @@ serve(async (req) => {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error("PayPal token error:", errorText);
+      let parsed: any = {};
+      try { parsed = JSON.parse(errorText); } catch {}
+      const env = Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox";
+      const isAuthMismatch = parsed?.error === "invalid_client" || tokenResponse.status === 401;
+      if (isAuthMismatch) {
+        throw new Error(`PayPal rejected the credentials for PAYPAL_ENVIRONMENT="${env}". The PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET in Supabase secrets are for a different environment (or a different PayPal app). Update them to a matching ${env} REST app and redeploy.`);
+      }
       throw new Error(`Failed to get PayPal access token: ${errorText}`);
     }
 
