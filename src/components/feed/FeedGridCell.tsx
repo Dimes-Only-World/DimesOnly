@@ -49,6 +49,14 @@ export default function FeedGridCell({ post, media, author, onOpen }: Props) {
   }, [media.storage_bucket, media.storage_path]);
 
   useEffect(() => {
+    supabase
+      .from("feed_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("post_id", post.id)
+      .then(({ count }) => setCommentCount(Number(count) || 0));
+  }, [post.id]);
+
+  useEffect(() => {
     if (!user?.id) return;
     supabase
       .from("feed_likes")
