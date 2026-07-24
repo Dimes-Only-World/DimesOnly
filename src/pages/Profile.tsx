@@ -205,8 +205,13 @@ const Profile: React.FC = () => {
     }
   };
 
+  const isTierless =
+    profile?.gender?.toLowerCase() === "male" ||
+    (profile?.gender?.toLowerCase() === "female" && profile?.user_type?.toLowerCase() === "normal");
+
   const getFilteredMedia = () => {
     const filtered = media.filter((item) => {
+      if (isTierless) return true;
       if (activeTab === "free") return item.content_tier === "free";
       if (activeTab === "silver") return item.content_tier === "silver";
       if (activeTab === "gold") return item.content_tier === "gold";
@@ -225,6 +230,7 @@ const Profile: React.FC = () => {
         : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
     }));
   };
+
 
   const canAccessTier = (tier: string) => {
     if (tier === "free") return true;
