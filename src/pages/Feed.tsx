@@ -182,33 +182,13 @@ function FeedGrid({
         lg:grid-cols-3"
     >
       {items.map(({ post, media, author }) => (
-        <figure
+        <FeedGridCell
           key={media.id}
-          className="bg-card border border-border rounded-lg overflow-hidden shadow-sm flex flex-col"
-        >
-          <FeedGridItem media={media} onOpen={onOpen} />
-          <figcaption className="px-3 py-2 flex items-center gap-2 min-w-0">
-            <Link
-              to={author?.username ? `/profile/${author.username}` : "#"}
-              className="shrink-0"
-            >
-              <img
-                src={author?.profile_photo || "/placeholder.svg"}
-                alt=""
-                className="w-7 h-7 rounded-full object-cover border border-primary/40"
-              />
-            </Link>
-            <Link
-              to={author?.username ? `/profile/${author.username}` : "#"}
-              className="text-sm font-semibold truncate hover:underline"
-            >
-              @{author?.username || "user"}
-            </Link>
-            <span className="ml-auto text-[11px] text-muted-foreground shrink-0">
-              {new Date(post.created_at).toLocaleDateString()}
-            </span>
-          </figcaption>
-        </figure>
+          post={post}
+          media={media}
+          author={author}
+          onOpen={onOpen}
+        />
       ))}
     </div>
   );
