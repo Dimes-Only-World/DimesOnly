@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SilverPlusMembership from "./SilverPlusMembership";
+import { supabase } from "@/lib/supabase";
 
 type UserData = Tables<"users"> & {
   diamond_plus_active?: boolean;
