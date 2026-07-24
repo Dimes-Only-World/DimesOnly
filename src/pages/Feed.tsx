@@ -21,9 +21,25 @@ export default function Feed() {
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase
-      .rpc("get_my_referrals_count")
-      .then(({ data }) => setCircleCount(Number(data) || 0));
+    (async () => {
+      try {
+        const { data: rpcData } = await supabase.rpc("get_my_referrals_count");
+        const rpcCount = Number(rpcData) || 0;
+        if (rpcCount > 0) {
+          setCircleCount(rpcCount);
+          return;
+        }
+        const username = (user as any)?.username;
+        if (!username) return;
+        const { count } = await supabase
+          .from("users")
+          .select("id", { count: "exact", head: true })
+          .ilike("referred_by", username);
+        setCircleCount(Number(count) || 0);
+      } catch (e) {
+        console.warn("circle count failed", e);
+      }
+    })();
   }, [user?.id]);
 
   useEffect(() => {
