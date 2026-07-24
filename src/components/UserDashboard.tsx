@@ -342,13 +342,16 @@ const UserDashboard: React.FC = () => {
               />
             </div>
 
-            <LatestDimesCarousel />
+            <Top20DimesCarousel />
 
             <DashboardMoneyCircle
               userId={userData.id}
               onViewAll={() => navigate("/dashboard/referrals")}
               onGetLink={() => navigate("/dashboard/make-money#referral-link")}
             />
+
+            <LatestDimesCarousel />
+
 
             <div className="w-full max-w-md mx-auto mb-6">
               <button
