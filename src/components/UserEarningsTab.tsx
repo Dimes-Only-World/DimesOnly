@@ -239,9 +239,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       role: "referral" as const,
       counterparty: row.tipped_username,
       original_tip_amount: roundCurrency(row.tip_amount || 0),
-      tipper_username:
-        row.tipper_user?.username ??
-        (row.tipper_user_id ? row.tipper_user_id : null),
+      tipper_username: row.tipper_user?.username ?? null,
       tipped_username: row.tipped_username ?? null,
     }));
 
@@ -763,9 +761,36 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       setReferralCommissions(
         (referralResult.data as unknown as ReferralCommission[]) || [],
       );
-      setReferralTips(
-        (referralTipsResult.data as unknown as ReferralTipData[]) || [],
+      const referralRows =
+        (referralTipsResult.data as unknown as ReferralTipData[]) || [];
+      const missingTipperIds = Array.from(
+        new Set(
+          referralRows
+            .filter((r) => !r.tipper_user?.username && r.tipper_user_id)
+            .map((r) => r.tipper_user_id as string),
+        ),
       );
+      if (missingTipperIds.length > 0) {
+        const { data: tipperProfiles } = await supabase
+          .from("public_user_profiles")
+          .select("id, username")
+          .in("id", missingTipperIds);
+        const usernameMap = new Map<string, string>(
+          (tipperProfiles || []).map((p: { id: string; username: string }) => [
+            p.id,
+            p.username,
+          ]),
+        );
+        referralRows.forEach((r) => {
+          if (!r.tipper_user?.username && r.tipper_user_id) {
+            const uname = usernameMap.get(r.tipper_user_id);
+            if (uname) {
+              r.tipper_user = { username: uname };
+            }
+          }
+        });
+      }
+      setReferralTips(referralRows);
 
       const tickets = await loadJackpotTicketPages(userData.id);
       const winnings =
