@@ -56,6 +56,41 @@ serve(async (req) => {
 
     const types = (typeParam ? typeParam.split(',').map((s) => s.trim()).filter(Boolean) : defaultTypes);
 
+    const buildBasePaymentsQuery = (selectColumns: string, options: Record<string, unknown> = {}) => {
+      let baseQuery = supabase
+        .from('payments')
+        .select(selectColumns, options)
+        .eq('user_id', userId)
+        .in('payment_type', types)
+        .order('created_at', { ascending: false });
+
+      if (startDate) baseQuery = baseQuery.gte('created_at', startDate + 'T00:00:00');
+      if (endDate) baseQuery = baseQuery.lte('created_at', endDate + 'T23:59:59');
+
+      return baseQuery;
+    };
+
+    const fetchTotalAmount = async () => {
+      const amountPageSize = 1000;
+      let offset = 0;
+      let total = 0;
+
+      while (true) {
+        const { data, error } = await buildBasePaymentsQuery('amount')
+          .range(offset, offset + amountPageSize - 1);
+
+        if (error) throw error;
+
+        const rows = data || [];
+        total += rows.reduce((sum: number, row: any) => sum + Number(row.amount || 0), 0);
+
+        if (rows.length < amountPageSize) break;
+        offset += amountPageSize;
+      }
+
+      return Math.round(total * 100) / 100;
+    };
+
     // Query payments for this earner
     let query = supabase
       .from('payments')
@@ -69,7 +104,12 @@ serve(async (req) => {
 
     query = query.range(from, to);
 
-    const { data: payments, error: payErr, count } = await query;
+    const [paymentsResult, totalAmountResult] = await Promise.all([
+      query,
+      fetchTotalAmount(),
+    ]);
+    const { data: payments, error: payErr, count } = paymentsResult;
+    const totalAmount = totalAmountResult;
     if (payErr) return json({ error: 'payments_query_failed', details: payErr.message }, 500);
 
     // Early return if empty
@@ -78,7 +118,7 @@ serve(async (req) => {
         const csv = toCsv([], []);
         return new Response(csv, { headers: { ...corsHeaders, 'Content-Type': 'text/csv' } });
       }
-      return json({ items: [], total: count || 0, page, page_size: pageSize });
+      return json({ items: [], total: count || 0, total_amount: totalAmount, page, page_size: pageSize });
     }
 
     // Build enrichment indexes
@@ -303,7 +343,7 @@ serve(async (req) => {
       return new Response(csv, { headers: { ...corsHeaders, 'Content-Type': 'text/csv' } });
     }
 
-    return json({ items, total: count || items.length, page, page_size: pageSize });
+    return json({ items, total: count || items.length, total_amount: totalAmount, page, page_size: pageSize });
   } catch (e) {
     console.error('earnings-query error', e);
     return json({ error: 'server_error', message: String(e?.message || e) }, 500);
