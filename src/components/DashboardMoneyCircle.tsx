@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,18 @@ interface DashboardMoneyCircleProps {
 
 const PAGE_SIZE = 50;
 
+const readStoredUsername = () => {
+  if (typeof window === "undefined") return "";
+  const savedUser = sessionStorage.getItem("userData");
+  if (!savedUser) return sessionStorage.getItem("currentUser") || "";
+  try {
+    const parsed = JSON.parse(savedUser);
+    return String(parsed?.username || sessionStorage.getItem("currentUser") || "");
+  } catch {
+    return sessionStorage.getItem("currentUser") || "";
+  }
+};
+
 const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   userId,
   onGetLink,
@@ -35,44 +47,98 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [filterState, setFilterState] = useState("");
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    const fetchReferrals = async () => {
-      if (!userId) return;
+  const fetchReferrals = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!userId) {
+        setReferrals([]);
+        setLoading(false);
+        return 0;
+      }
+
+      if (!silent) setLoading(true);
+
       try {
-        const { data: rpcData } = await supabase.rpc("get_my_referrals");
-        if (Array.isArray(rpcData) && rpcData.length > 0) {
+        const { data: rpcData, error: rpcError } = await supabase.rpc("get_my_referrals");
+        if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
           setReferrals(rpcData as Referral[]);
-          setLoading(false);
-          return;
+          return rpcData.length;
         }
 
-        const { data: userRow } = await supabase
-          .from("users")
-          .select("username")
-          .eq("id", userId)
-          .maybeSingle();
+        let username = readStoredUsername();
 
-        const username = (userRow as any)?.username;
         if (!username) {
-          setLoading(false);
-          return;
+          const { data: userRow } = await supabase
+            .from("users")
+            .select("username")
+            .eq("id", userId)
+            .maybeSingle();
+          username = String((userRow as any)?.username || "");
         }
 
-        const { data: refs } = await supabase
+        if (!username) {
+          setReferrals([]);
+          return 0;
+        }
+
+        const { data: refs, error: refsError } = await supabase
           .from("users")
           .select("id, username, profile_photo, created_at, city, state")
           .ilike("referred_by", username)
           .order("created_at", { ascending: false });
 
-        if (Array.isArray(refs)) setReferrals(refs as Referral[]);
+        if (!refsError && Array.isArray(refs)) {
+          setReferrals(refs as Referral[]);
+          return refs.length;
+        }
+
+        setReferrals([]);
+        return 0;
       } catch (e) {
         console.warn("Failed to fetch referrals:", e);
+        return 0;
       } finally {
         setLoading(false);
       }
+    },
+    [userId]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const retryTimers: number[] = [];
+
+    const refresh = async (silent = false) => {
+      if (cancelled) return;
+      await fetchReferrals({ silent });
     };
-    fetchReferrals();
-  }, [userId]);
+
+    refresh(false);
+
+    // First login uses custom sessionStorage immediately, while Supabase Auth syncs in
+    // the background. Retry and listen for auth readiness so the circle fills without refresh.
+    [700, 1800, 3500].forEach((delay) => {
+      const timer = window.setTimeout(() => refresh(true), delay);
+      retryTimers.push(timer);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        refresh(true);
+      }
+    });
+
+    const handleAuthReady = () => refresh(true);
+    window.addEventListener("dimes-auth-session-ready", handleAuthReady);
+
+    return () => {
+      cancelled = true;
+      retryTimers.forEach((timer) => window.clearTimeout(timer));
+      subscription.unsubscribe();
+      window.removeEventListener("dimes-auth-session-ready", handleAuthReady);
+    };
+  }, [fetchReferrals]);
 
   const sorted = useMemo(
     () =>
