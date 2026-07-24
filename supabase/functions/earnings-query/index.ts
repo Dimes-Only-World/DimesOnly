@@ -70,47 +70,29 @@ serve(async (req) => {
       return baseQuery;
     };
 
-    const fetchTotalAmount = async () => {
-      const amountPageSize = 1000;
+    const fetchAllPayments = async () => {
+      const paymentPageSize = 1000;
       let offset = 0;
-      let total = 0;
+      const rows: any[] = [];
 
       while (true) {
-        const { data, error } = await buildBasePaymentsQuery('amount')
-          .range(offset, offset + amountPageSize - 1);
+        const { data, error } = await buildBasePaymentsQuery(
+          'id, user_id, amount, currency, payment_type, payment_status, referred_by, paypal_order_id, paypal_payment_id, paypal_transaction_id, created_at'
+        ).range(offset, offset + paymentPageSize - 1);
 
         if (error) throw error;
 
-        const rows = data || [];
-        total += rows.reduce((sum: number, row: any) => sum + Number(row.amount || 0), 0);
+        const pageRows = data || [];
+        rows.push(...pageRows);
 
-        if (rows.length < amountPageSize) break;
-        offset += amountPageSize;
+        if (pageRows.length < paymentPageSize) break;
+        offset += paymentPageSize;
       }
 
-      return Math.round(total * 100) / 100;
+      return rows;
     };
 
-    // Query payments for this earner
-    let query = supabase
-      .from('payments')
-      .select('id, user_id, amount, currency, payment_type, payment_status, referred_by, paypal_order_id, paypal_payment_id, paypal_transaction_id, created_at', { count: 'exact' })
-      .eq('user_id', userId)
-      .in('payment_type', types)
-      .order('created_at', { ascending: false });
-
-    if (startDate) query = query.gte('created_at', startDate + 'T00:00:00');
-    if (endDate) query = query.lte('created_at', endDate + 'T23:59:59');
-
-    query = query.range(from, to);
-
-    const [paymentsResult, totalAmountResult] = await Promise.all([
-      query,
-      fetchTotalAmount(),
-    ]);
-    const { data: payments, error: payErr, count } = paymentsResult;
-    const totalAmount = totalAmountResult;
-    if (payErr) return json({ error: 'payments_query_failed', details: payErr.message }, 500);
+    const payments = await fetchAllPayments();
 
     // Early return if empty
     if (!payments || payments.length === 0) {
@@ -118,7 +100,7 @@ serve(async (req) => {
         const csv = toCsv([], []);
         return new Response(csv, { headers: { ...corsHeaders, 'Content-Type': 'text/csv' } });
       }
-      return json({ items: [], total: count || 0, total_amount: totalAmount, page, page_size: pageSize });
+      return json({ items: [], total: 0, total_amount: 0, page, page_size: pageSize });
     }
 
     // Build enrichment indexes
@@ -332,18 +314,24 @@ serve(async (req) => {
       items = items.filter((r) => (r.buyer_membership_tier || '').toLowerCase() === mLower);
     }
 
+    const filteredTotal = items.length;
+    const filteredTotalAmount = Math.round(
+      items.reduce((sum: number, r: any) => sum + Number(r.amount || 0), 0) * 100,
+    ) / 100;
+    const pagedItems = items.slice(from, to + 1);
+
     // CSV export
     if (format === 'csv') {
       const headers = [
         'created_at','payment_type','source_label','amount','currency','buyer_username','buyer_membership_tier','plan_tier','cadence','billing_option','override_badge','subscription_id'
       ];
-      const csv = toCsv(headers, items.map((r) => [
+      const csv = toCsv(headers, pagedItems.map((r) => [
         r.created_at, r.payment_type, r.source_label, r.amount, r.currency, r.buyer_username, r.buyer_membership_tier, r.plan_tier, r.cadence, r.billing_option, r.override_badge ? 'Yes' : 'No', r.subscription_id
       ]));
       return new Response(csv, { headers: { ...corsHeaders, 'Content-Type': 'text/csv' } });
     }
 
-    return json({ items, total: count || items.length, total_amount: totalAmount, page, page_size: pageSize });
+    return json({ items: pagedItems, total: filteredTotal, total_amount: filteredTotalAmount, page, page_size: pageSize });
   } catch (e) {
     console.error('earnings-query error', e);
     return json({ error: 'server_error', message: String(e?.message || e) }, 500);
