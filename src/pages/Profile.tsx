@@ -295,8 +295,11 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons (hidden for normal female) */}
-                {!(profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal") && (
+                {/* Action Buttons (hidden for male or normal female) */}
+                {!(
+                  profile.gender?.toLowerCase() === "male" ||
+                  (profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal")
+                ) && (
                   <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
                     <Button
                       onClick={handleTip}
@@ -316,6 +319,7 @@ const Profile: React.FC = () => {
                     </Button>
                   </div>
                 )}
+
               </div>
 
               {profile.bio && (
