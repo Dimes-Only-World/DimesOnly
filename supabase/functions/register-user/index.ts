@@ -170,11 +170,14 @@ Deno.serve(async (req) => {
     const password_hash = bcrypt.hashSync(password, salt);
 
     // Determine membership tier based on gender and user type
+    // Default is 'silver' for males, business owners, and normal females.
+    // Female exotic/stripper start on 'diamond'. No one starts on 'free'.
     const isBusinessOwner = gender === 'business_owner';
     const isFemaleDiamond = gender === 'female' && (userType === 'exotic' || userType === 'stripper');
-    const membershipTier = isBusinessOwner ? 'silver' : (isFemaleDiamond ? 'diamond' : 'free');
-    const membershipType = isBusinessOwner ? 'silver' : (isFemaleDiamond ? 'diamond' : 'free');
+    const membershipTier = isFemaleDiamond ? 'diamond' : 'silver';
+    const membershipType = isFemaleDiamond ? 'diamond' : 'silver';
     const effectiveUserType = isBusinessOwner ? 'business_owner' : (userType || 'normal');
+
     const effectiveReferredBy = referredBy && referredBy.trim() !== '' ? referredBy : 'Company';
 
     // Create Supabase Auth user
