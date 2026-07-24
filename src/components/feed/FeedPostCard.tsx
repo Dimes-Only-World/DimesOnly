@@ -73,7 +73,7 @@ export default function FeedPostCard({
     if (!data) return;
     const ids = Array.from(new Set(data.map((c: any) => c.user_id)));
     const { data: usersRows } = ids.length
-      ? await supabase.from("users").select("id, username").in("id", ids)
+      ? await supabase.from("public_user_profiles").select("id, username").in("id", ids)
       : { data: [] as any[] };
     const nameMap = new Map((usersRows || []).map((u: any) => [u.id, u.username]));
     setComments(data.map((c: any) => ({ ...c, username: nameMap.get(c.user_id) })));
