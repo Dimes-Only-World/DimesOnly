@@ -31,6 +31,7 @@ import TestLogin from "@/pages/TestLogin";
 import NotFound from "@/pages/NotFound";
 import PaymentStatusHandler from "./components/PaymentStatusHandler";
 import UpgradeDiamond from "./pages/UpgradeDiamond";
+import Memberships from "./pages/Memberships";
 import UpgradeSilverPlus from "./pages/UpgradeSilverPlus";
 import UpgradeSilver from "./pages/UpgradeSilver";
 import UpgradeGold from "./pages/UpgradeGold";
