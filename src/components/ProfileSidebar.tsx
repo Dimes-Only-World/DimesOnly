@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SilverPlusMembership from "./SilverPlusMembership";
+import { supabase } from "@/lib/supabase";
 
 type UserData = Tables<"users"> & {
   diamond_plus_active?: boolean;
@@ -41,7 +42,34 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   const isExoticOrDancer =
     userData.user_type === "exotic" || userData.user_type === "stripper";
   const [isUploading, setIsUploading] = useState(false);
+  const [liveEarnings, setLiveEarnings] = useState<{ tips_earned: number; referral_fees: number } | null>(null);
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
+
+  useEffect(() => {
+    if (!isExoticOrDancer || !userData?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("public_user_profiles")
+          .select("tips_earned, referral_fees")
+          .eq("id", userData.id)
+          .maybeSingle();
+        if (!cancelled && data) {
+          setLiveEarnings({
+            tips_earned: Number((data as any).tips_earned) || 0,
+            referral_fees: Number((data as any).referral_fees) || 0,
+          });
+        }
+      } catch (e) {
+        console.warn("live earnings fetch failed", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isExoticOrDancer, userData?.id]);
+
+  const tipsEarnedDisplay = liveEarnings?.tips_earned ?? Number(userData.tips_earned) ?? 0;
+  const referralFeesDisplay = liveEarnings?.referral_fees ?? Number(userData.referral_fees) ?? 0;
 
   const handlePhotoChange = () => {
     fileInputRef.current?.click();
@@ -244,13 +272,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Tips Earned:</span>
                 <span className="font-bold text-green-600">
-                  ${safeToFixed(userData.tips_earned)}
+                  ${safeToFixed(tipsEarnedDisplay)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Referral Fees:</span>
                 <span className="font-bold text-blue-600">
-                  ${safeToFixed(userData.referral_fees)}
+                  ${safeToFixed(referralFeesDisplay)}
                 </span>
               </div>
               <div className="pt-2 border-t border-gray-200">
@@ -259,11 +287,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                     Total:
                   </span>
                   <span className="font-bold text-lg text-gray-900">
-                    $
-                    {safeToFixed(
-                      (userData.tips_earned || 0) +
-                        (userData.referral_fees || 0)
-                    )}
+                    ${safeToFixed(tipsEarnedDisplay + referralFeesDisplay)}
                   </span>
                 </div>
               </div>
