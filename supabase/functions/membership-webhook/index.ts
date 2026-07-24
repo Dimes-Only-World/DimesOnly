@@ -600,7 +600,17 @@ async function activateMembership(
       userPayload.membership_tier = "business_owner_elite";
       userPayload.membership_type = "Business Owner Elite";
       userPayload.business_owner_elite_active = true;
+
+      // Elite Plus lifetime full-payment referral commissions
+      if (
+        !opts.skipReferralCommissions &&
+        upgrade.upgrade_type === "business_owner_elite"
+      ) {
+        const grossAmount = Number(upgrade.payment_amount || 15000);
+        await processElitePlusReferralCommissions(supabase, upgrade, grossAmount);
+      }
     }
+
 
 
     const { data: user, error: userUpdateError } = await supabase
