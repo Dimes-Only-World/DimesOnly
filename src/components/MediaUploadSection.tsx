@@ -165,39 +165,23 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
     try {
       for (const file of files) {
-        const fileName = `${userData.username}_${Date.now()}_${file.name}`;
-        const filePath = `${userData.username}/${selectedContentTier}/${type === "photo" ? "photos" : "videos"}/${fileName}`;
-        
-        // All uploads go to private-media bucket for consistency
-        const bucketName = "private-media";
+        const form = new FormData();
+        form.append("file", file);
+        form.append("user_id", userData.id);
+        form.append("content_tier", selectedContentTier);
+        form.append("media_type", type);
 
-        // Upload file to storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, file);
+        const { data, error } = await supabase.functions.invoke("media-upload", {
+          body: form,
+        });
 
-        if (uploadError) throw uploadError;
-
-        // Store the public URL pattern (will be resolved via signed URLs when displayed)
-        const publicUrl = supabase.storage.from(bucketName).getPublicUrl(filePath).data.publicUrl;
-
-        // Insert into database with new fields
-        const { error: dbError } = await supabase
-          .from("user_media")
-          .insert({
-            user_id: userData.id,
-            media_url: publicUrl,
-            media_type: type,
-            filename: fileName,
-            storage_path: filePath,
-            content_tier: selectedContentTier,
-            is_nude: selectedContentTier === "silver",
-            is_xrated: selectedContentTier === "gold",
-            upload_date: new Date().toISOString(),
-            access_restricted: selectedContentTier !== "free"
-          });
-
-        if (dbError) throw dbError;
+        if (error) {
+          const detail = (error as any)?.context?.text
+            ? await (error as any).context.text()
+            : (error as any)?.message;
+          throw new Error(detail || "Upload failed");
+        }
+        if (data?.error) throw new Error(data.error);
       }
 
       toast({
@@ -205,14 +189,12 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         description: `${files.length} ${type}${files.length > 1 ? "s" : ""} uploaded successfully!`,
       });
 
-      // Refresh media list
       await fetchMedia();
-      
     } catch (error) {
       console.error("Upload error:", error);
       toast({
         title: "Upload Failed",
-        description: "Failed to upload files. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload files. Please try again.",
         variant: "destructive",
       });
     } finally {
