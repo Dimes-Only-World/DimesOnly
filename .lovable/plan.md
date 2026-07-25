@@ -1,48 +1,63 @@
-## Fix membership referral commissions (20% direct + 10% upline) across all tiers
+## Goal
+Add a 5th "Events" tab to the user Earnings page and pay event referral commissions using the same percentages already used for referrals on tips/memberships:
 
-### Diagnosis
-Audit of `supabase/functions/*` found the commission split is applied inconsistently. Only Silver Plus, Diamond Plus, and Elite Plus (full + installments) run 20/10 in the one‑time/`membership-webhook` path. Subscription tiers run in `paypal-subscription-webhook` but with a *different* fee model (1.5% vs 2.75%) and a "reduce to 10/5 if the direct referrer is on the free tier" rule that doesn't exist in the other path. Plain **Silver ($49.99)**, **Gold**, and **Diamond one‑time** upgrades have **no commission code path at all**, and `verify-paypal-subscription` (client‑poll fallback) activates the tier without ever paying commissions.
+- 20% to the buyer's direct referrer
+- 10% to the upline referrer (who referred the direct referrer)
+- Base = net after PayPal fees ($0.50 flat + 2.75%)
 
-Tonya Price → Gold: because the Gold one‑time branch in `membership-webhook` has no `if (tier === "gold")` commission block, `dragontan` (20%) and `bonesdrl` (10%) were never credited when the webhook activated her upgrade.
+Currently, event ticket purchases pay only the event host — no referral commission is written to the buyer's referrer chain — so the new tab has nothing to display until we also wire that up.
 
-### Changes
+---
 
-1. **Extract a single shared commission helper** in `supabase/functions/membership-webhook/index.ts`:
-   - `processMembershipReferralCommissions(supabase, upgrade, grossAmount, { tierLabel, paymentTypePrefix })` that mirrors the Elite Plus helper: look up `users.referred_by` from DB (never client), then the direct referrer's `referred_by` for upline, compute 20% direct + 10% upline off net-after-PayPal-fees, insert two `payments` rows tagged `${paymentTypePrefix}_referral_commission` / `_upline_referral_commission`, credit `users.referral_fees`/`tips_earned` via existing RPCs, and update `weekly_earnings`. Idempotency guarded by `paypal_payment_id` + payment_type.
+## Backend — pay event referral commissions
 
-2. **Wire the helper into every missing tier branch** in `activateMembership()`:
-   - `silver` (one-time $49.99)
-   - `gold` (one-time)
-   - `diamond` (one-time)
-   
-   Silver Plus / Diamond Plus / Elite Plus already have blocks — refactor them to call the shared helper so all paths use the same 20/10 math and the same PayPal fee base (`$0.50 + 2.75%`). Keep Silver Plus's configurable rate override (`referral_fees.silver_plus`) as an optional argument for backward compatibility, but default to 20/10.
+Edit `supabase/functions/capture-event-payment/index.ts` and `supabase/functions/process-card-event-payment/index.ts`:
 
-3. **Align `paypal-subscription-webhook`** (`supabase/functions/paypal-subscription-webhook/index.ts:108‑216`):
-   - Change PayPal fee model to `$0.50 + 2.75%` to match the one-time path (single source of truth).
-   - Remove the "reduce to 10%/5% when direct referrer is on free tier" downgrade — always pay 20% direct + 10% upline per user's requirement.
-   - Keep the once-per-transaction idempotency guard.
+After the `event_transactions` insert (and after existing host earnings allocation), call a new shared helper `awardEventReferralCommissions(supabase, buyerId, grossAmount, eventId, transactionId)` that:
 
-4. **Close the `verify-paypal-subscription` gap**:
-   - After it upserts `subscriptions` and sets `users.membership_tier`, invoke the same commission helper (idempotent via `paypal_transaction_id`) so a missed/delayed `BILLING.SUBSCRIPTION.ACTIVATED` webhook can't cause commissions to be silently skipped.
+1. Loads the buyer's `referred_by` from `public.users`; exits if empty or `"company"`.
+2. Resolves the direct referrer by case-insensitive username lookup; exits if not found.
+3. Computes:
+   - `net = gross - (0.50 + gross * 0.0275)`
+   - `direct = net * 0.20`
+   - `upline = net * 0.10`
+4. Inserts idempotent rows in `public.payments`:
+   - Direct: `payment_type = 'event_referral_commission'`, keyed by `(user_id, payment_type, event_id)` via `paypal_transaction_id = eventTx.id` for uniqueness.
+   - Upline (only if direct referrer's `referred_by` exists and ≠ "company"): `payment_type = 'event_upline_referral_commission'`.
+5. Upserts the same amounts into `public.weekly_earnings` for the current Mon–Sun week (mirroring `membership-webhook` logic).
 
-5. **Backfill Tonya Price → Gold**: run a one-off insert (via the insert tool, after code ships) that:
-   - Locates the completed Gold upgrade payment for Tonya Price,
-   - Inserts the two missing `payments` rows (20% to `dragontan`, 10% to `bonesdrl`) using the same net-after-fees math,
-   - Credits both users' `referral_fees` and the current-week `weekly_earnings`.
-   Only runs if no matching commission rows already exist (idempotent WHERE NOT EXISTS).
+Also add the same call inside `supabase/functions/paypal-webhook/index.ts` where event payments are captured (around line 377) so PayPal webhook-driven captures pay commissions too.
 
-### Technical details
+The helper lives once — either inlined identically in each function or as a small file each function imports via a relative path.
 
-- All referrer/upline lookups stay server-side against `public.users` — no client-provided `referred_by`.
-- Rates: `DIRECT = 0.20`, `UPLINE = 0.10`. Base = `gross - (0.50 + gross * 0.0275)`, floored at 0.
-- Payment type strings (namespaced by tier so admin reports stay readable):
-  - `silver_referral_commission`, `silver_upline_referral_commission`
-  - `gold_referral_commission`, `gold_upline_referral_commission`
-  - `diamond_referral_commission`, `diamond_upline_referral_commission`
-  - (existing) `silver_plus_*`, `diamond_plus_*`, `elite_plus_*`, `subscription_*`
-- Idempotency: existing `payments` unique lookup by `(user_id, paypal_payment_id, payment_type)` before insert.
-- No schema changes required — reuses `payments`, `weekly_earnings`, and the existing `increment_referral_fees` / `increment_tips_earned` / `increment_weekly_referral_earnings` RPCs.
+---
 
-### Verification after build
-- Query recent completed `membership_upgrades` for Gold/Silver/Diamond one-time and confirm two `payments` rows exist per upgrade with the correct 20%/10% amounts.
-- Confirm Tonya Price's Gold upgrade now has commission rows crediting `dragontan` and `bonesdrl`, and both users' `referral_fees` and this week's `weekly_earnings.referral_earnings` increased by the expected amounts.
+## UI — new "Events" tab
+
+Edit `src/components/UserEarningsTab.tsx`:
+
+1. Change `TabsList` from `sm:grid-cols-4` to `sm:grid-cols-5` and add a new `TabsTrigger value="events"` labeled "Events" (Calendar icon), styled identically to the existing yellow-active triggers.
+2. Add state `eventEarnings: EventEarning[]` and a `fetchEventEarnings(userId)` that queries `public.payments` for rows where `user_id = current user` and `payment_type IN ('event_referral_commission', 'event_upline_referral_commission')`, joined/enriched with the event name via a follow-up lookup on `event_transactions → events` (using `paypal_transaction_id` → `event_transactions.id`).
+3. Reuse the current Referrals tab's filter surface (pay-period / date-range selects already exposed via `saveReferralEarningsFilters`) so the Events tab honors the same active filter — matches the "exact same allocation logic as in referrals" phrasing.
+4. Render a new `<TabsContent value="events">` with:
+   - Summary card: total event referral earnings + count.
+   - List: date, event name, buyer username, role badge ("Direct 20%" / "Upline 10%"), gross ticket amount, and commission earned. Empty state mirrors the Referrals tab.
+5. Include event referral totals in the header stat cards so the "Total Referral Earnings" card reflects both membership/tip and event commissions (single source of truth: sum of all `*_referral_commission` payment types).
+
+No changes to the tab order for the other four tabs; Events is appended as the 5th.
+
+---
+
+## Verification
+
+1. Type-check with `tsgo` (auto-run) after edits.
+2. Manually test in preview by simulating an event purchase where the buyer has a 2-level referral chain, then confirm two `payments` rows land and both users see the row in their Earnings → Events tab.
+
+---
+
+## Technical Details
+
+- Idempotency key for event commissions: `(user_id, payment_type, paypal_transaction_id=event_transaction_id)` — matches the pattern used for membership and subscription commissions and prevents double-pay on webhook retries.
+- Fee model ($0.50 + 2.75%) mirrors the just-shipped `processMembershipReferralCommissions` helper so every referral surface uses one net-calculation formula.
+- No DB migration needed — `payments`, `event_transactions`, and `weekly_earnings` already exist with the right columns; we only add new `payment_type` string values.
+- Files touched: `src/components/UserEarningsTab.tsx`, `supabase/functions/capture-event-payment/index.ts`, `supabase/functions/process-card-event-payment/index.ts`, `supabase/functions/paypal-webhook/index.ts`.
