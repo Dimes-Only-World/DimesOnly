@@ -89,10 +89,10 @@ const UserDirectMessagesTab: React.FC = () => {
     try {
       // Fetch other user profile
       const { data: udata } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username, profile_photo, membership_tier")
         .eq("id", otherUserId)
-        .single();
+        .maybeSingle();
       
       // If user not found, check if this is an admin conversation
       if (udata) {
