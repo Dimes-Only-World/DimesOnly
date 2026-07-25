@@ -284,9 +284,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event);
 
-      if (event === "SIGNED_OUT") {
+        if (event === "SIGNED_OUT") {
         console.log("User signed out, clearing user data");
         setUser(null);
+          localStorage.removeItem("authToken");
+          sessionStorage.removeItem("userData");
+          sessionStorage.removeItem("currentUser");
         return;
       }
 
@@ -296,7 +299,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         if (sessionUserId && userIdRef.current === sessionUserId) {
           return;
         }
-        if (!userIdRef.current) {
+        if (!userIdRef.current || sessionUserId === userIdRef.current) {
           const savedUserData = sessionStorage.getItem("userData");
           if (savedUserData) {
             try {
