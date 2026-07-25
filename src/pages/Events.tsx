@@ -176,10 +176,16 @@ const Events: React.FC = () => {
       const { data: profileData, error } = await supabase
         .from("users")
         .select("id, username, profile_photo, banner_photo, city, state, user_type")
-        .eq("username", username)
-        .single();
+        .ilike("username", username)
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!profileData) {
+        setUserProfile(null);
+        setLoading(false);
+        return;
+      }
 
       setUserProfile({
         id: profileData.id,
@@ -192,6 +198,8 @@ const Events: React.FC = () => {
       });
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      setUserProfile(null);
+      setLoading(false);
     }
   }, [username]);
 
