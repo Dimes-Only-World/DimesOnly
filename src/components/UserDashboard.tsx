@@ -140,11 +140,27 @@ const UserDashboard: React.FC = () => {
           const { data: { session } } = await supabase.auth.getSession();
           if (!cancelled && session?.user?.id === userId) {
             await fetchUserViaEdgeFunction(userId);
+          } else if (!cancelled) {
+            // No matching Supabase session — hydrate missing display fields
+            // (e.g. created_at) from the public_user_profiles view.
+            try {
+              const { data: pub } = await supabase
+                .from("public_user_profiles")
+                .select("created_at, profile_photo, banner_photo, front_page_photo, city, state, username, user_type, gender")
+                .eq("id", userId)
+                .maybeSingle();
+              if (!cancelled && pub) {
+                setUserData((prev) => ({ ...(prev || {}), ...pub } as UserData));
+              }
+            } catch (e) {
+              console.warn("public_user_profiles hydrate failed", e);
+            }
           }
           if (!cancelled) setLoading(false);
         } else {
           await fetchUserDataById(userId, { showLoading: !localUserData });
         }
+
       } else {
         await getCurrentUser();
       }
