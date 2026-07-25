@@ -90,6 +90,8 @@ const Events: React.FC = () => {
   useEffect(() => {
     if (username) {
       fetchUserProfile();
+    } else {
+      setLoading(false);
     }
   }, [username]);
 
