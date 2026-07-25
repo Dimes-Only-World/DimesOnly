@@ -293,7 +293,17 @@ serve(async (req) => {
       }
     }
 
+    // Award 20% direct + 10% upline referral commissions on the ticket purchase
+    await awardEventReferralCommissions(
+      supabase,
+      buyer_id,
+      grossAmount,
+      event_id,
+      eventTx?.id ?? null,
+    );
+
     console.log("=== CAPTURE EVENT PAYMENT COMPLETED ===");
+
 
     return new Response(
       JSON.stringify({
