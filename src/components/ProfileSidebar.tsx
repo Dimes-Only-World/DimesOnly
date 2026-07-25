@@ -122,35 +122,80 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   const getMembershipBadge = () => {
+    const tierRaw = String(userData.membership_tier || "").toLowerCase();
+    const hasSilverPlus = !!userData.silver_plus_active;
+    const silverPlusChip = hasSilverPlus ? (
+      <Badge
+        variant="outline"
+        className="ml-2 border-blue-400 text-blue-300 bg-blue-500/10 font-semibold"
+      >
+        Silver Plus (Lifetime)
+      </Badge>
+    ) : null;
+
     // Elite Plus (Business Owner) — top priority
     if (
       (userData as any).business_owner_elite_active === true ||
-      String(userData.membership_tier || "").toLowerCase() === "business_owner_elite" ||
-      String(userData.membership_tier || "").toLowerCase() === "business_owner_elite_installment"
+      tierRaw === "business_owner_elite" ||
+      tierRaw === "business_owner_elite_installment"
     ) {
       return (
-        <Badge className="bg-gradient-to-r from-fuchsia-500 to-yellow-400 text-black border-0 font-bold">
-          <Award className="w-3 h-3 mr-1" />
-          Elite Plus
-        </Badge>
+        <div className="flex flex-wrap items-center">
+          <Badge className="bg-gradient-to-r from-fuchsia-500 to-yellow-400 text-black border-0 font-bold">
+            <Award className="w-3 h-3 mr-1" />
+            Elite Plus
+          </Badge>
+          {silverPlusChip}
+        </div>
       );
     }
 
     // Diamond Plus
-    if (
-      userData.diamond_plus_active ||
-      userData.membership_tier === "diamond_plus"
-    ) {
+    if (userData.diamond_plus_active || tierRaw === "diamond_plus") {
       return (
-        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black border-0 font-bold">
-          <Award className="w-3 h-3 mr-1" />
-          Diamond Plus
-        </Badge>
+        <div className="flex flex-wrap items-center">
+          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black border-0 font-bold">
+            <Award className="w-3 h-3 mr-1" />
+            Diamond Plus
+          </Badge>
+          {silverPlusChip}
+        </div>
       );
     }
 
-    // Silver Plus Member
-    if (userData.silver_plus_active) {
+    // Current paid tier takes priority over lifetime Silver Plus flag
+    const tierBadges: Record<string, JSX.Element> = {
+      diamond: (
+        <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
+          <Award className="w-3 h-3 mr-1" />
+          Diamond Member
+        </Badge>
+      ),
+      gold: (
+        <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0">
+          <Award className="w-3 h-3 mr-1" />
+          Gold Member
+        </Badge>
+      ),
+      elite: (
+        <Badge className="bg-gradient-to-r from-red-600 to-yellow-500 text-white border-0">
+          <Award className="w-3 h-3 mr-1" />
+          Elite Member
+        </Badge>
+      ),
+    };
+
+    if (tierBadges[tierRaw]) {
+      return (
+        <div className="flex flex-wrap items-center">
+          {tierBadges[tierRaw]}
+          {silverPlusChip}
+        </div>
+      );
+    }
+
+    // Silver Plus Member (lifetime, when no higher tier is active)
+    if (hasSilverPlus) {
       return (
         <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 font-bold">
           <Award className="w-3 h-3 mr-1" />
@@ -159,42 +204,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       );
     }
 
-
-    // Membership tier logic
-    const membershipTier = userData.membership_tier || userData.membership_type;
-    if (membershipTier) {
-      switch (membershipTier.toLowerCase()) {
-        case "diamond":
-          return (
-            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
-              <Award className="w-3 h-3 mr-1" />
-              Diamond Member
-            </Badge>
-          );
-        case "gold":
-          return (
-            <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0">
-              <Award className="w-3 h-3 mr-1" />
-              Gold Member
-            </Badge>
-          );
-        case "silver":
-          return (
-            <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
-              <Award className="w-3 h-3 mr-1" />
-              Silver Member
-            </Badge>
-          );
-        case "elite":
-          return (
-            <Badge className="bg-gradient-to-r from-red-600 to-yellow-500 text-white border-0">
-              <Award className="w-3 h-3 mr-1" />
-              Elite Member
-            </Badge>
-          );
-        default:
-          break;
-      }
+    if (tierRaw === "silver") {
+      return (
+        <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
+          <Award className="w-3 h-3 mr-1" />
+          Silver Member
+        </Badge>
+      );
     }
 
     // Exotic/Stripper fallback
