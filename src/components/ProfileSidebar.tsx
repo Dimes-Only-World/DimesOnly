@@ -161,7 +161,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       tierRaw === "business_owner_elite_installment"
     ) {
       return (
-        <div className="flex flex-wrap items-center">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <Badge className="bg-gradient-to-r from-fuchsia-500 to-yellow-400 text-black border-0 font-bold">
             <Award className="w-3 h-3 mr-1" />
             Elite Plus
@@ -174,7 +174,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     // Diamond Plus
     if (userData.diamond_plus_active || tierRaw === "diamond_plus") {
       return (
-        <div className="flex flex-wrap items-center">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black border-0 font-bold">
             <Award className="w-3 h-3 mr-1" />
             Diamond Plus
@@ -208,7 +208,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 
     if (tierBadges[tierRaw]) {
       return (
-        <div className="flex flex-wrap items-center">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {tierBadges[tierRaw]}
           {silverPlusChip}
         </div>
