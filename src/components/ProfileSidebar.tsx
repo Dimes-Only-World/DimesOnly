@@ -148,7 +148,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     const silverPlusChip = hasSilverPlus ? (
       <Badge
         variant="outline"
-        className="ml-2 border-blue-400 text-blue-300 bg-blue-500/10 font-semibold"
+        className="border-blue-400 text-blue-300 bg-blue-500/10 font-semibold"
       >
         Silver Plus (Lifetime)
       </Badge>
