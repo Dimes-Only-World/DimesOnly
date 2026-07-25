@@ -90,6 +90,16 @@ const Profile: React.FC = () => {
 
         if (publicProfileDate?.created_at) {
           data = { ...data, created_at: publicProfileDate.created_at };
+        } else {
+          const { data: usernameProfileDate } = await supabase
+            .from("public_user_profiles")
+            .select("created_at")
+            .ilike("username", String(username || "").trim())
+            .maybeSingle();
+
+          if (usernameProfileDate?.created_at) {
+            data = { ...data, created_at: usernameProfileDate.created_at };
+          }
         }
       }
 
