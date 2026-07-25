@@ -329,8 +329,25 @@ async function activateMembership(
       throw new Error(`Invalid user_id format: ${upgrade.user_id}`);
     }
 
+    // Generic 20% direct / 10% upline commission for tiers whose activation
+    // branches do not run their own referral logic (silver one-time, gold,
+    // diamond one-time). silver_plus / diamond_plus / business_owner_elite
+    // handle commissions inline (see below) to preserve their existing
+    // payment_type strings and eligibility rules.
+    const inlineCommissionTiers = new Set([
+      "silver_plus",
+      "diamond_plus",
+      "business_owner_elite",
+      "business_owner_elite_installment",
+    ]);
+    if (!opts.skipReferralCommissions && !inlineCommissionTiers.has(tier)) {
+      const gross = Number(upgrade.payment_amount || 0);
+      await processMembershipReferralCommissions(supabase, upgrade, gross, tier);
+    }
+
     // Special handling for membership types
     if (tier === "diamond_plus") {
+
       userPayload.diamond_plus_active = true;
       userPayload.agreement_signed = true;
     } else if (tier === "silver_plus") {
