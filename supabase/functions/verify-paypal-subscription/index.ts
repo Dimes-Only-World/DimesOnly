@@ -282,7 +282,15 @@ serve(async (req) => {
         .update({ membership_tier: tier, updated_at: new Date().toISOString() })
         .eq("id", userId);
       if (userError) return json({ success: false, error: userError.message }, 500);
+
+      // Award 20% direct + 10% upline referral commissions (idempotent).
+      const grossStr = (billingInfo?.last_payment?.amount?.value ?? "0").toString();
+      const gross = parseFloat(grossStr) || 0;
+      if (gross > 0) {
+        await awardSubscriptionReferralOnce(supabase, userId, gross, subscriptionId);
+      }
     }
+
 
     return json({
       success: true,
