@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MessageCircle, DollarSign, Star, Lock, Crown } from "lucide-react";
+import { Heart, MessageCircle, DollarSign, Star, Lock, Crown, Calendar } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import MediaGrid from "@/components/MediaGrid";
+import { formatMemberSince } from "@/lib/formatDate";
 
 interface UserProfile {
   id: string;
@@ -21,6 +22,7 @@ interface UserProfile {
   gender: string;
   city: string;
   state: string;
+  created_at?: string | null;
 }
 
 interface UserMedia {
@@ -67,7 +69,7 @@ const Profile: React.FC = () => {
 
       if (error) throw error;
 
-      const data = response?.data;
+      let data = response?.data;
 
       if (!data) {
         toast({
@@ -77,6 +79,18 @@ const Profile: React.FC = () => {
         });
         navigate("/dashboard");
         return;
+      }
+
+      if (!data.created_at) {
+        const { data: publicProfileDate } = await supabase
+          .from("public_user_profiles")
+          .select("created_at")
+          .eq("id", data.id)
+          .maybeSingle();
+
+        if (publicProfileDate?.created_at) {
+          data = { ...data, created_at: publicProfileDate.created_at };
+        }
       }
 
       setProfile(data as UserProfile);
@@ -348,6 +362,20 @@ const Profile: React.FC = () => {
               )}
             </div>
           </div>
+        </Card>
+
+        <Card className="mb-4 sm:mb-6 border-0 shadow-xl bg-white/95 backdrop-blur">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-100 text-purple-700">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Member Since</p>
+                <p className="text-lg font-bold text-gray-900">{formatMemberSince(profile.created_at)}</p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Content Tiers */}

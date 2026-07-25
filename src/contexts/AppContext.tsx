@@ -7,6 +7,7 @@ interface User {
   id: string;
   username: string;
   email: string;
+  created_at?: string;
   firstName?: string;
   lastName?: string;
   userType?: string;
@@ -104,6 +105,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           id: String((userData as any).id),
           username: String((userData as any).username),
           email: String((userData as any).email),
+          created_at: String((userData as any).created_at || ""),
           firstName: String((userData as any).first_name || ""),
           lastName: String((userData as any).last_name || ""),
           userType: String((userData as any).user_type || ""),
