@@ -122,7 +122,28 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   const getMembershipBadge = () => {
-    const tierRaw = String(userData.membership_tier || "").toLowerCase();
+    const normalizeTier = (value: unknown) =>
+      String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+    const tierCandidates = [
+      normalizeTier(userData.membership_tier),
+      normalizeTier((userData as any).membershipTier),
+      normalizeTier(userData.membership_type),
+      normalizeTier((userData as any).membershipType),
+    ].filter(Boolean);
+    const tierRaw =
+      [
+        "business_owner_elite",
+        "business_owner_elite_installment",
+        "elite",
+        "diamond_plus",
+        "diamond",
+        "gold",
+        "silver",
+        "silver_plus",
+      ].find((tier) => tierCandidates.includes(tier)) || tierCandidates[0] || "";
     const hasSilverPlus = !!userData.silver_plus_active;
     const silverPlusChip = hasSilverPlus ? (
       <Badge
