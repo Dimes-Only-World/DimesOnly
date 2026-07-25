@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getAdminUserId } from "@/lib/adminAuth";
 import { formatDateForInput, formatTime12Hour } from "@/lib/timeUtils";
 import {
   Trash2,
