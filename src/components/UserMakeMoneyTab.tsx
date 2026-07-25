@@ -15,7 +15,7 @@ const UserMakeMoneyTab: React.FC = () => {
 
   const shareLink = useMemo(
     () => `https://www.DimesOnly.World/?ref=${encodeURIComponent(referralUsername || "")}`,
-    [referralUsername]
+    [referralUsername],
   );
 
   const shareMessage = useMemo(() => {
@@ -29,11 +29,7 @@ const UserMakeMoneyTab: React.FC = () => {
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("username")
-        .eq("id", user.id)
-        .single();
+      const { data, error } = await supabase.from("users").select("username").eq("id", user.id).single();
       if (error) throw error;
       if (data?.username) setActualUsername(String(data.username));
     } catch (error) {
@@ -48,9 +44,7 @@ const UserMakeMoneyTab: React.FC = () => {
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#referral-link") {
       const t = setTimeout(() => {
-        document
-          .getElementById("referral-link-section")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("referral-link-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
       return () => clearTimeout(t);
     }
@@ -82,7 +76,7 @@ const UserMakeMoneyTab: React.FC = () => {
         return false;
       }
     },
-    [toast]
+    [toast],
   );
 
   const handleWhatsAppShare = useCallback(async () => {
@@ -94,7 +88,7 @@ const UserMakeMoneyTab: React.FC = () => {
     await copyToClipboard(shareMessage);
     window.open(
       `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
-      "_blank"
+      "_blank",
     );
   }, [shareMessage, shareLink, copyToClipboard]);
 
@@ -105,7 +99,10 @@ const UserMakeMoneyTab: React.FC = () => {
 
   const handleEmailShare = useCallback(async () => {
     await copyToClipboard(shareMessage);
-    window.open(`mailto:?subject=${encodeURIComponent("Check this out")}&body=${encodeURIComponent(shareMessage)}`, "_blank");
+    window.open(
+      `mailto:?subject=${encodeURIComponent("Check this out")}&body=${encodeURIComponent(shareMessage)}`,
+      "_blank",
+    );
   }, [shareMessage, copyToClipboard]);
 
   const handleCopyMessage = useCallback(async () => {
@@ -183,7 +180,7 @@ const UserMakeMoneyTab: React.FC = () => {
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/New%2BHome.webm"
+          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/0718.mp4"
           download="New+Home.webm"
           className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
         >
