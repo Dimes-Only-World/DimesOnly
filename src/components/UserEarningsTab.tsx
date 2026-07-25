@@ -47,6 +47,8 @@ import {
 import { useAppContext } from "@/contexts/AppContext";
 import PaymentStatus from "@/components/PaymentStatus";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
+import EventReferralsTab from "@/components/EventReferralsTab";
+
 import { useMobileLayout } from "@/hooks/use-mobile";
 
 const PERFORMER_RATE = 0.2;
@@ -1462,7 +1464,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
       <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
         <TabsList
-          className={`grid grid-cols-2 sm:grid-cols-4 w-full gap-2 h-auto bg-gray-50 border border-gray-200 p-2 rounded-lg ${getContentClasses()}`}
+          className={`grid grid-cols-2 sm:grid-cols-5 w-full gap-2 h-auto bg-gray-50 border border-gray-200 p-2 rounded-lg ${getContentClasses()}`}
         >
           <TabsTrigger
             value="weekly"
@@ -1483,12 +1485,19 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             Referrals
           </TabsTrigger>
           <TabsTrigger
+            value="events"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
+          >
+            Events
+          </TabsTrigger>
+          <TabsTrigger
             value="jackpot"
             className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
           >
             Jackpot
           </TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="weekly" className="space-y-4">
           <Card>
@@ -1979,7 +1988,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="events" className="space-y-4">
+          <EventReferralsTab
+            userId={userData.id}
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </TabsContent>
+
         <TabsContent value="jackpot" className="space-y-4">
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
