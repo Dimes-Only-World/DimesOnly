@@ -94,8 +94,27 @@ const readStoredUser = (): UserData | null => {
 
 const persistDashboardUser = (data: UserData | null) => {
   if (typeof window === "undefined" || !data?.id) return;
-  sessionStorage.setItem("userData", JSON.stringify(data));
+  const normalizedData = {
+    ...data,
+    created_at: data.created_at ?? (data as StoredDashboardUser).createdAt ?? null,
+    createdAt: data.created_at ?? (data as StoredDashboardUser).createdAt ?? null,
+  };
+  sessionStorage.setItem("userData", JSON.stringify(normalizedData));
   if (data.username) sessionStorage.setItem("currentUser", data.username);
+};
+
+const mergeUserDataWithMemberDate = (
+  previous: UserData | null | undefined,
+  incoming: Partial<UserData> | null | undefined,
+): UserData | null => {
+  if (!previous && !incoming?.id) return null;
+
+  const createdAt = incoming?.created_at ?? previous?.created_at ?? (incoming as StoredDashboardUser | null | undefined)?.createdAt ?? null;
+  return {
+    ...(previous || {}),
+    ...(incoming || {}),
+    created_at: createdAt,
+  } as UserData;
 };
 
 const SLUG_TITLES: Record<string, string> = {
@@ -141,7 +160,7 @@ const UserDashboard: React.FC = () => {
 
         if (!cancelled && pub) {
           setUserData((prev) => {
-            const merged = { ...(prev || {}), ...pub } as UserData;
+            const merged = mergeUserDataWithMemberDate(prev, pub);
             persistDashboardUser(merged);
             return merged;
           });
@@ -154,7 +173,7 @@ const UserDashboard: React.FC = () => {
     const loadUserData = async () => {
       const localUserData = normalizeStoredUser(user as StoredDashboardUser | null) || readStoredUser();
       if (localUserData) {
-        setUserData((prev) => prev ?? localUserData);
+        setUserData((prev) => mergeUserDataWithMemberDate(prev, localUserData));
         persistDashboardUser(localUserData);
         setLoading(false);
       }
@@ -199,8 +218,12 @@ const UserDashboard: React.FC = () => {
         return false;
       }
       if (response?.data) {
-        setUserData(response.data);
-        persistDashboardUser(response.data as UserData);
+        const incoming = response.data as UserData;
+        setUserData((prev) => {
+          const merged = mergeUserDataWithMemberDate(prev, incoming);
+          persistDashboardUser(merged);
+          return merged;
+        });
         return true;
       }
       return false;
@@ -254,8 +277,12 @@ const UserDashboard: React.FC = () => {
         .single();
       if (error) return false;
       if (data) {
-        setUserData(data as UserData);
-        persistDashboardUser(data as UserData);
+        const incoming = data as UserData;
+        setUserData((prev) => {
+          const merged = mergeUserDataWithMemberDate(prev, incoming);
+          persistDashboardUser(merged);
+          return merged;
+        });
         return true;
       }
       return false;
@@ -284,8 +311,12 @@ const UserDashboard: React.FC = () => {
         return false;
       }
       if (data && data.length > 0) {
-        setUserData(data[0] as UserData);
-        persistDashboardUser(data[0] as UserData);
+        const incoming = data[0] as UserData;
+        setUserData((prev) => {
+          const merged = mergeUserDataWithMemberDate(prev, incoming);
+          persistDashboardUser(merged);
+          return merged;
+        });
         toast({ title: "Success", description: "Profile updated successfully" });
         return true;
       }
