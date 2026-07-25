@@ -86,156 +86,63 @@ const PaymentStatusHandler: React.FC = () => {
         return;
       }
 
-      // Handle membership upgrade payment success
-      if (paymentType === "success" && upgradeId) {
+      // Handle membership upgrade payment success (by upgrade_id OR paypal token)
+      if (paymentType === "success" && (upgradeId || paypalToken)) {
         try {
-          // Check upgrade status
-          const { data: upgrade, error } = await supabase
-            .from("membership_upgrades")
-            .select("*")
-            .eq("id", upgradeId)
-            .single();
-
-          if (error) {
-            throw new Error("Failed to verify upgrade");
-          }
-
-          // Store tier for potential retry button
-          if (upgrade?.upgrade_type) {
-            setTier(upgrade.upgrade_type);
-          }
-
-          if (upgrade.upgrade_status === "completed") {
-            const tierLabel = formatTierName(upgrade.upgrade_type as string);
-
-            setStatus("success");
-            setMessage(
-              `${tierLabel} membership activated successfully! Redirecting...`
-            );
-
-            // Clean up session storage
-            sessionStorage.removeItem("membership_upgrade");
-
-            // Show success toast
-            toast({
-              title: `${tierLabel} Activated!`,
-              description: `Your ${tierLabel} membership has been activated. Redirecting to dashboard...`,
+          const { data: verifyResult, error: verifyError } =
+            await supabase.functions.invoke("verify-membership-upgrade", {
+              body: {
+                upgrade_id: upgradeId || undefined,
+                token: paypalToken || undefined,
+              },
             });
 
-            // Redirect to dashboard after 3 seconds
-            setTimeout(() => {
-              navigate("/dashboard");
-            }, 3000);
-          } else if (upgrade.payment_status === "partially_paid") {
-            const tierLabel = formatTierName(upgrade.upgrade_type as string);
-
-            setStatus("success");
-            setMessage(
-              `First installment payment successful! Complete remaining payments to activate ${tierLabel}.`
-            );
-
-            toast({
-              title: "Payment Received",
-              description:
-                "Installment paid. Complete remaining payments to activate your membership.",
-            });
-
-            setTimeout(() => {
-              navigate("/upgrade");
-            }, 3000);
-          } else {
-            // Payment is still pending, try to manually trigger the webhook logic
-            setStatus("processing");
-            setMessage("Payment is being processed. Please wait a moment...");
-
-            // If we have PayPal token, the user approved the payment
-            // Let's manually trigger the membership activation via membership-webhook
-            // We no longer require PayerID since PayPal v2 checkout may not always return it
-            if (paypalToken || upgrade.paypal_order_id) {
-              try {
-                console.log("Manually triggering membership activation...");
-                console.log("Using order ID:", upgrade.paypal_order_id || paypalToken);
-
-                // Call the membership-webhook function directly
-                const { data: webhookResult, error: webhookError } =
-                  await supabase.functions.invoke("membership-webhook", {
-                    body: {
-                      event_type: "CHECKOUT.ORDER.APPROVED",
-                      resource: {
-                        id: upgrade.paypal_order_id || paypalToken,
-                      },
-                    },
-                  });
-
-                if (webhookError) {
-                  console.error("Webhook trigger error:", webhookError);
-                  // If webhook fails, wait a bit and check again
-                  setTimeout(handlePaymentReturn, 5000);
-                  return;
-                }
-
-                console.log("Webhook triggered successfully:", webhookResult);
-
-                // Check upgrade status again after webhook
-                setTimeout(handlePaymentReturn, 2000);
-                return;
-              } catch (error) {
-                console.error("Error triggering webhook:", error);
-                // Fall back to periodic checking
-                setTimeout(handlePaymentReturn, 5000);
-                return;
-              }
-            } else {
-              // No PayPal tokens, just wait and check again
-              setTimeout(handlePaymentReturn, 5000);
-              return;
-            }
-          }
-        } catch (error) {
-          console.error("Payment verification error:", error);
-          setStatus("error");
-          setMessage(
-            "Failed to verify payment status. Please contact support."
-          );
-        }
-      }
-      // Handle success without upgrade_id - try to find from paypal token
-      else if (paymentType === "success" && paypalToken && !upgradeId && !eventPaymentId) {
-        try {
-          // Look up upgrade by PayPal order ID
-          const { data: upgrade, error } = await supabase
-            .from("membership_upgrades")
-            .select("*")
-            .eq("paypal_order_id", paypalToken)
-            .single();
-
-          if (error || !upgrade) {
-            console.error("Could not find upgrade for token:", paypalToken);
+          if (verifyError || !verifyResult?.success) {
+            console.error("verify-membership-upgrade failed:", verifyError, verifyResult);
             setStatus("error");
             setMessage("Could not verify payment. Please contact support.");
             setProcessing(false);
             return;
           }
 
-          // Store tier and redirect with proper upgrade_id
-          setTier(upgrade.upgrade_type);
-          sessionStorage.setItem("membership_upgrade", JSON.stringify({
-            upgrade_id: upgrade.id,
-            tier: upgrade.upgrade_type,
-          }));
+          const upgradeType = verifyResult.tier as string | undefined;
+          const upgradeStatus = verifyResult.upgrade_status as string | undefined;
+          const paymentStatus = verifyResult.payment_status as string | undefined;
 
-          // Re-run with the found upgrade_id
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.set("upgrade_id", upgrade.id);
-          window.history.replaceState({}, "", newUrl.toString());
+          if (upgradeType) setTier(upgradeType);
 
-          // Recurse with the upgrade_id now set
-          setTimeout(handlePaymentReturn, 100);
-          return;
+          if (upgradeStatus === "completed") {
+            const tierLabel = formatTierName(upgradeType);
+            setStatus("success");
+            setMessage(`${tierLabel} membership activated successfully! Redirecting...`);
+            sessionStorage.removeItem("membership_upgrade");
+            toast({
+              title: `${tierLabel} Activated!`,
+              description: `Your ${tierLabel} membership has been activated. Redirecting to dashboard...`,
+            });
+            setTimeout(() => navigate("/dashboard"), 3000);
+          } else if (paymentStatus === "partially_paid") {
+            const tierLabel = formatTierName(upgradeType);
+            setStatus("success");
+            setMessage(
+              `First installment payment successful! Complete remaining payments to activate ${tierLabel}.`
+            );
+            toast({
+              title: "Payment Received",
+              description: "Installment paid. Complete remaining payments to activate your membership.",
+            });
+            setTimeout(() => navigate("/upgrade"), 3000);
+          } else {
+            // Still pending — retry verify after a short wait
+            setStatus("processing");
+            setMessage("Payment is being processed. Please wait a moment...");
+            setTimeout(handlePaymentReturn, 5000);
+            return;
+          }
         } catch (error) {
-          console.error("Error looking up upgrade by token:", error);
+          console.error("Payment verification error:", error);
           setStatus("error");
-          setMessage("Could not verify payment. Please contact support.");
+          setMessage("Failed to verify payment status. Please contact support.");
         }
       }
       // Handle event payment
