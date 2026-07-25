@@ -720,14 +720,23 @@ const updateData = {
       }
 
       // Then delete the event
-      const { error } = await supabase
-        .from("events")
-        .delete()
-        .eq("id", eventId);
+      const adminUserId = getAdminUserId();
+      let delError: any = null;
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "deleteEvent", adminUserId, eventId } }
+        );
+        if (fnError) delError = fnError;
+        else if ((fnData as any)?.error) delError = new Error((fnData as any).error);
+      } else {
+        const { error } = await supabase.from("events").delete().eq("id", eventId);
+        delError = error;
+      }
 
-      if (error) {
-        console.error("❌ Error deleting event:", error);
-        throw error;
+      if (delError) {
+        console.error("❌ Error deleting event:", delError);
+        throw delError;
       }
 
       console.log("✅ Event deleted successfully");
