@@ -345,10 +345,16 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <span className="text-gray-700 font-medium">Member Since</span>
           </div>
           <p className="text-gray-900 font-semibold">
-            {new Date(userData.created_at || "").toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-            })}
+            {(() => {
+              if (!userData.created_at) return "—";
+              const d = new Date(userData.created_at);
+              if (isNaN(d.getTime())) return "—";
+              return d.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                timeZone: "UTC",
+              });
+            })()}
           </p>
         </CardContent>
       </Card>
