@@ -26,21 +26,24 @@ serve(async (req) => {
       );
     }
 
-    // Look up upgrade by id, then by paypal_order_id
+    // Look up by the PayPal return token first. A user can have an old
+    // sessionStorage upgrade_id from a previous/live checkout; if we trust that
+    // first, the verifier may try to capture the wrong order after a sandbox
+    // checkout returns with a fresh token.
     let upgrade: any = null;
-    if (upgrade_id) {
-      const { data } = await supabase
-        .from("membership_upgrades")
-        .select("*")
-        .eq("id", upgrade_id)
-        .maybeSingle();
-      upgrade = data;
-    }
-    if (!upgrade && token) {
+    if (token) {
       const { data } = await supabase
         .from("membership_upgrades")
         .select("*")
         .eq("paypal_order_id", token)
+        .maybeSingle();
+      upgrade = data;
+    }
+    if (!upgrade && upgrade_id && !token) {
+      const { data } = await supabase
+        .from("membership_upgrades")
+        .select("*")
+        .eq("id", upgrade_id)
         .maybeSingle();
       upgrade = data;
     }
@@ -54,16 +57,22 @@ serve(async (req) => {
 
     // If still pending, trigger activation via membership-webhook
     if (upgrade.upgrade_status !== "completed" && upgrade.payment_status !== "partially_paid") {
-      const orderId = upgrade.paypal_order_id || token;
+      const orderId = token || upgrade.paypal_order_id;
       if (orderId) {
+        let webhookError: string | null = null;
         try {
-          await supabase.functions.invoke("membership-webhook", {
+          const { data: webhookData, error: invokeError } = await supabase.functions.invoke("membership-webhook", {
             body: {
               event_type: "CHECKOUT.ORDER.APPROVED",
               resource: { id: orderId },
             },
           });
+          if (invokeError || webhookData?.error) {
+            webhookError = webhookData?.message || webhookData?.details || invokeError?.message || "Activation failed";
+            console.error("membership-webhook returned error:", invokeError, webhookData);
+          }
         } catch (e) {
+          webhookError = e instanceof Error ? e.message : "Activation failed";
           console.error("membership-webhook invoke failed:", e);
         }
 
@@ -74,6 +83,24 @@ serve(async (req) => {
           .eq("id", upgrade.id)
           .maybeSingle();
         if (refreshed) upgrade = refreshed;
+
+        if (
+          webhookError &&
+          upgrade.upgrade_status !== "completed" &&
+          upgrade.payment_status !== "partially_paid"
+        ) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: webhookError,
+              upgrade_id: upgrade.id,
+              tier: upgrade.upgrade_type,
+              upgrade_status: upgrade.upgrade_status,
+              payment_status: upgrade.payment_status,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 }
+          );
+        }
       }
     }
 

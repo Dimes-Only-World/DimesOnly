@@ -68,6 +68,14 @@ export default function UpgradeGold() {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed to create PayPal subscription");
 
+      sessionStorage.removeItem("membership_upgrade");
+      sessionStorage.setItem("membership_subscription", JSON.stringify({
+        subscription_id: data.subscription_id,
+        user_id: userId,
+        tier: "gold",
+        cadence,
+      }));
+
       toast({ title: "Redirecting to PayPal", description: "Please approve your subscription..." });
       window.location.href = data.approval_url as string;
     } catch (err: any) {
@@ -107,6 +115,14 @@ export default function UpgradeGold() {
 
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed to create PayPal subscription");
+
+      sessionStorage.removeItem("membership_upgrade");
+      sessionStorage.setItem("membership_subscription", JSON.stringify({
+        subscription_id: data.subscription_id,
+        user_id: userId,
+        tier: "gold",
+        cadence,
+      }));
 
       toast({ title: "Redirecting to PayPal", description: "Please approve your subscription..." });
       const approvalUrl = data.approval_url + "&fundingSource=paylater";
