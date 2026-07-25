@@ -44,11 +44,13 @@ function addMonths(date: Date, months: number): Date {
 
 // --- Referral helpers for subscription commissions ---
 function calculateNetAfterFees(gross: number): number {
+  // Match one-time membership path: $0.50 flat + 2.75%
   const paypalFlat = 0.5;
-  const paypalPct = 0.015;
+  const paypalPct = 0.0275;
   const net = gross - (paypalFlat + gross * paypalPct);
   return Number(Math.max(0, net).toFixed(2));
 }
+
 
 // Format a Date as local YYYY-MM-DD (avoid UTC shift from toISOString)
 function formatLocalYMD(d: Date): string {
@@ -125,9 +127,10 @@ async function awardSubscriptionReferralOnce(
 
     // Find direct referrer
     const referrerUsername = String(payingUser.referred_by).trim();
+    if (referrerUsername.toLowerCase() === "company") return;
     const { data: referrer } = await supabase
       .from('users')
-      .select('id, username, referred_by, membership_tier')
+      .select('id, username, referred_by')
       .ilike('username', referrerUsername)
       .limit(1)
       .maybeSingle();
@@ -144,11 +147,10 @@ async function awardSubscriptionReferralOnce(
       .maybeSingle();
 
     const net = calculateNetAfterFees(Number(grossAmount) || 0);
-    // Commission rates: default 20% direct / 10% upline.
-    // If the DIRECT referrer is a FREE member, use 10% direct / 5% upline.
-    const isDirectFree = (String((referrer as any).membership_tier || '').toLowerCase() === 'free');
-    const directRate = isDirectFree ? 10 : 20;
-    const uplineRate = isDirectFree ? 5 : 10;
+    // Always pay 20% direct + 10% upline regardless of referrer's own tier.
+    const directRate = 20;
+    const uplineRate = 10;
+
 
     if (!existingDirect) {
       const directAmt = Number(((net * directRate) / 100).toFixed(2));

@@ -65,6 +65,143 @@ async function getPayPalAccessToken() {
   return tokenData.access_token as string;
 }
 
+// 20% direct + 10% upline commission for subscription first-payment.
+// Net after PayPal fees ($0.50 flat + 2.75%). Idempotent per (referrer, type,
+// referredUserId) using paypal_transaction_id column.
+async function awardSubscriptionReferralOnce(
+  supabase: any,
+  referredUserId: string,
+  grossAmount: number,
+  subscriptionId: string,
+) {
+  try {
+    if (!referredUserId || !grossAmount || grossAmount <= 0) return;
+    const { data: payingUser } = await supabase
+      .from("users")
+      .select("id, username, referred_by")
+      .eq("id", referredUserId)
+      .single();
+    if (!payingUser?.referred_by) return;
+    const referrerUsername = String(payingUser.referred_by).trim();
+    if (!referrerUsername || referrerUsername.toLowerCase() === "company") return;
+
+    const { data: referrer } = await supabase
+      .from("users")
+      .select("id, username, referred_by")
+      .ilike("username", referrerUsername)
+      .maybeSingle();
+    if (!referrer) return;
+
+    const net = Math.max(0, Number(grossAmount) - (0.5 + Number(grossAmount) * 0.0275));
+    const directAmt = Number((net * 0.20).toFixed(2));
+    const uplineAmt = Number((net * 0.10).toFixed(2));
+
+    // Week bounds (Mon-Sun) local
+    const now = new Date();
+    const dow = now.getDay();
+    const daysToMonday = dow === 0 ? 6 : dow - 1;
+    const wkStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysToMonday);
+    const wkEnd = new Date(wkStart);
+    wkEnd.setDate(wkStart.getDate() + 6);
+    const ymd = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const wkStartStr = ymd(wkStart);
+    const wkEndStr = ymd(wkEnd);
+
+    const upsertWeekly = async (userId: string, amount: number) => {
+      const { data: existing } = await supabase
+        .from("weekly_earnings")
+        .select("id, referral_earnings, amount")
+        .eq("user_id", userId)
+        .eq("week_start", wkStartStr)
+        .maybeSingle();
+      if (existing) {
+        await supabase
+          .from("weekly_earnings")
+          .update({
+            referral_earnings: Number(existing.referral_earnings || 0) + amount,
+            amount: Number(existing.amount || 0) + amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("weekly_earnings").insert({
+          user_id: userId,
+          week_start: wkStartStr,
+          week_end: wkEndStr,
+          amount,
+          tip_earnings: 0,
+          referral_earnings: amount,
+          bonus_earnings: 0,
+        });
+      }
+    };
+
+    // Direct 20% — idempotent
+    if (directAmt > 0) {
+      const { data: existingDirect } = await supabase
+        .from("payments")
+        .select("id")
+        .eq("user_id", referrer.id)
+        .eq("payment_type", "subscription_referral_commission")
+        .eq("paypal_transaction_id", referredUserId)
+        .maybeSingle();
+      if (!existingDirect) {
+        const { error } = await supabase.from("payments").insert({
+          user_id: referrer.id,
+          amount: directAmt,
+          payment_type: "subscription_referral_commission",
+          payment_status: "completed",
+          paypal_order_id: subscriptionId,
+          paypal_transaction_id: referredUserId,
+          referred_by: referrer.username,
+          referrer_commission: directAmt,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        if (!error) await upsertWeekly(referrer.id, directAmt);
+      }
+    }
+
+    // Upline 10% — idempotent
+    const uplineUsername = String(referrer.referred_by || "").trim();
+    if (uplineUsername && uplineUsername.toLowerCase() !== "company" && uplineAmt > 0) {
+      const { data: upline } = await supabase
+        .from("users")
+        .select("id, username")
+        .ilike("username", uplineUsername)
+        .maybeSingle();
+      if (upline?.id) {
+        const { data: existingUpline } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("user_id", upline.id)
+          .eq("payment_type", "subscription_upline_referral_commission")
+          .eq("paypal_transaction_id", referredUserId)
+          .maybeSingle();
+        if (!existingUpline) {
+          const { error } = await supabase.from("payments").insert({
+            user_id: upline.id,
+            amount: uplineAmt,
+            payment_type: "subscription_upline_referral_commission",
+            payment_status: "completed",
+            paypal_order_id: subscriptionId,
+            paypal_transaction_id: referredUserId,
+            referred_by: upline.username,
+            referrer_commission: uplineAmt,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          if (!error) await upsertWeekly(upline.id, uplineAmt);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("awardSubscriptionReferralOnce (verify) error:", e);
+  }
+}
+
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
@@ -145,7 +282,15 @@ serve(async (req) => {
         .update({ membership_tier: tier, updated_at: new Date().toISOString() })
         .eq("id", userId);
       if (userError) return json({ success: false, error: userError.message }, 500);
+
+      // Award 20% direct + 10% upline referral commissions (idempotent).
+      const grossStr = (billingInfo?.last_payment?.amount?.value ?? "0").toString();
+      const gross = parseFloat(grossStr) || 0;
+      if (gross > 0) {
+        await awardSubscriptionReferralOnce(supabase, userId, gross, subscriptionId);
+      }
     }
+
 
     return json({
       success: true,

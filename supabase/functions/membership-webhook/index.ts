@@ -329,8 +329,25 @@ async function activateMembership(
       throw new Error(`Invalid user_id format: ${upgrade.user_id}`);
     }
 
+    // Generic 20% direct / 10% upline commission for tiers whose activation
+    // branches do not run their own referral logic (silver one-time, gold,
+    // diamond one-time). silver_plus / diamond_plus / business_owner_elite
+    // handle commissions inline (see below) to preserve their existing
+    // payment_type strings and eligibility rules.
+    const inlineCommissionTiers = new Set([
+      "silver_plus",
+      "diamond_plus",
+      "business_owner_elite",
+      "business_owner_elite_installment",
+    ]);
+    if (!opts.skipReferralCommissions && !inlineCommissionTiers.has(tier)) {
+      const gross = Number(upgrade.payment_amount || 0);
+      await processMembershipReferralCommissions(supabase, upgrade, gross, tier);
+    }
+
     // Special handling for membership types
     if (tier === "diamond_plus") {
+
       userPayload.diamond_plus_active = true;
       userPayload.agreement_signed = true;
     } else if (tier === "silver_plus") {
@@ -1141,3 +1158,159 @@ async function processElitePlusReferralCommissions(
     console.error("processElitePlusReferralCommissions error", e);
   }
 }
+
+// Generic membership commission processor — 20% direct + 10% upline, computed
+// off net-after-PayPal-fees ($0.50 flat + 2.75%). Used by silver / gold /
+// diamond one-time tiers. Idempotent per (user_id, payment_type, paypal_order_id).
+async function processMembershipReferralCommissions(
+  supabase: any,
+  upgrade: any,
+  grossAmount: number,
+  tierLabel: string,
+) {
+  try {
+    if (!grossAmount || grossAmount <= 0) return;
+
+    const { data: buyer, error: buyerErr } = await supabase
+      .from("users")
+      .select("id, referred_by")
+      .eq("id", upgrade.user_id)
+      .single();
+    if (buyerErr || !buyer?.referred_by) {
+      console.log(`${tierLabel}: no direct referrer for`, upgrade.user_id);
+      return;
+    }
+    if (String(buyer.referred_by).trim().toLowerCase() === "company") return;
+
+    const { data: referrer } = await supabase
+      .from("users")
+      .select("id, username, referred_by")
+      .ilike("username", String(buyer.referred_by).trim())
+      .maybeSingle();
+    if (!referrer) {
+      console.log(`${tierLabel}: referrer not found:`, buyer.referred_by);
+      return;
+    }
+
+    const netAmount = Math.max(0, grossAmount - (0.5 + grossAmount * 0.0275));
+    const directAmount = Number((netAmount * 0.20).toFixed(2));
+    const uplineAmount = Number((netAmount * 0.10).toFixed(2));
+
+    const directType = `${tierLabel}_referral_commission`;
+    const uplineType = `${tierLabel}_upline_referral_commission`;
+
+    // Week bounds (Mon-Sun) — mirrors elite plus helper
+    const now = new Date();
+    const dow = now.getDay();
+    const daysToMonday = dow === 0 ? 6 : dow - 1;
+    const wkStart = new Date(now);
+    wkStart.setDate(now.getDate() - daysToMonday);
+    wkStart.setHours(0, 0, 0, 0);
+    const wkEnd = new Date(wkStart);
+    wkEnd.setDate(wkStart.getDate() + 6);
+    const wkStartStr = wkStart.toISOString().split("T")[0];
+    const wkEndStr = wkEnd.toISOString().split("T")[0];
+
+    const upsertWeekly = async (userId: string, amount: number) => {
+      const { data: existing } = await supabase
+        .from("weekly_earnings")
+        .select("id, referral_earnings, amount")
+        .eq("user_id", userId)
+        .eq("week_start", wkStartStr)
+        .maybeSingle();
+      if (existing) {
+        await supabase
+          .from("weekly_earnings")
+          .update({
+            referral_earnings: Number(existing.referral_earnings || 0) + amount,
+            amount: Number(existing.amount || 0) + amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("weekly_earnings").insert({
+          user_id: userId,
+          week_start: wkStartStr,
+          week_end: wkEndStr,
+          amount,
+          tip_earnings: 0,
+          referral_earnings: amount,
+          bonus_earnings: 0,
+        });
+      }
+    };
+
+    // Direct referrer — 20% (idempotent)
+    if (directAmount > 0) {
+      const { data: existingDirect } = await supabase
+        .from("payments")
+        .select("id")
+        .eq("user_id", referrer.id)
+        .eq("payment_type", directType)
+        .eq("paypal_order_id", upgrade.paypal_order_id)
+        .maybeSingle();
+      if (!existingDirect) {
+        const { error: payErr } = await supabase.from("payments").insert({
+          user_id: referrer.id,
+          amount: directAmount,
+          payment_type: directType,
+          payment_status: "completed",
+          paypal_order_id: upgrade.paypal_order_id,
+          referred_by: buyer.referred_by,
+          referrer_commission: directAmount,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        if (payErr) {
+          console.error(`${directType} insert failed`, payErr);
+        } else {
+          await upsertWeekly(referrer.id, directAmount);
+        }
+      } else {
+        console.log(`${directType} already exists for order ${upgrade.paypal_order_id}`);
+      }
+    }
+
+    // Upline referrer — 10% (idempotent)
+    const uplineUsername = String(referrer.referred_by || "").trim();
+    if (uplineUsername && uplineUsername.toLowerCase() !== "company" && uplineAmount > 0) {
+      const { data: upline } = await supabase
+        .from("users")
+        .select("id, username")
+        .ilike("username", uplineUsername)
+        .maybeSingle();
+      if (upline?.id) {
+        const { data: existingUpline } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("user_id", upline.id)
+          .eq("payment_type", uplineType)
+          .eq("paypal_order_id", upgrade.paypal_order_id)
+          .maybeSingle();
+        if (!existingUpline) {
+          const { error: uPayErr } = await supabase.from("payments").insert({
+            user_id: upline.id,
+            amount: uplineAmount,
+            payment_type: uplineType,
+            payment_status: "completed",
+            paypal_order_id: upgrade.paypal_order_id,
+            referred_by: upline.username,
+            referrer_commission: uplineAmount,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          if (uPayErr) {
+            console.error(`${uplineType} insert failed`, uPayErr);
+          } else {
+            await upsertWeekly(upline.id, uplineAmount);
+          }
+        } else {
+          console.log(`${uplineType} already exists for order ${upgrade.paypal_order_id}`);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("processMembershipReferralCommissions error", e);
+  }
+}
+
