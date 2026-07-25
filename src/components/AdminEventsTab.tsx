@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getAdminUserId } from "@/lib/adminAuth";
 import { formatDateForInput, formatTime12Hour } from "@/lib/timeUtils";
 import {
   Trash2,
@@ -648,14 +649,27 @@ const updateData = {
 
       console.log("💾 Update data:", updateData);
 
-      const { error } = await supabase
-        .from("events")
-        .update(updateData)
-        .eq("id", editingEvent.id);
+      const adminUserId = getAdminUserId();
+      let updateError: any = null;
 
-      if (error) {
-        console.error("❌ Update error:", error);
-        throw error;
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "updateEvent", adminUserId, eventId: editingEvent.id, updates: updateData } }
+        );
+        if (fnError) updateError = fnError;
+        else if ((fnData as any)?.error) updateError = new Error((fnData as any).error);
+      } else {
+        const { error } = await supabase
+          .from("events")
+          .update(updateData)
+          .eq("id", editingEvent.id);
+        updateError = error;
+      }
+
+      if (updateError) {
+        console.error("❌ Update error:", updateError);
+        throw updateError;
       }
 
       console.log("✅ Event updated successfully");
@@ -706,14 +720,23 @@ const updateData = {
       }
 
       // Then delete the event
-      const { error } = await supabase
-        .from("events")
-        .delete()
-        .eq("id", eventId);
+      const adminUserId = getAdminUserId();
+      let delError: any = null;
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "deleteEvent", adminUserId, eventId } }
+        );
+        if (fnError) delError = fnError;
+        else if ((fnData as any)?.error) delError = new Error((fnData as any).error);
+      } else {
+        const { error } = await supabase.from("events").delete().eq("id", eventId);
+        delError = error;
+      }
 
-      if (error) {
-        console.error("❌ Error deleting event:", error);
-        throw error;
+      if (delError) {
+        console.error("❌ Error deleting event:", delError);
+        throw delError;
       }
 
       console.log("✅ Event deleted successfully");
