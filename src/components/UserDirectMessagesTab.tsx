@@ -204,10 +204,10 @@ const UserDirectMessagesTab: React.FC = () => {
       (async () => {
         try {
           const { data } = await supabase
-            .from("users")
+            .from("public_user_profiles")
             .select("id, username, profile_photo")
             .eq("id", user.id)
-            .single();
+            .maybeSingle();
           setCurrentUserProfile(
             data
               ? {
