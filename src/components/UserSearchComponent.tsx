@@ -71,10 +71,10 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
     try {
       // Get current user's username for notification
       const { data: currentUserData, error: userError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("username")
         .eq("id", currentUserId)
-        .single();
+        .maybeSingle();
 
       if (userError) throw userError;
 
