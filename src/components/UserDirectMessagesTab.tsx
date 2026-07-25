@@ -89,10 +89,10 @@ const UserDirectMessagesTab: React.FC = () => {
     try {
       // Fetch other user profile
       const { data: udata } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username, profile_photo, membership_tier")
         .eq("id", otherUserId)
-        .single();
+        .maybeSingle();
       
       // If user not found, check if this is an admin conversation
       if (udata) {
@@ -204,10 +204,10 @@ const UserDirectMessagesTab: React.FC = () => {
       (async () => {
         try {
           const { data } = await supabase
-            .from("users")
+            .from("public_user_profiles")
             .select("id, username, profile_photo")
             .eq("id", user.id)
-            .single();
+            .maybeSingle();
           setCurrentUserProfile(
             data
               ? {
@@ -275,7 +275,7 @@ const UserDirectMessagesTab: React.FC = () => {
       let usersLookup: Record<string, { id: string; username: string; profile_photo?: string; membership_tier?: string | null }> = {};
       if (otherIds.length > 0) {
         const { data: usersData, error: usersErr } = await supabase
-          .from("users")
+          .from("public_user_profiles")
           .select("id, username, profile_photo, membership_tier")
           .in("id", otherIds);
         if (usersErr) throw usersErr;
@@ -371,10 +371,10 @@ const UserDirectMessagesTab: React.FC = () => {
     try {
       // Get current user's username
       const { data: currentUserData, error: userError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("username")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (userError) throw userError;
 
