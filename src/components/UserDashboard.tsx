@@ -42,6 +42,7 @@ type StoredDashboardUser = Partial<UserData> & {
   createdAt?: string;
   mobileNumber?: string;
   membershipType?: string;
+  membershipTier?: string;
   tipsEarned?: number;
   referralFees?: number;
   weeklyHours?: number;
@@ -49,8 +50,43 @@ type StoredDashboardUser = Partial<UserData> & {
   rankNumber?: number;
 };
 
+const normalizeMembershipValue = (value: unknown): string | null => {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+  return normalized || null;
+};
+
+const pickPrimaryMembership = (...values: unknown[]): string | null => {
+  const candidates = values.map(normalizeMembershipValue).filter(Boolean) as string[];
+  const paidTierPriority = [
+    "business_owner_elite",
+    "business_owner_elite_installment",
+    "elite",
+    "diamond_plus",
+    "diamond",
+    "gold",
+  ];
+
+  return paidTierPriority.find((tier) => candidates.includes(tier)) || candidates[0] || null;
+};
+
 const normalizeStoredUser = (raw: StoredDashboardUser | null | undefined): UserData | null => {
   if (!raw?.id) return null;
+
+  const membershipTier = pickPrimaryMembership(
+    raw.membership_tier,
+    raw.membershipTier,
+    raw.membership_type,
+    raw.membershipType,
+  );
+  const membershipType = pickPrimaryMembership(
+    raw.membership_type,
+    raw.membershipType,
+    raw.membership_tier,
+    raw.membershipTier,
+  );
 
   return {
     ...raw,
@@ -64,8 +100,8 @@ const normalizeStoredUser = (raw: StoredDashboardUser | null | undefined): UserD
     profile_photo: raw.profile_photo ?? raw.profilePhoto ?? null,
     banner_photo: raw.banner_photo ?? raw.bannerPhoto ?? null,
     mobile_number: raw.mobile_number ?? raw.mobileNumber ?? null,
-    membership_type: raw.membership_type ?? raw.membershipType ?? null,
-    membership_tier: raw.membership_tier ?? raw.membershipType ?? null,
+    membership_type: membershipType,
+    membership_tier: membershipTier,
     tips_earned: raw.tips_earned ?? raw.tipsEarned ?? 0,
     referral_fees: raw.referral_fees ?? raw.referralFees ?? 0,
     overrides: raw.overrides ?? 0,
@@ -154,7 +190,7 @@ const UserDashboard: React.FC = () => {
       try {
         const { data: pub } = await supabase
           .from("public_user_profiles")
-          .select("created_at, profile_photo, banner_photo, front_page_photo, city, state, username, user_type, gender")
+            .select("created_at, profile_photo, banner_photo, front_page_photo, city, state, username, user_type, gender, membership_tier, membership_type, silver_plus_active, diamond_plus_active")
           .eq("id", userId)
           .maybeSingle();
 
