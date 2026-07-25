@@ -263,7 +263,7 @@ serve(async (req) => {
     }
 
     // Create event transaction record
-    const { error: transactionError } = await supabase
+    const { data: eventTx, error: transactionError } = await supabase
       .from("event_transactions")
       .insert({
         event_id: event_id,
@@ -274,11 +274,23 @@ serve(async (req) => {
         paypal_transaction_id: captureId,
         payment_id: paymentData?.id || null,
         currency: "USD",
-      });
+      })
+      .select()
+      .single();
 
     if (transactionError) {
       console.error("Error saving event transaction:", transactionError);
     }
+
+    // Award 20% direct + 10% upline referral commissions
+    await awardEventReferralCommissions(
+      supabase,
+      buyer_id,
+      parsedAmount,
+      event_id,
+      eventTx?.id ?? captureId ?? null,
+    );
+
 
     return new Response(
       JSON.stringify({
