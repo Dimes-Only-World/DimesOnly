@@ -17,6 +17,7 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SilverPlusMembership from "./SilverPlusMembership";
 import { supabase } from "@/lib/supabase";
+import { formatMemberSince } from "@/lib/formatDate";
 import {
   fetchReferralEarnings,
   loadReferralEarningsFilters,
@@ -345,16 +346,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <span className="text-gray-700 font-medium">Member Since</span>
           </div>
           <p className="text-gray-900 font-semibold">
-            {(() => {
-              if (!userData.created_at) return "—";
-              const d = new Date(userData.created_at);
-              if (isNaN(d.getTime())) return "—";
-              return d.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                timeZone: "UTC",
-              });
-            })()}
+            {formatMemberSince(userData.created_at)}
           </p>
         </CardContent>
       </Card>

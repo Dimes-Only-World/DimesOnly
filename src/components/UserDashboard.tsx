@@ -39,6 +39,7 @@ type StoredDashboardUser = Partial<UserData> & {
   userType?: string;
   profilePhoto?: string;
   bannerPhoto?: string;
+  createdAt?: string;
   mobileNumber?: string;
   membershipType?: string;
   tipsEarned?: number;
@@ -56,6 +57,7 @@ const normalizeStoredUser = (raw: StoredDashboardUser | null | undefined): UserD
     id: String(raw.id),
     username: String(raw.username || ""),
     email: String(raw.email || ""),
+    created_at: raw.created_at ?? raw.createdAt ?? null,
     first_name: raw.first_name ?? raw.firstName ?? null,
     last_name: raw.last_name ?? raw.lastName ?? null,
     user_type: raw.user_type ?? raw.userType ?? null,
@@ -88,6 +90,12 @@ const readStoredUser = (): UserData | null => {
     console.error("Error parsing saved dashboard user:", error);
     return null;
   }
+};
+
+const persistDashboardUser = (data: UserData | null) => {
+  if (typeof window === "undefined" || !data?.id) return;
+  sessionStorage.setItem("userData", JSON.stringify(data));
+  if (data.username) sessionStorage.setItem("currentUser", data.username);
 };
 
 const SLUG_TITLES: Record<string, string> = {
@@ -123,10 +131,31 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
 
+    const hydratePublicProfile = async (userId: string) => {
+      try {
+        const { data: pub } = await supabase
+          .from("public_user_profiles")
+          .select("created_at, profile_photo, banner_photo, front_page_photo, city, state, username, user_type, gender")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (!cancelled && pub) {
+          setUserData((prev) => {
+            const merged = { ...(prev || {}), ...pub } as UserData;
+            persistDashboardUser(merged);
+            return merged;
+          });
+        }
+      } catch (e) {
+        console.warn("public_user_profiles hydrate failed", e);
+      }
+    };
+
     const loadUserData = async () => {
       const localUserData = normalizeStoredUser(user as StoredDashboardUser | null) || readStoredUser();
       if (localUserData) {
         setUserData((prev) => prev ?? localUserData);
+        persistDashboardUser(localUserData);
         setLoading(false);
       }
 
@@ -136,25 +165,12 @@ const UserDashboard: React.FC = () => {
       const userId = user?.id || localUserData?.id;
 
       if (userId) {
+        await hydratePublicProfile(userId);
+
         if (isCustomAuth) {
           const { data: { session } } = await supabase.auth.getSession();
           if (!cancelled && session?.user?.id === userId) {
             await fetchUserViaEdgeFunction(userId);
-          } else if (!cancelled) {
-            // No matching Supabase session — hydrate missing display fields
-            // (e.g. created_at) from the public_user_profiles view.
-            try {
-              const { data: pub } = await supabase
-                .from("public_user_profiles")
-                .select("created_at, profile_photo, banner_photo, front_page_photo, city, state, username, user_type, gender")
-                .eq("id", userId)
-                .maybeSingle();
-              if (!cancelled && pub) {
-                setUserData((prev) => ({ ...(prev || {}), ...pub } as UserData));
-              }
-            } catch (e) {
-              console.warn("public_user_profiles hydrate failed", e);
-            }
           }
           if (!cancelled) setLoading(false);
         } else {
@@ -184,6 +200,7 @@ const UserDashboard: React.FC = () => {
       }
       if (response?.data) {
         setUserData(response.data);
+        persistDashboardUser(response.data as UserData);
         return true;
       }
       return false;
@@ -238,6 +255,7 @@ const UserDashboard: React.FC = () => {
       if (error) return false;
       if (data) {
         setUserData(data as UserData);
+        persistDashboardUser(data as UserData);
         return true;
       }
       return false;
@@ -267,6 +285,7 @@ const UserDashboard: React.FC = () => {
       }
       if (data && data.length > 0) {
         setUserData(data[0] as UserData);
+        persistDashboardUser(data[0] as UserData);
         toast({ title: "Success", description: "Profile updated successfully" });
         return true;
       }
