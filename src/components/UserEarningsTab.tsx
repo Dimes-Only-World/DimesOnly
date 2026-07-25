@@ -1986,7 +1986,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="events" className="space-y-4">
+          <EventReferralsTab
+            userId={userData.id}
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </TabsContent>
+
         <TabsContent value="jackpot" className="space-y-4">
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
