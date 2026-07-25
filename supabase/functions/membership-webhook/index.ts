@@ -320,6 +320,7 @@ async function activateMembership(
     // Base user update payload
     const userPayload: Record<string, any> = {
       membership_tier: tier,
+      membership_type: tier,
       updated_at: new Date().toISOString(),
     };
 
