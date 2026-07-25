@@ -275,7 +275,7 @@ const UserDirectMessagesTab: React.FC = () => {
       let usersLookup: Record<string, { id: string; username: string; profile_photo?: string; membership_tier?: string | null }> = {};
       if (otherIds.length > 0) {
         const { data: usersData, error: usersErr } = await supabase
-          .from("users")
+          .from("public_user_profiles")
           .select("id, username, profile_photo, membership_tier")
           .in("id", otherIds);
         if (usersErr) throw usersErr;
