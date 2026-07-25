@@ -44,14 +44,14 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
     setSearching(true);
     try {
       const { data, error } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username, profile_photo, user_type")
         .ilike("username", `%${searchTerm}%`)
         .neq("id", currentUserId)
         .limit(10);
 
       if (error) throw error;
-      setSearchResults(data || []);
+      setSearchResults((data as any) || []);
     } catch (error) {
       console.error("Error searching users:", error);
       toast({
