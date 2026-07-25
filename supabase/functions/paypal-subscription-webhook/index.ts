@@ -44,11 +44,13 @@ function addMonths(date: Date, months: number): Date {
 
 // --- Referral helpers for subscription commissions ---
 function calculateNetAfterFees(gross: number): number {
+  // Match one-time membership path: $0.50 flat + 2.75%
   const paypalFlat = 0.5;
-  const paypalPct = 0.015;
+  const paypalPct = 0.0275;
   const net = gross - (paypalFlat + gross * paypalPct);
   return Number(Math.max(0, net).toFixed(2));
 }
+
 
 // Format a Date as local YYYY-MM-DD (avoid UTC shift from toISOString)
 function formatLocalYMD(d: Date): string {
