@@ -39,7 +39,7 @@ serve(async (req) => {
         .maybeSingle();
       upgrade = data;
     }
-    if (!upgrade && upgrade_id) {
+    if (!upgrade && upgrade_id && !token) {
       const { data } = await supabase
         .from("membership_upgrades")
         .select("*")
