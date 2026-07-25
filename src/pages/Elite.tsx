@@ -120,6 +120,14 @@ const Elite: React.FC = () => {
           throw new Error(data?.error || "Failed to create subscription");
         }
 
+        sessionStorage.removeItem("membership_upgrade");
+        sessionStorage.setItem("membership_subscription", JSON.stringify({
+          subscription_id: data.subscription_id,
+          user_id: userId,
+          tier: "elite",
+          cadence: "monthly",
+        }));
+
         toast({ title: "Redirecting to PayPal", description: "Approve your Elite subscription" });
         window.location.href = data.approval_url as string;
       }
@@ -187,6 +195,14 @@ const Elite: React.FC = () => {
         if (!data?.success || !data?.approval_url) {
           throw new Error(data?.error || "Failed to create subscription");
         }
+
+        sessionStorage.removeItem("membership_upgrade");
+        sessionStorage.setItem("membership_subscription", JSON.stringify({
+          subscription_id: data.subscription_id,
+          user_id: userId,
+          tier: "elite",
+          cadence: "monthly",
+        }));
 
         toast({ title: "Redirecting to PayPal", description: "Approve your Elite subscription" });
         const approvalUrl = data.approval_url + "&fundingSource=paylater";

@@ -44,7 +44,10 @@ const PaymentStatusHandler: React.FC = () => {
       let upgradeId = searchParams.get("upgrade_id");
       const eventPaymentId = searchParams.get("payment_id");
       const paypalToken = searchParams.get("token");
-      const payerId = searchParams.get("PayerID");
+      const subscriptionIdFromUrl = searchParams.get("subscription_id");
+      const urlTier = searchParams.get("tier");
+      const urlCadence = searchParams.get("cadence");
+      const urlBillingOption = searchParams.get("billing_option");
 
       // Fallback: get upgrade_id from sessionStorage if not in URL
       let storedUpgrade: { upgrade_id?: string; tier?: string } | null = null;
@@ -63,6 +66,20 @@ const PaymentStatusHandler: React.FC = () => {
       // Also try to get tier from sessionStorage
       if (storedUpgrade?.tier) {
         setTier(storedUpgrade.tier);
+      }
+
+      let storedSubscription: {
+        subscription_id?: string;
+        user_id?: string;
+        tier?: string;
+        cadence?: string;
+        billing_option?: string;
+      } | null = null;
+      try {
+        const stored = sessionStorage.getItem("membership_subscription");
+        if (stored) storedSubscription = JSON.parse(stored);
+      } catch (e) {
+        console.warn("Failed to parse sessionStorage membership_subscription:", e);
       }
 
       // Handle cancelled payment with improved UX
@@ -86,8 +103,61 @@ const PaymentStatusHandler: React.FC = () => {
         return;
       }
 
+      const subscriptionId = subscriptionIdFromUrl || storedSubscription?.subscription_id || null;
+      const isSubscriptionReturn = Boolean(subscriptionId && (storedSubscription || urlTier));
+
+      // Handle PayPal subscription returns before one-time upgrade returns so old sessionStorage
+      // upgrade IDs cannot hijack a fresh monthly subscription approval.
+      if (paymentType === "success" && isSubscriptionReturn) {
+        try {
+          const { data: verifyResult, error: verifyError } =
+            await supabase.functions.invoke("verify-paypal-subscription", {
+              body: {
+                subscription_id: subscriptionId,
+                user_id: storedSubscription?.user_id,
+                tier: storedSubscription?.tier || urlTier || undefined,
+                cadence: storedSubscription?.cadence || urlCadence || undefined,
+                billing_option: storedSubscription?.billing_option || urlBillingOption || undefined,
+              },
+            });
+
+          if (verifyError || !verifyResult?.success) {
+            console.error("verify-paypal-subscription failed:", verifyError, verifyResult);
+            setStatus("error");
+            setMessage(verifyResult?.error || verifyError?.message || "Could not verify subscription. Please contact support.");
+            setProcessing(false);
+            return;
+          }
+
+          const verifiedTier = verifyResult.tier as string | undefined;
+          const subscriptionStatus = verifyResult.subscription_status as string | undefined;
+          if (verifiedTier) setTier(verifiedTier);
+
+          if (subscriptionStatus === "active") {
+            const tierLabel = formatTierName(verifiedTier);
+            setStatus("success");
+            setMessage(`${tierLabel} membership activated successfully! Redirecting...`);
+            sessionStorage.removeItem("membership_subscription");
+            sessionStorage.removeItem("membership_upgrade");
+            toast({
+              title: `${tierLabel} Activated!`,
+              description: `Your ${tierLabel} membership has been activated. Redirecting to dashboard...`,
+            });
+            setTimeout(() => navigate("/dashboard"), 3000);
+          } else {
+            setStatus("processing");
+            setMessage("Subscription is approved and is being activated. Please wait a moment...");
+            setTimeout(handlePaymentReturn, 5000);
+            return;
+          }
+        } catch (error) {
+          console.error("Subscription verification error:", error);
+          setStatus("error");
+          setMessage(error instanceof Error ? error.message : "Failed to verify subscription status. Please contact support.");
+        }
+      }
       // Handle membership upgrade payment success (by upgrade_id OR paypal token)
-      if (paymentType === "success" && (upgradeId || paypalToken)) {
+      else if (paymentType === "success" && (upgradeId || paypalToken)) {
         try {
           const { data: verifyResult, error: verifyError } =
             await supabase.functions.invoke("verify-membership-upgrade", {
@@ -100,7 +170,7 @@ const PaymentStatusHandler: React.FC = () => {
           if (verifyError || !verifyResult?.success) {
             console.error("verify-membership-upgrade failed:", verifyError, verifyResult);
             setStatus("error");
-            setMessage("Could not verify payment. Please contact support.");
+            setMessage(verifyResult?.error || verifyError?.message || "Could not verify payment. Please contact support.");
             setProcessing(false);
             return;
           }
@@ -142,7 +212,7 @@ const PaymentStatusHandler: React.FC = () => {
         } catch (error) {
           console.error("Payment verification error:", error);
           setStatus("error");
-          setMessage("Failed to verify payment status. Please contact support.");
+          setMessage(error instanceof Error ? error.message : "Failed to verify payment status. Please contact support.");
         }
       }
       // Handle event payment
