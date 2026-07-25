@@ -371,10 +371,10 @@ const UserDirectMessagesTab: React.FC = () => {
     try {
       // Get current user's username
       const { data: currentUserData, error: userError } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("username")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (userError) throw userError;
 
