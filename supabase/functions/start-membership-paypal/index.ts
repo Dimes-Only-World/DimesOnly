@@ -199,6 +199,22 @@ serve(async (req) => {
 
     // Create PayPal order
     const customId = `membership_${upgrade.id}_user_${userId}_${tier}`;
+
+    // Append upgrade_id to return_url so it survives the PayPal round-trip
+    // even if sessionStorage is cleared (new tab, incognito, etc.)
+    const appendUpgradeId = (url: string | undefined): string | undefined => {
+      if (!url) return url;
+      try {
+        const u = new URL(url);
+        u.searchParams.set("upgrade_id", upgrade.id);
+        return u.toString();
+      } catch {
+        const sep = url.includes("?") ? "&" : "?";
+        return `${url}${sep}upgrade_id=${upgrade.id}`;
+      }
+    };
+    const finalReturnUrl = appendUpgradeId(return_url);
+
     const orderData = {
       intent: "CAPTURE",
       purchase_units: [
@@ -213,7 +229,7 @@ serve(async (req) => {
         },
       ],
       application_context: {
-        return_url: return_url,
+        return_url: finalReturnUrl,
         cancel_url: cancel_url,
         brand_name: "Dimes Only World",
         user_action: "PAY_NOW",
