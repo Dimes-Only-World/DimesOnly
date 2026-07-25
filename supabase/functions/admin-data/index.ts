@@ -705,6 +705,39 @@ serve(async (req) => {
         break;
       }
 
+      case 'updateEvent': {
+        const { eventId, updates } = params;
+        if (!eventId || !updates || typeof updates !== 'object') {
+          return new Response(
+            JSON.stringify({ error: 'eventId and updates required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('events')
+          .update(updates)
+          .eq('id', eventId)
+          .select()
+          .single();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
+      case 'deleteEvent': {
+        const { eventId } = params;
+        if (!eventId) {
+          return new Response(
+            JSON.stringify({ error: 'eventId required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { error } = await supabaseAdmin.from('events').delete().eq('id', eventId);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       default:
 
         return new Response(
