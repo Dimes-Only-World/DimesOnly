@@ -649,14 +649,27 @@ const updateData = {
 
       console.log("💾 Update data:", updateData);
 
-      const { error } = await supabase
-        .from("events")
-        .update(updateData)
-        .eq("id", editingEvent.id);
+      const adminUserId = getAdminUserId();
+      let updateError: any = null;
 
-      if (error) {
-        console.error("❌ Update error:", error);
-        throw error;
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "updateEvent", adminUserId, eventId: editingEvent.id, updates: updateData } }
+        );
+        if (fnError) updateError = fnError;
+        else if ((fnData as any)?.error) updateError = new Error((fnData as any).error);
+      } else {
+        const { error } = await supabase
+          .from("events")
+          .update(updateData)
+          .eq("id", editingEvent.id);
+        updateError = error;
+      }
+
+      if (updateError) {
+        console.error("❌ Update error:", updateError);
+        throw updateError;
       }
 
       console.log("✅ Event updated successfully");
