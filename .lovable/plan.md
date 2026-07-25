@@ -1,29 +1,15 @@
-The issue is that the date exists in the database and the deployed `public-data` edge function returns it, but the logged-in dashboard card can still render `—` because `UserDashboard` can overwrite the hydrated public profile with a stale/direct `users` table response or older sessionStorage data that does not include `created_at`.
+The database is not the problem: `ola` has a valid `created_at` in both `public.users` and `public_user_profiles`.
+
+The issue is the login/session data path:
+- `authenticate-user` does not select or return `created_at`.
+- `Login.tsx` saves `sessionStorage.userData` without `created_at`.
+- `AppContext.tsx` trusts that saved session data first and returns early, so after logout/login the dashboard can render from a user object that has no member date.
+- The profile hydration code tries to patch it later, but the app still has multiple auth/session paths that can overwrite or bypass the patched date.
 
 Plan:
-1. Centralize member-date hydration
-   - Add a small helper in `UserDashboard.tsx` that fetches `created_at` from `public_user_profiles` by user id.
-   - Use it whenever the loaded dashboard user is missing `created_at`.
-
-2. Prevent stale overwrites
-   - Update `fetchUserViaEdgeFunction` and `fetchUserDataById` so they merge new data with the previous `userData` instead of replacing it blindly.
-   - If the incoming row has no `created_at`, preserve the existing/hydrated `created_at`.
-
-3. Fix sessionStorage persistence
-   - When saving `userData`, always persist both `created_at` and `createdAt` so older custom-auth/sessionStorage paths can read the same value.
-   - This will stop the dashboard from showing `—` after login or refresh.
-
-4. Apply the same safety to the public profile page
-   - Keep the current direct `public_user_profiles` fallback in `Profile.tsx`.
-   - Ensure the fallback can also look up by username if id-based lookup ever fails.
-
-5. Verify
-   - Test `/dashboard/profile` for the logged-in user and `/profile/ola`.
-   - Confirm the Member Since card shows the real month/year instead of `—`.
-
-<presentation-actions>
-  <presentation-open-history>View History</presentation-open-history>
-</presentation-actions>
-<presentation-actions>
-<presentation-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</presentation-link>
-</presentation-actions>
+1. Update `authenticate-user` to include `created_at` in the safe returned user payload.
+2. Update `Login.tsx` to save both `created_at` and `createdAt` into the user object immediately after login.
+3. Update `Register.tsx` to save the created date after new signup so new sessions also have it.
+4. Harden `AppContext.tsx` so saved session data is treated as a fast first paint only, then it refreshes/merges canonical profile data instead of returning early with stale data.
+5. Keep the existing `ProfileSidebar` formatter, but ensure every dashboard/profile prop path receives a preserved `created_at` value.
+6. Verify by reproducing the exact sequence: login as `ola`, confirm Member Since, logout, log back in, confirm it still displays.
