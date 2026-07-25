@@ -103,7 +103,9 @@ serve(async (req) => {
 
         const { access_token } = await tokenResponse.json();
 
-        // Capture the payment
+        // Capture the payment. PayPal can resend/return to this handler after an
+        // order has already been captured, so make this idempotent instead of
+        // leaving the upgrade stuck in pending.
         const captureResponse = await fetch(
           `${PAYPAL_BASE_URL}/v2/checkout/orders/${orderId}/capture`,
           {
@@ -116,11 +118,69 @@ serve(async (req) => {
         );
 
         if (!captureResponse.ok) {
-          throw new Error("Failed to capture PayPal payment");
-        }
+          const captureErrorText = await captureResponse.text();
+          let captureError: any = null;
+          try {
+            captureError = JSON.parse(captureErrorText);
+          } catch {
+            captureError = { raw: captureErrorText };
+          }
 
-        const captureData = await captureResponse.json();
-        console.log("Payment captured:", captureData.id);
+          console.error("PayPal capture failed:", {
+            orderId,
+            status: captureResponse.status,
+            error: captureError,
+          });
+
+          const orderDetailsResponse = await fetch(
+            `${PAYPAL_BASE_URL}/v2/checkout/orders/${orderId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${access_token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          let orderDetails: any = null;
+          if (orderDetailsResponse.ok) {
+            orderDetails = await orderDetailsResponse.json();
+          } else {
+            const detailsError = await orderDetailsResponse.text();
+            console.error("Failed to fetch PayPal order details after capture failure:", {
+              orderId,
+              status: orderDetailsResponse.status,
+              error: detailsError,
+            });
+          }
+
+          const completedCapture = orderDetails?.purchase_units?.some?.((unit: any) =>
+            unit?.payments?.captures?.some?.((capture: any) => capture?.status === "COMPLETED")
+          );
+          const alreadyCaptured = captureError?.details?.some?.((detail: any) =>
+            detail?.issue === "ORDER_ALREADY_CAPTURED" ||
+            detail?.issue === "ORDER_ALREADY_COMPLETED" ||
+            detail?.description?.toLowerCase?.().includes("already captured")
+          );
+
+          if (orderDetails?.status === "COMPLETED" || completedCapture || alreadyCaptured) {
+            console.log("PayPal order already completed; continuing activation:", orderId);
+          } else {
+            throw new Error(
+              `Failed to capture PayPal payment: ${captureError?.message || captureError?.name || captureErrorText || captureResponse.status}`
+            );
+          }
+        } else {
+          const captureData = await captureResponse.json();
+          const completedCapture = captureData?.purchase_units?.some?.((unit: any) =>
+            unit?.payments?.captures?.some?.((capture: any) => capture?.status === "COMPLETED")
+          );
+          if (captureData?.status !== "COMPLETED" && !completedCapture) {
+            throw new Error(`PayPal capture was not completed. Status: ${captureData?.status || "unknown"}`);
+          }
+          console.log("Payment captured:", captureData.id);
+        }
       }
 
       // Update installment payment if applicable
