@@ -1,15 +1,29 @@
-## Issue
-The date exists in the database. For example, user `ola` has `created_at = 2025-10-25 06:48:44.4+00` in both `public.users` and `public_user_profiles`.
+The issue is that the date exists in the database and the deployed `public-data` edge function returns it, but the logged-in dashboard card can still render `—` because `UserDashboard` can overwrite the hydrated public profile with a stale/direct `users` table response or older sessionStorage data that does not include `created_at`.
 
-The issue is that not every frontend profile data path includes or preserves `created_at`:
+Plan:
+1. Centralize member-date hydration
+   - Add a small helper in `UserDashboard.tsx` that fetches `created_at` from `public_user_profiles` by user id.
+   - Use it whenever the loaded dashboard user is missing `created_at`.
 
-1. **Dashboard profile** starts from cached `sessionStorage` / app context data, and `normalizeStoredUser()` currently drops `created_at`, so `ProfileSidebar` receives no date and shows `—`.
-2. **Public profile page** (`/profile/:username`) uses the `public-data` edge function `fetchProfile`, but that edge function does not select `created_at`, and `Profile.tsx` does not include it in the profile type or render a Member Since value.
+2. Prevent stale overwrites
+   - Update `fetchUserViaEdgeFunction` and `fetchUserDataById` so they merge new data with the previous `userData` instead of replacing it blindly.
+   - If the incoming row has no `created_at`, preserve the existing/hydrated `created_at`.
 
-## Plan
-1. Update `UserDashboard.tsx` so `created_at` is included in normalized cached user data.
-2. Make dashboard profile hydration always merge a fresh profile row that includes `created_at`, then save the merged result back to `sessionStorage`.
-3. Update `supabase/functions/public-data/index.ts` so `fetchProfile` returns `created_at` for public profiles.
-4. Update `src/pages/Profile.tsx` to accept `created_at` and display a professional `Member Since` row/card using the same safe date formatting as the dashboard.
-5. Add a small shared date formatter or local helper so missing/invalid dates never show `Invalid Date`; valid dates display like `October 2025`.
-6. Verify both paths: logged-in dashboard profile and public profile pages should show the member date instead of `—`.
+3. Fix sessionStorage persistence
+   - When saving `userData`, always persist both `created_at` and `createdAt` so older custom-auth/sessionStorage paths can read the same value.
+   - This will stop the dashboard from showing `—` after login or refresh.
+
+4. Apply the same safety to the public profile page
+   - Keep the current direct `public_user_profiles` fallback in `Profile.tsx`.
+   - Ensure the fallback can also look up by username if id-based lookup ever fails.
+
+5. Verify
+   - Test `/dashboard/profile` for the logged-in user and `/profile/ola`.
+   - Confirm the Member Since card shows the real month/year instead of `—`.
+
+<presentation-actions>
+  <presentation-open-history>View History</presentation-open-history>
+</presentation-actions>
+<presentation-actions>
+<presentation-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</presentation-link>
+</presentation-actions>
