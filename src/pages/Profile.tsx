@@ -69,7 +69,7 @@ const Profile: React.FC = () => {
 
       if (error) throw error;
 
-      const data = response?.data;
+      let data = response?.data;
 
       if (!data) {
         toast({
@@ -79,6 +79,18 @@ const Profile: React.FC = () => {
         });
         navigate("/dashboard");
         return;
+      }
+
+      if (!data.created_at) {
+        const { data: publicProfileDate } = await supabase
+          .from("public_user_profiles")
+          .select("created_at")
+          .eq("id", data.id)
+          .maybeSingle();
+
+        if (publicProfileDate?.created_at) {
+          data = { ...data, created_at: publicProfileDate.created_at };
+        }
       }
 
       setProfile(data as UserProfile);
