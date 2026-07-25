@@ -317,7 +317,8 @@ Deno.serve(async (req) => {
         username: newUser.username,
         email: newUser.email,
         user_type: newUser.user_type,
-        membership_tier: newUser.membership_tier
+        membership_tier: newUser.membership_tier,
+        created_at: newUser.created_at
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

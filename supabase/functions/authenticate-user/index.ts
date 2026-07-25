@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
 
     // Normalize identifier and look up user by either username OR email (case-insensitive)
     const identifier = String(username).trim();
-    const SELECT_COLS = 'id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, password_hash, hash_type, is_active';
+    const SELECT_COLS = 'id, username, email, first_name, last_name, user_type, profile_photo, banner_photo, mobile_number, address, city, state, zip, gender, membership_type, membership_tier, tips_earned, referral_fees, overrides, weekly_hours, is_ranked, rank_number, created_at, password_hash, hash_type, is_active';
 
     // Escape commas/parens for PostgREST .or() filter
     const safe = identifier.replace(/[,()]/g, '');
@@ -258,12 +258,14 @@ Deno.serve(async (req) => {
         zip: user.zip,
         gender: user.gender,
         membership_type: user.membership_type,
+        membership_tier: user.membership_tier,
         tips_earned: user.tips_earned,
         referral_fees: user.referral_fees,
         overrides: user.overrides,
         weekly_hours: user.weekly_hours,
         is_ranked: user.is_ranked,
-        rank_number: user.rank_number
+        rank_number: user.rank_number,
+        created_at: user.created_at
       },
       token: 'authenticated'
     }), {

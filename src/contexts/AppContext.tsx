@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -8,6 +7,7 @@ interface User {
   username: string;
   email: string;
   created_at?: string;
+  createdAt?: string;
   firstName?: string;
   lastName?: string;
   userType?: string;
@@ -20,6 +20,7 @@ interface User {
   zip?: string;
   gender?: string;
   membershipType?: string;
+  membershipTier?: string;
   tipsEarned?: number;
   referralFees?: number;
   overrides?: number;
@@ -27,6 +28,58 @@ interface User {
   isRanked?: boolean;
   rankNumber?: number;
 }
+
+const normalizeUser = (raw: any): User | null => {
+  if (!raw?.id) return null;
+  const createdAt = String(raw.created_at || raw.createdAt || "");
+
+  return {
+    id: String(raw.id),
+    username: String(raw.username || ""),
+    email: String(raw.email || ""),
+    created_at: createdAt,
+    createdAt,
+    firstName: String(raw.firstName || raw.first_name || ""),
+    lastName: String(raw.lastName || raw.last_name || ""),
+    userType: String(raw.userType || raw.user_type || ""),
+    profilePhoto: String(raw.profilePhoto || raw.profile_photo || ""),
+    bannerPhoto: String(raw.bannerPhoto || raw.banner_photo || ""),
+    mobileNumber: String(raw.mobileNumber || raw.mobile_number || raw.phone_number || ""),
+    address: String(raw.address || ""),
+    city: String(raw.city || ""),
+    state: String(raw.state || ""),
+    zip: String(raw.zip || ""),
+    gender: String(raw.gender || ""),
+    membershipType: String(raw.membershipType || raw.membership_type || raw.membership_tier || ""),
+    membershipTier: String(raw.membershipTier || raw.membership_tier || raw.membership_type || ""),
+    tipsEarned: Number(raw.tipsEarned ?? raw.tips_earned ?? 0),
+    referralFees: Number(raw.referralFees ?? raw.referral_fees ?? 0),
+    overrides: Number(raw.overrides || 0),
+    weeklyHours: Number(raw.weeklyHours ?? raw.weekly_hours ?? 0),
+    isRanked: Boolean(raw.isRanked ?? raw.is_ranked ?? false),
+    rankNumber: Number(raw.rankNumber ?? raw.rank_number ?? 0),
+  };
+};
+
+const mergeUserData = (previous: User | null, incoming: any): User | null => {
+  const normalizedIncoming = normalizeUser(incoming);
+  if (!previous) return normalizedIncoming;
+  if (!normalizedIncoming) return previous;
+
+  const createdAt = normalizedIncoming.created_at || previous.created_at || previous.createdAt || "";
+  return {
+    ...previous,
+    ...normalizedIncoming,
+    created_at: createdAt,
+    createdAt,
+  };
+};
+
+const persistUserData = (user: User) => {
+  const normalized = normalizeUser(user) || user;
+  sessionStorage.setItem("userData", JSON.stringify(normalized));
+  sessionStorage.setItem("currentUser", normalized.username);
+};
 
 interface AppContextType {
   sidebarOpen: boolean;
@@ -101,31 +154,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         console.log("User data fetched from database:", userData);
-        const user: User = {
-          id: String((userData as any).id),
-          username: String((userData as any).username),
-          email: String((userData as any).email),
-          created_at: String((userData as any).created_at || ""),
-          firstName: String((userData as any).first_name || ""),
-          lastName: String((userData as any).last_name || ""),
-          userType: String((userData as any).user_type || ""),
-          profilePhoto: String((userData as any).profile_photo || ""),
-          bannerPhoto: String((userData as any).banner_photo || ""),
-          mobileNumber: String((userData as any).mobile_number || ""),
-          address: String((userData as any).address || ""),
-          city: String((userData as any).city || ""),
-          state: String((userData as any).state || ""),
-          zip: String((userData as any).zip || ""),
-          gender: String((userData as any).gender || ""),
-          membershipType: String((userData as any).membership_type || ""),
-          tipsEarned: Number((userData as any).tips_earned || 0),
-          referralFees: Number((userData as any).referral_fees || 0),
-          overrides: Number((userData as any).overrides || 0),
-          weeklyHours: Number((userData as any).weekly_hours || 0),
-          isRanked: Boolean((userData as any).is_ranked || false),
-          rankNumber: Number((userData as any).rank_number || 0),
-        };
-        return user;
+        return normalizeUser(userData);
       }
     } catch (error) {
       console.error("Error in fetchUserFromDatabase:", error);
@@ -146,15 +175,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const savedToken = localStorage.getItem("authToken");
         const savedUserData = sessionStorage.getItem("userData");
 
+        let savedUserId: string | null = null;
+
         if (savedToken && savedUserData) {
           try {
-            const userData = JSON.parse(savedUserData);
+            const userData = normalizeUser(JSON.parse(savedUserData));
             console.log("Found user data in session storage:", userData);
-            setUser(userData);
-            setLoading(false);
-            return;
+            if (userData) {
+              savedUserId = userData.id;
+              setUser(userData);
+              setLoading(false);
+            }
           } catch (e) {
             console.error("Error parsing saved user data:", e);
+          }
+        }
+
+        if (savedToken && savedUserId) {
+          const userData = await fetchUserFromDatabase(savedUserId);
+          if (userData) {
+            setUser((prev) => mergeUserData(prev, userData));
+            persistUserData(userData);
+            setLoading(false);
+            return;
           }
         }
 
@@ -165,6 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           const userData = await fetchUserFromDatabase(userId);
           if (userData) {
             setUser(userData);
+              persistUserData(userData);
             setLoading(false);
             return;
           }
@@ -179,6 +223,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             const userData = await fetchUserFromDatabase(session.user.id);
             if (userData) {
               setUser(userData);
+              persistUserData(userData);
               setLoading(false);
               return;
             }
@@ -199,8 +244,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           if (userData) {
             setUser(userData);
             // Save to session storage for future use
-            sessionStorage.setItem("userData", JSON.stringify(userData));
-            sessionStorage.setItem("currentUser", userData.username);
+            persistUserData(userData);
             localStorage.setItem("authToken", session.access_token);
           }
         } else {
@@ -220,8 +264,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // Save user data to session storage when it changes
   useEffect(() => {
     if (user) {
-      sessionStorage.setItem("userData", JSON.stringify(user));
-      sessionStorage.setItem("currentUser", user.username);
+      persistUserData(user);
     } else if (initialized && !loading) {
       sessionStorage.removeItem("userData");
       sessionStorage.removeItem("currentUser");
@@ -257,9 +300,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           const savedUserData = sessionStorage.getItem("userData");
           if (savedUserData) {
             try {
-              const parsed = JSON.parse(savedUserData);
+              const parsed = normalizeUser(JSON.parse(savedUserData));
               console.log("Auth state SIGNED_IN: loading user from sessionStorage");
-              setUser(parsed);
+              if (parsed) setUser((prev) => mergeUserData(prev, parsed));
             } catch (e) {
               console.error("Error parsing userData on SIGNED_IN:", e);
             }
