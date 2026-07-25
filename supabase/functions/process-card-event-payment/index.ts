@@ -315,3 +315,141 @@ serve(async (req) => {
     );
   }
 });
+
+// 20% direct + 10% upline commission for event ticket purchases.
+// Base = gross - ($0.50 + 2.75%). Idempotent per (referrer, payment_type, transaction_id).
+async function awardEventReferralCommissions(
+  supabase: any,
+  buyerId: string | null | undefined,
+  grossAmount: number,
+  eventId: string,
+  transactionId: string | null,
+) {
+  try {
+    if (!buyerId || !grossAmount || grossAmount <= 0) return;
+    const idempKey = transactionId || `${eventId}:${buyerId}`;
+
+    const { data: buyer } = await supabase
+      .from("users")
+      .select("id, referred_by")
+      .eq("id", buyerId)
+      .single();
+    if (!buyer?.referred_by) return;
+    const referrerUsername = String(buyer.referred_by).trim();
+    if (!referrerUsername || referrerUsername.toLowerCase() === "company") return;
+
+    const { data: referrer } = await supabase
+      .from("users")
+      .select("id, username, referred_by")
+      .ilike("username", referrerUsername)
+      .maybeSingle();
+    if (!referrer) return;
+
+    const net = Math.max(0, Number(grossAmount) - (0.5 + Number(grossAmount) * 0.0275));
+    const directAmt = Number((net * 0.20).toFixed(2));
+    const uplineAmt = Number((net * 0.10).toFixed(2));
+
+    const now = new Date();
+    const dow = now.getDay();
+    const daysToMonday = dow === 0 ? 6 : dow - 1;
+    const wkStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysToMonday);
+    const wkEnd = new Date(wkStart);
+    wkEnd.setDate(wkStart.getDate() + 6);
+    const ymd = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const wkStartStr = ymd(wkStart);
+    const wkEndStr = ymd(wkEnd);
+
+    const upsertWeekly = async (uid: string, amount: number) => {
+      const { data: existing } = await supabase
+        .from("weekly_earnings")
+        .select("id, referral_earnings, amount")
+        .eq("user_id", uid)
+        .eq("week_start", wkStartStr)
+        .maybeSingle();
+      if (existing) {
+        await supabase
+          .from("weekly_earnings")
+          .update({
+            referral_earnings: Number(existing.referral_earnings || 0) + amount,
+            amount: Number(existing.amount || 0) + amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("weekly_earnings").insert({
+          user_id: uid,
+          week_start: wkStartStr,
+          week_end: wkEndStr,
+          amount,
+          tip_earnings: 0,
+          referral_earnings: amount,
+          bonus_earnings: 0,
+        });
+      }
+    };
+
+    if (directAmt > 0) {
+      const { data: existingDirect } = await supabase
+        .from("payments")
+        .select("id")
+        .eq("user_id", referrer.id)
+        .eq("payment_type", "event_referral_commission")
+        .eq("paypal_transaction_id", idempKey)
+        .maybeSingle();
+      if (!existingDirect) {
+        const { error } = await supabase.from("payments").insert({
+          user_id: referrer.id,
+          event_id: eventId,
+          amount: directAmt,
+          payment_type: "event_referral_commission",
+          payment_status: "completed",
+          paypal_transaction_id: idempKey,
+          referred_by: referrer.username,
+          referrer_commission: directAmt,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        if (!error) await upsertWeekly(referrer.id, directAmt);
+        else console.error("event_referral_commission insert failed", error);
+      }
+    }
+
+    const uplineUsername = String(referrer.referred_by || "").trim();
+    if (uplineUsername && uplineUsername.toLowerCase() !== "company" && uplineAmt > 0) {
+      const { data: upline } = await supabase
+        .from("users")
+        .select("id, username")
+        .ilike("username", uplineUsername)
+        .maybeSingle();
+      if (upline?.id) {
+        const { data: existingUpline } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("user_id", upline.id)
+          .eq("payment_type", "event_upline_referral_commission")
+          .eq("paypal_transaction_id", idempKey)
+          .maybeSingle();
+        if (!existingUpline) {
+          const { error } = await supabase.from("payments").insert({
+            user_id: upline.id,
+            event_id: eventId,
+            amount: uplineAmt,
+            payment_type: "event_upline_referral_commission",
+            payment_status: "completed",
+            paypal_transaction_id: idempKey,
+            referred_by: upline.username,
+            referrer_commission: uplineAmt,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          if (!error) await upsertWeekly(upline.id, uplineAmt);
+          else console.error("event_upline_referral_commission insert failed", error);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("awardEventReferralCommissions error", e);
+  }
+}
+
