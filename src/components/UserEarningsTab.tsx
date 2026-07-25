@@ -47,6 +47,8 @@ import {
 import { useAppContext } from "@/contexts/AppContext";
 import PaymentStatus from "@/components/PaymentStatus";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
+import EventReferralsTab from "@/components/EventReferralsTab";
+
 import { useMobileLayout } from "@/hooks/use-mobile";
 
 const PERFORMER_RATE = 0.2;
