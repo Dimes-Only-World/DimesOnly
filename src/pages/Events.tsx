@@ -174,7 +174,7 @@ const Events: React.FC = () => {
   const fetchUserProfile = useCallback(async () => {
     try {
       const { data: profileData, error } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username, profile_photo, banner_photo, city, state, user_type")
         .ilike("username", username)
         .maybeSingle();
