@@ -114,7 +114,21 @@ const packages: Package[] = [
       "Come to season reunions free for updates and meet and greets to new celebrity host and cast members",
     ],
   },
+  {
+    id: "elite_plus",
+    name: "ELITE PLUS PACKAGE",
+    price: 15000.0,
+    badge: "LIFETIME OR 12-MO PLAN",
+    benefits: [
+      "ALL Elite benefits — permanently.",
+      "One-time $15,000 lifetime, or 12-month installment plan.",
+      "12-Month Plan: $1,500 first payment ($1,250 + $250 setup), then $1,250/mo × 11.",
+      "Full site access starts immediately after first payment.",
+      "Priority VIP treatment at every event and reunion.",
+    ],
+  },
 ];
+
 
 const fetchUserData = async (): Promise<UserData | null> => {
   const {
