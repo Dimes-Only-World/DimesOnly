@@ -306,7 +306,55 @@ Deno.serve(async (req) => {
       console.error('Failed to increment membership limits:', incrementError);
     }
 
+    // Notify the referrer that someone joined their Money Circle (non-critical)
+    try {
+      if (effectiveReferredBy && String(effectiveReferredBy).toLowerCase() !== 'company') {
+        const { data: referrer } = await supabaseClient
+          .from('users')
+          .select('id')
+          .ilike('username', String(effectiveReferredBy))
+          .maybeSingle();
+
+        if (referrer?.id) {
+          const notifyBody = {
+            user_id: referrer.id,
+            title: 'New Member in Your Money Circle',
+            message: `@${newUser.username} just joined using your referral link.`,
+            type: 'referral',
+            link: '/dashboard?tab=referrals',
+            push: true,
+          };
+
+          const notifyRes = await fetch(`${supabaseUrl}/functions/v1/send-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-internal-secret': Deno.env.get('NOTIFY_INTERNAL_SECRET') ?? '',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+            },
+            body: JSON.stringify(notifyBody),
+          });
+
+          if (!notifyRes.ok) {
+            console.error('Referrer notification failed', notifyRes.status, await notifyRes.text());
+            await supabaseClient.from('notifications').insert({
+              recipient_id: referrer.id,
+              user_id: referrer.id,
+              title: notifyBody.title,
+              message: notifyBody.message,
+              type: 'referral',
+              link: notifyBody.link,
+              is_read: false,
+            });
+          }
+        }
+      }
+    } catch (notifyError) {
+      console.error('Failed to notify referrer:', notifyError);
+    }
+
     console.log(`User registered successfully: ${newUser.username} from IP: ${clientIP}`);
+
 
     // Return success with user data needed for client
     return new Response(JSON.stringify({
