@@ -460,6 +460,41 @@ const UpgradePageInner: React.FC = () => {
             )}
 
             <AgreementModal />
+
+            <Dialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+              <DialogContent className="bg-gray-900 text-white border-red-500">
+                <DialogHeader>
+                  <DialogTitle className="text-red-400">Cancel subscription?</DialogTitle>
+                  <DialogDescription className="text-gray-300">
+                    You'll keep your <span className="capitalize font-semibold">{subscription?.tier}</span> benefits until{" "}
+                    {subscription?.next_billing_time
+                      ? new Date(subscription.next_billing_time).toLocaleDateString()
+                      : subscription?.membership_expires_at
+                        ? new Date(subscription.membership_expires_at).toLocaleDateString()
+                        : "the end of your current billing period"}
+                    . After that, your account will return to Silver.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="border-gray-500 text-gray-200 hover:bg-gray-800"
+                    onClick={() => setShowCancelConfirm(false)}
+                    disabled={cancelling}
+                  >
+                    Keep subscription
+                  </Button>
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={handleCancelSubscription}
+                    disabled={cancelling}
+                  >
+                    {cancelling ? "Cancelling…" : "Yes, cancel"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
           </div>
         </div>
       </AppLayout>
