@@ -73,8 +73,13 @@ serve(async (req) => {
           which = "PAYPAL_DIAMOND_MONTHLY_PLAN_ID/DIAMOND_MONTHLY_PLAN_ID";
         }
       } else if (tier === "elite") {
-        which = "PAYPAL_ELITE_MONTHLY_PLAN_ID/ELITE_MONTHLY_PLAN_ID";
+        which = cadence === "yearly"
+          ? "PAYPAL_ELITE_YEARLY_PLAN_ID/ELITE_YEARLY_PLAN_ID"
+          : "PAYPAL_ELITE_MONTHLY_PLAN_ID/ELITE_MONTHLY_PLAN_ID";
+      } else if (tier === "elite_plus" || tier === "elite_plus_installment") {
+        which = "PAYPAL_ELITE_PLUS_INSTALLMENT_PLAN_ID/ELITE_PLUS_INSTALLMENT_PLAN_ID";
       }
+
       return new Response(
         JSON.stringify({ success: false, error: `${which} is not set in Supabase Function secrets` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
