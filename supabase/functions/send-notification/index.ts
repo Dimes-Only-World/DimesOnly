@@ -8,6 +8,7 @@ const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY") ?? "";
 const INTERNAL_SECRET = Deno.env.get("NOTIFY_INTERNAL_SECRET") ?? "";
 
 const SITE_URL = "https://dimesonly.world";
+const DEFAULT_NOTIFICATION_ICON = `${SITE_URL}/notification-icon.png`;
 
 interface NotifyPayload {
   user_id?: string;
@@ -25,6 +26,28 @@ const json = (body: unknown, status = 200) =>
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+
+function toHttpsUrl(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return "";
+  try {
+    const url = new URL(raw, SITE_URL);
+    if (url.protocol !== "https:") return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function pickNotificationImage(data: Record<string, unknown>): string {
+  return (
+    toHttpsUrl(data.actor_photo_url) ||
+    toHttpsUrl(data.profile_photo_url) ||
+    toHttpsUrl(data.notification_icon) ||
+    toHttpsUrl(data.image_url) ||
+    toHttpsUrl(data.avatar_url)
+  );
+}
 
 async function sendPush(
   admin: ReturnType<typeof createClient>,
@@ -52,28 +75,50 @@ async function sendPush(
   const playerIds = (subs ?? []).map((s: { player_id: string }) => s.player_id).filter(Boolean);
   if (playerIds.length === 0) return { sent: false, reason: "no_devices" };
 
+  const profileImage = pickNotificationImage(data);
+  const notificationIcon = profileImage || DEFAULT_NOTIFICATION_ICON;
+  const notificationUrl = link ? `${SITE_URL}${link.startsWith("/") ? link : `/${link}`}` : SITE_URL;
+
   try {
-    const res = await fetch("https://onesignal.com/api/v1/notifications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
-      },
-      body: JSON.stringify({
+    const postToOneSignal = async (targetKey: "include_subscription_ids" | "include_player_ids") => {
+      const payload: Record<string, unknown> = {
         app_id: ONESIGNAL_APP_ID,
-        include_player_ids: playerIds,
+        [targetKey]: playerIds,
         headings: { en: title },
         contents: { en: message },
-        url: link ? `${SITE_URL}${link.startsWith("/") ? link : `/${link}`}` : SITE_URL,
-        // Brand logo on the lock screen / notification shade.
-        chrome_web_icon: `${SITE_URL}/notification-icon.png`,
-        chrome_web_badge: `${SITE_URL}/notification-icon.png`,
-        firefox_icon: `${SITE_URL}/notification-icon.png`,
-        large_icon: `${SITE_URL}/notification-icon.png`,
+        url: notificationUrl,
+        // Facebook-style web push where supported: the teammate's profile photo
+        // is the main notification icon; the Dimes logo remains the badge.
+        chrome_web_icon: notificationIcon,
+        chrome_web_badge: DEFAULT_NOTIFICATION_ICON,
+        firefox_icon: notificationIcon,
+        large_icon: notificationIcon,
         data,
-      }),
-    });
-    const body = await res.json().catch(() => ({}));
+      };
+
+      if (profileImage) {
+        payload.chrome_web_image = profileImage;
+        payload.big_picture = profileImage;
+      }
+
+      return fetch("https://onesignal.com/api/v1/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    };
+
+    let res = await postToOneSignal("include_subscription_ids");
+    let body = await res.json().catch(() => ({}));
+    if (!res.ok && res.status === 400) {
+      // Older OneSignal apps may still expect the legacy player-id field.
+      res = await postToOneSignal("include_player_ids");
+      body = await res.json().catch(() => ({}));
+    }
+
     if (!res.ok) {
       console.error("OneSignal error", res.status, JSON.stringify(body));
       return { sent: false, reason: `onesignal_${res.status}` };

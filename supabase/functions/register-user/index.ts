@@ -311,17 +311,29 @@ Deno.serve(async (req) => {
       if (effectiveReferredBy && String(effectiveReferredBy).toLowerCase() !== 'company') {
         const { data: referrer } = await supabaseClient
           .from('users')
-          .select('id')
+          .select('id, username, first_name')
           .ilike('username', String(effectiveReferredBy))
           .maybeSingle();
 
         if (referrer?.id) {
+          const teammateHandle = `@${newUser.username}`;
+          const referrerName = String(referrer.first_name || referrer.username || 'You').trim();
+          const teammateName = [newUser.first_name, newUser.last_name].filter(Boolean).join(' ').trim() || teammateHandle;
+          const teammatePhoto = newUser.profile_photo || newUser.front_page_photo || profilePhotoUrl || null;
           const notifyBody = {
             user_id: referrer.id,
-            title: 'New Member in Your Money Circle',
-            message: `@${newUser.username} just joined using your referral link.`,
+            title: `${teammateHandle} just joined using your referral link`,
+            message: `${referrerName}, ${teammateName} is now in your Money Circle.`,
             type: 'referral',
             link: '/dashboard?tab=referrals',
+            data: {
+              actor_user_id: newUser.id,
+              actor_username: newUser.username,
+              actor_name: teammateName,
+              actor_photo_url: teammatePhoto,
+              notification_icon: teammatePhoto,
+              referrer_username: referrer.username,
+            },
             push: true,
           };
 
@@ -344,6 +356,7 @@ Deno.serve(async (req) => {
               message: notifyBody.message,
               type: 'referral',
               link: notifyBody.link,
+              data: notifyBody.data,
               is_read: false,
             });
           }
