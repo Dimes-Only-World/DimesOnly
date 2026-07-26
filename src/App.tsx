@@ -53,6 +53,7 @@ import Feed from "./pages/Feed";
 import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
+import NotificationBell from "./components/NotificationBell";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
@@ -166,6 +167,7 @@ function AppContent() {
     <div className="App">
       <GARefTracker />
       <GlobalProfileButton />
+      <NotificationBell className="fixed top-3 right-3 z-[60]" />
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (
