@@ -1,19 +1,9 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from 'react-dom/client'
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import App from './App.tsx'
 import './index.css'
-
-// PayPal configuration - using hardcoded client ID since VITE_ env vars don't work in Lovable
-const PAYPAL_CLIENT_ID = "AaLUVAQ6EJeqS3dSFGIGkH9qcQ-HXJX3IhPcLG3SLUkiHMdG_V-_WJXcK4eFvJgJqF5LSCHRdxwzMqRt";
-
-const paypalOptions = {
-  clientId: PAYPAL_CLIENT_ID,
-  currency: "USD",
-  intent: "capture" as const,
-  // Defer loading to prevent blocking on mobile
-  "data-sdk-integration-source": "integrationbuilder_sc",
-};
+import { supabase } from './integrations/supabase/client'
 
 // Error boundary for PayPal issues
 class PayPalErrorBoundary extends React.Component<
@@ -34,39 +24,71 @@ class PayPalErrorBoundary extends React.Component<
   }
 
   render() {
-    if (this.state.hasError) {
-      // Render app without PayPal if it fails
-      return this.props.children;
-    }
     return this.props.children;
   }
 }
 
-// Loading fallback
 const LoadingFallback = () => (
-  <div style={{ 
-    minHeight: '100vh', 
-    display: 'flex', 
-    alignItems: 'center', 
+  <div style={{
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#000',
-    color: '#fff'
+    color: '#fff',
   }}>
     Loading...
   </div>
 );
 
+// Load PayPal client ID from the paypal-config edge function so the frontend
+// SDK always matches PAYPAL_ENVIRONMENT (sandbox/live) on the backend.
+const AppWithPayPal: React.FC = () => {
+  const [clientId, setClientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('paypal-config');
+        if (error) throw error;
+        if (!cancelled) setClientId(data?.clientId || '');
+      } catch (err) {
+        console.error('Failed to load PayPal config:', err);
+        if (!cancelled) setClientId('');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (clientId === null) return <LoadingFallback />;
+
+  if (!clientId) {
+    // PayPal not configured — render app anyway; PayPal buttons will be disabled.
+    return <App />;
+  }
+
+  return (
+    <PayPalScriptProvider
+      options={{
+        clientId,
+        currency: "USD",
+        intent: "capture" as const,
+        "data-sdk-integration-source": "integrationbuilder_sc",
+      }}
+      deferLoading={true}
+    >
+      <App />
+    </PayPalScriptProvider>
+  );
+};
+
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <PayPalErrorBoundary>
-      <PayPalScriptProvider 
-        options={paypalOptions}
-        deferLoading={true}
-      >
-        <Suspense fallback={<LoadingFallback />}>
-          <App />
-        </Suspense>
-      </PayPalScriptProvider>
+      <Suspense fallback={<LoadingFallback />}>
+        <AppWithPayPal />
+      </Suspense>
     </PayPalErrorBoundary>
   </React.StrictMode>
 );
