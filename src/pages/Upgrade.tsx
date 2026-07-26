@@ -148,12 +148,51 @@ const fetchUserData = async (): Promise<UserData | null> => {
   return profile as UserData;
 };
 
+const TIER_RANK: Record<string, number> = {
+  "": 0,
+  free: 0,
+  silver: 1,
+  silver_plus: 2,
+  gold: 3,
+  diamond: 4,
+  diamond_plus: 5,
+  elite: 6,
+  elite_plus: 7,
+};
+const rankOf = (t: string | null | undefined) => TIER_RANK[String(t || "").toLowerCase()] ?? 0;
+
+interface SubscriptionRow {
+  id: string;
+  subscription_id: string;
+  tier: string;
+  cadence: string;
+  status: string;
+  next_billing_time: string | null;
+  membership_expires_at: string | null;
+}
+
 const UpgradePageInner: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data: userData, isLoading: userLoading } = useQuery<UserData | null, Error>({
+  const { data: userData, isLoading: userLoading, refetch: refetchUser } = useQuery<UserData | null, Error>({
     queryKey: ["user"],
     queryFn: fetchUserData,
+  });
+
+  const { data: subscription, refetch: refetchSubscription } = useQuery<SubscriptionRow | null>({
+    queryKey: ["active-subscription", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscriptions" as any)
+        .select("id, subscription_id, tier, cadence, status, next_billing_time, membership_expires_at")
+        .eq("user_id", userData!.id)
+        .in("status", ["active", "cancelled"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as SubscriptionRow) || null;
+    },
   });
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
@@ -161,8 +200,32 @@ const UpgradePageInner: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [paymentOption, setPaymentOption] = useState<"full" | "installment">("full");
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const [showAgreement, setShowAgreement] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cancel-paypal-subscription", {
+        body: { subscription_row_id: subscription?.id },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Cancel failed");
+      const when = data.expires_at ? new Date(data.expires_at).toLocaleDateString() : "the end of your billing period";
+      toast({
+        title: "Subscription cancelled",
+        description: `You'll keep your benefits until ${when}.`,
+      });
+      setShowCancelConfirm(false);
+      await Promise.all([refetchSubscription(), refetchUser()]);
+    } catch (e: any) {
+      toast({ title: "Cancel failed", description: e?.message || "Please try again", variant: "destructive" });
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   // Calculate display prices based on selected cadence. Must be before any early returns.
   const displayPrice = useMemo(() => {
