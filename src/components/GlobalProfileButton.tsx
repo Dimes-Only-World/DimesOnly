@@ -12,7 +12,14 @@ const EXCLUDED_PREFIXES = [
   "/test-login",
   "/dashboard", // dashboard already has its own profile button in the header
   "/feed", // feed has its own home button
-
+  "/upgrade",
+  "/upgrade-silver",
+  "/upgrade-silver-plus",
+  "/upgrade-gold",
+  "/upgrade-diamond",
+  "/upgrade-diamond-monthly",
+  "/elite",
+  "/business-owner-elite",
 ];
 
 const EXCLUDED_EXACT = ["/", "/failsafe"];
