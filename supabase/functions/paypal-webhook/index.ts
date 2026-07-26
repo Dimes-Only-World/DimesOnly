@@ -221,16 +221,18 @@ serve(async (req) => {
 
       console.log("Payment updated successfully:", payment);
 
-      // Elite Yearly handling (one-time): when payment_type indicates elite yearly, grant lifetime and consume a seat
+      // Elite / Elite Plus lifetime one-time payments: grant lifetime + consume a seat
       try {
-        if ((payment?.payment_type || "").toLowerCase() === "elite_yearly") {
+        const pType = (payment?.payment_type || "").toLowerCase();
+        const isElitePlus = pType === "elite_plus_lifetime";
+        if (pType === "elite_yearly" || isElitePlus) {
           // Check seats availability
           const { data: seatStats } = await supabaseClient
             .from("elite_seat_stats")
             .select("seats_available, seats_taken")
             .single();
           if (!seatStats || seatStats.seats_available <= 0) {
-            console.error("Elite seats full at capture time; cannot assign seat for yearly purchase");
+            console.error("Elite seats full at capture time; cannot assign seat for lifetime purchase");
           } else {
             // See if user already has elite
             const { data: existing } = await supabaseClient
@@ -255,10 +257,9 @@ serve(async (req) => {
             }
 
             if (seatNumber == null) {
-              console.error("No seat available to assign for elite yearly");
+              console.error("No seat available to assign for elite lifetime purchase");
             } else {
               if (existing && existing.length > 0) {
-                // upgrade to lifetime
                 const { error: upd } = await supabaseClient
                   .from("elite_memberships")
                   .update({ status: "lifetime", lifetime_granted_at: new Date().toISOString(), seat_number: seatNumber })
@@ -278,18 +279,20 @@ serve(async (req) => {
                 if (ins) console.error("Failed to insert elite lifetime membership:", ins);
               }
 
-              // Reflect elite tier on user
+              // Reflect tier on user (elite vs elite_plus)
+              const tierValue = isElitePlus ? "elite_plus" : "elite";
               const { error: userErr } = await supabaseClient
                 .from("users")
-                .update({ membership_tier: "elite", updated_at: new Date().toISOString() })
+                .update({ membership_tier: tierValue, updated_at: new Date().toISOString() })
                 .eq("id", payment.user_id);
               if (userErr) console.error("Failed to set user elite tier:", userErr);
             }
           }
         }
       } catch (e) {
-        console.error("Elite yearly handling error:", e);
+        console.error("Elite lifetime handling error:", e);
       }
+
 
       // Add user to event only if this payment is for an event
       if (payment.event_id) {
