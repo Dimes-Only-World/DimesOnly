@@ -175,7 +175,44 @@ serve(async (req) => {
       } catch (e) {
         console.warn("Seat-cap preflight exception (ignored):", e);
       }
+    } else if (payment_type === "elite_plus_lifetime") {
+      // Elite Plus lifetime one-time payment ($15,000)
+      if (!user_id) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Missing required field for elite_plus_lifetime: user_id" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+        );
+      }
+      finalAmount = Number(amount ?? 15000.0);
+      if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid amount for elite_plus_lifetime" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+        );
+      }
+      orderDescription = "Elite Plus Membership - Lifetime";
+      customId = `elite_plus_lifetime_user_${user_id}`;
+      console.log("=== Elite Plus Lifetime Order Creation Started ===");
+
+      // Seat-cap preflight: shares 50-seat cap with elite
+      try {
+        const { data: seatStats, error: seatErr } = await supabase
+          .from("elite_seat_stats")
+          .select("seats_available")
+          .single();
+        if (seatErr) {
+          console.warn("Seat stats fetch failed (non-blocking):", seatErr?.message);
+        } else if (seatStats && typeof seatStats.seats_available === "number" && seatStats.seats_available <= 0) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Elite is full. No seats available.", code: "ELITE_FULL" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 },
+          );
+        }
+      } catch (e) {
+        console.warn("Seat-cap preflight exception (ignored):", e);
+      }
     } else {
+
       // Handle event ticket payment (existing logic)
       if (!event_id || !user_id) {
         throw new Error(
