@@ -44,7 +44,9 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="bg-white shadow-sm border-b sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-3 gap-3">
+            {/* pr-* keeps the logout button clear of the fixed notification bell */}
+            <div className="flex items-center justify-between py-3 gap-3 pr-14 sm:pr-16">
+
               <Link
                 to="/dashboard/profile"
                 aria-label="Go to your profile"

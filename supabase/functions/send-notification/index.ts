@@ -65,6 +65,11 @@ async function sendPush(
         headings: { en: title },
         contents: { en: message },
         url: link ? `${SITE_URL}${link.startsWith("/") ? link : `/${link}`}` : SITE_URL,
+        // Brand logo on the lock screen / notification shade.
+        chrome_web_icon: `${SITE_URL}/notification-icon.png`,
+        chrome_web_badge: `${SITE_URL}/notification-icon.png`,
+        firefox_icon: `${SITE_URL}/notification-icon.png`,
+        large_icon: `${SITE_URL}/notification-icon.png`,
         data,
       }),
     });
