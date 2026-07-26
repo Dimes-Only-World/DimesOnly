@@ -114,6 +114,9 @@ class AppErrorBoundary extends React.Component<
 function AppContent() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "/failsafe";
+  const hideNotificationBell = ["/", "/failsafe", "/login", "/register", "/adminlogin"].includes(
+    location.pathname,
+  );
 
   const routes = (
     <Routes>
@@ -167,7 +170,9 @@ function AppContent() {
     <div className="App">
       <GARefTracker />
       <GlobalProfileButton />
-      <NotificationBell className="fixed top-3 right-3 z-[60]" />
+      {!hideNotificationBell && (
+        <NotificationBell className="fixed top-3 right-3 z-[60]" />
+      )}
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (
