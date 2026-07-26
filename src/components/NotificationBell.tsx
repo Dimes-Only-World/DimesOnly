@@ -64,7 +64,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { pushState, enablePush, pushBusy } = useOneSignal(userId);
+  const { pushState, enablePush, pushBusy, pushError } = useOneSignal(userId);
 
   // Resolve identity (context, storage, or an active Supabase session).
   useEffect(() => {
@@ -213,25 +213,36 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
               </div>
             </div>
 
-            {(pushState === "default" || pushState === "denied") && (
-              <div className="flex items-center justify-between gap-3 border-b border-amber-400/10 bg-amber-400/5 px-4 py-2.5">
-                <p className="text-xs text-slate-300">
-                  {pushState === "denied"
-                    ? "Push blocked in your browser settings."
-                    : "Get alerts on your phone's lock screen."}
-                </p>
-                {pushState === "default" && (
-                  <button
-                    type="button"
-                    onClick={enablePush}
-                    disabled={pushBusy}
-                    className="shrink-0 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-950 hover:bg-amber-300 disabled:opacity-60"
-                  >
-                    {pushBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Enable"}
-                  </button>
-                )}
+            {(pushState === "default" || pushState === "denied" || pushError) && (
+              <div className="border-b border-amber-400/10 bg-amber-400/5 px-4 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs leading-snug text-slate-300">
+                    {pushState === "denied"
+                      ? "Push is blocked in your browser settings."
+                      : "Get alerts on your phone's lock screen."}
+                  </p>
+                  {pushState === "default" && (
+                    <button
+                      type="button"
+                      onClick={enablePush}
+                      disabled={pushBusy}
+                      className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {pushBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                      {pushBusy ? "Enabling…" : "Enable"}
+                    </button>
+                  )}
+                </div>
+                {pushError && <p className="mt-1.5 text-[11px] text-red-400">{pushError}</p>}
               </div>
             )}
+
+            {pushState === "granted" && (
+              <div className="flex items-center gap-2 border-b border-amber-400/10 bg-emerald-400/5 px-4 py-2 text-[11px] text-emerald-300">
+                <Check className="h-3.5 w-3.5" /> Lock-screen alerts are on for this device.
+              </div>
+            )}
+
 
             <div className="max-h-[55vh] overflow-y-auto sm:max-h-[420px]">
               {loading && items.length === 0 ? (
