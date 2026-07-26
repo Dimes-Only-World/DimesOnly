@@ -166,6 +166,7 @@ function AppContent() {
     <div className="App">
       <GARefTracker />
       <GlobalProfileButton />
+      <NotificationBell className="fixed top-3 right-3 z-[60]" />
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (
