@@ -64,7 +64,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { pushState, enablePush, pushBusy } = useOneSignal(userId);
+  const { pushState, enablePush, pushBusy, pushError } = useOneSignal(userId);
 
   // Resolve identity (context, storage, or an active Supabase session).
   useEffect(() => {
