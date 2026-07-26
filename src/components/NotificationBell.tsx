@@ -12,6 +12,7 @@ interface NotificationRow {
   message: string;
   type: string | null;
   link: string | null;
+  data: Record<string, unknown> | null;
   is_read: boolean | null;
   created_at: string | null;
 }
@@ -39,6 +40,18 @@ const TYPE_ACCENT: Record<string, string> = {
   membership: "bg-sky-400",
   admin: "bg-fuchsia-400",
   system: "bg-slate-400",
+};
+
+const getNotificationPhoto = (data: Record<string, unknown> | null) => {
+  if (!data) return "";
+  return String(
+    data.actor_photo_url ||
+      data.profile_photo_url ||
+      data.notification_icon ||
+      data.image_url ||
+      data.avatar_url ||
+      "",
+  );
 };
 
 const resolveUserId = (contextId?: string): string | null => {
@@ -94,7 +107,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
     try {
       const { data, error } = await supabase
         .from("notifications")
-        .select("id, title, message, type, link, is_read, created_at")
+        .select("id, title, message, type, link, data, is_read, created_at")
         .eq("recipient_id", userId)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -272,13 +285,32 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                           !n.is_read && "bg-amber-400/[0.06]",
                         )}
                       >
-                        <span
-                          className={cn(
-                            "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                            TYPE_ACCENT[String(n.type || "system")] || TYPE_ACCENT.system,
-                            n.is_read && "opacity-30",
-                          )}
-                        />
+                        {getNotificationPhoto(n.data) ? (
+                          <span className="relative mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-slate-800">
+                            <img
+                              src={getNotificationPhoto(n.data)}
+                              alt="Notification profile"
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                            {!n.is_read && (
+                              <span
+                                className={cn(
+                                  "absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-slate-950",
+                                  TYPE_ACCENT[String(n.type || "system")] || TYPE_ACCENT.system,
+                                )}
+                              />
+                            )}
+                          </span>
+                        ) : (
+                          <span
+                            className={cn(
+                              "mt-1.5 h-2 w-2 shrink-0 rounded-full",
+                              TYPE_ACCENT[String(n.type || "system")] || TYPE_ACCENT.system,
+                              n.is_read && "opacity-30",
+                            )}
+                          />
+                        )}
                         <div className="min-w-0 flex-1">
                           <p className={cn("truncate text-sm text-white", !n.is_read && "font-semibold")}>
                             {n.title}
