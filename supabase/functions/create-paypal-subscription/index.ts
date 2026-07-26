@@ -51,13 +51,11 @@ serve(async (req) => {
         planId = diamondMonthly;
       }
     } else if (tier === "elite") {
-      if (cadence !== "monthly") {
-        return new Response(
-          JSON.stringify({ success: false, error: "Elite yearly is not a subscription. Use one-time order path." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
-        );
-      }
-      planId = eliteMonthly;
+      planId = cadence === "yearly" ? eliteYearly : eliteMonthly;
+    } else if (tier === "elite_plus" || tier === "elite_plus_installment") {
+      // Elite Plus recurring path = installment plan (monthly). Yearly is one-time (order).
+      planId = elitePlusInstallment;
+
     } else {
       return new Response(
         JSON.stringify({ success: false, error: `Unsupported tier '${tier}'` }),
