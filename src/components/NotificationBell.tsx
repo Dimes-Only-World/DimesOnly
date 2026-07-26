@@ -213,15 +213,24 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
               </div>
             </div>
 
-            {(pushState === "default" || pushState === "denied" || pushError) && (
+            {pushState === "granted" ? (
+              <div className="border-b border-amber-400/10 bg-emerald-400/5 px-4 py-2">
+                <p className="flex items-center gap-2 text-[11px] text-emerald-300">
+                  <Check className="h-3.5 w-3.5 shrink-0" /> Lock-screen alerts are on for this device.
+                </p>
+                {pushError && <p className="mt-1 pl-5 text-[11px] text-amber-300/90">{pushError}</p>}
+              </div>
+            ) : (
               <div className="border-b border-amber-400/10 bg-amber-400/5 px-4 py-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs leading-snug text-slate-300">
                     {pushState === "denied"
                       ? "Push is blocked in your browser settings."
-                      : "Get alerts on your phone's lock screen."}
+                      : pushState === "unsupported"
+                        ? "This browser doesn't support lock-screen alerts."
+                        : "Get alerts on your phone's lock screen."}
                   </p>
-                  {pushState === "default" && (
+                  {(pushState === "default" || pushState === "unconfigured") && (
                     <button
                       type="button"
                       onClick={enablePush}
@@ -237,11 +246,6 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
               </div>
             )}
 
-            {pushState === "granted" && (
-              <div className="flex items-center gap-2 border-b border-amber-400/10 bg-emerald-400/5 px-4 py-2 text-[11px] text-emerald-300">
-                <Check className="h-3.5 w-3.5" /> Lock-screen alerts are on for this device.
-              </div>
-            )}
 
 
             <div className="max-h-[55vh] overflow-y-auto sm:max-h-[420px]">

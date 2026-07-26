@@ -226,30 +226,53 @@ export const useOneSignal = (userId?: string | null) => {
       }
       const OneSignal = await getOneSignal(appId);
       if (!OneSignal) {
-        setError("Couldn't reach the push service. Please try again.");
+        setError("Couldn't reach the push service. Please try again in a moment.");
         return;
       }
-      await OneSignal.login(userId);
-      await OneSignal.User?.PushSubscription?.optIn?.();
+
+      // Each of these can throw harmlessly (already logged in, already opted
+      // in, race with the SDK). None of them should surface an error to the
+      // user on their own — only a missing subscription id matters.
+      try {
+        await OneSignal.login(userId);
+      } catch (e) {
+        console.warn("OneSignal.login skipped", e);
+      }
+      try {
+        await OneSignal.User?.PushSubscription?.optIn?.();
+      } catch (e) {
+        console.warn("OneSignal optIn skipped", e);
+      }
 
       // The subscription id can take a moment to appear.
       let id: string | undefined;
-      for (let i = 0; i < 15 && !id; i += 1) {
+      for (let i = 0; i < 20 && !id; i += 1) {
         id = OneSignal.User?.PushSubscription?.id;
         if (!id) await new Promise((r) => setTimeout(r, 400));
       }
-      if (id) await saveSubscription(id, userId);
+
       OneSignal.User?.PushSubscription?.addEventListener?.("change", async () => {
         const next = OneSignal.User?.PushSubscription?.id;
-        if (next) await saveSubscription(next, userId);
+        if (next) {
+          await saveSubscription(next, userId);
+          if (mounted.current) setError(null);
+        }
       });
+
+      if (id) {
+        await saveSubscription(id, userId);
+        if (mounted.current) setError(null);
+      } else {
+        setError("Alerts are on for this browser, but this device is still registering. Reload the page if you don't get alerts.");
+      }
     } catch (e) {
       console.warn("enablePush failed", e);
-      setError("Something went wrong turning on alerts. Please try again.");
+      setError("Couldn't finish setting up alerts. Please reload and try again.");
     } finally {
       if (mounted.current) setBusy(false);
     }
   }, [supported, userId, busy, resolveAppId, saveSubscription]);
+
 
   return { pushState: state, enablePush, pushBusy: busy, pushError: error };
 };
