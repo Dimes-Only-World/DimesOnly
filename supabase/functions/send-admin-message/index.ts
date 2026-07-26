@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const INTERNAL_SECRET = Deno.env.get("NOTIFY_INTERNAL_SECRET") ?? "";
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Verify admin status
@@ -59,18 +60,40 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Insert notification
-      const preview = trimmedMessage.substring(0, 50) + (trimmedMessage.length > 50 ? "..." : "");
-      const { error: notifErr } = await supabase.from("notifications").insert({
-        recipient_id: recipientId,
-        title: "New Message from Admin",
-        message: `You have received a new message from the admin: "${preview}"`,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      });
-
-      if (notifErr) {
-        console.error(`Failed to send notification to ${recipientId}:`, notifErr);
+      // In-app notification + lock-screen push (never fails the message send)
+      const preview = trimmedMessage.substring(0, 80) + (trimmedMessage.length > 80 ? "..." : "");
+      try {
+        const notifyRes = await fetch(`${supabaseUrl}/functions/v1/send-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": INTERNAL_SECRET,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            user_id: recipientId,
+            title: "New Message from Admin",
+            message: preview,
+            type: "admin",
+            link: "/dashboard?tab=messages",
+            push: true,
+          }),
+        });
+        if (!notifyRes.ok) {
+          console.error("send-notification failed", notifyRes.status, await notifyRes.text());
+          // Fallback so the bell still shows something.
+          await supabase.from("notifications").insert({
+            recipient_id: recipientId,
+            user_id: recipientId,
+            title: "New Message from Admin",
+            message: preview,
+            type: "admin",
+            link: "/dashboard?tab=messages",
+            is_read: false,
+          });
+        }
+      } catch (e) {
+        console.error(`Notification dispatch failed for ${recipientId}:`, e);
       }
 
       successCount++;
