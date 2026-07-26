@@ -1762,38 +1762,47 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string | null
+          data: Json
           expires_at: string | null
           id: string
           is_read: boolean | null
+          link: string | null
           media_type: string | null
           media_url: string | null
           message: string
           recipient_id: string | null
           title: string
+          type: string
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
+          data?: Json
           expires_at?: string | null
           id?: string
           is_read?: boolean | null
+          link?: string | null
           media_type?: string | null
           media_url?: string | null
           message: string
           recipient_id?: string | null
           title: string
+          type?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
+          data?: Json
           expires_at?: string | null
           id?: string
           is_read?: boolean | null
+          link?: string | null
           media_type?: string | null
           media_url?: string | null
           message?: string
           recipient_id?: string | null
           title?: string
+          type?: string
           user_id?: string | null
         }
         Relationships: [
@@ -2152,6 +2161,33 @@ export type Database = {
           id?: string
           liker_user_id?: string
           profile_user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string
+          player_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform?: string
+          player_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string
+          player_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
