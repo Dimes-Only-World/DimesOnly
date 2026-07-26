@@ -114,7 +114,21 @@ const packages: Package[] = [
       "Come to season reunions free for updates and meet and greets to new celebrity host and cast members",
     ],
   },
+  {
+    id: "elite_plus",
+    name: "ELITE PLUS PACKAGE",
+    price: 15000.0,
+    badge: "LIFETIME OR 12-MO PLAN",
+    benefits: [
+      "ALL Elite benefits — permanently.",
+      "One-time $15,000 lifetime, or 12-month installment plan.",
+      "12-Month Plan: $1,500 first payment ($1,250 + $250 setup), then $1,250/mo × 11.",
+      "Full site access starts immediately after first payment.",
+      "Priority VIP treatment at every event and reunion.",
+    ],
+  },
 ];
+
 
 const fetchUserData = async (): Promise<UserData | null> => {
   const {
@@ -156,10 +170,12 @@ const UpgradePageInner: React.FC = () => {
       if (id === "silver") return cadence === "yearly" ? 49.99 : 4.99;
       if (id === "gold") return cadence === "yearly" ? 99.99 : 11.99;
       if (id === "diamond") return cadence === "yearly" ? 150.0 : 14.99;
-      if (id === "elite") return cadence === "yearly" ? 10000.0 : 846.33; // monthly shows per-month amount
+      if (id === "elite") return cadence === "yearly" ? 10000.0 : 861.75;
+      if (id === "elite_plus") return cadence === "yearly" ? 15000.0 : 1500.0; // monthly shows first-payment
       return 0;
     };
   }, [cadence]);
+
 
   const AgreementModal = () => (
     <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
@@ -263,7 +279,9 @@ const UpgradePageInner: React.FC = () => {
                       if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                       if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                       if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
-                      if (pkg.id === 'elite') return navigate(`/elite?cadence=${cadence}`);
+                      if (pkg.id === 'elite') return navigate(`/elite?tier=elite&cadence=${cadence}`);
+                      if (pkg.id === 'elite_plus') return navigate(`/elite?tier=elite_plus&cadence=${cadence}`);
+
                       // fallback to original behavior for other packages
                       setSelectedPackage(pkg);
                       setPaymentOption('full');
@@ -279,7 +297,11 @@ const UpgradePageInner: React.FC = () => {
                       <CardDescription className="text-3xl font-bold text-white whitespace-pre-line">
                         ${displayPrice(pkg.id).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         <span className="block text-xs text-gray-300 mt-1">
-                          {cadence === 'yearly' ? 'per year' : 'per month'}
+                          {pkg.id === 'elite_plus' && cadence === 'yearly'
+                            ? 'one-time lifetime'
+                            : pkg.id === 'elite_plus' && cadence === 'monthly'
+                              ? 'first payment • then $1,250/mo × 11'
+                              : cadence === 'yearly' ? 'per year' : 'per month'}
                         </span>
                       </CardDescription>
                       {pkg.badge && <Badge className="bg-red-600 text-white">{pkg.badge}</Badge>}
@@ -288,6 +310,7 @@ const UpgradePageInner: React.FC = () => {
                       {pkg.id === 'diamond' && cadence === 'yearly' && (
                         <p className="text-yellow-300 text-sm font-semibold">Billed as $53.25 every 4 months (3x per year)</p>
                       )}
+
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2 mb-6">

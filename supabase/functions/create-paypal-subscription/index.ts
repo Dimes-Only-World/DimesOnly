@@ -26,8 +26,11 @@ serve(async (req) => {
     // Diamond yearly options: Full (once per year) or Split every 4 months (3 cycles)
     const diamondYearlySplit = Deno.env.get("PAYPAL_DIAMOND_YEARLY_SPLIT_PLAN_ID") || Deno.env.get("DIAMOND_YEARLY_SPLIT_PLAN_ID");
     const diamondYearlyFull  = Deno.env.get("PAYPAL_DIAMOND_YEARLY_FULL_PLAN_ID")  || Deno.env.get("DIAMOND_YEARLY_FULL_PLAN_ID");
-    // Elite monthly (yearly handled by one-time order path)
+    // Elite monthly + Elite yearly (recurring) + Elite Plus installment (monthly)
     const eliteMonthly = Deno.env.get("PAYPAL_ELITE_MONTHLY_PLAN_ID") || Deno.env.get("ELITE_MONTHLY_PLAN_ID");
+    const eliteYearly  = Deno.env.get("PAYPAL_ELITE_YEARLY_PLAN_ID")  || Deno.env.get("ELITE_YEARLY_PLAN_ID");
+    const elitePlusInstallment = Deno.env.get("PAYPAL_ELITE_PLUS_INSTALLMENT_PLAN_ID") || Deno.env.get("ELITE_PLUS_INSTALLMENT_PLAN_ID");
+
 
     if (!paypalClientId || !paypalClientSecret) {
       throw new Error("Missing PayPal credentials");
@@ -48,13 +51,11 @@ serve(async (req) => {
         planId = diamondMonthly;
       }
     } else if (tier === "elite") {
-      if (cadence !== "monthly") {
-        return new Response(
-          JSON.stringify({ success: false, error: "Elite yearly is not a subscription. Use one-time order path." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
-        );
-      }
-      planId = eliteMonthly;
+      planId = cadence === "yearly" ? eliteYearly : eliteMonthly;
+    } else if (tier === "elite_plus" || tier === "elite_plus_installment") {
+      // Elite Plus recurring path = installment plan (monthly). Yearly is one-time (order).
+      planId = elitePlusInstallment;
+
     } else {
       return new Response(
         JSON.stringify({ success: false, error: `Unsupported tier '${tier}'` }),
@@ -72,8 +73,13 @@ serve(async (req) => {
           which = "PAYPAL_DIAMOND_MONTHLY_PLAN_ID/DIAMOND_MONTHLY_PLAN_ID";
         }
       } else if (tier === "elite") {
-        which = "PAYPAL_ELITE_MONTHLY_PLAN_ID/ELITE_MONTHLY_PLAN_ID";
+        which = cadence === "yearly"
+          ? "PAYPAL_ELITE_YEARLY_PLAN_ID/ELITE_YEARLY_PLAN_ID"
+          : "PAYPAL_ELITE_MONTHLY_PLAN_ID/ELITE_MONTHLY_PLAN_ID";
+      } else if (tier === "elite_plus" || tier === "elite_plus_installment") {
+        which = "PAYPAL_ELITE_PLUS_INSTALLMENT_PLAN_ID/ELITE_PLUS_INSTALLMENT_PLAN_ID";
       }
+
       return new Response(
         JSON.stringify({ success: false, error: `${which} is not set in Supabase Function secrets` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
