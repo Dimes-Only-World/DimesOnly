@@ -1,99 +1,77 @@
 ## Goal
 
-Two related changes on the membership upgrade experience:
+A single notification pipeline for DimesOnly.World: every important event writes a row users see in-app (bell + badge + list, updating live) and simultaneously fires a OneSignal web push to their phone.
 
-1. **Grey out lower tiers** on `src/pages/Upgrade.tsx` — any package at or below the user's current tier renders in the same locked state as the current plan.
-2. **Allow subscription cancellation** — the user can cancel a paid PayPal subscription from the Upgrade page. Cancellation stops future billing but keeps all tier benefits active until the current period ends; only then does the tier revert to Silver (the platform default).
+## What exists today
 
-## Part 1 — Grey out lower tiers
+- A `notifications` table already exists with `recipient_id`, `title`, `message`, `media_url`, `media_type`, `is_read`, `created_at`, `expires_at`. It has no `type`, `link`, or `data` column.
+- `UserNotificationsTab.tsx` already reads/marks/deletes notifications and already subscribes to Supabase Realtime on INSERT.
+- There is no bell in any header — notifications are only reachable via a dashboard tab.
+- No OneSignal code anywhere in the project.
 
-Ranks (low → high) applied to `userData.membership_tier` (lowercased):
+## Plan
 
-```text
-free / ""     → 0
-silver        → 1
-silver_plus   → 2   (lifetime variant of silver)
-gold          → 3
-diamond       → 4
-diamond_plus  → 5   (lifetime variant of diamond)
-elite         → 6
-elite_plus    → 7
-```
+### 1. Database
 
-Package IDs map to: silver=1, gold=3, diamond=4, elite=6, elite_plus=7.
+One migration that extends the existing table (keeps all current rows and code working):
 
-In `src/pages/Upgrade.tsx`, in the `packages.map(...)` block (~lines 265–339):
+- Add `type text default 'system'`, `link text`, `data jsonb default '{}'::jsonb`.
+- Add an index on `(recipient_id, is_read, created_at desc)` so the badge query is fast.
+- New table `push_subscriptions`: `user_id`, `player_id` (OneSignal subscription ID), `platform`, timestamps, unique on `player_id`. RLS so a user only manages their own rows; `service_role` full access for the sender.
+- Confirm/repair RLS on `notifications` so a user can only select/update/delete rows where `recipient_id = auth.uid()`, with `service_role` allowed to insert.
+- Enable Realtime on `notifications` if it isn't already in the publication.
 
-- Compute `currentRank` and `pkgRank` from the map; unknown → 0.
-- `isCurrent = currentRank === pkgRank`
-- `isBelow = pkgRank < currentRank` (new — the grey-out rule)
-- Keep `isSilverPlusLock` / `isDiamondPlusLock` so the "Lifetime Plus" copy still renders for those two cards.
-- `isLocked = isCurrent || isBelow || isSilverPlusLock || isDiamondPlusLock`
-- Card / button already react to `isLocked` (opacity, cursor, disabled, no-op onClick).
-- Extend the button label ternary: current → "Current plan"; SilverPlus/DiamondPlus lock → existing lifetime copy; `isBelow` → "Included in your plan"; else "UPGRADE NOW".
-- Header badge: when `isBelow && !isCurrent && !isSilverPlusLock && !isDiamondPlusLock`, show a neutral gray "Included" badge.
+### 2. Bell UI
 
-No pricing, routing, or checkout changes.
+New `src/components/NotificationBell.tsx`:
 
-## Part 2 — Cancel subscription
+- Gold bell icon on the dark background, 44×44px tap target, red badge with unread count (`9+` cap).
+- Opens a dropdown on desktop / full-width sheet on mobile listing the latest 20 notifications: title, message, relative time, unread dot, and a "Mark all read" action. Clicking an item marks it read and navigates to its `link`.
+- Subscribes to Realtime INSERT/UPDATE for the signed-in user so the badge and list update without refresh; unsubscribes on unmount.
+- Reads identity the same dual way the rest of the app does (Supabase session, falling back to the sessionStorage user) so it works right after login.
 
-### Behavior
+Placement: rendered next to the existing floating `GlobalProfileButton` (top-right, so it never overlaps the top-left avatar) and also in the `DashboardSectionLayout` header bar, using the same exclusion list as `GlobalProfileButton` so it stays off login/register/checkout pages.
 
-- Cancellation only applies to subscription tiers backed by a PayPal recurring plan (row exists in `public.subscriptions` for the user with `status = 'active'`). Lifetime purchases (silver_plus, diamond_plus, elite_plus lifetime, elite one-time) show no cancel action.
-- Clicking "Cancel subscription" calls PayPal to cancel the billing agreement, then marks the local subscription row `status = 'cancelled'` and stamps `membership_expires_at = next_billing_time` (fall back to `now() + 30 days` if `next_billing_time` is null).
-- The user's `users.membership_tier` / `membership_type` are **not** changed at cancel time — benefits stay live until expiry.
-- A background reconciliation (existing PayPal webhook path for `BILLING.SUBSCRIPTION.CANCELLED` / `BILLING.SUBSCRIPTION.EXPIRED` and a scheduled sweep of `subscriptions` where `status='cancelled' AND membership_expires_at <= now()`) downgrades the user to `silver` (default paid floor per project memory) once the paid period ends.
+### 3. OneSignal push
 
-### UI
+- Load the OneSignal Web SDK v16 and register the two service worker files in `public/`.
+- New `src/hooks/useOneSignal.ts`: initialises the SDK with the app ID, prompts for permission (soft prompt after login, not on first paint), then saves the returned subscription ID into `push_subscriptions` and calls `login(userId)` so OneSignal external IDs match Supabase user IDs.
+- A small "Enable push notifications" toggle inside the bell dropdown for users who dismissed the prompt.
 
-On `src/pages/Upgrade.tsx`, above the pricing grid, add a "Current subscription" panel that renders only when the user has a `subscriptions` row with `status IN ('active','cancelled')`:
+### 4. Reusable notify function
 
-- Active row: shows tier, cadence, "Next billing: {date}", and a red outline `Cancel subscription` button. Button opens a confirmation dialog explaining "You'll keep {tier} benefits until {membership_expires_at || next_billing_time}. After that your account returns to Silver."
-- Cancelled row: shows "Cancellation scheduled — {tier} benefits active until {membership_expires_at}", no cancel button, and (later, out of scope for this change) a re-activate action.
+New edge function `send-notification` (service role, JWT verified for user calls, internal calls allowed by shared secret):
 
-The cancel action calls a new edge function and, on success, refetches user + subscription state and toasts "Subscription cancelled — benefits active until {date}".
+- Input: `user_id` (or `user_ids`), `title`, `message`, `type`, `link`, `data`.
+- Inserts the row(s) into `notifications`, then looks up that user's `player_id`s and POSTs to the OneSignal REST API with the title, message, and a `url` deep link.
+- Push failures are logged but never fail the DB insert — the in-app notification always lands.
 
-### New edge function: `supabase/functions/cancel-paypal-subscription/index.ts`
+Wire it into the existing flows:
 
-- CORS + `verify_jwt = false` in code; validate the caller's Supabase JWT from the `Authorization` header (mirror the pattern in `verify-paypal-subscription`).
-- Body (Zod): `{ subscription_row_id?: string }` — optional; when omitted, cancel the caller's newest `status='active'` subscription row.
-- Steps:
-  1. Load the target row from `public.subscriptions` via service role; verify `user_id === caller`.
-  2. Get PayPal access token using `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` (env base URL chosen by `PAYPAL_ENVIRONMENT` — same helper the other PayPal functions already use).
-  3. `POST /v1/billing/subscriptions/{subscription_id}/cancel` with `{ reason: "User requested cancellation" }`. Treat HTTP 204 and "already cancelled" errors as success (idempotent).
-  4. Update the row: `status = 'cancelled'`, `membership_expires_at = COALESCE(next_billing_time, now() + interval '30 days')`, `updated_at = now()`.
-  5. Return `{ success: true, expires_at }`.
-- No changes to the `users` row here.
+| Event | Where it's called from |
+| --- | --- |
+| Referral commission earned | `process-tip`, `membership-webhook`, event payment handlers |
+| Tip received | `process-tip` |
+| Membership upgrade confirmed | `verify-membership-upgrade`, `paypal-subscription-webhook` |
+| Jackpot / contest win | `jackpot_run_draw` result handler |
+| Payout status change | `AdminPayoutTab` flow |
+| Admin message / broadcast | `AdminDirectMessageTab`, `AdminNotificationTab` |
 
-### Webhook / expiry handling
+### 5. Design
 
-In `supabase/functions/paypal-subscription-webhook/index.ts` (and `paypal-webhook/index.ts` if it also handles subscription events):
+Dark slate/purple surface, gold `#E916D1`-adjacent accent per the existing tokens, red badge, no hardcoded colour utilities — all through the existing semantic tokens.
 
-- On `BILLING.SUBSCRIPTION.CANCELLED`: mirror the same row update as the edge function above (idempotent) so PayPal-initiated cancels are captured.
-- On `BILLING.SUBSCRIPTION.EXPIRED` (or when `membership_expires_at <= now()` reached via the sweep below): set the user's `membership_tier = 'silver'`, `membership_type = 'Silver'`, clear tier-specific flags for that subscription's tier only, and mark the subscription row `status = 'expired'`. Do not touch lifetime flags (`silver_plus_active`, `diamond_plus_active`, `business_owner_elite_active`).
+## What I need from you
 
-Add a lightweight scheduled sweep — a new edge function `supabase/functions/subscriptions-sweep/index.ts` that:
-- Selects `subscriptions` where `status='cancelled' AND membership_expires_at <= now()`.
-- For each, downgrades the owning user as above and sets `status='expired'`.
-- Intended to be triggered by an existing scheduled job (pg_cron or the platform's cron); wiring the schedule itself is out of scope for this plan and will be noted for the user to enable once the function is deployed.
+Two OneSignal values, which I'll request through the secure secrets form once you approve:
 
-### Data / migrations
+- `VITE_ONESIGNAL_APP_ID` — public, used by the browser SDK
+- `ONESIGNAL_REST_API_KEY` — secret, used only inside the edge function
 
-No schema changes required — `public.subscriptions` already has `status`, `next_billing_time`, and `membership_expires_at`. No new columns, no new grants.
+If you don't have a OneSignal app yet: create one at onesignal.com → New App → Web Push → set the site URL to `https://dimesonly.world`, then copy the App ID and REST API Key from Settings → Keys & IDs.
 
-### Files touched
+## Technical notes
 
-- `src/pages/Upgrade.tsx` — grey-out logic + Current Subscription panel + cancel dialog + call to the new edge function.
-- `supabase/functions/cancel-paypal-subscription/index.ts` — new.
-- `supabase/functions/paypal-subscription-webhook/index.ts` — extend event handling for CANCELLED/EXPIRED (idempotent).
-- `supabase/functions/subscriptions-sweep/index.ts` — new, for time-based downgrade.
-
-### Secrets
-
-Uses existing `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENVIRONMENT`, and `SUPABASE_SERVICE_ROLE_KEY`. No new secrets.
-
-### Out of scope
-
-- Re-activating a cancelled subscription before expiry.
-- Prorated refunds.
-- Cancelling installment/one-time purchases (Elite Plus 12-month installment, Elite Yearly one-time, Elite Lifetime) — those are not recurring PayPal subscriptions and the panel simply won't offer cancel for them.
+- Existing `UserNotificationsTab` keeps working unchanged; it will just start showing the richer rows too.
+- Web push does not work on iOS Safari unless the site is installed to the home screen as a PWA — Android and desktop get lock-screen notifications immediately. I'll note this in the enable-push UI.
+- Service worker files must sit at the site root (`public/OneSignalSDKWorker.js`) to satisfy scope requirements.
