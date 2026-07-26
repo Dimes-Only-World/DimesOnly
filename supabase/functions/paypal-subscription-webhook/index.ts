@@ -796,25 +796,62 @@ serve(async (req) => {
       case "BILLING.SUBSCRIPTION.EXPIRED": {
         if (!subscriptionId) break;
         const status = evt.endsWith("CANCELLED") ? "cancelled" : evt.endsWith("SUSPENDED") ? "suspended" : "expired";
+
+        // Load current row first
+        const { data: subRow } = await supabase
+          .from("subscriptions")
+          .select("id, user_id, tier, cadence, next_billing_time, membership_expires_at")
+          .eq("subscription_id", subscriptionId)
+          .maybeSingle();
+
+        // For CANCELLED / SUSPENDED: preserve benefits until end of paid period.
+        // For EXPIRED: benefits end now — downgrade user (if still on this tier and no lifetime).
+        const nowIso = new Date().toISOString();
+        const updates: Record<string, unknown> = { status, updated_at: nowIso };
+        if (status === "cancelled" || status === "suspended") {
+          const existingExp = subRow?.membership_expires_at ? new Date(subRow.membership_expires_at).getTime() : 0;
+          const nextBill = subRow?.next_billing_time ? new Date(subRow.next_billing_time).getTime() : 0;
+          let expMs = Math.max(existingExp, nextBill);
+          if (!expMs || expMs <= Date.now()) expMs = Date.now() + 30 * 24 * 60 * 60 * 1000;
+          updates.membership_expires_at = new Date(expMs).toISOString();
+        }
         const { error: updErr } = await supabase
           .from("subscriptions")
-          .update({ status, updated_at: new Date().toISOString() })
+          .update(updates)
           .eq("subscription_id", subscriptionId);
         if (updErr) console.error("Failed to update subscription status:", updErr);
 
+        if (status === "expired" && subRow?.user_id && subRow?.tier) {
+          try {
+            const { data: user } = await supabase
+              .from("users")
+              .select("id, membership_tier, silver_plus_active, diamond_plus_active, business_owner_elite_active")
+              .eq("id", subRow.user_id)
+              .maybeSingle();
+            const stillOnTier =
+              user && String(user.membership_tier || "").toLowerCase() === String(subRow.tier).toLowerCase();
+            const hasLifetime =
+              Boolean(user?.silver_plus_active) ||
+              Boolean(user?.diamond_plus_active) ||
+              Boolean(user?.business_owner_elite_active);
+            if (stillOnTier && !hasLifetime) {
+              await supabase
+                .from("users")
+                .update({ membership_tier: "silver", membership_type: "Silver", updated_at: nowIso })
+                .eq("id", subRow.user_id);
+            }
+          } catch (e) {
+            console.error("Downgrade-on-expire error:", e);
+          }
+        }
+
         // Elite monthly: on cancel/suspend/expire before lifetime, free the seat and reset
         try {
-          // Load subscription to identify user and tier
-          const { data: sub } = await supabase
-            .from("subscriptions")
-            .select("user_id, tier, cadence")
-            .eq("subscription_id", subscriptionId)
-            .single();
-          if (sub && sub.user_id && sub.tier === "elite" && sub.cadence === "monthly") {
+          if (subRow && subRow.user_id && subRow.tier === "elite" && subRow.cadence === "monthly") {
             const { data: eliteActive } = await supabase
               .from("elite_memberships")
               .select("id, status, months_paid_count")
-              .eq("user_id", sub.user_id)
+              .eq("user_id", subRow.user_id)
               .in("status", ["monthly_active", "lifetime"]) as any;
             if (eliteActive && eliteActive.length > 0) {
               const m = eliteActive[0];

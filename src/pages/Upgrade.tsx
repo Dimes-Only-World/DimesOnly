@@ -148,12 +148,51 @@ const fetchUserData = async (): Promise<UserData | null> => {
   return profile as UserData;
 };
 
+const TIER_RANK: Record<string, number> = {
+  "": 0,
+  free: 0,
+  silver: 1,
+  silver_plus: 2,
+  gold: 3,
+  diamond: 4,
+  diamond_plus: 5,
+  elite: 6,
+  elite_plus: 7,
+};
+const rankOf = (t: string | null | undefined) => TIER_RANK[String(t || "").toLowerCase()] ?? 0;
+
+interface SubscriptionRow {
+  id: string;
+  subscription_id: string;
+  tier: string;
+  cadence: string;
+  status: string;
+  next_billing_time: string | null;
+  membership_expires_at: string | null;
+}
+
 const UpgradePageInner: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data: userData, isLoading: userLoading } = useQuery<UserData | null, Error>({
+  const { data: userData, isLoading: userLoading, refetch: refetchUser } = useQuery<UserData | null, Error>({
     queryKey: ["user"],
     queryFn: fetchUserData,
+  });
+
+  const { data: subscription, refetch: refetchSubscription } = useQuery<SubscriptionRow | null>({
+    queryKey: ["active-subscription", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscriptions" as any)
+        .select("id, subscription_id, tier, cadence, status, next_billing_time, membership_expires_at")
+        .eq("user_id", userData!.id)
+        .in("status", ["active", "cancelled"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as SubscriptionRow) || null;
+    },
   });
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
@@ -161,8 +200,32 @@ const UpgradePageInner: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [paymentOption, setPaymentOption] = useState<"full" | "installment">("full");
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const [showAgreement, setShowAgreement] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cancel-paypal-subscription", {
+        body: { subscription_row_id: subscription?.id },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Cancel failed");
+      const when = data.expires_at ? new Date(data.expires_at).toLocaleDateString() : "the end of your billing period";
+      toast({
+        title: "Subscription cancelled",
+        description: `You'll keep your benefits until ${when}.`,
+      });
+      setShowCancelConfirm(false);
+      await Promise.all([refetchSubscription(), refetchUser()]);
+    } catch (e: any) {
+      toast({ title: "Cancel failed", description: e?.message || "Please try again", variant: "destructive" });
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   // Calculate display prices based on selected cadence. Must be before any early returns.
   const displayPrice = useMemo(() => {
@@ -261,21 +324,62 @@ const UpgradePageInner: React.FC = () => {
                 </button>
               </div>
             </div>
+            {subscription && (
+              <Card className="bg-black/80 border-2 border-fuchsia-500 text-white mb-6">
+                <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-gray-300">Current subscription</p>
+                    <p className="text-xl font-bold capitalize">
+                      {subscription.tier} · {subscription.cadence}
+                    </p>
+                    {subscription.status === "cancelled" ? (
+                      <p className="text-yellow-300 text-sm mt-1">
+                        Cancellation scheduled — benefits active until{" "}
+                        {subscription.membership_expires_at
+                          ? new Date(subscription.membership_expires_at).toLocaleDateString()
+                          : "end of billing period"}
+                        .
+                      </p>
+                    ) : (
+                      <p className="text-gray-300 text-sm mt-1">
+                        Next billing:{" "}
+                        {subscription.next_billing_time
+                          ? new Date(subscription.next_billing_time).toLocaleDateString()
+                          : "—"}
+                      </p>
+                    )}
+                  </div>
+                  {subscription.status === "active" && (
+                    <Button
+                      variant="outline"
+                      className="border-red-500 text-red-400 hover:bg-red-500/20"
+                      onClick={() => setShowCancelConfirm(true)}
+                    >
+                      Cancel subscription
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {packages.map((pkg) => {
                 const tier = userData?.membership_tier?.toLowerCase() || '';
+                const currentRank = rankOf(tier);
+                const pkgRank = rankOf(pkg.id);
                 const isCurrent = tier === pkg.id;
                 const isSilverPlusLock = tier === 'silver_plus' && pkg.id === 'silver';
                 const isDiamondPlusLock = tier === 'diamond_plus' && pkg.id === 'diamond';
-                const isLocked = isCurrent || isSilverPlusLock || isDiamondPlusLock;
+                const isBelow = !isCurrent && !isSilverPlusLock && !isDiamondPlusLock && pkgRank < currentRank;
+                const isLocked = isCurrent || isBelow || isSilverPlusLock || isDiamondPlusLock;
                 return (
                   <Card
                     key={pkg.id}
                     className={`bg-black/80 border-2 border-pink-500 text-white transition-transform ${
-                      isLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:scale-105'
+                      isLocked ? 'opacity-60 cursor-not-allowed grayscale' : 'cursor-pointer hover:scale-105'
                     }`}
                     onClick={() => {
-                      if (isLocked) return; // disable navigation for current or lifetime plus
+                      if (isLocked) return; // disable navigation for current, lower tiers, or lifetime plus
                       if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                       if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                       if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
@@ -293,6 +397,7 @@ const UpgradePageInner: React.FC = () => {
                         <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
                         {isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>}
                         {(isSilverPlusLock || isDiamondPlusLock) && <Badge variant="secondary" className="bg-gray-700 text-white">Lifetime Plus</Badge>}
+                        {isBelow && <Badge variant="secondary" className="bg-gray-700 text-white">Included</Badge>}
                       </div>
                       <CardDescription className="text-3xl font-bold text-white whitespace-pre-line">
                         ${displayPrice(pkg.id).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -331,13 +436,16 @@ const UpgradePageInner: React.FC = () => {
                             ? 'You are Silver Plus member (lifetime)'
                             : isDiamondPlusLock
                               ? 'You are Diamond Plus member (lifetime)'
-                              : 'UPGRADE NOW'}
+                              : isBelow
+                                ? 'Included in your plan'
+                                : 'UPGRADE NOW'}
                       </Button>
                     </CardContent>
                   </Card>
                 );
               })}
             </div>
+
 
             {userData && ["stripper", "exotic"].includes(userData.user_type) && (
               <div className="text-center mt-12">
@@ -352,6 +460,41 @@ const UpgradePageInner: React.FC = () => {
             )}
 
             <AgreementModal />
+
+            <Dialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+              <DialogContent className="bg-gray-900 text-white border-red-500">
+                <DialogHeader>
+                  <DialogTitle className="text-red-400">Cancel subscription?</DialogTitle>
+                  <DialogDescription className="text-gray-300">
+                    You'll keep your <span className="capitalize font-semibold">{subscription?.tier}</span> benefits until{" "}
+                    {subscription?.next_billing_time
+                      ? new Date(subscription.next_billing_time).toLocaleDateString()
+                      : subscription?.membership_expires_at
+                        ? new Date(subscription.membership_expires_at).toLocaleDateString()
+                        : "the end of your current billing period"}
+                    . After that, your account will return to Silver.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="border-gray-500 text-gray-200 hover:bg-gray-800"
+                    onClick={() => setShowCancelConfirm(false)}
+                    disabled={cancelling}
+                  >
+                    Keep subscription
+                  </Button>
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={handleCancelSubscription}
+                    disabled={cancelling}
+                  >
+                    {cancelling ? "Cancelling…" : "Yes, cancel"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
           </div>
         </div>
       </AppLayout>
