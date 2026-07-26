@@ -26,14 +26,13 @@ const loadSdk = () => {
     // The deferred queue must exist *before* the SDK script executes.
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${SDK_SRC}"]`);
-    const target = existing ?? document.createElement("script");
+    if (existing) return resolve();
+    const target = document.createElement("script");
     target.addEventListener("load", () => resolve());
     target.addEventListener("error", () => reject(new Error("OneSignal SDK failed to load")));
-    if (!existing) {
-      target.src = SDK_SRC;
-      target.defer = true;
-      document.head.appendChild(target);
-    }
+    target.src = SDK_SRC;
+    target.defer = true;
+    document.head.appendChild(target);
   }).catch((e) => {
     sdkPromise = null;
     throw e;
