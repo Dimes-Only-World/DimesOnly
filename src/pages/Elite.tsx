@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import AuthGuard from "@/components/AuthGuard";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
@@ -26,11 +25,19 @@ const fetchSeatStats = async (): Promise<SeatStats> => {
   return data as SeatStats;
 };
 
+type Tier = "elite" | "elite_plus";
+type Cadence = "monthly" | "yearly";
+
 const Elite: React.FC = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const selectedCadence = (searchParams.get("cadence") || "monthly").toLowerCase();
+  const tier = ((searchParams.get("tier") || "elite").toLowerCase() === "elite_plus"
+    ? "elite_plus"
+    : "elite") as Tier;
+  const cadence = ((searchParams.get("cadence") || "monthly").toLowerCase() === "yearly"
+    ? "yearly"
+    : "monthly") as Cadence;
+
   const { data: stats, isLoading, isError, refetch } = useQuery<SeatStats, Error>({
     queryKey: ["elite-seat-stats"],
     queryFn: fetchSeatStats,
@@ -41,17 +48,44 @@ const Elite: React.FC = () => {
   const full = seatsAvailable <= 0;
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const monthlyRef = React.useRef<HTMLDivElement | null>(null);
-  const yearlyRef = React.useRef<HTMLDivElement | null>(null);
 
-  const AMOUNT = selectedCadence === "yearly" ? 10000.0 : 846.33;
+  // Pricing matrix
+  const AMOUNT =
+    tier === "elite"
+      ? cadence === "yearly" ? 10000.0 : 861.75
+      : cadence === "yearly" ? 15000.0 : 1500.0; // elite_plus monthly = first-payment ($1,250 + $250 setup)
 
-  React.useEffect(() => {
-    const target = selectedCadence === "yearly" ? yearlyRef.current : monthlyRef.current;
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [selectedCadence]);
+  const titleText =
+    tier === "elite_plus"
+      ? cadence === "yearly" ? "Elite Plus — Lifetime" : "Elite Plus — 12-Month Plan"
+      : cadence === "yearly" ? "Elite — Annual" : "Elite — Monthly";
+
+  const subText =
+    tier === "elite_plus" && cadence === "yearly"
+      ? "One-time $15,000 payment → lifetime access immediately."
+      : tier === "elite_plus" && cadence === "monthly"
+        ? "$1,500 first payment (includes $250 setup fee), then $1,250/mo × 11. Full access starts immediately."
+        : tier === "elite" && cadence === "yearly"
+          ? "$10,000 billed annually. Recurring subscription."
+          : "$861.75 billed every month. Recurring subscription.";
+
+  const priceDisplay =
+    tier === "elite_plus" && cadence === "yearly"
+      ? "$15,000"
+      : tier === "elite_plus" && cadence === "monthly"
+        ? "$1,500 today"
+        : tier === "elite" && cadence === "yearly"
+          ? "$10,000/yr"
+          : "$861.75/mo";
+
+  const paypalLabel =
+    tier === "elite_plus" && cadence === "yearly"
+      ? "Buy Lifetime — $15,000"
+      : tier === "elite_plus" && cadence === "monthly"
+        ? "Start 12-Month Plan — $1,500 today"
+        : tier === "elite" && cadence === "yearly"
+          ? "Subscribe Annually — $10,000/yr"
+          : "Subscribe Monthly — $861.75/mo";
 
   const resolveUserId = async (): Promise<string | null> => {
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -62,7 +96,7 @@ const Elite: React.FC = () => {
     return user?.id ?? null;
   };
 
-  const handlePayPal = async () => {
+  const startPayment = async (fundingSource: "paypal" | "paylater" | "card") => {
     if (full) return;
     if (!phoneNumber) {
       toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
@@ -76,191 +110,87 @@ const Elite: React.FC = () => {
 
       await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
 
-      if (selectedCadence === "yearly") {
-        // One-time payment for lifetime
-        const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=elite&cadence=yearly`;
-        const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=elite&cadence=yearly`;
+      const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=${tier}&cadence=${cadence}`;
+      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=${tier}&cadence=${cadence}`;
 
+      // Path selection
+      // - elite_plus + yearly: one-time PayPal order (create-paypal-order, elite_plus_lifetime)
+      // - card funding on any path: start-membership-paypal (redirect)
+      // - elite monthly/yearly + elite_plus monthly: PayPal subscription (create-paypal-subscription)
+      if (fundingSource === "card") {
+        const { data, error } = await supabase.functions.invoke("start-membership-paypal", {
+          body: {
+            user_id: userId,
+            tier: tier === "elite_plus" && cadence === "monthly" ? "elite_plus_installment" : tier === "elite_plus" ? "elite_plus" : "elite",
+            amount: AMOUNT,
+            cadence,
+            phone_number: phoneNumber,
+            payment_method: "paypal_card",
+            return_url: returnUrl,
+            cancel_url: cancelUrl,
+          },
+        });
+        if (error) throw error;
+        if (!data?.success || !data?.approval_url) throw new Error(data?.error || "Failed to create payment");
+        sessionStorage.setItem("membership_upgrade", JSON.stringify({
+          upgrade_id: data.upgrade_id, tier, cadence,
+        }));
+        window.location.href = data.approval_url + "&fundingSource=card";
+        return;
+      }
+
+      if (tier === "elite_plus" && cadence === "yearly") {
+        // One-time $15,000 order
         const { data, error } = await supabase.functions.invoke("create-paypal-order", {
           body: {
-            payment_type: "elite_yearly",
+            payment_type: "elite_plus_lifetime",
             user_id: userId,
             amount: AMOUNT,
             return_url: returnUrl,
             cancel_url: cancelUrl,
-            description: "Elite Membership - Lifetime",
+            description: "Elite Plus - Lifetime ($15,000)",
           },
         });
-
         if (error) throw error;
-        if (!data?.success || !data?.approval_url) {
-          throw new Error(data?.error || "Failed to create order");
-        }
-
-        toast({ title: "Redirecting to PayPal", description: "Approve your Elite lifetime purchase" });
-        window.location.href = data.approval_url as string;
-      } else {
-        // Monthly subscription
-        const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=elite&cadence=monthly`;
-        const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=elite&cadence=monthly`;
-
-        const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
-          body: {
-            user_id: userId,
-            tier: "elite",
-            cadence: "monthly",
-            return_url: returnUrl,
-            cancel_url: cancelUrl,
-            description: "Elite Membership - Monthly Subscription",
-          },
-        });
-
-        if (error) throw error;
-        if (!data?.success || !data?.approval_url) {
-          throw new Error(data?.error || "Failed to create subscription");
-        }
-
-        sessionStorage.removeItem("membership_upgrade");
-        sessionStorage.setItem("membership_subscription", JSON.stringify({
-          subscription_id: data.subscription_id,
-          user_id: userId,
-          tier: "elite",
-          cadence: "monthly",
-        }));
-
-        toast({ title: "Redirecting to PayPal", description: "Approve your Elite subscription" });
-        window.location.href = data.approval_url as string;
+        if (!data?.success || !data?.approval_url) throw new Error(data?.error || "Failed to create order");
+        toast({ title: "Redirecting to PayPal", description: "Approve your Elite Plus lifetime purchase" });
+        const suffix = fundingSource === "paylater" ? "&fundingSource=paylater" : "";
+        window.location.href = (data.approval_url as string) + suffix;
+        return;
       }
-    } catch (e: any) {
-      console.error("Elite payment error", e);
-      toast({ title: "Payment error", description: e?.message || "Failed to process payment", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handlePayLater = async () => {
-    if (full) return;
-    if (!phoneNumber) {
-      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
-      return;
-    }
+      // Recurring subscription path
+      // elite monthly/yearly OR elite_plus monthly installment plan
+      const subTier = tier === "elite_plus" ? "elite_plus_installment" : "elite";
+      const subCadence = tier === "elite_plus" ? "monthly" : cadence;
 
-    setLoading(true);
-    try {
-      const userId = await resolveUserId();
-      if (!userId) return;
-
-      await supabase.from("users").update({ phone_number: phoneNumber }).eq("id", userId);
-
-      if (selectedCadence === "yearly") {
-        const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=elite&cadence=yearly`;
-        const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=elite&cadence=yearly`;
-
-        const { data, error } = await supabase.functions.invoke("create-paypal-order", {
-          body: {
-            payment_type: "elite_yearly",
-            user_id: userId,
-            amount: AMOUNT,
-            return_url: returnUrl,
-            cancel_url: cancelUrl,
-            description: "Elite Membership - Lifetime",
-          },
-        });
-
-        if (error) throw error;
-        if (!data?.success || !data?.approval_url) {
-          throw new Error(data?.error || "Failed to create order");
-        }
-
-        toast({ title: "Redirecting to PayPal", description: "Approve your Elite lifetime purchase" });
-        const approvalUrl = data.approval_url + "&fundingSource=paylater";
-        window.location.href = approvalUrl;
-      } else {
-        const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=elite&cadence=monthly`;
-        const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=elite&cadence=monthly`;
-
-        const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
-          body: {
-            user_id: userId,
-            tier: "elite",
-            cadence: "monthly",
-            return_url: returnUrl,
-            cancel_url: cancelUrl,
-            description: "Elite Membership - Monthly Subscription",
-          },
-        });
-
-        if (error) throw error;
-        if (!data?.success || !data?.approval_url) {
-          throw new Error(data?.error || "Failed to create subscription");
-        }
-
-        sessionStorage.removeItem("membership_upgrade");
-        sessionStorage.setItem("membership_subscription", JSON.stringify({
-          subscription_id: data.subscription_id,
-          user_id: userId,
-          tier: "elite",
-          cadence: "monthly",
-        }));
-
-        toast({ title: "Redirecting to PayPal", description: "Approve your Elite subscription" });
-        const approvalUrl = data.approval_url + "&fundingSource=paylater";
-        window.location.href = approvalUrl;
-      }
-    } catch (e: any) {
-      console.error("Elite payment error", e);
-      toast({ title: "Payment error", description: e?.message || "Failed to process payment", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCardRedirect = async () => {
-    if (full) return;
-    if (!phoneNumber) {
-      toast({ title: "Missing Information", description: "Please provide your phone number", variant: "destructive" });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const userId = await resolveUserId();
-      if (!userId) return;
-
-      const returnUrl = `${window.location.origin}/payment-return?payment=success&tier=elite&cadence=${selectedCadence}`;
-      const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled&tier=elite&cadence=${selectedCadence}`;
-
-      const { data, error } = await supabase.functions.invoke("start-membership-paypal", {
+      const { data, error } = await supabase.functions.invoke("create-paypal-subscription", {
         body: {
           user_id: userId,
-          tier: "elite",
-          amount: AMOUNT,
-          cadence: selectedCadence,
-          phone_number: phoneNumber,
-          payment_method: "paypal_card",
+          tier: subTier,
+          cadence: subCadence,
           return_url: returnUrl,
           cancel_url: cancelUrl,
+          description: titleText,
         },
       });
-
       if (error) throw error;
-      if (!data?.success || !data?.approval_url) {
-        throw new Error(data?.error || "Failed to create payment");
-      }
+      if (!data?.success || !data?.approval_url) throw new Error(data?.error || "Failed to create subscription");
 
-      sessionStorage.setItem("membership_upgrade", JSON.stringify({
-        upgrade_id: data.upgrade_id,
-        tier: "elite",
-        cadence: selectedCadence,
+      sessionStorage.removeItem("membership_upgrade");
+      sessionStorage.setItem("membership_subscription", JSON.stringify({
+        subscription_id: data.subscription_id,
+        user_id: userId,
+        tier: subTier,
+        cadence: subCadence,
       }));
 
-      toast({ title: "Redirecting to PayPal", description: "Complete card payment on PayPal..." });
-      const approvalUrl = data.approval_url + "&fundingSource=card";
-      window.location.href = approvalUrl;
-    } catch (error: any) {
-      console.error("Card redirect error:", error);
-      toast({ title: "Payment Error", description: error.message || "Failed to start card payment", variant: "destructive" });
+      toast({ title: "Redirecting to PayPal", description: "Approve your subscription" });
+      const suffix = fundingSource === "paylater" ? "&fundingSource=paylater" : "";
+      window.location.href = (data.approval_url as string) + suffix;
+    } catch (e: any) {
+      console.error("Elite payment error", e);
+      toast({ title: "Payment error", description: e?.message || "Failed to process payment", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -271,8 +201,10 @@ const Elite: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-red-900 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center mt-4">
-            <h1 className="text-4xl font-bold text-white">Elite Membership</h1>
-            <p className="text-pink-200 mt-2">Limited to 50 lifetime seats</p>
+            <h1 className="text-4xl font-bold text-white">
+              {tier === "elite_plus" ? "Elite Plus Membership" : "Elite Membership"}
+            </h1>
+            <p className="text-pink-200 mt-2">Limited to 50 seats (combined Elite + Elite Plus)</p>
           </div>
 
           <Card className="bg-black/70 border-pink-500 text-white">
@@ -283,7 +215,9 @@ const Elite: React.FC = () => {
               {isLoading ? (
                 <div className="text-gray-300">Loading seat stats...</div>
               ) : isError ? (
-                <div className="text-red-400">Failed to load seat stats. <button className="underline" onClick={() => refetch()}>Retry</button></div>
+                <div className="text-red-400">
+                  Failed to load seat stats. <button className="underline" onClick={() => refetch()}>Retry</button>
+                </div>
               ) : stats ? (
                 <div className="flex items-center justify-between">
                   <div>
@@ -300,21 +234,13 @@ const Elite: React.FC = () => {
 
           <Card className="bg-black/70 border-pink-500 text-white">
             <CardHeader>
-              <CardTitle className="text-pink-400">
-                {selectedCadence === 'yearly' ? 'Lifetime (One-Time)' : 'Monthly Path'}
-              </CardTitle>
+              <CardTitle className="text-pink-400">{titleText}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div ref={selectedCadence === 'yearly' ? yearlyRef : monthlyRef} className="space-y-6">
+              <div className="space-y-6">
                 <div className="text-center">
-                  <div className="text-gray-300 mb-2">
-                    {selectedCadence === 'yearly' 
-                      ? 'Pay once → lifetime seat immediately' 
-                      : '12 monthly payments → lifetime seat'}
-                  </div>
-                  <div className="text-4xl font-bold text-yellow-300 mb-4">
-                    {selectedCadence === 'yearly' ? '$10,000' : '$846.33/mo'}
-                  </div>
+                  <div className="text-gray-300 mb-2">{subText}</div>
+                  <div className="text-4xl font-bold text-yellow-300 mb-4">{priceDisplay}</div>
                 </div>
 
                 {full ? (
@@ -338,19 +264,19 @@ const Elite: React.FC = () => {
 
                     <PaymentMethodSelector
                       amount={AMOUNT}
-                      onPayPal={handlePayPal}
-                      onPayLater={handlePayLater}
+                      onPayPal={() => startPayment("paypal")}
+                      onPayLater={() => startPayment("paylater")}
                       cardMode="redirect"
-                      onCardRedirect={handleCardRedirect}
+                      onCardRedirect={() => startPayment("card")}
                       isProcessing={loading}
                       disabled={!phoneNumber}
-                      paypalLabel={selectedCadence === 'yearly' ? 'Buy Lifetime' : 'Start Monthly Subscription'}
+                      paypalLabel={paypalLabel}
                     />
                   </div>
                 )}
 
                 <p className="text-xs text-gray-400 mt-4 text-center">
-                  Seats become permanent once lifetime is earned. 50 seat cap enforced.
+                  50-seat cap enforced across Elite + Elite Plus combined.
                 </p>
               </div>
             </CardContent>
