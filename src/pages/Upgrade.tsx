@@ -279,7 +279,9 @@ const UpgradePageInner: React.FC = () => {
                       if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                       if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                       if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
-                      if (pkg.id === 'elite') return navigate(`/elite?cadence=${cadence}`);
+                      if (pkg.id === 'elite') return navigate(`/elite?tier=elite&cadence=${cadence}`);
+                      if (pkg.id === 'elite_plus') return navigate(`/elite?tier=elite_plus&cadence=${cadence}`);
+
                       // fallback to original behavior for other packages
                       setSelectedPackage(pkg);
                       setPaymentOption('full');
