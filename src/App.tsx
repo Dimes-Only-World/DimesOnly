@@ -53,6 +53,7 @@ import Feed from "./pages/Feed";
 import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
+import NotificationBell from "./components/NotificationBell";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
