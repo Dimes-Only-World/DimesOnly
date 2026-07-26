@@ -26,8 +26,11 @@ serve(async (req) => {
     // Diamond yearly options: Full (once per year) or Split every 4 months (3 cycles)
     const diamondYearlySplit = Deno.env.get("PAYPAL_DIAMOND_YEARLY_SPLIT_PLAN_ID") || Deno.env.get("DIAMOND_YEARLY_SPLIT_PLAN_ID");
     const diamondYearlyFull  = Deno.env.get("PAYPAL_DIAMOND_YEARLY_FULL_PLAN_ID")  || Deno.env.get("DIAMOND_YEARLY_FULL_PLAN_ID");
-    // Elite monthly (yearly handled by one-time order path)
+    // Elite monthly + Elite yearly (recurring) + Elite Plus installment (monthly)
     const eliteMonthly = Deno.env.get("PAYPAL_ELITE_MONTHLY_PLAN_ID") || Deno.env.get("ELITE_MONTHLY_PLAN_ID");
+    const eliteYearly  = Deno.env.get("PAYPAL_ELITE_YEARLY_PLAN_ID")  || Deno.env.get("ELITE_YEARLY_PLAN_ID");
+    const elitePlusInstallment = Deno.env.get("PAYPAL_ELITE_PLUS_INSTALLMENT_PLAN_ID") || Deno.env.get("ELITE_PLUS_INSTALLMENT_PLAN_ID");
+
 
     if (!paypalClientId || !paypalClientSecret) {
       throw new Error("Missing PayPal credentials");
