@@ -297,7 +297,11 @@ const UpgradePageInner: React.FC = () => {
                       <CardDescription className="text-3xl font-bold text-white whitespace-pre-line">
                         ${displayPrice(pkg.id).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         <span className="block text-xs text-gray-300 mt-1">
-                          {cadence === 'yearly' ? 'per year' : 'per month'}
+                          {pkg.id === 'elite_plus' && cadence === 'yearly'
+                            ? 'one-time lifetime'
+                            : pkg.id === 'elite_plus' && cadence === 'monthly'
+                              ? 'first payment • then $1,250/mo × 11'
+                              : cadence === 'yearly' ? 'per year' : 'per month'}
                         </span>
                       </CardDescription>
                       {pkg.badge && <Badge className="bg-red-600 text-white">{pkg.badge}</Badge>}
@@ -306,6 +310,7 @@ const UpgradePageInner: React.FC = () => {
                       {pkg.id === 'diamond' && cadence === 'yearly' && (
                         <p className="text-yellow-300 text-sm font-semibold">Billed as $53.25 every 4 months (3x per year)</p>
                       )}
+
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2 mb-6">
