@@ -170,10 +170,12 @@ const UpgradePageInner: React.FC = () => {
       if (id === "silver") return cadence === "yearly" ? 49.99 : 4.99;
       if (id === "gold") return cadence === "yearly" ? 99.99 : 11.99;
       if (id === "diamond") return cadence === "yearly" ? 150.0 : 14.99;
-      if (id === "elite") return cadence === "yearly" ? 10000.0 : 846.33; // monthly shows per-month amount
+      if (id === "elite") return cadence === "yearly" ? 10000.0 : 861.75;
+      if (id === "elite_plus") return cadence === "yearly" ? 15000.0 : 1500.0; // monthly shows first-payment
       return 0;
     };
   }, [cadence]);
+
 
   const AgreementModal = () => (
     <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
