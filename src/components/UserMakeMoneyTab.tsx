@@ -21,8 +21,8 @@ const UserMakeMoneyTab: React.FC = () => {
   const shareMessage = useMemo(() => {
     const base =
       "Men and Sexy Ladies Needed Now!\n\n" +
-      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/0718.mp4\n" +
-      "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nSelect normal female if you are here just to make money.\nSelect exotic or stripper to get the big money...\nMales needed to:\n";
+      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm\n" +
+      "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nMales needed to:\n";
     return `${base}${shareLink}`;
   }, [shareLink]);
 
@@ -180,8 +180,8 @@ const UserMakeMoneyTab: React.FC = () => {
         <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
 
         <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/0718.mp4"
-          download="New+Home.webm"
+          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm"
+          download="Exs+Commercial.webm"
           className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
         >
           📥 Download Promo Video To Send
