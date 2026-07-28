@@ -324,9 +324,13 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                       ? "Push is blocked in your browser settings."
                       : pushState === "unsupported"
                         ? "This browser doesn't support lock-screen alerts."
+                        : pushState === "worker-missing"
+                          ? "Push files are still updating. Reload the app, then reconnect."
+                          : pushState === "sdk-unavailable"
+                            ? "Push service could not load. Check your connection, then reconnect."
                         : "Get alerts on your phone's lock screen."}
                   </p>
-                  {(pushState === "default" || pushState === "unconfigured") && (
+                  {(pushState === "default" || pushState === "unconfigured" || pushState === "worker-missing" || pushState === "sdk-unavailable") && (
                     <button
                       type="button"
                       onClick={enablePush}
