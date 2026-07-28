@@ -1,55 +1,27 @@
+## What is happening
+
+The in-app notification bell is working because it reads notifications from the database while you are on the website. Lock-screen notifications are different: the phone browser must have a valid OneSignal web-push service worker, app manifest, and saved push subscription. I checked the current project files and the page is linking to `/OneSignalSDKWorker.js` and `/manifest.webmanifest`, but those public files are currently missing in the project, which can prevent the phone from receiving lock-screen push notifications.
+
 ## Plan
 
-**Favicon source:** the newly uploaded angel-with-red-halo silhouette (`user-uploads://image-374.png`). All icon sizes will be generated from this image.
+1. Restore the required public push/PWA files
+   - Add `public/OneSignalSDKWorker.js` so OneSignal can wake the browser/app and display system notifications.
+   - Add `public/manifest.webmanifest` with the Dimes Only World app name, icon sizes, display mode, and theme color.
+   - Confirm favicon/home-screen icon references point to files that exist.
 
-### 1. Restore missing icon / manifest / worker files
-Regenerate from the uploaded angel logo and write into `public/`:
-- `favicon.ico`
-- `favicon-16x16.png`, `favicon-32x32.png`
-- `apple-touch-icon.png` (180×180, padded on solid background so iOS Home Screen icon renders correctly)
-- `favicon-192x192.png`, `favicon-512x512.png` (maskable-safe padding)
-- `notification-icon.png` (used as OneSignal badge/fallback)
+2. Tighten the OneSignal setup
+   - Keep OneSignal initialization consistent so the app does not double-initialize in conflicting ways.
+   - Ensure the logged-in user is connected to OneSignal with their user ID.
+   - Ensure the OneSignal push subscription ID is saved into `push_subscriptions` after the user enables alerts.
 
-Also create the currently-404ing files:
-- `public/manifest.webmanifest` — `name: "Dimes Only World"`, `short_name: "Dimes Only"`, `display: "standalone"`, `theme_color`, `background_color`, and the icons above.
-- `public/OneSignalSDKWorker.js` — imports the OneSignal SDK worker script (required for lock-screen push delivery).
+3. Improve the user-facing notification state
+   - If the user is on a mobile browser and not launched from the Home Screen, show the Home Screen instructions before enabling alerts.
+   - If the user has browser permission but no OneSignal subscription ID, show a clear “Reconnect alerts” action instead of saying everything is fully enabled.
 
-### 2. Home Screen detection utility
-New `src/hooks/useHomeScreenStatus.ts`:
-- Detects installed / standalone launch via `window.matchMedia('(display-mode: standalone)')` and iOS `navigator.standalone`.
-- Detects platform: iPhone/iPad (iOS Safari), Android, or desktop.
+4. Verify the live-facing assets locally
+   - Confirm these return successfully from the app: `/OneSignalSDKWorker.js`, `/manifest.webmanifest`, `/favicon.ico`, `/apple-touch-icon.png`, and notification icons.
+   - Confirm TypeScript/build still compiles.
 
-### 3. Home Screen guidance UI
-New `src/components/AddToHomeScreenPrompt.tsx`:
-- Mobile-friendly modal/banner shown when: mobile device AND not launched from Home Screen AND user hasn't dismissed it this session.
-- Copy: *"For lock screen notifications, please add Dimes Only World to your Home Screen"*.
-- Platform-specific steps:
-  - iPhone: *Tap Share → Add to Home Screen*
-  - Android: *Tap menu (⋮) → Add to Home Screen / Install App*
-- Uses `beforeinstallprompt` on Android to offer a one-tap "Install App" button when available.
-- Dismiss stored in `sessionStorage` so it doesn't nag on every navigation.
+## After this is published
 
-### 4. Wire guidance into notification flow
-Update `src/components/NotificationBell.tsx`:
-- If mobile + not standalone: replace the "Enable" push button with an "Add to Home Screen" CTA that opens `AddToHomeScreenPrompt`.
-- If standalone or desktop: keep existing `enablePush` flow unchanged.
-- Once launched from Home Screen, the normal Enable button appears and OneSignal registration proceeds as today.
-
-### 5. Facebook-style lock-screen payload (verify current state)
-The `send-notification` edge function already sends:
-- `chrome_web_icon` / `large_icon` / `firefox_icon` = actor profile photo
-- `chrome_web_badge` = Dimes Only logo
-- `chrome_web_image` / `big_picture` = actor profile photo
-- Title/message like `@username just joined using your referral link`
-
-No code change required here — but the lock screen was failing purely because `OneSignalSDKWorker.js` and the manifest were 404. Restoring them in step 1 is what makes the Facebook-style push actually reach the lock screen.
-
-### 6. Verify
-- Confirm `/favicon.ico`, `/apple-touch-icon.png`, `/manifest.webmanifest`, `/OneSignalSDKWorker.js` return 200 in preview.
-- Confirm the Home Screen prompt appears on a mobile viewport and hides in desktop/standalone mode.
-- Confirm the notification bell only shows the "Enable" button once installed on Home Screen (mobile).
-
-### Technical notes
-- iOS Web Push requires the site to be added to Home Screen and opened from that icon before notifications can be enabled at all — this is an Apple platform requirement, which is why the guidance step is essential for iPhone users.
-- Android/Chrome supports web push without install, but installing improves reliability, icon quality, and notification appearance.
-- Lock-screen visual styling (large profile photo vs. app-icon-only) is ultimately controlled by the OS and browser; our payload provides every field browsers use so the richest available style is shown.
+Android users should open `dimesonly.world`, install/add it to Home Screen if prompted, then tap the bell and enable alerts. iPhone users must use Safari, Add to Home Screen, open from the Home Screen icon, then enable alerts. Profile-photo style notifications can be sent where the phone/browser supports them, but iOS web push may still show the app icon instead of a large profile photo due to Apple limits.

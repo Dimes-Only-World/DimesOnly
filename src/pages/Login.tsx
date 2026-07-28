@@ -108,7 +108,10 @@ const Login: React.FC = () => {
       };
 
       // Store auth token FIRST so AuthGuard sees it immediately
-      localStorage.setItem("authToken", result.token || "authenticated");
+      localStorage.setItem("authToken", result.token || `authenticated_${userData.id}`);
+      if (result.push_auth_token) {
+        sessionStorage.setItem("dimesPushAuthToken", String(result.push_auth_token));
+      }
       sessionStorage.setItem("currentUser", userData.username);
       sessionStorage.setItem("userData", JSON.stringify(user));
 
@@ -131,6 +134,7 @@ const Login: React.FC = () => {
           password: password,
         }).then(({ data }) => {
           if (data.session?.user) {
+            localStorage.setItem("authToken", data.session.access_token);
             window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));
           }
         }).catch(() => {

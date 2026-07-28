@@ -65,6 +65,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
           localStorage.removeItem("authToken");
           sessionStorage.removeItem("userData");
           sessionStorage.removeItem("currentUser");
+          sessionStorage.removeItem("dimesPushAuthToken");
           await supabase.auth.signOut().catch(() => {});
           setIsAuthenticated(false);
           navigate('/login');
@@ -86,6 +87,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         localStorage.removeItem("authToken");
         sessionStorage.removeItem("userData");
         sessionStorage.removeItem("currentUser");
+        sessionStorage.removeItem("dimesPushAuthToken");
         setIsAuthenticated(false);
         navigate('/login');
       }

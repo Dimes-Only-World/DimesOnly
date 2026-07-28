@@ -119,6 +119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("userData");
     sessionStorage.removeItem("currentUser");
+    sessionStorage.removeItem("dimesPushAuthToken");
     setUser(null);
     setLoading(false);
     await supabase.auth.signOut().catch(() => {});
@@ -268,6 +269,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     } else if (initialized && !loading) {
       sessionStorage.removeItem("userData");
       sessionStorage.removeItem("currentUser");
+        sessionStorage.removeItem("dimesPushAuthToken");
       localStorage.removeItem("authToken");
     }
   }, [user, initialized, loading]);
@@ -290,6 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           localStorage.removeItem("authToken");
           sessionStorage.removeItem("userData");
           sessionStorage.removeItem("currentUser");
+          sessionStorage.removeItem("dimesPushAuthToken");
         return;
       }
 

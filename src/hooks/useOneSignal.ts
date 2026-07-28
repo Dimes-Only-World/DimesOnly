@@ -92,6 +92,16 @@ const getOneSignal = (appId: string): Promise<any | null> => {
 
 export type PushState = "unsupported" | "unconfigured" | "default" | "granted" | "denied";
 
+const subscriptionIdFrom = (OneSignal: any): string => {
+  const id =
+    OneSignal?.User?.PushSubscription?.id ||
+    OneSignal?.User?.PushSubscription?.token ||
+    OneSignal?.User?.PushSubscription?.subscriptionId ||
+    OneSignal?.User?.PushSubscription?._id ||
+    "";
+  return typeof id === "string" ? id : String(id || "");
+};
+
 /**
  * Initialises OneSignal web push for the signed-in user and keeps their
  * subscription id in sync with `push_subscriptions`.
@@ -106,7 +116,11 @@ export const useOneSignal = (userId?: string | null) => {
   const [state, setState] = useState<PushState>(() => {
     if (typeof window === "undefined") return "default";
     if (!("Notification" in window)) return "unsupported";
-    return (window.Notification.permission as PushState) ?? "default";
+    const permission = window.Notification.permission;
+    if (permission === "denied") return "denied";
+    // Treat granted browser permission as pending until OneSignal confirms a
+    // real push subscription id and the device is saved for this user.
+    return "default";
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,15 +134,27 @@ export const useOneSignal = (userId?: string | null) => {
     };
   }, []);
 
-  const saveSubscription = useCallback(async (playerId: string, uid: string) => {
-    if (!playerId || !uid) return;
+  const saveSubscription = useCallback(async (playerId: string, uid: string): Promise<boolean> => {
+    if (!playerId || !uid) return false;
     try {
-      await supabase.from("push_subscriptions").upsert(
-        { user_id: uid, player_id: playerId, platform: "web", updated_at: new Date().toISOString() },
-        { onConflict: "player_id" },
-      );
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token || SUPABASE_ANON_KEY;
+      const customToken = sessionStorage.getItem("dimesPushAuthToken") || "";
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/save-push-subscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+          ...(customToken ? { "x-dimes-auth-token": customToken } : {}),
+        },
+        body: JSON.stringify({ user_id: uid, player_id: playerId, platform: "web" }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return true;
     } catch (e) {
       console.warn("Could not save push subscription", e);
+      return false;
     }
   }, []);
 
@@ -168,12 +194,16 @@ export const useOneSignal = (userId?: string | null) => {
       try {
         await OneSignal.login(userId);
         const sync = async () => {
-          const id = OneSignal.User?.PushSubscription?.id;
-          if (id) await saveSubscription(id, userId);
+          const id = subscriptionIdFrom(OneSignal);
+          if (id) {
+            const saved = await saveSubscription(id, userId);
+            if (mounted.current) setState(saved ? "granted" : "default");
+          } else if (mounted.current) {
+            setState("default");
+          }
         };
         OneSignal.User?.PushSubscription?.addEventListener?.("change", sync);
         await sync();
-        if (mounted.current) setState("granted");
       } catch (e) {
         console.warn("OneSignal attach failed", e);
       }
@@ -214,8 +244,6 @@ export const useOneSignal = (userId?: string | null) => {
       return;
     }
 
-    setState("granted");
-
     try {
       const appId = await resolveAppId();
       if (!appId) {
@@ -244,24 +272,29 @@ export const useOneSignal = (userId?: string | null) => {
       }
 
       // The subscription id can take a moment to appear.
-      let id: string | undefined;
+      let id = "";
       for (let i = 0; i < 20 && !id; i += 1) {
-        id = OneSignal.User?.PushSubscription?.id;
+        id = subscriptionIdFrom(OneSignal);
         if (!id) await new Promise((r) => setTimeout(r, 400));
       }
 
       OneSignal.User?.PushSubscription?.addEventListener?.("change", async () => {
-        const next = OneSignal.User?.PushSubscription?.id;
+        const next = subscriptionIdFrom(OneSignal);
         if (next) {
-          await saveSubscription(next, userId);
-          if (mounted.current) setError(null);
+          const saved = await saveSubscription(next, userId);
+          if (mounted.current) setState(saved ? "granted" : "default");
+          if (mounted.current) setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
         }
       });
 
       if (id) {
-        await saveSubscription(id, userId);
-        if (mounted.current) setError(null);
+        const saved = await saveSubscription(id, userId);
+        if (mounted.current) {
+          setState(saved ? "granted" : "default");
+          setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
+        }
       } else {
+        if (mounted.current) setState("default");
         setError("Alerts are on for this browser, but this device is still registering. Reload the page if you don't get alerts.");
       }
     } catch (e) {
