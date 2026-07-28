@@ -210,7 +210,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
       if (push.sent) {
         setTestResult(`Test sent to ${push.recipients || 1} saved device${Number(push.recipients || 1) === 1 ? "" : "s"}.`);
       } else {
-        const reason = String(push.reason || "not delivered").replaceAll("_", " ");
+        const reason = String(push.reason || "not delivered").replace(/_/g, " ");
         setTestResult(`In-app test created. Lock-screen push: ${reason}.`);
       }
       void fetchNotifications();
