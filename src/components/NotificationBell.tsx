@@ -358,6 +358,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
           </div>
         </>
       )}
+      {showA2HS && <AddToHomeScreenPrompt forceOpen onClose={() => setShowA2HS(false)} />}
     </div>
   );
 };
