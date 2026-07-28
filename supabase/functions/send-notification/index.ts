@@ -188,6 +188,8 @@ Deno.serve(async (req) => {
       user_id: uid,
       title,
       message,
+      media_url: typeof data.media_url === "string" ? data.media_url : null,
+      media_type: typeof data.media_type === "string" ? data.media_type : null,
       type,
       link,
       data,
