@@ -14,6 +14,29 @@ const rateLimitMap = new Map<string, {
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes lockout
 const ATTEMPT_WINDOW_MS = 5 * 60 * 1000; // 5 minute window
+const encoder = new TextEncoder();
+
+function toBase64Url(bytes: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+async function createCustomSessionToken(userId: string, secret: string): Promise<string> {
+  if (!secret) return '';
+  const issuedAt = String(Date.now());
+  const payload = `${userId}.${issuedAt}`;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = toBase64Url(await crypto.subtle.sign('HMAC', key, encoder.encode(payload)));
+  return `${payload}.${signature}`;
+}
 
 function getClientIP(req: Request): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -239,6 +262,11 @@ Deno.serve(async (req) => {
     clearFailedAttempts(clientIP);
     console.log('Login successful for user:', user.username);
     
+    const pushAuthToken = await createCustomSessionToken(
+      user.id,
+      Deno.env.get('CUSTOM_AUTH_SIGNING_SECRET') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',
+    );
+
     // Return user data WITHOUT sensitive fields
     return new Response(JSON.stringify({
       success: true,
@@ -267,7 +295,8 @@ Deno.serve(async (req) => {
         rank_number: user.rank_number,
         created_at: user.created_at
       },
-      token: 'authenticated'
+      token: `authenticated_${user.id}`,
+      push_auth_token: pushAuthToken
     }), {
       headers: {
         ...corsHeaders,
