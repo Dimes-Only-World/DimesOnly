@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BellRing, Check, Loader2, Smartphone, Trash2, X } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { Bell, BellRing, Check, Loader2, Send, Smartphone, Trash2, X } from "lucide-react";
+import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useOneSignal } from "@/hooks/useOneSignal";
 import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
@@ -79,6 +79,8 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [showA2HS, setShowA2HS] = useState(false);
+  const [testBusy, setTestBusy] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   const { pushState, enablePush, pushBusy, pushError } = useOneSignal(userId);
   const { isMobile, isStandalone } = useHomeScreenStatus();
@@ -173,6 +175,49 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
       setOpen(false);
       if (/^https?:\/\//i.test(n.link)) window.location.href = n.link;
       else navigate(n.link);
+    }
+  };
+
+  const sendTestPush = async () => {
+    if (!userId || testBusy) return;
+    setTestBusy(true);
+    setTestResult(null);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token || SUPABASE_ANON_KEY;
+      const customToken = sessionStorage.getItem("dimesPushAuthToken") || "";
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-notification`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+          ...(customToken ? { "x-dimes-auth-token": customToken } : {}),
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          title: "Dimes Only World Test",
+          message: "Your lock-screen alerts are connected.",
+          type: "system",
+          link: "/dashboard/notifications",
+          data: { notification_icon: "https://dimesonly.world/notification-icon.png" },
+          push: true,
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String(result?.error || "Could not send test alert"));
+      const push = result?.push || {};
+      if (push.sent) {
+        setTestResult(`Test sent to ${push.recipients || 1} saved device${Number(push.recipients || 1) === 1 ? "" : "s"}.`);
+      } else {
+        const reason = String(push.reason || "not delivered").replace(/_/g, " ");
+        setTestResult(`In-app test created. Lock-screen push: ${reason}.`);
+      }
+      void fetchNotifications();
+    } catch (e) {
+      setTestResult(e instanceof Error ? e.message : "Could not send test alert.");
+    } finally {
+      setTestBusy(false);
     }
   };
 
@@ -279,9 +324,13 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                       ? "Push is blocked in your browser settings."
                       : pushState === "unsupported"
                         ? "This browser doesn't support lock-screen alerts."
+                        : pushState === "worker-missing"
+                          ? "Push files are still updating. Reload the app, then reconnect."
+                          : pushState === "sdk-unavailable"
+                            ? "Push service could not load. Check your connection, then reconnect."
                         : "Get alerts on your phone's lock screen."}
                   </p>
-                  {(pushState === "default" || pushState === "unconfigured") && (
+                  {(pushState === "default" || pushState === "unconfigured" || pushState === "worker-missing" || pushState === "sdk-unavailable") && (
                     <button
                       type="button"
                       onClick={enablePush}
@@ -294,6 +343,25 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                   )}
                 </div>
                 {pushError && <p className="mt-1.5 text-[11px] text-red-400">{pushError}</p>}
+              </div>
+            )}
+
+
+            {(pushState === "granted" || pushState === "unsaved") && (
+              <div className="border-b border-amber-400/10 px-4 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs leading-snug text-slate-300">Send a test alert to this device.</p>
+                  <button
+                    type="button"
+                    onClick={sendTestPush}
+                    disabled={testBusy}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/40 px-3 py-1 text-xs font-bold text-amber-200 transition-colors hover:bg-amber-400/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {testBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                    Test
+                  </button>
+                </div>
+                {testResult && <p className="mt-1.5 text-[11px] text-amber-300/90">{testResult}</p>}
               </div>
             )}
 
