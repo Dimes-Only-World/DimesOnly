@@ -40,6 +40,13 @@ Deno.serve(async (req) => {
     }
 
     const trimmedMessage = message.trim();
+    const { data: adminProfile } = await supabase
+      .from("users")
+      .select("id, username, first_name, last_name, profile_photo, front_page_photo")
+      .eq("id", adminUserId)
+      .maybeSingle();
+    const adminName = [adminProfile?.first_name, adminProfile?.last_name].filter(Boolean).join(" ").trim() || adminProfile?.username || "Admin";
+    const adminPhoto = adminProfile?.profile_photo || adminProfile?.front_page_photo || null;
     let successCount = 0;
     let failCount = 0;
 
@@ -76,6 +83,14 @@ Deno.serve(async (req) => {
             message: preview,
             type: "admin",
             link: "/dashboard?tab=messages",
+            data: {
+              actor_user_id: adminUserId,
+              actor_name: adminName,
+              actor_username: adminProfile?.username || "admin",
+              actor_photo_url: adminPhoto,
+              profile_photo_url: adminPhoto,
+              notification_icon: adminPhoto,
+            },
             push: true,
           }),
         });

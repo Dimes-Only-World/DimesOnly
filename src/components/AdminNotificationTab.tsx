@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getAdminUserId } from "@/lib/adminAuth";
 import { Upload, FileImage, FileVideo, X } from "lucide-react";
 
 const AdminNotificationTab: React.FC = () => {
@@ -154,66 +155,28 @@ const AdminNotificationTab: React.FC = () => {
         }
       }
 
-      // First, fetch all users to send notifications to
-      const { data: users, error: usersError } = await supabase
-        .from("users")
-        .select("id")
-        .limit(1000); // Reasonable limit to prevent overwhelming the system
+      const adminUserId = getAdminUserId();
+      if (!adminUserId) throw new Error("Admin session not found. Please log in again.");
 
-      if (usersError) {
-        console.error("Error fetching users:", usersError);
-        throw new Error("Failed to fetch users");
-      }
+      const { data, error } = await supabase.functions.invoke("broadcast-notification", {
+        body: {
+          adminUserId,
+          message: message.trim(),
+          mediaUrl,
+          mediaType: mediaType === "none" ? null : mediaType,
+        },
+      });
 
-      if (!users || users.length === 0) {
-        throw new Error("No users found to send notifications to");
-      }
+      if (error) throw error;
+      const result = data as { success?: boolean; totalUsers?: number; created?: number; pushRecipients?: number; error?: string };
+      if (!result.success) throw new Error(result.error || "Failed to send notification");
 
-      // Create notification records for each user (notifications don't need sender_id)
-      const notificationInserts = users.map((user) => ({
-        title: "Admin Notification",
-        message: message,
-        media_url: mediaUrl,
-        media_type: mediaType === "none" ? null : mediaType,
-        recipient_id: user.id,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      }));
-
-      // Insert notifications in batches to avoid overwhelming the database
-      const batchSize = 100;
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (let i = 0; i < notificationInserts.length; i += batchSize) {
-        const batch = notificationInserts.slice(i, i + batchSize);
-
-        const { error: notificationError } = await supabase
-          .from("notifications")
-          .insert(batch);
-
-        if (notificationError) {
-          console.error("Batch notification error:", notificationError);
-          errorCount += batch.length;
-        } else {
-          successCount += batch.length;
-        }
-      }
-
-      if (errorCount > 0) {
-        toast({
-          title: "Partial Success",
-          description: `Notification sent to ${successCount}/${users.length} users. ${errorCount} failed.`,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success!",
-          description: `Notification sent to ${successCount} users${
-            mediaUrl ? " with media attachment" : ""
-          }`,
-        });
-      }
+      toast({
+        title: "Success!",
+        description: `Notification sent to ${result.created ?? 0}/${result.totalUsers ?? 0} users. Lock-screen push sent to ${result.pushRecipients ?? 0} saved devices${
+          mediaUrl ? " with media attachment" : ""
+        }.`,
+      });
 
       // Reset form
       setMessage("");

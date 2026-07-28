@@ -253,6 +253,24 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                 </p>
                 {pushError && <p className="mt-1 pl-5 text-[11px] text-amber-300/90">{pushError}</p>}
               </div>
+            ) : pushState === "unsaved" ? (
+              <div className="border-b border-amber-400/10 bg-amber-400/5 px-4 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs leading-snug text-slate-300">
+                    This phone is not connected for lock-screen alerts yet.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={enablePush}
+                    disabled={pushBusy}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {pushBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {pushBusy ? "Connecting…" : "Reconnect"}
+                  </button>
+                </div>
+                {pushError && <p className="mt-1.5 text-[11px] text-amber-300/90">{pushError}</p>}
+              </div>
             ) : (
               <div className="border-b border-amber-400/10 bg-amber-400/5 px-4 py-2.5">
                 <div className="flex items-center justify-between gap-3">
