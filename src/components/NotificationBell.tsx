@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BellRing, Check, Loader2, Trash2, X } from "lucide-react";
+import { Bell, BellRing, Check, Loader2, Smartphone, Trash2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useOneSignal } from "@/hooks/useOneSignal";
+import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
+import AddToHomeScreenPrompt from "@/components/AddToHomeScreenPrompt";
 import { cn } from "@/lib/utils";
 
 interface NotificationRow {
@@ -76,8 +78,11 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showA2HS, setShowA2HS] = useState(false);
 
   const { pushState, enablePush, pushBusy, pushError } = useOneSignal(userId);
+  const { isMobile, isStandalone } = useHomeScreenStatus();
+  const needsHomeScreen = isMobile && !isStandalone;
 
   // Resolve identity (context, storage, or an active Supabase session).
   useEffect(() => {
