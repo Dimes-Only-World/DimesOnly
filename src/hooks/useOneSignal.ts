@@ -92,24 +92,18 @@ const getOneSignal = (appId: string): Promise<any | null> => {
 
 export type PushState = "unsupported" | "unconfigured" | "default" | "granted" | "denied" | "unsaved";
 
-const readMaybeAsync = async (value: unknown): Promise<unknown> => {
-  if (typeof value === "function") return value();
-  return value;
-};
-
 const subscriptionIdFrom = async (OneSignal: any): Promise<string> => {
   const push = OneSignal?.User?.PushSubscription;
-  const candidates = [
-    push?.id,
-    push?.subscriptionId,
-    push?._id,
-    OneSignal?.User?.onesignalId,
-    OneSignal?.getUserId,
-    OneSignal?.getSubscriptionId,
+  const candidates: Array<() => unknown | Promise<unknown>> = [
+    () => push?.id,
+    () => push?.subscriptionId,
+    () => push?._id,
+    () => OneSignal?.getUserId?.(),
+    () => OneSignal?.getSubscriptionId?.(),
   ];
 
   for (const candidate of candidates) {
-    const raw = await readMaybeAsync(candidate).catch?.(() => "") ?? candidate;
+    const raw = await Promise.resolve(candidate()).catch(() => "");
     const id = typeof raw === "string" ? raw.trim() : String(raw || "").trim();
     if (id && id !== "null" && id !== "undefined") return id;
   }
@@ -119,7 +113,7 @@ const subscriptionIdFrom = async (OneSignal: any): Promise<string> => {
 
 const pushOptedIn = async (OneSignal: any): Promise<boolean> => {
   const push = OneSignal?.User?.PushSubscription;
-  const raw = await readMaybeAsync(push?.optedIn).catch?.(() => undefined) ?? push?.optedIn;
+  const raw = await Promise.resolve(push?.optedIn).catch(() => undefined);
   if (typeof raw === "boolean") return raw;
   // Some SDK versions expose the id before exposing optedIn. If an id exists
   // after optIn() ran, treat the device as subscribed.
