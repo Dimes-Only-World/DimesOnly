@@ -3,12 +3,15 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID") ?? "";
 const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY") ?? "";
 const INTERNAL_SECRET = Deno.env.get("NOTIFY_INTERNAL_SECRET") ?? "";
+const TOKEN_SECRET = Deno.env.get("CUSTOM_AUTH_SIGNING_SECRET") || SERVICE_ROLE_KEY;
 
 const SITE_URL = "https://dimesonly.world";
 const DEFAULT_NOTIFICATION_ICON = `${SITE_URL}/notification-icon.png`;
+const encoder = new TextEncoder();
 
 interface NotifyPayload {
   user_id?: string;
@@ -26,6 +29,48 @@ const json = (body: unknown, status = 200) =>
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+
+const toBase64Url = (bytes: ArrayBuffer) =>
+  btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+
+const sign = async (payload: string) => {
+  if (!TOKEN_SECRET) return "";
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(TOKEN_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  return toBase64Url(await crypto.subtle.sign("HMAC", key, encoder.encode(payload)));
+};
+
+const timingSafeEqual = (a: string, b: string) => {
+  const left = encoder.encode(a);
+  const right = encoder.encode(b);
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let i = 0; i < left.length; i += 1) diff |= left[i] ^ right[i];
+  return diff === 0;
+};
+
+const verifyCustomToken = async (token: string) => {
+  const parts = token.split(".");
+  if (parts.length !== 3) return "";
+  const [userId, issuedAt, signature] = parts;
+  if (!userId || !issuedAt || !signature) return "";
+
+  const issued = Number(issuedAt);
+  const maxAgeMs = 1000 * 60 * 60 * 24 * 30;
+  if (!Number.isFinite(issued) || Date.now() - issued > maxAgeMs) return "";
+
+  const expected = await sign(`${userId}.${issuedAt}`);
+  if (!expected || !timingSafeEqual(expected, signature)) return "";
+  return userId;
+};
 
 function toHttpsUrl(value: unknown): string {
   const raw = String(value ?? "").trim();
@@ -164,18 +209,25 @@ Deno.serve(async (req) => {
     let userIds = requested;
 
     if (!isInternal) {
-      if (!token) return json({ error: "Unauthorized" }, 401);
+      let callerId = "";
 
-      const { data: userRes, error: userErr } = await admin.auth.getUser(token);
-      const caller = userRes?.user;
-      if (userErr || !caller) return json({ error: "Unauthorized" }, 401);
+      if (token && token !== SUPABASE_ANON_KEY) {
+        const { data: userRes } = await admin.auth.getUser(token);
+        callerId = userRes?.user?.id ?? "";
+      }
 
-      const { data: isAdmin } = await admin.rpc("check_admin_by_user_id", { _user_id: caller.id });
+      if (!callerId) {
+        callerId = await verifyCustomToken(req.headers.get("x-dimes-auth-token") ?? "");
+      }
+
+      if (!callerId) return json({ error: "Unauthorized" }, 401);
+
+      const { data: isAdmin } = await admin.rpc("check_admin_by_user_id", { _user_id: callerId });
 
       if (!isAdmin) {
-        const others = requested.filter((id) => id !== caller.id);
+        const others = requested.filter((id) => id !== callerId);
         if (others.length > 0) return json({ error: "Forbidden" }, 403);
-        userIds = [caller.id];
+        userIds = [callerId];
       }
     }
 

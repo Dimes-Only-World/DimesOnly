@@ -40,6 +40,16 @@ const loadSdk = () => {
   return sdkPromise;
 };
 
+const workerFileExists = async () => {
+  try {
+    const res = await fetch("/OneSignalSDKWorker.js", { method: "GET", cache: "no-store" });
+    await res.body?.cancel().catch(() => undefined);
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+
 const fetchAppId = async (): Promise<string> => {
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/notification-config`, {
@@ -90,7 +100,15 @@ const getOneSignal = (appId: string): Promise<any | null> => {
   return initPromise;
 };
 
-export type PushState = "unsupported" | "unconfigured" | "default" | "granted" | "denied" | "unsaved";
+export type PushState =
+  | "unsupported"
+  | "unconfigured"
+  | "default"
+  | "granted"
+  | "denied"
+  | "unsaved"
+  | "worker-missing"
+  | "sdk-unavailable";
 
 const subscriptionIdFrom = async (OneSignal: any): Promise<string> => {
   const push = OneSignal?.User?.PushSubscription;
@@ -152,8 +170,8 @@ export const useOneSignal = (userId?: string | null) => {
     };
   }, []);
 
-  const saveSubscription = useCallback(async (playerId: string, uid: string): Promise<boolean> => {
-    if (!playerId || !uid) return false;
+  const saveSubscription = useCallback(async (playerId: string, uid: string): Promise<{ saved: boolean; message?: string }> => {
+    if (!playerId || !uid) return { saved: false, message: "Missing device or user ID" };
     try {
       const { data } = await supabase.auth.getSession();
       const accessToken = data.session?.access_token || SUPABASE_ANON_KEY;
@@ -168,11 +186,21 @@ export const useOneSignal = (userId?: string | null) => {
         },
         body: JSON.stringify({ user_id: uid, player_id: playerId, platform: "web" }),
       });
-      if (!res.ok) throw new Error(await res.text());
-      return true;
+      if (!res.ok) {
+        const text = await res.text();
+        let message = text;
+        try {
+          const parsed = JSON.parse(text);
+          message = String(parsed?.error || parsed?.message || text);
+        } catch {
+          /* keep raw text */
+        }
+        throw new Error(message || "Could not save this device");
+      }
+      return { saved: true };
     } catch (e) {
       console.warn("Could not save push subscription", e);
-      return false;
+      return { saved: false, message: e instanceof Error ? e.message : "Could not save this device" };
     }
   }, []);
 
@@ -207,8 +235,24 @@ export const useOneSignal = (userId?: string | null) => {
         if (mounted.current) setState("unconfigured");
         return;
       }
+      const hasWorker = await workerFileExists();
+      if (cancelled) return;
+      if (!hasWorker) {
+        if (mounted.current) {
+          setState("worker-missing");
+          setError("Push worker is missing. Please update the app and try again.");
+        }
+        return;
+      }
       const OneSignal = await getOneSignal(appId);
-      if (cancelled || !OneSignal) return;
+      if (cancelled) return;
+      if (!OneSignal) {
+        if (mounted.current) {
+          setState("sdk-unavailable");
+          setError("Push service could not load. Check your connection, then try again.");
+        }
+        return;
+      }
       try {
         await OneSignal.login(userId);
         const sync = async () => {
@@ -217,8 +261,8 @@ export const useOneSignal = (userId?: string | null) => {
           if (id) {
             const saved = await saveSubscription(id, userId);
             if (mounted.current) {
-              setState(saved ? "granted" : "unsaved");
-              setError(saved ? null : "Alerts are allowed, but this phone is not saved yet. Tap Reconnect.");
+              setState(saved.saved ? "granted" : "unsaved");
+              setError(saved.saved ? null : saved.message || "Alerts are allowed, but this phone is not saved yet. Tap Reconnect.");
             }
           } else if (mounted.current) {
             setState("unsaved");
@@ -274,8 +318,15 @@ export const useOneSignal = (userId?: string | null) => {
         setError("Push isn't configured yet. Please try again later.");
         return;
       }
+      const hasWorker = await workerFileExists();
+      if (!hasWorker) {
+        setState("worker-missing");
+        setError("Push worker is missing. Please update the app and try again.");
+        return;
+      }
       const OneSignal = await getOneSignal(appId);
       if (!OneSignal) {
+        setState("sdk-unavailable");
         setError("Couldn't reach the push service. Please try again in a moment.");
         return;
       }
@@ -305,16 +356,16 @@ export const useOneSignal = (userId?: string | null) => {
         const next = await subscriptionIdFrom(OneSignal);
         if (next) {
           const saved = await saveSubscription(next, userId);
-          if (mounted.current) setState(saved ? "granted" : "unsaved");
-          if (mounted.current) setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
+          if (mounted.current) setState(saved.saved ? "granted" : "unsaved");
+          if (mounted.current) setError(saved.saved ? null : saved.message || "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
         }
       });
 
       if (id) {
         const saved = await saveSubscription(id, userId);
         if (mounted.current) {
-          setState(saved ? "granted" : "unsaved");
-          setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
+          setState(saved.saved ? "granted" : "unsaved");
+          setError(saved.saved ? null : saved.message || "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
         }
       } else {
         if (mounted.current) setState("unsaved");
