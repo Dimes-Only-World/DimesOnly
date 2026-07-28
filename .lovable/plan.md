@@ -1,77 +1,55 @@
-## Goal
-
-A single notification pipeline for DimesOnly.World: every important event writes a row users see in-app (bell + badge + list, updating live) and simultaneously fires a OneSignal web push to their phone.
-
-## What exists today
-
-- A `notifications` table already exists with `recipient_id`, `title`, `message`, `media_url`, `media_type`, `is_read`, `created_at`, `expires_at`. It has no `type`, `link`, or `data` column.
-- `UserNotificationsTab.tsx` already reads/marks/deletes notifications and already subscribes to Supabase Realtime on INSERT.
-- There is no bell in any header — notifications are only reachable via a dashboard tab.
-- No OneSignal code anywhere in the project.
-
 ## Plan
 
-### 1. Database
+**Favicon source:** the newly uploaded angel-with-red-halo silhouette (`user-uploads://image-374.png`). All icon sizes will be generated from this image.
 
-One migration that extends the existing table (keeps all current rows and code working):
+### 1. Restore missing icon / manifest / worker files
+Regenerate from the uploaded angel logo and write into `public/`:
+- `favicon.ico`
+- `favicon-16x16.png`, `favicon-32x32.png`
+- `apple-touch-icon.png` (180×180, padded on solid background so iOS Home Screen icon renders correctly)
+- `favicon-192x192.png`, `favicon-512x512.png` (maskable-safe padding)
+- `notification-icon.png` (used as OneSignal badge/fallback)
 
-- Add `type text default 'system'`, `link text`, `data jsonb default '{}'::jsonb`.
-- Add an index on `(recipient_id, is_read, created_at desc)` so the badge query is fast.
-- New table `push_subscriptions`: `user_id`, `player_id` (OneSignal subscription ID), `platform`, timestamps, unique on `player_id`. RLS so a user only manages their own rows; `service_role` full access for the sender.
-- Confirm/repair RLS on `notifications` so a user can only select/update/delete rows where `recipient_id = auth.uid()`, with `service_role` allowed to insert.
-- Enable Realtime on `notifications` if it isn't already in the publication.
+Also create the currently-404ing files:
+- `public/manifest.webmanifest` — `name: "Dimes Only World"`, `short_name: "Dimes Only"`, `display: "standalone"`, `theme_color`, `background_color`, and the icons above.
+- `public/OneSignalSDKWorker.js` — imports the OneSignal SDK worker script (required for lock-screen push delivery).
 
-### 2. Bell UI
+### 2. Home Screen detection utility
+New `src/hooks/useHomeScreenStatus.ts`:
+- Detects installed / standalone launch via `window.matchMedia('(display-mode: standalone)')` and iOS `navigator.standalone`.
+- Detects platform: iPhone/iPad (iOS Safari), Android, or desktop.
 
-New `src/components/NotificationBell.tsx`:
+### 3. Home Screen guidance UI
+New `src/components/AddToHomeScreenPrompt.tsx`:
+- Mobile-friendly modal/banner shown when: mobile device AND not launched from Home Screen AND user hasn't dismissed it this session.
+- Copy: *"For lock screen notifications, please add Dimes Only World to your Home Screen"*.
+- Platform-specific steps:
+  - iPhone: *Tap Share → Add to Home Screen*
+  - Android: *Tap menu (⋮) → Add to Home Screen / Install App*
+- Uses `beforeinstallprompt` on Android to offer a one-tap "Install App" button when available.
+- Dismiss stored in `sessionStorage` so it doesn't nag on every navigation.
 
-- Gold bell icon on the dark background, 44×44px tap target, red badge with unread count (`9+` cap).
-- Opens a dropdown on desktop / full-width sheet on mobile listing the latest 20 notifications: title, message, relative time, unread dot, and a "Mark all read" action. Clicking an item marks it read and navigates to its `link`.
-- Subscribes to Realtime INSERT/UPDATE for the signed-in user so the badge and list update without refresh; unsubscribes on unmount.
-- Reads identity the same dual way the rest of the app does (Supabase session, falling back to the sessionStorage user) so it works right after login.
+### 4. Wire guidance into notification flow
+Update `src/components/NotificationBell.tsx`:
+- If mobile + not standalone: replace the "Enable" push button with an "Add to Home Screen" CTA that opens `AddToHomeScreenPrompt`.
+- If standalone or desktop: keep existing `enablePush` flow unchanged.
+- Once launched from Home Screen, the normal Enable button appears and OneSignal registration proceeds as today.
 
-Placement: rendered next to the existing floating `GlobalProfileButton` (top-right, so it never overlaps the top-left avatar) and also in the `DashboardSectionLayout` header bar, using the same exclusion list as `GlobalProfileButton` so it stays off login/register/checkout pages.
+### 5. Facebook-style lock-screen payload (verify current state)
+The `send-notification` edge function already sends:
+- `chrome_web_icon` / `large_icon` / `firefox_icon` = actor profile photo
+- `chrome_web_badge` = Dimes Only logo
+- `chrome_web_image` / `big_picture` = actor profile photo
+- Title/message like `@username just joined using your referral link`
 
-### 3. OneSignal push
+No code change required here — but the lock screen was failing purely because `OneSignalSDKWorker.js` and the manifest were 404. Restoring them in step 1 is what makes the Facebook-style push actually reach the lock screen.
 
-- Load the OneSignal Web SDK v16 and register the two service worker files in `public/`.
-- New `src/hooks/useOneSignal.ts`: initialises the SDK with the app ID, prompts for permission (soft prompt after login, not on first paint), then saves the returned subscription ID into `push_subscriptions` and calls `login(userId)` so OneSignal external IDs match Supabase user IDs.
-- A small "Enable push notifications" toggle inside the bell dropdown for users who dismissed the prompt.
+### 6. Verify
+- Confirm `/favicon.ico`, `/apple-touch-icon.png`, `/manifest.webmanifest`, `/OneSignalSDKWorker.js` return 200 in preview.
+- Confirm the Home Screen prompt appears on a mobile viewport and hides in desktop/standalone mode.
+- Confirm the notification bell only shows the "Enable" button once installed on Home Screen (mobile).
 
-### 4. Reusable notify function
-
-New edge function `send-notification` (service role, JWT verified for user calls, internal calls allowed by shared secret):
-
-- Input: `user_id` (or `user_ids`), `title`, `message`, `type`, `link`, `data`.
-- Inserts the row(s) into `notifications`, then looks up that user's `player_id`s and POSTs to the OneSignal REST API with the title, message, and a `url` deep link.
-- Push failures are logged but never fail the DB insert — the in-app notification always lands.
-
-Wire it into the existing flows:
-
-| Event | Where it's called from |
-| --- | --- |
-| Referral commission earned | `process-tip`, `membership-webhook`, event payment handlers |
-| Tip received | `process-tip` |
-| Membership upgrade confirmed | `verify-membership-upgrade`, `paypal-subscription-webhook` |
-| Jackpot / contest win | `jackpot_run_draw` result handler |
-| Payout status change | `AdminPayoutTab` flow |
-| Admin message / broadcast | `AdminDirectMessageTab`, `AdminNotificationTab` |
-
-### 5. Design
-
-Dark slate/purple surface, gold `#E916D1`-adjacent accent per the existing tokens, red badge, no hardcoded colour utilities — all through the existing semantic tokens.
-
-## What I need from you
-
-Two OneSignal values, which I'll request through the secure secrets form once you approve:
-
-- `VITE_ONESIGNAL_APP_ID` — public, used by the browser SDK
-- `ONESIGNAL_REST_API_KEY` — secret, used only inside the edge function
-
-If you don't have a OneSignal app yet: create one at onesignal.com → New App → Web Push → set the site URL to `https://dimesonly.world`, then copy the App ID and REST API Key from Settings → Keys & IDs.
-
-## Technical notes
-
-- Existing `UserNotificationsTab` keeps working unchanged; it will just start showing the richer rows too.
-- Web push does not work on iOS Safari unless the site is installed to the home screen as a PWA — Android and desktop get lock-screen notifications immediately. I'll note this in the enable-push UI.
-- Service worker files must sit at the site root (`public/OneSignalSDKWorker.js`) to satisfy scope requirements.
+### Technical notes
+- iOS Web Push requires the site to be added to Home Screen and opened from that icon before notifications can be enabled at all — this is an Apple platform requirement, which is why the guidance step is essential for iPhone users.
+- Android/Chrome supports web push without install, but installing improves reliability, icon quality, and notification appearance.
+- Lock-screen visual styling (large profile photo vs. app-icon-only) is ultimately controlled by the OS and browser; our payload provides every field browsers use so the richest available style is shown.
