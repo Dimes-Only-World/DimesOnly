@@ -116,7 +116,11 @@ export const useOneSignal = (userId?: string | null) => {
   const [state, setState] = useState<PushState>(() => {
     if (typeof window === "undefined") return "default";
     if (!("Notification" in window)) return "unsupported";
-    return (window.Notification.permission as PushState) ?? "default";
+    const permission = window.Notification.permission;
+    if (permission === "denied") return "denied";
+    // Treat granted browser permission as pending until OneSignal confirms a
+    // real push subscription id and the device is saved for this user.
+    return "default";
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
