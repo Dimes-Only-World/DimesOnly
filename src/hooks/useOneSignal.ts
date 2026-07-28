@@ -92,6 +92,16 @@ const getOneSignal = (appId: string): Promise<any | null> => {
 
 export type PushState = "unsupported" | "unconfigured" | "default" | "granted" | "denied";
 
+const subscriptionIdFrom = (OneSignal: any): string => {
+  const id =
+    OneSignal?.User?.PushSubscription?.id ||
+    OneSignal?.User?.PushSubscription?.token ||
+    OneSignal?.User?.PushSubscription?.subscriptionId ||
+    OneSignal?.User?.PushSubscription?._id ||
+    "";
+  return typeof id === "string" ? id : String(id || "");
+};
+
 /**
  * Initialises OneSignal web push for the signed-in user and keeps their
  * subscription id in sync with `push_subscriptions`.
@@ -168,12 +178,16 @@ export const useOneSignal = (userId?: string | null) => {
       try {
         await OneSignal.login(userId);
         const sync = async () => {
-          const id = OneSignal.User?.PushSubscription?.id;
-          if (id) await saveSubscription(id, userId);
+          const id = subscriptionIdFrom(OneSignal);
+          if (id) {
+            await saveSubscription(id, userId);
+            if (mounted.current) setState("granted");
+          } else if (mounted.current) {
+            setState("default");
+          }
         };
         OneSignal.User?.PushSubscription?.addEventListener?.("change", sync);
         await sync();
-        if (mounted.current) setState("granted");
       } catch (e) {
         console.warn("OneSignal attach failed", e);
       }
@@ -214,8 +228,6 @@ export const useOneSignal = (userId?: string | null) => {
       return;
     }
 
-    setState("granted");
-
     try {
       const appId = await resolveAppId();
       if (!appId) {
@@ -244,24 +256,29 @@ export const useOneSignal = (userId?: string | null) => {
       }
 
       // The subscription id can take a moment to appear.
-      let id: string | undefined;
+      let id = "";
       for (let i = 0; i < 20 && !id; i += 1) {
-        id = OneSignal.User?.PushSubscription?.id;
+        id = subscriptionIdFrom(OneSignal);
         if (!id) await new Promise((r) => setTimeout(r, 400));
       }
 
       OneSignal.User?.PushSubscription?.addEventListener?.("change", async () => {
-        const next = OneSignal.User?.PushSubscription?.id;
+        const next = subscriptionIdFrom(OneSignal);
         if (next) {
           await saveSubscription(next, userId);
+          if (mounted.current) setState("granted");
           if (mounted.current) setError(null);
         }
       });
 
       if (id) {
         await saveSubscription(id, userId);
-        if (mounted.current) setError(null);
+        if (mounted.current) {
+          setState("granted");
+          setError(null);
+        }
       } else {
+        if (mounted.current) setState("default");
         setError("Alerts are on for this browser, but this device is still registering. Reload the page if you don't get alerts.");
       }
     } catch (e) {
