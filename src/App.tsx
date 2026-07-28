@@ -54,6 +54,7 @@ import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
 import GlobalProfileButton from "./components/GlobalProfileButton";
 import NotificationBell from "./components/NotificationBell";
+import AddToHomeScreenPrompt from "./components/AddToHomeScreenPrompt";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
@@ -173,6 +174,7 @@ function AppContent() {
       {!hideNotificationBell && (
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
       )}
+      {!hideNotificationBell && <AddToHomeScreenPrompt />}
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (

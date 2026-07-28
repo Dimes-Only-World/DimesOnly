@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BellRing, Check, Loader2, Trash2, X } from "lucide-react";
+import { Bell, BellRing, Check, Loader2, Smartphone, Trash2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useOneSignal } from "@/hooks/useOneSignal";
+import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
+import AddToHomeScreenPrompt from "@/components/AddToHomeScreenPrompt";
 import { cn } from "@/lib/utils";
 
 interface NotificationRow {
@@ -76,8 +78,11 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showA2HS, setShowA2HS] = useState(false);
 
   const { pushState, enablePush, pushBusy, pushError } = useOneSignal(userId);
+  const { isMobile, isStandalone } = useHomeScreenStatus();
+  const needsHomeScreen = isMobile && !isStandalone;
 
   // Resolve identity (context, storage, or an active Supabase session).
   useEffect(() => {
@@ -226,7 +231,22 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
               </div>
             </div>
 
-            {pushState === "granted" ? (
+            {needsHomeScreen ? (
+              <div className="border-b border-amber-400/10 bg-amber-400/5 px-4 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs leading-snug text-slate-300">
+                    For lock-screen alerts, add Dimes Only World to your Home Screen.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowA2HS(true)}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-950 transition-colors hover:bg-amber-300"
+                  >
+                    <Smartphone className="h-3.5 w-3.5" /> Add
+                  </button>
+                </div>
+              </div>
+            ) : pushState === "granted" ? (
               <div className="border-b border-amber-400/10 bg-emerald-400/5 px-4 py-2">
                 <p className="flex items-center gap-2 text-[11px] text-emerald-300">
                   <Check className="h-3.5 w-3.5 shrink-0" /> Lock-screen alerts are on for this device.
@@ -338,6 +358,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
           </div>
         </>
       )}
+      {showA2HS && <AddToHomeScreenPrompt forceOpen onClose={() => setShowA2HS(false)} />}
     </div>
   );
 };
