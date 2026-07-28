@@ -313,7 +313,7 @@ export const useOneSignal = (userId?: string | null) => {
       if (id) {
         const saved = await saveSubscription(id, userId);
         if (mounted.current) {
-          setState(saved ? "granted" : "default");
+          setState(saved ? "granted" : "unsaved");
           setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
         }
       } else {
