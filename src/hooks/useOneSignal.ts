@@ -90,16 +90,34 @@ const getOneSignal = (appId: string): Promise<any | null> => {
   return initPromise;
 };
 
-export type PushState = "unsupported" | "unconfigured" | "default" | "granted" | "denied";
+export type PushState = "unsupported" | "unconfigured" | "default" | "granted" | "denied" | "unsaved";
 
-const subscriptionIdFrom = (OneSignal: any): string => {
-  const id =
-    OneSignal?.User?.PushSubscription?.id ||
-    OneSignal?.User?.PushSubscription?.token ||
-    OneSignal?.User?.PushSubscription?.subscriptionId ||
-    OneSignal?.User?.PushSubscription?._id ||
-    "";
-  return typeof id === "string" ? id : String(id || "");
+const subscriptionIdFrom = async (OneSignal: any): Promise<string> => {
+  const push = OneSignal?.User?.PushSubscription;
+  const candidates: Array<() => unknown | Promise<unknown>> = [
+    () => push?.id,
+    () => push?.subscriptionId,
+    () => push?._id,
+    () => OneSignal?.getUserId?.(),
+    () => OneSignal?.getSubscriptionId?.(),
+  ];
+
+  for (const candidate of candidates) {
+    const raw = await Promise.resolve(candidate()).catch(() => "");
+    const id = typeof raw === "string" ? raw.trim() : String(raw || "").trim();
+    if (id && id !== "null" && id !== "undefined") return id;
+  }
+
+  return "";
+};
+
+const pushOptedIn = async (OneSignal: any): Promise<boolean> => {
+  const push = OneSignal?.User?.PushSubscription;
+  const raw = await Promise.resolve(push?.optedIn).catch(() => undefined);
+  if (typeof raw === "boolean") return raw;
+  // Some SDK versions expose the id before exposing optedIn. If an id exists
+  // after optIn() ran, treat the device as subscribed.
+  return Boolean(await subscriptionIdFrom(OneSignal));
 };
 
 /**
@@ -194,12 +212,17 @@ export const useOneSignal = (userId?: string | null) => {
       try {
         await OneSignal.login(userId);
         const sync = async () => {
-          const id = subscriptionIdFrom(OneSignal);
+          const optedIn = await pushOptedIn(OneSignal);
+          const id = optedIn ? await subscriptionIdFrom(OneSignal) : "";
           if (id) {
             const saved = await saveSubscription(id, userId);
-            if (mounted.current) setState(saved ? "granted" : "default");
+            if (mounted.current) {
+              setState(saved ? "granted" : "unsaved");
+              setError(saved ? null : "Alerts are allowed, but this phone is not saved yet. Tap Reconnect.");
+            }
           } else if (mounted.current) {
-            setState("default");
+            setState("unsaved");
+            setError("Alerts are allowed, but this phone has not finished registering. Tap Reconnect.");
           }
         };
         OneSignal.User?.PushSubscription?.addEventListener?.("change", sync);
@@ -274,15 +297,15 @@ export const useOneSignal = (userId?: string | null) => {
       // The subscription id can take a moment to appear.
       let id = "";
       for (let i = 0; i < 20 && !id; i += 1) {
-        id = subscriptionIdFrom(OneSignal);
+        id = await subscriptionIdFrom(OneSignal);
         if (!id) await new Promise((r) => setTimeout(r, 400));
       }
 
       OneSignal.User?.PushSubscription?.addEventListener?.("change", async () => {
-        const next = subscriptionIdFrom(OneSignal);
+        const next = await subscriptionIdFrom(OneSignal);
         if (next) {
           const saved = await saveSubscription(next, userId);
-          if (mounted.current) setState(saved ? "granted" : "default");
+          if (mounted.current) setState(saved ? "granted" : "unsaved");
           if (mounted.current) setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
         }
       });
@@ -290,11 +313,11 @@ export const useOneSignal = (userId?: string | null) => {
       if (id) {
         const saved = await saveSubscription(id, userId);
         if (mounted.current) {
-          setState(saved ? "granted" : "default");
+          setState(saved ? "granted" : "unsaved");
           setError(saved ? null : "Alerts are allowed, but this device could not be saved. Please log out and back in, then try again.");
         }
       } else {
-        if (mounted.current) setState("default");
+        if (mounted.current) setState("unsaved");
         setError("Alerts are on for this browser, but this device is still registering. Reload the page if you don't get alerts.");
       }
     } catch (e) {

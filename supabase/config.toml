@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.save-push-subscription]
 verify_jwt = false
+
+[functions.broadcast-notification]
+verify_jwt = false

@@ -157,13 +157,13 @@ Deno.serve(async (req) => {
     // Internal callers (other edge functions / cron) pass the shared secret.
     // End users may only notify themselves, verified from their JWT.
     const internalKey = req.headers.get("x-internal-secret") ?? "";
-    const isInternal = INTERNAL_SECRET.length > 0 && internalKey === INTERNAL_SECRET;
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const isInternal = (INTERNAL_SECRET.length > 0 && internalKey === INTERNAL_SECRET) || token === SERVICE_ROLE_KEY;
 
     let userIds = requested;
 
     if (!isInternal) {
-      const authHeader = req.headers.get("Authorization") ?? "";
-      const token = authHeader.replace(/^Bearer\s+/i, "");
       if (!token) return json({ error: "Unauthorized" }, 401);
 
       const { data: userRes, error: userErr } = await admin.auth.getUser(token);
@@ -188,6 +188,8 @@ Deno.serve(async (req) => {
       user_id: uid,
       title,
       message,
+      media_url: typeof data.media_url === "string" ? data.media_url : null,
+      media_type: typeof data.media_type === "string" ? data.media_type : null,
       type,
       link,
       data,

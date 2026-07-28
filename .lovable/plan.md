@@ -1,27 +1,29 @@
-## What is happening
+## What I found
 
-The in-app notification bell is working because it reads notifications from the database while you are on the website. Lock-screen notifications are different: the phone browser must have a valid OneSignal web-push service worker, app manifest, and saved push subscription. I checked the current project files and the page is linking to `/OneSignalSDKWorker.js` and `/manifest.webmanifest`, but those public files are currently missing in the project, which can prevent the phone from receiving lock-screen push notifications.
+- The app can save OneSignal device subscriptions: there are 6 saved subscriptions across 3 users, with the latest save today.
+- The user who received the latest in-app admin notifications (`ola`) currently has **0 saved push devices**, so the bell can show notifications but OneSignal has no phone device to send to.
+- The admin direct-message path calls `send-notification`, but it does not pass a sender/profile image payload; this affects Facebook-style notification appearance, not delivery.
+- The admin broadcast tab in the checked source still contains direct browser database insert logic; it should route through the server-side broadcast function so push is sent consistently.
 
 ## Plan
 
-1. Restore the required public push/PWA files
-   - Add `public/OneSignalSDKWorker.js` so OneSignal can wake the browser/app and display system notifications.
-   - Add `public/manifest.webmanifest` with the Dimes Only World app name, icon sizes, display mode, and theme color.
-   - Confirm favicon/home-screen icon references point to files that exist.
+1. **Add a visible push diagnostic state**
+   - Update the notification bell/setup UI so installed mobile users can clearly see whether this exact phone is saved for lock-screen alerts.
+   - If browser permission is granted but no OneSignal subscription ID is saved, show a direct “Reconnect lock-screen alerts” action instead of saying notifications are on.
 
-2. Tighten the OneSignal setup
-   - Keep OneSignal initialization consistent so the app does not double-initialize in conflicting ways.
-   - Ensure the logged-in user is connected to OneSignal with their user ID.
-   - Ensure the OneSignal push subscription ID is saved into `push_subscriptions` after the user enables alerts.
+2. **Make subscription saving more reliable on mobile**
+   - Improve `useOneSignal` to wait for both OneSignal’s subscription ID and opt-in state before marking lock-screen alerts as enabled.
+   - Save the subscription again on app open/login and whenever OneSignal reports a subscription change.
+   - Add safer fallback fields for OneSignal v16 so the saved ID is the actual subscription/device ID, not an empty or wrong token.
 
-3. Improve the user-facing notification state
-   - If the user is on a mobile browser and not launched from the Home Screen, show the Home Screen instructions before enabling alerts.
-   - If the user has browser permission but no OneSignal subscription ID, show a clear “Reconnect alerts” action instead of saying everything is fully enabled.
+3. **Fix admin broadcast push path**
+   - Update the admin Notifications tab to call the server-side `broadcast-notification` function instead of inserting notification rows directly from the browser.
+   - Ensure the broadcast function creates in-app notifications and calls `send-notification` for OneSignal push.
 
-4. Verify the live-facing assets locally
-   - Confirm these return successfully from the app: `/OneSignalSDKWorker.js`, `/manifest.webmanifest`, `/favicon.ico`, `/apple-touch-icon.png`, and notification icons.
-   - Confirm TypeScript/build still compiles.
+4. **Improve direct admin message push payloads**
+   - Pass admin/profile image metadata into `send-notification` where available, so lock-screen notifications can show the app/profile icon in a more Facebook-like format.
 
-## After this is published
-
-Android users should open `dimesonly.world`, install/add it to Home Screen if prompted, then tap the bell and enable alerts. iPhone users must use Safari, Add to Home Screen, open from the Home Screen icon, then enable alerts. Profile-photo style notifications can be sent where the phone/browser supports them, but iOS web push may still show the app icon instead of a large profile photo due to Apple limits.
+5. **Verify after implementation**
+   - Check the Edge Function logs for `save-push-subscription` and `send-notification`.
+   - Query `push_subscriptions` to confirm the target user has a saved device.
+   - Trigger a test notification and verify the server reports push recipients instead of `no_devices`.
