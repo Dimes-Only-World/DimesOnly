@@ -738,6 +738,42 @@ serve(async (req) => {
         break;
       }
 
+      case 'getAppSetting': {
+        const { key } = params as { key?: string };
+        if (!key) {
+          return new Response(
+            JSON.stringify({ error: 'key is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('app_settings')
+          .select('key, value')
+          .eq('key', key)
+          .maybeSingle();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
+      case 'setAppSetting': {
+        const { key, value } = params as { key?: string; value?: unknown };
+        if (!key) {
+          return new Response(
+            JSON.stringify({ error: 'key is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('app_settings')
+          .upsert({ key, value: value ?? {}, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+          .select('key, value')
+          .single();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       case 'updateMembership': {
         const { userId, tier } = params as { userId?: string; tier?: string };
         const allowed = ['free', 'silver', 'silver_plus', 'gold', 'diamond', 'diamond_plus', 'elite', 'elite_plus'];
