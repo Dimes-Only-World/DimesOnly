@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
+import { calculateAge } from "@/components/DateOfBirthSelect";
+
 import RotatingBackground from "@/components/RotatingBackground";
 import BannerVideo from "@/components/BannerVideo";
 import LatestDimesCarousel from "@/components/LatestDimesCarousel";
