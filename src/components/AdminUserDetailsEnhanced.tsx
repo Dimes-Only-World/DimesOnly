@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
 import { getAdminUserId } from '@/lib/adminAuth';
 import { Play, Flag, X, Trash2, ShieldOff, ShieldCheck } from 'lucide-react';
+import { MEMBERSHIP_OPTIONS, resolveMembership } from '@/lib/membership';
 
 type ContentTier = 'free' | 'silver' | 'gold';
 
