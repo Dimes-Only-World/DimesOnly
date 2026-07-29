@@ -1,8 +1,9 @@
 import React from 'react';
 import MediaUploadSection from './MediaUploadSection';
 import { Button } from '@/components/ui/button';
-import { Crown, Star, Lock } from 'lucide-react';
+import { Crown, Star, Lock, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { resolveMembership } from '@/lib/membership';
 
 interface UserMediaUploadTabProps {
   userData: any;
@@ -19,54 +20,51 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
     return false;
   };
 
-  const getMembershipStatus = () => {
-    const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
-    const isDiamondPlus = Boolean(userData?.diamond_plus_active) || rawTier === 'diamond_plus';
-    const isSilverPlus = Boolean(userData?.silver_plus_active) || rawTier === 'silver_plus';
+  const membership = resolveMembership(userData);
 
-    if (isDiamondPlus) {
-      return { tier: 'Diamond Plus', icon: <Crown className="w-5 h-5 text-yellow-500" />, color: 'from-yellow-400 to-orange-500' };
-    }
-    if (isSilverPlus) {
-      return { tier: 'Silver Plus', icon: <Star className="w-5 h-5 text-yellow-400" />, color: 'from-yellow-500 to-yellow-600' };
-    }
-    if (rawTier === 'diamond') {
-      return { tier: 'Diamond', icon: <Crown className="w-5 h-5 text-purple-200" />, color: 'from-purple-500 to-pink-500' };
-    }
-    if (rawTier === 'gold') {
-      return { tier: 'Gold', icon: <Crown className="w-5 h-5 text-orange-500" />, color: 'from-yellow-400 to-orange-500' };
-    }
-    if (rawTier === 'silver') {
-      return { tier: 'Silver', icon: <Star className="w-5 h-5 text-gray-200" />, color: 'from-gray-500 to-gray-600' };
-    }
-    return { tier: 'Free\u00a0Silver', icon: <Lock className="w-5 h-5 text-gray-400" />, color: 'from-gray-500 to-gray-600' };
+  const visuals: Record<string, { icon: JSX.Element; color: string }> = {
+    free: { icon: <Lock className="w-5 h-5 text-gray-200" />, color: 'from-gray-500 to-gray-600' },
+    silver: { icon: <Star className="w-5 h-5 text-gray-100" />, color: 'from-gray-500 to-gray-600' },
+    silver_plus: { icon: <Star className="w-5 h-5 text-blue-100" />, color: 'from-blue-600 to-purple-600' },
+    gold: { icon: <Crown className="w-5 h-5 text-yellow-100" />, color: 'from-yellow-500 to-yellow-600' },
+    diamond: { icon: <Crown className="w-5 h-5 text-purple-100" />, color: 'from-purple-500 to-pink-500' },
+    diamond_plus: { icon: <Award className="w-5 h-5 text-yellow-100" />, color: 'from-yellow-400 to-orange-500' },
+    elite: { icon: <Award className="w-5 h-5 text-yellow-100" />, color: 'from-red-600 to-yellow-500' },
+    elite_plus: { icon: <Award className="w-5 h-5 text-yellow-100" />, color: 'from-fuchsia-500 to-yellow-400' },
   };
 
-  const membershipStatus = getMembershipStatus();
+  const visual = visuals[membership.key] || visuals.free;
+  const isTopTier = membership.key === 'elite_plus';
+
+  const upgradePath =
+    membership.key === 'diamond' || membership.key === 'diamond_plus'
+      ? '/upgrade-diamond'
+      : membership.key === 'free' || membership.key === 'silver'
+      ? '/upgrade-silver-plus'
+      : '/memberships';
+
+  const membershipStatus = { tier: membership.label, icon: visual.icon, color: visual.color };
 
   return (
     <div className="space-y-6">
       {/* Membership Status Banner */}
       <div className={`bg-gradient-to-r ${membershipStatus.color} text-white rounded-lg p-4 shadow-lg`}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             {membershipStatus.icon}
             <div>
               <h3 className="font-semibold text-lg">{membershipStatus.tier} Member</h3>
               <p className="text-sm opacity-90">
-                {membershipStatus.tier === 'Free'
-                  ? 'Upgrade to unlock more features and upload limits'
-                  : membershipStatus.tier === 'Diamond'
-                  ? 'Upgrade to Diamond Plus to unlock more features and upload limits'
-                  : 'You have access to premium features and higher upload limits'
-                }
+                {isTopTier
+                  ? 'You have full access to every feature and upload limit'
+                  : 'Upgrade to unlock more features and higher upload limits'}
               </p>
             </div>
           </div>
-          
-          {(membershipStatus.tier === 'Free' || membershipStatus.tier === 'Diamond') && (
-            <Button 
-              onClick={() => navigate(membershipStatus.tier === 'Diamond' ? '/upgrade-diamond' : '/upgrade-silver-plus')}
+
+          {!isTopTier && (
+            <Button
+              onClick={() => navigate(upgradePath)}
               variant="secondary"
               className="bg-white text-gray-800 hover:bg-gray-100 font-semibold"
             >
@@ -75,6 +73,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
           )}
         </div>
       </div>
+
 
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Media Upload</h2>
