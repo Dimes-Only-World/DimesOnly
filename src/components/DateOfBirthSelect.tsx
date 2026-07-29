@@ -41,9 +41,21 @@ const triggerClass =
   "bg-white/10 border-white/30 text-white focus:border-yellow-400 focus:ring-blue-400";
 
 const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
-  const [year, month, day] = (value || "").split("-");
-  const yearNum = Number(year) || 0;
-  const monthNum = Number(month) || 0;
+  // Local partial selection so year/month stay picked before the date is complete.
+  const [parts, setParts] = React.useState<{ y: number; m: number; d: number }>(() => {
+    const [y, m, d] = (value || "").split("-");
+    return { y: Number(y) || 0, m: Number(m) || 0, d: Number(d) || 0 };
+  });
+
+  // Sync when parent value changes externally (e.g. reset).
+  React.useEffect(() => {
+    const [y, m, d] = (value || "").split("-");
+    const next = { y: Number(y) || 0, m: Number(m) || 0, d: Number(d) || 0 };
+    if (next.y && next.m && next.d) setParts(next);
+    else if (!value) setParts((p) => (p.y || p.m || p.d ? p : { y: 0, m: 0, d: 0 }));
+  }, [value]);
+
+  const { y: yearNum, m: monthNum, d: dayNum } = parts;
 
   const currentYear = new Date().getFullYear();
   const years: number[] = [];
@@ -56,16 +68,14 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   const emit = (y: number, m: number, d: number) => {
-    if (!y || !m) {
-      onChange("");
-      return;
-    }
-    const clampedDay = d ? Math.min(d, daysInMonth(y, m)) : 0;
-    onChange(clampedDay ? `${y}-${pad(m)}-${pad(clampedDay)}` : "");
+    const clampedDay = y && m && d ? Math.min(d, daysInMonth(y, m)) : d;
+    setParts({ y, m, d: clampedDay });
+    onChange(y && m && clampedDay ? `${y}-${pad(m)}-${pad(clampedDay)}` : "");
   };
 
   const age = calculateAge(value);
   const underage = age !== null && age < 18;
+
 
   return (
     <div className="space-y-2">
