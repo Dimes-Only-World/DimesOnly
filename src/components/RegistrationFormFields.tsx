@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import BannerVideo from "@/components/BannerVideo";
+import DateOfBirthSelect from "@/components/DateOfBirthSelect";
+
 
 interface FormData {
   firstName: string;
@@ -189,20 +191,16 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dateOfBirth" className="text-sm font-medium text-white">
+          <Label className="text-sm font-medium text-white">
             Date of Birth <span className="text-red-400">*</span> (Must be 18 Years or Older)
           </Label>
-          <Input
-            id="dateOfBirth"
-            type="date"
+          <DateOfBirthSelect
             value={formData.dateOfBirth}
-            onChange={(e) => handleInputChange("dateOfBirth")(e.target.value)}
-            className="bg-white/10 border-white/30 text-white focus:border-yellow-400 focus:ring-blue-400"
+            onChange={handleInputChange("dateOfBirth")}
+            error={errors.dateOfBirth}
           />
-          {errors.dateOfBirth && (
-            <p className="text-red-400 text-sm">{errors.dateOfBirth}</p>
-          )}
         </div>
+
 
         <div className="space-y-2">
           <Label htmlFor="username" className="text-sm font-medium text-white">
