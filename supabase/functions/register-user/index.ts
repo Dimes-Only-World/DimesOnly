@@ -178,7 +178,12 @@ Deno.serve(async (req) => {
     const membershipType = isFemaleDiamond ? 'diamond' : 'silver';
     const effectiveUserType = isBusinessOwner ? 'business_owner' : (userType || 'normal');
 
-    const effectiveReferredBy = referredBy && referredBy.trim() !== '' ? referredBy : 'Company';
+    // Normalize away newlines/tabs/nbsp/zero-width chars so referral matching never breaks.
+    const normalizedReferredBy = String(referredBy ?? '')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const effectiveReferredBy = normalizedReferredBy !== '' ? normalizedReferredBy : 'Company';
 
     // Create Supabase Auth user
     console.log(`Creating Auth user for: ${email}`);
