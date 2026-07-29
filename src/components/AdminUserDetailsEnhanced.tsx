@@ -85,10 +85,15 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [tierUpdatingId, setTierUpdatingId] = useState<string | null>(null);
+  const [membershipValue, setMembershipValue] = useState<string>('free');
+  const [membershipSaving, setMembershipSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && isOpen) fetchUserMedia();
+    if (user && isOpen) {
+      fetchUserMedia();
+      setMembershipValue(resolveMembership(user).key);
+    }
   }, [user, isOpen]);
 
   const fetchUserMedia = async () => {
