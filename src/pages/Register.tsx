@@ -440,6 +440,9 @@ export const Register: React.FC = () => {
       if (!formData.firstName) newErrors.firstName = "First name is required";
       if (!formData.lastName) newErrors.lastName = "Last name is required";
       if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
+      else if ((calculateAge(formData.dateOfBirth) ?? 0) < 18)
+        newErrors.dateOfBirth = "You must be at least 18 years old to register";
+
       if (!formData.username) newErrors.username = "Username is required";
       else if (usernameStatus === 'taken') newErrors.username = "Username is already taken";
       else if (usernameStatus === 'invalid') newErrors.username = "Invalid username";
@@ -484,6 +487,9 @@ export const Register: React.FC = () => {
     if (formData.gender === "female" && !formData.userType)
       newErrors.userType = "User type is required";
     if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
+    else if ((calculateAge(formData.dateOfBirth) ?? 0) < 18)
+      newErrors.dateOfBirth = "You must be at least 18 years old to register";
+
 
     if (!profilePhotoUrl) newErrors.profilePhoto = "Profile photo is required";
     if (!bannerPhotoUrl) newErrors.bannerPhoto = "Banner photo is required";
