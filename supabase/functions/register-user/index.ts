@@ -169,13 +169,16 @@ Deno.serve(async (req) => {
     const salt = bcrypt.genSaltSync(12);
     const password_hash = bcrypt.hashSync(password, salt);
 
-    // Determine membership tier based on gender and user type
-    // Default is 'silver' for males, business owners, and normal females.
-    // Female exotic/stripper start on 'diamond'. No one starts on 'free'.
+    // Free 3-year promotional membership.
+    // Males / normal females / business owners -> Silver.
+    // Dimes (exotic / stripper females) -> Diamond.
+    // The 3-year clock does NOT start until the app is publicly released
+    // (app_settings.app_public_launch_at), so expiry stays null here.
     const isBusinessOwner = gender === 'business_owner';
     const isFemaleDiamond = gender === 'female' && (userType === 'exotic' || userType === 'stripper');
     const membershipTier = isFemaleDiamond ? 'diamond' : 'silver';
     const membershipType = isFemaleDiamond ? 'diamond' : 'silver';
+    const freeMembershipTier = membershipTier;
     const effectiveUserType = isBusinessOwner ? 'business_owner' : (userType || 'normal');
 
     // Normalize away newlines/tabs/nbsp/zero-width chars so referral matching never breaks.
