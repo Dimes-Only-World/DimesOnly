@@ -216,7 +216,8 @@ const AdminDashboard: React.FC = () => {
             <AdminPayoutTab />
           </TabsContent>
 
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="space-y-6">
+            <AdminAppLaunchSettings />
             <AdminEmailSettings />
           </TabsContent>
         </Tabs>
