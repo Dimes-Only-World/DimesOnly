@@ -29,6 +29,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       booking_addons: {
         Row: {
           booking_id: string
@@ -3097,6 +3118,9 @@ export type Database = {
           event_available_balance: number | null
           event_total_earnings: number | null
           first_name: string | null
+          free_membership_expires_at: string | null
+          free_membership_tier: string | null
+          free_membership_years: number
           front_page_photo: string | null
           gender: string | null
           hash_type: string | null
@@ -3109,6 +3133,9 @@ export type Database = {
           likes: number | null
           lottery_tickets: number | null
           membership_count_position: number | null
+          membership_paid_tier: string | null
+          membership_reverted_at: string | null
+          membership_source: string
           membership_tier: string | null
           membership_type: string | null
           mobile_number: string | null
@@ -3162,6 +3189,9 @@ export type Database = {
           event_available_balance?: number | null
           event_total_earnings?: number | null
           first_name?: string | null
+          free_membership_expires_at?: string | null
+          free_membership_tier?: string | null
+          free_membership_years?: number
           front_page_photo?: string | null
           gender?: string | null
           hash_type?: string | null
@@ -3174,6 +3204,9 @@ export type Database = {
           likes?: number | null
           lottery_tickets?: number | null
           membership_count_position?: number | null
+          membership_paid_tier?: string | null
+          membership_reverted_at?: string | null
+          membership_source?: string
           membership_tier?: string | null
           membership_type?: string | null
           mobile_number?: string | null
@@ -3227,6 +3260,9 @@ export type Database = {
           event_available_balance?: number | null
           event_total_earnings?: number | null
           first_name?: string | null
+          free_membership_expires_at?: string | null
+          free_membership_tier?: string | null
+          free_membership_years?: number
           front_page_photo?: string | null
           gender?: string | null
           hash_type?: string | null
@@ -3239,6 +3275,9 @@ export type Database = {
           likes?: number | null
           lottery_tickets?: number | null
           membership_count_position?: number | null
+          membership_paid_tier?: string | null
+          membership_reverted_at?: string | null
+          membership_source?: string
           membership_tier?: string | null
           membership_type?: string | null
           mobile_number?: string | null
