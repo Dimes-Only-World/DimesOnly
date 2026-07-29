@@ -16,6 +16,7 @@ interface MediaFile {
   is_nude?: boolean;
   is_xrated?: boolean;
   upload_date?: string;
+  storage_path?: string;
 }
 
 interface MediaGridProps {
@@ -43,11 +44,13 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
   const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
 
-  // Resolve signed URLs for private-media items
+  // Resolve signed URLs for private-media items (works for custom-auth sessions too)
   useEffect(() => {
     const resolvePrivateUrls = async () => {
       const toResolve = media.filter(
-        (f) => f.media_url && f.media_url.includes('/private-media/') && !resolvedUrls[f.id]
+        (f) =>
+          (f.storage_path || (f.media_url && f.media_url.includes('/private-media/'))) &&
+          !resolvedUrls[f.id]
       );
       if (toResolve.length === 0) return;
 
@@ -55,17 +58,26 @@ const MediaGrid: React.FC<MediaGridProps> = ({
       await Promise.all(
         toResolve.map(async (file) => {
           try {
-            // Extract storage path from the public URL
-            const marker = '/private-media/';
-            const idx = file.media_url.indexOf(marker);
-            if (idx === -1) return;
-            const storagePath = decodeURIComponent(file.media_url.substring(idx + marker.length));
+            let storagePath = file.storage_path || '';
+            if (!storagePath) {
+              const marker = '/private-media/';
+              const idx = file.media_url.indexOf(marker);
+              if (idx === -1) return;
+              storagePath = decodeURIComponent(file.media_url.substring(idx + marker.length));
+            }
+
+            // 1) Try direct signed URL (works for Supabase-authenticated sessions)
             const { data, error } = await supabase.storage
               .from('private-media')
               .createSignedUrl(storagePath, 3600);
             if (!error && data?.signedUrl) {
               newUrls[file.id] = data.signedUrl;
+              return;
             }
+
+            // 2) Fallback: service-role edge function (custom sessionStorage auth)
+            const signed = await getSignedFeedUrl('private-media', storagePath, 3600);
+            if (signed) newUrls[file.id] = signed;
           } catch (e) {
             console.error('[MediaGrid] Failed to get signed URL for', file.id, e);
           }
@@ -77,6 +89,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     };
     resolvePrivateUrls();
   }, [media]);
+
 
   // Close zoom overlay on ESC and lock body scroll while open
   useEffect(() => {
