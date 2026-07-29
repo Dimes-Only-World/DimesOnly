@@ -39,7 +39,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
     if (rawTier === 'silver') {
       return { tier: 'Silver', icon: <Star className="w-5 h-5 text-gray-200" />, color: 'from-gray-500 to-gray-600' };
     }
-    return { tier: 'Free', icon: <Lock className="w-5 h-5 text-gray-400" />, color: 'from-gray-500 to-gray-600' };
+    return { tier: 'Free\u00a0Silver', icon: <Lock className="w-5 h-5 text-gray-400" />, color: 'from-gray-500 to-gray-600' };
   };
 
   const membershipStatus = getMembershipStatus();
