@@ -386,9 +386,30 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                     <p className="text-destructive"><strong>Deactivated on:</strong> {new Date(user.deactivated_at).toLocaleDateString()}</p>
                   )}
                   <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                  <div className="pt-2">
+                    <p className="mb-1"><strong>Membership:</strong>{' '}
+                      <Badge className="ml-1">{resolveMembership(user).label}</Badge>
+                    </p>
+                    <Select
+                      value={membershipValue}
+                      onValueChange={handleMembershipChange}
+                      disabled={membershipSaving}
+                    >
+                      <SelectTrigger className="w-56">
+                        <SelectValue placeholder="Change membership" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MEMBERSHIP_OPTIONS.map((option) => (
+                          <SelectItem key={option.key} value={option.key}>{option.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {membershipSaving && <p className="mt-1 text-xs text-muted-foreground">Saving…</p>}
+                  </div>
                 </div>
               </div>
             </div>
+
 
             <div>
               <div className="mb-3 flex items-center justify-between gap-3">
