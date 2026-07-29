@@ -749,12 +749,19 @@ serve(async (req) => {
         }
 
         const rank = allowed.indexOf(tier);
+        const freeTierForUser = ['diamond', 'diamond_plus'].includes(tier) ? 'diamond' : 'silver';
+        const isFreePromoTier = tier === 'free';
         const updates: Record<string, unknown> = {
           membership_tier: tier,
           membership_type: tier,
           silver_plus_active: rank >= allowed.indexOf('silver_plus'),
           diamond_plus_active: rank >= allowed.indexOf('diamond_plus'),
           business_owner_elite_active: tier === 'elite_plus',
+          // Admin override counts as a completed payment for entitlement purposes.
+          membership_source: isFreePromoTier ? 'free_promo' : 'admin',
+          membership_paid_tier: isFreePromoTier ? null : tier,
+          membership_reverted_at: null,
+          free_membership_tier: freeTierForUser,
           updated_at: new Date().toISOString(),
         };
         if (tier === 'elite_plus') {
