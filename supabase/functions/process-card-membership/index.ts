@@ -298,6 +298,10 @@ serve(async (req) => {
       .from("users")
       .update({ 
         membership_tier: tier,
+        membership_type: tier,
+        membership_source: 'paid',
+        membership_paid_tier: tier,
+        membership_reverted_at: null,
         ...(tier === 'silver_plus' ? { 
           silver_plus_active: true, 
           silver_plus_joined_at: new Date().toISOString() 

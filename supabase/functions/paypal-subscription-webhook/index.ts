@@ -574,7 +574,7 @@ serve(async (req) => {
             const effectiveUserId = subUserId || sub.user_id;
             const effectiveTier = subTier || sub.tier;
             if (effectiveUserId && effectiveTier) {
-              const userUpdate: any = { membership_tier: effectiveTier, updated_at: new Date().toISOString() };
+              const userUpdate: any = { membership_tier: effectiveTier, membership_type: effectiveTier, membership_source: "paid", membership_paid_tier: effectiveTier, membership_reverted_at: null, updated_at: new Date().toISOString() };
               const { error: userErr } = await supabase
                 .from("users")
                 .update(userUpdate)
@@ -781,7 +781,7 @@ serve(async (req) => {
         const effectiveUserId = subUserId || sub.user_id;
         const effectiveTier = subTier || sub.tier;
         if (effectiveUserId && effectiveTier) {
-          const userUpdate: any = { membership_tier: effectiveTier, updated_at: new Date().toISOString() };
+          const userUpdate: any = { membership_tier: effectiveTier, membership_type: effectiveTier, membership_source: "paid", membership_paid_tier: effectiveTier, membership_reverted_at: null, updated_at: new Date().toISOString() };
           // If you want to set boolean flags, handle per tier here
           const { error: userErr } = await supabase
             .from("users")
