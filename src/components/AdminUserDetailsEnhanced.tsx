@@ -157,6 +157,21 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     } finally { setActionLoading(false); }
   };
 
+  const handleMembershipChange = async (tier: string) => {
+    if (!user) return;
+    setMembershipSaving(true);
+    try {
+      await callAdminData('updateMembership', { userId: user.id, tier });
+      setMembershipValue(tier);
+      toast({ title: 'Success', description: 'Membership updated' });
+      if (onUserUpdated) onUserUpdated();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update membership', variant: 'destructive' });
+    } finally {
+      setMembershipSaving(false);
+    }
+  };
+
   const handleTierChange = async (mediaId: string, contentTier: ContentTier) => {
     setTierUpdatingId(mediaId);
     try {
