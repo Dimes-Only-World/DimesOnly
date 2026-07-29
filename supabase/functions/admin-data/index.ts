@@ -738,6 +738,40 @@ serve(async (req) => {
         break;
       }
 
+      case 'updateMembership': {
+        const { userId, tier } = params as { userId?: string; tier?: string };
+        const allowed = ['free', 'silver', 'silver_plus', 'gold', 'diamond', 'diamond_plus', 'elite', 'elite_plus'];
+        if (!userId || !tier || !allowed.includes(tier)) {
+          return new Response(
+            JSON.stringify({ error: 'userId and a valid tier are required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const rank = allowed.indexOf(tier);
+        const updates: Record<string, unknown> = {
+          membership_tier: tier,
+          membership_type: tier,
+          silver_plus_active: rank >= allowed.indexOf('silver_plus'),
+          diamond_plus_active: rank >= allowed.indexOf('diamond_plus'),
+          business_owner_elite_active: tier === 'elite_plus',
+          updated_at: new Date().toISOString(),
+        };
+        if (tier === 'elite_plus') {
+          updates.business_owner_elite_granted_at = new Date().toISOString();
+        }
+
+        const { data, error } = await supabaseAdmin
+          .from('users')
+          .update(updates)
+          .eq('id', userId)
+          .select('id, username, membership_tier, membership_type, silver_plus_active, diamond_plus_active, business_owner_elite_active')
+          .single();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       default:
 
         return new Response(

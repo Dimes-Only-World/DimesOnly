@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
 import { getAdminUserId } from '@/lib/adminAuth';
 import { Play, Flag, X, Trash2, ShieldOff, ShieldCheck } from 'lucide-react';
+import { MEMBERSHIP_OPTIONS, resolveMembership } from '@/lib/membership';
 
 type ContentTier = 'free' | 'silver' | 'gold';
 
@@ -84,10 +85,15 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [tierUpdatingId, setTierUpdatingId] = useState<string | null>(null);
+  const [membershipValue, setMembershipValue] = useState<string>('free');
+  const [membershipSaving, setMembershipSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && isOpen) fetchUserMedia();
+    if (user && isOpen) {
+      fetchUserMedia();
+      setMembershipValue(resolveMembership(user).key);
+    }
   }, [user, isOpen]);
 
   const fetchUserMedia = async () => {
@@ -154,6 +160,21 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to delete user', variant: 'destructive' });
     } finally { setActionLoading(false); }
+  };
+
+  const handleMembershipChange = async (tier: string) => {
+    if (!user) return;
+    setMembershipSaving(true);
+    try {
+      await callAdminData('updateMembership', { userId: user.id, tier });
+      setMembershipValue(tier);
+      toast({ title: 'Success', description: 'Membership updated' });
+      if (onUserUpdated) onUserUpdated();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update membership', variant: 'destructive' });
+    } finally {
+      setMembershipSaving(false);
+    }
   };
 
   const handleTierChange = async (mediaId: string, contentTier: ContentTier) => {
@@ -386,9 +407,30 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                     <p className="text-destructive"><strong>Deactivated on:</strong> {new Date(user.deactivated_at).toLocaleDateString()}</p>
                   )}
                   <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                  <div className="pt-2">
+                    <p className="mb-1"><strong>Membership:</strong>{' '}
+                      <Badge className="ml-1">{resolveMembership(user).label}</Badge>
+                    </p>
+                    <Select
+                      value={membershipValue}
+                      onValueChange={handleMembershipChange}
+                      disabled={membershipSaving}
+                    >
+                      <SelectTrigger className="w-56">
+                        <SelectValue placeholder="Change membership" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MEMBERSHIP_OPTIONS.map((option) => (
+                          <SelectItem key={option.key} value={option.key}>{option.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {membershipSaving && <p className="mt-1 text-xs text-muted-foreground">Saving…</p>}
+                  </div>
                 </div>
               </div>
             </div>
+
 
             <div>
               <div className="mb-3 flex items-center justify-between gap-3">
