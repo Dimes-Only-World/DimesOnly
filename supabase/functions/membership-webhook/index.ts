@@ -321,6 +321,10 @@ async function activateMembership(
     const userPayload: Record<string, any> = {
       membership_tier: tier,
       membership_type: tier,
+      // Entitlement is only finalized on a successful payment.
+      membership_source: "paid",
+      membership_paid_tier: tier,
+      membership_reverted_at: null,
       updated_at: new Date().toISOString(),
     };
 

@@ -574,7 +574,7 @@ serve(async (req) => {
             const effectiveUserId = subUserId || sub.user_id;
             const effectiveTier = subTier || sub.tier;
             if (effectiveUserId && effectiveTier) {
-              const userUpdate: any = { membership_tier: effectiveTier, updated_at: new Date().toISOString() };
+              const userUpdate: any = { membership_tier: effectiveTier, membership_type: effectiveTier, membership_source: "paid", membership_paid_tier: effectiveTier, membership_reverted_at: null, updated_at: new Date().toISOString() };
               const { error: userErr } = await supabase
                 .from("users")
                 .update(userUpdate)
@@ -781,7 +781,7 @@ serve(async (req) => {
         const effectiveUserId = subUserId || sub.user_id;
         const effectiveTier = subTier || sub.tier;
         if (effectiveUserId && effectiveTier) {
-          const userUpdate: any = { membership_tier: effectiveTier, updated_at: new Date().toISOString() };
+          const userUpdate: any = { membership_tier: effectiveTier, membership_type: effectiveTier, membership_source: "paid", membership_paid_tier: effectiveTier, membership_reverted_at: null, updated_at: new Date().toISOString() };
           // If you want to set boolean flags, handle per tier here
           const { error: userErr } = await supabase
             .from("users")
@@ -825,7 +825,7 @@ serve(async (req) => {
           try {
             const { data: user } = await supabase
               .from("users")
-              .select("id, membership_tier, silver_plus_active, diamond_plus_active, business_owner_elite_active")
+              .select("id, membership_tier, free_membership_tier, silver_plus_active, diamond_plus_active, business_owner_elite_active")
               .eq("id", subRow.user_id)
               .maybeSingle();
             const stillOnTier =
@@ -835,9 +835,19 @@ serve(async (req) => {
               Boolean(user?.diamond_plus_active) ||
               Boolean(user?.business_owner_elite_active);
             if (stillOnTier && !hasLifetime) {
+              // Missed / ended payments revert the member to their free
+              // 3-year promotional tier (Silver or Diamond).
+              const freeTier = String(user?.free_membership_tier || "silver").toLowerCase();
               await supabase
                 .from("users")
-                .update({ membership_tier: "silver", membership_type: "Silver", updated_at: nowIso })
+                .update({
+                  membership_tier: freeTier,
+                  membership_type: freeTier,
+                  membership_source: "free_promo",
+                  membership_paid_tier: null,
+                  membership_reverted_at: nowIso,
+                  updated_at: nowIso,
+                })
                 .eq("id", subRow.user_id);
             }
           } catch (e) {

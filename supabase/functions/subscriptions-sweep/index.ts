@@ -27,23 +27,27 @@ serve(async (req) => {
       // lifetime tier they may have purchased in the meantime).
       const { data: user } = await admin
         .from("users")
-        .select("id, membership_tier, silver_plus_active, diamond_plus_active, business_owner_elite_active")
+        .select("id, membership_tier, free_membership_tier, silver_plus_active, diamond_plus_active, business_owner_elite_active")
         .eq("id", sub.user_id)
         .maybeSingle();
 
       if (user && String(user.membership_tier || "").toLowerCase() === String(sub.tier || "").toLowerCase()) {
-        // Don't downgrade below Silver (default paid floor) and don't touch
-        // users who hold a lifetime tier.
+        // Don't downgrade users who hold a lifetime (Plus) tier.
         const hasLifetime =
           Boolean(user.silver_plus_active) ||
           Boolean(user.diamond_plus_active) ||
           Boolean(user.business_owner_elite_active);
         if (!hasLifetime) {
+          // Revert to the free 3-year promotional tier (Silver or Diamond).
+          const freeTier = String(user.free_membership_tier || "silver").toLowerCase();
           await admin
             .from("users")
             .update({
-              membership_tier: "silver",
-              membership_type: "Silver",
+              membership_tier: freeTier,
+              membership_type: freeTier,
+              membership_source: "free_promo",
+              membership_paid_tier: null,
+              membership_reverted_at: nowIso,
               updated_at: nowIso,
             })
             .eq("id", sub.user_id);

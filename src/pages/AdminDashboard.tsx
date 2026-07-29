@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import AdminEmailSettings from "@/components/AdminEmailSettings";
+import AdminAppLaunchSettings from "@/components/AdminAppLaunchSettings";
 import AdminUsersListEnhanced from "@/components/AdminUsersListEnhanced";
 import AdminEarningsTab from "@/components/AdminEarningsTab";
 import AdminRankingTab from "@/components/AdminRankingTab";
@@ -215,7 +216,8 @@ const AdminDashboard: React.FC = () => {
             <AdminPayoutTab />
           </TabsContent>
 
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="space-y-6">
+            <AdminAppLaunchSettings />
             <AdminEmailSettings />
           </TabsContent>
         </Tabs>

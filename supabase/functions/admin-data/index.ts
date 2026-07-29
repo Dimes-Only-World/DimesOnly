@@ -738,6 +738,42 @@ serve(async (req) => {
         break;
       }
 
+      case 'getAppSetting': {
+        const { key } = params as { key?: string };
+        if (!key) {
+          return new Response(
+            JSON.stringify({ error: 'key is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('app_settings')
+          .select('key, value')
+          .eq('key', key)
+          .maybeSingle();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
+      case 'setAppSetting': {
+        const { key, value } = params as { key?: string; value?: unknown };
+        if (!key) {
+          return new Response(
+            JSON.stringify({ error: 'key is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('app_settings')
+          .upsert({ key, value: value ?? {}, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+          .select('key, value')
+          .single();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       case 'updateMembership': {
         const { userId, tier } = params as { userId?: string; tier?: string };
         const allowed = ['free', 'silver', 'silver_plus', 'gold', 'diamond', 'diamond_plus', 'elite', 'elite_plus'];
@@ -749,12 +785,19 @@ serve(async (req) => {
         }
 
         const rank = allowed.indexOf(tier);
+        const freeTierForUser = ['diamond', 'diamond_plus'].includes(tier) ? 'diamond' : 'silver';
+        const isFreePromoTier = tier === 'free';
         const updates: Record<string, unknown> = {
           membership_tier: tier,
           membership_type: tier,
           silver_plus_active: rank >= allowed.indexOf('silver_plus'),
           diamond_plus_active: rank >= allowed.indexOf('diamond_plus'),
           business_owner_elite_active: tier === 'elite_plus',
+          // Admin override counts as a completed payment for entitlement purposes.
+          membership_source: isFreePromoTier ? 'free_promo' : 'admin',
+          membership_paid_tier: isFreePromoTier ? null : tier,
+          membership_reverted_at: null,
+          free_membership_tier: freeTierForUser,
           updated_at: new Date().toISOString(),
         };
         if (tier === 'elite_plus') {
