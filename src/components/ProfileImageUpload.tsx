@@ -66,75 +66,66 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ userData, onUpd
     input.click();
   };
 
+  const slots = [
+    { type: 'profile' as const, label: 'Profile Photo', hint: 'Square • shown on your profile & cards', field: 'profile_photo', round: true },
+    { type: 'banner' as const, label: 'Banner Image', hint: 'Wide • header background', field: 'banner_photo', round: false },
+    { type: 'front_page' as const, label: 'Front Page', hint: 'Wide • featured placements', field: 'front_page_photo', round: false },
+  ];
+
   return (
-    <Card className="bg-white/10 backdrop-blur border-white/20">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <User className="w-5 h-5" />
+    <Card className="border-border/60 bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground">
+          <User className="h-4 w-4 text-primary" />
           Profile Images
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Upload a profile photo, banner and featured image. JPG or PNG, up to 10MB.
+        </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="w-24 h-24 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200">
-              {userData?.profile_photo ? (
-                <img src={userData.profile_photo} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-8 h-8 text-gray-400" />
+      <CardContent>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {slots.map(({ type, label, hint, field, round }) => {
+            const url = userData?.[field];
+            const isUploading = uploading === type;
+            return (
+              <div
+                key={type}
+                className="group flex flex-col items-center rounded-xl border border-border/60 bg-background/40 p-4 transition-colors hover:border-primary/50"
+              >
+                <div
+                  className={`relative mb-3 flex w-full items-center justify-center overflow-hidden bg-muted ${
+                    round ? 'aspect-square max-w-[7rem] rounded-full' : 'aspect-video rounded-lg'
+                  }`}
+                >
+                  {url ? (
+                    <img src={url} alt={label} className="h-full w-full object-cover" loading="lazy" />
+                  ) : round ? (
+                    <User className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <ImageIcon className="h-7 w-7 text-muted-foreground" />
+                  )}
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+                      <Upload className="h-5 w-5 animate-pulse text-primary" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <Button
-              onClick={() => triggerFileInput('profile')}
-              disabled={uploading === 'profile'}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {uploading === 'profile' ? 'Uploading...' : 'Profile Photo'}
-            </Button>
-          </div>
-
-          <div className="text-center">
-            <div className="w-24 h-16 mx-auto mb-2 rounded overflow-hidden bg-gray-200">
-              {userData?.banner_photo ? (
-                <img src={userData.banner_photo} alt="Banner" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-gray-400" />
-                </div>
-              )}
-            </div>
-            <Button
-              onClick={() => triggerFileInput('banner')}
-              disabled={uploading === 'banner'}
-              size="sm"
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {uploading === 'banner' ? 'Uploading...' : 'Banner Image'}
-            </Button>
-          </div>
-
-          <div className="text-center">
-            <div className="w-24 h-16 mx-auto mb-2 rounded overflow-hidden bg-gray-200">
-              {userData?.front_page_photo ? (
-                <img src={userData.front_page_photo} alt="Front Page" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-gray-400" />
-                </div>
-              )}
-            </div>
-            <Button
-              onClick={() => triggerFileInput('front_page')}
-              disabled={uploading === 'front_page'}
-              size="sm"
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {uploading === 'front_page' ? 'Uploading...' : 'Front Page'}
-            </Button>
-          </div>
+                <p className="text-sm font-medium text-foreground">{label}</p>
+                <p className="mb-3 mt-0.5 text-center text-xs text-muted-foreground">{hint}</p>
+                <Button
+                  onClick={() => triggerFileInput(type)}
+                  disabled={isUploading}
+                  size="sm"
+                  variant="outline"
+                  className="mt-auto w-full gap-2 border-border/70"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  {isUploading ? 'Uploading…' : url ? 'Replace' : 'Upload'}
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
