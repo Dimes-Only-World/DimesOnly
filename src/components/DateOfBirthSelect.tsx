@@ -81,8 +81,9 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
     <div className="space-y-2">
       <div className="grid grid-cols-3 gap-2">
         <Select
-          value={year || undefined}
-          onValueChange={(v) => emit(Number(v), monthNum, Number(day))}
+          value={yearNum ? String(yearNum) : undefined}
+          onValueChange={(v) => emit(Number(v), monthNum, dayNum)}
+
         >
           <SelectTrigger className={triggerClass} aria-label="Birth year">
             <SelectValue placeholder="Year" />
@@ -97,8 +98,9 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
         </Select>
 
         <Select
-          value={month || undefined}
-          onValueChange={(v) => emit(yearNum, Number(v), Number(day))}
+          value={monthNum ? String(monthNum) : undefined}
+          onValueChange={(v) => emit(yearNum, Number(v), dayNum)}
+
           disabled={!yearNum}
         >
           <SelectTrigger className={triggerClass} aria-label="Birth month">
@@ -114,7 +116,7 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
         </Select>
 
         <Select
-          value={day || undefined}
+          value={dayNum ? String(dayNum) : undefined}
           onValueChange={(v) => emit(yearNum, monthNum, Number(v))}
           disabled={!yearNum || !monthNum}
         >
