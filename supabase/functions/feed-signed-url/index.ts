@@ -11,7 +11,7 @@ serve(async (req) => {
   try {
     const { bucket, path, expiresIn } = await req.json();
     if (!bucket || !path) throw new Error("bucket and path required");
-    if (!["feed-videos", "feed-photos"].includes(bucket)) throw new Error("invalid bucket");
+    if (!["feed-videos", "feed-photos", "private-media", "user-photos", "user-videos"].includes(bucket)) throw new Error("invalid bucket");
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
