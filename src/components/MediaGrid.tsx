@@ -6,6 +6,7 @@ import MediaLikes from "./MediaLikes";
 import MediaComments from "./MediaComments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
+import { getSignedFeedUrl } from "@/lib/feedApi";
 
 interface MediaFile {
   id: string;
