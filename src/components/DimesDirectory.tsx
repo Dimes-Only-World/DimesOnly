@@ -63,7 +63,7 @@ const getMembershipLabel = (profile: DimeProfile) => {
 
   if (tier === "gold" || type === "gold") return "Gold Member";
   if (tier === "silver") return "Silver Member";
-  return "Free Member";
+  return "Diamond Member";
 };
 
 const getRankText = (profile: DimeProfile) => {

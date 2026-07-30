@@ -52,7 +52,6 @@ import MyBookings from "./pages/MyBookings";
 import Feed from "./pages/Feed";
 import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
-import GlobalProfileButton from "./components/GlobalProfileButton";
 import NotificationBell from "./components/NotificationBell";
 import AddToHomeScreenPrompt from "./components/AddToHomeScreenPrompt";
 import "./App.css";
@@ -170,7 +169,7 @@ function AppContent() {
   return (
     <div className="App">
       <GARefTracker />
-      <GlobalProfileButton />
+      
       {!hideNotificationBell && (
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
       )}
