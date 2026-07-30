@@ -48,6 +48,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [filterCity, setFilterCity] = useState("");
   const [filterState, setFilterState] = useState("");
   const [page, setPage] = useState(1);
+  const [onlineOnly, setOnlineOnly] = useState(false);
   const onlineUsers = useOnlinePresence(true);
 
 
@@ -161,9 +162,10 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
       if (u && !(r.username || "").toLowerCase().includes(u)) return false;
       if (c && !((r.city || "").toLowerCase().includes(c))) return false;
       if (s && !((r.state || "").toLowerCase().includes(s))) return false;
+      if (onlineOnly && !onlineUsers.has((r.username || "").toLowerCase())) return false;
       return true;
     });
-  }, [sorted, filterUsername, filterCity, filterState]);
+  }, [sorted, filterUsername, filterCity, filterState, onlineOnly, onlineUsers]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -174,7 +176,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
 
   useEffect(() => {
     setPage(1);
-  }, [filterUsername, filterCity, filterState]);
+  }, [filterUsername, filterCity, filterState, onlineOnly]);
 
   if (loading) return null;
 
