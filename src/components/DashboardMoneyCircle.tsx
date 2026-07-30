@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Users, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
@@ -321,6 +323,17 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
                       onChange={(e) => setFilterState(e.target.value)}
                       className="h-9 bg-white border-slate-200 text-sm"
                     />
+                  </div>
+
+                  {/* Online-only toggle */}
+                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <Label htmlFor="online-only" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Show online members only
+                      </Label>
+                    </div>
+                    <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} />
                   </div>
 
                   {/* Results grid */}
