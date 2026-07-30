@@ -445,6 +445,8 @@ const UserDashboard: React.FC = () => {
               />
             </div>
 
+            <ApprovalStatusBanner status={(userData as any)?.approval_status} />
+
             <FreeMembershipBanner />
 
             <Top20DimesCarousel />
