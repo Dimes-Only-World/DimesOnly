@@ -321,33 +321,57 @@ const DimesDirectory: React.FC = () => {
         <BannerVideo src={dimesVideoUrl} className="rounded-lg" />
       )}
 
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-3 tracking-tight">Browse Diamond Members</h2>
-        <p className="text-gray-600 mb-1">Full content will be available when the app is released</p>
-        <p className="text-gray-600 mb-6">Search and discover Diamond member profiles</p>
+      <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 px-6 py-10 md:px-10 md:py-12">
+        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[#E916D1]/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-yellow-400/10 blur-3xl" />
 
-        <div className="relative max-w-md mx-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            type="text"
-            placeholder="Search by username or city or state..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <div className="relative text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 backdrop-blur">
+            <Crown className="h-4 w-4 text-yellow-400" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F5A3EA]">
+              Member Directory
+            </span>
+          </div>
+
+          <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+            Browse <span className="text-[#E916D1]">Diamond</span> Members
+          </h2>
+          <div className="mx-auto mt-3 h-[3px] w-24 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
+
+          <p className="mx-auto mt-4 max-w-xl text-sm md:text-base leading-relaxed text-slate-300">
+            Search and discover Diamond member profiles.
+          </p>
+          <p className="mx-auto mt-2 inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-medium text-yellow-300">
+            Full content will be available when the app is released
+          </p>
+
+          <div className="mx-auto mt-8 flex max-w-2xl flex-col gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Search by username, city, or state..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+              />
+            </div>
+
+            <div className="flex items-center justify-center gap-3 sm:border-l sm:border-white/10 sm:pl-4">
+              <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} />
+              <Label htmlFor="online-only" className="cursor-pointer whitespace-nowrap text-sm text-slate-200">
+                Online only
+              </Label>
+            </div>
+          </div>
+
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-slate-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            {visibleProfiles.length} profile{visibleProfiles.length !== 1 ? "s" : ""} found
+          </div>
         </div>
+      </section>
 
-        <div className="mt-4 flex items-center justify-center gap-3">
-          <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} />
-          <Label htmlFor="online-only" className="text-sm text-gray-700 cursor-pointer">
-            Show online members only
-          </Label>
-        </div>
-      </div>
-
-      <div className="text-center text-gray-600">
-        {visibleProfiles.length} profile{visibleProfiles.length !== 1 ? "s" : ""} found
-      </div>
 
       {visibleProfiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
