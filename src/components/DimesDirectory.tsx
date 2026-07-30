@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Search, User, Crown, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import DirectMessageModal from "./DirectMessageModal";
 import BannerVideo from "./BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
+import useOnlinePresence from "@/hooks/useOnlinePresence";
+import defaultAvatar from "@/assets/default-avatar.png.asset.json";
+
 
 interface DimeProfile {
   id: string;
