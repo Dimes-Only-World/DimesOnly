@@ -17,6 +17,7 @@ import UserReferralsTab from "./UserReferralsTab";
 import UserJackpotTab from "./UserJackpotTab";
 import Top20DimesCarousel from "./Top20DimesCarousel";
 import FreeMembershipBanner from "./FreeMembershipBanner";
+import ApprovalStatusBanner from "./ApprovalStatusBanner";
 import LatestDimesCarousel from "@/components/LatestDimesCarousel";
 import DiamondPlusButton from "./DiamondPlusButton";
 import DiamondPlusPopup from "./DiamondPlusPopup";
