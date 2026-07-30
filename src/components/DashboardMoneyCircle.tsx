@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
 import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 
@@ -206,15 +207,21 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
               </span>
             )}
           </div>
-          {isOnline && (
-            <span
-              aria-label="Online"
-              title="Online"
-              className={`absolute bottom-0 right-0 ${
-                size === "lg" ? "w-4 h-4" : "w-3.5 h-3.5"
-              } rounded-full bg-emerald-500 ring-2 ring-white shadow-sm`}
-            />
-          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                aria-label={isOnline ? "Online now" : "Offline"}
+                className={`absolute bottom-0 right-0 ${
+                  size === "lg" ? "w-4 h-4" : "w-3.5 h-3.5"
+                } rounded-full ring-2 ring-white shadow-sm ${
+                  isOnline ? "bg-emerald-500" : "bg-red-500"
+                }`}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              {isOnline ? "Online now" : "Offline"}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <p
