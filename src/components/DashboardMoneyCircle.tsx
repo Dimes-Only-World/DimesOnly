@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 
 interface Referral {
   id: string;
