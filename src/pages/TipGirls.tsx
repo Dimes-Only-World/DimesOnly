@@ -4,7 +4,7 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Flag, User, Heart } from "lucide-react";
+import { Search, MapPin, Flag, User, Heart, Trophy, Ticket, Sparkles } from "lucide-react";
 import HomeProfileButton from "@/components/HomeProfileButton";
 import AuthGuard from "@/components/AuthGuard";
 import JackpotDisplay from "@/components/JackpotDisplay";
@@ -237,14 +237,37 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
           <BannerVideo src={tipVideoUrl} />
         )}
 
-        <div className="text-center py-6 px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
-            💎 Tip & Win 💎
-          </h1>
-          <p className="text-xl text-gray-300">
-            Tip your favorite Dimes and enter the jackpot!
-          </p>
-        </div>
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="relative mx-auto max-w-4xl px-6 py-14 md:py-20 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/40 bg-fuchsia-500/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-fuchsia-300 backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5" />
+              Weekly Jackpot Entry
+            </span>
+
+            <h1 className="mt-6 text-5xl md:text-7xl font-black tracking-tight">
+              <span className="bg-gradient-to-b from-white via-white to-fuchsia-400 bg-clip-text text-transparent">
+                Tip &amp; Win
+              </span>
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-xl text-base md:text-lg leading-relaxed text-white/70">
+              Support your favorite Dimes and earn entries into the weekly jackpot drawing.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-widest text-white/60">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                <Ticket className="h-3.5 w-3.5 text-fuchsia-300" />
+                Every tip earns entries
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                <Trophy className="h-3.5 w-3.5 text-amber-300" />
+                Drawings every Saturday
+              </span>
+            </div>
+          </div>
+        </section>
+
 
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex justify-start mb-4">
