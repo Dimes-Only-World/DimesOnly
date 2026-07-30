@@ -374,19 +374,8 @@ const Profile: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="mb-4 sm:mb-6 border-0 shadow-xl bg-white/95 backdrop-blur">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-100 text-purple-700">
-                <Calendar className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Member Since</p>
-                <p className="text-lg font-bold text-gray-900">{formatMemberSince(profile.created_at)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
+
 
         {/* Content Tiers */}
         <Card>
