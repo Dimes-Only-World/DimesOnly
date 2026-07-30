@@ -64,7 +64,9 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
               <p className="text-sm opacity-90">
                 {isTopTier
                   ? 'You have full access to every feature and upload limit'
-                  : 'Upgrade to unlock more features and higher upload limits'}
+                  : canUpgrade
+                  ? 'Upgrade to unlock more features and higher upload limits'
+                  : 'Manage your photos and videos below'}
               </p>
             </div>
           </div>
@@ -86,7 +88,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Media Upload</h2>
         <p className="text-gray-600">
           Upload your profile images and manage your photo and video gallery. 
-          {membershipStatus.tier === 'Free' && ' Upgrade to unlock higher upload limits and exclusive content tiers.'}
+          {membershipStatus.tier === 'Free' && canUpgrade && ' Upgrade to unlock higher upload limits and exclusive content tiers.'}
         </p>
       </div>
       
