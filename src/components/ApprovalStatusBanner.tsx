@@ -4,6 +4,7 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 
 interface ApprovalStatusBannerProps {
   status?: string | null;
+  userType?: string | null;
 }
 
 const normalize = (status?: string | null) => {
@@ -13,10 +14,16 @@ const normalize = (status?: string | null) => {
   return "pending";
 };
 
-const ApprovalStatusBanner: React.FC<ApprovalStatusBannerProps> = ({ status }) => {
+// Only performer accounts go through an approval review
+const REQUIRES_APPROVAL = ["stripper", "exotic"];
+
+const ApprovalStatusBanner: React.FC<ApprovalStatusBannerProps> = ({ status, userType }) => {
   const state = normalize(status);
   const { videoUrl: approvedVideo } = usePageVideo("approval_approved");
   const { videoUrl: deniedVideo } = usePageVideo("approval_denied");
+
+  if (!REQUIRES_APPROVAL.includes((userType || "").toLowerCase())) return null;
+
 
   const config = {
     pending: {

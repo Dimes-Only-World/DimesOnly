@@ -446,7 +446,11 @@ const UserDashboard: React.FC = () => {
               />
             </div>
 
-            <ApprovalStatusBanner status={(userData as any)?.approval_status} />
+            <ApprovalStatusBanner
+              status={(userData as any)?.approval_status}
+              userType={userData?.user_type}
+            />
+
 
             <FreeMembershipBanner />
 
