@@ -170,7 +170,7 @@ function AppContent() {
   return (
     <div className="App">
       <GARefTracker />
-      <GlobalProfileButton />
+      
       {!hideNotificationBell && (
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
       )}
