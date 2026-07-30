@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Search, User, Crown, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import DirectMessageModal from "./DirectMessageModal";
 import BannerVideo from "./BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
+import useOnlinePresence from "@/hooks/useOnlinePresence";
+import defaultAvatar from "@/assets/default-avatar.png.asset.json";
+
 
 interface DimeProfile {
   id: string;
@@ -71,11 +76,21 @@ const DimesDirectory: React.FC = () => {
   const [profiles, setProfiles] = useState<DimeProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<DimeProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [onlineOnly, setOnlineOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { videoUrl: dimesVideoUrl } = usePageVideo("dimes_directory_page");
   const [messageRecipient, setMessageRecipient] = useState<DimeProfile | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const onlineUsers = useOnlinePresence(true);
+
+  const isOnline = (username: string) => onlineUsers.has(username.trim().toLowerCase());
+
+  const visibleProfiles = useMemo(
+    () => (onlineOnly ? filteredProfiles.filter((p) => isOnline(p.username)) : filteredProfiles),
+    [filteredProfiles, onlineOnly, onlineUsers]
+  );
+
 
   useEffect(() => {
     fetchProfiles();
@@ -84,6 +99,7 @@ const DimesDirectory: React.FC = () => {
   useEffect(() => {
     filterProfiles();
   }, [searchTerm, profiles]);
+
 
   const fetchProfiles = async () => {
     try {
@@ -306,9 +322,9 @@ const DimesDirectory: React.FC = () => {
       )}
 
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-4">Browse Dimes</h2>
-        <p className="text-gray-600 mb-6">Full content will be available when the app is released</p>
-        <p className="text-gray-600 mb-6">Search and discover dimes profiles</p>
+        <h2 className="text-3xl font-bold mb-3 tracking-tight">Browse Diamond Members</h2>
+        <p className="text-gray-600 mb-1">Full content will be available when the app is released</p>
+        <p className="text-gray-600 mb-6">Search and discover Diamond member profiles</p>
 
         <div className="relative max-w-md mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -320,15 +336,23 @@ const DimesDirectory: React.FC = () => {
             className="pl-10"
           />
         </div>
+
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} />
+          <Label htmlFor="online-only" className="text-sm text-gray-700 cursor-pointer">
+            Show online members only
+          </Label>
+        </div>
       </div>
 
       <div className="text-center text-gray-600">
-        {filteredProfiles.length} profile{filteredProfiles.length !== 1 ? "s" : ""} found
+        {visibleProfiles.length} profile{visibleProfiles.length !== 1 ? "s" : ""} found
       </div>
 
-      {filteredProfiles.length > 0 ? (
+      {visibleProfiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProfiles.map((profile) => {
+          {visibleProfiles.map((profile) => {
+
             const location =
               profile.city && profile.state
                 ? `${profile.city}, ${profile.state}`
@@ -346,13 +370,29 @@ const DimesDirectory: React.FC = () => {
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                        <img
-                          src={profile.profile_photo || "/placeholder.svg"}
-                          alt={profile.username}
-                          className="w-full h-full object-cover"
+                      <div className="relative w-24 h-24 flex-shrink-0">
+                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
+                          <img
+                            src={profile.profile_photo || defaultAvatar.url}
+                            alt={`${profile.username} profile photo`}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              if (img.src !== window.location.origin + defaultAvatar.url) {
+                                img.src = defaultAvatar.url;
+                              }
+                            }}
+                          />
+                        </div>
+                        <span
+                          title={isOnline(profile.username) ? "Online now" : "Offline"}
+                          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                            isOnline(profile.username) ? "bg-emerald-500" : "bg-red-500"
+                          }`}
                         />
                       </div>
+
 
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-col">
