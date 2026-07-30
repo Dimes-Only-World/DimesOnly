@@ -93,33 +93,64 @@ const Rentals: React.FC = () => {
         </div>
       )}
       <div className="max-w-7xl mx-auto px-4 pt-8">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 whitespace-pre-line">
-            Economic - Luxury - Exotic{"\n"}Best Rental Cars{"\n"}at Dimes Only
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Rent the ride you deserve. Daily, weekly, monthly, long-term, or rent-to-own.
-          </p>
-          <div className="mt-4">
-            <Link
-              to="/my-bookings"
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              View my bookings →
-            </Link>
+        {/* Hero */}
+        <section className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/40 backdrop-blur-xl mb-8">
+          <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
+
+          <div className="relative px-6 py-10 md:px-12 md:py-14 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+              <Car className="h-3.5 w-3.5" />
+              Dimes Only Rentals
+            </div>
+
+            <h1 className="mt-5 text-4xl md:text-6xl font-black tracking-tight text-foreground">
+              Best Rental Cars
+              <span className="mt-2 block bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                at Dimes Only
+              </span>
+            </h1>
+
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+              {["Economic", "Luxury", "Exotic"].map((tier) => (
+                <span
+                  key={tier}
+                  className="rounded-full border border-border/60 bg-background/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
+                  {tier}
+                </span>
+              ))}
+            </div>
+
+            <p className="mx-auto mt-5 max-w-2xl text-sm md:text-base leading-relaxed text-muted-foreground">
+              Rent the ride you deserve — daily, weekly, monthly, long-term, or rent-to-own.
+              Transparent rates, premium vehicles, and pickup where you need it.
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <Button asChild size="lg" className="font-semibold">
+                <a href="#fleet">Browse the Fleet</a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="font-semibold">
+                <Link to="/my-bookings">View My Bookings</Link>
+              </Button>
+            </div>
           </div>
-        </div>
+        </section>
 
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8">
+        {/* Filters */}
+        <div
+          id="fleet"
+          className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8 rounded-xl border border-border/50 bg-card/40 backdrop-blur p-3 scroll-mt-8"
+        >
           <Input
             placeholder="Search year, make, model, location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="md:col-span-2"
+            className="md:col-span-2 bg-background/50"
           />
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background/50">
               <SelectValue placeholder="Vehicle type" />
             </SelectTrigger>
             <SelectContent>
@@ -132,7 +163,7 @@ const Rentals: React.FC = () => {
             </SelectContent>
           </Select>
           <Select value={optionFilter} onValueChange={setOptionFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background/50">
               <SelectValue placeholder="Rental option" />
             </SelectTrigger>
             <SelectContent>
@@ -145,6 +176,7 @@ const Rentals: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
+
 
         {loading ? (
           <p className="text-center text-muted-foreground py-16">Loading vehicles...</p>
