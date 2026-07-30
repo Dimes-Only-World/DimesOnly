@@ -370,13 +370,29 @@ const DimesDirectory: React.FC = () => {
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                        <img
-                          src={profile.profile_photo || "/placeholder.svg"}
-                          alt={profile.username}
-                          className="w-full h-full object-cover"
+                      <div className="relative w-24 h-24 flex-shrink-0">
+                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
+                          <img
+                            src={profile.profile_photo || defaultAvatar.url}
+                            alt={`${profile.username} profile photo`}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              if (img.src !== window.location.origin + defaultAvatar.url) {
+                                img.src = defaultAvatar.url;
+                              }
+                            }}
+                          />
+                        </div>
+                        <span
+                          title={isOnline(profile.username) ? "Online now" : "Offline"}
+                          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                            isOnline(profile.username) ? "bg-emerald-500" : "bg-red-500"
+                          }`}
                         />
                       </div>
+
 
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-col">
