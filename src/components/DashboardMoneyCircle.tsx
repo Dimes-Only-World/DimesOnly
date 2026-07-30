@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
 import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 
@@ -188,7 +189,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
         to={`/profile/${ref.username}`}
         key={ref.id}
         className="flex flex-col items-center min-w-0 w-full group"
-        title={`View @${ref.username}'s page${isOnline ? " — online now" : ""}`}
+        title={`View @${ref.username}'s page`}
       >
         <div className="relative flex-shrink-0">
           <div
@@ -206,15 +207,21 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
               </span>
             )}
           </div>
-          {isOnline && (
-            <span
-              aria-label="Online"
-              title="Online"
-              className={`absolute bottom-0 right-0 ${
-                size === "lg" ? "w-4 h-4" : "w-3.5 h-3.5"
-              } rounded-full bg-emerald-500 ring-2 ring-white shadow-sm`}
-            />
-          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                aria-label={isOnline ? "Online now" : "Offline"}
+                className={`absolute bottom-0 right-0 ${
+                  size === "lg" ? "w-4 h-4" : "w-3.5 h-3.5"
+                } rounded-full ring-2 ring-white shadow-sm ${
+                  isOnline ? "bg-emerald-500" : "bg-red-500"
+                }`}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              {isOnline ? "Online now" : "Offline"}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <p
@@ -238,6 +245,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   };
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className="w-full max-w-3xl mx-auto mb-8">
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-blue-50/40 to-fuchsia-50/40 shadow-lg">
         {/* Accent bar */}
@@ -402,6 +410,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
