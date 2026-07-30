@@ -86,6 +86,12 @@ const DimesDirectory: React.FC = () => {
 
   const isOnline = (username: string) => onlineUsers.has(username.trim().toLowerCase());
 
+  const visibleProfiles = useMemo(
+    () => (onlineOnly ? filteredProfiles.filter((p) => isOnline(p.username)) : filteredProfiles),
+    [filteredProfiles, onlineOnly, onlineUsers]
+  );
+
+
   useEffect(() => {
     fetchProfiles();
   }, []);
