@@ -189,7 +189,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
         to={`/profile/${ref.username}`}
         key={ref.id}
         className="flex flex-col items-center min-w-0 w-full group"
-        title={`View @${ref.username}'s page${isOnline ? " — online now" : ""}`}
+        title={`View @${ref.username}'s page`}
       >
         <div className="relative flex-shrink-0">
           <div
@@ -245,6 +245,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   };
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className="w-full max-w-3xl mx-auto mb-8">
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-blue-50/40 to-fuchsia-50/40 shadow-lg">
         {/* Accent bar */}
@@ -409,6 +410,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
