@@ -45,6 +45,13 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
 
   const membershipStatus = { tier: membership.label, icon: visual.icon, color: visual.color };
 
+  // Performers awaiting review (or denied) can't purchase upgrades yet
+  const requiresApproval = ['stripper', 'exotic'].includes(
+    String(userData?.user_type || '').toLowerCase()
+  );
+  const approvalState = String(userData?.approval_status || 'pending').toLowerCase();
+  const canUpgrade = !requiresApproval || approvalState === 'approved';
+
   return (
     <div className="space-y-6">
       {/* Membership Status Banner */}
@@ -62,7 +69,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
             </div>
           </div>
 
-          {!isTopTier && (
+          {!isTopTier && canUpgrade && (
             <Button
               onClick={() => navigate(upgradePath)}
               variant="secondary"
@@ -86,7 +93,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
       <MediaUploadSection userData={userData} onUpdate={handleUpdate} />
 
       {/* Upgrade Benefits */}
-      {membershipStatus.tier === 'Free' && (
+      {membershipStatus.tier === 'Free' && canUpgrade && (
         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
             Unlock Premium Features
