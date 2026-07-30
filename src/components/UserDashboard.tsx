@@ -574,7 +574,13 @@ const UserDashboard: React.FC = () => {
               ].map(({ slug: s, label, Icon, hoverBtn, iconColor }) => (
                 <Button
                   key={s}
-                  onClick={() => navigate(`/dashboard/${s}`)}
+                  onClick={() =>
+                    navigate(
+                      s === "profile" && userData?.username
+                        ? `/profile/${userData.username}`
+                        : `/dashboard/${s}`,
+                    )
+                  }
                   className={`group bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-xs sm:text-sm transition-all duration-200 hover:shadow-md ${hoverBtn}`}
                   aria-label={label}
                 >
