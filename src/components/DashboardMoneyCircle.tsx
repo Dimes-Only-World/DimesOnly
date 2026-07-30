@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Users, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
@@ -48,6 +50,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [filterCity, setFilterCity] = useState("");
   const [filterState, setFilterState] = useState("");
   const [page, setPage] = useState(1);
+  const [onlineOnly, setOnlineOnly] = useState(false);
   const onlineUsers = useOnlinePresence(true);
 
 
@@ -161,9 +164,10 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
       if (u && !(r.username || "").toLowerCase().includes(u)) return false;
       if (c && !((r.city || "").toLowerCase().includes(c))) return false;
       if (s && !((r.state || "").toLowerCase().includes(s))) return false;
+      if (onlineOnly && !onlineUsers.has((r.username || "").toLowerCase())) return false;
       return true;
     });
-  }, [sorted, filterUsername, filterCity, filterState]);
+  }, [sorted, filterUsername, filterCity, filterState, onlineOnly, onlineUsers]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -174,7 +178,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
 
   useEffect(() => {
     setPage(1);
-  }, [filterUsername, filterCity, filterState]);
+  }, [filterUsername, filterCity, filterState, onlineOnly]);
 
   if (loading) return null;
 
@@ -319,6 +323,17 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
                       onChange={(e) => setFilterState(e.target.value)}
                       className="h-9 bg-white border-slate-200 text-sm"
                     />
+                  </div>
+
+                  {/* Online-only toggle */}
+                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <Label htmlFor="online-only" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Show online members only
+                      </Label>
+                    </div>
+                    <Switch id="online-only" checked={onlineOnly} onCheckedChange={setOnlineOnly} />
                   </div>
 
                   {/* Results grid */}
