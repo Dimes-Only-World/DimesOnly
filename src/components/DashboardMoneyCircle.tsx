@@ -47,6 +47,8 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [filterCity, setFilterCity] = useState("");
   const [filterState, setFilterState] = useState("");
   const [page, setPage] = useState(1);
+  const onlineUsers = useOnlinePresence(true);
+
 
   const fetchReferrals = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
