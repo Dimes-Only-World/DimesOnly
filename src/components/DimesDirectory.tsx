@@ -76,11 +76,15 @@ const DimesDirectory: React.FC = () => {
   const [profiles, setProfiles] = useState<DimeProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<DimeProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [onlineOnly, setOnlineOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { videoUrl: dimesVideoUrl } = usePageVideo("dimes_directory_page");
   const [messageRecipient, setMessageRecipient] = useState<DimeProfile | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const onlineUsers = useOnlinePresence(true);
+
+  const isOnline = (username: string) => onlineUsers.has(username.trim().toLowerCase());
 
   useEffect(() => {
     fetchProfiles();
@@ -89,6 +93,7 @@ const DimesDirectory: React.FC = () => {
   useEffect(() => {
     filterProfiles();
   }, [searchTerm, profiles]);
+
 
   const fetchProfiles = async () => {
     try {
