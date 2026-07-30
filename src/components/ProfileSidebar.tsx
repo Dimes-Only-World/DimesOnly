@@ -375,18 +375,8 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
         </Card>
       )}
 
-      {/* Member Since */}
-      <Card className={getCardClasses("shadow-lg border-0")}>
-        <CardContent className={getPaddingClasses("p-6")}>
-          <div className="flex items-center gap-3 mb-3">
-            <Calendar className="w-5 h-5 text-gray-500" />
-            <span className="text-gray-700 font-medium">Member Since</span>
-          </div>
-          <p className="text-gray-900 font-semibold">
-            {formatMemberSince(userData.created_at)}
-          </p>
-        </CardContent>
-      </Card>
+
+
 
       {/* Additional User Info */}
       <Card className={getCardClasses("shadow-lg border-0")}>
