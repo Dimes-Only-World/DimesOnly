@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 
 interface Referral {
   id: string;
@@ -46,6 +47,8 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const [filterCity, setFilterCity] = useState("");
   const [filterState, setFilterState] = useState("");
   const [page, setPage] = useState(1);
+  const onlineUsers = useOnlinePresence(true);
+
 
   const fetchReferrals = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
@@ -179,28 +182,41 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
 
   const renderAvatar = (ref: Referral, size: "lg" | "sm" = "sm") => {
     const dims = size === "lg" ? "w-16 h-16" : "w-14 h-14";
+    const isOnline = onlineUsers.has((ref.username || "").toLowerCase());
     return (
       <Link
         to={`/profile/${ref.username}`}
         key={ref.id}
         className="flex flex-col items-center min-w-0 w-full group"
-        title={`View @${ref.username}'s page`}
+        title={`View @${ref.username}'s page${isOnline ? " — online now" : ""}`}
       >
-        <div
-          className={`${dims} rounded-full overflow-hidden ring-2 ring-white shadow-md bg-gradient-to-br from-fuchsia-100 to-blue-100 flex items-center justify-center flex-shrink-0 group-hover:ring-[#E916D1] transition-all duration-200 group-hover:scale-105`}
-        >
-          {ref.profile_photo ? (
-            <img
-              src={ref.profile_photo}
-              alt={ref.username}
-              className="w-full h-full object-cover"
+        <div className="relative flex-shrink-0">
+          <div
+            className={`${dims} rounded-full overflow-hidden ring-2 ring-white shadow-md bg-gradient-to-br from-fuchsia-100 to-blue-100 flex items-center justify-center group-hover:ring-[#E916D1] transition-all duration-200 group-hover:scale-105`}
+          >
+            {ref.profile_photo ? (
+              <img
+                src={ref.profile_photo}
+                alt={ref.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-lg font-bold text-blue-700">
+                {ref.username?.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          {isOnline && (
+            <span
+              aria-label="Online"
+              title="Online"
+              className={`absolute bottom-0 right-0 ${
+                size === "lg" ? "w-4 h-4" : "w-3.5 h-3.5"
+              } rounded-full bg-emerald-500 ring-2 ring-white shadow-sm`}
             />
-          ) : (
-            <span className="text-lg font-bold text-blue-700">
-              {ref.username?.charAt(0).toUpperCase()}
-            </span>
           )}
         </div>
+
         <p
           className="text-[11px] font-semibold mt-2 text-center truncate text-slate-900 w-full max-w-[72px] group-hover:text-[#E916D1]"
           title={ref.username}
