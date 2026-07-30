@@ -64,8 +64,9 @@ const ReferrerProfile = () => {
                 />
               )}
             </div>
-            <p className="text-xl font-semibold text-foreground">@{referrer?.username || ref}</p>
-            <p className="text-muted-foreground text-sm">invited you to join Dimes Only Network</p>
+            <p className="text-xl font-semibold text-white">@{referrer?.username || ref}</p>
+            <p className="text-white/80 text-sm">invited you to join Dimes Only Network</p>
+
           </div>
         ) : (
           <img
