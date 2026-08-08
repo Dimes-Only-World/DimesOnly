@@ -36,11 +36,38 @@ serve(async (req) => {
       return json({ error: "Invalid request body" }, 400);
     }
 
-    const { leadId, action } = body as { leadId?: string; action?: string };
+    const { leadId, action, lookup } = body as { leadId?: string; action?: string; lookup?: boolean };
 
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+
+    // Lookup call: verify a returning visitor already submitted the short form.
+    if (lookup) {
+      const name = String((body as any).fullName ?? "").trim();
+      const rawPhone = String((body as any).phone ?? "").trim();
+      const digits = rawPhone.replace(/\D/g, "");
+
+      if (name.length < 2 || digits.length < 7) {
+        return json({ error: "Enter your name and phone number to continue" }, 400);
+      }
+
+      const { data, error } = await admin
+        .from("age_gate_leads")
+        .select("id, full_name, phone")
+        .ilike("full_name", name)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const match = (data ?? []).find(
+        (row: { phone: string | null }) => (row.phone ?? "").replace(/\D/g, "") === digits,
+      );
+
+      if (!match) return json({ found: false }, 200);
+      return json({ found: true, leadId: match.id }, 200);
+    }
 
     // Second call: record which button the visitor pressed after the video.
     if (leadId) {

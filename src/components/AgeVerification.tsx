@@ -31,6 +31,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [referrer, setReferrer] = useState<Referrer | null>(null);
   const [showContact, setShowContact] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [checking, setChecking] = useState(false);
+  const [showReturning, setShowReturning] = useState(false);
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
 
@@ -131,6 +133,46 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     markVerified();
     const query = refCode ? `?ref=${encodeURIComponent(refCode)}` : "";
     window.location.href = `/register${query}`;
+  };
+
+  // Returning visitor: verify their name + phone already exist in the database.
+  const handleAlreadySubmitted = async () => {
+    const next: Record<string, string> = {};
+    if (fullName.trim().length < 2) next.fullName = "Please enter your full name";
+    if (phone.replace(/\D/g, "").length < 7) next.phone = "Please enter a valid phone number";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setChecking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
+        body: { lookup: true, fullName: fullName.trim(), phone: phone.trim() },
+      });
+      if (error) throw error;
+
+      if (data?.found) {
+        if (data.leadId) setLeadId(data.leadId);
+        markVerified();
+        setShowReturning(true);
+      } else {
+        setErrors({ lookup: "The information is incorrect — click Submit to continue." });
+      }
+    } catch (err) {
+      console.error("Age gate lookup failed", err);
+      setErrors({ lookup: "We couldn't verify your details. Please click Submit to continue." });
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleStartFree = async () => {
+    setShowReturning(false);
+    await handleContinueRegistration();
+  };
+
+  const handleWatchIntro = () => {
+    setShowReturning(false);
+    setStep("video");
   };
 
   const handleMoreInfo = async () => {
@@ -260,6 +302,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               </div>
             </div>
 
+            {errors.lookup && (
+              <p className="text-red-400 text-xs sm:text-sm mt-4 text-center">{errors.lookup}</p>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 type="button"
@@ -276,6 +322,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 {submitting ? "Submitting..." : "Submit"}
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={handleAlreadySubmitted}
+              disabled={checking}
+              className="w-full mt-3 px-6 py-3 rounded-lg border border-orange-500/60 text-orange-300 hover:bg-orange-500/10 disabled:opacity-60 transition-colors text-sm font-semibold"
+            >
+              {checking ? "Checking..." : "Already Submitted"}
+            </button>
+
           </form>
         )}
 
@@ -324,6 +380,33 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
             </div>
           </div>
         )}
+        {showReturning && (
+          <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
+            <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center">
+              <h3 className="text-orange-500 text-lg sm:text-xl font-bold mb-2">Welcome back!</h3>
+              <p className="text-white/70 text-sm mb-6">
+                We found your details. What would you like to do next?
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={handleWatchIntro}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  Watch Intro Video
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartFree}
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  Start Free
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showContact && (
           <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
             <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center">
