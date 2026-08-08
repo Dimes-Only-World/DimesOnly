@@ -356,7 +356,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               controls
               controlsList="nodownload noplaybackrate"
               onEnded={() => setVideoEnded(true)}
-              className="w-full rounded-lg border-2 border-orange-500 bg-black aspect-video object-contain max-sm:object-cover"
+              className="w-full h-auto rounded-lg border-2 border-orange-500 bg-black object-contain"
             >
               <source src={explainerUrl || FALLBACK_VIDEO} />
             </video>
