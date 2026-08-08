@@ -67,12 +67,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
 
   const markVerified = () => {
-    try {
-      sessionStorage.setItem("ageVerifiedThisSession", "true");
-    } catch (e) {
-      console.error("Unable to persist age verification", e);
-    }
+    // Intentionally not persisted: age verification is required on every visit.
   };
+
 
   const validate = () => {
     const next: Record<string, string> = {};
