@@ -380,6 +380,33 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
             </div>
           </div>
         )}
+        {showReturning && (
+          <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
+            <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center">
+              <h3 className="text-orange-500 text-lg sm:text-xl font-bold mb-2">Welcome back!</h3>
+              <p className="text-white/70 text-sm mb-6">
+                We found your details. What would you like to do next?
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={handleWatchIntro}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  Watch Intro Video
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartFree}
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  Start Free
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showContact && (
           <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
             <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center">
