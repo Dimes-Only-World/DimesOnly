@@ -135,6 +135,46 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     window.location.href = `/register${query}`;
   };
 
+  // Returning visitor: verify their name + phone already exist in the database.
+  const handleAlreadySubmitted = async () => {
+    const next: Record<string, string> = {};
+    if (fullName.trim().length < 2) next.fullName = "Please enter your full name";
+    if (phone.replace(/\D/g, "").length < 7) next.phone = "Please enter a valid phone number";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setChecking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
+        body: { lookup: true, fullName: fullName.trim(), phone: phone.trim() },
+      });
+      if (error) throw error;
+
+      if (data?.found) {
+        if (data.leadId) setLeadId(data.leadId);
+        markVerified();
+        setShowReturning(true);
+      } else {
+        setErrors({ lookup: "The information is incorrect — click Submit to continue." });
+      }
+    } catch (err) {
+      console.error("Age gate lookup failed", err);
+      setErrors({ lookup: "We couldn't verify your details. Please click Submit to continue." });
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleStartFree = async () => {
+    setShowReturning(false);
+    await handleContinueRegistration();
+  };
+
+  const handleWatchIntro = () => {
+    setShowReturning(false);
+    setStep("video");
+  };
+
   const handleMoreInfo = async () => {
     await recordAction("more_information");
     setShowContact(true);
