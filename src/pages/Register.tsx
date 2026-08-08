@@ -156,23 +156,46 @@ export const Register: React.FC = () => {
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
 
+  // Values captured by the home page age-gate form, if any.
+  const agePrefill = (() => {
+    try {
+      const raw = sessionStorage.getItem("ageGatePrefill");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as {
+        fullName?: string;
+        phone?: string;
+        dateOfBirth?: string;
+      };
+      const parts = (parsed.fullName || "").trim().split(/\s+/);
+      return {
+        firstName: parts[0] || "",
+        lastName: parts.slice(1).join(" ") || "",
+        mobileNumber: parsed.phone || "",
+        dateOfBirth: parsed.dateOfBirth || "",
+      };
+    } catch {
+      return null;
+    }
+  })();
+
   const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
+    firstName: agePrefill?.firstName || "",
+    lastName: agePrefill?.lastName || "",
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
-    mobileNumber: "",
+    mobileNumber: agePrefill?.mobileNumber || "",
     address: "",
     city: "",
     state: "",
     zip: "",
     gender: "",
     userType: "",
-    dateOfBirth: "",
+    dateOfBirth: agePrefill?.dateOfBirth || "",
     referredBy: getReferralUsername(searchParams),
   });
+
 
   // Debounced username availability check
   useEffect(() => {
