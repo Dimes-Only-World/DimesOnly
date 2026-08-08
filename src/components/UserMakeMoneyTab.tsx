@@ -108,9 +108,15 @@ const UserMakeMoneyTab: React.FC = () => {
     );
   }, [shareMessage, copyToClipboard]);
 
+  const handleCopyLink = useCallback(async () => {
+    const ok = await copyToClipboard(shareLink);
+    if (ok) toast({ title: "Copied!", description: "Your referral link is ready to share." });
+  }, [shareLink, copyToClipboard, toast]);
+
   const handleCopyMessage = useCallback(async () => {
-    await copyToClipboard(shareMessage);
-  }, [shareMessage, copyToClipboard]);
+    const ok = await copyToClipboard(shareMessage);
+    if (ok) toast({ title: "Copied!", description: "Your share message is ready to paste." });
+  }, [shareMessage, copyToClipboard, toast]);
 
   const handleFacebookShare = useCallback(async () => {
     await copyToClipboard(shareMessage);
