@@ -6,6 +6,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { QRCodeSVG } from "qrcode.react";
+
 
 const UserMakeMoneyTab: React.FC = () => {
   const { user } = useAppContext();
