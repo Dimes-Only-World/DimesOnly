@@ -138,6 +138,14 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     onVerified();
   };
 
+  // Format as (111) 111-1111 while typing.
+  const formatPhone = (value: string) => {
+    const d = value.replace(/\D/g, "").slice(0, 10);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  };
+
   const inputClass =
     "w-full rounded-lg bg-white/10 border border-white/30 text-white placeholder-white/50 px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400";
 
@@ -231,8 +239,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 <input
                   type="tel"
                   value={phone}
-                  maxLength={25}
-                  onChange={(e) => setPhone(e.target.value)}
+                  inputMode="tel"
+                  maxLength={14}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
                   placeholder="(555) 123-4567"
                   className={inputClass}
                 />
