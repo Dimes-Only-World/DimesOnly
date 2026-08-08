@@ -31,6 +31,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [referrer, setReferrer] = useState<Referrer | null>(null);
   const [showContact, setShowContact] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [checking, setChecking] = useState(false);
+  const [showReturning, setShowReturning] = useState(false);
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
 
