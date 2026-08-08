@@ -207,18 +207,19 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
       <div className="bg-gray-900 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto">
 
         {step === "warning" && (
-          <div className="flex flex-col items-center gap-5 sm:gap-6">
-            <div className="w-full">
+          <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
+            <div className="w-full sm:w-1/3 shrink-0">
               <video
                 autoPlay
                 muted
                 loop
                 playsInline
-                className="w-full max-h-[55vh] aspect-video object-contain max-sm:object-cover bg-black rounded-lg border-2 border-orange-500"
+                className="w-full h-auto object-contain bg-black rounded-lg border-2 border-orange-500"
               >
                 <source src={FALLBACK_VIDEO} type="video/webm" />
               </video>
             </div>
+
 
 
             <div className="text-center flex-1">
@@ -355,7 +356,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               controls
               controlsList="nodownload noplaybackrate"
               onEnded={() => setVideoEnded(true)}
-              className="w-full rounded-lg border-2 border-orange-500 bg-black aspect-video object-contain max-sm:object-cover"
+              className="w-full h-auto rounded-lg border-2 border-orange-500 bg-black object-contain"
             >
               <source src={explainerUrl || FALLBACK_VIDEO} />
             </video>
