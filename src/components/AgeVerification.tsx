@@ -135,7 +135,12 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
   const handleMoreInfo = async () => {
     await recordAction("more_information");
+    setShowContact(true);
+  };
+
+  const closeContact = () => {
     markVerified();
+    setShowContact(false);
     onVerified();
   };
 
