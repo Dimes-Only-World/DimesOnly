@@ -172,84 +172,137 @@ const UserMakeMoneyTab: React.FC = () => {
     );
 
   return (
-    <div className="w-full max-w-none px-0 md:px-4">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-purple-600 mb-2">
-          SHARE YOUR LINK AND GET YOUR FIRST REFERRAL NOW!
+    <div className="w-full max-w-none px-0 md:px-4 space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl md:text-3xl font-bold text-primary">
+          Share Your Link & Grow Your Network
         </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Invite friends, fans, and business contacts to join Dimes Only World. You earn referral commissions when they
+          sign up and participate.
+        </p>
       </div>
 
-      {/* Download + Share Section */}
-      <div className="flex flex-col items-center p-4 text-center mb-8">
-        <h3 className="text-xl font-bold mb-2">
-          The message below you will share to get your followers until the app is released.
-        </h3>
-        <h3 className="text-xl font-bold mb-2">ALL THE LINKS WILL MAXIMIZE YOUR FOLLOWERS.</h3>
-        <h3 className="text-xl font-bold mb-2">Click Copy - Instagram - Facebook - Contacts below message to share</h3>
-        <p className="text-gray-700 whitespace-pre-line mb-4">{shareMessage}</p>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Promo Video */}
+        <Card className="border border-border">
+          <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Download className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-primary">Download Promo Video</h3>
+              <p className="text-sm text-muted-foreground">
+                Save the video to send through your favorite messaging app.
+              </p>
+            </div>
+            <Button asChild className="w-full">
+              <a
+                href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm"
+                download="DimesOnly-Promo.webm"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Video
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <a
-          href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm"
-          download="Exs+Commercial.webm"
-          className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition mb-3"
-        >
-          📥 Download Promo Video To Send
-        </a>
-
-        <a
-          href={shareLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
-        >
-          Click for Your Referral Link
-        </a>
-      </div>
-
-      {/* Share Buttons */}
-      <Card className="mb-8" id="referral-link-section">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Share2 className="w-5 h-5" />
-            Your Referral Link
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded border flex items-center justify-between gap-2">
-              <p className="text-sm font-mono break-all flex-1">{shareLink}</p>
-              <Button onClick={handleCopyMessage} variant="ghost" size="sm" className="shrink-0">
+        {/* Referral Link */}
+        <Card className="border border-border">
+          <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <LinkIcon className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-primary">Your Referral Link</h3>
+              <p className="text-sm text-muted-foreground">Copy and share your personal link anywhere.</p>
+            </div>
+            <div className="flex items-center gap-2 w-full">
+              <div className="flex-1 p-2 bg-muted rounded border border-border text-sm font-mono break-all text-muted-foreground">
+                {shareLink}
+              </div>
+              <Button onClick={handleCopyLink} size="icon" variant="outline" aria-label="Copy referral link">
                 <Copy className="w-4 h-4" />
               </Button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Button onClick={handleNativeShare} variant="outline">
-                <Share2 className="w-4 h-4 mr-2" /> Share
-              </Button>
-              <Button onClick={handleFacebookShare} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Facebook className="w-4 h-4 mr-2" /> Facebook
-              </Button>
-              <Button onClick={handleInstagramShare} className="bg-pink-600 hover:bg-pink-700 text-white">
-                <Instagram className="w-4 h-4 mr-2" /> Instagram
-              </Button>
-              <Button onClick={handleSmsShare} variant="outline">
-                <MessageSquare className="w-4 h-4 mr-2" /> Contacts
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Button onClick={handleWhatsAppShare} className="bg-green-500 hover:bg-green-600 text-white">
-                WhatsApp
-              </Button>
-              <Button onClick={handleTelegramShare} className="bg-blue-400 hover:bg-blue-500 text-white">
-                Telegram
-              </Button>
-              <Button onClick={handleXShare} className="bg-sky-600 hover:bg-sky-700 text-white">
-                X
-              </Button>
-              <Button onClick={handleEmailShare} className="bg-red-500 hover:bg-red-600 text-white">
-                Email
-              </Button>
-            </div>
+            <Button onClick={handleCopyLink} className="w-full">
+              <Copy className="w-4 h-4 mr-2" />
+              Copy Referral Link
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Share Message */}
+      <Card className="border border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageSquare className="w-5 h-5" />
+            Ready-to-Send Message
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground text-sm">
+            Copy this pre-written message and paste it into any app. It already includes your personal referral link.
+          </p>
+          <div className="p-4 bg-muted rounded-lg border border-border">
+            <p className="text-sm whitespace-pre-line text-foreground">{shareMessage}</p>
+          </div>
+          <Button onClick={handleCopyMessage} className="w-full sm:w-auto">
+            <Copy className="w-4 h-4 mr-2" />
+            Copy Message
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Share Buttons */}
+      <Card className="border border-border" id="referral-link-section">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Share2 className="w-5 h-5" />
+            Share Instantly
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Click a button to share your referral link directly. On mobile, your device's share sheet will open.
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Button onClick={handleNativeShare} variant="outline" className="w-full">
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+            <Button onClick={handleFacebookShare} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+              <Facebook className="w-4 h-4 mr-2" />
+              Facebook
+            </Button>
+            <Button onClick={handleInstagramShare} className="w-full bg-pink-600 hover:bg-pink-700 text-white">
+              <Instagram className="w-4 h-4 mr-2" />
+              Instagram
+            </Button>
+            <Button onClick={handleSmsShare} variant="outline" className="w-full">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Contacts
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Button onClick={handleWhatsAppShare} className="w-full bg-green-500 hover:bg-green-600 text-white">
+              WhatsApp
+            </Button>
+            <Button onClick={handleTelegramShare} className="w-full bg-blue-400 hover:bg-blue-500 text-white">
+              Telegram
+            </Button>
+            <Button onClick={handleXShare} className="w-full bg-sky-600 hover:bg-sky-700 text-white">
+              X
+            </Button>
+            <Button onClick={handleEmailShare} className="w-full bg-red-500 hover:bg-red-600 text-white">
+              Email
+            </Button>
           </div>
         </CardContent>
       </Card>
