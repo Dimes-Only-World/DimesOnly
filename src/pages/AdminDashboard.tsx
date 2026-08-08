@@ -16,6 +16,8 @@ import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
 import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
+import AdminLeadsTab from "@/components/AdminLeadsTab";
+
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard: React.FC = () => {
@@ -165,7 +167,11 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="settings" className="whitespace-nowrap">
                 Settings
               </TabsTrigger>
+              <TabsTrigger value="leads" className="whitespace-nowrap">
+                Leads
+              </TabsTrigger>
             </TabsList>
+
           </div>
 
           <TabsContent value="users">
@@ -220,7 +226,12 @@ const AdminDashboard: React.FC = () => {
             <AdminAppLaunchSettings />
             <AdminEmailSettings />
           </TabsContent>
+
+          <TabsContent value="leads">
+            <AdminLeadsTab />
+          </TabsContent>
         </Tabs>
+
       </div>
     </div>
   );

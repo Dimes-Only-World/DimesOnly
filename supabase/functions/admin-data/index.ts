@@ -52,8 +52,20 @@ serve(async (req) => {
     let result;
 
     switch (action) {
+      case 'fetchAgeGateLeads': {
+        const { data, error } = await supabaseAdmin
+          .from('age_gate_leads')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1000);
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       // User management
       case 'fetchAllUsers': {
+
         const { data, error } = await supabaseAdmin
           .from('users')
           .select('*')

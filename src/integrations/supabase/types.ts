@@ -29,6 +29,39 @@ export type Database = {
         }
         Relationships: []
       }
+      age_gate_leads: {
+        Row: {
+          action_taken: string
+          created_at: string
+          date_of_birth: string
+          full_name: string
+          id: string
+          phone: string
+          referral_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_taken?: string
+          created_at?: string
+          date_of_birth: string
+          full_name: string
+          id?: string
+          phone: string
+          referral_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string
+          date_of_birth?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          referral_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string

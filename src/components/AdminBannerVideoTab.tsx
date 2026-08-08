@@ -43,6 +43,8 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "email_performer_approved", label: "Email — Performer Approved Video" },
   { page_key: "email_performer_not_approved", label: "Email — Performer Not Approved Video" },
   { page_key: "rentals_page", label: "Rentals Page Header Video" },
+  { page_key: "age_gate_explainer", label: "Home Age Gate — Explainer Video" },
+
 ];
 
 const VideoHoverPreview: React.FC<{ url: string; anchorRef: React.RefObject<HTMLElement | null> }> = ({ url }) => {
