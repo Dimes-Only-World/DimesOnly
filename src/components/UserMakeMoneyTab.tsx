@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Share2, Facebook, Instagram, MessageSquare, Copy } from "lucide-react";
+import { Share2, Facebook, Instagram, MessageSquare, Copy, HelpCircle } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -244,7 +245,196 @@ const UserMakeMoneyTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Q&A Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <HelpCircle className="w-5 h-5" />
+            Q&amp;A
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="residual">
+              <AccordionTrigger className="text-left font-semibold">Residual Income</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">Residual Income Mechanics – Dimes Only World</p>
+                  <p>
+                    Residual income means you continue earning money from work or connections you already made, even
+                    when you're not actively working.
+                  </p>
+                  <p>Here's how it works on Dimes Only World:</p>
+
+                  <div>
+                    <p className="font-semibold">1. Referral Commissions (Money Circle)</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>You refer someone → you earn 20% of what they spend or generate (direct referral).</li>
+                      <li>That person refers someone else → you earn 10% on the second level.</li>
+                      <li>
+                        These commissions can pay you repeatedly whenever people in your network tip, upgrade, or
+                        generate revenue.
+                      </li>
+                      <li>This is classic residual income: you build the network once, then earn ongoing overrides.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">2. Profit Sharing (Plus Memberships)</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>
+                        Limited positions (Silver Plus, Diamond Plus, Elite Plus) give members a share of the company's
+                        profits.
+                      </li>
+                      <li>Payments are made quarterly.</li>
+                      <li>
+                        Once you hold a Plus position, you can receive ongoing profit-share payments as long as you
+                        remain an active member in good standing and the company is profitable.
+                      </li>
+                      <li>This is residual because the income is tied to company performance.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">3. Network Effect (Money Circle + Overrides)</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>
+                        The bigger and more active your Money Circle becomes, the more residual income potential you
+                        have.
+                      </li>
+                      <li>
+                        You don't have to personally participate every time someone in your downline generates money —
+                        the system pays the override automatically.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Simple Example</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>You refer 10 members.</li>
+                      <li>They become active and start tipping, upgrading, or referring others.</li>
+                      <li>You earn 20% on their direct activity.</li>
+                      <li>When they refer people, you earn 10% on that second level.</li>
+                      <li>If you hold a Plus membership, you also receive quarterly profit-share distributions.</li>
+                    </ul>
+                    <p className="mt-2">
+                      Over time, this creates income that can continue even on days you're not working.
+                    </p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="profit-sharing">
+              <AccordionTrigger className="text-left font-semibold">Profit Sharing</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">Profit Sharing Explained – Dimes Only World</p>
+                  <p>
+                    Profit sharing at Dimes Only World means a portion of the company's profits is distributed to
+                    members who hold special "Plus" positions.
+                  </p>
+
+                  <div>
+                    <p className="font-semibold">How It Works</p>
+                    <ol className="list-decimal pl-5 space-y-1">
+                      <li>
+                        <span className="font-medium">The Company Makes a Profit</span> — Dimes Only World generates
+                        revenue from memberships, upgrades, tips, referrals, club owner fees, and other activity.
+                      </li>
+                      <li>
+                        <span className="font-medium">A Percentage Goes to the Profit-Share Pool</span> — A set portion
+                        of the company's profits is allocated to the profit-sharing group (the Plus members).
+                      </li>
+                      <li>
+                        <span className="font-medium">The Pool Is Divided Among Qualified Members</span> — Split among
+                        people holding eligible positions (Silver Plus, Diamond Plus, or Elite Plus).
+                      </li>
+                      <li>
+                        <span className="font-medium">Payments Are Made Quarterly</span> — Members receive their share
+                        every quarter, as long as they remain active and in good standing.
+                      </li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold mb-2">Membership Tiers &amp; Profit Share</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs md:text-sm border rounded">
+                        <thead className="bg-muted">
+                          <tr>
+                            <th className="p-2">Membership</th>
+                            <th className="p-2">Max Annual Profit Share</th>
+                            <th className="p-2">Paid</th>
+                            <th className="p-2">Who It's For</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-t">
+                            <td className="p-2">Silver Plus</td>
+                            <td className="p-2">Up to $75,000/year</td>
+                            <td className="p-2">Quarterly</td>
+                            <td className="p-2">General members / early joiners</td>
+                          </tr>
+                          <tr className="border-t">
+                            <td className="p-2">Diamond Plus</td>
+                            <td className="p-2">Up to $125,000/year</td>
+                            <td className="p-2">Quarterly</td>
+                            <td className="p-2">Performers</td>
+                          </tr>
+                          <tr className="border-t">
+                            <td className="p-2">Elite Plus</td>
+                            <td className="p-2">Up to $200,000/year</td>
+                            <td className="p-2">Quarterly</td>
+                            <td className="p-2">Business / Club Owners</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="mt-2">
+                      These amounts are maximums. Actual payouts depend on the company's real profits and how many
+                      people are in each group.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Important Points</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Profit sharing is not a guaranteed salary. It comes from actual company profits.</li>
+                      <li>
+                        Positions are limited. Early members who upgrade lock in better positions before they fill up.
+                      </li>
+                      <li>You must stay an active member in good standing to continue receiving distributions.</li>
+                      <li>
+                        This is separate from referral commissions (the 20% / 10% overrides). You can earn both.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Simple Example</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Company makes strong profits in a quarter.</li>
+                      <li>A percentage of those profits goes into the profit-share pool.</li>
+                      <li>That pool is divided among all active Plus members according to their tier.</li>
+                      <li>You receive your portion as a quarterly payment.</li>
+                    </ul>
+                  </div>
+
+                  <p className="font-medium">
+                    In short: Referral commissions pay you from your network's activity. Profit sharing pays you from
+                    the overall success of Dimes Only World.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
     </div>
+
   );
 };
 
