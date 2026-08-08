@@ -153,7 +153,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 muted
                 loop
                 playsInline
-                className="w-full sm:w-64 h-48 object-cover rounded-lg border-2 border-orange-500"
+                className="w-full sm:w-64 h-36 sm:h-48 object-cover rounded-lg border-2 border-orange-500"
               >
                 <source src={FALLBACK_VIDEO} type="video/webm" />
               </video>
