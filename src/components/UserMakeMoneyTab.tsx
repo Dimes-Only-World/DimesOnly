@@ -430,6 +430,72 @@ const UserMakeMoneyTab: React.FC = () => {
                 </div>
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="referral-commissions">
+              <AccordionTrigger className="text-left font-semibold">Referral Commissions Explained</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">Referral Commissions Explained – Dimes Only World</p>
+                  <p>
+                    Referral commissions (also called overrides) are how you earn money from people you bring into the
+                    platform and from the people they bring in.
+                  </p>
+
+                  <div>
+                    <p className="font-semibold">How It Works</p>
+
+                    <div>
+                      <p className="font-medium">1. Direct Referral – 20%</p>
+                      <p>
+                        When you refer someone and they join or spend money (membership, upgrade, tips, etc.), you earn
+                        20% of what they generate. This is your direct override.
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="font-medium">2. Second-Level Referral – 10%</p>
+                      <p>
+                        When the person you referred brings in someone else, you earn 10% on that second-level
+                        activity. You get paid even though you didn't directly refer the second person.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Example</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>You refer Sarah. Sarah upgrades and spends $500 → you earn $100 (20%).</li>
+                      <li>Sarah refers Mike. Mike spends $300 → you earn $30 (10%).</li>
+                      <li>You continue earning these percentages whenever people in your network generate revenue.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Key Points</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Commissions are paid on qualifying activity (memberships, upgrades, tips, etc.).</li>
+                      <li>You can earn both direct (20%) and second-level (10%) overrides at the same time.</li>
+                      <li>
+                        This creates residual income — you build your network once and can keep earning from it.
+                      </li>
+                      <li>
+                        The system is designed so the more active your Money Circle becomes, the more you can earn in
+                        overrides.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Difference From Profit Sharing</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Referral commissions = paid from the activity of people in your network.</li>
+                      <li>Profit sharing = paid from the company's overall profits (only for Plus members).</li>
+                      <li>You can earn both at the same time.</li>
+                    </ul>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </CardContent>
       </Card>
