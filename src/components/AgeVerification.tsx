@@ -191,12 +191,26 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
         {step === "form" && (
           <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
+            {referrer && (
+              <div className="flex items-center gap-4 mb-6 p-4 rounded-xl bg-white/5 border border-orange-500/40">
+                <Avatar className="h-20 w-20 border-2 border-orange-500">
+                  {referrer.photo && <AvatarImage src={referrer.photo} alt={`@${referrer.username}`} />}
+                  <AvatarFallback />
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-white/70 text-xs uppercase tracking-wide">You were invited by</p>
+                  <p className="text-lg sm:text-xl font-bold text-orange-400 truncate">@{referrer.username}</p>
+                </div>
+              </div>
+            )}
+
             <h2 className="text-orange-500 text-xl sm:text-2xl font-bold mb-2 text-center">
               Let&apos;s get you started
             </h2>
             <p className="text-white/70 text-xs sm:text-sm mb-6 text-center">
               Enter your details to watch a short introduction video.
             </p>
+
 
             <div className="space-y-4">
               <div>
