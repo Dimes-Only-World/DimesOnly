@@ -10,13 +10,13 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Always show age verification on home page visits
-    // Remove any existing verification to ensure it shows every time
+    // Skip the gate for the rest of the browser session once completed.
     localStorage.removeItem('ageVerified');
-    setShowAgeVerification(true);
+    const done = sessionStorage.getItem('ageVerifiedThisSession') === 'true';
+    setShowAgeVerification(!done);
     setIsLoading(false);
-    console.log('Age verification will be shown on home page visit');
   }, []);
+
 
   const handleAgeVerified = () => {
     console.log('handleAgeVerified called');
