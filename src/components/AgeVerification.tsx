@@ -191,6 +191,14 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   };
 
+  // Capitalize first letter of each word in the full name.
+  const formatFullName = (value: string) =>
+    value
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
+      .join(" ");
+
   const inputClass =
     "w-full rounded-lg bg-white/10 border border-white/30 text-white placeholder-white/50 px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400";
 
@@ -272,7 +280,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                   type="text"
                   value={fullName}
                   maxLength={100}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => setFullName(formatFullName(e.target.value))}
                   placeholder="Your full name"
                   className={inputClass}
                 />
