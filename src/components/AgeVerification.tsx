@@ -324,6 +324,45 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
             </div>
           </div>
         )}
+        {showContact && (
+          <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
+            <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center">
+              <h3 className="text-orange-500 text-lg sm:text-xl font-bold mb-2">Get in Touch</h3>
+              <p className="text-white/70 text-sm mb-6">
+                Have questions? Text us or reach out on WhatsApp and we&apos;ll get back to you shortly.
+              </p>
+
+              <div className="mb-6">
+                <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Contact Number</p>
+                <a
+                  href="tel:+13106920921"
+                  className="text-xl sm:text-2xl font-bold text-white hover:text-orange-400 transition-colors"
+                >
+                  (310) 692-0921
+                </a>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href="https://wa.me/13106920921"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                  onClick={closeContact}
+                >
+                  Open WhatsApp
+                </a>
+                <button
+                  type="button"
+                  onClick={closeContact}
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
