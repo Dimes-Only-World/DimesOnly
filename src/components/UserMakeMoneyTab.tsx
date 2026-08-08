@@ -21,9 +21,11 @@ const UserMakeMoneyTab: React.FC = () => {
 
   const shareMessage = useMemo(() => {
     const base =
-      "Men and Sexy Ladies Needed Now!\n\n" +
-      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm\n" +
-      "Watch Video Above:\nIf you are interested, click my link below and sign up now!\nSpots are limited!\nMales needed to:\n";
+      "Join the Dimes Only Network today!\n\n" +
+      "Promo video:\n" +
+      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm\n\n" +
+      "If you are interested, click my referral link below and sign up now.\n" +
+      "Spots are limited!\n\n";
     return `${base}${shareLink}`;
   }, [shareLink]);
 
