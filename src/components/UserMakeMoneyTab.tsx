@@ -220,9 +220,15 @@ const UserMakeMoneyTab: React.FC = () => {
               <h3 className="font-semibold text-primary">Your Referral Link</h3>
               <p className="text-sm text-muted-foreground">Copy and share your personal link anywhere.</p>
             </div>
-            <div className="flex items-center gap-2 w-full">
-              <div className="flex-1 p-2 bg-muted rounded border border-border text-sm font-mono break-all text-muted-foreground">
-                {shareLink}
+            <div className="flex items-center gap-3 w-full">
+              <div className="shrink-0 p-2 bg-background rounded border border-border">
+                <QRCodeSVG value={shareLink} size={88} level="M" />
+              </div>
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="p-2 bg-muted rounded border border-border text-sm font-mono break-all text-muted-foreground text-left">
+                  {shareLink}
+                </div>
+                <p className="text-xs text-muted-foreground text-left">Scan the code to join — no typing needed.</p>
               </div>
               <Button onClick={handleCopyLink} size="icon" variant="outline" aria-label="Copy referral link">
                 <Copy className="w-4 h-4" />
@@ -232,6 +238,7 @@ const UserMakeMoneyTab: React.FC = () => {
               <Copy className="w-4 h-4 mr-2" />
               Copy Referral Link
             </Button>
+
           </CardContent>
         </Card>
       </div>
