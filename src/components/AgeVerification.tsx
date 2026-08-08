@@ -280,7 +280,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                   type="text"
                   value={fullName}
                   maxLength={100}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => setFullName(formatFullName(e.target.value))}
                   placeholder="Your full name"
                   className={inputClass}
                 />
