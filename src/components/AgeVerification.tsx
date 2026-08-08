@@ -383,7 +383,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 onClick={handleContinueRegistration}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
               >
-                Continue Registration
+                Complete Registration Free
               </button>
               <button
                 type="button"
