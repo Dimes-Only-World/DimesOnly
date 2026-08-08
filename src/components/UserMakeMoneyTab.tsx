@@ -566,7 +566,139 @@ const UserMakeMoneyTab: React.FC = () => {
                 </div>
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="dimes-tip-structure">
+              <AccordionTrigger className="text-left font-semibold">Dimes Tip Structure</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">Dimes Tip Structure – Dimes Only World</p>
+                  <p>
+                    When a tip is sent on the platform, it is split across the tipped member, the referrer of the tipped
+                    member, and the referrer of the tipper. This rewards the network that helped both sides join.
+                  </p>
+
+                  <div>
+                    <p className="font-semibold">How a Tip Is Distributed</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>
+                        <span className="font-medium">40% to the tipped female</span> — This appears on Dimes profiles
+                        and is the core reward for the member receiving the tip.
+                      </li>
+                      <li>
+                        <span className="font-medium">10% to the referrer of the tipped female</span> — The person who
+                        originally referred the tipped member receives an override from that activity.
+                      </li>
+                      <li>
+                        <span className="font-medium">5% to the person who referred the tipper</span> — The person who
+                        brought the tipper onto the platform also earns a small override.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Key Points</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>The 40% tipped amount is shown only on Dimes profiles.</li>
+                      <li>Referral overrides are paid automatically when the tip clears.</li>
+                      <li>This structure encourages members to refer both tippers and recipients.</li>
+                    </ul>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="referrals-direct-overrides">
+              <AccordionTrigger className="text-left font-semibold">Referrals Direct &amp; Overrides</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">Referrals Direct &amp; Overrides – Dimes Only World</p>
+                  <p>
+                    The referral program pays you on two levels: a direct commission when you personally refer someone,
+                    and an override when the people you referred bring in others.
+                  </p>
+
+                  <div>
+                    <p className="font-semibold">Commission Rates</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>
+                        <span className="font-medium">20% Direct</span> — Earned when someone you refer joins or spends
+                        money on the platform.
+                      </li>
+                      <li>
+                        <span className="font-medium">10% Override</span> — Earned when the person you referred brings in
+                        someone else and that person spends money.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Qualifying Referral Activity</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Memberships — monthly, annual, and plus upgrades.</li>
+                      <li>Car rentals — booked and paid through the platform.</li>
+                      <li>Car purchases — handled on a case-by-case scenario.</li>
+                      <li>Purchases — clothes, ticket sales, and other platform transactions.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Key Points</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Both direct and override commissions can be earned at the same time.</li>
+                      <li>Commissions are calculated from the qualifying transaction amount.</li>
+                      <li>Specific purchase types may be handled case-by-case based on seller agreements.</li>
+                    </ul>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="merchant-product-sales">
+              <AccordionTrigger className="text-left font-semibold">Members Merchant Product Sale</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">Members Merchant Product Sale – Dimes Only World</p>
+                  <p>
+                    Members can post items they own and sell them directly through the platform. When your item sells, you
+                    keep the majority of the final invoice while your referrer also earns a small override.
+                  </p>
+
+                  <div>
+                    <p className="font-semibold">How It Works</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>
+                        <span className="font-medium">You earn 70%</span> — The seller keeps 70% of the final invoice when
+                        their item sells.
+                      </li>
+                      <li>
+                        <span className="font-medium">Your referrer earns 10%</span> — The person who referred you to the
+                        platform receives a 10% override from the sale.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">What Can Be Sold</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Clothing, accessories, and personal items.</li>
+                      <li>Event tickets and experiences.</li>
+                      <li>Other approved member-owned products.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Key Points</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>All items must follow platform guidelines and approval rules.</li>
+                      <li>The 70% seller payout is calculated from the final invoice amount.</li>
+                      <li>Your referrer's 10% override is paid automatically when the sale completes.</li>
+                    </ul>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
+
         </CardContent>
       </Card>
     </div>
