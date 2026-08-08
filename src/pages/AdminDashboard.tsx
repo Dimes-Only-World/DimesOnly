@@ -167,7 +167,10 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="settings" className="whitespace-nowrap">
                 Settings
               </TabsTrigger>
-            </TabsList>
+              <TabsTrigger value="leads" className="whitespace-nowrap">
+                Leads
+              </TabsTrigger>
+
           </div>
 
           <TabsContent value="users">
