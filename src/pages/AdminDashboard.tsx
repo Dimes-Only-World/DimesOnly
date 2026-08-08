@@ -16,6 +16,8 @@ import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
 import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
+import AdminLeadsTab from "@/components/AdminLeadsTab";
+
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard: React.FC = () => {
