@@ -1,8 +1,9 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import DateOfBirthSelect, { calculateAge } from "@/components/DateOfBirthSelect";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeRefParam } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AgeVerificationProps {
   onVerified: () => void;
@@ -13,6 +14,11 @@ const FALLBACK_VIDEO =
 
 type Step = "warning" | "form" | "video";
 
+interface Referrer {
+  username: string;
+  photo: string | null;
+}
+
 const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [step, setStep] = useState<Step>("warning");
   const [fullName, setFullName] = useState("");
@@ -22,6 +28,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [submitting, setSubmitting] = useState(false);
   const [leadId, setLeadId] = useState<string | null>(null);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [referrer, setReferrer] = useState<Referrer | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
@@ -30,6 +37,31 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     const params = new URLSearchParams(window.location.search);
     return normalizeRefParam(params.get("ref")) || "";
   }, []);
+
+  // Look up the referrer named in the ?ref= parameter so we can greet the visitor.
+  useEffect(() => {
+    if (!refCode || refCode.toLowerCase() === "company") return;
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("public_user_profiles")
+        .select("username, profile_photo, front_page_photo, banner_photo")
+        .ilike("username", refCode)
+        .maybeSingle();
+
+      if (cancelled || error || !data) return;
+      setReferrer({
+        username: data.username,
+        photo: data.front_page_photo || data.profile_photo || data.banner_photo || null,
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refCode]);
+
 
   const markVerified = () => {
     try {
