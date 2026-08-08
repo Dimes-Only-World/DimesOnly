@@ -302,6 +302,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               </div>
             </div>
 
+            {errors.lookup && (
+              <p className="text-red-400 text-xs sm:text-sm mt-4 text-center">{errors.lookup}</p>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 type="button"
@@ -318,6 +322,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 {submitting ? "Submitting..." : "Submit"}
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={handleAlreadySubmitted}
+              disabled={checking}
+              className="w-full mt-3 px-6 py-3 rounded-lg border border-orange-500/60 text-orange-300 hover:bg-orange-500/10 disabled:opacity-60 transition-colors text-sm font-semibold"
+            >
+              {checking ? "Checking..." : "Already Submitted"}
+            </button>
+
           </form>
         )}
 
