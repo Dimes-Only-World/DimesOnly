@@ -1,8 +1,9 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import DateOfBirthSelect, { calculateAge } from "@/components/DateOfBirthSelect";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeRefParam } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AgeVerificationProps {
   onVerified: () => void;
@@ -13,6 +14,11 @@ const FALLBACK_VIDEO =
 
 type Step = "warning" | "form" | "video";
 
+interface Referrer {
+  username: string;
+  photo: string | null;
+}
+
 const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [step, setStep] = useState<Step>("warning");
   const [fullName, setFullName] = useState("");
@@ -22,6 +28,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [submitting, setSubmitting] = useState(false);
   const [leadId, setLeadId] = useState<string | null>(null);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [referrer, setReferrer] = useState<Referrer | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
@@ -30,6 +37,31 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     const params = new URLSearchParams(window.location.search);
     return normalizeRefParam(params.get("ref")) || "";
   }, []);
+
+  // Look up the referrer named in the ?ref= parameter so we can greet the visitor.
+  useEffect(() => {
+    if (!refCode || refCode.toLowerCase() === "company") return;
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("public_user_profiles")
+        .select("username, profile_photo, front_page_photo, banner_photo")
+        .ilike("username", refCode)
+        .maybeSingle();
+
+      if (cancelled || error || !data) return;
+      setReferrer({
+        username: data.username,
+        photo: data.front_page_photo || data.profile_photo || data.banner_photo || null,
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refCode]);
+
 
   const markVerified = () => {
     try {
@@ -110,8 +142,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     "w-full rounded-lg bg-white/10 border border-white/30 text-white placeholder-white/50 px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-gray-900 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto p-3 sm:p-4 flex items-start sm:items-center justify-center">
+      <div className="bg-gray-900 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto">
+
         {step === "warning" && (
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div className="flex-shrink-0 w-full sm:w-auto">
@@ -120,7 +153,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 muted
                 loop
                 playsInline
-                className="w-full sm:w-64 h-48 object-cover rounded-lg border-2 border-orange-500"
+                className="w-full sm:w-64 h-36 sm:h-48 object-cover rounded-lg border-2 border-orange-500"
               >
                 <source src={FALLBACK_VIDEO} type="video/webm" />
               </video>
@@ -158,12 +191,26 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
         {step === "form" && (
           <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
+            {referrer && (
+              <div className="flex items-center gap-4 mb-6 p-4 rounded-xl bg-white/5 border border-orange-500/40">
+                <Avatar className="h-20 w-20 border-2 border-orange-500">
+                  {referrer.photo && <AvatarImage src={referrer.photo} alt={`@${referrer.username}`} />}
+                  <AvatarFallback />
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-white/70 text-xs uppercase tracking-wide">You were invited by</p>
+                  <p className="text-lg sm:text-xl font-bold text-orange-400 truncate">@{referrer.username}</p>
+                </div>
+              </div>
+            )}
+
             <h2 className="text-orange-500 text-xl sm:text-2xl font-bold mb-2 text-center">
               Let&apos;s get you started
             </h2>
             <p className="text-white/70 text-xs sm:text-sm mb-6 text-center">
               Enter your details to watch a short introduction video.
             </p>
+
 
             <div className="space-y-4">
               <div>
