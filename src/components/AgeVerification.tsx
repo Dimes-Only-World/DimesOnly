@@ -214,7 +214,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 muted
                 loop
                 playsInline
-                className="w-full max-h-[55vh] aspect-video object-contain bg-black rounded-lg border-2 border-orange-500"
+                className="w-full max-h-[55vh] aspect-video object-contain max-sm:object-cover bg-black rounded-lg border-2 border-orange-500"
               >
                 <source src={FALLBACK_VIDEO} type="video/webm" />
               </video>
@@ -355,7 +355,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               controls
               controlsList="nodownload noplaybackrate"
               onEnded={() => setVideoEnded(true)}
-              className="w-full rounded-lg border-2 border-orange-500 bg-black aspect-video"
+              className="w-full rounded-lg border-2 border-orange-500 bg-black aspect-video object-contain max-sm:object-cover"
             >
               <source src={explainerUrl || FALLBACK_VIDEO} />
             </video>
