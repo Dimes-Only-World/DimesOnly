@@ -226,7 +226,12 @@ const AdminDashboard: React.FC = () => {
             <AdminAppLaunchSettings />
             <AdminEmailSettings />
           </TabsContent>
+
+          <TabsContent value="leads">
+            <AdminLeadsTab />
+          </TabsContent>
         </Tabs>
+
       </div>
     </div>
   );
