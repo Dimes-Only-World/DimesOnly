@@ -10,18 +10,17 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Skip the gate for the rest of the browser session once completed.
+    // Always show the age gate on every return visit / page load.
     localStorage.removeItem('ageVerified');
-    const done = sessionStorage.getItem('ageVerifiedThisSession') === 'true';
-    setShowAgeVerification(!done);
+    sessionStorage.removeItem('ageVerifiedThisSession');
+    setShowAgeVerification(true);
     setIsLoading(false);
   }, []);
 
 
   const handleAgeVerified = () => {
     console.log('handleAgeVerified called');
-    // Set temporary verification for this session only
-    sessionStorage.setItem('ageVerifiedThisSession', 'true');
+    // Not persisted: the gate re-appears on the next visit / page load.
     setShowAgeVerification(false);
     console.log('Age verification modal hidden for this session');
   };
