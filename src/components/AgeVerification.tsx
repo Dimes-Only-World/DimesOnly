@@ -142,8 +142,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     "w-full rounded-lg bg-white/10 border border-white/30 text-white placeholder-white/50 px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-gray-900 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto p-3 sm:p-4 flex items-start sm:items-center justify-center">
+      <div className="bg-gray-900 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto">
+
         {step === "warning" && (
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div className="flex-shrink-0 w-full sm:w-auto">
