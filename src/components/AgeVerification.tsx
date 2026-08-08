@@ -138,7 +138,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const handleAlreadySubmitted = async () => {
     const next: Record<string, string> = {};
     if (fullName.trim().length < 2) next.fullName = "Please enter your full name";
-    if (phone.replace(/\D/g, "").length < 7) next.phone = "Please enter a valid phone number";
+    const lookupDigits = phone.replace(/\D/g, "");
+    if (lookupDigits.length !== 10) next.phone = "Please enter a 10-digit phone number";
+    else if (lookupDigits.startsWith("1")) next.phone = "Phone number cannot start with 1";
+
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
