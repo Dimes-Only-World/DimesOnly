@@ -76,7 +76,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     const name = fullName.trim();
     if (name.length < 2 || name.length > 100) next.fullName = "Please enter your full name";
     const digits = phone.replace(/\D/g, "");
-    if (digits.length < 7 || digits.length > 15) next.phone = "Please enter a valid phone number";
+    if (digits.length !== 10) next.phone = "Please enter a 10-digit phone number";
+    else if (digits.startsWith("1")) next.phone = "Phone number cannot start with 1";
+
     if (!dob) next.dob = "Date of birth is required";
     else if ((calculateAge(dob) ?? 0) < 18) next.dob = "You must be at least 18 years old to enter";
     setErrors(next);
@@ -136,7 +138,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const handleAlreadySubmitted = async () => {
     const next: Record<string, string> = {};
     if (fullName.trim().length < 2) next.fullName = "Please enter your full name";
-    if (phone.replace(/\D/g, "").length < 7) next.phone = "Please enter a valid phone number";
+    const lookupDigits = phone.replace(/\D/g, "");
+    if (lookupDigits.length !== 10) next.phone = "Please enter a 10-digit phone number";
+    else if (lookupDigits.startsWith("1")) next.phone = "Phone number cannot start with 1";
+
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -185,7 +190,11 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
   // Format as (111) 111-1111 while typing.
   const formatPhone = (value: string) => {
-    const d = value.replace(/\D/g, "").slice(0, 10);
+    let d = value.replace(/\D/g, "").slice(0, 11);
+    // Drop a leading 1 so the area code can never start with 1.
+    while (d.startsWith("1")) d = d.slice(1);
+    d = d.slice(0, 10);
+
     if (d.length <= 3) return d;
     if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
     return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
@@ -374,7 +383,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
                 onClick={handleContinueRegistration}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
               >
-                Continue Registration
+                Complete Registration Free
               </button>
               <button
                 type="button"
