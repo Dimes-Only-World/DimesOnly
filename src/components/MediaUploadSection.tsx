@@ -165,23 +165,42 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
     try {
       for (const file of files) {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("user_id", userData.id);
-        form.append("content_tier", selectedContentTier);
-        form.append("media_type", type);
+        const invoke = async (payload: Record<string, unknown>) => {
+          const { data, error } = await supabase.functions.invoke("media-upload", {
+            body: { ...payload, user_id: userData.id, content_tier: selectedContentTier, media_type: type },
+          });
+          if (error) {
+            const detail = (error as any)?.context?.text
+              ? await (error as any).context.text()
+              : (error as any)?.message;
+            throw new Error(detail || "Upload failed");
+          }
+          if ((data as any)?.error) throw new Error((data as any).error);
+          return data as any;
+        };
 
-        const { data, error } = await supabase.functions.invoke("media-upload", {
-          body: form,
+        // 1) Get a signed upload URL (keeps large files out of the edge function)
+        const signed = await invoke({
+          action: "sign",
+          filename: file.name,
+          file_size: file.size,
         });
 
-        if (error) {
-          const detail = (error as any)?.context?.text
-            ? await (error as any).context.text()
-            : (error as any)?.message;
-          throw new Error(detail || "Upload failed");
-        }
-        if (data?.error) throw new Error(data.error);
+        // 2) Upload the file straight to storage from the browser
+        const { error: uploadError } = await supabase.storage
+          .from("private-media")
+          .uploadToSignedUrl(signed.storage_path, signed.token, file, {
+            contentType: file.type,
+          });
+        if (uploadError) throw new Error(uploadError.message);
+
+        // 3) Record the media row
+        await invoke({
+          action: "record",
+          storage_path: signed.storage_path,
+          filename: signed.filename,
+          file_size: file.size,
+        });
       }
 
       toast({
