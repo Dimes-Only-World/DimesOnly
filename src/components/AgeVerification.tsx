@@ -218,7 +218,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
       {step === "form" && <ShortFormBackgroundCarousel className="fixed inset-0 z-0" />}
       <div
         className={`relative z-10 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto ${
-          step === "form" ? "bg-gray-900/50 backdrop-blur-md" : "bg-gray-900"
+          step === "form" ? "bg-gray-900/50" : "bg-gray-900"
         }`}
       >
 
