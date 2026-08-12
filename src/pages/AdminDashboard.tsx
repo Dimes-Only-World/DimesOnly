@@ -172,6 +172,10 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="leads" className="whitespace-nowrap">
                 Leads
               </TabsTrigger>
+              <TabsTrigger value="shortform" className="whitespace-nowrap">
+                Short Form Background
+              </TabsTrigger>
+
             </TabsList>
 
           </div>
