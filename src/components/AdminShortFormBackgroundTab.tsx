@@ -128,7 +128,7 @@ const DeviceSection: React.FC<{
             className="hidden"
             onChange={(e) => handleFiles(e.target.files)}
           />
-          <Button onClick={() => inputRef.current?.click()} disabled={uploading}>
+          <Button className="w-full sm:w-auto" onClick={() => inputRef.current?.click()} disabled={uploading}>
             {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
             {uploading ? "Uploading..." : "Upload images or videos"}
           </Button>
@@ -137,7 +137,7 @@ const DeviceSection: React.FC<{
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No media yet for this device size.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {rows.map((row, i) => (
               <div key={row.id} className="rounded-lg overflow-hidden border border-border bg-muted/40">
                 <div className="aspect-video bg-black">
