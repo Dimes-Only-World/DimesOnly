@@ -181,12 +181,12 @@ const DeviceSection: React.FC<{
             <p className="text-sm font-medium mb-2">Live preview</p>
             <div
               className={`relative overflow-hidden rounded-xl border border-border ${
-                device === "mobile" ? "w-[280px] aspect-[9/16]" : "w-full aspect-video"
+                device === "mobile" ? "w-full max-w-[280px] aspect-[9/16]" : "w-full aspect-video"
               }`}
             >
-              <ShortFormBackgroundCarousel device={device} media={rows} />
+              <ShortFormBackgroundCarousel device={device} media={rows} position="absolute" />
               <div className="absolute inset-0 flex items-center justify-center p-4">
-                <div className="bg-gray-900/75 backdrop-blur-md border border-orange-500/60 rounded-xl px-5 py-4 text-center">
+                <div className="bg-gray-900/50 border border-orange-500/60 rounded-xl px-5 py-4 text-center">
                   <p className="text-orange-400 font-bold">Let&apos;s get you started</p>
                 </div>
               </div>
