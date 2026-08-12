@@ -159,7 +159,7 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            // @ts-expect-error legacy iOS/Android inline playback attributes
+            {...({ "webkit-playsinline": "true" } as Record<string, string>)}
             webkit-playsinline="true"
             x5-playsinline="true"
             preload="metadata"
