@@ -88,7 +88,7 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
   if (!current) return null;
 
   return (
-    <div className={`absolute inset-0 overflow-hidden bg-black ${className}`} aria-hidden="true">
+    <div className={`fixed inset-0 overflow-hidden bg-black ${className}`} aria-hidden="true">
       <div
         className="absolute inset-0 transition-opacity ease-in-out"
         style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}
