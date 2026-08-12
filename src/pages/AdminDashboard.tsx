@@ -173,7 +173,7 @@ const AdminDashboard: React.FC = () => {
                 Leads
               </TabsTrigger>
               <TabsTrigger value="shortform" className="whitespace-nowrap">
-                Short Form Background
+                S-F-B
               </TabsTrigger>
 
             </TabsList>
