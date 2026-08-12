@@ -2585,6 +2585,33 @@ export type Database = {
           },
         ]
       }
+      short_form_backgrounds: {
+        Row: {
+          created_at: string
+          device: string
+          id: string
+          media_type: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          device: string
+          id?: string
+          media_type: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          device?: string
+          id?: string
+          media_type?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: []
+      }
       silver_plus_counter: {
         Row: {
           current_count: number | null
