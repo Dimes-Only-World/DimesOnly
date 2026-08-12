@@ -98,34 +98,60 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
     video.muted = true;
     video.defaultMuted = true;
     video.volume = 0;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
 
     let cancelled = false;
+    let fallback: number | null = null;
 
-    const tryPlay = () =>
-      video.play().catch(() => {
-        // Autoplay blocked (Low Power Mode / policy) — skip to the next item
-        // so a frozen frame with a play button is never left on screen.
-        if (!cancelled) advance();
-      });
+    const tryPlay = () => {
+      const p = video.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          if (cancelled) return;
+          // Autoplay blocked (Low Power Mode / policy). Keep the frame on screen
+          // and move on after the normal interval instead of skipping instantly.
+          if (fallback) window.clearTimeout(fallback);
+          fallback = window.setTimeout(advance, interval);
+        });
+      }
+    };
 
-    tryPlay();
+    // Give iOS a chance to buffer before requesting playback.
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.load();
+      video.addEventListener("loadeddata", tryPlay, { once: true });
+    }
 
-    // iOS grants autoplay after the first user gesture — retry once when it happens.
+    // iOS grants autoplay after the first user gesture — retry when it happens.
     const retry = () => {
       if (cancelled) return;
       video.muted = true;
       video.play().catch(() => {});
     };
     window.addEventListener("touchstart", retry, { once: true, passive: true });
+    window.addEventListener("touchend", retry, { once: true, passive: true });
     window.addEventListener("scroll", retry, { once: true, passive: true });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") retry();
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       cancelled = true;
+      if (fallback) window.clearTimeout(fallback);
+      video.removeEventListener("loadeddata", tryPlay);
       window.removeEventListener("touchstart", retry);
+      window.removeEventListener("touchend", retry);
       window.removeEventListener("scroll", retry);
+      document.removeEventListener("visibilitychange", onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current?.id, current?.media_type]);
+  }, [current?.id, current?.media_type, interval]);
+
 
   if (!current) return null;
 
