@@ -17,6 +17,8 @@ import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
 import AdminLeadsTab from "@/components/AdminLeadsTab";
+import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTab";
+
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -170,6 +172,10 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="leads" className="whitespace-nowrap">
                 Leads
               </TabsTrigger>
+              <TabsTrigger value="shortform" className="whitespace-nowrap">
+                Short Form Background
+              </TabsTrigger>
+
             </TabsList>
 
           </div>
@@ -230,6 +236,11 @@ const AdminDashboard: React.FC = () => {
           <TabsContent value="leads">
             <AdminLeadsTab />
           </TabsContent>
+
+          <TabsContent value="shortform">
+            <AdminShortFormBackgroundTab />
+          </TabsContent>
+
         </Tabs>
 
       </div>
