@@ -215,7 +215,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto p-3 sm:p-4 flex items-start sm:items-center justify-center">
-      {step === "form" && <ShortFormBackgroundCarousel className="fixed inset-0 z-0" />}
+      {step === "form" && <ShortFormBackgroundCarousel position="fixed" className="z-0" />}
       <div
         className={`relative z-10 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto ${
           step === "form" ? "bg-gray-900/50" : "bg-gray-900"
