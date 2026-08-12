@@ -155,15 +155,6 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
 
   if (!current) return null;
 
-  const videoMimeType = (url: string): string | undefined => {
-    const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
-    if (ext === "mp4" || ext === "m4v") return "video/mp4";
-    if (ext === "webm") return "video/webm";
-    if (ext === "mov") return "video/quicktime";
-    if (ext === "ogv") return "video/ogg";
-    return undefined;
-  };
-
   return (
     <div
       className={`${position === "fixed" ? "fixed" : "absolute"} inset-0 overflow-hidden bg-black ${className}`}
@@ -181,7 +172,6 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
             src={current.url}
             autoPlay
             muted
-            defaultValue={undefined}
             loop={items.length < 2}
             playsInline
             controls={false}
