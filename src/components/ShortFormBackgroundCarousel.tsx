@@ -178,21 +178,23 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
             ref={videoRef}
             key={current.id}
             className="w-full h-full object-cover"
+            src={current.url}
             autoPlay
             muted
+            defaultValue={undefined}
             loop={items.length < 2}
             playsInline
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
-            preload="metadata"
+            {...({ "webkit-playsinline": "true", "x5-playsinline": "true", "muted": "" } as Record<string, string>)}
+            preload="auto"
             onEnded={advance}
             onError={advance}
-          >
-            <source src={current.url} type={videoMimeType(current.url)} />
-          </video>
+            onCanPlay={() => videoRef.current?.play().catch(() => {})}
+          />
         ) : (
+
           <img
             key={current.id}
             src={current.url}
