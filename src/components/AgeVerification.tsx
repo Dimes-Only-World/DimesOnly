@@ -4,6 +4,8 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeRefParam } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarousel";
+
 
 interface AgeVerificationProps {
   onVerified: () => void;
