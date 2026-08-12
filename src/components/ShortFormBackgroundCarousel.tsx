@@ -26,6 +26,7 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
   interval = 6000,
   media,
   device,
+  position = "absolute",
   className = "",
 }) => {
   const isMobile = useIsMobile();
