@@ -236,6 +236,11 @@ const AdminDashboard: React.FC = () => {
           <TabsContent value="leads">
             <AdminLeadsTab />
           </TabsContent>
+
+          <TabsContent value="shortform">
+            <AdminShortFormBackgroundTab />
+          </TabsContent>
+
         </Tabs>
 
       </div>
