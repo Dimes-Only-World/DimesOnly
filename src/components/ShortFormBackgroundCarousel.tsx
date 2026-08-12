@@ -159,9 +159,7 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            {...({ "webkit-playsinline": "true" } as Record<string, string>)}
-            webkit-playsinline="true"
-            x5-playsinline="true"
+            {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
             preload="metadata"
             onEnded={advance}
             onError={advance}
