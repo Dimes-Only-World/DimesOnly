@@ -17,6 +17,8 @@ import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
 import AdminLeadsTab from "@/components/AdminLeadsTab";
+import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTab";
+
 
 import { supabase } from "@/integrations/supabase/client";
 
