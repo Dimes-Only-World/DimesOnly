@@ -15,6 +15,8 @@ interface Props {
   media?: BackgroundMedia[];
   /** Force a device set instead of detecting it. */
   device?: "desktop" | "mobile";
+  /** "fixed" pins the background to the viewport; "absolute" keeps it inside its container. */
+  position?: "fixed" | "absolute";
   className?: string;
 }
 
@@ -24,6 +26,7 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
   interval = 6000,
   media,
   device,
+  position = "absolute",
   className = "",
 }) => {
   const isMobile = useIsMobile();
@@ -88,7 +91,10 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
   if (!current) return null;
 
   return (
-    <div className={`fixed inset-0 overflow-hidden bg-black ${className}`} aria-hidden="true">
+    <div
+      className={`${position === "fixed" ? "fixed" : "absolute"} inset-0 overflow-hidden bg-black ${className}`}
+      aria-hidden="true"
+    >
       <div
         className="absolute inset-0 transition-opacity ease-in-out"
         style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}

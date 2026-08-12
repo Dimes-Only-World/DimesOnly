@@ -128,7 +128,7 @@ const DeviceSection: React.FC<{
             className="hidden"
             onChange={(e) => handleFiles(e.target.files)}
           />
-          <Button onClick={() => inputRef.current?.click()} disabled={uploading}>
+          <Button className="w-full sm:w-auto" onClick={() => inputRef.current?.click()} disabled={uploading}>
             {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
             {uploading ? "Uploading..." : "Upload images or videos"}
           </Button>
@@ -137,7 +137,7 @@ const DeviceSection: React.FC<{
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No media yet for this device size.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {rows.map((row, i) => (
               <div key={row.id} className="rounded-lg overflow-hidden border border-border bg-muted/40">
                 <div className="aspect-video bg-black">
@@ -181,12 +181,12 @@ const DeviceSection: React.FC<{
             <p className="text-sm font-medium mb-2">Live preview</p>
             <div
               className={`relative overflow-hidden rounded-xl border border-border ${
-                device === "mobile" ? "w-[280px] aspect-[9/16]" : "w-full aspect-video"
+                device === "mobile" ? "w-full max-w-[280px] aspect-[9/16]" : "w-full aspect-video"
               }`}
             >
-              <ShortFormBackgroundCarousel device={device} media={rows} />
+              <ShortFormBackgroundCarousel device={device} media={rows} position="absolute" />
               <div className="absolute inset-0 flex items-center justify-center p-4">
-                <div className="bg-gray-900/75 backdrop-blur-md border border-orange-500/60 rounded-xl px-5 py-4 text-center">
+                <div className="bg-gray-900/50 border border-orange-500/60 rounded-xl px-5 py-4 text-center">
                   <p className="text-orange-400 font-bold">Let&apos;s get you started</p>
                 </div>
               </div>
