@@ -88,7 +88,55 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, items, interval]);
 
+  // iOS Safari: force the muted state and start playback imperatively, otherwise
+  // the browser blocks autoplay and paints its native play control on top.
+  useEffect(() => {
+    if (!current || current.media_type !== "video") return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+
+    let cancelled = false;
+
+    const tryPlay = () =>
+      video.play().catch(() => {
+        // Autoplay blocked (Low Power Mode / policy) — skip to the next item
+        // so a frozen frame with a play button is never left on screen.
+        if (!cancelled) advance();
+      });
+
+    tryPlay();
+
+    // iOS grants autoplay after the first user gesture — retry once when it happens.
+    const retry = () => {
+      if (cancelled) return;
+      video.muted = true;
+      video.play().catch(() => {});
+    };
+    window.addEventListener("touchstart", retry, { once: true, passive: true });
+    window.addEventListener("scroll", retry, { once: true, passive: true });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("touchstart", retry);
+      window.removeEventListener("scroll", retry);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id, current?.media_type]);
+
   if (!current) return null;
+
+  const videoMimeType = (url: string): string | undefined => {
+    const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
+    if (ext === "mp4" || ext === "m4v") return "video/mp4";
+    if (ext === "webm") return "video/webm";
+    if (ext === "mov") return "video/quicktime";
+    if (ext === "ogv") return "video/ogg";
+    return undefined;
+  };
 
   return (
     <div
@@ -106,12 +154,17 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
             className="w-full h-full object-cover"
             autoPlay
             muted
+            loop={items.length < 2}
             playsInline
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
             preload="metadata"
             onEnded={advance}
             onError={advance}
           >
-            <source src={current.url} />
+            <source src={current.url} type={videoMimeType(current.url)} />
           </video>
         ) : (
           <img
@@ -125,6 +178,7 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
           />
         )}
       </div>
+
       <div className="absolute inset-0 bg-black/50" />
     </div>
   );
