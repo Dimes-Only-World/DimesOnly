@@ -88,10 +88,11 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, items, interval]);
 
-  // iOS Safari: force the muted state and start playback imperatively, otherwise
-  // the browser blocks autoplay and paints its native play control on top.
+  // iOS Safari: the <video> element is mounted ONCE and reused for every clip.
+  // Remounting it (key/conditional render) drops the playback permission Safari
+  // granted after the first clip, which is why later videos showed a play button.
+  // Here we only swap `src` on the same element and re-issue play().
   useEffect(() => {
-    if (!current || current.media_type !== "video") return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -100,11 +101,19 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
     video.volume = 0;
     video.setAttribute("muted", "");
     video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "true");
+
+    if (!current || current.media_type !== "video") {
+      video.pause();
+      return;
+    }
 
     let cancelled = false;
     let fallback: number | null = null;
 
     const tryPlay = () => {
+      if (cancelled) return;
+      video.muted = true;
       const p = video.play();
       if (p && typeof p.catch === "function") {
         p.catch(() => {
@@ -117,23 +126,24 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
       }
     };
 
-    // Give iOS a chance to buffer before requesting playback.
+    if (video.currentSrc !== current.url && video.src !== current.url) {
+      video.src = current.url;
+      video.load();
+    }
+    video.loop = items.length < 2;
+
     if (video.readyState >= 2) {
       tryPlay();
     } else {
-      video.load();
       video.addEventListener("loadeddata", tryPlay, { once: true });
+      video.addEventListener("canplay", tryPlay, { once: true });
     }
 
     // iOS grants autoplay after the first user gesture — retry when it happens.
-    const retry = () => {
-      if (cancelled) return;
-      video.muted = true;
-      video.play().catch(() => {});
-    };
-    window.addEventListener("touchstart", retry, { once: true, passive: true });
-    window.addEventListener("touchend", retry, { once: true, passive: true });
-    window.addEventListener("scroll", retry, { once: true, passive: true });
+    const retry = () => tryPlay();
+    window.addEventListener("touchstart", retry, { passive: true });
+    window.addEventListener("touchend", retry, { passive: true });
+    window.addEventListener("scroll", retry, { passive: true });
 
     const onVisible = () => {
       if (document.visibilityState === "visible") retry();
@@ -144,16 +154,18 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
       cancelled = true;
       if (fallback) window.clearTimeout(fallback);
       video.removeEventListener("loadeddata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
       window.removeEventListener("touchstart", retry);
       window.removeEventListener("touchend", retry);
       window.removeEventListener("scroll", retry);
       document.removeEventListener("visibilitychange", onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current?.id, current?.media_type, interval]);
-
+  }, [current?.id, current?.media_type, current?.url, interval, items.length]);
 
   if (!current) return null;
+
+  const isVideo = current.media_type === "video";
 
   return (
     <div
@@ -164,27 +176,30 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
         className="absolute inset-0 transition-opacity ease-in-out"
         style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}
       >
-        {current.media_type === "video" ? (
-          <video
-            ref={videoRef}
-            key={current.id}
-            className="w-full h-full object-cover"
-            src={current.url}
-            autoPlay
-            muted
-            loop={items.length < 2}
-            playsInline
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            {...({ "webkit-playsinline": "true", "x5-playsinline": "true", "muted": "" } as Record<string, string>)}
-            preload="auto"
-            onEnded={advance}
-            onError={advance}
-            onCanPlay={() => videoRef.current?.play().catch(() => {})}
-          />
-        ) : (
+        {/* Persistent video element — never remounted, only its src changes. */}
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          style={{ display: isVideo ? "block" : "none" }}
+          autoPlay
+          muted
+          playsInline
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          {...({ "webkit-playsinline": "true", "x5-playsinline": "true", muted: "" } as Record<string, string>)}
+          preload="auto"
+          onEnded={advance}
+          onError={advance}
+          onCanPlay={() => {
+            const v = videoRef.current;
+            if (!v) return;
+            v.muted = true;
+            v.play().catch(() => {});
+          }}
+        />
 
+        {!isVideo && (
           <img
             key={current.id}
             src={current.url}
