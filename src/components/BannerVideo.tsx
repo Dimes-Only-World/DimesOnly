@@ -127,7 +127,12 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         ref={videoRef}
         key={src}
         autoPlay
+        muted
         playsInline
+        controls={false}
+        disablePictureInPicture
+        preload="auto"
+        {...({ "webkit-playsinline": "true" } as Record<string, string>)}
         loop={loop}
         className={className}
       >

@@ -7,6 +7,11 @@ const BackgroundVideo: React.FC = () => {
         autoPlay
         muted
         loop
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        preload="auto"
+        {...({ "webkit-playsinline": "true" } as Record<string, string>)}
         className="w-full h-full object-cover"
       >
         <source src="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Opening+Page+f+(1).mp4" type="video/mp4" />
