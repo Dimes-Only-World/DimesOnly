@@ -15,6 +15,8 @@ interface Props {
   media?: BackgroundMedia[];
   /** Force a device set instead of detecting it. */
   device?: "desktop" | "mobile";
+  /** "fixed" pins the background to the viewport; "absolute" keeps it inside its container. */
+  position?: "fixed" | "absolute";
   className?: string;
 }
 
