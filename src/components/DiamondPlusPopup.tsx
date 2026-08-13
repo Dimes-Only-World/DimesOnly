@@ -54,7 +54,8 @@ const buildOffer = (userData: UserData): Offer | null => {
       description: "Unlock full access to every area of the platform as an Elite Plus partner.",
       price: "$15,000",
       route: "/business-owner-elite",
-      perks: ["Only 100 positions available", "Full site-wide access"],
+      perks: ["Full site-wide access"],
+      totalPositions: 100,
       installment: { down: "$1,500 first payment ($1,250 + $250 fees)", rest: "12 months of $1,250" },
     };
   }
