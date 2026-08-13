@@ -2005,6 +2005,65 @@ return (
         </TabsContent>
       </Tabs>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Last 7 Days
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">
+              {formatCurrency(recentEarnings)}
+            </div>
+            <p className="text-xs text-gray-500">Recent earnings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              Jackpot Tickets
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">
+              {jackpotData.currentTickets}
+            </div>
+            <p className="text-xs text-gray-500">Active tickets</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Referrals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">
+              {totalReferrals}
+            </div>
+            <p className="text-xs text-gray-500">Total referrals</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {isEligibleForPaymentProgram() && (
+        <PaymentStatus
+          userType={userData.user_type || ""}
+          weeklyProgress={paymentData.weeklyProgress}
+          monthlyProgress={paymentData.monthlyProgress}
+          quarterlyProgress={paymentData.quarterlyProgress}
+          deductions={paymentData.deductions}
+        />
+      )}
+
+      <JackpotBreakdown />
+
       <Dialog open={dmOpen} onOpenChange={setDmOpen}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
