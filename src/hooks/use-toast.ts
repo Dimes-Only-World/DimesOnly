@@ -6,7 +6,7 @@ import type {
 } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_REMOVE_DELAY = 5000;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -160,6 +160,13 @@ function toast({ ...props }: Toast) {
       },
     },
   });
+
+  // Auto-dismiss so toasts don't linger until manually swiped away.
+  const autoDismissMs = typeof props.duration === "number" ? props.duration : 4000;
+  if (autoDismissMs > 0) {
+    setTimeout(dismiss, autoDismissMs);
+  }
+
 
   return {
     id: id,
