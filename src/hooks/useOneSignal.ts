@@ -85,7 +85,7 @@ const getOneSignal = (appId: string): Promise<any | null> => {
         OneSignal.init({
           appId,
           allowLocalhostAsSecureOrigin: true,
-          serviceWorkerPath: "OneSignalSDKWorker.js",
+          serviceWorkerPath: "/OneSignalSDKWorker.js",
           serviceWorkerParam: { scope: "/" },
         }),
         15000,
