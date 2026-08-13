@@ -140,6 +140,17 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
     if (!userId) return;
     void fetchNotifications();
 
+    // Right after login the Supabase Auth session syncs in the background, so the
+    // first query can run before RLS sees the user. Refetch when the session lands.
+    const { data: authSub } = supabase.auth.onAuthStateChange(() => {
+      void fetchNotifications();
+    });
+    const onReady = () => {
+      void fetchNotifications();
+    };
+    window.addEventListener("dimes-auth-session-ready", onReady);
+    const retries = [800, 2500].map((ms) => setTimeout(() => void fetchNotifications(), ms));
+
     const channel = supabase
       .channel(`notif-bell-${userId}`)
       .on(
@@ -152,9 +163,13 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
       .subscribe();
 
     return () => {
+      authSub.subscription.unsubscribe();
+      window.removeEventListener("dimes-auth-session-ready", onReady);
+      retries.forEach(clearTimeout);
       supabase.removeChannel(channel);
     };
   }, [userId, fetchNotifications]);
+
 
   const unread = useMemo(() => items.filter((n) => !n.is_read).length, [items]);
 
