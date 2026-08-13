@@ -1355,20 +1355,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     );
   }
 
-  return (
+return (
     <div className="space-y-6">
-      {isEligibleForPaymentProgram() && (
-        <PaymentStatus
-          userType={userData.user_type || ""}
-          weeklyProgress={paymentData.weeklyProgress}
-          monthlyProgress={paymentData.monthlyProgress}
-          quarterlyProgress={paymentData.quarterlyProgress}
-          deductions={paymentData.deductions}
-        />
-      )}
-
-      <JackpotBreakdown />
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-green-200 bg-green-50">
           <CardHeader className="pb-3">
@@ -1461,6 +1449,18 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           </CardContent>
         </Card>
       </div>
+
+      {isEligibleForPaymentProgram() && (
+        <PaymentStatus
+          userType={userData.user_type || ""}
+          weeklyProgress={paymentData.weeklyProgress}
+          monthlyProgress={paymentData.monthlyProgress}
+          quarterlyProgress={paymentData.quarterlyProgress}
+          deductions={paymentData.deductions}
+        />
+      )}
+
+      <JackpotBreakdown />
 
       <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
         <TabsList
