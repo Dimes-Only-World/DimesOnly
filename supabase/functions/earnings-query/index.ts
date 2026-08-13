@@ -249,6 +249,12 @@ serve(async (req) => {
     }
 
     // Enrich and optionally filter by buyer username or membership_type
+    const normalizeBuyerTier = (tier: string | null | undefined): string => {
+      const t = String(tier || '').toLowerCase();
+      if (t === 'business_owner_elite' || t === 'business_owner_elite_installment') return 'elite_plus';
+      return t;
+    };
+
     let items = payments.map((p: any) => {
       const sub = p.paypal_order_id ? subsMap.get(p.paypal_order_id) : null;
       const tipBuyerId = tipsBuyerMap.get(p.id) || null;
@@ -292,8 +298,8 @@ serve(async (req) => {
         buyer_avatar_url: buyer?.profile_photo || null,
         buyer_location: buyerLocation || null,
         buyer_joined_at: buyer?.created_at || null,
-        buyer_membership_tier: buyer?.membership_tier || null,
-        plan_tier: sub?.tier || null,
+        buyer_membership_tier: normalizeBuyerTier(buyer?.membership_tier),
+        plan_tier: normalizeBuyerTier(sub?.tier),
         cadence: sub?.cadence || null,
         billing_option: sub?.billing_option || null,
         subscription_id: p.paypal_order_id || null,
@@ -358,6 +364,7 @@ function sourceLabelFor(paymentType: string): string {
   const t = String(paymentType || '').toLowerCase();
   if (t.includes('subscription')) return 'subscription';
   if (t.includes('diamond_plus')) return 'diamond_plus';
+  if (t.includes('elite_plus')) return 'membership';
   if (t.includes('referral_commission')) return 'membership';
   return 'other';
 }

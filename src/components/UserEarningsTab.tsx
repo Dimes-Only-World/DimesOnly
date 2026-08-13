@@ -304,8 +304,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   ]);
   const [tiersLoading, setTiersLoading] = useState<boolean>(false);
 
+  const normalizeTier = (t?: string | null) => {
+    const raw = String(t || "").trim().toLowerCase();
+    if (raw === "business_owner_elite" || raw === "business_owner_elite_installment") {
+      return "elite_plus";
+    }
+    return raw;
+  };
+
   const prettyTier = (t?: string | null) =>
-    (t || "").split("_").join(" ").replace(/\b\w/g, (m) => m.toUpperCase());
+    normalizeTier(t).split("_").join(" ").replace(/\b\w/g, (m) => m.toUpperCase());
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -484,13 +492,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         const distinct = Array.from(
           new Set(
             (data || [])
-              .map((r: any) => String(r.membership_tier || "").toLowerCase())
+              .map((r: any) => normalizeTier(String(r.membership_tier || "")))
               .filter(Boolean),
           ),
         );
-        const base = new Set(["free", "silver_plus", "diamond_plus"]);
+        const base = new Set(["free", "silver_plus", "diamond_plus", "elite_plus"]);
         const extras = distinct.filter((t) => !base.has(t)).sort((a, b) => a.localeCompare(b));
-        setTierOptions(["free", "silver_plus", "diamond_plus", ...extras]);
+        setTierOptions(["free", "silver_plus", "diamond_plus", "elite_plus", ...extras]);
       } catch (e) {
         console.warn("tier load failed", e);
       } finally {
@@ -1902,11 +1910,9 @@ return (
                               ) : null}
                             </p>
                             <p className="text-sm text-gray-500 truncate">
-                              {(
-                                row.plan_tier ||
-                                row.buyer_membership_tier ||
-                                ""
-                              ).toUpperCase() || "Membership"}
+                              {prettyTier(
+                                row.plan_tier || row.buyer_membership_tier,
+                              ).toUpperCase() || "MEMBERSHIP"}
                               {row.cadence ? ` • ${row.cadence}` : ""}
                             </p>
                             <p className="text-xs text-gray-600 truncate">
@@ -1934,9 +1940,9 @@ return (
                           </div>
                           <div className="mt-2 flex items-center gap-2">
                             <Badge className="bg-purple-700 text-white">
-                              {(row.plan_tier ||
-                                row.buyer_membership_tier ||
-                                "").toUpperCase() || "PACKAGE"}
+                              {prettyTier(
+                                row.plan_tier || row.buyer_membership_tier,
+                              ).toUpperCase() || "PACKAGE"}
                             </Badge>
                             <Badge
                               variant="secondary"

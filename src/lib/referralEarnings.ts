@@ -53,6 +53,8 @@ export const expandCommissionLabels = (labels: string[] = []): string[] => {
       set.add("upline_referral_commission");
       set.add("diamond_plus_referral_commission");
       set.add("diamond_plus_upline_referral_commission");
+      set.add("elite_plus_referral_commission");
+      set.add("elite_plus_upline_referral_commission");
     } else {
       set.add(label);
     }
