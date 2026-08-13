@@ -66,7 +66,7 @@ const buildOffer = (userData: UserData): Offer | null => {
       id: "silver_plus",
       title: "Upgrade to Silver Plus",
       description: "Step up to Silver Plus and start earning profit sharing positions.",
-      price: "$99.99",
+      price: "$249.99",
       route: "/upgrade-silver-plus",
       perks: ["Profit sharing position"],
       totalPositions: 300,
