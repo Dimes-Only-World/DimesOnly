@@ -492,13 +492,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         const distinct = Array.from(
           new Set(
             (data || [])
-              .map((r: any) => String(r.membership_tier || "").toLowerCase())
+              .map((r: any) => normalizeTier(String(r.membership_tier || "")))
               .filter(Boolean),
           ),
         );
-        const base = new Set(["free", "silver_plus", "diamond_plus"]);
+        const base = new Set(["free", "silver_plus", "diamond_plus", "elite_plus"]);
         const extras = distinct.filter((t) => !base.has(t)).sort((a, b) => a.localeCompare(b));
-        setTierOptions(["free", "silver_plus", "diamond_plus", ...extras]);
+        setTierOptions(["free", "silver_plus", "diamond_plus", "elite_plus", ...extras]);
       } catch (e) {
         console.warn("tier load failed", e);
       } finally {
