@@ -48,7 +48,7 @@ const FALLBACK_NOTIFICATION_ICON = "/notification-icon.png";
 
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
   if (!data) return FALLBACK_NOTIFICATION_ICON;
-  return String(
+  const raw = String(
     data.actor_photo_url ||
       data.profile_photo_url ||
       data.notification_icon ||
@@ -56,7 +56,11 @@ const getNotificationPhoto = (data: Record<string, unknown> | null) => {
       data.avatar_url ||
       FALLBACK_NOTIFICATION_ICON,
   );
+  // Any absolute URL pointing at the site icon should resolve to the local file
+  if (raw.includes("notification-icon.png")) return FALLBACK_NOTIFICATION_ICON;
+  return raw;
 };
+
 
 const resolveUserId = (contextId?: string): string | null => {
   if (contextId) return contextId;
