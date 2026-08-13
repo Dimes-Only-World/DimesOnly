@@ -100,7 +100,7 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       id: "upgrade",
       label: `Upgrade to ${upgradeTarget.label.replace("Lifetime ", "")}`,
       description: "Unlock profit sharing, overrides and full site access.",
-      done: membership.rank >= 2,
+      done: hasUpgraded,
       action: () => navigate(upgradeTarget.href),
       cta: "Upgrade",
     },
