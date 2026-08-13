@@ -1357,6 +1357,30 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
 return (
     <div className="space-y-6">
+      {availableForWithdrawal > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">
+                  Minimum Payout Start at&nbsp;$250.00
+                </h3>
+                <p className="text-sm text-gray-500">
+                  You have {formatCurrency(availableForWithdrawal)} available for
+                  withdrawal
+                </p>
+              </div>
+              <Button
+                onClick={handlePayoutRequest}
+                className="bg-green-600 hover:bg-green-700"
+                disabled={availableForWithdrawal === 0}
+              >
+                Payout Method
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-green-200 bg-green-50">
           <CardHeader className="pb-3">
@@ -2092,31 +2116,6 @@ return (
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {availableForWithdrawal > 0 && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">
-                  Minimum Payout Start at&nbsp;$250.00
-                </h3>
-                <p className="text-sm text-gray-500">
-                  You have {formatCurrency(availableForWithdrawal)} available for
-                  withdrawal
-                </p>
-              </div>
-              <Button
-                onClick={handlePayoutRequest}
-                className="bg-green-600 hover:bg-green-700"
-                disabled={availableForWithdrawal === 0}
-              >
-                Payout Method
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Dialog open={showPayoutForm} onOpenChange={setShowPayoutForm}>
         <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-hidden">
