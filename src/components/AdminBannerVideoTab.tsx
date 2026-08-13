@@ -400,7 +400,9 @@ const AdminBannerVideoTab: React.FC = () => {
                           key={item.id}
                           item={item}
                           onRevert={(url) => handleRevert(entry.page_key, url)}
+                          onDelete={(it) => handleDeleteHistory(entry.page_key, it)}
                           reverting={reverting[entry.page_key] || false}
+                          deleting={deletingHistory[item.id] || false}
                         />
                       ))}
                     </div>
