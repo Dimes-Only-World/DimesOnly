@@ -762,12 +762,14 @@ serve(async (req) => {
       }
 
       case 'deletePageVideoHistory': {
-        const { pageKey, videoUrl } = params;
-        const { error } = await supabaseAdmin
-          .from('page_video_history')
-          .delete()
-          .eq('page_key', pageKey)
-          .eq('video_url', videoUrl);
+        const { pageKey, videoUrl, historyId } = params;
+        let query = supabaseAdmin.from('page_video_history').delete();
+        if (historyId) {
+          query = query.eq('id', historyId);
+        } else {
+          query = query.eq('page_key', pageKey).eq('video_url', videoUrl);
+        }
+        const { error } = await query;
         if (error) throw error;
         result = { success: true };
         break;

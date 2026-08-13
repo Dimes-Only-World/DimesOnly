@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminUserId } from "@/lib/adminAuth";
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronUp, RotateCcw, Trash2 } from "lucide-react";
 
 interface PageVideoEntry {
   page_key: string;
@@ -68,8 +68,10 @@ const VideoHoverPreview: React.FC<{ url: string; anchorRef: React.RefObject<HTML
 const HistoryEntry: React.FC<{
   item: HistoryItem;
   onRevert: (url: string) => void;
+  onDelete: (item: HistoryItem) => void;
   reverting: boolean;
-}> = ({ item, onRevert, reverting }) => {
+  deleting?: boolean;
+}> = ({ item, onRevert, onDelete, reverting, deleting }) => {
   const [hovering, setHovering] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -97,6 +99,16 @@ const HistoryEntry: React.FC<{
       >
         <RotateCcw className="h-3.5 w-3.5" />
       </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => onDelete(item)}
+        disabled={deleting}
+        className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+        title="Delete this video from history"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
     </div>
   );
 };
@@ -110,6 +122,7 @@ const AdminBannerVideoTab: React.FC = () => {
   const [history, setHistory] = useState<Record<string, HistoryItem[]>>({});
   const [openHistory, setOpenHistory] = useState<Record<string, boolean>>({});
   const [reverting, setReverting] = useState<Record<string, boolean>>({});
+  const [deletingHistory, setDeletingHistory] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchVideos();
@@ -220,6 +233,40 @@ const AdminBannerVideoTab: React.FC = () => {
       toast({ title: "Error", description: err.message || "Failed to save", variant: "destructive" });
     } finally {
       setSaving((s) => ({ ...s, [pageKey]: false }));
+    }
+  };
+
+  const handleDeleteHistory = async (pageKey: string, item: HistoryItem) => {
+    const adminUserId = getAdminUserId();
+    if (!adminUserId) {
+      toast({ title: "Error", description: "Admin session not found", variant: "destructive" });
+      return;
+    }
+    if (!window.confirm("Delete this video from the previous videos list?")) return;
+
+    setDeletingHistory((s) => ({ ...s, [item.id]: true }));
+    try {
+      const { data: resp, error } = await supabase.functions.invoke("admin-data", {
+        body: {
+          action: "deletePageVideoHistory",
+          adminUserId,
+          pageKey,
+          videoUrl: item.video_url,
+          historyId: item.id,
+        },
+      });
+      if (error) throw error;
+      if ((resp as any)?.error) throw new Error((resp as any).error);
+
+      setHistory((prev) => ({
+        ...prev,
+        [pageKey]: (prev[pageKey] || []).filter((h) => h.id !== item.id),
+      }));
+      toast({ title: "Deleted", description: "Video removed from previous videos." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to delete", variant: "destructive" });
+    } finally {
+      setDeletingHistory((s) => ({ ...s, [item.id]: false }));
     }
   };
 
@@ -353,7 +400,9 @@ const AdminBannerVideoTab: React.FC = () => {
                           key={item.id}
                           item={item}
                           onRevert={(url) => handleRevert(entry.page_key, url)}
+                          onDelete={(it) => handleDeleteHistory(entry.page_key, it)}
                           reverting={reverting[entry.page_key] || false}
+                          deleting={deletingHistory[item.id] || false}
                         />
                       ))}
                     </div>
