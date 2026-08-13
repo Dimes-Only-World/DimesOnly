@@ -415,12 +415,22 @@ const UserDashboard: React.FC = () => {
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+            <Skeleton className="h-40 w-full rounded-xl" />
+            <Skeleton className="h-56 w-full rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-xl" />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
+            </div>
+          </div>
         </div>
       </AuthGuard>
     );
   }
+
 
   if (!userData) {
     return (
