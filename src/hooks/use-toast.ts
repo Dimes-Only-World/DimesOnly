@@ -161,6 +161,13 @@ function toast({ ...props }: Toast) {
     },
   });
 
+  // Auto-dismiss so toasts don't linger until manually swiped away.
+  const autoDismissMs = typeof props.duration === "number" ? props.duration : 4000;
+  if (autoDismissMs > 0) {
+    setTimeout(dismiss, autoDismissMs);
+  }
+
+
   return {
     id: id,
     dismiss,
