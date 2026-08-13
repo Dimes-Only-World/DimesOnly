@@ -44,15 +44,17 @@ const TYPE_ACCENT: Record<string, string> = {
   system: "bg-slate-400",
 };
 
+const FALLBACK_NOTIFICATION_ICON = "/notification-icon.png";
+
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
-  if (!data) return "";
+  if (!data) return FALLBACK_NOTIFICATION_ICON;
   return String(
     data.actor_photo_url ||
       data.profile_photo_url ||
       data.notification_icon ||
       data.image_url ||
       data.avatar_url ||
-      "",
+      FALLBACK_NOTIFICATION_ICON,
   );
 };
 
