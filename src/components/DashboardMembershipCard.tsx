@@ -75,8 +75,8 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
     };
   }, [target.key]);
 
-  const lockedTiers = MEMBERSHIP_OPTIONS.filter(
-    (option) => option.rank > 0 && option.rank < membership.rank,
+  const tierChips = MEMBERSHIP_OPTIONS.filter((option) => option.rank > 0).map(
+    (option) => ({ ...option, unlocked: option.rank <= membership.rank }),
   );
 
   return (
