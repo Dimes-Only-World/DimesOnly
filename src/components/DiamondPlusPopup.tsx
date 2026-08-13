@@ -81,12 +81,44 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
   const navigate = useNavigate();
   const offer = useMemo(() => buildOffer(userData), [userData]);
 
+  const [positionsLeft, setPositionsLeft] = useState<number | null>(null);
+
   useEffect(() => {
     if (!offer) return;
     const storageKey = `upgrade_popup_shown_${offer.id}`;
     if (sessionStorage.getItem(storageKey)) return;
     setOpen(true);
     sessionStorage.setItem(storageKey, "true");
+  }, [offer]);
+
+  useEffect(() => {
+    if (!offer) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        if (offer.id === "silver_plus") {
+          const { data } = await supabase.rpc("check_silver_plus_availability");
+          const row = Array.isArray(data) ? (data[0] as any) : null;
+          if (!cancelled && row) setPositionsLeft(Math.max(0, Number(row.remaining ?? 0)));
+        } else if (offer.id === "diamond_plus") {
+          const { data } = await supabase.rpc("get_diamond_plus_count");
+          if (!cancelled && data !== null) {
+            setPositionsLeft(Math.max(0, offer.totalPositions - Number(data)));
+          }
+        } else if (offer.id === "elite_plus") {
+          const { data } = await (supabase as any).rpc("get_elite_plus_count");
+          if (!cancelled && data !== null && data !== undefined) {
+            setPositionsLeft(Math.max(0, offer.totalPositions - Number(data)));
+          }
+        }
+      } catch (e) {
+        console.error("positions left error", e);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [offer]);
 
   if (!offer) return null;
@@ -110,7 +142,21 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <div className="text-3xl font-bold">{offer.price}</div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-3xl font-bold">{offer.price}</div>
+            <div className="rounded-lg bg-black/85 px-3 py-2 text-right">
+              <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-yellow-300">
+                <Users className="h-3.5 w-3.5" />
+                Positions left
+              </div>
+              <div className="text-xl font-black text-white">
+                {positionsLeft === null
+                  ? "…"
+                  : `${positionsLeft} of ${offer.totalPositions}`}
+              </div>
+            </div>
+          </div>
+
 
           <div className="space-y-2 text-sm">
             {offer.perks.map((perk) => (
