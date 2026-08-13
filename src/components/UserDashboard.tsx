@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, User, DollarSign, Bell, TrendingUp, MessageSquare, Image, Trophy, Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { User, DollarSign, Bell, TrendingUp, MessageSquare, Image, Trophy, Users, Smartphone } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import DashboardVideoHeader from "./DashboardVideoHeader";
 import DashboardMoneyCircle from "./DashboardMoneyCircle";
@@ -16,14 +18,13 @@ import UserMakeMoneyTab from "./UserMakeMoneyTab";
 import UserReferralsTab from "./UserReferralsTab";
 import UserJackpotTab from "./UserJackpotTab";
 import Top20DimesCarousel from "./Top20DimesCarousel";
-import FreeMembershipBanner from "./FreeMembershipBanner";
 import ApprovalStatusBanner from "./ApprovalStatusBanner";
 import LatestDimesCarousel from "@/components/LatestDimesCarousel";
-import DiamondPlusButton from "./DiamondPlusButton";
 import DiamondPlusPopup from "./DiamondPlusPopup";
-import SilverPlusMembership from "./SilverPlusMembership";
-import SilverPlusCounter from "./SilverPlusCounter";
 import SubscriptionProgress from "./SubscriptionProgress";
+import DashboardCommandBar from "./DashboardCommandBar";
+import DashboardChecklist from "./DashboardChecklist";
+import DashboardMembershipCard from "./DashboardMembershipCard";
 import AuthGuard from "./AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
@@ -171,6 +172,7 @@ const UserDashboard: React.FC = () => {
   const initialUserData = normalizeStoredUser(user as StoredDashboardUser | null) || readStoredUser();
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
   const [loading, setLoading] = useState(!initialUserData);
+  const [completion, setCompletion] = useState(0);
   const { toast } = useToast();
   const { isMobile } = useMobileLayout();
   const navigate = useNavigate();
@@ -415,12 +417,22 @@ const UserDashboard: React.FC = () => {
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+            <Skeleton className="h-40 w-full rounded-xl" />
+            <Skeleton className="h-56 w-full rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-xl" />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
+            </div>
+          </div>
         </div>
       </AuthGuard>
     );
   }
+
 
   if (!userData) {
     return (
@@ -437,6 +449,16 @@ const UserDashboard: React.FC = () => {
       case "profile":
         return (
           <>
+            <ApprovalStatusBanner
+              status={(userData as any)?.approval_status}
+              userType={userData?.user_type}
+            />
+
+            <DashboardCommandBar userData={userData} completion={completion} />
+
+            <DashboardChecklist userData={userData} onProgress={setCompletion} />
+
+            <DashboardMembershipCard userData={userData} />
 
             <div className={`${isMobile ? "py-2" : "py-4"} -mx-4 sm:-mx-6 lg:-mx-8`}>
               <DashboardVideoHeader
@@ -446,111 +468,31 @@ const UserDashboard: React.FC = () => {
               />
             </div>
 
-            <ApprovalStatusBanner
-              status={(userData as any)?.approval_status}
-              userType={userData?.user_type}
-            />
-
-
-            <FreeMembershipBanner />
-
-            <Top20DimesCarousel />
-
             <DashboardMoneyCircle
               userId={userData.id}
               onViewAll={() => navigate("/dashboard/referrals")}
               onGetLink={() => navigate("/dashboard/make-money#referral-link")}
             />
 
+            <Top20DimesCarousel />
+
             <LatestDimesCarousel />
 
-
             <div className="w-full max-w-md mx-auto mb-6">
-              <button
+              <Button
                 onClick={() => navigate("/feed")}
-                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-fuchsia-500 to-pink-600 hover:from-fuchsia-600 hover:to-pink-700 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2"
+                className="w-full h-auto py-4 px-6 rounded-xl bg-dimes-magenta hover:bg-dimes-magenta/90 text-white font-bold text-base shadow-lg flex items-center justify-center gap-2"
               >
-                📱 SOCIAL FEED — Post Photos & Reels
-              </button>
+                <Smartphone className="w-5 h-5" />
+                Social Feed — Post Photos &amp; Reels
+              </Button>
             </div>
 
             <DiamondPlusPopup userData={userData} />
-            <DiamondPlusButton userData={userData} />
 
             <SubscriptionProgress userId={userData.id} />
 
-            {userData &&
-              (userData.gender === "male" ||
-                (userData.gender === "female" && userData.user_type === "normal")) &&
-              !userData.silver_plus_active && (
-                <Card className="bg-gradient-to-br from-blue-900 to-blue-700 text-white mb-6">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full md:w-1/3">
-                        <h3 className="text-2xl font-bold mb-4 text-center md:text-left">
-                          Silver Plus Memberships
-                        </h3>
-                        <div className="text-yellow-300 text-sm mb-4 text-center md:text-left">
-                          Limited Time Offer
-                        </div>
-                        <div className="bg-black/30 p-4 rounded-lg">
-                          <SilverPlusCounter />
-                        </div>
-                      </div>
-                      <div className="w-full md:w-2/3">
-                        <h4 className="font-semibold text-yellow-300 text-lg mb-3">
-                          Silver Plus Referral & Compensation
-                        </h4>
-                        <ul className="space-y-3 text-sm">
-                          <li className="flex items-start">
-                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                            <span>One Year of Flame Flix Subscription in Phase 6</span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                            <span>
-                              <b>10%</b> discount site wide forever from all Dimes Only related products and services.
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                            <span>Get Overrides from Strippers and Exotics</span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                            <span>
-                              Earn <b>20%</b> of tips from all your strippers & exotics.
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                            <span>
-                              Earn <b>10%</b> override from your referrals' purchases of all products & services
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 text-green-400 flex-shrink-0" />
-                            <span>View nude photos & videos from strippers & exotics</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-            {userData && (
-              <div className="mb-6">
-                <SilverPlusMembership
-                  userData={userData}
-                  onMembershipUpdate={(updatedData) =>
-                    setUserData((prev) => ({ ...prev, ...updatedData }))
-                  }
-                />
-              </div>
-            )}
-
-            <Card className="mb-6 overflow-hidden">
+            <Card className="mb-6 overflow-hidden border-border/60">
               <DashboardBanner
                 bannerPhoto={userData.banner_photo}
                 userData={userData}
@@ -558,28 +500,18 @@ const UserDashboard: React.FC = () => {
               />
             </Card>
 
-            <div className="my-6 flex justify-center">
-              <Button
-                asChild
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg"
-                aria-label="Upgrade Membership"
-              >
-                <a href="/upgrade">Upgrade Membership</a>
-              </Button>
-            </div>
-
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6">
               {[
-                { slug: "profile", label: "PROFILE", Icon: User, hoverBtn: "hover:border-pink-300 hover:text-pink-700", iconColor: "text-pink-600 group-hover:text-pink-700" },
-                { slug: "make-money", label: "MAKE MONEY", Icon: DollarSign, hoverBtn: "hover:border-green-300 hover:text-green-700", iconColor: "text-green-600 group-hover:text-green-700" },
-                { slug: "notifications", label: "NOTIFICATIONS", Icon: Bell, hoverBtn: "hover:border-blue-300 hover:text-blue-700", iconColor: "text-blue-600 group-hover:text-blue-700" },
-                { slug: "earnings", label: "EARNINGS", Icon: TrendingUp, hoverBtn: "hover:border-yellow-300 hover:text-yellow-700", iconColor: "text-yellow-600 group-hover:text-yellow-700" },
-                { slug: "messages", label: "MESSAGES", Icon: MessageSquare, hoverBtn: "hover:border-purple-300 hover:text-purple-700", iconColor: "text-purple-600 group-hover:text-purple-700" },
-                { slug: "media", label: "MEDIA", Icon: Image, hoverBtn: "hover:border-red-300 hover:text-red-700", iconColor: "text-red-600 group-hover:text-red-700" },
-                { slug: "jackpot", label: "JACKPOT", Icon: Trophy, hoverBtn: "hover:border-orange-300 hover:text-orange-700", iconColor: "text-orange-600 group-hover:text-orange-700" },
-                { slug: "referrals", label: "REFERRALS", Icon: Users, hoverBtn: "hover:border-cyan-300 hover:text-cyan-700", iconColor: "text-cyan-600 group-hover:text-cyan-700" },
-              ].map(({ slug: s, label, Icon, hoverBtn, iconColor }) => (
-                <Button
+                { slug: "profile", label: "PROFILE", Icon: User, tint: "bg-pink-500/15 text-pink-500" },
+                { slug: "make-money", label: "MAKE MONEY", Icon: DollarSign, tint: "bg-emerald-500/15 text-emerald-500" },
+                { slug: "notifications", label: "NOTIFICATIONS", Icon: Bell, tint: "bg-blue-500/15 text-blue-500" },
+                { slug: "earnings", label: "EARNINGS", Icon: TrendingUp, tint: "bg-amber-500/15 text-amber-500" },
+                { slug: "messages", label: "MESSAGES", Icon: MessageSquare, tint: "bg-purple-500/15 text-purple-500" },
+                { slug: "media", label: "MEDIA", Icon: Image, tint: "bg-red-500/15 text-red-500" },
+                { slug: "jackpot", label: "JACKPOT", Icon: Trophy, tint: "bg-orange-500/15 text-orange-500" },
+                { slug: "referrals", label: "REFERRALS", Icon: Users, tint: "bg-cyan-500/15 text-cyan-500" },
+              ].map(({ slug: s, label, Icon, tint }) => (
+                <button
                   key={s}
                   onClick={() =>
                     navigate(
@@ -588,16 +520,21 @@ const UserDashboard: React.FC = () => {
                         : `/dashboard/${s}`,
                     )
                   }
-                  className={`group bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-xs sm:text-sm transition-all duration-200 hover:shadow-md ${hoverBtn}`}
+                  className="group rounded-xl border border-border/60 bg-dimes-surface p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-dimes-magenta/50 hover:shadow-md"
                   aria-label={label}
                 >
-                  <span className="flex flex-col items-center gap-1">
-                    <Icon className={`w-5 h-5 ${iconColor}`} />
-                    <span className="truncate">{label}</span>
+                  <span className="flex flex-col items-center gap-2">
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-full ${tint}`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="truncate text-[11px] font-semibold tracking-wide sm:text-xs">
+                      {label}
+                    </span>
                   </span>
-                </Button>
+                </button>
               ))}
             </div>
+
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
