@@ -62,6 +62,15 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
   const membership = resolveMembership(userData);
   const upgradeTarget = getPlusUpgradeTarget(userData);
 
+  // Only a PAID "Plus" tier counts as upgraded — free promo tiers (Silver/Diamond) do not.
+  const PLUS_RANKS: Record<string, number> = {
+    silver_plus: 2,
+    diamond_plus: 5,
+    elite_plus: 7,
+  };
+  const currentPlusRank = PLUS_RANKS[membership.key] ?? 0;
+  const hasUpgraded = currentPlusRank >= (PLUS_RANKS[upgradeTarget.key] ?? 99);
+
   const items: ChecklistItem[] = [
     {
       id: "photo",
