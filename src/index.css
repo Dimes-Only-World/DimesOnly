@@ -78,8 +78,15 @@
     --brand-paylater: 45 100% 55%;
     --brand-card-start: 330 75% 50%;
     --brand-card-end: 270 70% 45%;
+
+    /* Dimes dashboard tokens */
+    --dimes-magenta: 305 82% 55%;
+    --dimes-gold: 45 93% 62%;
+    --dimes-surface: 222 47% 9%;
+    --dimes-surface-elevated: 220 40% 14%;
   }
 }
+
 
 @layer base {
   * {
