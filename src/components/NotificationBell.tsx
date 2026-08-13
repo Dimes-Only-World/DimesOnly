@@ -118,7 +118,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
   }, [user?.id]);
 
   const fetchNotifications = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) return false;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -129,8 +129,10 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
         .limit(20);
       if (error) throw error;
       setItems((data || []) as NotificationRow[]);
+      return true;
     } catch (e) {
       console.warn("Could not load notifications", e);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -138,18 +140,33 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
 
   useEffect(() => {
     if (!userId) return;
-    void fetchNotifications();
 
-    // Right after login the Supabase Auth session syncs in the background, so the
-    // first query can run before RLS sees the user. Refetch when the session lands.
-    const { data: authSub } = supabase.auth.onAuthStateChange(() => {
-      void fetchNotifications();
+    let cancelled = false;
+    let pollId: ReturnType<typeof setTimeout> | undefined;
+
+    // RLS on notifications requires a live Supabase Auth session. Right after a custom
+    // login that session is still syncing, so poll until it lands, then fetch.
+    let tries = 0;
+    const attempt = async () => {
+      if (cancelled) return;
+      tries += 1;
+      const { data } = await supabase.auth.getSession();
+      const hasSession = Boolean(data.session?.access_token);
+      await fetchNotifications();
+      if (hasSession || tries >= 15) return;
+      if (!cancelled) pollId = setTimeout(attempt, 1500);
+    };
+    void attempt();
+
+
+    const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) void fetchNotifications();
     });
     const onReady = () => {
       void fetchNotifications();
     };
     window.addEventListener("dimes-auth-session-ready", onReady);
-    const retries = [800, 2500].map((ms) => setTimeout(() => void fetchNotifications(), ms));
+    window.addEventListener("focus", onReady);
 
     const channel = supabase
       .channel(`notif-bell-${userId}`)
@@ -163,12 +180,20 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
       .subscribe();
 
     return () => {
+      cancelled = true;
+      if (pollId) clearTimeout(pollId);
       authSub.subscription.unsubscribe();
       window.removeEventListener("dimes-auth-session-ready", onReady);
-      retries.forEach(clearTimeout);
+      window.removeEventListener("focus", onReady);
       supabase.removeChannel(channel);
     };
   }, [userId, fetchNotifications]);
+
+  // Always refresh when the dropdown is opened.
+  useEffect(() => {
+    if (open) void fetchNotifications();
+  }, [open, fetchNotifications]);
+
 
 
   const unread = useMemo(() => items.filter((n) => !n.is_read).length, [items]);
