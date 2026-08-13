@@ -397,8 +397,13 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                           <span className="relative mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-slate-800">
                             <img
                               src={getNotificationPhoto(n.data)}
-                              alt="Notification profile"
-                              className="h-full w-full object-cover"
+                              alt="Notification icon"
+                              className={cn(
+                                "h-full w-full",
+                                getNotificationPhoto(n.data) === FALLBACK_NOTIFICATION_ICON
+                                  ? "object-contain p-1"
+                                  : "object-cover",
+                              )}
                               loading="lazy"
                             />
                             {!n.is_read && (
