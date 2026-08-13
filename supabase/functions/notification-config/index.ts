@@ -1,4 +1,9 @@
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-dimes-auth-token, x-internal-secret",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+};
 
 // Returns the *public* OneSignal App ID so the browser SDK can initialise
 // without needing a build-time VITE_ env var. The REST API key is never
