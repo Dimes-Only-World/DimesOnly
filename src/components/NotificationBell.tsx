@@ -7,6 +7,8 @@ import { useOneSignal } from "@/hooks/useOneSignal";
 import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
 import AddToHomeScreenPrompt from "@/components/AddToHomeScreenPrompt";
 import { cn } from "@/lib/utils";
+import notificationAvatar from "@/assets/notification-avatar.jpg.asset.json";
+
 
 interface NotificationRow {
   id: string;
@@ -44,7 +46,7 @@ const TYPE_ACCENT: Record<string, string> = {
   system: "bg-slate-400",
 };
 
-const FALLBACK_NOTIFICATION_ICON = "/notification-icon.png";
+const FALLBACK_NOTIFICATION_ICON = notificationAvatar.url;
 
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
   if (!data) return FALLBACK_NOTIFICATION_ICON;
@@ -56,10 +58,11 @@ const getNotificationPhoto = (data: Record<string, unknown> | null) => {
       data.avatar_url ||
       FALLBACK_NOTIFICATION_ICON,
   );
-  // Any absolute URL pointing at the site icon should resolve to the local file
+  // Any absolute/relative URL pointing at the site icon should resolve to the CDN asset
   if (raw.includes("notification-icon.png")) return FALLBACK_NOTIFICATION_ICON;
   return raw;
 };
+
 
 
 const resolveUserId = (contextId?: string): string | null => {
@@ -411,11 +414,15 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                               loading="lazy"
                               onError={(e) => {
                                 const img = e.currentTarget;
-                                if (!img.src.endsWith(FALLBACK_NOTIFICATION_ICON)) {
+                                if (!img.src.includes("notification-avatar.jpg")) {
                                   img.src = FALLBACK_NOTIFICATION_ICON;
+                                  img.className = "h-full w-full object-cover";
+                                } else if (!img.src.endsWith("/notification-icon.png")) {
+                                  img.src = "/notification-icon.png";
                                   img.className = "h-full w-full object-contain p-1";
                                 }
                               }}
+
                             />
 
                             {!n.is_read && (
