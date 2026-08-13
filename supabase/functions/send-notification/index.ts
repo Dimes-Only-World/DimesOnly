@@ -168,7 +168,19 @@ async function sendPush(
       console.error("OneSignal error", res.status, JSON.stringify(body));
       return { sent: false, reason: `onesignal_${res.status}` };
     }
-    return { sent: true, recipients: playerIds.length, onesignal_id: body?.id ?? null };
+
+    // Prune expired/unregistered devices so they stop polluting future sends.
+    const invalid: string[] = Array.isArray(body?.errors?.invalid_player_ids)
+      ? body.errors.invalid_player_ids
+      : [];
+    if (invalid.length > 0) {
+      await admin.from("push_subscriptions").delete().in("player_id", invalid);
+      console.log("pruned invalid push subscriptions", invalid.length);
+    }
+
+    const delivered = playerIds.filter((id) => !invalid.includes(id));
+    return { sent: delivered.length > 0, recipients: delivered.length, onesignal_id: body?.id ?? null };
+
   } catch (e) {
     console.error("OneSignal request failed", e);
     return { sent: false, reason: "request_failed" };
