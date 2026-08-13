@@ -656,7 +656,7 @@ const UserMakeMoneyTab: React.FC = () => {
               <AccordionTrigger className="text-left font-semibold">Members Merchant Product Sale</AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 text-sm leading-relaxed">
-                  <p className="font-semibold">Members Merchant Product Sale – Dimes Only World</p>
+                  <p className="font-semibold">COMING SOON! Members Merchant Product Sale – Dimes Only World</p>
                   <p>
                     Members can post items they own and sell them directly through the platform. When your item sells,
                     you keep the majority of the final invoice while your referrer also earns a small override.
