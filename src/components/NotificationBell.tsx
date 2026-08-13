@@ -7,7 +7,7 @@ import { useOneSignal } from "@/hooks/useOneSignal";
 import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
 import AddToHomeScreenPrompt from "@/components/AddToHomeScreenPrompt";
 import { cn } from "@/lib/utils";
-import notificationAvatar from "@/assets/notification-avatar.jpg.asset.json";
+import notificationAvatar from "@/assets/notification-avatar-2.jpg.asset.json";
 
 
 interface NotificationRow {
@@ -414,7 +414,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                               loading="lazy"
                               onError={(e) => {
                                 const img = e.currentTarget;
-                                if (!img.src.includes("notification-avatar.jpg")) {
+                                if (!img.src.includes("notification-avatar-2.jpg")) {
                                   img.src = FALLBACK_NOTIFICATION_ICON;
                                   img.className = "h-full w-full object-cover";
                                 } else if (!img.src.endsWith("/notification-icon.png")) {
