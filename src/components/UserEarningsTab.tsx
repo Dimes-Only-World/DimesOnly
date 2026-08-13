@@ -1940,9 +1940,9 @@ return (
                           </div>
                           <div className="mt-2 flex items-center gap-2">
                             <Badge className="bg-purple-700 text-white">
-                              {(row.plan_tier ||
-                                row.buyer_membership_tier ||
-                                "").toUpperCase() || "PACKAGE"}
+                              {prettyTier(
+                                row.plan_tier || row.buyer_membership_tier,
+                              ).toUpperCase() || "PACKAGE"}
                             </Badge>
                             <Badge
                               variant="secondary"
