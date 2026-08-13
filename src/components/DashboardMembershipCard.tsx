@@ -75,8 +75,8 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
     };
   }, [target.key]);
 
-  const lockedTiers = MEMBERSHIP_OPTIONS.filter(
-    (option) => option.rank > 0 && option.rank < membership.rank,
+  const tierChips = MEMBERSHIP_OPTIONS.filter((option) => option.rank > 0).map(
+    (option) => ({ ...option, unlocked: option.rank <= membership.rank }),
   );
 
   return (
@@ -141,14 +141,18 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
             </div>
           )}
 
-          {lockedTiers.length > 0 && (
+          {tierChips.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
-              {lockedTiers.map((tier) => (
+              {tierChips.map((tier) => (
                 <span
                   key={tier.key}
-                  className="inline-flex cursor-not-allowed items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground opacity-60"
+                  className={
+                    tier.unlocked
+                      ? "inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-400"
+                      : "inline-flex cursor-not-allowed items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground opacity-60"
+                  }
                 >
-                  <Lock className="h-3 w-3" />
+                  {tier.unlocked ? <Check className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                   {tier.label}
                 </span>
               ))}
