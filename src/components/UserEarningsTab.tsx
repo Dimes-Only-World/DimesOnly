@@ -304,8 +304,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   ]);
   const [tiersLoading, setTiersLoading] = useState<boolean>(false);
 
+  const normalizeTier = (t?: string | null) => {
+    const raw = String(t || "").trim().toLowerCase();
+    if (raw === "business_owner_elite" || raw === "business_owner_elite_installment") {
+      return "elite_plus";
+    }
+    return raw;
+  };
+
   const prettyTier = (t?: string | null) =>
-    (t || "").split("_").join(" ").replace(/\b\w/g, (m) => m.toUpperCase());
+    normalizeTier(t).split("_").join(" ").replace(/\b\w/g, (m) => m.toUpperCase());
 
   useEffect(() => {
     const handle = setTimeout(() => {
