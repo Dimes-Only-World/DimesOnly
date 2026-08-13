@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { QRCodeSVG } from "qrcode.react";
 
-
 const UserMakeMoneyTab: React.FC = () => {
   const { user } = useAppContext();
   const { toast } = useToast();
@@ -179,9 +178,7 @@ const UserMakeMoneyTab: React.FC = () => {
     <div className="w-full max-w-none px-0 md:px-4 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl md:text-3xl font-bold text-primary">
-          Share Your Link & Grow Your Network
-        </h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-primary">Share Your Link & Grow Your Network</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Invite friends, fans, and business contacts to join Dimes Only World. You earn referral commissions when they
           sign up and participate.
@@ -204,7 +201,7 @@ const UserMakeMoneyTab: React.FC = () => {
             </div>
             <Button asChild className="w-full">
               <a
-                href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.webm"
+                href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial(1)+(1).webm"
                 download="DimesOnly-Promo.webm"
               >
                 <Download className="w-4 h-4 mr-2" />
@@ -242,7 +239,6 @@ const UserMakeMoneyTab: React.FC = () => {
               <Copy className="w-4 h-4 mr-2" />
               Copy Referral Link
             </Button>
-
           </CardContent>
         </Card>
       </div>
@@ -479,9 +475,7 @@ const UserMakeMoneyTab: React.FC = () => {
                         Positions are limited. Early members who upgrade lock in better positions before they fill up.
                       </li>
                       <li>You must stay an active member in good standing to continue receiving distributions.</li>
-                      <li>
-                        This is separate from referral commissions (the 20% / 10% overrides). You can earn both.
-                      </li>
+                      <li>This is separate from referral commissions (the 20% / 10% overrides). You can earn both.</li>
                     </ul>
                   </div>
 
@@ -527,8 +521,8 @@ const UserMakeMoneyTab: React.FC = () => {
                     <div>
                       <p className="font-medium">2. Second-Level Referral – 10%</p>
                       <p>
-                        When the person you referred brings in someone else, you earn 10% on that second-level
-                        activity. You get paid even though you didn't directly refer the second person.
+                        When the person you referred brings in someone else, you earn 10% on that second-level activity.
+                        You get paid even though you didn't directly refer the second person.
                       </p>
                     </div>
                   </div>
@@ -547,9 +541,7 @@ const UserMakeMoneyTab: React.FC = () => {
                     <ul className="list-disc pl-5 space-y-1">
                       <li>Commissions are paid on qualifying activity (memberships, upgrades, tips, etc.).</li>
                       <li>You can earn both direct (20%) and second-level (10%) overrides at the same time.</li>
-                      <li>
-                        This creates residual income — you build your network once and can keep earning from it.
-                      </li>
+                      <li>This creates residual income — you build your network once and can keep earning from it.</li>
                       <li>
                         The system is designed so the more active your Money Circle becomes, the more you can earn in
                         overrides.
@@ -627,8 +619,8 @@ const UserMakeMoneyTab: React.FC = () => {
                         money on the platform.
                       </li>
                       <li>
-                        <span className="font-medium">10% Override</span> — Earned when the person you referred brings in
-                        someone else and that person spends money.
+                        <span className="font-medium">10% Override</span> — Earned when the person you referred brings
+                        in someone else and that person spends money.
                       </li>
                     </ul>
                   </div>
@@ -661,20 +653,20 @@ const UserMakeMoneyTab: React.FC = () => {
                 <div className="space-y-4 text-sm leading-relaxed">
                   <p className="font-semibold">Members Merchant Product Sale – Dimes Only World</p>
                   <p>
-                    Members can post items they own and sell them directly through the platform. When your item sells, you
-                    keep the majority of the final invoice while your referrer also earns a small override.
+                    Members can post items they own and sell them directly through the platform. When your item sells,
+                    you keep the majority of the final invoice while your referrer also earns a small override.
                   </p>
 
                   <div>
                     <p className="font-semibold">How It Works</p>
                     <ul className="list-disc pl-5 space-y-1">
                       <li>
-                        <span className="font-medium">You earn 70%</span> — The seller keeps 70% of the final invoice when
-                        their item sells.
+                        <span className="font-medium">You earn 70%</span> — The seller keeps 70% of the final invoice
+                        when their item sells.
                       </li>
                       <li>
-                        <span className="font-medium">Your referrer earns 10%</span> — The person who referred you to the
-                        platform receives a 10% override from the sale.
+                        <span className="font-medium">Your referrer earns 10%</span> — The person who referred you to
+                        the platform receives a 10% override from the sale.
                       </li>
                     </ul>
                   </div>
@@ -700,11 +692,9 @@ const UserMakeMoneyTab: React.FC = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-
         </CardContent>
       </Card>
     </div>
-
   );
 };
 
