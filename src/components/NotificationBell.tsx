@@ -7,6 +7,8 @@ import { useOneSignal } from "@/hooks/useOneSignal";
 import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
 import AddToHomeScreenPrompt from "@/components/AddToHomeScreenPrompt";
 import { cn } from "@/lib/utils";
+import notificationAvatar from "@/assets/notification-avatar.jpg.asset.json";
+
 
 interface NotificationRow {
   id: string;
