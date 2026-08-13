@@ -1910,11 +1910,9 @@ return (
                               ) : null}
                             </p>
                             <p className="text-sm text-gray-500 truncate">
-                              {(
-                                row.plan_tier ||
-                                row.buyer_membership_tier ||
-                                ""
-                              ).toUpperCase() || "Membership"}
+                              {prettyTier(
+                                row.plan_tier || row.buyer_membership_tier,
+                              ).toUpperCase() || "MEMBERSHIP"}
                               {row.cadence ? ` • ${row.cadence}` : ""}
                             </p>
                             <p className="text-xs text-gray-600 truncate">
