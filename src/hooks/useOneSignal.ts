@@ -43,8 +43,12 @@ const loadSdk = () => {
 const workerFileExists = async () => {
   try {
     const res = await fetch("/OneSignalSDKWorker.js", { method: "GET", cache: "no-store" });
-    await res.body?.cancel().catch(() => undefined);
-    return res.ok;
+    if (!res.ok) return false;
+    // A SPA fallback returns index.html with a 200 — that is not a worker.
+    const type = res.headers.get("content-type") || "";
+    const body = await res.text().catch(() => "");
+    if (type.includes("text/html") || /<!doctype html/i.test(body)) return false;
+    return body.includes("OneSignalSDK");
   } catch {
     return false;
   }
