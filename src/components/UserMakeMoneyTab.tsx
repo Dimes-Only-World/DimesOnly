@@ -26,9 +26,9 @@ const UserMakeMoneyTab: React.FC = () => {
       "Want to actually get paid for recruiting baddies that got hot photos and videos?\n\n" +
       "Watch this quick video first:\n" +
       "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.mp4\n\n" +
-      "If it hits different… click the link below and lock in your free account right now.
-Spots are limited before the app officially launches.
-It’s 100% free to join — zero risk, nothing to lose.\n" +
+      "If it hits different… click the link below and lock in your free account right now.\n" +
+      "Spots are limited before the app officially launches.\n" +
+      "It’s 100% free to join — zero risk, nothing to lose.\n" +
       "Don’t sleep on this one. Can you find Dimes Only right now? If so join, it will pay serious EASY money!\n\n";
     return `${base}${shareLink}`;
   }, [shareLink]);
