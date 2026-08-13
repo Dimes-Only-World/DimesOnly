@@ -76,6 +76,18 @@ export const resolveMembership = (user: any): MembershipInfo => {
     if (option.rank > best.rank) best = option;
   }
 
+  // Every member gets a free promo tier at registration: Silver for everyone,
+  // Diamond for entertainers. Never resolve below that floor.
+  const userType = normalize(user?.user_type ?? user?.userType);
+  const freeTierStored = normalize(user?.free_membership_tier);
+  const isEntertainer = ['exotic', 'stripper'].includes(userType);
+  const floorKey: MembershipKey =
+    freeTierStored === 'diamond' || (freeTierStored !== 'silver' && isEntertainer)
+      ? 'diamond'
+      : 'silver';
+  const floor = MEMBERSHIP_OPTIONS.find((o) => o.key === floorKey)!;
+  if (floor.rank > best.rank) best = floor;
+
   return best;
 };
 
