@@ -98,7 +98,7 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
               <p className="mt-1 text-sm text-muted-foreground">
                 {membership.rank >= 2
                   ? "Lifetime benefits active on your account."
-                  : `${getFreeTierLabel(userData)} — included for 3 years.`}
+                  : `${getFreeTierLabel(userData)} — included for 3 years. Benefits start when app launches`}
               </p>
             </div>
 
