@@ -5,6 +5,7 @@ The profile dashboard currently stacks many sections in a long scroll (hero vide
 ## 1. Above-the-fold command bar
 
 Replace the current top stack with a compact hero:
+
 - Greeting row: avatar, username, membership badge (Silver / Diamond / Elite Plus), profile completion ring.
 - Three KPI chips: Available Earnings, Jackpot Tickets, Referrals — each tappable to the matching tab.
 - One primary CTA button whose label and target depend on tier (e.g. "Upgrade to Diamond", "Upgrade to Elite Plus"), plus a secondary "Share My Link" button.
@@ -16,7 +17,8 @@ A dismissible card listing the 4-5 actions that drive revenue: add profile photo
 
 ## 3. Single upgrade module (replaces scattered offers)
 
-Consolidate the Silver Plus card, Diamond Plus button, Upgrade Membership button, and Free Membership banner into one Membership card:
+Consolidate the Silver Plus card, Diamond Plus button, Elite plus button, Upgrade Membership button, and Free Membership banner into one Membership card:
+
 - Current plan and what it unlocks.
 - Next tier with 3 benefit bullets, price, and scarcity line (positions remaining counter) where applicable.
 - Locked tiers below the current plan stay greyed out (existing rule).
@@ -25,6 +27,7 @@ Only one upgrade CTA on the page, repeated once as a sticky mobile bar when the 
 ## 4. Section ordering and density
 
 New order on /dashboard/profile:
+
 1. Command bar (KPIs + CTA)
 2. Activation checklist
 3. Membership upgrade card
