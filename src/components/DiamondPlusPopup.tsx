@@ -68,7 +68,8 @@ const buildOffer = (userData: UserData): Offer | null => {
       description: "Step up to Silver Plus and start earning profit sharing positions.",
       price: "$99.99",
       route: "/upgrade-silver-plus",
-      perks: ["Profit sharing position", "Limited to 300 positions"],
+      perks: ["Profit sharing position"],
+      totalPositions: 300,
     };
   }
 
