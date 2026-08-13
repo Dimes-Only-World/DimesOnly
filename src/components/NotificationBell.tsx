@@ -44,15 +44,17 @@ const TYPE_ACCENT: Record<string, string> = {
   system: "bg-slate-400",
 };
 
+const FALLBACK_NOTIFICATION_ICON = "/notification-icon.png";
+
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
-  if (!data) return "";
+  if (!data) return FALLBACK_NOTIFICATION_ICON;
   return String(
     data.actor_photo_url ||
       data.profile_photo_url ||
       data.notification_icon ||
       data.image_url ||
       data.avatar_url ||
-      "",
+      FALLBACK_NOTIFICATION_ICON,
   );
 };
 
@@ -395,8 +397,13 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                           <span className="relative mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-slate-800">
                             <img
                               src={getNotificationPhoto(n.data)}
-                              alt="Notification profile"
-                              className="h-full w-full object-cover"
+                              alt="Notification icon"
+                              className={cn(
+                                "h-full w-full",
+                                getNotificationPhoto(n.data) === FALLBACK_NOTIFICATION_ICON
+                                  ? "object-contain p-1"
+                                  : "object-cover",
+                              )}
                               loading="lazy"
                             />
                             {!n.is_read && (
