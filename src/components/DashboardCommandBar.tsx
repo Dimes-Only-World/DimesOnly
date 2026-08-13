@@ -144,7 +144,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
             </div>
           </div>
 
-          <div className="flex w-full gap-2 sm:w-auto">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             {!isMaxTier && (
               <Button
                 onClick={() => navigate(upgradeTarget.href)}
@@ -165,7 +165,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {kpis.map(({ label, value, Icon, to }) => (
             <button
               key={label}
@@ -174,7 +174,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
             >
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Icon className="h-3.5 w-3.5" />
-                <span className="truncate">{label}</span>
+                <span>{label}</span>
               </div>
               {loading ? (
                 <Skeleton className="mt-2 h-6 w-20" />
