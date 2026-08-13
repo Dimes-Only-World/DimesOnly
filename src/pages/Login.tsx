@@ -114,6 +114,10 @@ const Login: React.FC = () => {
       }
       sessionStorage.setItem("currentUser", userData.username);
       sessionStorage.setItem("userData", JSON.stringify(user));
+      // Reset upgrade popup flags so the offer shows on every login
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith("upgrade_popup_shown_"))
+        .forEach((k) => sessionStorage.removeItem(k));
 
       setUser(user);
       window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));

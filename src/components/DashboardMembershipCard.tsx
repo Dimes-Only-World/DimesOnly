@@ -161,16 +161,6 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
         </CardContent>
       </Card>
 
-      {showSticky && !isMaxTier && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-dimes-surface/95 p-3 backdrop-blur md:hidden">
-          <Button
-            onClick={() => navigate(target.href)}
-            className="w-full bg-dimes-magenta py-5 font-semibold text-white hover:bg-dimes-magenta/90"
-          >
-            Upgrade to {nextLabel}
-          </Button>
-        </div>
-      )}
     </>
   );
 };
