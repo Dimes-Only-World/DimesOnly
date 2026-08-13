@@ -358,6 +358,7 @@ function sourceLabelFor(paymentType: string): string {
   const t = String(paymentType || '').toLowerCase();
   if (t.includes('subscription')) return 'subscription';
   if (t.includes('diamond_plus')) return 'diamond_plus';
+  if (t.includes('elite_plus')) return 'membership';
   if (t.includes('referral_commission')) return 'membership';
   return 'other';
 }
