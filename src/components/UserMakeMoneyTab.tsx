@@ -7,11 +7,16 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { QRCodeSVG } from "qrcode.react";
+import { usePageVideo } from "@/hooks/usePageVideo";
 
 const UserMakeMoneyTab: React.FC = () => {
   const { user } = useAppContext();
   const { toast } = useToast();
   const [actualUsername, setActualUsername] = useState<string>("");
+  const DEFAULT_PROMO_VIDEO =
+    "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial(1)+(1).webm";
+  const { videoUrl: adminPromoVideo } = usePageVideo("make_money_promo");
+  const promoVideoUrl = adminPromoVideo || DEFAULT_PROMO_VIDEO;
 
   const referralUsername = actualUsername;
 
@@ -24,13 +29,13 @@ const UserMakeMoneyTab: React.FC = () => {
     const base =
       "Want to actually get paid for recruiting baddies that got hot photos and videos?\n\n" +
       "Watch this quick video first:\n" +
-      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial(1)+(1).webm\n\n" +
+      `${promoVideoUrl}\n\n` +
       "If it hits different… click the link below and lock in your free account right now.\n" +
       "Spots are limited before the app officially launches.\n" +
       "It’s 100% free to join — zero risk, nothing to lose.\n" +
       "Don’t sleep on this one. Can you find Dimes Only right now? If so join, it will pay serious EASY money!\n\n";
     return `${base}${shareLink}`;
-  }, [shareLink]);
+  }, [shareLink, promoVideoUrl]);
 
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
@@ -201,7 +206,7 @@ const UserMakeMoneyTab: React.FC = () => {
             </div>
             <Button asChild className="w-full">
               <a
-                href="https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial(1)+(1).webm"
+                href={promoVideoUrl}
                 download="DimesOnly-Promo.webm"
               >
                 <Download className="w-4 h-4 mr-2" />
