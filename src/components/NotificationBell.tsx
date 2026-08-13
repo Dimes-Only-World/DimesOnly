@@ -146,19 +146,18 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
 
     // RLS on notifications requires a live Supabase Auth session. Right after a custom
     // login that session is still syncing, so poll until it lands, then fetch.
+    let tries = 0;
     const attempt = async () => {
       if (cancelled) return;
+      tries += 1;
       const { data } = await supabase.auth.getSession();
       const hasSession = Boolean(data.session?.access_token);
-      if (hasSession) {
-        await fetchNotifications();
-        return;
-      }
-      // Still try (in case the user is anon-readable) and keep polling.
       await fetchNotifications();
+      if (hasSession || tries >= 15) return;
       if (!cancelled) pollId = setTimeout(attempt, 1500);
     };
     void attempt();
+
 
     const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) void fetchNotifications();
