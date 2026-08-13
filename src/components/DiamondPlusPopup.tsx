@@ -41,6 +41,7 @@ const buildOffer = (userData: UserData): Offer | null => {
       price: "$149.99",
       route: "/upgrade-diamond",
       perks: ["No referral fees attached", "Full payment via PayPal"],
+      totalPositions: 300,
       installment: { down: "$49.99 down payment", rest: "2 installments of $50.00" },
     };
   }
