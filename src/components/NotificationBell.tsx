@@ -409,7 +409,15 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                                   : "object-cover",
                               )}
                               loading="lazy"
+                              onError={(e) => {
+                                const img = e.currentTarget;
+                                if (!img.src.endsWith(FALLBACK_NOTIFICATION_ICON)) {
+                                  img.src = FALLBACK_NOTIFICATION_ICON;
+                                  img.className = "h-full w-full object-contain p-1";
+                                }
+                              }}
                             />
+
                             {!n.is_read && (
                               <span
                                 className={cn(
