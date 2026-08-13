@@ -414,11 +414,15 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                               loading="lazy"
                               onError={(e) => {
                                 const img = e.currentTarget;
-                                if (!img.src.endsWith(FALLBACK_NOTIFICATION_ICON)) {
+                                if (!img.src.includes("notification-avatar.jpg")) {
                                   img.src = FALLBACK_NOTIFICATION_ICON;
+                                  img.className = "h-full w-full object-cover";
+                                } else if (!img.src.endsWith("/notification-icon.png")) {
+                                  img.src = "/notification-icon.png";
                                   img.className = "h-full w-full object-contain p-1";
                                 }
                               }}
+
                             />
 
                             {!n.is_read && (
