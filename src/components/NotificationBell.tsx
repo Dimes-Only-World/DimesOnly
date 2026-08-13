@@ -44,7 +44,7 @@ const TYPE_ACCENT: Record<string, string> = {
   system: "bg-slate-400",
 };
 
-const FALLBACK_NOTIFICATION_ICON = "/notification-icon.png";
+const FALLBACK_NOTIFICATION_ICON = notificationAvatar.url;
 
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
   if (!data) return FALLBACK_NOTIFICATION_ICON;
@@ -56,10 +56,11 @@ const getNotificationPhoto = (data: Record<string, unknown> | null) => {
       data.avatar_url ||
       FALLBACK_NOTIFICATION_ICON,
   );
-  // Any absolute URL pointing at the site icon should resolve to the local file
+  // Any absolute/relative URL pointing at the site icon should resolve to the CDN asset
   if (raw.includes("notification-icon.png")) return FALLBACK_NOTIFICATION_ICON;
   return raw;
 };
+
 
 
 const resolveUserId = (contextId?: string): string | null => {
