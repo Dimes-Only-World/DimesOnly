@@ -55,8 +55,15 @@ export default {
           foreground: 'hsl(var(--card-foreground))'
         },
 
+        /* Dimes dashboard tokens */
+        'dimes-magenta': 'hsl(var(--dimes-magenta))',
+        'dimes-gold': 'hsl(var(--dimes-gold))',
+        'dimes-surface': 'hsl(var(--dimes-surface))',
+        'dimes-surface-elevated': 'hsl(var(--dimes-surface-elevated))',
+
         /* Payment brand colors (semantic tokens) */
         paypal: 'hsl(var(--brand-paypal))',
+
         'paypal-hover': 'hsl(var(--brand-paypal-hover))',
         paylater: 'hsl(var(--brand-paylater))',
         'card-start': 'hsl(var(--brand-card-start))',
