@@ -25,7 +25,7 @@ const UserMakeMoneyTab: React.FC = () => {
     const base =
       "Want to actually get paid for recruiting baddies that got hot photos and videos?\n\n" +
       "Watch this quick video first:\n" +
-      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial.mp4\n\n" +
+      "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial(1)+(1).webm\n\n" +
       "If it hits different… click the link below and lock in your free account right now.\n" +
       "Spots are limited before the app officially launches.\n" +
       "It’s 100% free to join — zero risk, nothing to lose.\n" +
