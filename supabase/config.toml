@@ -102,3 +102,6 @@ verify_jwt = false
 
 [functions.broadcast-notification]
 verify_jwt = false
+
+[functions.push-diagnostic]
+verify_jwt = false
