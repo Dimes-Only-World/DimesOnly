@@ -330,10 +330,10 @@ const UserMakeMoneyTab: React.FC = () => {
         <CardContent>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="recruit-effectively">
-              <AccordionTrigger className="text-left font-semibold">How to Recruit Effectively</AccordionTrigger>
+              <AccordionTrigger className="text-left font-semibold">How to Refer People Effectively</AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 text-sm leading-relaxed">
-                  <p className="font-semibold">How to Recruit Effectively for Dimes Only World</p>
+                  <p className="font-semibold">How to Refer People Effectively for Dimes Only World</p>
                   <p>Here’s a practical, no-fluff approach:</p>
 
                   <div>
