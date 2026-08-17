@@ -329,6 +329,93 @@ const UserMakeMoneyTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="recruit-effectively">
+              <AccordionTrigger className="text-left font-semibold">How to Recruit Effectively</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <p className="font-semibold">How to Recruit Effectively for Dimes Only World</p>
+                  <p>Here’s a practical, no-fluff approach:</p>
+
+                  <div>
+                    <p className="font-semibold">1. Know Exactly Who You’re Talking To</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Strippers & exotic dancers who want income beyond the stage.</li>
+                      <li>People who like residual / network income.</li>
+                      <li>Club owners looking for exclusive positions.</li>
+                      <li>Friends who already tip or follow dancers.</li>
+                    </ul>
+                    <p className="mt-1">Don’t waste time on people who just want “free money” with no effort.</p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">2. Keep the Message Simple</p>
+                    <p>Most people tune out when it gets complicated. Use a clean 3-part message:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><span className="font-medium">What it is</span> — A membership platform where dancers and members earn residual income through referrals and profit sharing.</li>
+                      <li><span className="font-medium">How you make money</span> — 20% on direct referrals + 10% on second level + quarterly profit sharing for early Plus members.</li>
+                      <li><span className="font-medium">Why now</span> — Early positions are limited. Once they’re filled, the best spots are gone.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">3. Lead With the Benefit, Not the Features</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><span className="text-white/50">Bad:</span> “There’s a 20% override and quarterly profit share…”</li>
+                      <li><span className="text-white/50">Better:</span> “You can build residual income from people you already know, and early members lock in the strongest positions.”</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">4. Use Social Proof & Urgency (Honestly)</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Mention that positions are limited (first 700 style early advantage).</li>
+                      <li>Share that the platform is still in the early stage and the full app is coming.</li>
+                      <li>Talk about the Money Circle concept — people earn when their network is active.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">5. Make It Easy to Take the Next Step</p>
+                    <p>Always give a clear action:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>“Here’s the link — register and I’ll walk you through it.”</li>
+                      <li>“Watch this short video and tell me what questions you have.”</li>
+                      <li>“Jump on a quick call and I’ll break it down for you.”</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">6. Follow Up Like a Professional</p>
+                    <p>Most people don’t join on the first message.</p>
+                    <p>
+                      Follow up 2–3 times over a few days with value (answers to common questions, short explanations,
+                      reminders about limited spots). Don’t spam.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">7. Best Recruiting Channels Right Now</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Direct messages to dancers and people already in the lifestyle.</li>
+                      <li>In-person at clubs (if appropriate).</li>
+                      <li>Group chats / Money Circle style networks.</li>
+                      <li>Short videos explaining the residual income side.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Quick Effective Script Example</p>
+                    <p className="italic text-white/80 border-l-2 border-primary/50 pl-3">
+                      “I’m building with Dimes Only World — it’s a membership platform where dancers and members can
+                      earn residual income through referrals and profit sharing. Early positions are limited, so the
+                      people who get in now lock in the best spots before the full app launches. Want me to send you the
+                      link and break it down real quick?”
+                    </p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
             <AccordionItem value="residual">
               <AccordionTrigger className="text-left font-semibold">Residual Income</AccordionTrigger>
               <AccordionContent>
