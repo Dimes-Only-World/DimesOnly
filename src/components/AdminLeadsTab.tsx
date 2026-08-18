@@ -15,6 +15,9 @@ interface Lead {
   referral_code: string | null;
   action_taken: string;
   created_at: string;
+  registration_completed?: boolean;
+  registered_username?: string | null;
+  registered_at?: string | null;
 }
 
 const ACTION_LABEL: Record<string, string> = {
@@ -22,6 +25,7 @@ const ACTION_LABEL: Record<string, string> = {
   continued_registration: "Continued registration",
   more_information: "More information",
 };
+
 
 const AdminLeadsTab: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
