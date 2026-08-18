@@ -4,7 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { RefreshCw, CheckCircle2, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Lead {
@@ -15,6 +27,7 @@ interface Lead {
   referral_code: string | null;
   action_taken: string;
   created_at: string;
+  deleted_at?: string | null;
   registration_completed?: boolean;
   registered_username?: string | null;
   registered_at?: string | null;
@@ -26,22 +39,27 @@ const ACTION_LABEL: Record<string, string> = {
   more_information: "More information",
 };
 
+type View = "active" | "trash";
 
 const AdminLeadsTab: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<View>("active");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
 
   const getAdminUserId = () => {
     const data = sessionStorage.getItem("adminUser");
     return data ? JSON.parse(data).id : null;
   };
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (nextView: View = view) => {
     setLoading(true);
+    setSelected([]);
     try {
       const { data, error } = await supabase.functions.invoke("admin-data", {
-        body: { action: "fetchAgeGateLeads", adminUserId: getAdminUserId() },
+        body: { action: "fetchAgeGateLeads", adminUserId: getAdminUserId(), view: nextView },
       });
       if (error) throw error;
       setLeads(data?.data || []);
@@ -54,8 +72,23 @@ const AdminLeadsTab: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchLeads();
-  }, []);
+    fetchLeads(view);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+
+  const runAction = async (action: string, ids?: string[], successMsg?: string) => {
+    try {
+      const { error } = await supabase.functions.invoke("admin-data", {
+        body: { action, adminUserId: getAdminUserId(), ids },
+      });
+      if (error) throw error;
+      toast.success(successMsg || "Done");
+      await fetchLeads(view);
+    } catch (err) {
+      console.error(err);
+      toast.error("Action failed");
+    }
+  };
 
   const filtered = leads.filter((l) => {
     const q = search.trim().toLowerCase();
@@ -67,6 +100,11 @@ const AdminLeadsTab: React.FC = () => {
     );
   });
 
+  const allSelected = filtered.length > 0 && filtered.every((l) => selected.includes(l.id));
+  const toggleAll = () => setSelected(allSelected ? [] : filtered.map((l) => l.id));
+  const toggleOne = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -76,28 +114,82 @@ const AdminLeadsTab: React.FC = () => {
             Visitors who filled out the intro form on the home page.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchLeads} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => fetchLeads(view)} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Input
-          placeholder="Search by name, phone or referrer"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
+        <Tabs value={view} onValueChange={(v) => setView(v as View)}>
+          <TabsList>
+            <TabsTrigger value="active">Active Leads</TabsTrigger>
+            <TabsTrigger value="trash">Trash</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Search by name, phone or referrer"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-sm"
+          />
+          {selected.length > 0 && view === "active" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => runAction("softDeleteAgeGateLeads", selected, "Moved to Trash")}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Move {selected.length} to Trash
+            </Button>
+          )}
+          {selected.length > 0 && view === "trash" && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => runAction("restoreAgeGateLeads", selected, "Restored")}
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                Restore {selected.length}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirm({ type: "permanent", ids: selected })}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete {selected.length} permanently
+              </Button>
+            </>
+          )}
+          {view === "trash" && leads.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="ml-auto"
+              onClick={() => setConfirm({ type: "empty" })}
+            >
+              Empty Trash
+            </Button>
+          )}
+        </div>
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading leads...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No leads yet.</p>
+          <p className="text-sm text-muted-foreground">
+            {view === "trash" ? "Trash is empty." : "No leads yet."}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
+                  <th className="py-2 pr-4 font-medium">
+                    <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Select all" />
+                  </th>
                   <th className="py-2 pr-4 font-medium">Name</th>
                   <th className="py-2 pr-4 font-medium">Phone</th>
                   <th className="py-2 pr-4 font-medium">Date of Birth</th>
@@ -105,12 +197,20 @@ const AdminLeadsTab: React.FC = () => {
                   <th className="py-2 pr-4 font-medium">Action</th>
                   <th className="py-2 pr-4 font-medium">Registration</th>
                   <th className="py-2 pr-4 font-medium">Submitted</th>
+                  {view === "trash" && <th className="py-2 pr-4 font-medium">Deleted</th>}
+                  <th className="py-2 pr-4 font-medium text-right">Manage</th>
                 </tr>
               </thead>
               <tbody>
-
                 {filtered.map((lead) => (
                   <tr key={lead.id} className="border-b last:border-0">
+                    <td className="py-2 pr-4">
+                      <Checkbox
+                        checked={selected.includes(lead.id)}
+                        onCheckedChange={() => toggleOne(lead.id)}
+                        aria-label={`Select ${lead.full_name}`}
+                      />
+                    </td>
                     <td className="py-2 pr-4">{lead.full_name}</td>
                     <td className="py-2 pr-4">{lead.phone}</td>
                     <td className="py-2 pr-4">{lead.date_of_birth}</td>
@@ -132,8 +232,40 @@ const AdminLeadsTab: React.FC = () => {
                       )}
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
-
                       {new Date(lead.created_at).toLocaleString()}
+                    </td>
+                    {view === "trash" && (
+                      <td className="py-2 pr-4 whitespace-nowrap">
+                        {lead.deleted_at ? new Date(lead.deleted_at).toLocaleString() : "—"}
+                      </td>
+                    )}
+                    <td className="py-2 pr-4 whitespace-nowrap text-right">
+                      {view === "active" ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => runAction("softDeleteAgeGateLeads", [lead.id], "Moved to Trash")}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      ) : (
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => runAction("restoreAgeGateLeads", [lead.id], "Restored")}
+                          >
+                            <Undo2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setConfirm({ type: "permanent", ids: [lead.id] })}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -142,6 +274,38 @@ const AdminLeadsTab: React.FC = () => {
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={!!confirm} onOpenChange={(open) => !open && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirm?.type === "empty" ? "Empty the Trash?" : "Delete permanently?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm?.type === "empty"
+                ? "Every lead in the Trash will be permanently removed. This cannot be undone."
+                : `${confirm?.ids?.length || 0} lead(s) will be permanently removed. This cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                const c = confirm;
+                setConfirm(null);
+                if (!c) return;
+                if (c.type === "empty") {
+                  await runAction("emptyAgeGateLeadsTrash", undefined, "Trash emptied");
+                } else {
+                  await runAction("permanentlyDeleteAgeGateLeads", c.ids, "Deleted permanently");
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
