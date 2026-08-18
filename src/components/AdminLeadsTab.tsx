@@ -48,6 +48,9 @@ const AdminLeadsTab: React.FC = () => {
   const [view, setView] = useState<View>("active");
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
+  const [displayFilter, setDisplayFilter] = useState<
+    "all" | "incomplete" | "more_info" | "did_not_complete"
+  >("all");
 
   const getAdminUserId = () => {
     const data = sessionStorage.getItem("adminUser");
