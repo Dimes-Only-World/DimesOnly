@@ -177,6 +177,9 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="shortform" className="whitespace-nowrap">
                 S-F-B
               </TabsTrigger>
+              <TabsTrigger value="smstext" className="whitespace-nowrap">
+                SMS Text
+              </TabsTrigger>
 
             </TabsList>
 
@@ -241,6 +244,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="shortform">
             <AdminShortFormBackgroundTab />
+          </TabsContent>
+
+          <TabsContent value="smstext">
+            <AdminSMSTextTab />
           </TabsContent>
 
         </Tabs>
