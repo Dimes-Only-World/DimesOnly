@@ -121,6 +121,18 @@ const AdminLeadsTab: React.FC = () => {
                       </Badge>
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
+                      {lead.registration_completed ? (
+                        <Badge className="bg-green-600 text-white hover:bg-green-600">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Complete
+                          {lead.registered_username ? ` · ${lead.registered_username}` : ""}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Incomplete</Badge>
+                      )}
+                    </td>
+                    <td className="py-2 pr-4 whitespace-nowrap">
+
                       {new Date(lead.created_at).toLocaleString()}
                     </td>
                   </tr>
