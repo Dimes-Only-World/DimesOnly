@@ -63,21 +63,26 @@ serve(async (req) => {
         // Determine which leads have completed registration (matched by phone)
         const { data: registeredUsers, error: usersError } = await supabaseAdmin
           .from('users')
-          .select('phone_number, username, created_at')
+          .select('phone_number, username, first_name, last_name, created_at')
           .limit(5000);
         if (usersError) throw usersError;
 
         const digits = (v: string | null | undefined) => (v || '').replace(/\D/g, '').slice(-10);
+        const normName = (v: string | null | undefined) =>
+          (v || '').toLowerCase().replace(/[^a-z]/g, '');
         const byPhone = new Map<string, { username: string | null; created_at: string | null }>();
+        const byName = new Map<string, { username: string | null; created_at: string | null }>();
         for (const u of registeredUsers || []) {
+          const entry = { username: (u as any).username, created_at: (u as any).created_at };
           const key = digits((u as any).phone_number);
-          if (key.length === 10 && !byPhone.has(key)) {
-            byPhone.set(key, { username: (u as any).username, created_at: (u as any).created_at });
-          }
+          if (key.length === 10 && !byPhone.has(key)) byPhone.set(key, entry);
+          const nameKey = normName(`${(u as any).first_name || ''}${(u as any).last_name || ''}`);
+          if (nameKey.length > 3 && !byName.has(nameKey)) byName.set(nameKey, entry);
         }
 
         result = (data || []).map((lead: any) => {
-          const match = byPhone.get(digits(lead.phone));
+          const match =
+            byPhone.get(digits(lead.phone)) || byName.get(normName(lead.full_name));
           return {
             ...lead,
             registration_completed: !!match,
@@ -85,6 +90,7 @@ serve(async (req) => {
             registered_at: match?.created_at ?? null,
           };
         });
+
         break;
       }
 
