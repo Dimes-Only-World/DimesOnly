@@ -144,6 +144,45 @@ const AdminLeadsTab: React.FC = () => {
           </TabsList>
         </Tabs>
 
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <Button
+            variant={displayFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter("all")}
+            className="justify-between"
+          >
+            <span>Total Leads</span>
+            <Badge variant="secondary">{totalLeads}</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "incomplete" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "incomplete" ? "all" : "incomplete")}
+            className="justify-between"
+          >
+            <span>Incomplete</span>
+            <Badge variant="secondary">{incompleteCount} ({pct(incompleteCount)}%)</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "more_info" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "more_info" ? "all" : "more_info")}
+            className="justify-between"
+          >
+            <span>Need More Info</span>
+            <Badge variant="secondary">{moreInfoCount} ({pct(moreInfoCount)}%)</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "did_not_complete" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "did_not_complete" ? "all" : "did_not_complete")}
+            className="justify-between"
+          >
+            <span>Did Not Complete</span>
+            <Badge variant="secondary">{didNotCompleteCount} ({pct(didNotCompleteCount)}%)</Badge>
+          </Button>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <Input
             placeholder="Search by name, phone or referrer"
