@@ -53,12 +53,16 @@ serve(async (req) => {
 
     switch (action) {
       case 'fetchAgeGateLeads': {
-        const { data, error } = await supabaseAdmin
+        const trashed = params.view === 'trash';
+        let query = supabaseAdmin
           .from('age_gate_leads')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1000);
+        query = trashed ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null);
+        const { data, error } = await query;
         if (error) throw error;
+
 
         // Determine which leads have completed registration (matched by phone)
         const { data: registeredUsers, error: usersError } = await supabaseAdmin
@@ -93,6 +97,42 @@ serve(async (req) => {
 
         break;
       }
+
+      case 'softDeleteAgeGateLeads':
+      case 'restoreAgeGateLeads':
+      case 'permanentlyDeleteAgeGateLeads': {
+        const ids: string[] = Array.isArray(params.ids) ? params.ids.filter((v: unknown) => typeof v === 'string') : [];
+        if (ids.length === 0) {
+          return new Response(
+            JSON.stringify({ error: 'No lead ids provided' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (action === 'permanentlyDeleteAgeGateLeads') {
+          const { error } = await supabaseAdmin.from('age_gate_leads').delete().in('id', ids);
+          if (error) throw error;
+        } else {
+          const { error } = await supabaseAdmin
+            .from('age_gate_leads')
+            .update({ deleted_at: action === 'softDeleteAgeGateLeads' ? new Date().toISOString() : null })
+            .in('id', ids);
+          if (error) throw error;
+        }
+        result = { success: true, count: ids.length };
+        break;
+      }
+
+      case 'emptyAgeGateLeadsTrash': {
+        const { error } = await supabaseAdmin
+          .from('age_gate_leads')
+          .delete()
+          .not('deleted_at', 'is', null);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
 
 
       // User management
