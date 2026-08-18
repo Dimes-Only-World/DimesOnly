@@ -57,7 +57,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
   const initials = String(displayName).slice(0, 1).toUpperCase();
   const isMaxTier = membership.rank >= 7;
 
-  const shareLink = `${window.location.origin}/?ref=${userData?.username || ""}`;
+  const shareLink = `${window.location.origin}?ref=${userData?.username || ""}`;
 
   const handleShare = async () => {
     try {

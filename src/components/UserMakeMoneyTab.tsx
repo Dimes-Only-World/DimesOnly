@@ -21,7 +21,7 @@ const UserMakeMoneyTab: React.FC = () => {
   const referralUsername = actualUsername;
 
   const shareLink = useMemo(
-    () => `https://www.DimesOnly.World/?ref=${encodeURIComponent(referralUsername || "")}`,
+    () => `https://www.DimesOnly.World?ref=${encodeURIComponent(referralUsername || "")}`,
     [referralUsername],
   );
 
