@@ -98,6 +98,42 @@ serve(async (req) => {
         break;
       }
 
+      case 'softDeleteAgeGateLeads':
+      case 'restoreAgeGateLeads':
+      case 'permanentlyDeleteAgeGateLeads': {
+        const ids: string[] = Array.isArray(params.ids) ? params.ids.filter((v: unknown) => typeof v === 'string') : [];
+        if (ids.length === 0) {
+          return new Response(
+            JSON.stringify({ error: 'No lead ids provided' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (action === 'permanentlyDeleteAgeGateLeads') {
+          const { error } = await supabaseAdmin.from('age_gate_leads').delete().in('id', ids);
+          if (error) throw error;
+        } else {
+          const { error } = await supabaseAdmin
+            .from('age_gate_leads')
+            .update({ deleted_at: action === 'softDeleteAgeGateLeads' ? new Date().toISOString() : null })
+            .in('id', ids);
+          if (error) throw error;
+        }
+        result = { success: true, count: ids.length };
+        break;
+      }
+
+      case 'emptyAgeGateLeadsTrash': {
+        const { error } = await supabaseAdmin
+          .from('age_gate_leads')
+          .delete()
+          .not('deleted_at', 'is', null);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+
 
       // User management
       case 'fetchAllUsers': {
