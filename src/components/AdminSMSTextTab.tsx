@@ -82,7 +82,7 @@ const AdminSMSTextTab: React.FC = () => {
           texting app. Templates are saved in this browser.
         </p>
 
-        <Accordion type="multiple" className="w-full">
+        <Accordion type="single" collapsible className="w-full">
           {SECTION_TITLES.map((title, index) => (
             <AccordionItem key={title} value={`item-${index}`}>
               <AccordionTrigger className="text-left">{title}</AccordionTrigger>
