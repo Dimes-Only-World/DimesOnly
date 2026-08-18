@@ -34,6 +34,7 @@ export type Database = {
           action_taken: string
           created_at: string
           date_of_birth: string
+          deleted_at: string | null
           full_name: string
           id: string
           phone: string
@@ -44,6 +45,7 @@ export type Database = {
           action_taken?: string
           created_at?: string
           date_of_birth: string
+          deleted_at?: string | null
           full_name: string
           id?: string
           phone: string
@@ -54,6 +56,7 @@ export type Database = {
           action_taken?: string
           created_at?: string
           date_of_birth?: string
+          deleted_at?: string | null
           full_name?: string
           id?: string
           phone?: string
