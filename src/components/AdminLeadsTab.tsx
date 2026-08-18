@@ -93,7 +93,7 @@ const AdminLeadsTab: React.FC = () => {
     }
   };
 
-  const filtered = leads.filter((l) => {
+  const searchFiltered = leads.filter((l) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -101,6 +101,20 @@ const AdminLeadsTab: React.FC = () => {
       l.phone.toLowerCase().includes(q) ||
       (l.referral_code || "").toLowerCase().includes(q)
     );
+  });
+
+  const totalLeads = searchFiltered.length;
+  const incompleteCount = searchFiltered.filter((l) => !l.registration_completed).length;
+  const moreInfoCount = searchFiltered.filter((l) => l.action_taken === "more_information").length;
+  const didNotCompleteCount = searchFiltered.filter((l) => l.action_taken !== "continued_registration").length;
+  const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
+
+  const filtered = searchFiltered.filter((l) => {
+    if (displayFilter === "all") return true;
+    if (displayFilter === "incomplete") return !l.registration_completed;
+    if (displayFilter === "more_info") return l.action_taken === "more_information";
+    if (displayFilter === "did_not_complete") return l.action_taken !== "continued_registration";
+    return true;
   });
 
   const allSelected = filtered.length > 0 && filtered.every((l) => selected.includes(l.id));
