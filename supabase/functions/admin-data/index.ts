@@ -53,12 +53,16 @@ serve(async (req) => {
 
     switch (action) {
       case 'fetchAgeGateLeads': {
-        const { data, error } = await supabaseAdmin
+        const trashed = params.view === 'trash';
+        let query = supabaseAdmin
           .from('age_gate_leads')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1000);
+        query = trashed ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null);
+        const { data, error } = await query;
         if (error) throw error;
+
 
         // Determine which leads have completed registration (matched by phone)
         const { data: registeredUsers, error: usersError } = await supabaseAdmin
