@@ -59,9 +59,35 @@ serve(async (req) => {
           .order('created_at', { ascending: false })
           .limit(1000);
         if (error) throw error;
-        result = data;
+
+        // Determine which leads have completed registration (matched by phone)
+        const { data: registeredUsers, error: usersError } = await supabaseAdmin
+          .from('users')
+          .select('phone_number, username, created_at')
+          .limit(5000);
+        if (usersError) throw usersError;
+
+        const digits = (v: string | null | undefined) => (v || '').replace(/\D/g, '').slice(-10);
+        const byPhone = new Map<string, { username: string | null; created_at: string | null }>();
+        for (const u of registeredUsers || []) {
+          const key = digits((u as any).phone_number);
+          if (key.length === 10 && !byPhone.has(key)) {
+            byPhone.set(key, { username: (u as any).username, created_at: (u as any).created_at });
+          }
+        }
+
+        result = (data || []).map((lead: any) => {
+          const match = byPhone.get(digits(lead.phone));
+          return {
+            ...lead,
+            registration_completed: !!match,
+            registered_username: match?.username ?? null,
+            registered_at: match?.created_at ?? null,
+          };
+        });
         break;
       }
+
 
       // User management
       case 'fetchAllUsers': {
