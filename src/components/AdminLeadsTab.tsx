@@ -48,6 +48,9 @@ const AdminLeadsTab: React.FC = () => {
   const [view, setView] = useState<View>("active");
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
+  const [displayFilter, setDisplayFilter] = useState<
+    "all" | "incomplete" | "more_info" | "did_not_complete"
+  >("all");
 
   const getAdminUserId = () => {
     const data = sessionStorage.getItem("adminUser");
@@ -90,7 +93,7 @@ const AdminLeadsTab: React.FC = () => {
     }
   };
 
-  const filtered = leads.filter((l) => {
+  const searchFiltered = leads.filter((l) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -98,6 +101,20 @@ const AdminLeadsTab: React.FC = () => {
       l.phone.toLowerCase().includes(q) ||
       (l.referral_code || "").toLowerCase().includes(q)
     );
+  });
+
+  const totalLeads = searchFiltered.length;
+  const incompleteCount = searchFiltered.filter((l) => !l.registration_completed).length;
+  const moreInfoCount = searchFiltered.filter((l) => l.action_taken === "more_information").length;
+  const didNotCompleteCount = searchFiltered.filter((l) => l.action_taken !== "continued_registration").length;
+  const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
+
+  const filtered = searchFiltered.filter((l) => {
+    if (displayFilter === "all") return true;
+    if (displayFilter === "incomplete") return !l.registration_completed;
+    if (displayFilter === "more_info") return l.action_taken === "more_information";
+    if (displayFilter === "did_not_complete") return l.action_taken !== "continued_registration";
+    return true;
   });
 
   const allSelected = filtered.length > 0 && filtered.every((l) => selected.includes(l.id));
@@ -126,6 +143,45 @@ const AdminLeadsTab: React.FC = () => {
             <TabsTrigger value="trash">Trash</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <Button
+            variant={displayFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter("all")}
+            className="justify-between"
+          >
+            <span>Total Leads</span>
+            <Badge variant="secondary">{totalLeads}</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "incomplete" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "incomplete" ? "all" : "incomplete")}
+            className="justify-between"
+          >
+            <span>Incomplete</span>
+            <Badge variant="secondary">{incompleteCount} ({pct(incompleteCount)}%)</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "more_info" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "more_info" ? "all" : "more_info")}
+            className="justify-between"
+          >
+            <span>Need More Info</span>
+            <Badge variant="secondary">{moreInfoCount} ({pct(moreInfoCount)}%)</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "did_not_complete" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "did_not_complete" ? "all" : "did_not_complete")}
+            className="justify-between"
+          >
+            <span>Did Not Complete</span>
+            <Badge variant="secondary">{didNotCompleteCount} ({pct(didNotCompleteCount)}%)</Badge>
+          </Button>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
