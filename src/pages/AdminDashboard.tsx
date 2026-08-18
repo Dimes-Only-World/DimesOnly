@@ -18,6 +18,8 @@ import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
 import AdminLeadsTab from "@/components/AdminLeadsTab";
 import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTab";
+import AdminSMSTextTab from "@/components/AdminSMSTextTab";
+
 
 
 import { supabase } from "@/integrations/supabase/client";
