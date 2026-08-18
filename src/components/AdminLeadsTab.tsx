@@ -128,7 +128,7 @@ const AdminLeadsTab: React.FC = () => {
                           {lead.registered_username ? ` · ${lead.registered_username}` : ""}
                         </Badge>
                       ) : (
-                        <Badge variant="outline">Incomplete</Badge>
+                        <Badge className="bg-red-600 text-white hover:bg-red-600">Incomplete</Badge>
                       )}
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
