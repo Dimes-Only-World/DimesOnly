@@ -1,11 +1,17 @@
 import { useEffect } from "react";
 
+const BLOCK_ATTRS = {
+  controlsList: "nodownload",
+  disablePictureInPicture: true,
+  disableRemotePlayback: true,
+} as const;
+
 function patchVideo(video: HTMLVideoElement) {
   if (video.dataset.downloadBlocked === "true") return;
   video.dataset.downloadBlocked = "true";
 
   // Remove the native download button from the control bar.
-  video.setAttribute("controlsList", "nodownload");
+  video.setAttribute("controlsList", BLOCK_ATTRS.controlsList);
   // Disable PiP and remote playback menus that can expose download/share options.
   video.setAttribute("disablePictureInPicture", "");
   video.setAttribute("disableRemotePlayback", "");
