@@ -31,3 +31,17 @@ body {
   width: 100vw !important;
   max-width: none !important;
 }
+
+/* Site-wide: hide the native video download button in supported browsers */
+video::-webkit-media-controls-enclosure {
+  overflow: hidden;
+}
+video::-webkit-media-controls-panel {
+  width: calc(100% + 30px);
+}
+video::-webkit-media-controls-download-button {
+  display: none !important;
+}
+video::-webkit-media-controls-overflow-button {
+  display: none !important;
+}

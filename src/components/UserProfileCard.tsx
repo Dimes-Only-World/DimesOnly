@@ -158,6 +158,9 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
                     src={video}
                     className="w-full h-full object-cover"
                     poster={video.replace('.mp4', '_thumb.jpg')}
+                    controlsList="nodownload"
+                    disablePictureInPicture
+                    disableRemotePlayback
                   />
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                     <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
