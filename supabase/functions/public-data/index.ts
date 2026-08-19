@@ -248,18 +248,30 @@ serve(async (req) => {
         const authHeader = req.headers.get('Authorization') || '';
         const token = authHeader.replace('Bearer ', '').trim();
         let authorized = false;
+        let memberUsername: string | null = null;
         if (token && token !== supabaseAnonKey) {
           const { data: userData } = await supabaseAdmin.auth.getUser(token);
-          authorized = !!userData?.user;
+          if (userData?.user) {
+            authorized = true;
+            const { data: authRow } = await supabaseAdmin
+              .from('users')
+              .select('username')
+              .eq('id', userData.user.id)
+              .maybeSingle();
+            memberUsername = (authRow as any)?.username || null;
+          }
         }
         // Fallback for custom (non-Supabase-Auth) sessions: verify the user id exists
         if (!authorized && params?.userId) {
           const { data: memberRow } = await supabaseAdmin
             .from('users')
-            .select('id')
+            .select('id, username')
             .eq('id', params.userId)
             .maybeSingle();
-          authorized = !!memberRow;
+          if (memberRow) {
+            authorized = true;
+            memberUsername = (memberRow as any)?.username || null;
+          }
         }
         if (!authorized) {
           return new Response(
@@ -268,10 +280,17 @@ serve(async (req) => {
           );
         }
 
+        if (!memberUsername) {
+          result = [];
+          break;
+        }
+
+        // Only leads referred by this member
         const { data: leads, error: leadsError } = await supabaseAdmin
           .from('age_gate_leads')
-          .select('id, full_name, phone, action_taken, created_at')
+          .select('id, full_name, phone, action_taken, created_at, referral_code')
           .is('deleted_at', null)
+          .ilike('referral_code', memberUsername)
           .order('created_at', { ascending: false })
           .limit(1000);
         if (leadsError) throw leadsError;
