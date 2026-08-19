@@ -170,6 +170,7 @@ function AppContent() {
   return (
     <div className="App">
       <GARefTracker />
+      <GlobalVideoDownloadBlocker />
       
       {!hideNotificationBell && (
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
