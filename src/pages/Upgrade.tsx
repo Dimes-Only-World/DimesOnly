@@ -139,7 +139,7 @@ const fetchUserData = async (): Promise<UserData | null> => {
   const { data: profile, error } = await supabase
     .from("users")
     .select(
-      "id, username, user_type, membership_tier, diamond_plus_active, phone_number, email"
+      "id, username, user_type, membership_tier, diamond_plus_active, phone_number, email, is_business_owner"
     )
     .eq("id", user.id)
     .single();
