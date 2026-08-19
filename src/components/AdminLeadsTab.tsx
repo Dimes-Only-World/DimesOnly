@@ -193,9 +193,12 @@ const AdminLeadsTab: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Search by name, phone or referrer"
+            placeholder="Search by name, phone, username or referrer"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
             className="max-w-sm"
           />
           {selected.length > 0 && view === "active" && (
