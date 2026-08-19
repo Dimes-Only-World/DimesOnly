@@ -630,10 +630,10 @@ const UpgradeDiamondPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Full Payment */}
                     <div
-                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
                         paymentOption === "full"
                           ? "border-yellow-400 bg-yellow-400/10"
                           : "border-gray-600 hover:border-gray-500"
@@ -656,7 +656,7 @@ const UpgradeDiamondPage: React.FC = () => {
 
                     {/* Installment Payment */}
                     <div
-                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
                         paymentOption === "installment"
                           ? "border-yellow-400 bg-yellow-400/10"
                           : "border-gray-600 hover:border-gray-500"
@@ -679,10 +679,13 @@ const UpgradeDiamondPage: React.FC = () => {
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
                           2 installments of $50.00
-      
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Monthly Plan */}
                     <div
-                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
                         paymentOption === "monthly"
                           ? "border-yellow-400 bg-yellow-400/10"
                           : "border-gray-600 hover:border-gray-500"
@@ -706,11 +709,9 @@ const UpgradeDiamondPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                      </div>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
+
 
               {/* Phone Number Input */}
               <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
