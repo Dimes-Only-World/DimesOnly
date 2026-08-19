@@ -577,11 +577,11 @@ const UpgradeDiamondPage: React.FC = () => {
                       </div>
                       <div className="text-gray-600">a year max for life</div>
                       <div className="text-lg text-gray-800">
-                        Bi weekly pay of up to $5,208 max
+                        Quarterly pay of up to $31,250 max
                       </div>
                       <p className="text-gray-800 text-sm">
-                        Profit sharing compensation when you meet bi weekly
-                        requirements
+                        Profit sharing compensation max is based on companies net
+                        profits.
                       </p>
                     </div>
                   </CardContent>
