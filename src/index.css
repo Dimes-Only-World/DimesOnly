@@ -144,13 +144,49 @@
     font-size: 16px;
   }
 
-  /* iOS renders native controls over background video without this */
-  video::-webkit-media-controls-start-playback-button,
-  video::-webkit-media-controls-overlay-play-button {
+  /* iOS adds inner shadows / rounded chrome to form controls */
+  input,
+  textarea,
+  button {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: inherit;
+  }
+
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"] {
+    /* Safari otherwise collapses these to intrinsic width and centers text */
+    min-height: 2.5rem;
+    text-align: left;
+  }
+
+  /* Background/decorative videos: hide iOS's forced overlay play button.
+     Videos with native controls keep their normal affordance. */
+  video:not([controls])::-webkit-media-controls-start-playback-button,
+  video:not([controls])::-webkit-media-controls-overlay-play-button {
     display: none !important;
     -webkit-appearance: none;
   }
 }
+
+/* iOS Safari: the URL bar makes 100vh taller than the visible viewport,
+   which cuts off the bottom of full-height sections. dvh tracks it. */
+@supports (height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+
+  .h-screen {
+    height: 100dvh;
+  }
+}
+
+/* Safari needs an explicit safe-area allowance for bottom-fixed UI */
+.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 
 
 @layer components {
