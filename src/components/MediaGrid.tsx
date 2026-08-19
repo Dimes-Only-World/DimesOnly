@@ -163,6 +163,9 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                   src={resolvedUrls[file.id] || file.media_url}
                   className="w-full h-full object-contain bg-black"
                   controls={!!playingMap[file.id]}
+                  controlsList="nodownload"
+                  disablePictureInPicture
+                  disableRemotePlayback
                   playsInline
                   preload="metadata"
                   onPlay={() => setPlayingMap((m) => ({ ...m, [file.id]: true }))}
