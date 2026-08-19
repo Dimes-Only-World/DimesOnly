@@ -467,7 +467,11 @@ const UpgradePageInner: React.FC = () => {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
-                        {isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>}
+                        {isFreeSilverBadge ? (
+                          <Badge variant="secondary" className="bg-green-700 text-white">Free 3-Year Silver</Badge>
+                        ) : (
+                          isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>
+                        )}
                         {(isSilverPlusLock || isDiamondPlusLock) && <Badge variant="secondary" className="bg-gray-700 text-white">Lifetime Plus</Badge>}
                         {isBelow && <Badge variant="secondary" className="bg-gray-700 text-white">Included</Badge>}
                       </div>
