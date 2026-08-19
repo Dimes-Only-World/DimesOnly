@@ -40,12 +40,8 @@ const buildOffer = (userData: UserData): Offer | null => {
       description: "Congratulations! You are now eligible for Diamond Plus membership.",
       price: "$149.99",
       route: "/upgrade-diamond",
-      perks: ["No referral fees attached", "Full payment via PayPal"],
+      perks: ["No referral fees attached", "Full payment via PayPal", "Monthly plan: $80 x 12 = $960"],
       totalPositions: 300,
-      installment: {
-        down: "$49.99 down payment, then 2 installments of $50.00",
-        rest: "Or monthly: $80.00 x 12 months = $960",
-      },
     };
   }
 

@@ -241,7 +241,7 @@ const UpgradeDiamondPage: React.FC = () => {
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [paymentOption, setPaymentOption] = useState<
-    "full" | "installment" | "monthly"
+    "full" | "monthly"
   >("full");
   const [showAgreement, setShowAgreement] = useState(false);
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
@@ -342,8 +342,7 @@ const UpgradeDiamondPage: React.FC = () => {
         return;
       }
 
-      const paymentAmount =
-        paymentOption === "full" ? 149.99 : paymentOption === "monthly" ? 80 : 49.99;
+      const paymentAmount = paymentOption === "full" ? 149.99 : 80;
       const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
@@ -355,11 +354,7 @@ const UpgradeDiamondPage: React.FC = () => {
             amount: paymentAmount,
             phone_number: phoneNumber,
             payment_method:
-              paymentOption === "full"
-                ? "paypal_full"
-                : paymentOption === "monthly"
-                ? "paypal_monthly"
-                : "paypal_installment",
+              paymentOption === "full" ? "paypal_full" : "paypal_monthly",
             cadence: "one_time",
             billing_option: paymentOption,
             return_url: returnUrl,
