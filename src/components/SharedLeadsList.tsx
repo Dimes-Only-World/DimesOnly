@@ -6,7 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Users, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppContext } from "@/contexts/AppContext";
-
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 interface SharedLead {
   id: string;
   full_name: string;
@@ -87,6 +96,8 @@ const SharedLeadsList: React.FC = () => {
           }}
           className="max-w-sm"
         />
+
+        {leads.length > 0 && <LeadProductionChart leads={filtered} />}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <div className="rounded-md border p-3">
@@ -171,6 +182,62 @@ const SharedLeadsList: React.FC = () => {
         )}
       </CardContent>
     </Card>
+  );
+};
+
+interface LeadProductionChartProps {
+  leads: SharedLead[];
+}
+
+const LeadProductionChart: React.FC<LeadProductionChartProps> = ({ leads }) => {
+  const data = React.useMemo(() => {
+    const map = new Map<string, { total: number; complete: number; incomplete: number; more_info: number }>();
+    for (const lead of leads) {
+      const key = new Date(lead.created_at).toISOString().slice(0, 10);
+      const bucket = map.get(key) || { total: 0, complete: 0, incomplete: 0, more_info: 0 };
+      bucket.total += 1;
+      bucket[lead.status] += 1;
+      map.set(key, bucket);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-30)
+      .map(([date, counts]) => ({
+        date,
+        Total: counts.total,
+        Complete: counts.complete,
+        Incomplete: counts.incomplete,
+        "More Info": counts.more_info,
+      }));
+  }, [leads]);
+
+  if (data.length === 0) return null;
+
+  return (
+    <div className="rounded-md border p-4">
+      <h4 className="text-sm font-medium mb-4">Lead Production Over Time</h4>
+      <div className="h-64 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="date" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--background))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+              }}
+            />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Bar dataKey="Total" stackId="a" fill="#3B82F6" />
+            <Bar dataKey="Complete" stackId="a" fill="#16A34A" />
+            <Bar dataKey="Incomplete" stackId="a" fill="#DC2626" />
+            <Bar dataKey="More Info" stackId="a" fill="#EAB308" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 };
 
