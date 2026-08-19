@@ -625,7 +625,7 @@ const UpgradeDiamondPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Full Payment */}
                     <div
                       className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
@@ -646,35 +646,6 @@ const UpgradeDiamondPage: React.FC = () => {
                         <p className="text-gray-300 text-sm">
                           One-time payment, immediate activation
                         </p>
-                      </div>
-                    </div>
-
-                    {/* Installment Payment */}
-                    <div
-                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
-                        paymentOption === "installment"
-                          ? "border-yellow-400 bg-yellow-400/10"
-                          : "border-gray-600 hover:border-gray-500"
-                      }`}
-                      onClick={() => setPaymentOption("installment")}
-                    >
-                      <div className="text-center">
-                        <Calendar className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          Installment Plan
-                        </h3>
-                        <div className="text-lg font-bold text-yellow-400 mb-1">
-                          $149.99
-                        </div>
-                        <div className="text-sm text-gray-400 mb-2">
-                          $49.99 down payment
-                        </div>
-                        <div className="text-2xl font-bold text-yellow-400 mb-1">
-                          $50.00
-                        </div>
-                        <div className="text-sm text-gray-400 mb-2">
-                          2 installments of $50.00
-                        </div>
                       </div>
                     </div>
 
@@ -785,9 +756,7 @@ const UpgradeDiamondPage: React.FC = () => {
                   <Crown className="w-5 h-5 mr-2" />
                   {paymentOption === "full"
                     ? "Pay $149.99 - Upgrade Now"
-                    : paymentOption === "monthly"
-                    ? "Pay $80.00 - First Monthly Payment"
-                    : "Pay $49.99 Down Payment"}
+                    : "Pay $80.00 - First Monthly Payment"}
                 </Button>
                 <p className="text-gray-400 text-sm mt-4">
                   After payment, you'll receive instructions for your
@@ -804,9 +773,7 @@ const UpgradeDiamondPage: React.FC = () => {
                       <p className="text-gray-300 text-center text-sm pt-2">
                         {paymentOption === "full"
                           ? "Total: $149.99 (One-time Payment)"
-                          : paymentOption === "monthly"
-                          ? "First Monthly Payment: $80.00 (of 12 × $80 = $960)"
-                          : "Down Payment: $49.99"}
+                          : "First Monthly Payment: $80.00 (of 12 × $80 = $960)"}
                       </p>
                     </DialogHeader>
                     
