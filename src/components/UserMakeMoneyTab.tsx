@@ -319,6 +319,8 @@ const UserMakeMoneyTab: React.FC = () => {
         </CardContent>
       </Card>
 
+      <SharedLeadsList />
+
       {/* Q&A Section */}
       <Card className="mb-8">
         <CardHeader>
