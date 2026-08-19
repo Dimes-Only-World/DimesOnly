@@ -173,13 +173,13 @@ const AdminLeadsTab: React.FC = () => {
             <Badge variant="secondary">{moreInfoCount} ({pct(moreInfoCount)}%)</Badge>
           </Button>
           <Button
-            variant={displayFilter === "did_not_complete" ? "default" : "outline"}
+            variant={displayFilter === "complete" ? "default" : "outline"}
             size="sm"
-            onClick={() => setDisplayFilter(displayFilter === "did_not_complete" ? "all" : "did_not_complete")}
+            onClick={() => setDisplayFilter(displayFilter === "complete" ? "all" : "complete")}
             className="justify-between"
           >
-            <span>Did Not Complete</span>
-            <Badge variant="secondary">{didNotCompleteCount} ({pct(didNotCompleteCount)}%)</Badge>
+            <span>Complete</span>
+            <Badge variant="secondary">{completeCount} ({pct(completeCount)}%)</Badge>
           </Button>
         </div>
 
