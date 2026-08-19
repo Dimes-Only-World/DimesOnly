@@ -289,18 +289,8 @@ const UpgradePageInner: React.FC = () => {
     );
   }
 
-  if (!userData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-900 to-red-900">
-        <Card className="bg-red-900/20 border-red-500">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-red-400 font-bold text-xl mb-2">Access Denied</h2>
-            <p className="text-red-300">Please log in to access the upgrade page.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Upgrade page is open to everyone; checkout requires sign-in.
+
 
   if (!selectedPackage) {
     return (
@@ -324,6 +314,17 @@ const UpgradePageInner: React.FC = () => {
                 </button>
               </div>
             </div>
+            {!userData && (
+              <Card className="bg-black/60 border-2 border-pink-500 text-white mb-6">
+                <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <p className="text-pink-200">Browse all packages freely. Sign in to complete an upgrade.</p>
+                  <Button onClick={() => navigate('/login')} className="bg-gradient-to-r from-pink-500 to-purple-600">
+                    Sign In
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             {subscription && (
               <Card className="bg-black/80 border-2 border-fuchsia-500 text-white mb-6">
                 <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -380,6 +381,8 @@ const UpgradePageInner: React.FC = () => {
                     }`}
                     onClick={() => {
                       if (isLocked) return; // disable navigation for current, lower tiers, or lifetime plus
+                      if (!userData) return navigate('/login');
+
                       if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                       if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                       if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
@@ -565,7 +568,7 @@ const UpgradePageInner: React.FC = () => {
               </div>
               <div>
                 <Label className="text-gray-300">Email</Label>
-                <Input type="email" value={userData!.email} disabled className="bg-gray-800 border-gray-600 text-gray-400" />
+                <Input type="email" value={userData?.email ?? ''} disabled className="bg-gray-800 border-gray-600 text-gray-400" />
               </div>
             </div>
           </CardContent>
