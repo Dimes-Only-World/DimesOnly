@@ -376,9 +376,23 @@ const UpgradePageInner: React.FC = () => {
               </Card>
             )}
 
+            {userData && (
+              <Card className="bg-black/80 border-2 border-pink-500 text-white mb-6">
+                <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-gray-300">Your current membership</p>
+                    <p className="text-xl font-bold text-pink-400">
+                      {currentTierLabel}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {visiblePackages.map((pkg) => {
-                const tier = userData?.membership_tier?.toLowerCase() || '';
+                const tier = normalizeTier(userData?.membership_tier);
                 const currentRank = rankOf(tier);
                 const pkgRank = rankOf(pkg.id);
                 const isCurrent = tier === pkg.id;
@@ -386,6 +400,7 @@ const UpgradePageInner: React.FC = () => {
                 const isDiamondPlusLock = tier === 'diamond_plus' && pkg.id === 'diamond';
                 const isBelow = !isCurrent && !isSilverPlusLock && !isDiamondPlusLock && pkgRank < currentRank;
                 const isLocked = isCurrent || isBelow || isSilverPlusLock || isDiamondPlusLock;
+
                 return (
                   <Card
                     key={pkg.id}
