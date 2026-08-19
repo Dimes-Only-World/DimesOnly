@@ -364,7 +364,7 @@ const UpgradePageInner: React.FC = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {packages.map((pkg) => {
+              {visiblePackages.map((pkg) => {
                 const tier = userData?.membership_tier?.toLowerCase() || '';
                 const currentRank = rankOf(tier);
                 const pkgRank = rankOf(pkg.id);
