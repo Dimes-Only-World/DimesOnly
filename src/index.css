@@ -144,14 +144,19 @@
     font-size: 16px;
   }
 
-  /* iOS adds inner shadows / rounded chrome to form controls */
-  input,
-  textarea,
-  button {
+  /* iOS adds inner shadows / native chrome to text controls */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  textarea {
     -webkit-appearance: none;
     appearance: none;
-    border-radius: inherit;
   }
+
 
   input[type="date"],
   input[type="datetime-local"],
