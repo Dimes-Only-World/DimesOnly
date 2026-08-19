@@ -381,6 +381,8 @@ const UpgradePageInner: React.FC = () => {
                     }`}
                     onClick={() => {
                       if (isLocked) return; // disable navigation for current, lower tiers, or lifetime plus
+                      if (!userData) return navigate('/login');
+
                       if (pkg.id === 'silver') return navigate(`/upgrade-silver-subscribe?cadence=${cadence}`);
                       if (pkg.id === 'diamond') return navigate(`/upgrade-diamond-monthly?cadence=${cadence}`);
                       if (pkg.id === 'gold') return navigate(`/upgrade-gold?cadence=${cadence}`);
