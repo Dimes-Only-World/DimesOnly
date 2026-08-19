@@ -289,18 +289,8 @@ const UpgradePageInner: React.FC = () => {
     );
   }
 
-  if (!userData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-900 to-red-900">
-        <Card className="bg-red-900/20 border-red-500">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-red-400 font-bold text-xl mb-2">Access Denied</h2>
-            <p className="text-red-300">Please log in to access the upgrade page.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Upgrade page is open to everyone; checkout requires sign-in.
+
 
   if (!selectedPackage) {
     return (
