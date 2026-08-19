@@ -118,6 +118,7 @@ function AppContent() {
   const hideNotificationBell = ["/", "/failsafe", "/login", "/register", "/adminlogin"].includes(
     location.pathname,
   );
+  const showNotificationBell = location.pathname.startsWith("/dashboard");
 
   const routes = (
     <Routes>
