@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -8,6 +8,8 @@ import AuthGuard from "@/components/AuthGuard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface SeatStats {
   seats_max: number;
@@ -44,6 +46,11 @@ const BusinessOwnerElite: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [plan, setPlan] = useState<Plan>("lifetime");
+  const [showAgreement, setShowAgreement] = useState(false);
+
+  useEffect(() => {
+    setShowAgreement(true);
+  }, []);
 
   const AMOUNT = PLAN_AMOUNTS[plan];
   const tier = plan === "lifetime" ? "business_owner_elite" : "business_owner_elite_installment";
@@ -99,6 +106,34 @@ const BusinessOwnerElite: React.FC = () => {
 
   return (
     <AppLayout>
+      <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
+        <DialogContent className="bg-gray-900 border-fuchsia-500 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-fuchsia-400">Elite Plus Membership Agreement</DialogTitle>
+            <DialogDescription className="text-gray-300">
+              Please read the following terms before proceeding.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-white">
+            <p>
+              After you pay, you can only be refunded if you do not notarize your agreement within 30 days.
+            </p>
+            <p>
+              We will keep the prorated amount of days you use the membership divided by 365 days, or 30 days from your monthly payment.
+            </p>
+            <p className="font-semibold text-yellow-300">
+              If the agreement is signed and notarized, the membership fee is non-refundable.
+            </p>
+            <Button
+              onClick={() => setShowAgreement(false)}
+              className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+            >
+              I Understand
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-900 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center mt-4">
