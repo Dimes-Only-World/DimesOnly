@@ -195,6 +195,23 @@ const UpgradePageInner: React.FC = () => {
     },
   });
 
+  // Audience gating: business owners see the Elite tiers, entertainers (Dimes)
+  // see the Diamond track, everyone else stays on the Silver/Gold track.
+  const visiblePackages = useMemo(() => {
+    const businessOwner =
+      Boolean((userData as any)?.is_business_owner) ||
+      ["business_owner", "businessowner"].includes(
+        String(userData?.user_type || "").trim().toLowerCase(),
+      );
+    const entertainer = ["exotic", "stripper"].includes(
+      String(userData?.user_type || "").trim().toLowerCase(),
+    );
+
+    if (businessOwner) return packages.filter((p) => ["elite", "elite_plus"].includes(p.id));
+    if (entertainer) return packages.filter((p) => ["silver", "gold", "diamond"].includes(p.id));
+    return packages.filter((p) => ["silver", "gold"].includes(p.id));
+  }, [userData]);
+
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [cadence, setCadence] = useState<"monthly" | "yearly">("monthly");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
