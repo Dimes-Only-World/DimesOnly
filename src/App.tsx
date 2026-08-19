@@ -173,7 +173,7 @@ function AppContent() {
       <GARefTracker />
       <GlobalVideoDownloadBlocker />
       
-      {!hideNotificationBell && (
+      {showNotificationBell && (
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
       )}
       {!hideNotificationBell && <AddToHomeScreenPrompt />}
