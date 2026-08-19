@@ -227,6 +227,12 @@ const UpgradePageInner: React.FC = () => {
     return packages.filter((p) => (p.id === "elite_plus" ? businessOwner : true));
   }, [userData]);
 
+  const currentTierLabel = useMemo(() => {
+    const t = normalizeTier(userData?.membership_tier);
+    return TIER_LABEL[t] || (t ? t.replace(/_/g, " ") : "Free");
+  }, [userData]);
+
+
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [cadence, setCadence] = useState<"monthly" | "yearly">("monthly");
