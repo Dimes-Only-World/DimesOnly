@@ -227,6 +227,13 @@ const UpgradePageInner: React.FC = () => {
     return packages.filter((p) => (p.id === "elite_plus" ? businessOwner : true));
   }, [userData]);
 
+  // Free members are granted a 3-year free Silver membership.
+  const isFreePromoSilver = useMemo(() => {
+    if (!userData) return false;
+    const t = normalizeTier(userData.membership_tier);
+    return t === "" || t === "free";
+  }, [userData]);
+
   const currentTierLabel = useMemo(() => {
     const t = normalizeTier(userData?.membership_tier);
     return TIER_LABEL[t] || (t ? t.replace(/_/g, " ") : "Free");
