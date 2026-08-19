@@ -568,7 +568,7 @@ const UpgradePageInner: React.FC = () => {
               </div>
               <div>
                 <Label className="text-gray-300">Email</Label>
-                <Input type="email" value={userData!.email} disabled className="bg-gray-800 border-gray-600 text-gray-400" />
+                <Input type="email" value={userData?.email ?? ''} disabled className="bg-gray-800 border-gray-600 text-gray-400" />
               </div>
             </div>
           </CardContent>
