@@ -110,41 +110,22 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     };
   }, [zoomImageUrl]);
 
-  const playVideoWithDetectedOrientation = async (video: HTMLVideoElement, id: string) => {
-    // Determine aspect ratio at click time in case metadata map isn't ready
+  const startPlayback = async (video: HTMLVideoElement | null, id: string) => {
+    if (!video) return;
     try {
-      const vw = (video as HTMLVideoElement).videoWidth;
-      const vh = (video as HTMLVideoElement).videoHeight;
-      if (vw && vh) {
-        const o = vw >= vh ? 'landscape' : 'portrait';
-        setDetectedOrientationMap((m) => ({ ...m, [id]: o }));
-      }
-    } catch {}
-    // Try fullscreen
-    try {
-      if (video.requestFullscreen) {
-        await video.requestFullscreen();
-      // @ts-ignore - iOS Safari
-      } else if (video.webkitEnterFullscreen) {
-        // @ts-ignore
-        video.webkitEnterFullscreen();
-      }
-    } catch {}
-
-    // Try orientation lock to detected aspect (not on iOS Safari)
-    try {
-      // @ts-ignore - orientation.lock may not be available in all browsers
-      if (screen.orientation && screen.orientation.lock) {
-        const target = detectedOrientationMap[id] || ((video.videoWidth && video.videoHeight) ? (video.videoWidth >= video.videoHeight ? 'landscape' : 'portrait') : 'landscape');
-        // @ts-ignore
-        await screen.orientation.lock(target === 'landscape' ? 'landscape' : 'portrait');
-      } else {
-        setOrientationHintMap((m) => ({ ...m, [id]: true }));
-      }
+      video.muted = false;
+      await video.play();
+      setPlayingMap((m) => ({ ...m, [id]: true }));
     } catch {
-      setOrientationHintMap((m) => ({ ...m, [id]: true }));
+      // Fall back to muted playback if the browser blocks audio autoplay
+      try {
+        video.muted = true;
+        await video.play();
+        setPlayingMap((m) => ({ ...m, [id]: true }));
+      } catch {}
     }
   };
+
 
   const getContentTierInfo = (tier: string) => {
     switch (tier) {
@@ -176,39 +157,37 @@ const MediaGrid: React.FC<MediaGridProps> = ({
               />
             </div>
           ) : (
-            <div className="aspect-square bg-gray-100 overflow-hidden relative group">
+            <div className="aspect-square bg-black overflow-hidden relative group">
                 <video
+                  id={`media-video-${file.id}`}
                   src={resolvedUrls[file.id] || file.media_url}
-                  className={`w-full h-full ${playingMap[file.id] ? 'object-contain bg-black' : 'object-cover'}`}
-                  controls
-                  muted
+                  className="w-full h-full object-contain bg-black"
+                  controls={!!playingMap[file.id]}
                   playsInline
                   preload="metadata"
-                  onLoadedMetadata={(e) => {
-                    const el = e.currentTarget as HTMLVideoElement;
-                    const vw = el.videoWidth;
-                    const vh = el.videoHeight;
-                    setDetectedOrientationMap((m) => ({ ...m, [file.id]: vw && vh ? (vw >= vh ? 'landscape' : 'portrait') : 'landscape' }));
-                  }}
-                  onPlay={(e) => {
-                    setPlayingMap((m) => ({ ...m, [file.id]: true }));
-                    playVideoWithDetectedOrientation(e.currentTarget, file.id);
-                  }}
-                  onClick={(e) => playVideoWithDetectedOrientation(e.currentTarget as HTMLVideoElement, file.id)}
+                  onPlay={() => setPlayingMap((m) => ({ ...m, [file.id]: true }))}
                   onPause={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
                   onEnded={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
                 />
-                {orientationHintMap[file.id] && (
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-4 bg-black/70 text-white text-[10px] px-2 py-1 rounded-md">
-                    Rotate device to <b>{detectedOrientationMap[file.id] === 'portrait' ? 'Portrait' : 'Landscape'}</b> or use the 3-dot menu to switch.
-                  </div>
+                {!playingMap[file.id] && (
+                  <button
+                    type="button"
+                    aria-label="Play video"
+                    className="absolute inset-0 flex items-center justify-center bg-black/30"
+                    onClick={() =>
+                      startPlayback(
+                        document.getElementById(`media-video-${file.id}`) as HTMLVideoElement | null,
+                        file.id
+                      )
+                    }
+                  >
+                    <span className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
+                      <Play className="w-8 h-8 text-gray-700" fill="currentColor" />
+                    </span>
+                  </button>
                 )}
-                <div className={`absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none ${playingMap[file.id] ? 'hidden' : ''}`}>
-                  <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
-                    <Play className="w-8 h-8 text-gray-700" fill="currentColor" />
-                  </div>
-                </div>
             </div>
+
           )}
 
             {/* Delete/Replace overlay - only show on hover */}
