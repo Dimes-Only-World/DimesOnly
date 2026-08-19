@@ -161,6 +161,26 @@ const TIER_RANK: Record<string, number> = {
 };
 const rankOf = (t: string | null | undefined) => TIER_RANK[String(t || "").toLowerCase()] ?? 0;
 
+const normalizeTier = (t: string | null | undefined) => {
+  const s = String(t || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (s === "silverplus") return "silver_plus";
+  if (s === "diamondplus") return "diamond_plus";
+  if (s === "eliteplus") return "elite_plus";
+  return s;
+};
+
+const TIER_LABEL: Record<string, string> = {
+  "": "Free",
+  free: "Free",
+  silver: "Silver",
+  silver_plus: "Silver Plus",
+  gold: "Gold",
+  diamond: "Diamond",
+  diamond_plus: "Diamond Plus",
+  elite: "Elite",
+  elite_plus: "Elite Plus",
+};
+
 interface SubscriptionRow {
   id: string;
   subscription_id: string;
