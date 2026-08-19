@@ -47,6 +47,7 @@ const AdminLeadsTab: React.FC = () => {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<View>("active");
   const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(0);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
   const [displayFilter, setDisplayFilter] = useState<
     "all" | "incomplete" | "more_info" | "complete"
