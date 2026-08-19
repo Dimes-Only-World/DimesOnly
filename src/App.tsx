@@ -118,6 +118,7 @@ function AppContent() {
   const hideNotificationBell = ["/", "/failsafe", "/login", "/register", "/adminlogin"].includes(
     location.pathname,
   );
+  const showNotificationBell = location.pathname.startsWith("/dashboard");
 
   const routes = (
     <Routes>
@@ -172,7 +173,7 @@ function AppContent() {
       <GARefTracker />
       <GlobalVideoDownloadBlocker />
       
-      {!hideNotificationBell && (
+      {showNotificationBell && (
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
       )}
       {!hideNotificationBell && <AddToHomeScreenPrompt />}
