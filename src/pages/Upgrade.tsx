@@ -227,6 +227,13 @@ const UpgradePageInner: React.FC = () => {
     return packages.filter((p) => (p.id === "elite_plus" ? businessOwner : true));
   }, [userData]);
 
+  // Free members are granted a 3-year free Silver membership.
+  const isFreePromoSilver = useMemo(() => {
+    if (!userData) return false;
+    const t = normalizeTier(userData.membership_tier);
+    return t === "" || t === "free";
+  }, [userData]);
+
   const currentTierLabel = useMemo(() => {
     const t = normalizeTier(userData?.membership_tier);
     return TIER_LABEL[t] || (t ? t.replace(/_/g, " ") : "Free");
@@ -408,24 +415,32 @@ const UpgradePageInner: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-300">Your current membership</p>
                     <p className="text-xl font-bold text-pink-400">
-                      {currentTierLabel}
+                      {isFreePromoSilver ? 'Silver' : currentTierLabel}
                     </p>
+                    {isFreePromoSilver && (
+                      <p className="text-xs text-gray-300 mt-1">Free 3-Year Silver Membership</p>
+                    )}
                   </div>
-                  <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>
+                  <Badge variant="secondary" className="bg-gray-700 text-white">
+                    {isFreePromoSilver ? 'Free 3-Year Silver' : 'Current plan'}
+                  </Badge>
                 </CardContent>
               </Card>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {visiblePackages.map((pkg) => {
-                const tier = normalizeTier(userData?.membership_tier);
+                const rawTier = normalizeTier(userData?.membership_tier);
+                const tier = isFreePromoSilver ? 'silver' : rawTier;
                 const currentRank = rankOf(tier);
                 const pkgRank = rankOf(pkg.id);
                 const isCurrent = tier === pkg.id;
+                const isFreeSilverBadge = isFreePromoSilver && pkg.id === 'silver';
                 const isSilverPlusLock = tier === 'silver_plus' && pkg.id === 'silver';
                 const isDiamondPlusLock = tier === 'diamond_plus' && pkg.id === 'diamond';
                 const isBelow = !isCurrent && !isSilverPlusLock && !isDiamondPlusLock && pkgRank < currentRank;
                 const isLocked = isCurrent || isBelow || isSilverPlusLock || isDiamondPlusLock;
+
 
                 return (
                   <Card
@@ -452,7 +467,11 @@ const UpgradePageInner: React.FC = () => {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-pink-400 text-xl">{pkg.name}</CardTitle>
-                        {isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>}
+                        {isFreeSilverBadge ? (
+                          <Badge variant="secondary" className="bg-green-700 text-white">Free 3-Year Silver</Badge>
+                        ) : (
+                          isCurrent && <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>
+                        )}
                         {(isSilverPlusLock || isDiamondPlusLock) && <Badge variant="secondary" className="bg-gray-700 text-white">Lifetime Plus</Badge>}
                         {isBelow && <Badge variant="secondary" className="bg-gray-700 text-white">Included</Badge>}
                       </div>
