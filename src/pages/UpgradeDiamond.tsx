@@ -240,10 +240,11 @@ const UpgradeDiamondPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [paymentOption, setPaymentOption] = useState<"full" | "installment">(
-    "full"
-  );
+  const [paymentOption, setPaymentOption] = useState<
+    "full" | "installment" | "monthly"
+  >("full");
   const [showAgreement, setShowAgreement] = useState(false);
+  const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   // Calculate remaining spots (combine stripper and exotic limits)
@@ -341,7 +342,8 @@ const UpgradeDiamondPage: React.FC = () => {
         return;
       }
 
-      const paymentAmount = paymentOption === "full" ? 149.99 : 49.99;
+      const paymentAmount =
+        paymentOption === "full" ? 149.99 : paymentOption === "monthly" ? 80 : 49.99;
       const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
@@ -352,7 +354,12 @@ const UpgradeDiamondPage: React.FC = () => {
             tier: "diamond_plus",
             amount: paymentAmount,
             phone_number: phoneNumber,
-            payment_method: paymentOption === "full" ? "paypal_full" : "paypal_installment",
+            payment_method:
+              paymentOption === "full"
+                ? "paypal_full"
+                : paymentOption === "monthly"
+                ? "paypal_monthly"
+                : "paypal_installment",
             cadence: "one_time",
             billing_option: paymentOption,
             return_url: returnUrl,
@@ -454,6 +461,35 @@ const UpgradeDiamondPage: React.FC = () => {
 
   return (
     <AuthGuard>
+      <Dialog open={showRefundPolicy} onOpenChange={setShowRefundPolicy}>
+        <DialogContent className="max-w-lg bg-gray-900 border-yellow-500 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400">
+              Diamond Plus Membership Agreement
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-white">
+            <p>
+              After you pay, you can only be refunded if you do not notarize your
+              agreement within 30 days.
+            </p>
+            <p>
+              We will keep the prorated amount of days you use the membership
+              divided by 365 days, or 30 days from your monthly payment.
+            </p>
+            <p className="font-semibold text-yellow-300">
+              If the agreement is signed and notarized, the membership fee is
+              non-refundable.
+            </p>
+            <Button
+              onClick={() => setShowRefundPolicy(false)}
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
+            >
+              I Understand
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Header */}
@@ -594,7 +630,7 @@ const UpgradeDiamondPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-3 gap-6">
                     {/* Full Payment */}
                     <div
                       className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
@@ -643,7 +679,33 @@ const UpgradeDiamondPage: React.FC = () => {
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
                           2 installments of $50.00
+      
+                    {/* Monthly Plan */}
+                    <div
+                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                        paymentOption === "monthly"
+                          ? "border-yellow-400 bg-yellow-400/10"
+                          : "border-gray-600 hover:border-gray-500"
+                      }`}
+                      onClick={() => setPaymentOption("monthly")}
+                    >
+                      <div className="text-center">
+                        <Calendar className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+                        <h3 className="text-xl font-bold text-white mb-2">
+                          Monthly Plan
+                        </h3>
+                        <div className="text-3xl font-bold text-yellow-400 mb-1">
+                          $80.00<span className="text-base">/mo</span>
                         </div>
+                        <div className="text-sm text-gray-400 mb-2">
+                          12 monthly payments = $960 total
+                        </div>
+                        <p className="text-gray-300 text-sm">
+                          Immediate activation after first payment
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                       </div>
                     </div>
                   </div>
@@ -727,6 +789,8 @@ const UpgradeDiamondPage: React.FC = () => {
                   <Crown className="w-5 h-5 mr-2" />
                   {paymentOption === "full"
                     ? "Pay $149.99 - Upgrade Now"
+                    : paymentOption === "monthly"
+                    ? "Pay $80.00 - First Monthly Payment"
                     : "Pay $49.99 Down Payment"}
                 </Button>
                 <p className="text-gray-400 text-sm mt-4">
@@ -742,15 +806,23 @@ const UpgradeDiamondPage: React.FC = () => {
                         Choose Payment Method
                       </DialogTitle>
                       <p className="text-gray-300 text-center text-sm pt-2">
-                        {paymentOption === "full" 
-                          ? "Total: $149.99 (One-time Payment)" 
+                        {paymentOption === "full"
+                          ? "Total: $149.99 (One-time Payment)"
+                          : paymentOption === "monthly"
+                          ? "First Monthly Payment: $80.00 (of 12 × $80 = $960)"
                           : "Down Payment: $49.99"}
                       </p>
                     </DialogHeader>
                     
                     <div className="py-4">
                       <PaymentMethodSelector
-                        amount={paymentOption === "full" ? 149.99 : 49.99}
+                        amount={
+                          paymentOption === "full"
+                            ? 149.99
+                            : paymentOption === "monthly"
+                            ? 80
+                            : 49.99
+                        }
                         onPayPal={handlePayPal}
                         onPayLater={handlePayLater}
                         onCardRedirect={handleCardRedirect}
