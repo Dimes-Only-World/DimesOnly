@@ -266,7 +266,7 @@ const AdminLeadsTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((lead) => (
+                {paged.map((lead) => (
                   <tr key={lead.id} className="border-b last:border-0">
                     <td className="py-2 pr-4">
                       <Checkbox
