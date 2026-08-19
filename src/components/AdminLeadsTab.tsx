@@ -49,7 +49,7 @@ const AdminLeadsTab: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
   const [displayFilter, setDisplayFilter] = useState<
-    "all" | "incomplete" | "more_info" | "did_not_complete"
+    "all" | "incomplete" | "more_info" | "complete"
   >("all");
 
   const getAdminUserId = () => {
