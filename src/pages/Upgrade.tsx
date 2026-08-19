@@ -314,6 +314,17 @@ const UpgradePageInner: React.FC = () => {
                 </button>
               </div>
             </div>
+            {!userData && (
+              <Card className="bg-black/60 border-2 border-pink-500 text-white mb-6">
+                <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <p className="text-pink-200">Browse all packages freely. Sign in to complete an upgrade.</p>
+                  <Button onClick={() => navigate('/login')} className="bg-gradient-to-r from-pink-500 to-purple-600">
+                    Sign In
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             {subscription && (
               <Card className="bg-black/80 border-2 border-fuchsia-500 text-white mb-6">
                 <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
