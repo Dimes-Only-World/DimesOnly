@@ -46,6 +46,11 @@ const BusinessOwnerElite: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [plan, setPlan] = useState<Plan>("lifetime");
+  const [showAgreement, setShowAgreement] = useState(false);
+
+  useEffect(() => {
+    setShowAgreement(true);
+  }, []);
 
   const AMOUNT = PLAN_AMOUNTS[plan];
   const tier = plan === "lifetime" ? "business_owner_elite" : "business_owner_elite_installment";
