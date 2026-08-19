@@ -679,7 +679,12 @@ const UpgradeDiamondPage: React.FC = () => {
                         </div>
                         <div className="text-sm text-gray-400 mb-2">
                           2 installments of $50.00
-      
+                        <div className="text-sm text-gray-400 mb-2">
+                          2 installments of $50.00
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Monthly Plan */}
                     <div
                       className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
@@ -706,9 +711,7 @@ const UpgradeDiamondPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                      </div>
-                    </div>
-                  </div>
+                </CardContent>
                 </CardContent>
               </Card>
 
