@@ -99,7 +99,8 @@ const AdminLeadsTab: React.FC = () => {
     return (
       l.full_name.toLowerCase().includes(q) ||
       l.phone.toLowerCase().includes(q) ||
-      (l.referral_code || "").toLowerCase().includes(q)
+      (l.referral_code || "").toLowerCase().includes(q) ||
+      (l.registered_username || "").toLowerCase().includes(q)
     );
   });
 
