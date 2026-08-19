@@ -158,6 +158,166 @@ const MediaGrid: React.FC<MediaGridProps> = ({
             </div>
           ) : (
             <div className="aspect-square bg-black overflow-hidden relative group">
+                import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle, Play } from "lucide-react";
+import MediaLikes from "./MediaLikes";
+import MediaComments from "./MediaComments";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabase";
+import { getSignedFeedUrl } from "@/lib/feedApi";
+
+interface MediaFile {
+  id: string;
+  media_url: string;
+  media_type: "photo" | "video";
+  created_at: string;
+  content_tier?: string;
+  is_nude?: boolean;
+  is_xrated?: boolean;
+  upload_date?: string;
+  storage_path?: string;
+}
+
+interface MediaGridProps {
+  media: MediaFile[];
+  onDelete?: (id: string) => void;
+  onReplace?: (id: string) => void;
+  showContentTier?: boolean;
+  currentUserId?: string;
+  showLikesAndComments?: boolean;
+}
+
+const MediaGrid: React.FC<MediaGridProps> = ({
+  media,
+  onDelete,
+  onReplace,
+  showContentTier = false,
+  currentUserId,
+  showLikesAndComments = false,
+}) => {
+  const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
+  const [playingMap, setPlayingMap] = useState<Record<string, boolean>>({});
+  const [orientationHintMap, setOrientationHintMap] = useState<Record<string, boolean>>({});
+  const [detectedOrientationMap, setDetectedOrientationMap] = useState<Record<string, 'portrait' | 'landscape'>>({});
+  const [showCommentsDialog, setShowCommentsDialog] = useState(false);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
+
+  // Resolve signed URLs for private-media items (works for custom-auth sessions too)
+  useEffect(() => {
+    const resolvePrivateUrls = async () => {
+      const toResolve = media.filter(
+        (f) =>
+          (f.storage_path || (f.media_url && f.media_url.includes('/private-media/'))) &&
+          !resolvedUrls[f.id]
+      );
+      if (toResolve.length === 0) return;
+
+      const newUrls: Record<string, string> = {};
+      await Promise.all(
+        toResolve.map(async (file) => {
+          try {
+            let storagePath = file.storage_path || '';
+            if (!storagePath) {
+              const marker = '/private-media/';
+              const idx = file.media_url.indexOf(marker);
+              if (idx === -1) return;
+              storagePath = decodeURIComponent(file.media_url.substring(idx + marker.length));
+            }
+
+            // 1) Try direct signed URL (works for Supabase-authenticated sessions)
+            const { data, error } = await supabase.storage
+              .from('private-media')
+              .createSignedUrl(storagePath, 3600);
+            if (!error && data?.signedUrl) {
+              newUrls[file.id] = data.signedUrl;
+              return;
+            }
+
+            // 2) Fallback: service-role edge function (custom sessionStorage auth)
+            const signed = await getSignedFeedUrl('private-media', storagePath, 3600);
+            if (signed) newUrls[file.id] = signed;
+          } catch (e) {
+            console.error('[MediaGrid] Failed to get signed URL for', file.id, e);
+          }
+        })
+      );
+      if (Object.keys(newUrls).length > 0) {
+        setResolvedUrls((prev) => ({ ...prev, ...newUrls }));
+      }
+    };
+    resolvePrivateUrls();
+  }, [media]);
+
+
+  // Close zoom overlay on ESC and lock body scroll while open
+  useEffect(() => {
+    if (!zoomImageUrl) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setZoomImageUrl(null);
+      }
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [zoomImageUrl]);
+
+  const startPlayback = async (video: HTMLVideoElement | null, id: string) => {
+    if (!video) return;
+    try {
+      video.muted = false;
+      await video.play();
+      setPlayingMap((m) => ({ ...m, [id]: true }));
+    } catch {
+      // Fall back to muted playback if the browser blocks audio autoplay
+      try {
+        video.muted = true;
+        await video.play();
+        setPlayingMap((m) => ({ ...m, [id]: true }));
+      } catch {}
+    }
+  };
+
+
+  const getContentTierInfo = (tier: string) => {
+    switch (tier) {
+      case 'silver':
+        return { name: 'Silver', color: 'from-yellow-400 to-yellow-600', icon: Crown };
+      case 'gold':
+        return { name: 'Gold', color: 'from-yellow-500 to-orange-500', icon: Star };
+      default:
+        return { name: 'Free', color: 'from-gray-400 to-gray-600', icon: Lock };
+    }
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 lg:gap-8">
+      {media.map((file) => (
+        <div key={file.id} className="relative group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+          {/* Main media container */}
+          {file.media_type === "photo" ? (
+            <div
+              className="aspect-square bg-gray-100 overflow-hidden relative group cursor-zoom-in"
+              onClick={() => setZoomImageUrl(resolvedUrls[file.id] || file.media_url)}
+            >
+              <img
+                src={resolvedUrls[file.id] || file.media_url}
+                alt="User media"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div className="aspect-square bg-black overflow-hidden relative group">
                 <video
                   id={`media-video-${file.id}`}
                   src={resolvedUrls[file.id] || file.media_url}
@@ -168,7 +328,180 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                   onPlay={() => setPlayingMap((m) => ({ ...m, [file.id]: true }))}
                   onPause={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
                   onEnded={() => setPlayingMap((m) => ({ ...m, [file.id]: false }))}
+                / controlsList="nodownload" disablePictureInPicture disableRemotePlayback>
+                {!playingMap[file.id] && (
+                  <button
+                    type="button"
+                    aria-label="Play video"
+                    className="absolute inset-0 flex items-center justify-center bg-black/30"
+                    onClick={() =>
+                      startPlayback(
+                        document.getElementById(`media-video-${file.id}`) as HTMLVideoElement | null,
+                        file.id
+                      )
+                    }
+                  >
+                    <span className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
+                      <Play className="w-8 h-8 text-gray-700" fill="currentColor" />
+                    </span>
+                  </button>
+                )}
+            </div>
+
+          )}
+
+            {/* Delete/Replace overlay - only show on hover */}
+            {(onDelete || onReplace) && (
+              <div className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex gap-1 z-30">
+                <Button
+                  onClick={() => onDelete(file.id)}
+                  size="sm"
+                  variant="destructive"
+                  className="bg-red-500 hover:bg-red-600 text-white shadow-lg rounded-full w-7 h-7 p-0"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+                {onReplace && (
+                  <Button
+                    onClick={() => onReplace(file.id)}
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg rounded-full w-7 h-7 p-0"
+                  >
+                    <Replace className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Content tier badge - Top Left */}
+            {showContentTier && file.content_tier && (
+              <div className="absolute top-2 left-2 z-20">
+                <Badge 
+                  className={`bg-gradient-to-r ${getContentTierInfo(file.content_tier).color} text-white text-xs font-semibold px-2 py-1 flex items-center gap-1 shadow-lg`}
+                >
+                  {React.createElement(getContentTierInfo(file.content_tier).icon, { className: "w-3 h-3" })}
+                  {getContentTierInfo(file.content_tier).name}
+                </Badge>
+              </div>
+            )}
+
+            {/* Content warnings - positioned below tier badge */}
+            {(file.is_nude || file.is_xrated) && (
+              <div className="absolute top-12 left-2 flex flex-col gap-1 z-20">
+                {file.is_nude && (
+                  <Badge variant="destructive" className="text-xs px-2 py-1 shadow-lg">
+                    ⚠️ Nude
+                  </Badge>
+                )}
+                {file.is_xrated && (
+                  <Badge variant="destructive" className="text-xs px-2 py-1 shadow-lg">
+                    🔞 18+
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Bottom info bar - simplified */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+              <div className="flex items-center justify-between text-white">
+                <div className="flex items-center gap-1">
+                  {file.media_type === "photo" ? (
+                    <Image className="w-3 h-3" />
+                  ) : (
+                    <Video className="w-3 h-3" />
+                  )}
+                  <span className="text-xs font-medium capitalize">{file.media_type}</span>
+                </div>
+                <div className="text-xs opacity-75">
+                  {file.upload_date 
+                    ? new Date(file.upload_date).toLocaleDateString()
+                    : new Date(file.created_at).toLocaleDateString()
+                  }
+                </div>
+              </div>
+            </div>
+          
+          {/* Engagement section - clean and accessible */}
+          {showLikesAndComments && currentUserId && (
+            <div className="p-4 bg-white border-t border-gray-100">
+              <div className="flex items-center justify-between gap-3">
+                <MediaLikes
+                  mediaId={file.id}
+                  currentUserId={currentUserId}
                 />
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedMedia(file);
+                    setShowCommentsDialog(true);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors px-3 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline text-sm">Comments</span>
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      </div>
+
+      {/* Image Zoom Overlay */}
+      {zoomImageUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center cursor-zoom-out"
+          onClick={() => setZoomImageUrl(null)}
+        >
+          {/* Close button */}
+          <button
+            aria-label="Close"
+            onClick={(e) => { e.stopPropagation(); setZoomImageUrl(null); }}
+            className="absolute top-4 right-4 text-white/90 hover:text-white focus:outline-none"
+          >
+            <X className="w-7 h-7" />
+          </button>
+          <img
+            src={zoomImageUrl}
+            alt="Zoomed"
+            className="max-w-[100vw] max-h-[100vh] object-contain"
+          />
+        </div>
+      )}
+
+      {/* Comments Dialog */}
+    <Dialog open={showCommentsDialog} onOpenChange={setShowCommentsDialog}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5" />
+            Comments
+            {selectedMedia && (
+              <span className="text-sm text-gray-500">
+                - {selectedMedia.media_type === 'photo' ? 'Photo' : 'Video'}
+              </span>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="overflow-y-auto max-h-[60vh]">
+          {selectedMedia && currentUserId && (
+            <MediaComments
+              mediaId={selectedMedia.id}
+              currentUserId={currentUserId}
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
+  );
+};
+
+export default MediaGrid;
+
                 {!playingMap[file.id] && (
                   <button
                     type="button"

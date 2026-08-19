@@ -88,7 +88,97 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, items, interval]);
 
-  // iOS Safari: the <video> element is mounted ONCE and reused for every clip.
+  // iOS Safari: the import React, { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+export interface BackgroundMedia {
+  id: string;
+  media_type: "image" | "video";
+  url: string;
+}
+
+interface Props {
+  /** Milliseconds each image stays on screen. Videos advance when they end. */
+  interval?: number;
+  /** Provide media directly (used by the admin preview). Otherwise fetched from the database. */
+  media?: BackgroundMedia[];
+  /** Force a device set instead of detecting it. */
+  device?: "desktop" | "mobile";
+  /** "fixed" pins the background to the viewport; "absolute" keeps it inside its container. */
+  position?: "fixed" | "absolute";
+  className?: string;
+}
+
+const FADE_MS = 700;
+
+const ShortFormBackgroundCarousel: React.FC<Props> = ({
+  interval = 6000,
+  media,
+  device,
+  position = "absolute",
+  className = "",
+}) => {
+  const isMobile = useIsMobile();
+  const resolvedDevice = device ?? (isMobile ? "mobile" : "desktop");
+
+  const [items, setItems] = useState<BackgroundMedia[]>(media ?? []);
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const timerRef = useRef<number | null>(null);
+
+  // Load the media list for the active device size.
+  useEffect(() => {
+    if (media) {
+      setItems(media);
+      setIndex(0);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("short_form_backgrounds")
+        .select("id, media_type, url")
+        .eq("device", resolvedDevice)
+        .order("sort_order", { ascending: true });
+
+      if (cancelled || error || !data) return;
+      setItems(data as BackgroundMedia[]);
+      setIndex(0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [media, resolvedDevice]);
+
+  const current = items[index];
+
+  const advance = () => {
+    if (items.length < 2) return;
+    // Fade to black, then swap to the next item and fade it back in.
+    setVisible(false);
+    window.setTimeout(() => setIndex((i) => (i + 1) % items.length), FADE_MS);
+  };
+
+  // Fade the current item in and schedule the next transition for images.
+  useEffect(() => {
+    if (!current) return;
+    const show = window.setTimeout(() => setVisible(true), 30);
+
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (current.media_type === "image") {
+      timerRef.current = window.setTimeout(advance, interval);
+    }
+
+    return () => {
+      window.clearTimeout(show);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, items, interval]);
+
+  // iOS Safari: the <video controlsList="nodownload" disablePictureInPicture disableRemotePlayback> element is mounted ONCE and reused for every clip.
   // Remounting it (key/conditional render) drops the playback permission Safari
   // granted after the first clip, which is why later videos showed a play button.
   // Here we only swap `src` on the same element and re-issue play().
@@ -198,6 +288,336 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
             v.play().catch(() => {});
           }}
         />
+
+        {!isVideo && (
+          <img
+            key={current.id}
+            src={current.url}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+            onError={advance}
+          />
+        )}
+      </div>
+
+      <div className="absolute inset-0 bg-black/50" />
+    </div>
+  );
+};
+
+export default ShortFormBackgroundCarousel;
+ element is mounted ONCE and reused for every clip.
+  // Remounting it (key/conditional render) drops the playback permission Safari
+  // granted after the first clip, which is why later videos showed a play button.
+  // Here we only swap `src` on the same element and re-issue play().
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "true");
+
+    if (!current || current.media_type !== "video") {
+      video.pause();
+      return;
+    }
+
+    let cancelled = false;
+    let fallback: number | null = null;
+
+    const tryPlay = () => {
+      if (cancelled) return;
+      video.muted = true;
+      const p = video.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          if (cancelled) return;
+          // Autoplay blocked (Low Power Mode / policy). Keep the frame on screen
+          // and move on after the normal interval instead of skipping instantly.
+          if (fallback) window.clearTimeout(fallback);
+          fallback = window.setTimeout(advance, interval);
+        });
+      }
+    };
+
+    if (video.currentSrc !== current.url && video.src !== current.url) {
+      video.src = current.url;
+      video.load();
+    }
+    video.loop = items.length < 2;
+
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.addEventListener("loadeddata", tryPlay, { once: true });
+      video.addEventListener("canplay", tryPlay, { once: true });
+    }
+
+    // iOS grants autoplay after the first user gesture — retry when it happens.
+    const retry = () => tryPlay();
+    window.addEventListener("touchstart", retry, { passive: true });
+    window.addEventListener("touchend", retry, { passive: true });
+    window.addEventListener("scroll", retry, { passive: true });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") retry();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      if (fallback) window.clearTimeout(fallback);
+      video.removeEventListener("loadeddata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
+      window.removeEventListener("touchstart", retry);
+      window.removeEventListener("touchend", retry);
+      window.removeEventListener("scroll", retry);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id, current?.media_type, current?.url, interval, items.length]);
+
+  if (!current) return null;
+
+  const isVideo = current.media_type === "video";
+
+  return (
+    <div
+      className={`${position === "fixed" ? "fixed" : "absolute"} inset-0 overflow-hidden bg-black ${className}`}
+      aria-hidden="true"
+    >
+      <div
+        className="absolute inset-0 transition-opacity ease-in-out"
+        style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}
+      >
+        {/* Persistent video element — never remounted, only its src changes. */}
+        import React, { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+export interface BackgroundMedia {
+  id: string;
+  media_type: "image" | "video";
+  url: string;
+}
+
+interface Props {
+  /** Milliseconds each image stays on screen. Videos advance when they end. */
+  interval?: number;
+  /** Provide media directly (used by the admin preview). Otherwise fetched from the database. */
+  media?: BackgroundMedia[];
+  /** Force a device set instead of detecting it. */
+  device?: "desktop" | "mobile";
+  /** "fixed" pins the background to the viewport; "absolute" keeps it inside its container. */
+  position?: "fixed" | "absolute";
+  className?: string;
+}
+
+const FADE_MS = 700;
+
+const ShortFormBackgroundCarousel: React.FC<Props> = ({
+  interval = 6000,
+  media,
+  device,
+  position = "absolute",
+  className = "",
+}) => {
+  const isMobile = useIsMobile();
+  const resolvedDevice = device ?? (isMobile ? "mobile" : "desktop");
+
+  const [items, setItems] = useState<BackgroundMedia[]>(media ?? []);
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const timerRef = useRef<number | null>(null);
+
+  // Load the media list for the active device size.
+  useEffect(() => {
+    if (media) {
+      setItems(media);
+      setIndex(0);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("short_form_backgrounds")
+        .select("id, media_type, url")
+        .eq("device", resolvedDevice)
+        .order("sort_order", { ascending: true });
+
+      if (cancelled || error || !data) return;
+      setItems(data as BackgroundMedia[]);
+      setIndex(0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [media, resolvedDevice]);
+
+  const current = items[index];
+
+  const advance = () => {
+    if (items.length < 2) return;
+    // Fade to black, then swap to the next item and fade it back in.
+    setVisible(false);
+    window.setTimeout(() => setIndex((i) => (i + 1) % items.length), FADE_MS);
+  };
+
+  // Fade the current item in and schedule the next transition for images.
+  useEffect(() => {
+    if (!current) return;
+    const show = window.setTimeout(() => setVisible(true), 30);
+
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (current.media_type === "image") {
+      timerRef.current = window.setTimeout(advance, interval);
+    }
+
+    return () => {
+      window.clearTimeout(show);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, items, interval]);
+
+  // iOS Safari: the <video> element is mounted ONCE and reused for every clip.
+  // Remounting it (key/conditional render) drops the playback permission Safari
+  // granted after the first clip, which is why later videos showed a play button.
+  // Here we only swap `src` on the same element and re-issue play().
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "true");
+
+    if (!current || current.media_type !== "video") {
+      video.pause();
+      return;
+    }
+
+    let cancelled = false;
+    let fallback: number | null = null;
+
+    const tryPlay = () => {
+      if (cancelled) return;
+      video.muted = true;
+      const p = video.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          if (cancelled) return;
+          // Autoplay blocked (Low Power Mode / policy). Keep the frame on screen
+          // and move on after the normal interval instead of skipping instantly.
+          if (fallback) window.clearTimeout(fallback);
+          fallback = window.setTimeout(advance, interval);
+        });
+      }
+    };
+
+    if (video.currentSrc !== current.url && video.src !== current.url) {
+      video.src = current.url;
+      video.load();
+    }
+    video.loop = items.length < 2;
+
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.addEventListener("loadeddata", tryPlay, { once: true });
+      video.addEventListener("canplay", tryPlay, { once: true });
+    }
+
+    // iOS grants autoplay after the first user gesture — retry when it happens.
+    const retry = () => tryPlay();
+    window.addEventListener("touchstart", retry, { passive: true });
+    window.addEventListener("touchend", retry, { passive: true });
+    window.addEventListener("scroll", retry, { passive: true });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") retry();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      if (fallback) window.clearTimeout(fallback);
+      video.removeEventListener("loadeddata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
+      window.removeEventListener("touchstart", retry);
+      window.removeEventListener("touchend", retry);
+      window.removeEventListener("scroll", retry);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id, current?.media_type, current?.url, interval, items.length]);
+
+  if (!current) return null;
+
+  const isVideo = current.media_type === "video";
+
+  return (
+    <div
+      className={`${position === "fixed" ? "fixed" : "absolute"} inset-0 overflow-hidden bg-black ${className}`}
+      aria-hidden="true"
+    >
+      <div
+        className="absolute inset-0 transition-opacity ease-in-out"
+        style={{ opacity: visible ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}
+      >
+        {/* Persistent video element — never remounted, only its src changes. */}
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          style={{ display: isVideo ? "block" : "none" }}
+          autoPlay
+          muted
+          playsInline
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          {...({ "webkit-playsinline": "true", "x5-playsinline": "true", muted: "" } as Record<string, string>)}
+          preload="auto"
+          onEnded={advance}
+          onError={advance}
+          onCanPlay={() => {
+            const v = videoRef.current;
+            if (!v) return;
+            v.muted = true;
+            v.play().catch(() => {});
+          }}
+        / controlsList="nodownload">
+
+        {!isVideo && (
+          <img
+            key={current.id}
+            src={current.url}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+            onError={advance}
+          />
+        )}
+      </div>
+
+      <div className="absolute inset-0 bg-black/50" />
+    </div>
+  );
+};
+
+export default ShortFormBackgroundCarousel;
+
 
         {!isVideo && (
           <img
