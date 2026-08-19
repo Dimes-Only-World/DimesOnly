@@ -102,7 +102,7 @@ const BusinessOwnerElite: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-900 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center mt-4">
-            <h1 className="text-4xl font-bold text-white">Business Owner Elite</h1>
+            <h1 className="text-4xl font-bold text-white">Business Owner Elite Plus</h1>
             <p className="text-fuchsia-200 mt-2">Limited to 100 lifetime seats — full site access for Business Owners</p>
           </div>
 
