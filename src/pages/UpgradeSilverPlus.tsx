@@ -35,7 +35,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const { toast } = useToast();
 
   const FULL_AMOUNT = 249.99;
-  const MONTHLY_AMOUNT = 62.5;
+  const MONTHLY_AMOUNT = 62.50;
   const AMOUNT = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
 
   const resolveUserId = async (): Promise<string | null> => {
@@ -291,7 +291,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
                   </button>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">${AMOUNT}</div>
+                  <div className="text-3xl font-bold text-blue-600">${AMOUNT.toFixed(2)}</div>
                   <p className="text-muted-foreground">
                     {plan === "full" ? "One-time payment" : "First of 12 monthly payments"}
                   </p>
