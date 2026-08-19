@@ -106,7 +106,7 @@ const AdminLeadsTab: React.FC = () => {
   const totalLeads = searchFiltered.length;
   const incompleteCount = searchFiltered.filter((l) => !l.registration_completed).length;
   const moreInfoCount = searchFiltered.filter((l) => l.action_taken === "more_information").length;
-  const didNotCompleteCount = searchFiltered.filter((l) => l.action_taken !== "continued_registration").length;
+  const completeCount = searchFiltered.filter((l) => l.action_taken === "continued_registration").length;
   const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
 
   const filtered = searchFiltered.filter((l) => {
