@@ -49,7 +49,7 @@ const AdminLeadsTab: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
   const [displayFilter, setDisplayFilter] = useState<
-    "all" | "incomplete" | "more_info" | "did_not_complete"
+    "all" | "incomplete" | "more_info" | "complete"
   >("all");
 
   const getAdminUserId = () => {
@@ -106,14 +106,14 @@ const AdminLeadsTab: React.FC = () => {
   const totalLeads = searchFiltered.length;
   const incompleteCount = searchFiltered.filter((l) => !l.registration_completed).length;
   const moreInfoCount = searchFiltered.filter((l) => l.action_taken === "more_information").length;
-  const didNotCompleteCount = searchFiltered.filter((l) => l.action_taken !== "continued_registration").length;
+  const completeCount = searchFiltered.filter((l) => l.action_taken === "continued_registration").length;
   const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
 
   const filtered = searchFiltered.filter((l) => {
     if (displayFilter === "all") return true;
     if (displayFilter === "incomplete") return !l.registration_completed;
     if (displayFilter === "more_info") return l.action_taken === "more_information";
-    if (displayFilter === "did_not_complete") return l.action_taken !== "continued_registration";
+    if (displayFilter === "complete") return l.action_taken === "continued_registration";
     return true;
   });
 
@@ -173,13 +173,13 @@ const AdminLeadsTab: React.FC = () => {
             <Badge variant="secondary">{moreInfoCount} ({pct(moreInfoCount)}%)</Badge>
           </Button>
           <Button
-            variant={displayFilter === "did_not_complete" ? "default" : "outline"}
+            variant={displayFilter === "complete" ? "default" : "outline"}
             size="sm"
-            onClick={() => setDisplayFilter(displayFilter === "did_not_complete" ? "all" : "did_not_complete")}
+            onClick={() => setDisplayFilter(displayFilter === "complete" ? "all" : "complete")}
             className="justify-between"
           >
-            <span>Did Not Complete</span>
-            <Badge variant="secondary">{didNotCompleteCount} ({pct(didNotCompleteCount)}%)</Badge>
+            <span>Complete</span>
+            <Badge variant="secondary">{completeCount} ({pct(completeCount)}%)</Badge>
           </Button>
         </div>
 
