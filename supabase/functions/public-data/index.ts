@@ -243,6 +243,67 @@ serve(async (req) => {
       }
 
 
+      // Shared leads for logged-in members (masked)
+      case 'fetchSharedLeads': {
+        const authHeader = req.headers.get('Authorization') || '';
+        const token = authHeader.replace('Bearer ', '').trim();
+        let authorized = false;
+        if (token && token !== supabaseAnonKey) {
+          const { data: userData } = await supabaseAdmin.auth.getUser(token);
+          authorized = !!userData?.user;
+        }
+        if (!authorized) {
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data: leads, error: leadsError } = await supabaseAdmin
+          .from('age_gate_leads')
+          .select('id, full_name, phone, action_taken, created_at')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(1000);
+        if (leadsError) throw leadsError;
+
+        const { data: registeredUsers, error: ruError } = await supabaseAdmin
+          .from('users')
+          .select('phone_number, first_name, last_name')
+          .limit(5000);
+        if (ruError) throw ruError;
+
+        const digits = (v: string | null | undefined) => (v || '').replace(/\D/g, '').slice(-10);
+        const normName = (v: string | null | undefined) => (v || '').toLowerCase().replace(/[^a-z]/g, '');
+        const phoneSet = new Set<string>();
+        const nameSet = new Set<string>();
+        for (const u of registeredUsers || []) {
+          const p = digits((u as any).phone_number);
+          if (p.length === 10) phoneSet.add(p);
+          const n = normName(`${(u as any).first_name || ''}${(u as any).last_name || ''}`);
+          if (n.length > 3) nameSet.add(n);
+        }
+
+        result = (leads || []).map((l: any) => {
+          const complete = phoneSet.has(digits(l.phone)) || nameSet.has(normName(l.full_name));
+          const status = complete
+            ? 'complete'
+            : l.action_taken === 'more_information'
+              ? 'more_info'
+              : 'incomplete';
+          const d = digits(l.phone);
+          return {
+            id: l.id,
+            full_name: l.full_name,
+            area_code: d.length >= 3 ? `(${d.slice(0, 3)})` : '—',
+            status,
+            created_at: l.created_at,
+          };
+        });
+        break;
+      }
+
+
       // Check if a username is already taken
       case 'checkUsername': {
         const { username } = params;

@@ -47,6 +47,7 @@ const AdminLeadsTab: React.FC = () => {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<View>("active");
   const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(0);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
   const [displayFilter, setDisplayFilter] = useState<
     "all" | "incomplete" | "more_info" | "complete"
@@ -99,7 +100,8 @@ const AdminLeadsTab: React.FC = () => {
     return (
       l.full_name.toLowerCase().includes(q) ||
       l.phone.toLowerCase().includes(q) ||
-      (l.referral_code || "").toLowerCase().includes(q)
+      (l.referral_code || "").toLowerCase().includes(q) ||
+      (l.registered_username || "").toLowerCase().includes(q)
     );
   });
 
@@ -117,8 +119,14 @@ const AdminLeadsTab: React.FC = () => {
     return true;
   });
 
-  const allSelected = filtered.length > 0 && filtered.every((l) => selected.includes(l.id));
-  const toggleAll = () => setSelected(allSelected ? [] : filtered.map((l) => l.id));
+  const PAGE_SIZE = 50;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const paged = filtered.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
+
+  const allSelected = paged.length > 0 && paged.every((l) => selected.includes(l.id));
+  const toggleAll = () =>
+    setSelected(allSelected ? [] : Array.from(new Set([...selected, ...paged.map((l) => l.id)])));
   const toggleOne = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
@@ -185,9 +193,12 @@ const AdminLeadsTab: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Search by name, phone or referrer"
+            placeholder="Search by name, phone, username or referrer"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
             className="max-w-sm"
           />
           {selected.length > 0 && view === "active" && (
@@ -258,7 +269,7 @@ const AdminLeadsTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((lead) => (
+                {paged.map((lead) => (
                   <tr key={lead.id} className="border-b last:border-0">
                     <td className="py-2 pr-4">
                       <Checkbox
@@ -327,6 +338,25 @@ const AdminLeadsTab: React.FC = () => {
                 ))}
               </tbody>
             </table>
+
+            <div className="flex items-center justify-between gap-2 pt-4">
+              <span className="text-sm text-muted-foreground">
+                Showing {currentPage * PAGE_SIZE + 1}-{currentPage * PAGE_SIZE + paged.length} of {filtered.length}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= totalPages - 1}
+                  onClick={() => setPage(currentPage + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

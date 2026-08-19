@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { QRCodeSVG } from "qrcode.react";
 import { usePageVideo } from "@/hooks/usePageVideo";
+import SharedLeadsList from "@/components/SharedLeadsList";
 
 const UserMakeMoneyTab: React.FC = () => {
   const { user } = useAppContext();
@@ -318,6 +319,8 @@ const UserMakeMoneyTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <SharedLeadsList />
 
       {/* Q&A Section */}
       <Card className="mb-8">
