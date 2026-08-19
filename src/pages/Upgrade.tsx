@@ -161,6 +161,26 @@ const TIER_RANK: Record<string, number> = {
 };
 const rankOf = (t: string | null | undefined) => TIER_RANK[String(t || "").toLowerCase()] ?? 0;
 
+const normalizeTier = (t: string | null | undefined) => {
+  const s = String(t || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (s === "silverplus") return "silver_plus";
+  if (s === "diamondplus") return "diamond_plus";
+  if (s === "eliteplus") return "elite_plus";
+  return s;
+};
+
+const TIER_LABEL: Record<string, string> = {
+  "": "Free",
+  free: "Free",
+  silver: "Silver",
+  silver_plus: "Silver Plus",
+  gold: "Gold",
+  diamond: "Diamond",
+  diamond_plus: "Diamond Plus",
+  elite: "Elite",
+  elite_plus: "Elite Plus",
+};
+
 interface SubscriptionRow {
   id: string;
   subscription_id: string;
@@ -206,6 +226,12 @@ const UpgradePageInner: React.FC = () => {
 
     return packages.filter((p) => (p.id === "elite_plus" ? businessOwner : true));
   }, [userData]);
+
+  const currentTierLabel = useMemo(() => {
+    const t = normalizeTier(userData?.membership_tier);
+    return TIER_LABEL[t] || (t ? t.replace(/_/g, " ") : "Free");
+  }, [userData]);
+
 
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
@@ -376,9 +402,23 @@ const UpgradePageInner: React.FC = () => {
               </Card>
             )}
 
+            {userData && (
+              <Card className="bg-black/80 border-2 border-pink-500 text-white mb-6">
+                <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-gray-300">Your current membership</p>
+                    <p className="text-xl font-bold text-pink-400">
+                      {currentTierLabel}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="bg-gray-700 text-white">Current plan</Badge>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {visiblePackages.map((pkg) => {
-                const tier = userData?.membership_tier?.toLowerCase() || '';
+                const tier = normalizeTier(userData?.membership_tier);
                 const currentRank = rankOf(tier);
                 const pkgRank = rankOf(pkg.id);
                 const isCurrent = tier === pkg.id;
@@ -386,6 +426,7 @@ const UpgradePageInner: React.FC = () => {
                 const isDiamondPlusLock = tier === 'diamond_plus' && pkg.id === 'diamond';
                 const isBelow = !isCurrent && !isSilverPlusLock && !isDiamondPlusLock && pkgRank < currentRank;
                 const isLocked = isCurrent || isBelow || isSilverPlusLock || isDiamondPlusLock;
+
                 return (
                   <Card
                     key={pkg.id}
