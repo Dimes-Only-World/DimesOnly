@@ -335,6 +335,25 @@ const AdminLeadsTab: React.FC = () => {
                 ))}
               </tbody>
             </table>
+
+            <div className="flex items-center justify-between gap-2 pt-4">
+              <span className="text-sm text-muted-foreground">
+                Showing {currentPage * PAGE_SIZE + 1}-{currentPage * PAGE_SIZE + paged.length} of {filtered.length}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= totalPages - 1}
+                  onClick={() => setPage(currentPage + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
