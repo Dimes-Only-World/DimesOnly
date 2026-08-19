@@ -139,7 +139,7 @@ const fetchUserData = async (): Promise<UserData | null> => {
   const { data: profile, error } = await supabase
     .from("users")
     .select(
-      "id, username, user_type, membership_tier, diamond_plus_active, phone_number, email"
+      "id, username, user_type, membership_tier, diamond_plus_active, phone_number, email, is_business_owner"
     )
     .eq("id", user.id)
     .single();
@@ -194,6 +194,23 @@ const UpgradePageInner: React.FC = () => {
       return (data as SubscriptionRow) || null;
     },
   });
+
+  // Audience gating: business owners see the Elite tiers, entertainers (Dimes)
+  // see the Diamond track, everyone else stays on the Silver/Gold track.
+  const visiblePackages = useMemo(() => {
+    const businessOwner =
+      Boolean((userData as any)?.is_business_owner) ||
+      ["business_owner", "businessowner"].includes(
+        String(userData?.user_type || "").trim().toLowerCase(),
+      );
+    const entertainer = ["exotic", "stripper"].includes(
+      String(userData?.user_type || "").trim().toLowerCase(),
+    );
+
+    if (businessOwner) return packages.filter((p) => ["elite", "elite_plus"].includes(p.id));
+    if (entertainer) return packages.filter((p) => ["silver", "gold", "diamond"].includes(p.id));
+    return packages.filter((p) => ["silver", "gold"].includes(p.id));
+  }, [userData]);
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [cadence, setCadence] = useState<"monthly" | "yearly">("monthly");
@@ -364,7 +381,7 @@ const UpgradePageInner: React.FC = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {packages.map((pkg) => {
+              {visiblePackages.map((pkg) => {
                 const tier = userData?.membership_tier?.toLowerCase() || '';
                 const currentRank = rankOf(tier);
                 const pkgRank = rankOf(pkg.id);
