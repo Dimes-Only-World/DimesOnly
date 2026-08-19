@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface SharedLead {
   id: string;
@@ -23,6 +24,7 @@ const STATUS_STYLES: Record<SharedLead["status"], { label: string; className: st
 };
 
 const SharedLeadsList: React.FC = () => {
+  const { user } = useAppContext();
   const [leads, setLeads] = useState<SharedLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -32,7 +34,7 @@ const SharedLeadsList: React.FC = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("public-data", {
-        body: { action: "fetchSharedLeads" },
+        body: { action: "fetchSharedLeads", userId: user?.id },
       });
       if (error) throw error;
       setLeads(data?.data || []);
@@ -46,12 +48,19 @@ const SharedLeadsList: React.FC = () => {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const q = search.trim().toLowerCase();
   const filtered = leads.filter(
     (l) => !q || l.full_name.toLowerCase().includes(q) || l.area_code.includes(q)
   );
+  const total = filtered.length;
+  const completeCount = filtered.filter((l) => l.status === "complete").length;
+  const incompleteCount = filtered.filter((l) => l.status === "incomplete").length;
+  const moreInfoCount = filtered.filter((l) => l.status === "more_info").length;
+  const pct = (n: number) => (total ? ((n / total) * 100).toFixed(1) : "0.0");
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, totalPages - 1);
   const visible = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
@@ -78,6 +87,31 @@ const SharedLeadsList: React.FC = () => {
           }}
           className="max-w-sm"
         />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="rounded-md border p-3">
+            <p className="text-xs text-muted-foreground">Total Leads</p>
+            <p className="text-lg font-semibold">{total}</p>
+          </div>
+          <div className="rounded-md border p-3">
+            <p className="text-xs text-muted-foreground">Incomplete</p>
+            <p className="text-lg font-semibold text-red-500">
+              {incompleteCount} <span className="text-sm">({pct(incompleteCount)}%)</span>
+            </p>
+          </div>
+          <div className="rounded-md border p-3">
+            <p className="text-xs text-muted-foreground">More Info</p>
+            <p className="text-lg font-semibold text-yellow-500">
+              {moreInfoCount} <span className="text-sm">({pct(moreInfoCount)}%)</span>
+            </p>
+          </div>
+          <div className="rounded-md border p-3">
+            <p className="text-xs text-muted-foreground">Complete</p>
+            <p className="text-lg font-semibold text-green-500">
+              {completeCount} <span className="text-sm">({pct(completeCount)}%)</span>
+            </p>
+          </div>
+        </div>
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading leads...</p>

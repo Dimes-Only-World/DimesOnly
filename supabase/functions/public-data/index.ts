@@ -252,6 +252,15 @@ serve(async (req) => {
           const { data: userData } = await supabaseAdmin.auth.getUser(token);
           authorized = !!userData?.user;
         }
+        // Fallback for custom (non-Supabase-Auth) sessions: verify the user id exists
+        if (!authorized && params?.userId) {
+          const { data: memberRow } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('id', params.userId)
+            .maybeSingle();
+          authorized = !!memberRow;
+        }
         if (!authorized) {
           return new Response(
             JSON.stringify({ error: 'Unauthorized' }),
