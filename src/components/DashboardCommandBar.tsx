@@ -155,6 +155,13 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
               </Button>
             )}
             <Button
+              onClick={() => navigate("/upgrade")}
+              className="flex-1 bg-dimes-gold font-semibold text-black hover:bg-dimes-gold/90 sm:flex-none"
+            >
+              <Crown className="mr-1 h-4 w-4" />
+              Upgrade
+            </Button>
+            <Button
               variant="outline"
               onClick={handleShare}
               className="flex-1 border-border/60 sm:flex-none"
@@ -162,6 +169,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
               <Share2 className="mr-1 h-4 w-4" />
               Share My Link
             </Button>
+
           </div>
         </div>
 
