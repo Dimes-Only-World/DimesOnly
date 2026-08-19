@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -8,6 +8,8 @@ import AuthGuard from "@/components/AuthGuard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface SeatStats {
   seats_max: number;
