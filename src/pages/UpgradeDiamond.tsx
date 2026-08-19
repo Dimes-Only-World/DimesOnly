@@ -461,6 +461,35 @@ const UpgradeDiamondPage: React.FC = () => {
 
   return (
     <AuthGuard>
+      <Dialog open={showRefundPolicy} onOpenChange={setShowRefundPolicy}>
+        <DialogContent className="max-w-lg bg-gray-900 border-yellow-500 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400">
+              Diamond Plus Membership Agreement
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-white">
+            <p>
+              After you pay, you can only be refunded if you do not notarize your
+              agreement within 30 days.
+            </p>
+            <p>
+              We will keep the prorated amount of days you use the membership
+              divided by 365 days, or 30 days from your monthly payment.
+            </p>
+            <p className="font-semibold text-yellow-300">
+              If the agreement is signed and notarized, the membership fee is
+              non-refundable.
+            </p>
+            <Button
+              onClick={() => setShowRefundPolicy(false)}
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
+            >
+              I Understand
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Header */}
