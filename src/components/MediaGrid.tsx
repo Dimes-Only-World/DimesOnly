@@ -110,41 +110,22 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     };
   }, [zoomImageUrl]);
 
-  const playVideoWithDetectedOrientation = async (video: HTMLVideoElement, id: string) => {
-    // Determine aspect ratio at click time in case metadata map isn't ready
+  const startPlayback = async (video: HTMLVideoElement | null, id: string) => {
+    if (!video) return;
     try {
-      const vw = (video as HTMLVideoElement).videoWidth;
-      const vh = (video as HTMLVideoElement).videoHeight;
-      if (vw && vh) {
-        const o = vw >= vh ? 'landscape' : 'portrait';
-        setDetectedOrientationMap((m) => ({ ...m, [id]: o }));
-      }
-    } catch {}
-    // Try fullscreen
-    try {
-      if (video.requestFullscreen) {
-        await video.requestFullscreen();
-      // @ts-ignore - iOS Safari
-      } else if (video.webkitEnterFullscreen) {
-        // @ts-ignore
-        video.webkitEnterFullscreen();
-      }
-    } catch {}
-
-    // Try orientation lock to detected aspect (not on iOS Safari)
-    try {
-      // @ts-ignore - orientation.lock may not be available in all browsers
-      if (screen.orientation && screen.orientation.lock) {
-        const target = detectedOrientationMap[id] || ((video.videoWidth && video.videoHeight) ? (video.videoWidth >= video.videoHeight ? 'landscape' : 'portrait') : 'landscape');
-        // @ts-ignore
-        await screen.orientation.lock(target === 'landscape' ? 'landscape' : 'portrait');
-      } else {
-        setOrientationHintMap((m) => ({ ...m, [id]: true }));
-      }
+      video.muted = false;
+      await video.play();
+      setPlayingMap((m) => ({ ...m, [id]: true }));
     } catch {
-      setOrientationHintMap((m) => ({ ...m, [id]: true }));
+      // Fall back to muted playback if the browser blocks audio autoplay
+      try {
+        video.muted = true;
+        await video.play();
+        setPlayingMap((m) => ({ ...m, [id]: true }));
+      } catch {}
     }
   };
+
 
   const getContentTierInfo = (tier: string) => {
     switch (tier) {
