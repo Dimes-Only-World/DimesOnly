@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -10,6 +10,7 @@ import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface MembershipUpdate {
   silver_plus_active: boolean;
@@ -29,9 +30,13 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const effectiveUserId = userId || userIdFromUrl;
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [plan, setPlan] = useState<"full" | "monthly">("full");
+  const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const { toast } = useToast();
 
-  const AMOUNT = 249.99;
+  const FULL_AMOUNT = 249.99;
+  const MONTHLY_AMOUNT = 62.5;
+  const AMOUNT = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
 
   const resolveUserId = async (): Promise<string | null> => {
     if (effectiveUserId) return effectiveUserId;
@@ -76,7 +81,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
           tier: "silver_plus",
           amount: AMOUNT,
           phone_number: phoneNumber,
-          payment_method: "paypal_full",
+          payment_method: plan === "monthly" ? "paypal_monthly" : "paypal_full",
           check_availability: true,
           return_url: returnUrl,
           cancel_url: cancelUrl,
@@ -96,7 +101,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
         tier: "silver_plus",
-        payment_option: "full", 
+        payment_option: plan, 
         amount: AMOUNT 
       }));
       window.location.href = data.approval_url;
@@ -124,7 +129,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
           tier: "silver_plus",
           amount: AMOUNT,
           phone_number: phoneNumber,
-          payment_method: "paypal_paylater",
+          payment_method: plan === "monthly" ? "paypal_monthly" : "paypal_paylater",
           check_availability: true,
           return_url: returnUrl,
           cancel_url: cancelUrl,
@@ -144,7 +149,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
         tier: "silver_plus",
-        payment_option: "full", 
+        payment_option: plan, 
         amount: AMOUNT 
       }));
       const approvalUrl = data.approval_url + "&fundingSource=paylater";
@@ -178,7 +183,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
           tier: "silver_plus",
           amount: AMOUNT,
           phone_number: phoneNumber,
-          payment_method: "paypal_card",
+          payment_method: plan === "monthly" ? "paypal_monthly" : "paypal_card",
           check_availability: true,
           return_url: returnUrl,
           cancel_url: cancelUrl,
@@ -198,7 +203,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
       sessionStorage.setItem("membership_upgrade", JSON.stringify({ 
         upgrade_id: data.upgrade_id, 
         tier: "silver_plus",
-        payment_option: "full", 
+        payment_option: plan, 
         amount: AMOUNT 
       }));
       // Redirect to PayPal with card funding source
@@ -214,6 +219,28 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
 
   return (
     <AppLayout>
+      <Dialog open={showRefundPolicy} onOpenChange={setShowRefundPolicy}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Silver Plus Membership Agreement</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p>
+              After you pay, you can only be refunded if you do not notarize your agreement within 30 days.
+            </p>
+            <p>
+              We will keep the prorated amount of days you use the membership divided by 365 days, or 30 days from your monthly payment.
+            </p>
+            <p className="font-semibold">
+              If the agreement is signed and notarized, the membership fee is non-refundable.
+            </p>
+            <Button className="w-full" onClick={() => setShowRefundPolicy(false)}>
+              I Understand
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="container mx-auto p-4 max-w-4xl">
         <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
@@ -241,9 +268,33 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
               </div>
               
               <div className="bg-gray-50 p-6 rounded-lg border space-y-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPlan("full")}
+                    className={`rounded-lg border-2 p-4 text-center transition-all ${
+                      plan === "full" ? "border-blue-600 bg-blue-50" : "border-muted"
+                    }`}
+                  >
+                    <div className="text-2xl font-bold text-blue-600">${FULL_AMOUNT}</div>
+                    <p className="text-xs text-muted-foreground">One-time payment</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPlan("monthly")}
+                    className={`rounded-lg border-2 p-4 text-center transition-all ${
+                      plan === "monthly" ? "border-blue-600 bg-blue-50" : "border-muted"
+                    }`}
+                  >
+                    <div className="text-2xl font-bold text-blue-600">$62.50<span className="text-sm">/mo</span></div>
+                    <p className="text-xs text-muted-foreground">12 months = $750 total</p>
+                  </button>
+                </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-blue-600">${AMOUNT}</div>
-                  <p className="text-muted-foreground">One-time payment</p>
+                  <div className="text-3xl font-bold text-blue-600">${AMOUNT}</div>
+                  <p className="text-muted-foreground">
+                    {plan === "full" ? "One-time payment" : "First of 12 monthly payments"}
+                  </p>
                 </div>
 
                 <div className="space-y-4">
