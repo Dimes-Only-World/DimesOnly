@@ -70,7 +70,7 @@ const SharedLeadsList: React.FC = () => {
       <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle className="flex items-center gap-2">
           <Users className="w-5 h-5" />
-          Shared Leads
+          My Leads
         </CardTitle>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
@@ -124,7 +124,7 @@ const SharedLeadsList: React.FC = () => {
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="py-2 pr-4 font-medium">Name</th>
-                    <th className="py-2 pr-4 font-medium">Phone</th>
+                    <th className="py-2 pr-4 font-medium">Area Code</th>
                     <th className="py-2 pr-4 font-medium">Status</th>
                   </tr>
                 </thead>
