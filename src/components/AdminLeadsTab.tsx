@@ -118,8 +118,14 @@ const AdminLeadsTab: React.FC = () => {
     return true;
   });
 
-  const allSelected = filtered.length > 0 && filtered.every((l) => selected.includes(l.id));
-  const toggleAll = () => setSelected(allSelected ? [] : filtered.map((l) => l.id));
+  const PAGE_SIZE = 50;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const paged = filtered.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
+
+  const allSelected = paged.length > 0 && paged.every((l) => selected.includes(l.id));
+  const toggleAll = () =>
+    setSelected(allSelected ? [] : Array.from(new Set([...selected, ...paged.map((l) => l.id)])));
   const toggleOne = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
