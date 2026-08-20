@@ -42,6 +42,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import EventTicketingFields from "@/components/admin/EventTicketingFields";
 
 interface Event {
   id: string;
@@ -541,6 +542,15 @@ const AdminEventsTab: React.FC = () => {
         free_normal: 0,
         free_spots_males: 0,
         free_spots_females: 0,
+        free_spots_dimes: 0,
+        free_spots_normals: 0,
+        free_spots_silver_plus: 0,
+        free_spots_diamond_plus: 0,
+        free_spots_elite_plus: 0,
+        free_spots_plus: 0,
+        general_admission_price: 0,
+        plus_ticket_mode: "free",
+        plus_discount_percent: 0,
         vip_price: 0,
         vip_tickets: 0,
         vip_section_price: 0,
