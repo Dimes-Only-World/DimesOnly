@@ -11,6 +11,12 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabaseClient";
 import { Ticket, Users, Crown, Star, Minus, Plus, CreditCard, Loader2 } from "lucide-react";
+import {
+  resolveFreeAllocation,
+  getPlusPricing,
+  getGeneralAdmissionPrice,
+  isPlusMember,
+} from "@/lib/eventTickets";
 
 type TicketType = "free" | "general" | "vip" | "vip_section";
 
