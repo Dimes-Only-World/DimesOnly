@@ -26,6 +26,8 @@ import DashboardCommandBar from "./DashboardCommandBar";
 import DashboardChecklist from "./DashboardChecklist";
 import DashboardMembershipCard from "./DashboardMembershipCard";
 import AuthGuard from "./AuthGuard";
+
+
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -576,6 +578,8 @@ const UserDashboard: React.FC = () => {
       profilePhoto={userData.profile_photo}
     >
       {slug !== "profile" && slug !== "earnings" && <Top20DimesCarousel />}
+
+
       {isBusinessOwner && !boEliteActive && (
         <div className="mb-4 rounded-lg border border-fuchsia-500/60 bg-gradient-to-r from-fuchsia-900/60 to-purple-900/60 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>

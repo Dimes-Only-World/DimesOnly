@@ -127,6 +127,9 @@ const Login: React.FC = () => {
         description: `Welcome back, ${userData.username}!`,
       });
 
+      // Mark that we just came from login so the dashboard can guard the back button
+      sessionStorage.setItem("dashboardBackGuard", "active");
+
       // Navigate immediately - don't wait for Supabase Auth sync
       navigate("/dashboard", { replace: true });
 
