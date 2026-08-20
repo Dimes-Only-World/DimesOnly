@@ -53,7 +53,9 @@ import Feed from "./pages/Feed";
 import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
 import GlobalVideoDownloadBlocker from "./components/GlobalVideoDownloadBlocker";
+import DashboardBackButtonGuard from "./components/DashboardBackButtonGuard";
 import NotificationBell from "./components/NotificationBell";
+
 import AddToHomeScreenPrompt from "./components/AddToHomeScreenPrompt";
 import "./App.css";
 
@@ -172,8 +174,10 @@ function AppContent() {
     <div className="App">
       <GARefTracker />
       <GlobalVideoDownloadBlocker />
-      
+      <DashboardBackButtonGuard />
+
       {showNotificationBell && (
+
         <NotificationBell className="fixed top-3 right-3 z-[60]" />
       )}
       {!hideNotificationBell && <AddToHomeScreenPrompt />}
