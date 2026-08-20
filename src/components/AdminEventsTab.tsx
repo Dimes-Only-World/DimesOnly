@@ -1043,23 +1043,6 @@ const updateData = {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Males Price ($)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={newEvent.males_price}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        males_price: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
                     Max Attendees
                   </label>
                   <Input
@@ -1074,39 +1057,8 @@ const updateData = {
                     }
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Free Strippers
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={newEvent.free_spots_strippers}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        free_spots_strippers: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Free Exotics
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={newEvent.free_spots_exotics}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        free_spots_exotics: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
               </div>
+
 
               {/* VIP and Ticket Options */}
               <div className="space-y-4 border-t pt-4">
