@@ -37,10 +37,10 @@ const buildOffer = (userData: UserData): Offer | null => {
     return {
       id: "diamond_plus",
       title: "You've Been Approved!",
-      description: "Congratulations! You are now eligible for Diamond Plus membership.",
+      description: "Congratulations! You are now eligible for Diamond Plus membership. One Time Fee! Lifetime Member!",
       price: "$149.99",
       route: "/upgrade-diamond",
-      perks: ["No referral fees attached", "Full payment via PayPal", "Monthly plan: $80 x 12 = $960"],
+      perks: ["No referral fees attached", "Full payment via PayPal", "Monthly plan More Expensive: $80 x 12 = $960"],
       totalPositions: 300,
     };
   }
