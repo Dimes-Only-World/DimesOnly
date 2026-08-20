@@ -33,10 +33,24 @@ import { Tables } from "@/types";
 type UserData = Tables<"users">;
 
 const UserDashboardEnhanced: React.FC = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
   const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      sessionStorage.removeItem("userData");
+      sessionStorage.removeItem("adminToken");
+      localStorage.removeItem("authToken");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({ title: "Error", description: "Failed to log out", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
