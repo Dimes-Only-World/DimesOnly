@@ -150,15 +150,49 @@ const MansionPartyPopup: React.FC = () => {
   useEffect(() => {
     if (sessionStorage.getItem(STORAGE_KEY)) return;
 
+    let cancelled = false;
+    let pending = 0;
+    // Grace window so other popups can register their slot before we poll.
+    let armed = false;
+    const armTimer = window.setTimeout(() => {
+      armed = true;
+      evaluate();
+    }, 1200);
+
     const show = () => {
-      if (sessionStorage.getItem(STORAGE_KEY)) return;
+      if (cancelled || sessionStorage.getItem(STORAGE_KEY)) return;
       sessionStorage.setItem(STORAGE_KEY, "true");
       setOpen(true);
     };
 
-    const onOtherPopupsDone = () => window.setTimeout(show, 450);
-    window.addEventListener("dimes:popups-cleared", onOtherPopupsDone);
-    return () => window.removeEventListener("dimes:popups-cleared", onOtherPopupsDone);
+    const evaluate = () => {
+      if (cancelled || !armed) return;
+      const clear = isPopupQueueClear() && !hasOpenDialogInDom();
+      if (!clear) {
+        window.clearTimeout(pending);
+        pending = 0;
+        return;
+      }
+      if (pending) return;
+      // Require the "all clear" state to hold briefly (close animations).
+      pending = window.setTimeout(() => {
+        pending = 0;
+        if (isPopupQueueClear() && !hasOpenDialogInDom()) show();
+        else evaluate();
+      }, 600);
+    };
+
+    const unsubscribe = subscribePopupQueue(evaluate);
+    // Poll as a fallback for popups that don't use the queue.
+    const poll = window.setInterval(evaluate, 500);
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+      window.clearTimeout(armTimer);
+      window.clearTimeout(pending);
+      window.clearInterval(poll);
+    };
   }, []);
 
   return (
