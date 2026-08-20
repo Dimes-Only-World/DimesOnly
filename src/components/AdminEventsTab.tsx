@@ -2307,6 +2307,13 @@ const updateData = {
                                   ? "secondary"
                                   : "outline"
                               }
+                              className={
+                                attendee.payment_status === "free"
+                                  ? "bg-gray-700 text-white hover:bg-gray-600 border-transparent"
+                                  : attendee.payment_status === "paid"
+                                  ? "text-white"
+                                  : ""
+                              }
                             >
                               {attendee.ticket_type || attendee.payment_status}
                             </Badge>
