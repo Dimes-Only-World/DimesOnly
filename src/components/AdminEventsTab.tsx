@@ -63,6 +63,15 @@ interface Event {
   free_normal: number;
   free_spots_males: number;
   free_spots_females: number;
+  free_spots_dimes?: number;
+  free_spots_normals?: number;
+  free_spots_silver_plus?: number;
+  free_spots_diamond_plus?: number;
+  free_spots_elite_plus?: number;
+  free_spots_plus?: number;
+  general_admission_price?: number;
+  plus_ticket_mode?: string;
+  plus_discount_percent?: number;
   vip_price: number;
   vip_tickets: number;
   vip_section_price: number;
@@ -130,6 +139,15 @@ const AdminEventsTab: React.FC = () => {
     free_normal: 10, // Default 10 free spots for members
     free_spots_males: 0,
     free_spots_females: 0,
+    free_spots_dimes: 0,
+    free_spots_normals: 0,
+    free_spots_silver_plus: 0,
+    free_spots_diamond_plus: 0,
+    free_spots_elite_plus: 0,
+    free_spots_plus: 0,
+    general_admission_price: 0,
+    plus_ticket_mode: "free",
+    plus_discount_percent: 0,
     vip_price: 0,
     vip_tickets: 0,
     vip_section_price: 0,
@@ -451,6 +469,15 @@ const AdminEventsTab: React.FC = () => {
         free_normal: newEvent.free_normal || 0,
         free_spots_males: newEvent.free_spots_males || 0,
         free_spots_females: newEvent.free_spots_females || 0,
+        free_spots_dimes: newEvent.free_spots_dimes || 0,
+        free_spots_normals: newEvent.free_spots_normals || 0,
+        free_spots_silver_plus: newEvent.free_spots_silver_plus || 0,
+        free_spots_diamond_plus: newEvent.free_spots_diamond_plus || 0,
+        free_spots_elite_plus: newEvent.free_spots_elite_plus || 0,
+        free_spots_plus: newEvent.free_spots_plus || 0,
+        general_admission_price: newEvent.general_admission_price || 0,
+        plus_ticket_mode: newEvent.plus_ticket_mode || "free",
+        plus_discount_percent: newEvent.plus_discount_percent || 0,
         vip_price: newEvent.vip_price || 0,
         vip_tickets: newEvent.vip_tickets || 0,
         vip_section_price: newEvent.vip_section_price || 0,
