@@ -40,6 +40,7 @@ interface Event {
   id: string;
   name: string;
   date: string;
+  date_tba?: boolean;
   start_time: string;
   end_time: string;
   address: string;
@@ -706,11 +707,11 @@ const EventDetails: React.FC = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Calendar className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>{formatDateForDisplay(event.date)}</span>
+                      <span>{event.date_tba ? "To Be Announced" : formatDateForDisplay(event.date)}</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Clock className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>{formatTimeRange(event.start_time, event.end_time)}</span>
+                      <span>{event.date_tba ? "To Be Announced" : formatTimeRange(event.start_time, event.end_time)}</span>
                     </div>
                     <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
                       <MapPin className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />

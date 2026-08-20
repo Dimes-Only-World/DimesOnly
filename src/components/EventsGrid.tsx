@@ -7,6 +7,7 @@ interface Event {
   id: string;
   title: string;
   date: string;
+  date_tba?: boolean;
   time: string;
   location: string;
   city: string;
@@ -50,7 +51,7 @@ const EventsGrid: React.FC<EventsGridProps> = ({ events, onViewAttendees, onPurc
               </div>
               
               <div className="text-gray-300 mb-4 space-y-2">
-                <p>📅 <strong className="text-white">Date:</strong> {event.date}</p>
+                <p>📅 <strong className="text-white">Date:</strong> {event.date_tba ? "To Be Announced" : event.date}</p>
                 <p>🕒 <strong className="text-white">Time:</strong> {event.time}</p>
                 <p>📍 <strong className="text-white">Location:</strong> {event.location}</p>
                 <p>🎤 <strong className="text-white">Hosted by:</strong> {event.hostedBy}</p>

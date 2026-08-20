@@ -7,6 +7,7 @@ interface Event {
   id: number;
   title: string;
   date: string;
+  date_tba?: boolean;
   time: string;
   location: string;
   city: string;
@@ -34,7 +35,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onAttendClick }) => {
       <CardContent className="p-6">
         <h3 className="text-xl font-bold text-yellow-400 mb-2">{event.title}</h3>
         <div className="text-gray-300 mb-4 space-y-1">
-          <p><strong>Date:</strong> {event.date}</p>
+          <p><strong>Date:</strong> {event.date_tba ? "To Be Announced" : event.date}</p>
           <p><strong>Time:</strong> {event.time}</p>
           <p><strong>Location:</strong> {event.location}</p>
           <p><strong>Category:</strong> {event.category}</p>

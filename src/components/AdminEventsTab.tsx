@@ -49,6 +49,7 @@ interface Event {
   name: string;
   description: string;
   date: string;
+  date_tba?: boolean;
   start_time: string;
   end_time: string;
   address: string;
@@ -125,6 +126,7 @@ const AdminEventsTab: React.FC = () => {
     name: "",
     description: "",
     date: "",
+    date_tba: false,
     start_time: "",
     end_time: "",
     address: "",
@@ -380,10 +382,10 @@ const AdminEventsTab: React.FC = () => {
   };
 
   const handleAddEvent = async () => {
-    if (!newEvent.name || !newEvent.date) {
+    if (!newEvent.name || (!newEvent.date && !newEvent.date_tba)) {
       toast({
         title: "Error",
-        description: "Please fill in event name and date",
+        description: "Please fill in event name and date (or mark as TBA)",
         variant: "destructive",
       });
       return;
@@ -454,7 +456,8 @@ const AdminEventsTab: React.FC = () => {
       const eventData = {
         name: newEvent.name,
         description: newEvent.description || null,
-        date: newEvent.date,
+        date: newEvent.date_tba ? "2099-12-31" : newEvent.date,
+        date_tba: newEvent.date_tba,
         start_time: newEvent.start_time || null,
         end_time: newEvent.end_time || null,
         address: newEvent.address || null,
@@ -500,7 +503,7 @@ const AdminEventsTab: React.FC = () => {
 
       const { data, error } = await supabase
         .from("events")
-        .insert(eventData)
+        .insert(eventData as any)
         .select()
         .single();
 
@@ -527,6 +530,7 @@ const AdminEventsTab: React.FC = () => {
         name: "",
         description: "",
         date: "",
+        date_tba: false,
         start_time: "",
         end_time: "",
         address: "",
@@ -653,7 +657,8 @@ const AdminEventsTab: React.FC = () => {
 const updateData = {
         name: editingEvent.name,
         description: editingEvent.description,
-        date: editingEvent.date,
+        date: editingEvent.date_tba ? "2099-12-31" : editingEvent.date,
+        date_tba: editingEvent.date_tba ?? false,
         start_time: editingEvent.start_time,
         end_time: editingEvent.end_time,
         address: editingEvent.address,
@@ -709,7 +714,7 @@ const updateData = {
       } else {
         const { error } = await supabase
           .from("events")
-          .update(updateData)
+          .update(updateData as any)
           .eq("id", editingEvent.id);
         updateError = error;
       }
@@ -1004,13 +1009,31 @@ const updateData = {
                   <label className="block text-sm font-medium mb-1">
                     Date *
                   </label>
-                  <Input
-                    type="date"
-                    value={newEvent.date}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({ ...prev, date: e.target.value }))
-                    }
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={newEvent.date}
+                      disabled={newEvent.date_tba}
+                      onChange={(e) =>
+                        setNewEvent((prev) => ({ ...prev, date: e.target.value }))
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant={newEvent.date_tba ? "default" : "outline"}
+                      onClick={() =>
+                        setNewEvent((prev) => ({
+                          ...prev,
+                          date_tba: !prev.date_tba,
+                          date: !prev.date_tba ? "" : prev.date,
+                        }))
+                      }
+                      className="whitespace-nowrap"
+                    >
+                      {newEvent.date_tba ? "TBA On" : "TBA"}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -1419,9 +1442,11 @@ const updateData = {
                     <div className="space-y-1 mt-2 text-xs sm:text-sm text-muted-foreground">
                       <p className="flex items-center gap-2">
                         <Clock className="w-4 h-4 flex-shrink-0" />
-                        {new Date(event.date).toLocaleDateString()}
-                        {event.start_time && ` at ${formatTime12Hour(event.start_time)}`}
-                        {event.end_time && ` - ${formatTime12Hour(event.end_time)}`}
+                        {event.date_tba
+                          ? "To Be Announced"
+                          : new Date(event.date).toLocaleDateString()}
+                        {event.start_time && !event.date_tba && ` at ${formatTime12Hour(event.start_time)}`}
+                        {event.end_time && !event.date_tba && ` - ${formatTime12Hour(event.end_time)}`}
                       </p>
                       {event.location && (
                         <p className="flex items-center gap-2">
@@ -1464,7 +1489,8 @@ const updateData = {
                       onClick={() => {
                         setEditingEvent({
                           ...event,
-                          date: formatDateForInput(event.date),
+                          date: event.date_tba ? "" : formatDateForInput(event.date),
+                          date_tba: event.date_tba ?? false,
                         });
                         setShowEditEvent(true);
                       }}
@@ -1614,15 +1640,37 @@ const updateData = {
                   <label className="block text-sm font-medium mb-1">
                     Date
                   </label>
-                  <Input
-                    type="date"
-                    value={editingEvent.date}
-                    onChange={(e) =>
-                      setEditingEvent((prev) =>
-                        prev ? { ...prev, date: e.target.value } : null
-                      )
-                    }
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={editingEvent.date}
+                      disabled={editingEvent.date_tba}
+                      onChange={(e) =>
+                        setEditingEvent((prev) =>
+                          prev ? { ...prev, date: e.target.value } : null
+                        )
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant={editingEvent.date_tba ? "default" : "outline"}
+                      onClick={() =>
+                        setEditingEvent((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                date_tba: !prev.date_tba,
+                                date: !prev.date_tba ? "" : prev.date,
+                              }
+                            : null
+                        )
+                      }
+                      className="whitespace-nowrap"
+                    >
+                      {editingEvent.date_tba ? "TBA On" : "TBA"}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
