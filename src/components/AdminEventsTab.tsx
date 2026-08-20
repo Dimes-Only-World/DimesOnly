@@ -1912,57 +1912,13 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Spots Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Free Males</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editingEvent.free_spots_males || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_males: parseInt(e.target.value) || 0 } : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal male users
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Free Females</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editingEvent.free_spots_females || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_females: parseInt(e.target.value) || 0 } : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal female users
-                    </p>
-                  </div>
-                </div>
+                <EventTicketingFields
+                  values={editingEvent as any}
+                  onChange={(patch) =>
+                    setEditingEvent((prev) => (prev ? { ...prev, ...patch } as any : null))
+                  }
+                />
 
-                {/* Pricing Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Males Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.males_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, males_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Females Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.females_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, females_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
-                  </div>
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
