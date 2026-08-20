@@ -1693,6 +1693,22 @@ const updateData = {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
+                    End Date (optional)
+                  </label>
+                  <Input
+                    type="date"
+                    value={editingEvent.end_date || ""}
+                    disabled={editingEvent.date_tba}
+                    min={editingEvent.date || undefined}
+                    onChange={(e) =>
+                      setEditingEvent((prev) =>
+                        prev ? { ...prev, end_date: e.target.value } : null
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
                     Start Time
                   </label>
                   <Input
