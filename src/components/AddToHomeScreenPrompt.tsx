@@ -24,13 +24,22 @@ const AddToHomeScreenPrompt: React.FC<Props> = ({ forceOpen, onClose }) => {
   useEffect(() => {
     if (forceOpen) return;
     if (!isMobile || isStandalone || dismissed) return;
+    // Reserve the popup slot immediately so later popups wait for this one.
+    acquirePopupSlot(POPUP_ID);
     const t = setTimeout(() => setAutoOpen(true), 1500);
     return () => clearTimeout(t);
   }, [forceOpen, isMobile, isStandalone, dismissed]);
 
   const open = forceOpen || autoOpen;
+
+  useEffect(() => {
+    if (open) acquirePopupSlot(POPUP_ID);
+    return () => releasePopupSlot(POPUP_ID);
+  }, [open]);
+
   if (!open) return null;
   if (isStandalone && !forceOpen) return null;
+
 
   const close = () => {
     setAutoOpen(false);
