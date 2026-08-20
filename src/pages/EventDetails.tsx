@@ -185,12 +185,25 @@ const EventDetails: React.FC = () => {
   useEffect(() => {
     if (appUserLoading) return;
 
+    const membershipFrom = (raw: any) => ({
+      membership_tier:
+        raw?.membershipTier || raw?.membership_tier || raw?.membershipType || raw?.membership_type || undefined,
+      membership_type:
+        raw?.membershipType || raw?.membership_type || raw?.membershipTier || raw?.membership_tier || undefined,
+      silver_plus_active: !!(raw?.silver_plus_active ?? raw?.silverPlusActive),
+      diamond_plus_active: !!(raw?.diamond_plus_active ?? raw?.diamondPlusActive),
+      business_owner_elite_active: !!(
+        raw?.business_owner_elite_active ?? raw?.businessOwnerEliteActive
+      ),
+    });
+
     if (appUser?.id && appUser.username) {
-      setCurrentUser({ 
-        id: appUser.id, 
+      setCurrentUser({
+        id: appUser.id,
         username: appUser.username,
         user_type: appUser.userType || (appUser as any).user_type || undefined,
-        gender: appUser.gender || undefined
+        gender: appUser.gender || undefined,
+        ...membershipFrom(appUser),
       });
       return;
     }
@@ -201,11 +214,12 @@ const EventDetails: React.FC = () => {
       try {
         const userData = JSON.parse(savedUserData);
         if (userData?.id && userData?.username) {
-          setCurrentUser({ 
-            id: userData.id, 
+          setCurrentUser({
+            id: userData.id,
             username: userData.username,
             user_type: userData.userType || userData.user_type || undefined,
-            gender: userData.gender || undefined
+            gender: userData.gender || undefined,
+            ...membershipFrom(userData),
           });
           return;
         }
@@ -215,7 +229,42 @@ const EventDetails: React.FC = () => {
     }
 
     setCurrentUser(null);
-  }, [appUserLoading, appUser?.id, appUser?.username]);
+  }, [appUserLoading, appUser?.id, appUser?.username, (appUser as any)?.membershipTier]);
+
+  // Enrich with authoritative membership flags from the database
+  useEffect(() => {
+    const loadMembership = async () => {
+      if (!currentUser?.id) return;
+      try {
+        const { data } = await supabase
+          .from("users")
+          .select(
+            "membership_tier, membership_type, silver_plus_active, diamond_plus_active, business_owner_elite_active, user_type, gender",
+          )
+          .eq("id", currentUser.id)
+          .maybeSingle();
+        if (!data) return;
+        setCurrentUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                user_type: (data as any).user_type || prev.user_type,
+                gender: (data as any).gender || prev.gender,
+                membership_tier: (data as any).membership_tier || prev.membership_tier,
+                membership_type: (data as any).membership_type || prev.membership_type,
+                silver_plus_active: !!(data as any).silver_plus_active,
+                diamond_plus_active: !!(data as any).diamond_plus_active,
+                business_owner_elite_active: !!(data as any).business_owner_elite_active,
+              }
+            : prev,
+        );
+      } catch (e) {
+        // non-fatal: fall back to context values
+      }
+    };
+    loadMembership();
+  }, [currentUser?.id]);
+
 
   // Check if user is already registered for this event
   useEffect(() => {
