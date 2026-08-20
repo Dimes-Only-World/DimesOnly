@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const LOGIN_PATH = "/login";
-const GUARD_STATE_KEY = "dashboardBackGuard";
-const HISTORY_STATE_KEY = "dimesBackGuard";
+const PREV_PATH_KEY = "backGuardPreviousPath";
+const SHOW_DIALOG_KEY = "showBackGuardDialog";
 
 export const DashboardBackButtonGuard = () => {
   const location = useLocation();
@@ -24,62 +24,41 @@ export const DashboardBackButtonGuard = () => {
   const { setUser } = useAppContext();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const pushedRef = useRef(false);
   const isDashboard = location.pathname.startsWith("/dashboard");
-  console.log("[BackGuard] render", location.pathname, isDashboard);
 
-  // Push a duplicate history entry when entering the dashboard from login.
-  // This lets us intercept the browser back button before it leaves the app.
+  // Remember the current dashboard path so the inline script can detect a
+  // back-button navigation from dashboard to login.
   useEffect(() => {
-    if (!isDashboard || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
-    const guardActive = sessionStorage.getItem(GUARD_STATE_KEY) === "active";
-    console.log("[BackGuard] mount effect", { guardActive, pushed: pushedRef.current });
-    if (guardActive && !pushedRef.current) {
-      sessionStorage.removeItem(GUARD_STATE_KEY);
-      pushedRef.current = true;
-      navigate(
-        location.pathname + location.search + location.hash,
-        { state: { [HISTORY_STATE_KEY]: true } }
-      );
-      console.log("[BackGuard] pushed via navigate");
+    if (isDashboard) {
+      sessionStorage.setItem(PREV_PATH_KEY, location.pathname);
+    } else if (location.pathname === LOGIN_PATH) {
+      // Keep the previous dashboard path around briefly in case the inline
+      // script already consumed it; otherwise clear it on other pages.
+      // We do not clear it here because the inline script may need it.
+    } else {
+      sessionStorage.removeItem(PREV_PATH_KEY);
     }
-  }, [isDashboard, location.pathname, location.search, location.hash, navigate]);
+  }, [isDashboard, location.pathname]);
 
+  // Show the dialog when the inline script has intercepted a back-to-login.
   useEffect(() => {
-    if (!isDashboard || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
-    const handlePopState = (event: PopStateEvent) => {
-      const state = event.state as Record<string, unknown> | null;
-      const userState =
-        (state as { usr?: Record<string, unknown> })?.usr ?? state;
-      const markerPopped = userState?.[HISTORY_STATE_KEY] === true;
-      console.log("[BackGuard] popstate", JSON.stringify({ state, markerPopped, url: window.location.pathname }));
-
-      if (markerPopped) {
-        // Undo the back navigation so the user stays on the dashboard
-        window.history.forward();
-        setOpen(true);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [isDashboard]);
+    if (sessionStorage.getItem(SHOW_DIALOG_KEY) === "true") {
+      sessionStorage.removeItem(SHOW_DIALOG_KEY);
+      setOpen(true);
+    }
+  }, [location.pathname]);
 
   const handleStay = () => {
     setOpen(false);
-    // Re-push the guard entry so the next back press is also intercepted
-    if (isDashboard) {
-      navigate(
-        location.pathname + location.search + location.hash,
-        { state: { [HISTORY_STATE_KEY]: true } }
-      );
-    }
   };
 
   const handleLogout = async () => {
     setOpen(false);
+    sessionStorage.removeItem(PREV_PATH_KEY);
 
     try {
       await supabase.auth.signOut();
