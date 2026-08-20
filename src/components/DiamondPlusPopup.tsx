@@ -133,11 +133,18 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
 
   const handleUpgrade = () => {
     setOpen(false);
+    notifyCleared();
     navigate(offer.route);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) notifyCleared();
+      }}
+    >
       <DialogContent className="sm:max-w-md bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-400 text-black border-none">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-black">
@@ -205,7 +212,10 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
 
           <Button
             variant="ghost"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              notifyCleared();
+            }}
             className="w-full text-black/70 hover:text-black hover:bg-black/10"
           >
             Maybe Later
