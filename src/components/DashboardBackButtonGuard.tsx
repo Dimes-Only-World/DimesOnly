@@ -25,7 +25,6 @@ export const DashboardBackButtonGuard = () => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const isDashboard = location.pathname.startsWith("/dashboard");
-  console.log("[BackGuardReact] render", location.pathname, isDashboard);
 
   // Remember the current dashboard path so the inline script can detect a
   // back-button navigation from dashboard to login.
