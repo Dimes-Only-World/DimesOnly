@@ -1422,9 +1422,11 @@ const updateData = {
                     <div className="space-y-1 mt-2 text-xs sm:text-sm text-muted-foreground">
                       <p className="flex items-center gap-2">
                         <Clock className="w-4 h-4 flex-shrink-0" />
-                        {new Date(event.date).toLocaleDateString()}
-                        {event.start_time && ` at ${formatTime12Hour(event.start_time)}`}
-                        {event.end_time && ` - ${formatTime12Hour(event.end_time)}`}
+                        {event.date_tba
+                          ? "To Be Announced"
+                          : new Date(event.date).toLocaleDateString()}
+                        {event.start_time && !event.date_tba && ` at ${formatTime12Hour(event.start_time)}`}
+                        {event.end_time && !event.date_tba && ` - ${formatTime12Hour(event.end_time)}`}
                       </p>
                       {event.location && (
                         <p className="flex items-center gap-2">
