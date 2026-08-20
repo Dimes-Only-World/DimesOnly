@@ -376,7 +376,7 @@ const Events: React.FC = () => {
   }, [getRemainingNormalFreeMales, getRemainingNormalFreeFemales, getRemainingExoticFree, getRemainingStripperFree]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white overflow-x-hidden">
       {/* Mobile-first full width design */}
       <div className={getContainerClasses("w-full")}>
         {/* User Profile Header with Banner */}
