@@ -6,7 +6,7 @@ import { hasOpenDialogInDom, isPopupQueueClear, subscribePopupQueue } from "@/li
 import { resolveMembership } from "@/lib/membership";
 
 /** Once per login session (sessionStorage clears on a fresh sign-in / new tab). */
-const STORAGE_KEY = "mansion_party_popup_shown";
+const STORAGE_KEY = "mansion_party_popup_shown_v2";
 
 interface MansionPartyPopupProps {
   /** Current user record; popup is skipped for Plus members. */
@@ -202,12 +202,17 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
     const unsubscribe = subscribePopupQueue(evaluate);
     // Poll as a fallback for popups that don't use the queue.
     const poll = window.setInterval(evaluate, 500);
+    // Safety net: never let the celebration be swallowed forever.
+    const hardFallback = window.setTimeout(() => {
+      if (!hasOpenDialogInDom()) show();
+    }, 9000);
 
     return () => {
       cancelled = true;
       unsubscribe();
       window.clearTimeout(armTimer);
       window.clearTimeout(pending);
+      window.clearTimeout(hardFallback);
       window.clearInterval(poll);
     };
   }, [isPlusMember]);
