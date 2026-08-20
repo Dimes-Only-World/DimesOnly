@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import EventTicketSelector from "@/components/EventTicketSelector";
+import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
 import { formatTime12Hour, formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
