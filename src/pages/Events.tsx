@@ -762,13 +762,22 @@ const Events: React.FC = () => {
                       </div>
                       {/* Pricing info */}
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                        <span className="text-green-400 font-bold">
-                          Males: ${(event as any).males_price ?? event.price ?? 0}
-                        </span>
-                        <span className="text-pink-400 font-bold">
-                          Females: ${(event as any).females_price ?? event.price ?? 0}
-                        </span>
+                        {((event as any).general_admission_price ?? 0) > 0 ? (
+                          <span className="text-green-400 font-bold">
+                            General Admission: ${(event as any).general_admission_price}
+                          </span>
+                        ) : (
+                          <>
+                            <span className="text-green-400 font-bold">
+                              Males: ${(event as any).males_price ?? event.price ?? 0}
+                            </span>
+                            <span className="text-pink-400 font-bold">
+                              Females: ${(event as any).females_price ?? event.price ?? 0}
+                            </span>
+                          </>
+                        )}
                       </div>
+
                     </div>
 
                     <div className="flex gap-2">
