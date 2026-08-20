@@ -34,6 +34,7 @@ export const DashboardBackButtonGuard = () => {
     if (!isDashboard || typeof window === "undefined") return;
 
     const guardActive = sessionStorage.getItem(GUARD_STATE_KEY) === "active";
+    console.log("[BackGuard] mount effect", { guardActive, pushed: pushedRef.current });
     if (guardActive && !pushedRef.current) {
       sessionStorage.removeItem(GUARD_STATE_KEY);
       pushedRef.current = true;
@@ -41,6 +42,7 @@ export const DashboardBackButtonGuard = () => {
         location.pathname + location.search + location.hash,
         { state: { [HISTORY_STATE_KEY]: true } }
       );
+      console.log("[BackGuard] pushed via navigate");
     }
   }, [isDashboard, location.pathname, location.search, location.hash, navigate]);
 
