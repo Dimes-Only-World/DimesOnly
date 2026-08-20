@@ -169,8 +169,12 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const handleConfirmFreeRegister = async () => {
     setIsRegistering(true);
     try {
-      // Pass the guest name - if "none" or empty, only 1 attendee will be deducted
-      await onFreeRegister(guestName.trim().toLowerCase() === "none" ? "" : guestName.trim());
+      // Plus free spots admit no guests; otherwise "none"/empty means solo
+      const guest =
+        noGuestsAllowed || guestName.trim().toLowerCase() === "none"
+          ? ""
+          : guestName.trim();
+      await onFreeRegister(guest);
       onSuccess();
       setShowGuestDialog(false);
       setGuestName("");
