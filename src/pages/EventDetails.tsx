@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import EventTicketSelector from "@/components/EventTicketSelector";
+import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
 import { formatTime12Hour, formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
@@ -670,7 +671,14 @@ const EventDetails: React.FC = () => {
             <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
               {event.current_attendees}/{event.max_attendees} Attending
             </Badge>
-            
+
+            {(() => {
+              const alloc = resolveFreeAllocation(event as any, currentUser || {}, usedFreeSpots as any);
+              return alloc.remaining > 0 ? (
+                <Badge className="bg-green-500 text-white">{getFreeBadgeLabel(alloc)}</Badge>
+              ) : null;
+            })()}
+
             {/* Going/Not Going Indicator */}
             {isUserRegistered ? (
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white font-bold text-sm">
@@ -684,6 +692,7 @@ const EventDetails: React.FC = () => {
               </span>
             )}
           </div>
+
         </div>
 
         <div className={getContentClasses()}>
@@ -719,53 +728,13 @@ const EventDetails: React.FC = () => {
                       <Users className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                       <span>{event.current_attendees}/{event.max_attendees} attending</span>
                     </div>
-                    {/* Free Spots Display - Filtered by user type */}
+                    {/* Free Spots Display - resolved for this viewer */}
                     {(() => {
-                      const userType = currentUser?.user_type || 'normal';
-                      const userGender = currentUser?.gender || 'male';
-                      
-                      // Gender-specific free spots for normal/male/female users
-                      const remainingFreeMales = Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
-                      const remainingFreeFemales = Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
-                      
-                      // Exotic and Stripper from DB values
-                      const remainingExoticFree = Math.max(0, (event.free_spots_exotics || 0) - (usedFreeSpots.exotics || 0));
-                      const remainingStripperFree = Math.max(0, (event.free_spots_strippers || 0) - (usedFreeSpots.strippers || 0));
-                      
-                      // Determine which free spots are relevant to this user
-                      const showMaleFree = userType !== 'exotic' && userType !== 'stripper' && userGender !== 'female' && remainingFreeMales > 0;
-                      const showFemaleFree = userType !== 'exotic' && userType !== 'stripper' && userGender === 'female' && remainingFreeFemales > 0;
-                      const showExotic = userType === 'exotic' && remainingExoticFree > 0;
-                      const showStripper = userType === 'stripper' && remainingStripperFree > 0;
-                      
-                      const hasRelevantFreeSpots = showMaleFree || showFemaleFree || showExotic || showStripper;
-                      
-                      return hasRelevantFreeSpots ? (
-                        <div className="space-y-2">
-                          {showMaleFree && (
-                            <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
-                              <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
-                              <span className="text-green-400 font-bold">Free Males: {remainingFreeMales}</span>
-                            </div>
-                          )}
-                          {showFemaleFree && (
-                            <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
-                              <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
-                              <span className="text-green-400 font-bold">Free Females: {remainingFreeFemales}</span>
-                            </div>
-                          )}
-                          {showExotic && (
-                            <div className="flex items-center gap-3 p-3 bg-pink-500/20 rounded-lg">
-                              <Ticket className="h-5 w-5 text-pink-400 flex-shrink-0" />
-                              <span className="text-pink-400 font-bold">Free Exotic: {remainingExoticFree}</span>
-                            </div>
-                          )}
-                          {showStripper && (
-                            <div className="flex items-center gap-3 p-3 bg-purple-500/20 rounded-lg">
-                              <Ticket className="h-5 w-5 text-purple-400 flex-shrink-0" />
-                              <span className="text-purple-400 font-bold">Free Stripper: {remainingStripperFree}</span>
-                            </div>
-                          )}
+                      const alloc = resolveFreeAllocation(event as any, currentUser || {}, usedFreeSpots as any);
+                      return alloc.remaining > 0 ? (
+                        <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
+                          <Ticket className="h-5 w-5 text-green-400 flex-shrink-0" />
+                          <span className="text-green-400 font-bold">{getFreeBadgeLabel(alloc)}</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 p-3 bg-yellow-500/20 rounded-lg">
@@ -774,6 +743,7 @@ const EventDetails: React.FC = () => {
                         </div>
                       );
                     })()}
+
                   </div>
 
                   {event.description && (

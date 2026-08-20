@@ -11,6 +11,12 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabaseClient";
 import { Ticket, Users, Crown, Star, Minus, Plus, CreditCard, Loader2 } from "lucide-react";
+import {
+  resolveFreeAllocation,
+  getPlusPricing,
+  getGeneralAdmissionPrice,
+  isPlusMember,
+} from "@/lib/eventTickets";
 
 type TicketType = "free" | "general" | "vip" | "vip_section";
 
@@ -34,19 +40,33 @@ interface EventTicketSelectorProps {
     max_attendees: number;
     current_attendees: number;
     host_user_id?: string;
+    free_spots_dimes?: number;
+    free_spots_normals?: number;
+    free_spots_silver_plus?: number;
+    free_spots_diamond_plus?: number;
+    free_spots_elite_plus?: number;
+    free_spots_plus?: number;
+    general_admission_price?: number;
+    plus_ticket_mode?: string;
+    plus_discount_percent?: number;
   };
   currentUser: {
     id: string;
     username: string;
+    [key: string]: any;
   };
   userType?: string;
   usedFreeSpots?: {
-    strippers: number;
-    exotics: number;
-    normal: number;
-    males: number;
-    females: number;
+    strippers?: number;
+    exotics?: number;
+    normal?: number;
+    males?: number;
+    females?: number;
+    dimes?: number;
+    normals?: number;
+    plus?: number;
   };
+
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
   onFreeRegister: (guestName?: string) => Promise<void>;
@@ -73,32 +93,35 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  // Calculate available spots - uses database values for free spots
-  const availableFreeSpots = useMemo(() => {
-    if (userType === "stripper") {
-      return Math.max(0, (event.free_spots_strippers || 0) - usedFreeSpots.strippers);
-    } else if (userType === "exotic") {
-      return Math.max(0, (event.free_spots_exotics || 0) - usedFreeSpots.exotics);
-    } else if (userGender === 'female') {
-      return Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
-    } else {
-      // Male / normal users
-      return Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
-    }
-  }, [event, userType, usedFreeSpots]);
+  // Resolve which free bucket applies to this viewer
+  const freeAllocation = useMemo(
+    () =>
+      resolveFreeAllocation(
+        event as any,
+        { ...(currentUser as any), user_type: userType, gender: userGender },
+        usedFreeSpots as any,
+      ),
+    [event, currentUser, userType, userGender, usedFreeSpots],
+  );
+
+  const availableFreeSpots = freeAllocation.remaining;
+  const noGuestsAllowed = freeAllocation.isPlus;
 
   const remainingCapacity = event.max_attendees - event.current_attendees;
   const showFreeOption = availableFreeSpots > 0;
-  
-  // Get user-specific price for General Admission (based on gender)
-  const userSpecificPrice = userType === 'female' ? event.females_price : event.males_price;
-  const generalAdmissionPrice = event.price > 0 ? event.price : (userSpecificPrice || 0);
-  
-  // Show General option ONLY when free spots are exhausted (availableFreeSpots === 0) and there's a valid price
+
+  const isPlusViewer = isPlusMember({ ...(currentUser as any), user_type: userType });
+  const plusPricing = getPlusPricing(event as any, userGender);
+  const baseAdmissionPrice = getGeneralAdmissionPrice(event as any, userGender);
+  const generalAdmissionPrice =
+    isPlusViewer && plusPricing.mode === "discount" ? plusPricing.price : baseAdmissionPrice;
+
+  // Show General option ONLY when free spots are exhausted and there's a valid price
   const showGeneralOption = availableFreeSpots === 0 && remainingCapacity > 0 && generalAdmissionPrice > 0;
-  
+
   const showVipOption = event.vip_tickets > 0 && event.vip_price > 0;
   const showVipSectionOption = event.vip_sections > 0 && event.vip_section_price > 0;
+
 
   // Calculate total price
   const totalPrice = useMemo(() => {
@@ -146,8 +169,12 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const handleConfirmFreeRegister = async () => {
     setIsRegistering(true);
     try {
-      // Pass the guest name - if "none" or empty, only 1 attendee will be deducted
-      await onFreeRegister(guestName.trim().toLowerCase() === "none" ? "" : guestName.trim());
+      // Plus free spots admit no guests; otherwise "none"/empty means solo
+      const guest =
+        noGuestsAllowed || guestName.trim().toLowerCase() === "none"
+          ? ""
+          : guestName.trim();
+      await onFreeRegister(guest);
       onSuccess();
       setShowGuestDialog(false);
       setGuestName("");
@@ -264,21 +291,24 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const ticketOptions = [
     {
       type: "free" as TicketType,
-      label: "Free",
+      label: freeAllocation.label,
       icon: Ticket,
       price: 0,
       available: showFreeOption,
       description: `${availableFreeSpots} free spots remaining`,
-      badge: userType ? `For ${userType}s` : undefined,
+      badge: freeAllocation.isPlus ? "Plus Members" : userType ? `For ${userType}s` : undefined,
     },
     {
       type: "general" as TicketType,
-      label: "General Admission",
+      label: isPlusViewer && plusPricing.mode === "discount"
+        ? `General Admission (${plusPricing.percent}% Plus discount)`
+        : "General Admission",
       icon: Users,
       price: generalAdmissionPrice,
       available: showGeneralOption && generalAdmissionPrice > 0,
       description: `${remainingCapacity} spots available`,
     },
+
     {
       type: "vip" as TicketType,
       label: "VIP Ticket",
@@ -513,21 +543,39 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-300 text-sm">
-              Enter your guest's name below, or type "none" if attending alone.
-            </p>
-            <Input
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Guest name or 'none'"
-              className="bg-white/10 border-white/20 text-white placeholder-gray-400"
-            />
-            <p className="text-xs text-gray-400">
-              {guestName.trim().toLowerCase() === "none" || guestName.trim() === ""
-                ? "You will be registered alone (1 spot deducted)"
-                : "You + guest will be registered (2 spots deducted)"}
-            </p>
+            {noGuestsAllowed ? (
+              <>
+                <p className="text-gray-300 text-sm">
+                  No guest can be admitted with this free Plus member registration.
+                  Enter your full name to confirm.
+                </p>
+                <Input
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Your full name"
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                />
+              </>
+            ) : (
+              <>
+                <p className="text-gray-300 text-sm">
+                  Enter your guest's name below, or type "none" if attending alone.
+                </p>
+                <Input
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Guest name or 'none'"
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                />
+                <p className="text-xs text-gray-400">
+                  {guestName.trim().toLowerCase() === "none" || guestName.trim() === ""
+                    ? "You will be registered alone (1 spot deducted)"
+                    : "You + guest will be registered (2 spots deducted)"}
+                </p>
+              </>
+            )}
           </div>
+
           <DialogFooter className="gap-2">
             <Button
               variant="outline"

@@ -26,6 +26,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { formatTimeRange } from "@/lib/timeUtils";
+import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import {
   Search,
   MapPin,
@@ -902,59 +903,14 @@ const EventsDimesOnly: React.FC = () => {
                           }}
                         />
 
-                        {/* Attendance Status Badge */}
-                        <div className="absolute top-3 right-3">
-                          {event.isUserAttending ? (
-                            <div className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
-                              Going
+                        {getAvailableSpots(event) === 0 && (
+                          <div className="absolute top-3 left-3">
+                            <div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                              SOLD OUT
                             </div>
-                          ) : (
-                            <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
-                              Not Going
-                            </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
 
-                        {/* Event Status Badge - Show BOTH exotic and stripper free spots */}
-                        <div className="absolute top-3 left-3">
-                          {(() => {
-                            // Check if event is sold out first
-                            if (getAvailableSpots(event) === 0) {
-                              return (
-                                <div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                  SOLD OUT
-                                </div>
-                              );
-                            }
-                            
-                            const remainingExotic = getRemainingExoticSpots(event);
-                            const remainingStripper = getRemainingStripperSpots(event);
-                            
-                            // Show both categories' free spots
-                            return (
-                              <div className="flex flex-col gap-1">
-                                {remainingExotic > 0 ? (
-                          <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
-                            Free Exotic: {remainingExotic}
-                          </div>
-                                ) : (
-                                  <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                    Exotic: PAID ONLY
-                                  </div>
-                                )}
-                                {remainingStripper > 0 ? (
-                          <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
-                            Free Stripper: {remainingStripper}
-                          </div>
-                                ) : (
-                                  <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                    Stripper: PAID ONLY
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
 
                         {/* Media Indicators */}
                         <div className="absolute bottom-3 left-3 flex gap-2">
@@ -975,6 +931,43 @@ const EventsDimesOnly: React.FC = () => {
                       </div>
 
                       <CardContent className="p-4">
+                        {/* Free spots + attendance (below banner, above title) */}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          {getAvailableSpots(event) === 0 ? (
+                            <div className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
+                              SOLD OUT
+                            </div>
+                          ) : (() => {
+                            const alloc = resolveFreeAllocation(
+                              event as any,
+                              { ...(user as any), user_type: (user as any)?.user_type || (user as any)?.userType, gender: (user as any)?.gender },
+                              {
+                                exotics: getSpotsUsedByType(event, 'exotic'),
+                                strippers: getSpotsUsedByType(event, 'stripper'),
+                                plus: getSpotsUsedByType(event, 'exotic') + getSpotsUsedByType(event, 'stripper'),
+                              },
+                            );
+                            return alloc.remaining > 0 ? (
+                              <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                {getFreeBadgeLabel(alloc)}
+                              </div>
+                            ) : (
+                              <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                PAID ONLY
+                              </div>
+                            );
+                          })()}
+                          {event.isUserAttending ? (
+                            <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                              Going
+                            </div>
+                          ) : (
+                            <div className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                              Not Going
+                            </div>
+                          )}
+                        </div>
+
                         <div className="flex items-start justify-between mb-3">
                           <h3 className="text-lg font-bold text-yellow-400 line-clamp-2 flex-1">
                             {event.name}

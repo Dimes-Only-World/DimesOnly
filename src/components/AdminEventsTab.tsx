@@ -42,6 +42,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import EventTicketingFields from "@/components/admin/EventTicketingFields";
 
 interface Event {
   id: string;
@@ -63,6 +64,15 @@ interface Event {
   free_normal: number;
   free_spots_males: number;
   free_spots_females: number;
+  free_spots_dimes?: number;
+  free_spots_normals?: number;
+  free_spots_silver_plus?: number;
+  free_spots_diamond_plus?: number;
+  free_spots_elite_plus?: number;
+  free_spots_plus?: number;
+  general_admission_price?: number;
+  plus_ticket_mode?: string;
+  plus_discount_percent?: number;
   vip_price: number;
   vip_tickets: number;
   vip_section_price: number;
@@ -130,6 +140,15 @@ const AdminEventsTab: React.FC = () => {
     free_normal: 10, // Default 10 free spots for members
     free_spots_males: 0,
     free_spots_females: 0,
+    free_spots_dimes: 0,
+    free_spots_normals: 0,
+    free_spots_silver_plus: 0,
+    free_spots_diamond_plus: 0,
+    free_spots_elite_plus: 0,
+    free_spots_plus: 0,
+    general_admission_price: 0,
+    plus_ticket_mode: "free",
+    plus_discount_percent: 0,
     vip_price: 0,
     vip_tickets: 0,
     vip_section_price: 0,
@@ -451,6 +470,15 @@ const AdminEventsTab: React.FC = () => {
         free_normal: newEvent.free_normal || 0,
         free_spots_males: newEvent.free_spots_males || 0,
         free_spots_females: newEvent.free_spots_females || 0,
+        free_spots_dimes: newEvent.free_spots_dimes || 0,
+        free_spots_normals: newEvent.free_spots_normals || 0,
+        free_spots_silver_plus: newEvent.free_spots_silver_plus || 0,
+        free_spots_diamond_plus: newEvent.free_spots_diamond_plus || 0,
+        free_spots_elite_plus: newEvent.free_spots_elite_plus || 0,
+        free_spots_plus: newEvent.free_spots_plus || 0,
+        general_admission_price: newEvent.general_admission_price || 0,
+        plus_ticket_mode: newEvent.plus_ticket_mode || "free",
+        plus_discount_percent: newEvent.plus_discount_percent || 0,
         vip_price: newEvent.vip_price || 0,
         vip_tickets: newEvent.vip_tickets || 0,
         vip_section_price: newEvent.vip_section_price || 0,
@@ -514,6 +542,15 @@ const AdminEventsTab: React.FC = () => {
         free_normal: 0,
         free_spots_males: 0,
         free_spots_females: 0,
+        free_spots_dimes: 0,
+        free_spots_normals: 0,
+        free_spots_silver_plus: 0,
+        free_spots_diamond_plus: 0,
+        free_spots_elite_plus: 0,
+        free_spots_plus: 0,
+        general_admission_price: 0,
+        plus_ticket_mode: "free",
+        plus_discount_percent: 0,
         vip_price: 0,
         vip_tickets: 0,
         vip_section_price: 0,
@@ -632,6 +669,16 @@ const updateData = {
         free_normal: editingEvent.free_normal,
         free_spots_males: editingEvent.free_spots_males || 0,
         free_spots_females: editingEvent.free_spots_females || 0,
+        free_spots_dimes: editingEvent.free_spots_dimes || 0,
+        free_spots_normals: editingEvent.free_spots_normals || 0,
+        free_spots_silver_plus: editingEvent.free_spots_silver_plus || 0,
+        free_spots_diamond_plus: editingEvent.free_spots_diamond_plus || 0,
+        free_spots_elite_plus: editingEvent.free_spots_elite_plus || 0,
+        free_spots_plus: editingEvent.free_spots_plus || 0,
+        general_admission_price: editingEvent.general_admission_price || 0,
+        plus_ticket_mode: editingEvent.plus_ticket_mode || "free",
+        plus_discount_percent: editingEvent.plus_discount_percent || 0,
+
         vip_price: editingEvent.vip_price,
         vip_tickets: editingEvent.vip_tickets,
         vip_section_price: editingEvent.vip_section_price,
@@ -1043,23 +1090,6 @@ const updateData = {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Males Price ($)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={newEvent.males_price}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        males_price: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
                     Max Attendees
                   </label>
                   <Input
@@ -1074,39 +1104,8 @@ const updateData = {
                     }
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Free Strippers
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={newEvent.free_spots_strippers}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        free_spots_strippers: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Free Exotics
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={newEvent.free_spots_exotics}
-                    onChange={(e) =>
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        free_spots_exotics: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
               </div>
+
 
               {/* VIP and Ticket Options */}
               <div className="space-y-4 border-t pt-4">
@@ -1239,85 +1238,13 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Spots Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Free Males
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={newEvent.free_spots_males || 0}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          free_spots_males: parseInt(e.target.value) || 0,
-                        }))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal male users
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Free Females
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={newEvent.free_spots_females || 0}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          free_spots_females: parseInt(e.target.value) || 0,
-                        }))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal female users
-                    </p>
-                  </div>
-                </div>
+                <EventTicketingFields
+                  values={newEvent as any}
+                  onChange={(patch) =>
+                    setNewEvent((prev) => ({ ...prev, ...patch } as any))
+                  }
+                />
 
-                {/* Pricing Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Males Price ($)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={newEvent.males_price}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          males_price: parseFloat(e.target.value) || 0,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Females Price ($)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={newEvent.females_price}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          females_price: parseFloat(e.target.value) || 0,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
               </div>
 
               {/* File Upload Section */}
@@ -1773,27 +1700,6 @@ const updateData = {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Males Price ($)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editingEvent.males_price || 0}
-                    onChange={(e) =>
-                      setEditingEvent((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              males_price: parseFloat(e.target.value) || 0,
-                            }
-                          : null
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
                     Max Attendees
                   </label>
                   <Input
@@ -1812,48 +1718,8 @@ const updateData = {
                     }
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Free Strippers
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={editingEvent.free_spots_strippers}
-                    onChange={(e) =>
-                      setEditingEvent((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              free_spots_strippers:
-                                parseInt(e.target.value) || 0,
-                            }
-                          : null
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Free Exotics
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={editingEvent.free_spots_exotics}
-                    onChange={(e) =>
-                      setEditingEvent((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              free_spots_exotics: parseInt(e.target.value) || 0,
-                            }
-                          : null
-                      )
-                    }
-                  />
-                </div>
               </div>
+
 
               {/* VIP and Ticket Options - Edit Form */}
               <div className="space-y-4 border-t pt-4">
@@ -1912,57 +1778,13 @@ const updateData = {
                   </div>
                 </div>
 
-                {/* Free Spots Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Free Males</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editingEvent.free_spots_males || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_males: parseInt(e.target.value) || 0 } : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal male users
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Free Females</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editingEvent.free_spots_females || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, free_spots_females: parseInt(e.target.value) || 0 } : null)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Free spots for normal female users
-                    </p>
-                  </div>
-                </div>
+                <EventTicketingFields
+                  values={editingEvent as any}
+                  onChange={(patch) =>
+                    setEditingEvent((prev) => (prev ? { ...prev, ...patch } as any : null))
+                  }
+                />
 
-                {/* Pricing Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Males Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.males_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, males_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Females Price ($)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingEvent.females_price || 0}
-                      onChange={(e) => setEditingEvent((prev) => prev ? { ...prev, females_price: parseFloat(e.target.value) || 0 } : null)}
-                    />
-                  </div>
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

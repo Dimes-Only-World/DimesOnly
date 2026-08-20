@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
 import { formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
+import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import {
   Calendar,
   MapPin,
@@ -318,6 +319,32 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
+  // Tally used free spots per bucket from registrations
+  const getUsedFreeSpots = useCallback((event: Event | null) => {
+    const regs = (event?.registrations || []) as any[];
+    const free = regs.filter((r) => !r.is_paid && !r.amount_paid);
+    const cat = (r: any) => {
+      const t = String(r.user_type || "").toLowerCase();
+      if (t === "stripper") return "stripper";
+      if (t === "exotic") return "exotic";
+      return String(r.gender || "").toLowerCase() === "female" ? "female" : "male";
+    };
+    const strippers = free.filter((r) => cat(r) === "stripper").length;
+    const exotics = free.filter((r) => cat(r) === "exotic").length;
+    const females = free.filter((r) => cat(r) === "female").length;
+    const males = free.filter((r) => cat(r) === "male").length;
+    return {
+      strippers,
+      exotics,
+      females,
+      males,
+      dimes: strippers + exotics,
+      normals: males + females,
+      plus: free.length,
+    };
+  }, []);
+
+
   // Calculate remaining free spots for Normal Male and Female
   // Uses event.free_normal from database (default 0 if not set)
   const getRemainingNormalFreeMales = useCallback((event: Event | null) => {
@@ -626,89 +653,13 @@ const Events: React.FC = () => {
                       }}
                     />
 
-                    {/* Attendance Status Badge */}
-                    <div className="absolute top-3 right-3">
-                      {event.is_attending ? (
-                        <div className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
-                          Going
-                        </div>
-                      ) : (
-                        <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
-                          Not Going
-                        </div>
-                      )}
-                    </div>
+                    {/* Sold out overlay */}
+                    {getAvailableSpots(event) === 0 && (
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-red-600 text-white font-bold">SOLD OUT</Badge>
+                      </div>
+                    )}
 
-                    {/* Event Status Badge - Show only viewer-relevant free spots badge */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1">
-                      {(() => {
-                        // Determine viewer's category based on their user type
-                        const viewerType = (appUser?.userType || '').toLowerCase();
-                        const viewerCategory = viewerType === 'exotic' ? 'exotic' 
-                          : viewerType === 'stripper' ? 'stripper' 
-                          : 'normal'; // male, female, normal, or empty
-
-                        if (getAvailableSpots(event) === 0) {
-                          return (
-                            <Badge className="bg-red-600 text-white font-bold">
-                              SOLD OUT
-                            </Badge>
-                          );
-                        }
-
-                        // Show only the badge relevant to the viewer's category
-                        if (viewerCategory === 'exotic') {
-                          const remaining = getRemainingExoticFree(event);
-                          return remaining > 0 ? (
-                            <Badge className="bg-pink-600 text-white font-bold text-xs">
-                              Free Exotic: {remaining}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          );
-                        }
-
-                        if (viewerCategory === 'stripper') {
-                          const remaining = getRemainingStripperFree(event);
-                          return remaining > 0 ? (
-                            <Badge className="bg-purple-600 text-white font-bold text-xs">
-                              Free Stripper: {remaining}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          );
-                        }
-
-                        // Default: normal/male/female viewer - show gender-specific free spots
-                        const userGender = (appUser?.gender || '').toLowerCase();
-                        const remainingMales = getRemainingNormalFreeMales(event);
-                        const remainingFemales = getRemainingNormalFreeFemales(event);
-                        
-                        if (userGender === 'female' && remainingFemales > 0) {
-                          return (
-                            <Badge className="bg-green-600 text-white font-bold text-xs">
-                              Free Females: {remainingFemales}
-                            </Badge>
-                          );
-                        } else if (userGender !== 'female' && remainingMales > 0) {
-                          return (
-                            <Badge className="bg-green-600 text-white font-bold text-xs">
-                              Free Males: {remainingMales}
-                            </Badge>
-                          );
-                        } else {
-                          return (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          );
-                        }
-                      })()}
-                    </div>
 
                     {/* Media Indicators */}
                     <div className="absolute bottom-3 left-3 flex gap-2">
@@ -729,6 +680,31 @@ const Events: React.FC = () => {
                   </div>
 
                   <CardContent className={getContentClasses()}>
+                    {/* Free spots + attendance status (below banner, above title) */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      {getAvailableSpots(event) === 0 ? (
+                        <Badge className="bg-red-600 text-white font-bold">SOLD OUT</Badge>
+                      ) : (() => {
+                        const alloc = resolveFreeAllocation(
+                          event as any,
+                          { ...(appUser as any), user_type: (appUser as any)?.userType, gender: (appUser as any)?.gender },
+                          getUsedFreeSpots(event),
+                        );
+                        return alloc.remaining > 0 ? (
+                          <Badge className="bg-green-600 text-white font-bold text-xs">
+                            {getFreeBadgeLabel(alloc)}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-600 text-white font-bold">PAID ONLY</Badge>
+                        );
+                      })()}
+                      {event.is_attending ? (
+                        <Badge className="bg-green-500 text-white font-bold">Going</Badge>
+                      ) : (
+                        <Badge className="bg-red-500 text-white font-bold">Not Going</Badge>
+                      )}
+                    </div>
+
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-lg font-bold text-yellow-400 line-clamp-2">
                         {event.name}
@@ -762,13 +738,22 @@ const Events: React.FC = () => {
                       </div>
                       {/* Pricing info */}
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                        <span className="text-green-400 font-bold">
-                          Males: ${(event as any).males_price ?? event.price ?? 0}
-                        </span>
-                        <span className="text-pink-400 font-bold">
-                          Females: ${(event as any).females_price ?? event.price ?? 0}
-                        </span>
+                        {((event as any).general_admission_price ?? 0) > 0 ? (
+                          <span className="text-green-400 font-bold">
+                            General Admission: ${(event as any).general_admission_price}
+                          </span>
+                        ) : (
+                          <>
+                            <span className="text-green-400 font-bold">
+                              Males: ${(event as any).males_price ?? event.price ?? 0}
+                            </span>
+                            <span className="text-pink-400 font-bold">
+                              Females: ${(event as any).females_price ?? event.price ?? 0}
+                            </span>
+                          </>
+                        )}
                       </div>
+
                     </div>
 
                     <div className="flex gap-2">
