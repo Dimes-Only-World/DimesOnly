@@ -244,7 +244,7 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
 
           <h2 className="max-w-full text-balance break-words font-sans text-[26px] font-black leading-[1.12] tracking-tight sm:text-4xl">
             <span className="block bg-gradient-to-b from-[#FFF7DC] via-[#EBD79A] to-[#C9A227] bg-clip-text text-transparent">
-              All Plus members get into the
+              All Diamond Plus members get into the
             </span>
             <span className="mt-2 block bg-gradient-to-b from-[#FFF7DC] via-[#F3DFA6] to-[#D4AF37] bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(212,175,55,0.35)]">
               Malibu Mansion App Launch Party
