@@ -1466,7 +1466,8 @@ const updateData = {
                       onClick={() => {
                         setEditingEvent({
                           ...event,
-                          date: formatDateForInput(event.date),
+                          date: event.date_tba ? "" : formatDateForInput(event.date),
+                          date_tba: event.date_tba ?? false,
                         });
                         setShowEditEvent(true);
                       }}
