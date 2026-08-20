@@ -503,7 +503,7 @@ const AdminEventsTab: React.FC = () => {
 
       const { data, error } = await supabase
         .from("events")
-        .insert(eventData)
+        .insert(eventData as any)
         .select()
         .single();
 
