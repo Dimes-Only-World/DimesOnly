@@ -27,18 +27,24 @@
       (function () {
         var PREV_PATH_KEY = "backGuardPreviousPath";
         var SHOW_DIALOG_KEY = "showBackGuardDialog";
-        console.log("[BackGuardInline] script loaded", window.location.pathname);
 
         function isLoginPath(path) {
           return path === "/login";
         }
 
+        function isAuthenticated() {
+          return !!(
+            window.localStorage.getItem("authToken") ||
+            window.sessionStorage.getItem("userData")
+          );
+        }
+
         window.addEventListener("popstate", function () {
           var currentPath = window.location.pathname;
           var previousPath = sessionStorage.getItem(PREV_PATH_KEY);
-          console.log("[BackGuardInline] popstate", { currentPath, previousPath });
 
           if (
+            isAuthenticated() &&
             isLoginPath(currentPath) &&
             previousPath &&
             previousPath.startsWith("/dashboard")
@@ -46,7 +52,6 @@
             // Undo the back navigation so the user stays on the dashboard
             window.history.forward();
             sessionStorage.setItem(SHOW_DIALOG_KEY, "true");
-            console.log("[BackGuardInline] intercepted");
           }
         });
       })();
