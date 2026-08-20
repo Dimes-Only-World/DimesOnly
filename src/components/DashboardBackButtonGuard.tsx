@@ -26,6 +26,7 @@ export const DashboardBackButtonGuard = () => {
   const [open, setOpen] = useState(false);
   const pushedRef = useRef(false);
   const isDashboard = location.pathname.startsWith("/dashboard");
+  console.log("[BackGuard] render", location.pathname, isDashboard);
 
   // Push a duplicate history entry when entering the dashboard from login.
   // This lets us intercept the browser back button before it leaves the app.
