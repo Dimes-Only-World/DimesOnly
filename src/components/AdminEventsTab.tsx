@@ -1614,15 +1614,37 @@ const updateData = {
                   <label className="block text-sm font-medium mb-1">
                     Date
                   </label>
-                  <Input
-                    type="date"
-                    value={editingEvent.date}
-                    onChange={(e) =>
-                      setEditingEvent((prev) =>
-                        prev ? { ...prev, date: e.target.value } : null
-                      )
-                    }
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={editingEvent.date}
+                      disabled={editingEvent.date_tba}
+                      onChange={(e) =>
+                        setEditingEvent((prev) =>
+                          prev ? { ...prev, date: e.target.value } : null
+                        )
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant={editingEvent.date_tba ? "default" : "outline"}
+                      onClick={() =>
+                        setEditingEvent((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                date_tba: !prev.date_tba,
+                                date: !prev.date_tba ? "" : prev.date,
+                              }
+                            : null
+                        )
+                      }
+                      className="whitespace-nowrap"
+                    >
+                      {editingEvent.date_tba ? "TBA On" : "TBA"}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
