@@ -54,6 +54,7 @@ export const DashboardBackButtonGuard = () => {
       const userState =
         (state as { usr?: Record<string, unknown> })?.usr ?? state;
       const markerPopped = userState?.[HISTORY_STATE_KEY] === true;
+      console.log("[BackGuard] popstate", JSON.stringify({ state, markerPopped, url: window.location.pathname }));
 
       if (markerPopped) {
         // Undo the back navigation so the user stays on the dashboard
