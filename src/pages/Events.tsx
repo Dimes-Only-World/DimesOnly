@@ -378,7 +378,7 @@ const Events: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
       {/* Mobile-first full width design */}
-      <div className={getContainerClasses()}>
+      <div className={getContainerClasses("w-full")}>
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
@@ -497,7 +497,7 @@ const Events: React.FC = () => {
           </div>
         )}
 
-        <div className={getContentClasses()}>
+        <div className={getContentClasses("px-4")}>
           {/* Events attending badge */}
           <div className="flex justify-center mb-4">
             {userProfile && (
@@ -609,7 +609,7 @@ const Events: React.FC = () => {
               </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               {filteredEvents.map((event) => (
                 <Card
                   key={event.id}
