@@ -670,7 +670,14 @@ const EventDetails: React.FC = () => {
             <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
               {event.current_attendees}/{event.max_attendees} Attending
             </Badge>
-            
+
+            {(() => {
+              const alloc = resolveFreeAllocation(event as any, currentUser || {}, usedFreeSpots as any);
+              return alloc.remaining > 0 ? (
+                <Badge className="bg-green-500 text-white">{getFreeBadgeLabel(alloc)}</Badge>
+              ) : null;
+            })()}
+
             {/* Going/Not Going Indicator */}
             {isUserRegistered ? (
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white font-bold text-sm">
@@ -684,6 +691,7 @@ const EventDetails: React.FC = () => {
               </span>
             )}
           </div>
+
         </div>
 
         <div className={getContentClasses()}>
