@@ -11,8 +11,7 @@ Replace the plain "Loading..." text with a dancing angel animation wherever the 
 ## Plan
 
 1. **Asset handling**
-   - Accept the user's transparent angel-dancing GIF.
-   - Upload it via `lovable-assets create` to the Lovable CDN.
+   - Upload the provided `EvrS7.gif` via `lovable-assets create` to the Lovable CDN.
    - Save the resulting pointer as `src/assets/angel-loader.gif.asset.json`.
 
 2. **Create `src/components/AngelLoader.tsx`**
@@ -35,4 +34,5 @@ Replace the plain "Loading..." text with a dancing angel animation wherever the 
 ## Notes
 - Format confirmed: transparent GIF.
 - Scope confirmed: global loading first; inline page loaders as a secondary pass.
-- The user must provide the actual GIF file before implementation can begin.
+- Asset file `EvrS7.gif` has been provided and is ready for upload.
+
