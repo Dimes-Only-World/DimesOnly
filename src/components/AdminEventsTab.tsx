@@ -534,6 +534,7 @@ const AdminEventsTab: React.FC = () => {
         description: "",
         date: "",
         date_tba: false,
+        end_date: "",
         start_time: "",
         end_time: "",
         address: "",
@@ -1038,6 +1039,20 @@ const updateData = {
                       {newEvent.date_tba ? "TBA On" : "TBA"}
                     </Button>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    End Date (optional)
+                  </label>
+                  <Input
+                    type="date"
+                    value={newEvent.end_date || ""}
+                    disabled={newEvent.date_tba}
+                    min={newEvent.date || undefined}
+                    onChange={(e) =>
+                      setNewEvent((prev) => ({ ...prev, end_date: e.target.value }))
+                    }
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
