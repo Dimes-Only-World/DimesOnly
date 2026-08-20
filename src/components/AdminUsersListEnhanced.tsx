@@ -327,11 +327,24 @@ const AdminUsersListEnhanced: React.FC = () => {
             ))}
           </div>
 
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
+              <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>
+                Next
+              </Button>
+            </div>
+          )}
+
           {filteredUsers.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No users found matching the current filters</p>
             </div>
           )}
+
         </CardContent>
       </Card>
 
