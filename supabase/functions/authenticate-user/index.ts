@@ -261,6 +261,17 @@ Deno.serve(async (req) => {
     // Clear failed attempts on successful login
     clearFailedAttempts(clientIP);
     console.log('Login successful for user:', user.username);
+
+    // Record last login timestamp (non-blocking failure)
+    try {
+      await supabase
+        .from('users')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', user.id);
+    } catch (e) {
+      console.error('Failed to record last_login_at:', e);
+    }
+
     
     const pushAuthToken = await createCustomSessionToken(
       user.id,

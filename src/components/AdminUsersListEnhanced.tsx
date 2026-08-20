@@ -25,11 +25,16 @@ interface User {
   banner_photo?: string;
   front_page_photo?: string;
   created_at: string;
+  last_login_at?: string | null;
   is_active: boolean;
   deactivated_at?: string;
   referred_by?: string;
   referred_by_photo?: string;
 }
+
+type SortKey = "last_login" | "joined";
+
+const PAGE_SIZE = 50;
 
 const AdminUsersListEnhanced: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -37,6 +42,8 @@ const AdminUsersListEnhanced: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("last_login");
+  const [page, setPage] = useState(1);
 
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
@@ -51,7 +58,12 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter]);
+  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter, sortKey]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter, sortKey]);
+
 
   const fetchUsers = async () => {
     try {
@@ -92,8 +104,24 @@ const AdminUsersListEnhanced: React.FC = () => {
     if (cityFilter) filtered = filtered.filter((u) => u.city?.toLowerCase().includes(cityFilter.toLowerCase()));
     if (stateFilter) filtered = filtered.filter((u) => u.state?.toLowerCase().includes(stateFilter.toLowerCase()));
     if (referredByFilter) filtered = filtered.filter((u) => u.referred_by?.toLowerCase().includes(referredByFilter.toLowerCase()));
+
+    const ts = (v?: string | null) => (v ? new Date(v).getTime() : 0);
+    filtered.sort((a, b) =>
+      sortKey === "last_login"
+        ? ts(b.last_login_at) - ts(a.last_login_at)
+        : ts(b.created_at) - ts(a.created_at)
+    );
+
     setFilteredUsers(filtered);
   };
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "Never";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "Never";
+    return d.toLocaleString();
+  };
+
 
   const getGenderDisplay = (user: User) => {
     const gender = user.gender?.toLowerCase() || "";
@@ -205,45 +233,64 @@ const AdminUsersListEnhanced: React.FC = () => {
             referredByFilter={referredByFilter} setReferredByFilter={setReferredByFilter}
           />
 
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <Button
+              size="sm"
+              variant={sortKey === "last_login" ? "default" : "outline"}
+              onClick={() => setSortKey("last_login")}
+            >
+              Most Recent Login
+            </Button>
+            <Button
+              size="sm"
+              variant={sortKey === "joined" ? "default" : "outline"}
+              onClick={() => setSortKey("joined")}
+            >
+              Joined Date
+            </Button>
+          </div>
+
           <div className="text-sm text-muted-foreground mb-4">
-            Showing {filteredUsers.length} of {users.length} users
+            Showing {pagedUsers.length} of {filteredUsers.length} filtered ({users.length} total) — page {currentPage} of {totalPages}
           </div>
 
           <div className="grid gap-4">
-            {filteredUsers.map((user) => (
+            {pagedUsers.map((user) => (
               <Card key={user.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex items-start space-x-4">
-                      <Avatar className="h-12 w-12 shrink-0">
-                        <AvatarImage src={user.profile_photo} />
-                        <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="font-semibold">{user.username}</h3>
-                          <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
-                            {getUserTypeDisplay(user.user_type)}
-                          </Badge>
-                          <Badge variant="outline">{getGenderDisplay(user)}</Badge>
-                          {user.is_active === false && (
-                            <Badge variant="destructive">Deactivated</Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
-                          <p className="break-all"><strong>Email:</strong> {user.email}</p>
-                          <p><strong>Phone:</strong> {user.mobile_number || "N/A"}</p>
-                          <p><strong>Location:</strong> {user.city}, {user.state}</p>
-                          {user.referred_by && <p><strong>Referred by:</strong> {user.referred_by}</p>}
-                          <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
-                          {user.deactivated_at && (
-                            <p className="text-destructive"><strong>Deactivated:</strong> {new Date(user.deactivated_at).toLocaleDateString()}</p>
-                          )}
-                        </div>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] items-center gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-semibold">{user.username}</h3>
+                        <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
+                          {getUserTypeDisplay(user.user_type)}
+                        </Badge>
+                        <Badge variant="outline">{getGenderDisplay(user)}</Badge>
+                        {user.is_active === false && (
+                          <Badge variant="destructive">Deactivated</Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
+                        <p><strong>Last Login:</strong> {formatDateTime(user.last_login_at)}</p>
+                        <p><strong>Phone:</strong> {user.mobile_number || "N/A"}</p>
+                        <p><strong>Location:</strong> {user.city}, {user.state}</p>
+                        {user.referred_by && <p><strong>Referred by:</strong> {user.referred_by}</p>}
+                        <p><strong>Joined:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
+                        {user.deactivated_at && (
+                          <p className="text-destructive"><strong>Deactivated:</strong> {new Date(user.deactivated_at).toLocaleDateString()}</p>
+                        )}
                       </div>
                     </div>
+
+                    <div className="flex justify-center">
+                      <Avatar className="h-28 w-28 md:h-32 md:w-32 shrink-0 ring-2 ring-border">
+                        <AvatarImage src={user.profile_photo} className="object-cover" />
+                        <AvatarFallback className="text-2xl">{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    </div>
+
+
 
                     <div className="flex flex-row md:flex-col gap-2 flex-wrap">
                       <Button variant="outline" size="sm" onClick={() => handleViewDetails(user)}>
@@ -280,11 +327,24 @@ const AdminUsersListEnhanced: React.FC = () => {
             ))}
           </div>
 
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
+              <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>
+                Next
+              </Button>
+            </div>
+          )}
+
           {filteredUsers.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No users found matching the current filters</p>
             </div>
           )}
+
         </CardContent>
       </Card>
 
