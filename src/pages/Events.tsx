@@ -318,6 +318,32 @@ const Events: React.FC = () => {
     return Math.max(0, event.max_attendees - event.current_attendees);
   }, []);
 
+  // Tally used free spots per bucket from registrations
+  const getUsedFreeSpots = useCallback((event: Event | null) => {
+    const regs = (event?.registrations || []) as any[];
+    const free = regs.filter((r) => !r.is_paid && !r.amount_paid);
+    const cat = (r: any) => {
+      const t = String(r.user_type || "").toLowerCase();
+      if (t === "stripper") return "stripper";
+      if (t === "exotic") return "exotic";
+      return String(r.gender || "").toLowerCase() === "female" ? "female" : "male";
+    };
+    const strippers = free.filter((r) => cat(r) === "stripper").length;
+    const exotics = free.filter((r) => cat(r) === "exotic").length;
+    const females = free.filter((r) => cat(r) === "female").length;
+    const males = free.filter((r) => cat(r) === "male").length;
+    return {
+      strippers,
+      exotics,
+      females,
+      males,
+      dimes: strippers + exotics,
+      normals: males + females,
+      plus: free.length,
+    };
+  }, []);
+
+
   // Calculate remaining free spots for Normal Male and Female
   // Uses event.free_normal from database (default 0 if not set)
   const getRemainingNormalFreeMales = useCallback((event: Event | null) => {
