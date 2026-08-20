@@ -337,22 +337,31 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get total attendee count including guests (sum of ticket_quantity)
-      const { data: attendeeData } = await supabase
-        .from("user_events")
-        .select("ticket_quantity")
-        .eq("event_id", eventId);
-
-      // Sum all ticket quantities to get total attendees + guests
-      const totalAttendees = (attendeeData || []).reduce(
-        (sum, record) => sum + (record.ticket_quantity || 1), 
-        0
-      );
+      // Authoritative aggregate counts (RLS-safe RPC), including guests
+      const { data: countsData } = await supabase.rpc("event_attendance_counts", {
+        p_event_id: eventId,
+      });
+      const counts: any = countsData || {};
+      const totalAttendees = Number(counts.total_attendees || 0);
 
       setEvent({
         ...eventData,
         current_attendees: totalAttendees,
       } as Event);
+
+      if (counts.used) {
+        setUsedFreeSpots({
+          strippers: Number(counts.used.strippers || 0),
+          exotics: Number(counts.used.exotics || 0),
+          normal: Number(counts.used.normal || 0),
+          males: Number(counts.used.males || 0),
+          females: Number(counts.used.females || 0),
+          dimes: Number(counts.used.dimes || 0),
+          normals: Number(counts.used.normals || 0),
+          plus: Number(counts.used.plus || 0),
+        } as any);
+      }
+
 
       // Fetch host profile if host_user_id exists
       if (eventData.host_user_id) {
