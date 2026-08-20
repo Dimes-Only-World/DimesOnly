@@ -67,21 +67,14 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
                 {title}
               </h1>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <p className="hidden sm:block text-xs md:text-sm text-gray-600 max-w-[140px] truncate">
-                  Welcome, {username || "User"}
-                </p>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50"
-                  title="Logout"
-                  aria-label="Logout"
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
-              </div>
+              <button
+                onClick={handleLogout}
+                aria-label="Log out"
+                title="Log out"
+                className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-pink-400 hover:ring-pink-500 shadow-md bg-slate-200 transition-all"
+              >
+                <LogOut className="h-6 w-6 text-slate-600" />
+              </button>
             </div>
           </div>
         </div>
