@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import {
   Camera,
   Share2,
   Trophy,
+  LogOut,
 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import ProfileSidebar from "./ProfileSidebar";
@@ -31,10 +33,24 @@ import { Tables } from "@/types";
 type UserData = Tables<"users">;
 
 const UserDashboardEnhanced: React.FC = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
   const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      sessionStorage.removeItem("userData");
+      sessionStorage.removeItem("adminToken");
+      localStorage.removeItem("authToken");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({ title: "Error", description: "Failed to log out", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -171,7 +187,14 @@ const UserDashboardEnhanced: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <span className="text-sm text-gray-600">Welcome back, {userData.username}</span>
+              <button
+                onClick={handleLogout}
+                aria-label="Log out"
+                title="Log out"
+                className="relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-pink-400 hover:ring-pink-500 shadow-lg bg-slate-200 transition-all"
+              >
+                <LogOut className="h-7 w-7 text-slate-600" />
+              </button>
             </div>
           </div>
         </div>
