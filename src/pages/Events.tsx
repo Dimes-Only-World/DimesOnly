@@ -729,6 +729,31 @@ const Events: React.FC = () => {
                   </div>
 
                   <CardContent className={getContentClasses()}>
+                    {/* Free spots + attendance status (below banner, above title) */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      {getAvailableSpots(event) === 0 ? (
+                        <Badge className="bg-red-600 text-white font-bold">SOLD OUT</Badge>
+                      ) : (() => {
+                        const alloc = resolveFreeAllocation(
+                          event as any,
+                          { ...(appUser as any), user_type: (appUser as any)?.userType, gender: (appUser as any)?.gender },
+                          getUsedFreeSpots(event),
+                        );
+                        return alloc.remaining > 0 ? (
+                          <Badge className="bg-green-600 text-white font-bold text-xs">
+                            {getFreeBadgeLabel(alloc)}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-600 text-white font-bold">PAID ONLY</Badge>
+                        );
+                      })()}
+                      {event.is_attending ? (
+                        <Badge className="bg-green-500 text-white font-bold">Going</Badge>
+                      ) : (
+                        <Badge className="bg-red-500 text-white font-bold">Not Going</Badge>
+                      )}
+                    </div>
+
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-lg font-bold text-yellow-400 line-clamp-2">
                         {event.name}
