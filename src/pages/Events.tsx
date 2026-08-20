@@ -728,7 +728,7 @@ const Events: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-yellow-400" />
                         <span>
-                          {formatTimeRange(event.start_time, event.end_time)}
+                          {event.date_tba ? "To Be Announced" : formatTimeRange(event.start_time, event.end_time)}
                         </span>
                       </div>
                       <div className="flex items-start gap-2">
