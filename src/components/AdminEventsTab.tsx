@@ -382,10 +382,10 @@ const AdminEventsTab: React.FC = () => {
   };
 
   const handleAddEvent = async () => {
-    if (!newEvent.name || !newEvent.date) {
+    if (!newEvent.name || (!newEvent.date && !newEvent.date_tba)) {
       toast({
         title: "Error",
-        description: "Please fill in event name and date",
+        description: "Please fill in event name and date (or mark as TBA)",
         variant: "destructive",
       });
       return;
