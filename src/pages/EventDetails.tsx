@@ -165,7 +165,7 @@ const EventDetails: React.FC = () => {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
 
   // Used free spots tracking
-  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
+  const [usedFreeSpots, setUsedFreeSpots] = useState<Record<string, number>>({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0, dimes: 0, normals: 0, plus: 0 });
 
   // Payment status popup
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
