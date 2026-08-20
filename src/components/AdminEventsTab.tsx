@@ -529,6 +529,7 @@ const AdminEventsTab: React.FC = () => {
         name: "",
         description: "",
         date: "",
+        date_tba: false,
         start_time: "",
         end_time: "",
         address: "",
