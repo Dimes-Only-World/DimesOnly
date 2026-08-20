@@ -116,8 +116,8 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const generalAdmissionPrice =
     isPlusViewer && plusPricing.mode === "discount" ? plusPricing.price : baseAdmissionPrice;
 
-  // Show General option ONLY when free spots are exhausted and there's a valid price
-  const showGeneralOption = availableFreeSpots === 0 && remainingCapacity > 0 && generalAdmissionPrice > 0;
+  // Show General option whenever there's capacity and a valid price (alongside any free option)
+  const showGeneralOption = remainingCapacity > 0 && generalAdmissionPrice > 0;
 
   const showVipOption = event.vip_tickets > 0 && event.vip_price > 0;
   const showVipSectionOption = event.vip_sections > 0 && event.vip_section_price > 0;
