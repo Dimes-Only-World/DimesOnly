@@ -115,6 +115,11 @@ const AdminUsersListEnhanced: React.FC = () => {
     setFilteredUsers(filtered);
   };
 
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+
   const formatDateTime = (value?: string | null) => {
     if (!value) return "Never";
     const d = new Date(value);
