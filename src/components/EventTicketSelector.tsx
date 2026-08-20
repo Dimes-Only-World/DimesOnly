@@ -513,21 +513,39 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-300 text-sm">
-              Enter your guest's name below, or type "none" if attending alone.
-            </p>
-            <Input
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Guest name or 'none'"
-              className="bg-white/10 border-white/20 text-white placeholder-gray-400"
-            />
-            <p className="text-xs text-gray-400">
-              {guestName.trim().toLowerCase() === "none" || guestName.trim() === ""
-                ? "You will be registered alone (1 spot deducted)"
-                : "You + guest will be registered (2 spots deducted)"}
-            </p>
+            {noGuestsAllowed ? (
+              <>
+                <p className="text-gray-300 text-sm">
+                  No guest can be admitted with this free Plus member registration.
+                  Enter your full name to confirm.
+                </p>
+                <Input
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Your full name"
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                />
+              </>
+            ) : (
+              <>
+                <p className="text-gray-300 text-sm">
+                  Enter your guest's name below, or type "none" if attending alone.
+                </p>
+                <Input
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Guest name or 'none'"
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                />
+                <p className="text-xs text-gray-400">
+                  {guestName.trim().toLowerCase() === "none" || guestName.trim() === ""
+                    ? "You will be registered alone (1 spot deducted)"
+                    : "You + guest will be registered (2 spots deducted)"}
+                </p>
+              </>
+            )}
           </div>
+
           <DialogFooter className="gap-2">
             <Button
               variant="outline"
