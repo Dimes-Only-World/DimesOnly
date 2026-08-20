@@ -107,7 +107,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const availableFreeSpots = freeAllocation.remaining;
   const noGuestsAllowed = freeAllocation.isPlus;
 
-  const remainingCapacity = event.max_attendees - event.current_attendees;
+  const remainingCapacity = Math.max(0, (event.max_attendees || 0) - (event.current_attendees || 0));
   const showFreeOption = availableFreeSpots > 0;
 
   const isPlusViewer = isPlusMember({ ...(currentUser as any), user_type: userType });

@@ -165,7 +165,7 @@ const EventDetails: React.FC = () => {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
 
   // Used free spots tracking
-  const [usedFreeSpots, setUsedFreeSpots] = useState({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0 });
+  const [usedFreeSpots, setUsedFreeSpots] = useState<Record<string, number>>({ strippers: 0, exotics: 0, normal: 0, males: 0, females: 0, dimes: 0, normals: 0, plus: 0 });
 
   // Payment status popup
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
@@ -337,22 +337,31 @@ const EventDetails: React.FC = () => {
 
       if (eventError) throw eventError;
 
-      // Get total attendee count including guests (sum of ticket_quantity)
-      const { data: attendeeData } = await supabase
-        .from("user_events")
-        .select("ticket_quantity")
-        .eq("event_id", eventId);
-
-      // Sum all ticket quantities to get total attendees + guests
-      const totalAttendees = (attendeeData || []).reduce(
-        (sum, record) => sum + (record.ticket_quantity || 1), 
-        0
-      );
+      // Authoritative aggregate counts (RLS-safe RPC), including guests
+      const { data: countsData } = await supabase.rpc("event_attendance_counts", {
+        p_event_id: eventId,
+      });
+      const counts: any = countsData || {};
+      const totalAttendees = Number(counts.total_attendees || 0);
 
       setEvent({
         ...eventData,
         current_attendees: totalAttendees,
       } as Event);
+
+      if (counts.used) {
+        setUsedFreeSpots({
+          strippers: Number(counts.used.strippers || 0),
+          exotics: Number(counts.used.exotics || 0),
+          normal: Number(counts.used.normal || 0),
+          males: Number(counts.used.males || 0),
+          females: Number(counts.used.females || 0),
+          dimes: Number(counts.used.dimes || 0),
+          normals: Number(counts.used.normals || 0),
+          plus: Number(counts.used.plus || 0),
+        } as any);
+      }
+
 
       // Fetch host profile if host_user_id exists
       if (eventData.host_user_id) {
@@ -367,8 +376,8 @@ const EventDetails: React.FC = () => {
         }
       }
 
-      // Calculate used free spots
-      await calculateUsedFreeSpots(eventId);
+      // Free-spot usage already resolved from the aggregate RPC above
+
     } catch (error) {
       console.error("Error fetching event details:", error);
       toast({
@@ -547,10 +556,8 @@ const EventDetails: React.FC = () => {
       description: `You're now registered for ${event.name}${hasGuest ? ` with ${guestName}` : ""}`,
     });
     fetchEventAttendees();
-    setEvent(prev => prev ? {
-      ...prev,
-      current_attendees: prev.current_attendees + spotsToDeduct
-    } : null);
+    await fetchEventDetails();
+
   };
 
   if (loading) {
@@ -735,6 +742,10 @@ const EventDetails: React.FC = () => {
             <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
               {event.current_attendees}/{event.max_attendees} Attending
             </Badge>
+            <Badge className="bg-white/10 text-white border-white/20">
+              {Math.max(0, (event.max_attendees || 0) - (event.current_attendees || 0))} spots available
+            </Badge>
+
 
             {(() => {
               const alloc = resolveFreeAllocation(event as any, currentUser || {}, usedFreeSpots as any);
@@ -869,11 +880,9 @@ const EventDetails: React.FC = () => {
                         onSuccess={() => {
                           setIsUserRegistered(true);
                           fetchEventAttendees();
-                          setEvent(prev => prev ? {
-                            ...prev,
-                            current_attendees: prev.current_attendees + 1
-                          } : null);
+                          fetchEventDetails();
                         }}
+
                         onError={(error) => {
                           toast({
                             title: "Error",
