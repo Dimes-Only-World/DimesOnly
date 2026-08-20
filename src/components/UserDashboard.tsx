@@ -492,7 +492,7 @@ const UserDashboard: React.FC = () => {
             </div>
 
             <DiamondPlusPopup userData={userData} />
-            <MansionPartyPopup userData={userData} />
+            
 
             <SubscriptionProgress userId={userData.id} />
 
@@ -603,6 +603,7 @@ const UserDashboard: React.FC = () => {
       )}
       {renderSection()}
       {slug === "earnings" && <Top20DimesCarousel />}
+      <MansionPartyPopup userData={userData} />
     </DashboardSectionLayout>
   );
 };
