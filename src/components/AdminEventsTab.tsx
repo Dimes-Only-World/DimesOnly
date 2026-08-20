@@ -714,7 +714,7 @@ const updateData = {
       } else {
         const { error } = await supabase
           .from("events")
-          .update(updateData)
+          .update(updateData as any)
           .eq("id", editingEvent.id);
         updateError = error;
       }
