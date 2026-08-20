@@ -97,7 +97,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       to: "/dashboard/jackpot",
     },
     {
-      label: "Referrals",
+      label: "Referrals Before Launch",
       value: String(stats.referrals),
       Icon: Users,
       to: "/dashboard/referrals",
