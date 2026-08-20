@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Crown, DollarSign, Trophy, Users, Share2, ArrowUpRight } from "lucide-react";
-import { resolveMembership } from "@/lib/membership";
+import { resolveMembership, MEMBERSHIP_OPTIONS } from "@/lib/membership";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useToast } from "@/hooks/use-toast";
