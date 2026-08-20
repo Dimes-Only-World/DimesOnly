@@ -95,12 +95,22 @@ export const useDashboardStats = (
           }
         });
 
+        let referrals = Number((referralCount as any)?.data) || 0;
+        if (!referrals) {
+          const { count } = await supabase
+            .from("users")
+            .select("id", { count: "exact", head: true })
+            .ilike("referred_by", username);
+          referrals = Number(count) || 0;
+        }
+
         setStats({
           totalEarnings,
           availableEarnings: Math.max(0, totalEarnings - paidOut),
           jackpotTickets: codes.size,
-          referrals: referralCount.count || 0,
+          referrals,
         });
+
       } catch (error) {
         console.warn("Dashboard stats failed to load", error);
       } finally {
