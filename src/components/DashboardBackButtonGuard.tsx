@@ -33,18 +33,15 @@ export const DashboardBackButtonGuard = () => {
     if (!isDashboard || typeof window === "undefined") return;
 
     const guardActive = sessionStorage.getItem(GUARD_STATE_KEY) === "active";
-    console.log("[BackGuard] mount check", { guardActive, pushed: pushedRef.current, path: location.pathname });
     if (guardActive && !pushedRef.current) {
       sessionStorage.removeItem(GUARD_STATE_KEY);
       pushedRef.current = true;
-      window.history.pushState(
-        { [HISTORY_STATE_KEY]: true },
-        "",
-        location.pathname + location.search + location.hash
+      navigate(
+        location.pathname + location.search + location.hash,
+        { state: { [HISTORY_STATE_KEY]: true } }
       );
-      console.log("[BackGuard] pushed duplicate state");
     }
-  }, [isDashboard, location.pathname, location.search, location.hash]);
+  }, [isDashboard, location.pathname, location.search, location.hash, navigate]);
 
   useEffect(() => {
     if (!isDashboard || typeof window === "undefined") return;
