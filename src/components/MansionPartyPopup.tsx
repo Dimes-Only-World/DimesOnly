@@ -257,8 +257,9 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
           <div className="mx-auto my-6 h-px w-2/3 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
 
           <p className="mx-auto max-w-xs text-sm text-[#E7E2D3]/75 sm:max-w-sm">
-            Champagne, ocean views and the entire Dimes Only World crew — reserved
-            for Silver Plus, Diamond Plus and Elite Plus members.
+            Champagne, ocean views and the entire Dimes Only World crew — reserved for Silver Plus, Diamond Plus and Elite Plus members.
+            <br />
+            Normal Males & Females Free Next Event
           </p>
 
           <div className="mt-7 flex w-full max-w-xs flex-col gap-3 sm:max-w-sm">
