@@ -262,19 +262,14 @@ const AdminEventsTab: React.FC = () => {
         "events"
       );
 
-      // Get attendee counts for each event including guests (sum ticket_quantity)
+      // Get attendee counts for each event including guests (RLS-safe RPC)
       const eventsWithCounts = await Promise.all(
         (data || []).map(async (event) => {
-          const { data: tickets } = await supabase
-            .from("user_events")
-            .select("ticket_quantity")
-            .eq("event_id", event.id);
+          const { data: counts } = await supabase.rpc("event_attendance_counts", {
+            p_event_id: event.id,
+          });
+          const totalAttendees = Number((counts as any)?.total_attendees || 0);
 
-          // Sum all ticket quantities to get total attendees + guests
-          const totalAttendees = (tickets || []).reduce(
-            (sum: number, t: any) => sum + (t.ticket_quantity || 1), 
-            0
-          );
 
           return {
             ...event,
@@ -297,6 +292,21 @@ const AdminEventsTab: React.FC = () => {
   const fetchEventAttendees = async (eventId: string) => {
     try {
       console.log("🔄 Fetching attendees for event:", eventId);
+      const adminUserId = getAdminUserId();
+
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "fetchEventAttendees", adminUserId, eventId } }
+        );
+        if (fnError) throw fnError;
+        if ((fnData as any)?.error) throw new Error((fnData as any).error);
+        const rows = (fnData as any)?.data ?? fnData;
+        console.log("✅ Attendees fetched:", rows?.length || 0);
+        setAttendees((rows as unknown as Attendee[]) || []);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("user_events")
         .select(
@@ -338,29 +348,40 @@ const AdminEventsTab: React.FC = () => {
       }
 
       console.log("✅ Attendees fetched:", data?.length || 0, "attendees");
-      console.log("📋 Sample attendee data:", data?.[0]);
       setAttendees((data as unknown as Attendee[]) || []);
     } catch (error) {
       console.error("❌ Error in fetchEventAttendees:", error);
     }
   };
 
+
   const handleCheckIn = async (attendeeId: string, currentStatus: boolean) => {
     setCheckingInId(attendeeId);
     try {
       console.log("🔄 Checking in attendee:", attendeeId);
-      const { error } = await supabase
-        .from("user_events")
-        .update({
-          checked_in: !currentStatus,
-          checked_in_at: !currentStatus ? new Date().toISOString() : null,
-        })
-        .eq("id", attendeeId);
+      const adminUserId = getAdminUserId();
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "checkInAttendee", adminUserId, attendeeId, checkedIn: !currentStatus } }
+        );
+        if (fnError) throw fnError;
+        if ((fnData as any)?.error) throw new Error((fnData as any).error);
+      } else {
+        const { error } = await supabase
+          .from("user_events")
+          .update({
+            checked_in: !currentStatus,
+            checked_in_at: !currentStatus ? new Date().toISOString() : null,
+          })
+          .eq("id", attendeeId);
 
-      if (error) {
-        console.error("❌ Error checking in attendee:", error);
-        throw error;
+        if (error) {
+          console.error("❌ Error checking in attendee:", error);
+          throw error;
+        }
       }
+
 
       toast({
         title: "Success",
