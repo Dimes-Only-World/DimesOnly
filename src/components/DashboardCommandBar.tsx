@@ -56,6 +56,11 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
     userData?.first_name || userData?.username || "Member";
   const initials = String(displayName).slice(0, 1).toUpperCase();
   const isMaxTier = membership.rank >= 7;
+  const upgradeTargetRank =
+    MEMBERSHIP_OPTIONS.find((o) => o.key === upgradeTarget.key)?.rank ?? 99;
+  // Never offer a "Plus" upgrade the member already meets or exceeds
+  // (e.g. a Diamond Plus member should not see "Upgrade to Silver Plus").
+  const showPlusUpgrade = !isMaxTier && membership.rank < upgradeTargetRank;
 
   const shareLink = `${window.location.origin}?ref=${userData?.username || ""}`;
 
