@@ -69,8 +69,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       if (navigator.share) {
         await navigator.share({
           title: "Dimes Only World",
-          text: "Join me on Dimes Only World",
-          url: shareLink,
+          text: `Join me on Dimes Only World ${shareLink}`,
         });
       } else {
         await navigator.clipboard.writeText(shareLink);
