@@ -392,11 +392,19 @@ const EventsDimesOnly: React.FC = () => {
             user_type: r.users?.user_type || 'normal'
           }));
 
-          // Sum ticket quantities for total attendees including guests
-          const totalAttendees = (registrations || []).reduce(
-            (sum: number, r: any) => sum + (r.ticket_quantity || 1), 
+          // Authoritative aggregate count (RLS-safe RPC), includes guests
+          const { data: countsData } = await supabase.rpc("event_attendance_counts", {
+            p_event_id: event.id,
+          });
+          const localTotal = (registrations || []).reduce(
+            (sum: number, r: any) => sum + (r.ticket_quantity || 1),
             0
           );
+          const totalAttendees = Math.max(
+            Number((countsData as any)?.total_attendees || 0),
+            localTotal
+          );
+
 
           return {
             ...event,
