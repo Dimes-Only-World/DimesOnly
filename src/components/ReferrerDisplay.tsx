@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { decodeUrlParam } from "@/lib/utils";
+import AngelLoader from "./AngelLoader";
 
 interface ReferrerDisplayProps {
   referrerUsername: string;

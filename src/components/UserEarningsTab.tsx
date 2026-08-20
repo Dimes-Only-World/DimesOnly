@@ -50,6 +50,7 @@ import JackpotBreakdown from "@/components/JackpotBreakdown";
 import EventReferralsTab from "@/components/EventReferralsTab";
 
 import { useMobileLayout } from "@/hooks/use-mobile";
+import AngelLoader from "./AngelLoader";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
