@@ -86,12 +86,17 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
 
   const [positionsLeft, setPositionsLeft] = useState<number | null>(null);
 
+  const notifyCleared = () =>
+    window.dispatchEvent(new CustomEvent("dimes:popups-cleared"));
+
   useEffect(() => {
-    if (!offer) return;
-    const storageKey = `upgrade_popup_shown_${offer.id}`;
-    if (sessionStorage.getItem(storageKey)) return;
+    const storageKey = offer ? `upgrade_popup_shown_${offer.id}` : null;
+    if (!offer || (storageKey && sessionStorage.getItem(storageKey))) {
+      notifyCleared();
+      return;
+    }
     setOpen(true);
-    sessionStorage.setItem(storageKey, "true");
+    sessionStorage.setItem(storageKey as string, "true");
   }, [offer]);
 
   useEffect(() => {
