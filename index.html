@@ -27,6 +27,7 @@
       (function () {
         var PREV_PATH_KEY = "backGuardPreviousPath";
         var SHOW_DIALOG_KEY = "showBackGuardDialog";
+        console.log("[BackGuardInline] script loaded", window.location.pathname);
 
         function isLoginPath(path) {
           return path === "/login";
@@ -35,6 +36,7 @@
         window.addEventListener("popstate", function () {
           var currentPath = window.location.pathname;
           var previousPath = sessionStorage.getItem(PREV_PATH_KEY);
+          console.log("[BackGuardInline] popstate", { currentPath, previousPath });
 
           if (
             isLoginPath(currentPath) &&
@@ -44,6 +46,7 @@
             // Undo the back navigation so the user stays on the dashboard
             window.history.forward();
             sessionStorage.setItem(SHOW_DIALOG_KEY, "true");
+            console.log("[BackGuardInline] intercepted");
           }
         });
       })();
