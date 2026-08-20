@@ -656,7 +656,8 @@ const AdminEventsTab: React.FC = () => {
 const updateData = {
         name: editingEvent.name,
         description: editingEvent.description,
-        date: editingEvent.date,
+        date: editingEvent.date_tba ? "2099-12-31" : editingEvent.date,
+        date_tba: editingEvent.date_tba ?? false,
         start_time: editingEvent.start_time,
         end_time: editingEvent.end_time,
         address: editingEvent.address,
