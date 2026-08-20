@@ -497,7 +497,7 @@ const Events: React.FC = () => {
           </div>
         )}
 
-        <div className={getContentClasses()}>
+        <div className={getContentClasses("px-4")}>
           {/* Events attending badge */}
           <div className="flex justify-center mb-4">
             {userProfile && (
