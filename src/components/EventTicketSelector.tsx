@@ -73,32 +73,35 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  // Calculate available spots - uses database values for free spots
-  const availableFreeSpots = useMemo(() => {
-    if (userType === "stripper") {
-      return Math.max(0, (event.free_spots_strippers || 0) - usedFreeSpots.strippers);
-    } else if (userType === "exotic") {
-      return Math.max(0, (event.free_spots_exotics || 0) - usedFreeSpots.exotics);
-    } else if (userGender === 'female') {
-      return Math.max(0, (event.free_spots_females || 0) - (usedFreeSpots.females || 0));
-    } else {
-      // Male / normal users
-      return Math.max(0, (event.free_spots_males || 0) - (usedFreeSpots.males || 0));
-    }
-  }, [event, userType, usedFreeSpots]);
+  // Resolve which free bucket applies to this viewer
+  const freeAllocation = useMemo(
+    () =>
+      resolveFreeAllocation(
+        event as any,
+        { ...(currentUser as any), user_type: userType, gender: userGender },
+        usedFreeSpots as any,
+      ),
+    [event, currentUser, userType, userGender, usedFreeSpots],
+  );
+
+  const availableFreeSpots = freeAllocation.remaining;
+  const noGuestsAllowed = freeAllocation.isPlus;
 
   const remainingCapacity = event.max_attendees - event.current_attendees;
   const showFreeOption = availableFreeSpots > 0;
-  
-  // Get user-specific price for General Admission (based on gender)
-  const userSpecificPrice = userType === 'female' ? event.females_price : event.males_price;
-  const generalAdmissionPrice = event.price > 0 ? event.price : (userSpecificPrice || 0);
-  
-  // Show General option ONLY when free spots are exhausted (availableFreeSpots === 0) and there's a valid price
+
+  const isPlusViewer = isPlusMember({ ...(currentUser as any), user_type: userType });
+  const plusPricing = getPlusPricing(event as any, userGender);
+  const baseAdmissionPrice = getGeneralAdmissionPrice(event as any, userGender);
+  const generalAdmissionPrice =
+    isPlusViewer && plusPricing.mode === "discount" ? plusPricing.price : baseAdmissionPrice;
+
+  // Show General option ONLY when free spots are exhausted and there's a valid price
   const showGeneralOption = availableFreeSpots === 0 && remainingCapacity > 0 && generalAdmissionPrice > 0;
-  
+
   const showVipOption = event.vip_tickets > 0 && event.vip_price > 0;
   const showVipSectionOption = event.vip_sections > 0 && event.vip_section_price > 0;
+
 
   // Calculate total price
   const totalPrice = useMemo(() => {
