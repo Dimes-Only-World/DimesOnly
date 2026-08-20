@@ -665,6 +665,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           date: string
+          date_tba: boolean
           description: string | null
           end_time: string | null
           females_price: number | null
@@ -710,6 +711,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date: string
+          date_tba?: boolean
           description?: string | null
           end_time?: string | null
           females_price?: number | null
@@ -755,6 +757,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date?: string
+          date_tba?: boolean
           description?: string | null
           end_time?: string | null
           females_price?: number | null
