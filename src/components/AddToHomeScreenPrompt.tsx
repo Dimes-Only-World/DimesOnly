@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Bell, Download, Share, X } from "lucide-react";
 import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
+import { acquirePopupSlot, releasePopupSlot } from "@/lib/popupQueue";
 
 const DISMISS_KEY = "dimes-a2hs-dismissed";
+const POPUP_ID = "add-to-home-screen";
 
 interface Props {
   /** When true, always render (used as a controlled modal from the notification bell). */

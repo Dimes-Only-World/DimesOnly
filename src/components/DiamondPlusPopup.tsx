@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { Tables } from "@/types";
 import { resolveMembership } from "@/lib/membership";
 import { supabase } from "@/integrations/supabase/client";
+import { acquirePopupSlot, releasePopupSlot } from "@/lib/popupQueue";
+
+const POPUP_ID = "upgrade-offer";
 
 type UserData = Tables<"users">;
 
