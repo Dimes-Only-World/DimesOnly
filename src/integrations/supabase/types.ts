@@ -670,10 +670,17 @@ export type Database = {
           females_price: number | null
           free_males_females: number | null
           free_normal: number | null
+          free_spots_diamond_plus: number
+          free_spots_dimes: number
+          free_spots_elite_plus: number
           free_spots_exotics: number | null
           free_spots_females: number | null
           free_spots_males: number | null
+          free_spots_normals: number
+          free_spots_plus: number
+          free_spots_silver_plus: number
           free_spots_strippers: number | null
+          general_admission_price: number
           genre: string | null
           group_capacity: number | null
           group_discount_price: number | null
@@ -684,6 +691,8 @@ export type Database = {
           max_attendees: number | null
           name: string
           photo_url: string | null
+          plus_discount_percent: number
+          plus_ticket_mode: string
           price: number | null
           start_time: string | null
           state: string | null
@@ -706,10 +715,17 @@ export type Database = {
           females_price?: number | null
           free_males_females?: number | null
           free_normal?: number | null
+          free_spots_diamond_plus?: number
+          free_spots_dimes?: number
+          free_spots_elite_plus?: number
           free_spots_exotics?: number | null
           free_spots_females?: number | null
           free_spots_males?: number | null
+          free_spots_normals?: number
+          free_spots_plus?: number
+          free_spots_silver_plus?: number
           free_spots_strippers?: number | null
+          general_admission_price?: number
           genre?: string | null
           group_capacity?: number | null
           group_discount_price?: number | null
@@ -720,6 +736,8 @@ export type Database = {
           max_attendees?: number | null
           name: string
           photo_url?: string | null
+          plus_discount_percent?: number
+          plus_ticket_mode?: string
           price?: number | null
           start_time?: string | null
           state?: string | null
@@ -742,10 +760,17 @@ export type Database = {
           females_price?: number | null
           free_males_females?: number | null
           free_normal?: number | null
+          free_spots_diamond_plus?: number
+          free_spots_dimes?: number
+          free_spots_elite_plus?: number
           free_spots_exotics?: number | null
           free_spots_females?: number | null
           free_spots_males?: number | null
+          free_spots_normals?: number
+          free_spots_plus?: number
+          free_spots_silver_plus?: number
           free_spots_strippers?: number | null
+          general_admission_price?: number
           genre?: string | null
           group_capacity?: number | null
           group_discount_price?: number | null
@@ -756,6 +781,8 @@ export type Database = {
           max_attendees?: number | null
           name?: string
           photo_url?: string | null
+          plus_discount_percent?: number
+          plus_ticket_mode?: string
           price?: number | null
           start_time?: string | null
           state?: string | null
