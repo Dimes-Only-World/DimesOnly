@@ -264,21 +264,24 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const ticketOptions = [
     {
       type: "free" as TicketType,
-      label: "Free",
+      label: freeAllocation.label,
       icon: Ticket,
       price: 0,
       available: showFreeOption,
       description: `${availableFreeSpots} free spots remaining`,
-      badge: userType ? `For ${userType}s` : undefined,
+      badge: freeAllocation.isPlus ? "Plus Members" : userType ? `For ${userType}s` : undefined,
     },
     {
       type: "general" as TicketType,
-      label: "General Admission",
+      label: isPlusViewer && plusPricing.mode === "discount"
+        ? `General Admission (${plusPricing.percent}% Plus discount)`
+        : "General Admission",
       icon: Users,
       price: generalAdmissionPrice,
       available: showGeneralOption && generalAdmissionPrice > 0,
       description: `${remainingCapacity} spots available`,
     },
+
     {
       type: "vip" as TicketType,
       label: "VIP Ticket",
