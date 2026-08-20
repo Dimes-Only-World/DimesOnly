@@ -129,7 +129,7 @@ const AttendeeCard = React.memo(({ attendee }: { attendee: EventAttendee }) => {
   return (
     <div className="text-center">
       <a
-        href={`/profile?username=${encodeURIComponent(attendee.users.username)}`}
+        href={`/profile/${encodeURIComponent(attendee.users.username)}`}
         className="block relative w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 group"
         title={`View @${attendee.users.username}'s profile`}
       >
@@ -152,7 +152,7 @@ const AttendeeCard = React.memo(({ attendee }: { attendee: EventAttendee }) => {
         )}
       </a>
       <a
-        href={`/profile?username=${encodeURIComponent(attendee.users.username)}`}
+        href={`/profile/${encodeURIComponent(attendee.users.username)}`}
         className="text-xs text-yellow-400 truncate font-medium block hover:underline"
       >
         @{attendee.users.username}
