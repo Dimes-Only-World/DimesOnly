@@ -62,10 +62,8 @@ export const useDashboardStats = (
               .select("amount")
               .eq("user_id", userId)
               .eq("payout_status", "completed"),
-            supabase
-              .from("users")
-              .select("id", { count: "exact", head: true })
-              .eq("referred_by", username),
+            supabase.rpc("get_my_referrals_count"),
+
             supabase
               .from("jackpot_tickets")
               .select("code, pool_id, is_winner")
@@ -97,12 +95,22 @@ export const useDashboardStats = (
           }
         });
 
+        let referrals = Number((referralCount as any)?.data) || 0;
+        if (!referrals) {
+          const { count } = await supabase
+            .from("users")
+            .select("id", { count: "exact", head: true })
+            .ilike("referred_by", username);
+          referrals = Number(count) || 0;
+        }
+
         setStats({
           totalEarnings,
           availableEarnings: Math.max(0, totalEarnings - paidOut),
           jackpotTickets: codes.size,
-          referrals: referralCount.count || 0,
+          referrals,
         });
+
       } catch (error) {
         console.warn("Dashboard stats failed to load", error);
       } finally {
