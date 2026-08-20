@@ -468,44 +468,28 @@ const EventDetails: React.FC = () => {
   const fetchEventAttendees = async () => {
     setAttendeesLoading(true);
     try {
-      // First get the user_events
-      const { data: eventUsers, error: eventError } = await supabase
-        .from("user_events")
-        .select("user_id")
-        .eq("event_id", eventId)
-        .limit(200);
+      // RLS-safe RPC: returns every registration for this event with public profile info
+      const { data, error } = await supabase.rpc("event_attendees_public", {
+        p_event_id: eventId,
+      });
 
-      if (eventError) throw eventError;
+      if (error) throw error;
 
-      if (!eventUsers || eventUsers.length === 0) {
-        setAttendees([]);
-        return;
-      }
-
-      // Get user IDs
-      const userIds = eventUsers.map(eu => eu.user_id);
-
-      // Fetch user profiles from public_user_profiles view (bypasses RLS)
-      const { data: profiles, error: profileError } = await supabase
-        .from("public_user_profiles")
-        .select("id, username, profile_photo, user_type, city, state")
-        .in("id", userIds);
-
-      if (profileError) throw profileError;
-
-      // Map profiles to attendee format
-      const attendeesData: EventAttendee[] = (profiles || []).map(profile => ({
-        user_id: profile.id,
+      const attendeesData: EventAttendee[] = ((data as any[]) || []).map((row) => ({
+        user_id: row.user_id,
+        ticket_type: row.ticket_type,
+        guest_name: row.guest_name,
         users: {
-          username: profile.username || '',
-          profile_photo: profile.profile_photo || '',
-          user_type: profile.user_type || '',
-          city: profile.city || '',
-          state: profile.state || '',
-        }
+          username: row.username || '',
+          profile_photo: row.profile_photo || '',
+          user_type: row.user_type || '',
+          city: row.city || '',
+          state: row.state || '',
+        },
       }));
 
       setAttendees(attendeesData);
+
     } catch (error) {
       console.error("Error fetching attendees:", error);
       toast({
