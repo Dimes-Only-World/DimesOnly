@@ -145,10 +145,19 @@ const CelebrationCanvas: React.FC = () => {
   );
 };
 
-const MansionPartyPopup: React.FC = () => {
+const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
   const [open, setOpen] = useState(false);
 
+  const isPlusMember = React.useMemo(() => {
+    const u = userData as any;
+    if (!u) return false;
+    if (u.silver_plus_active || u.diamond_plus_active || u.business_owner_elite_active) return true;
+    return resolveMembership(u).key.endsWith("_plus");
+  }, [userData]);
+
   useEffect(() => {
+    // Plus members already have access — nothing to promote.
+    if (isPlusMember) return;
     if (sessionStorage.getItem(STORAGE_KEY)) return;
 
     let cancelled = false;
