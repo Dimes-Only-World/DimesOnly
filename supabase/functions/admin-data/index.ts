@@ -847,6 +847,50 @@ serve(async (req) => {
         break;
       }
 
+      case 'fetchEventAttendees': {
+        const { eventId } = params;
+        if (!eventId) {
+          return new Response(
+            JSON.stringify({ error: 'eventId required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('user_events')
+          .select(`
+            id, user_id, event_id, username, payment_status, created_at,
+            first_name, last_name, phone_number, ticket_quantity, ticket_type,
+            amount_paid, checked_in, checked_in_at, guest_name,
+            users ( username, profile_photo, user_type, first_name, last_name, phone_number, mobile_number, membership_tier, gender )
+          `)
+          .eq('event_id', eventId)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        result = data || [];
+        break;
+      }
+
+      case 'checkInAttendee': {
+        const { attendeeId, checkedIn } = params;
+        if (!attendeeId) {
+          return new Response(
+            JSON.stringify({ error: 'attendeeId required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { error } = await supabaseAdmin
+          .from('user_events')
+          .update({
+            checked_in: !!checkedIn,
+            checked_in_at: checkedIn ? new Date().toISOString() : null,
+          })
+          .eq('id', attendeeId);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+
       case 'createEvent': {
         const { eventData } = params;
         if (!eventData || typeof eventData !== 'object') {
