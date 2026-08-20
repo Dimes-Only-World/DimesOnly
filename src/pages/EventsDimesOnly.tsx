@@ -26,6 +26,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { formatTimeRange } from "@/lib/timeUtils";
+import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import {
   Search,
   MapPin,
