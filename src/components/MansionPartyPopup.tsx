@@ -228,37 +228,40 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-[92vw] sm:max-w-lg overflow-hidden border border-[hsl(45_70%_60%/0.45)] bg-[#0B0B0F] p-0 text-white shadow-[0_30px_80px_-20px_rgba(212,175,55,0.45)]">
+      <DialogContent
+        hideClose
+        className="max-w-[94vw] sm:max-w-lg overflow-hidden border border-[hsl(45_70%_60%/0.45)] bg-[#0B0B0F] p-0 text-white shadow-[0_30px_80px_-20px_rgba(212,175,55,0.45)]"
+      >
         {/* luxury backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(212,175,55,0.28),transparent_65%),radial-gradient(90%_60%_at_50%_100%,rgba(255,243,209,0.10),transparent_70%)]" />
         <CelebrationCanvas />
 
-        <div className="relative z-10 animate-scale-in px-6 py-10 text-center sm:px-10">
+        <div className="relative z-10 flex min-h-[320px] flex-col items-center justify-center px-5 py-10 text-center sm:px-10">
           <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-[hsl(45_70%_60%/0.5)] bg-black/50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#EBD79A]">
             <Sparkles className="h-3.5 w-3.5" />
             Exclusive Invitation
           </div>
 
-          <h2 className="text-balance font-sans text-[28px] font-black leading-[1.12] tracking-tight sm:text-4xl">
+          <h2 className="max-w-full text-balance break-words font-sans text-[26px] font-black leading-[1.12] tracking-tight sm:text-4xl">
             <span className="block bg-gradient-to-b from-[#FFF7DC] via-[#EBD79A] to-[#C9A227] bg-clip-text text-transparent">
               All Plus members get into the
             </span>
             <span className="mt-2 block bg-gradient-to-b from-[#FFF7DC] via-[#F3DFA6] to-[#D4AF37] bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(212,175,55,0.35)]">
               Malibu Mansion App Launch Party
             </span>
-            <span className="mt-3 block text-5xl font-black tracking-[0.18em] text-[#FFF3D1] drop-shadow-[0_0_28px_rgba(212,175,55,0.7)] sm:text-6xl">
+            <span className="mt-3 block text-[clamp(2.5rem,14vw,3.75rem)] font-black tracking-[0.06em] text-[#FFF3D1] drop-shadow-[0_0_28px_rgba(212,175,55,0.7)] sm:text-6xl sm:tracking-[0.18em]">
               FREE
             </span>
           </h2>
 
           <div className="mx-auto my-6 h-px w-2/3 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
 
-          <p className="mx-auto max-w-sm text-sm text-[#E7E2D3]/75">
+          <p className="mx-auto max-w-xs text-sm text-[#E7E2D3]/75 sm:max-w-sm">
             Champagne, ocean views and the entire Dimes Only World crew — reserved
             for Silver Plus, Diamond Plus and Elite Plus members.
           </p>
 
-          <div className="mt-7 flex flex-col gap-3">
+          <div className="mt-7 flex w-full max-w-xs flex-col gap-3 sm:max-w-sm">
             <Button
               onClick={() => setOpen(false)}
               className="h-12 w-full rounded-xl bg-gradient-to-r from-[#C9A227] via-[#EBD79A] to-[#C9A227] text-base font-bold text-black hover:opacity-90"
