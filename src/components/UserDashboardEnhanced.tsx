@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import {
   Camera,
   Share2,
   Trophy,
+  LogOut,
 } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
 import ProfileSidebar from "./ProfileSidebar";
