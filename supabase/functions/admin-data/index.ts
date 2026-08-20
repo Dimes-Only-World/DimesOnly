@@ -847,6 +847,24 @@ serve(async (req) => {
         break;
       }
 
+      case 'createEvent': {
+        const { eventData } = params;
+        if (!eventData || typeof eventData !== 'object') {
+          return new Response(
+            JSON.stringify({ error: 'eventData required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('events')
+          .insert(eventData)
+          .select()
+          .single();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       case 'updateEvent': {
         const { eventId, updates } = params;
         if (!eventId || !updates || typeof updates !== 'object') {
