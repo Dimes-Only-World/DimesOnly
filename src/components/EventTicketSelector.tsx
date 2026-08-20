@@ -547,7 +547,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
               <>
                 <p className="text-gray-300 text-sm">
                   No guest can be admitted with this free Plus member registration.
-                  Enter your full name to confirm.
+                  Enter your full name to confirm. Must match ID at door!
                 </p>
                 <Input
                   value={guestName}
