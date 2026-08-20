@@ -65,6 +65,7 @@ interface Event {
   id: string;
   name: string;
   date: string;
+  date_tba?: boolean;
   start_time: string;
   end_time: string;
   address: string;
@@ -438,6 +439,7 @@ const EventsDimesOnly: React.FC = () => {
 
     if (searchMonth && searchMonth !== "all") {
       filtered = filtered.filter((event) => {
+        if (event.date_tba) return false;
         const eventDate = new Date(event.date);
         const eventMonth = eventDate.getMonth() + 1; // getMonth() returns 0-11
         return eventMonth.toString() === searchMonth;
@@ -986,7 +988,9 @@ const EventsDimesOnly: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-yellow-400" />
                             <span>
-                              {new Date(event.date).toLocaleDateString()}
+                              {event.date_tba
+                                ? "To Be Announced"
+                                : new Date(event.date).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1180,8 +1184,10 @@ const EventsDimesOnly: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-yellow-400" />
                     <span>
-                      {selectedEvent &&
-                        new Date(selectedEvent.date).toLocaleDateString()}
+                        {selectedEvent &&
+                          (selectedEvent.date_tba
+                            ? "To Be Announced"
+                            : new Date(selectedEvent.date).toLocaleDateString())}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

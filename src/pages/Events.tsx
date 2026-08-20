@@ -35,6 +35,7 @@ interface Event {
   id: string;
   name: string;
   date: string;
+  date_tba?: boolean;
   start_time: string;
   end_time: string;
   address: string;
@@ -305,7 +306,7 @@ const Events: React.FC = () => {
             .includes(filters.location.toLowerCase())) ||
         (event.name &&
           event.name.toLowerCase().includes(filters.location.toLowerCase()));
-      const matchesDate = !filters.date || event.date.includes(filters.date);
+      const matchesDate = !filters.date || (event.date_tba ? false : event.date.includes(filters.date));
       const matchesAttendance =
         attendanceFilter === "all" ||
         (attendanceFilter === "going" && event.is_attending) ||
@@ -722,7 +723,7 @@ const Events: React.FC = () => {
                     <div className="space-y-2 text-sm text-gray-300 mb-4">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-yellow-400" />
-                        <span>{formatDateForDisplay(event.date)}</span>
+                        <span>{event.date_tba ? "To Be Announced" : formatDateForDisplay(event.date)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-yellow-400" />
