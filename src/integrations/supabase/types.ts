@@ -3893,6 +3893,21 @@ export type Database = {
       check_user_exists: { Args: { username: string }; Returns: boolean }
       delete_expired_notifications: { Args: never; Returns: undefined }
       event_attendance_counts: { Args: { p_event_id: string }; Returns: Json }
+      event_attendees_public: {
+        Args: { p_event_id: string }
+        Returns: {
+          city: string
+          created_at: string
+          guest_name: string
+          profile_photo: string
+          state: string
+          ticket_quantity: number
+          ticket_type: string
+          user_id: string
+          user_type: string
+          username: string
+        }[]
+      }
       get_diamond_plus_count: { Args: never; Returns: number }
       get_elite_plus_count: { Args: never; Returns: number }
       get_my_referrals: {
