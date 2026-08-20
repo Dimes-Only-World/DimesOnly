@@ -3,8 +3,15 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { hasOpenDialogInDom, isPopupQueueClear, subscribePopupQueue } from "@/lib/popupQueue";
+import { resolveMembership } from "@/lib/membership";
 
+/** Once per login session (sessionStorage clears on a fresh sign-in / new tab). */
 const STORAGE_KEY = "mansion_party_popup_shown";
+
+interface MansionPartyPopupProps {
+  /** Current user record; popup is skipped for Plus members. */
+  userData?: any;
+}
 
 type Particle = {
   x: number;
@@ -145,10 +152,19 @@ const CelebrationCanvas: React.FC = () => {
   );
 };
 
-const MansionPartyPopup: React.FC = () => {
+const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
   const [open, setOpen] = useState(false);
 
+  const isPlusMember = React.useMemo(() => {
+    const u = userData as any;
+    if (!u) return false;
+    if (u.silver_plus_active || u.diamond_plus_active || u.business_owner_elite_active) return true;
+    return resolveMembership(u).key.endsWith("_plus");
+  }, [userData]);
+
   useEffect(() => {
+    // Plus members already have access — nothing to promote.
+    if (isPlusMember) return;
     if (sessionStorage.getItem(STORAGE_KEY)) return;
 
     let cancelled = false;
@@ -194,7 +210,7 @@ const MansionPartyPopup: React.FC = () => {
       window.clearTimeout(pending);
       window.clearInterval(poll);
     };
-  }, []);
+  }, [isPlusMember]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

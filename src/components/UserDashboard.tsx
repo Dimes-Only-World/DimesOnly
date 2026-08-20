@@ -492,7 +492,7 @@ const UserDashboard: React.FC = () => {
             </div>
 
             <DiamondPlusPopup userData={userData} />
-            <MansionPartyPopup />
+            <MansionPartyPopup userData={userData} />
 
             <SubscriptionProgress userId={userData.id} />
 
