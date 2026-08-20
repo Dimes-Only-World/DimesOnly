@@ -626,89 +626,13 @@ const Events: React.FC = () => {
                       }}
                     />
 
-                    {/* Attendance Status Badge */}
-                    <div className="absolute top-3 right-3">
-                      {event.is_attending ? (
-                        <div className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
-                          Going
-                        </div>
-                      ) : (
-                        <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
-                          Not Going
-                        </div>
-                      )}
-                    </div>
+                    {/* Sold out overlay */}
+                    {getAvailableSpots(event) === 0 && (
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-red-600 text-white font-bold">SOLD OUT</Badge>
+                      </div>
+                    )}
 
-                    {/* Event Status Badge - Show only viewer-relevant free spots badge */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1">
-                      {(() => {
-                        // Determine viewer's category based on their user type
-                        const viewerType = (appUser?.userType || '').toLowerCase();
-                        const viewerCategory = viewerType === 'exotic' ? 'exotic' 
-                          : viewerType === 'stripper' ? 'stripper' 
-                          : 'normal'; // male, female, normal, or empty
-
-                        if (getAvailableSpots(event) === 0) {
-                          return (
-                            <Badge className="bg-red-600 text-white font-bold">
-                              SOLD OUT
-                            </Badge>
-                          );
-                        }
-
-                        // Show only the badge relevant to the viewer's category
-                        if (viewerCategory === 'exotic') {
-                          const remaining = getRemainingExoticFree(event);
-                          return remaining > 0 ? (
-                            <Badge className="bg-pink-600 text-white font-bold text-xs">
-                              Free Exotic: {remaining}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          );
-                        }
-
-                        if (viewerCategory === 'stripper') {
-                          const remaining = getRemainingStripperFree(event);
-                          return remaining > 0 ? (
-                            <Badge className="bg-purple-600 text-white font-bold text-xs">
-                              Free Stripper: {remaining}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          );
-                        }
-
-                        // Default: normal/male/female viewer - show gender-specific free spots
-                        const userGender = (appUser?.gender || '').toLowerCase();
-                        const remainingMales = getRemainingNormalFreeMales(event);
-                        const remainingFemales = getRemainingNormalFreeFemales(event);
-                        
-                        if (userGender === 'female' && remainingFemales > 0) {
-                          return (
-                            <Badge className="bg-green-600 text-white font-bold text-xs">
-                              Free Females: {remainingFemales}
-                            </Badge>
-                          );
-                        } else if (userGender !== 'female' && remainingMales > 0) {
-                          return (
-                            <Badge className="bg-green-600 text-white font-bold text-xs">
-                              Free Males: {remainingMales}
-                            </Badge>
-                          );
-                        } else {
-                          return (
-                            <Badge className="bg-yellow-600 text-white font-bold">
-                              PAID ONLY
-                            </Badge>
-                          );
-                        }
-                      })()}
-                    </div>
 
                     {/* Media Indicators */}
                     <div className="absolute bottom-3 left-3 flex gap-2">
