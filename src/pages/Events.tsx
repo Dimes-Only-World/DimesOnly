@@ -245,11 +245,19 @@ const Events: React.FC = () => {
             `)
             .eq("event_id", event.id);
 
-          // Calculate total attendees including guests (sum ticket_quantity)
-          const totalAttendees = (registrations || []).reduce(
-            (sum: number, r: any) => sum + (r.ticket_quantity || 1), 
+          // Authoritative aggregate count (RLS-safe RPC), includes guests
+          const { data: countsData } = await supabase.rpc("event_attendance_counts", {
+            p_event_id: event.id,
+          });
+          const localTotal = (registrations || []).reduce(
+            (sum: number, r: any) => sum + (r.ticket_quantity || 1),
             0
           );
+          const totalAttendees = Math.max(
+            Number((countsData as any)?.total_attendees || 0),
+            localTotal
+          );
+
 
           // Transform registrations to include user_type and payment_status at top level
           const transformedRegistrations = (registrations || []).map((r: any) => ({
