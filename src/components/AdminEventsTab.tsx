@@ -504,22 +504,33 @@ const AdminEventsTab: React.FC = () => {
 
       console.log("💾 Inserting event into database:", eventData);
 
-      const { data, error } = await supabase
-        .from("events")
-        .insert(eventData as any)
-        .select()
-        .single();
+      const adminUserId = getAdminUserId();
+      let data: any = null;
+      let error: any = null;
+
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "createEvent", adminUserId, eventData } }
+        );
+        if (fnError) error = fnError;
+        else if ((fnData as any)?.error) error = new Error((fnData as any).error);
+        else data = (fnData as any)?.data ?? fnData;
+      } else {
+        const res = await supabase
+          .from("events")
+          .insert(eventData as any)
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) {
         console.error("❌ Database insert error:", error);
-        console.error("❌ Error details:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
-        throw error;
+        throw new Error(error.message || error.error || "Insert failed");
       }
+
 
       console.log("✅ Event created successfully:", data);
 
