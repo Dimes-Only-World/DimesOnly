@@ -49,6 +49,7 @@ interface Event {
   name: string;
   description: string;
   date: string;
+  date_tba?: boolean;
   start_time: string;
   end_time: string;
   address: string;
