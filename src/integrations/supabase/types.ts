@@ -667,6 +667,7 @@ export type Database = {
           date: string
           date_tba: boolean
           description: string | null
+          end_date: string | null
           end_time: string | null
           females_price: number | null
           free_males_females: number | null
@@ -713,6 +714,7 @@ export type Database = {
           date: string
           date_tba?: boolean
           description?: string | null
+          end_date?: string | null
           end_time?: string | null
           females_price?: number | null
           free_males_females?: number | null
@@ -759,6 +761,7 @@ export type Database = {
           date?: string
           date_tba?: boolean
           description?: string | null
+          end_date?: string | null
           end_time?: string | null
           females_price?: number | null
           free_males_females?: number | null

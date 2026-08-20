@@ -50,6 +50,7 @@ interface Event {
   description: string;
   date: string;
   date_tba?: boolean;
+  end_date?: string | null;
   start_time: string;
   end_time: string;
   address: string;
@@ -127,6 +128,7 @@ const AdminEventsTab: React.FC = () => {
     description: "",
     date: "",
     date_tba: false,
+    end_date: "",
     start_time: "",
     end_time: "",
     address: "",
@@ -457,6 +459,7 @@ const AdminEventsTab: React.FC = () => {
         name: newEvent.name,
         description: newEvent.description || null,
         date: newEvent.date_tba ? "2099-12-31" : newEvent.date,
+        end_date: newEvent.end_date || null,
         date_tba: newEvent.date_tba,
         start_time: newEvent.start_time || null,
         end_time: newEvent.end_time || null,
@@ -531,6 +534,7 @@ const AdminEventsTab: React.FC = () => {
         description: "",
         date: "",
         date_tba: false,
+        end_date: "",
         start_time: "",
         end_time: "",
         address: "",
@@ -658,6 +662,7 @@ const updateData = {
         name: editingEvent.name,
         description: editingEvent.description,
         date: editingEvent.date_tba ? "2099-12-31" : editingEvent.date,
+        end_date: editingEvent.end_date || null,
         date_tba: editingEvent.date_tba ?? false,
         start_time: editingEvent.start_time,
         end_time: editingEvent.end_time,
@@ -1034,6 +1039,20 @@ const updateData = {
                       {newEvent.date_tba ? "TBA On" : "TBA"}
                     </Button>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    End Date (optional)
+                  </label>
+                  <Input
+                    type="date"
+                    value={newEvent.end_date || ""}
+                    disabled={newEvent.date_tba}
+                    min={newEvent.date || undefined}
+                    onChange={(e) =>
+                      setNewEvent((prev) => ({ ...prev, end_date: e.target.value }))
+                    }
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -1671,6 +1690,22 @@ const updateData = {
                       {editingEvent.date_tba ? "TBA On" : "TBA"}
                     </Button>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    End Date (optional)
+                  </label>
+                  <Input
+                    type="date"
+                    value={editingEvent.end_date || ""}
+                    disabled={editingEvent.date_tba}
+                    min={editingEvent.date || undefined}
+                    onChange={(e) =>
+                      setEditingEvent((prev) =>
+                        prev ? { ...prev, end_date: e.target.value } : null
+                      )
+                    }
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
