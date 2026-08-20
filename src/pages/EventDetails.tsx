@@ -876,11 +876,9 @@ const EventDetails: React.FC = () => {
                         onSuccess={() => {
                           setIsUserRegistered(true);
                           fetchEventAttendees();
-                          setEvent(prev => prev ? {
-                            ...prev,
-                            current_attendees: prev.current_attendees + 1
-                          } : null);
+                          fetchEventDetails();
                         }}
+
                         onError={(error) => {
                           toast({
                             title: "Error",
