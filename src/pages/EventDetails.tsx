@@ -742,6 +742,10 @@ const EventDetails: React.FC = () => {
             <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/50">
               {event.current_attendees}/{event.max_attendees} Attending
             </Badge>
+            <Badge className="bg-white/10 text-white border-white/20">
+              {Math.max(0, (event.max_attendees || 0) - (event.current_attendees || 0))} spots available
+            </Badge>
+
 
             {(() => {
               const alloc = resolveFreeAllocation(event as any, currentUser || {}, usedFreeSpots as any);
