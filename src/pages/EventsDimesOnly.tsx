@@ -975,6 +975,43 @@ const EventsDimesOnly: React.FC = () => {
                       </div>
 
                       <CardContent className="p-4">
+                        {/* Free spots + attendance (below banner, above title) */}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          {getAvailableSpots(event) === 0 ? (
+                            <div className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
+                              SOLD OUT
+                            </div>
+                          ) : (() => {
+                            const alloc = resolveFreeAllocation(
+                              event as any,
+                              { ...(user as any), user_type: (user as any)?.user_type || (user as any)?.userType, gender: (user as any)?.gender },
+                              {
+                                exotics: getSpotsUsedByType(event, 'exotic'),
+                                strippers: getSpotsUsedByType(event, 'stripper'),
+                                plus: getSpotsUsedByType(event, 'exotic') + getSpotsUsedByType(event, 'stripper'),
+                              },
+                            );
+                            return alloc.remaining > 0 ? (
+                              <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                {getFreeBadgeLabel(alloc)}
+                              </div>
+                            ) : (
+                              <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                PAID ONLY
+                              </div>
+                            );
+                          })()}
+                          {event.isUserAttending ? (
+                            <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                              Going
+                            </div>
+                          ) : (
+                            <div className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                              Not Going
+                            </div>
+                          )}
+                        </div>
+
                         <div className="flex items-start justify-between mb-3">
                           <h3 className="text-lg font-bold text-yellow-400 line-clamp-2 flex-1">
                             {event.name}
