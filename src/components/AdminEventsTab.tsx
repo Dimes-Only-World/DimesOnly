@@ -262,19 +262,14 @@ const AdminEventsTab: React.FC = () => {
         "events"
       );
 
-      // Get attendee counts for each event including guests (sum ticket_quantity)
+      // Get attendee counts for each event including guests (RLS-safe RPC)
       const eventsWithCounts = await Promise.all(
         (data || []).map(async (event) => {
-          const { data: tickets } = await supabase
-            .from("user_events")
-            .select("ticket_quantity")
-            .eq("event_id", event.id);
+          const { data: counts } = await supabase.rpc("event_attendance_counts", {
+            p_event_id: event.id,
+          });
+          const totalAttendees = Number((counts as any)?.total_attendees || 0);
 
-          // Sum all ticket quantities to get total attendees + guests
-          const totalAttendees = (tickets || []).reduce(
-            (sum: number, t: any) => sum + (t.ticket_quantity || 1), 
-            0
-          );
 
           return {
             ...event,
