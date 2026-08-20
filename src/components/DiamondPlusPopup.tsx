@@ -64,14 +64,14 @@ const buildOffer = (userData: UserData): Offer | null => {
     return {
       id: "silver_plus",
       title: "Upgrade to Silver Plus",
-      description: "Step up to Silver Plus and start earning profit sharing positions.",
+      description: "Step up to Silver Plus and start earning profit sharing positions. One Time Fee $249.99",
       price: "$249.99",
       route: "/upgrade-silver-plus",
       perks: ["Profit sharing position"],
       totalPositions: 300,
       installment: {
         down: "$62.50 per month x 12 months",
-        rest: "Total $750 monthly plan",
+        rest: "Total $750.00 monthly plan",
       },
     };
   }
@@ -175,11 +175,11 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
 
             {offer.installment && (
               <>
-                <div className="font-medium">Installment option:</div>
+                <div className="font-medium">Installment option more expensive:</div>
                 <div className="ml-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
-                    <span>{offer.price}</span>
+                    <span>$750.00</span>
                   </div>
                   <div className="ml-6 text-xs space-y-1">
                     <div>{offer.installment.down}</div>
