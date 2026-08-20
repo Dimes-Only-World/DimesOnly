@@ -102,6 +102,8 @@ interface CurrentUser {
 
 interface EventAttendee {
   user_id: string;
+  ticket_type?: string | null;
+  guest_name?: string | null;
   users: {
     username: string;
     profile_photo: string;
@@ -111,26 +113,60 @@ interface EventAttendee {
   };
 }
 
-const AttendeeCard = React.memo(({ attendee }: { attendee: EventAttendee }) => (
-  <div className="text-center">
-    <img
-      src={attendee.users.profile_photo || "/placeholder.svg"}
-      alt={attendee.users.username}
-      className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-yellow-400 mx-auto mb-2"
-      loading="lazy"
-      onError={(e) => {
-        const target = e.target as HTMLImageElement;
-        target.src = "/placeholder.svg";
-      }}
-    />
-    <p className="text-xs text-yellow-400 truncate font-medium">
-      @{attendee.users.username}
-    </p>
-    <p className="text-xs text-gray-400 mt-1">{attendee.users.user_type}</p>
-  </div>
-));
+const ticketTag = (ticketType?: string | null) => {
+  switch (ticketType) {
+    case "vip":
+      return { label: "VIP", className: "bg-yellow-400 text-black" };
+    case "vip_section":
+      return { label: "VIP+", className: "bg-fuchsia-500 text-white" };
+    default:
+      return null;
+  }
+};
+
+const AttendeeCard = React.memo(({ attendee }: { attendee: EventAttendee }) => {
+  const tag = ticketTag(attendee.ticket_type);
+  return (
+    <div className="text-center">
+      <a
+        href={`/profile?username=${encodeURIComponent(attendee.users.username)}`}
+        className="block relative w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 group"
+        title={`View @${attendee.users.username}'s profile`}
+      >
+        <img
+          src={attendee.users.profile_photo || "/placeholder.svg"}
+          alt={attendee.users.username}
+          className="w-full h-full rounded-full object-cover border-2 border-yellow-400 group-hover:border-white transition-colors"
+          loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/placeholder.svg";
+          }}
+        />
+        {tag && (
+          <span
+            className={`absolute -top-1 -right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow ${tag.className}`}
+          >
+            {tag.label}
+          </span>
+        )}
+      </a>
+      <a
+        href={`/profile?username=${encodeURIComponent(attendee.users.username)}`}
+        className="text-xs text-yellow-400 truncate font-medium block hover:underline"
+      >
+        @{attendee.users.username}
+      </a>
+      <p className="text-xs text-gray-400 mt-1">{attendee.users.user_type}</p>
+      {attendee.guest_name && (
+        <p className="text-[10px] text-gray-500 mt-0.5">+ {attendee.guest_name}</p>
+      )}
+    </div>
+  );
+});
 
 AttendeeCard.displayName = "AttendeeCard";
+
 
 const EventDetails: React.FC = () => {
   const [searchParams] = useSearchParams();
