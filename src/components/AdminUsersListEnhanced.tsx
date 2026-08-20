@@ -25,11 +25,16 @@ interface User {
   banner_photo?: string;
   front_page_photo?: string;
   created_at: string;
+  last_login_at?: string | null;
   is_active: boolean;
   deactivated_at?: string;
   referred_by?: string;
   referred_by_photo?: string;
 }
+
+type SortKey = "last_login" | "joined";
+
+const PAGE_SIZE = 50;
 
 const AdminUsersListEnhanced: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -37,6 +42,8 @@ const AdminUsersListEnhanced: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("last_login");
+  const [page, setPage] = useState(1);
 
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
@@ -51,7 +58,12 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter]);
+  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter, sortKey]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter, sortKey]);
+
 
   const fetchUsers = async () => {
     try {
