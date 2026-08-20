@@ -21,6 +21,7 @@ import Top20DimesCarousel from "./Top20DimesCarousel";
 import ApprovalStatusBanner from "./ApprovalStatusBanner";
 import LatestDimesCarousel from "@/components/LatestDimesCarousel";
 import DiamondPlusPopup from "./DiamondPlusPopup";
+import MansionPartyPopup from "./MansionPartyPopup";
 import SubscriptionProgress from "./SubscriptionProgress";
 import DashboardCommandBar from "./DashboardCommandBar";
 import DashboardChecklist from "./DashboardChecklist";
@@ -491,6 +492,7 @@ const UserDashboard: React.FC = () => {
             </div>
 
             <DiamondPlusPopup userData={userData} />
+            <MansionPartyPopup />
 
             <SubscriptionProgress userId={userData.id} />
 

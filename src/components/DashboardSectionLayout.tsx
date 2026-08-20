@@ -45,7 +45,7 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
         <div className="bg-white shadow-sm border-b sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* pr-* keeps the logout button clear of the fixed notification bell */}
-            <div className="flex items-center justify-between py-3 gap-3 pr-14 sm:pr-16">
+            <div className="flex items-center justify-between py-3 gap-3">
 
               <Link
                 to="/dashboard/profile"
@@ -63,9 +63,13 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
                 )}
               </Link>
 
-              <h1 className="flex-1 text-center text-base sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
-                {title}
-              </h1>
+              <div className="flex flex-1 items-center justify-center">
+                {title?.toLowerCase() !== "profile" && (
+                  <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
+                    {title}
+                  </h1>
+                )}
+              </div>
 
               <button
                 onClick={handleLogout}
