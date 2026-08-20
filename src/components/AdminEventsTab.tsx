@@ -456,7 +456,8 @@ const AdminEventsTab: React.FC = () => {
       const eventData = {
         name: newEvent.name,
         description: newEvent.description || null,
-        date: newEvent.date,
+        date: newEvent.date_tba ? "2099-12-31" : newEvent.date,
+        date_tba: newEvent.date_tba,
         start_time: newEvent.start_time || null,
         end_time: newEvent.end_time || null,
         address: newEvent.address || null,
