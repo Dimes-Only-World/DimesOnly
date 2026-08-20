@@ -376,8 +376,8 @@ const EventDetails: React.FC = () => {
         }
       }
 
-      // Calculate used free spots
-      await calculateUsedFreeSpots(eventId);
+      // Free-spot usage already resolved from the aggregate RPC above
+
     } catch (error) {
       console.error("Error fetching event details:", error);
       toast({
