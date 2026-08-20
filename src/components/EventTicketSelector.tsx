@@ -40,19 +40,33 @@ interface EventTicketSelectorProps {
     max_attendees: number;
     current_attendees: number;
     host_user_id?: string;
+    free_spots_dimes?: number;
+    free_spots_normals?: number;
+    free_spots_silver_plus?: number;
+    free_spots_diamond_plus?: number;
+    free_spots_elite_plus?: number;
+    free_spots_plus?: number;
+    general_admission_price?: number;
+    plus_ticket_mode?: string;
+    plus_discount_percent?: number;
   };
   currentUser: {
     id: string;
     username: string;
+    [key: string]: any;
   };
   userType?: string;
   usedFreeSpots?: {
-    strippers: number;
-    exotics: number;
-    normal: number;
-    males: number;
-    females: number;
+    strippers?: number;
+    exotics?: number;
+    normal?: number;
+    males?: number;
+    females?: number;
+    dimes?: number;
+    normals?: number;
+    plus?: number;
   };
+
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
   onFreeRegister: (guestName?: string) => Promise<void>;
