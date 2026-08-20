@@ -74,8 +74,8 @@ const Top20DimesCarousel: React.FC = () => {
             Seasonal Leaderboard
           </span>
         </div>
-        <h3 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight text-gray-900">
-          Current <span className="text-[#E916D1]">Top 20</span> Ranked
+        <h3 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight text-gray-900 whitespace-pre-line">
+          CURRENT{"\n"}<span className="text-[#E916D1]">TOP 20</span>{"\n"}RANKED
         </h3>
         <div className="mx-auto mt-3 h-[3px] w-20 rounded-full bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
         <p className="mt-4 text-sm md:text-base text-gray-600 max-w-md mx-auto leading-relaxed">
