@@ -92,7 +92,13 @@ interface CurrentUser {
   username: string;
   user_type?: string;
   gender?: string;
+  membership_tier?: string;
+  membership_type?: string;
+  silver_plus_active?: boolean;
+  diamond_plus_active?: boolean;
+  business_owner_elite_active?: boolean;
 }
+
 
 interface EventAttendee {
   user_id: string;
