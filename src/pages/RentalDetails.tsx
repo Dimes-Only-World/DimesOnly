@@ -13,6 +13,7 @@ import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "l
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
+import AngelLoader from "@/components/AngelLoader";
 
 type Review = {
   id: string;

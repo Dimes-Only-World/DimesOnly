@@ -26,6 +26,7 @@ import {
   Heart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AngelLoader from "@/components/AngelLoader";
 
 interface UserData {
   id: string;
