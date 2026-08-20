@@ -263,7 +263,7 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
               onClick={() => setOpen(false)}
               className="h-12 w-full rounded-xl bg-gradient-to-r from-[#C9A227] via-[#EBD79A] to-[#C9A227] text-base font-bold text-black hover:opacity-90"
             >
-              Let&apos;s Celebrate
+              Go to Events for Tickets - Let&apos;s Celebrate
             </Button>
           </div>
         </div>
