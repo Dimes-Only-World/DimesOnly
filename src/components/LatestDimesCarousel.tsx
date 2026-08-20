@@ -198,7 +198,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
           THE LAST <span className="text-[#E916D1]">20 DIMES</span> TO JOIN
         </h2>
         <div className="mx-auto mt-4 h-[3px] w-24 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
-        <p className="mt-5 text-base md:text-lg text-white max-w-xl mx-auto leading-relaxed">
+        <p className="mt-5 text-base md:text-lg text-black max-w-xl mx-auto leading-relaxed">
           Fresh talent joining daily — tap any profile for an exclusive preview inside.
         </p>
       </div>
