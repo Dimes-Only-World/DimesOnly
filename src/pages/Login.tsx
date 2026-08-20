@@ -118,6 +118,13 @@ const Login: React.FC = () => {
       Object.keys(sessionStorage)
         .filter((k) => k.startsWith("upgrade_popup_shown_"))
         .forEach((k) => sessionStorage.removeItem(k));
+      // Give login-scoped dashboard announcements a fresh identity on every sign-in.
+      sessionStorage.setItem(
+        "dimes_login_instance",
+        `${userData.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+      );
+      sessionStorage.removeItem("mansion_party_popup_shown_v2");
+      sessionStorage.removeItem("mansion_party_popup_shown_v3");
 
       setUser(user);
       window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));

@@ -5,8 +5,9 @@ import { Sparkles } from "lucide-react";
 import { hasOpenDialogInDom, isPopupQueueClear, subscribePopupQueue } from "@/lib/popupQueue";
 import { resolveMembership } from "@/lib/membership";
 
-/** Once per login session (sessionStorage clears on a fresh sign-in / new tab). */
-const STORAGE_KEY = "mansion_party_popup_shown_v2";
+/** The stored value is the login instance in which the celebration was shown. */
+const STORAGE_KEY = "mansion_party_popup_shown_v3";
+const LOGIN_INSTANCE_KEY = "dimes_login_instance";
 
 interface MansionPartyPopupProps {
   /** Current user record; popup is skipped for Plus members. */
@@ -165,7 +166,15 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
   useEffect(() => {
     // Plus members already have access — nothing to promote.
     if (isPlusMember) return;
-    if (sessionStorage.getItem(STORAGE_KEY)) return;
+
+    // Older sessions did not receive a login instance. Create one once so stale
+    // boolean "shown" flags cannot permanently suppress the celebration.
+    let loginInstance = sessionStorage.getItem(LOGIN_INSTANCE_KEY);
+    if (!loginInstance) {
+      loginInstance = `dashboard:${String((userData as any)?.id ?? "user")}:${Date.now()}`;
+      sessionStorage.setItem(LOGIN_INSTANCE_KEY, loginInstance);
+    }
+    if (sessionStorage.getItem(STORAGE_KEY) === loginInstance) return;
 
     let cancelled = false;
     let pending = 0;
@@ -177,8 +186,8 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
     }, 1200);
 
     const show = () => {
-      if (cancelled || sessionStorage.getItem(STORAGE_KEY)) return;
-      sessionStorage.setItem(STORAGE_KEY, "true");
+      if (cancelled || sessionStorage.getItem(STORAGE_KEY) === loginInstance) return;
+      sessionStorage.setItem(STORAGE_KEY, loginInstance);
       setOpen(true);
     };
 
@@ -215,7 +224,7 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
       window.clearTimeout(hardFallback);
       window.clearInterval(poll);
     };
-  }, [isPlusMember]);
+  }, [isPlusMember, userData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
