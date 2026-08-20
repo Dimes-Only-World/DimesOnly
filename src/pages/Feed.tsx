@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import AuthGuard from "@/components/AuthGuard";
 import { useAppContext } from "@/contexts/AppContext";
 import { fetchFeed, FeedPostRow, FeedMediaRow } from "@/lib/feedApi";
 import FeedGridCell from "@/components/feed/FeedGridCell";
-import FeedMediaModal from "@/components/feed/FeedMediaModal";
+import FeedStoryViewer, { StoryItem } from "@/components/feed/FeedStoryViewer";
 import { supabase } from "@/lib/supabase";
 
 export default function Feed() {
@@ -19,7 +19,7 @@ export default function Feed() {
   const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [circleCount, setCircleCount] = useState(0);
-  const [modal, setModal] = useState<{ url: string; type: "photo" | "video" } | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -47,6 +47,7 @@ export default function Feed() {
   useEffect(() => {
     if (!user?.id) return;
     setLoading(true);
+    setViewerIndex(null);
     fetchFeed(tab, user.id)
       .then((r) => {
         setPosts(r.posts);
@@ -55,6 +56,23 @@ export default function Feed() {
       })
       .finally(() => setLoading(false));
   }, [tab, user?.id]);
+
+  // Flatten: one item per media, newest first.
+  const items = useMemo<StoryItem[]>(() => {
+    const authorMap = new Map(authors.map((a) => [a.id, a]));
+    const mediaByPost = new Map<string, FeedMediaRow[]>();
+    media.forEach((m) => {
+      const arr = mediaByPost.get(m.post_id) || [];
+      arr.push(m);
+      mediaByPost.set(m.post_id, arr);
+    });
+    const out: StoryItem[] = [];
+    posts.forEach((post) => {
+      const postMedia = (mediaByPost.get(post.id) || []).sort((a, b) => a.display_order - b.display_order);
+      postMedia.forEach((m) => out.push({ post, media: m, author: authorMap.get(post.user_id) }));
+    });
+    return out;
+  }, [posts, media, authors]);
 
   return (
     <AuthGuard>
@@ -91,13 +109,7 @@ export default function Feed() {
             </TabsList>
 
             <TabsContent value="all" className="mt-4">
-              <FeedGrid
-                loading={loading}
-                posts={posts}
-                media={media}
-                authors={authors}
-                onOpen={(url, type) => setModal({ url, type })}
-              />
+              <FeedGrid loading={loading} items={items} onOpen={setViewerIndex} />
             </TabsContent>
             <TabsContent value="circle" className="mt-4">
               <div className="mb-3 p-3 rounded-lg bg-card border border-border max-w-2xl mx-auto">
@@ -108,69 +120,32 @@ export default function Feed() {
               </div>
               <FeedGrid
                 loading={loading}
-                posts={posts}
-                media={media}
-                authors={authors}
-                onOpen={(url, type) => setModal({ url, type })}
+                items={items}
+                onOpen={setViewerIndex}
                 emptyLabel="No posts from your circle yet."
               />
             </TabsContent>
           </Tabs>
         </div>
 
-        <FeedMediaModal
-          url={modal?.url ?? null}
-          mediaType={modal?.type ?? null}
-          onClose={() => setModal(null)}
-        />
+        <FeedStoryViewer items={items} startIndex={viewerIndex} onClose={() => setViewerIndex(null)} />
       </div>
     </AuthGuard>
   );
 }
 
-interface GridItem {
-  post: FeedPostRow;
-  media: FeedMediaRow;
-  author?: { id: string; username: string; profile_photo: string | null };
-}
-
 function FeedGrid({
   loading,
-  posts,
-  media,
-  authors,
+  items,
   onOpen,
   emptyLabel = "No posts yet — be the first to create one!",
 }: {
   loading: boolean;
-  posts: FeedPostRow[];
-  media: FeedMediaRow[];
-  authors: any[];
-  onOpen: (url: string, type: "photo" | "video") => void;
+  items: StoryItem[];
+  onOpen: (index: number) => void;
   emptyLabel?: string;
 }) {
   if (loading) return <p className="text-center text-muted-foreground py-12">Loading feed…</p>;
-  if (posts.length === 0) return <p className="text-center text-muted-foreground py-12">{emptyLabel}</p>;
-
-  const authorMap = new Map(authors.map((a) => [a.id, a]));
-  const mediaByPost = new Map<string, FeedMediaRow[]>();
-  media.forEach((m) => {
-    const arr = mediaByPost.get(m.post_id) || [];
-    arr.push(m);
-    mediaByPost.set(m.post_id, arr);
-  });
-
-  // Flatten: one grid cell per media item, preserving chronological (newest first) order.
-  const items: GridItem[] = [];
-  posts.forEach((post) => {
-    const postMedia = (mediaByPost.get(post.id) || []).sort(
-      (a, b) => a.display_order - b.display_order
-    );
-    postMedia.forEach((m) => {
-      items.push({ post, media: m, author: authorMap.get(post.user_id) });
-    });
-  });
-
   if (items.length === 0) return <p className="text-center text-muted-foreground py-12">{emptyLabel}</p>;
 
   return (
@@ -181,13 +156,13 @@ function FeedGrid({
         sm:grid-cols-2
         lg:grid-cols-3"
     >
-      {items.map(({ post, media, author }) => (
+      {items.map(({ post, media, author }, i) => (
         <FeedGridCell
           key={media.id}
           post={post}
           media={media}
           author={author}
-          onOpen={onOpen}
+          onOpen={() => onOpen(i)}
         />
       ))}
     </div>
