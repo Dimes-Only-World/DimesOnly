@@ -556,10 +556,8 @@ const EventDetails: React.FC = () => {
       description: `You're now registered for ${event.name}${hasGuest ? ` with ${guestName}` : ""}`,
     });
     fetchEventAttendees();
-    setEvent(prev => prev ? {
-      ...prev,
-      current_attendees: prev.current_attendees + spotsToDeduct
-    } : null);
+    await fetchEventDetails();
+
   };
 
   if (loading) {
