@@ -30,6 +30,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import AngelLoader from "@/components/AngelLoader";
 
 interface Package {
   id: string;
@@ -328,11 +329,7 @@ const UpgradePageInner: React.FC = () => {
   );
 
   if (userLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-900 to-red-900">
-        <span className="text-white text-xl">Loading...</span>
-      </div>
-    );
+    return <AngelLoader variant="fullscreen" />;
   }
 
   // Upgrade page is open to everyone; checkout requires sign-in.

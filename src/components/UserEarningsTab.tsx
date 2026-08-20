@@ -50,6 +50,7 @@ import JackpotBreakdown from "@/components/JackpotBreakdown";
 import EventReferralsTab from "@/components/EventReferralsTab";
 
 import { useMobileLayout } from "@/hooks/use-mobile";
+import AngelLoader from "./AngelLoader";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
@@ -1868,7 +1869,7 @@ return (
               </div>
 
               {earningsLoading ? (
-                <div className="text-center py-8">Loading...</div>
+                <AngelLoader variant="inline" className="py-8" />
               ) : earningsItems.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />

@@ -8,6 +8,7 @@ import JackpotDisplay from "@/components/JackpotDisplay";
 import JackpotWinnersBanner from "@/components/JackpotWinnersBanner";
 import JackpotBreakdown from "@/components/JackpotBreakdown";
 import { supabase } from "@/lib/supabase";
+import AngelLoader from "@/components/AngelLoader";
 
 const formatDate = (dateStr: string | null) => {
   if (!dateStr) return "Date unavailable";
@@ -167,7 +168,7 @@ const Jackpot: React.FC = () => {
                   disabled={loadingTickets}
                 >
                   {loadingTickets ? (
-                    "Loading..."
+                    <AngelLoader variant="inline" />
                   ) : showTicketDetails ? (
                     <>
                       <ChevronUp className="w-4 h-4 mr-2" />

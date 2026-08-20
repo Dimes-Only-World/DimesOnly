@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
+import AngelLoader from './AngelLoader';
 
 interface Tip {
   id: string;
@@ -80,7 +81,7 @@ const TipsTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-4">Loading...</div>
+            <AngelLoader variant="inline" className="py-4" />
           ) : (
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {tips.slice(0, 50).map((tip) => (

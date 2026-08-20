@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { decodeUrlParam } from "@/lib/utils";
+import AngelLoader from "./AngelLoader";
 
 interface ReferrerDisplayProps {
   referrerUsername: string;
@@ -147,11 +148,7 @@ const ReferrerDisplay: React.FC<ReferrerDisplayProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center gap-3 mt-4 p-3 bg-gradient-to-r from-purple-600/15 to-pink-600/15 backdrop-blur border border-purple-400/20 rounded-lg max-w-xs mx-auto shadow-md">
-        <div className="w-10 h-10 rounded-full bg-gray-700 animate-pulse ring-1 ring-purple-400/30"></div>
-        <div className="text-left space-y-1">
-          <div className="h-4 w-24 bg-gray-700 animate-pulse rounded"></div>
-          <div className="text-xs text-gray-400">Loading...</div>
-        </div>
+        <AngelLoader variant="inline" />
       </div>
     );
   }

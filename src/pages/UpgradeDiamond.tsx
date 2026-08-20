@@ -36,6 +36,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import AuthGuard from "@/components/AuthGuard";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import AngelLoader from "@/components/AngelLoader";
 
 interface MembershipLimits {
   membership_type: string;
@@ -425,11 +426,7 @@ const UpgradeDiamondPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <AngelLoader variant="fullscreen" />;
   }
 
   if (!userData) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import AngelLoader from './AngelLoader';
 
 interface TipStatusCheckerProps {
   userId: string;
@@ -48,7 +49,7 @@ const TipStatusChecker: React.FC<TipStatusCheckerProps> = ({ userId, children })
   };
 
   if (loading) {
-    return <div className="text-white">Loading...</div>;
+    return <AngelLoader variant="inline" />;
   }
 
   return <>{children(hasTips, hasBeenTipped)}</>;

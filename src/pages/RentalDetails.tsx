@@ -13,6 +13,7 @@ import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "l
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
+import AngelLoader from "@/components/AngelLoader";
 
 type Review = {
   id: string;
@@ -292,7 +293,7 @@ const RentalDetails: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen pt-24 text-center">Loading...</div>;
+  if (loading) return <AngelLoader variant="fullscreen" className="pt-24" />;
   if (!vehicle)
     return (
       <div className="min-h-screen pt-24 text-center">

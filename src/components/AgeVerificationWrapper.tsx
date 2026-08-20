@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AgeVerification from './AgeVerification';
+import AngelLoader from './AngelLoader';
 
 interface AgeVerificationWrapperProps {
   children: React.ReactNode;
@@ -27,8 +28,8 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="fixed inset-0 z-50">
+        <AngelLoader variant="fullscreen" />
       </div>
     );
   }
