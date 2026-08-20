@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
-import NotificationBell from "./NotificationBell";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -65,9 +64,7 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
               </Link>
 
               <div className="flex flex-1 items-center justify-center">
-                {title?.toLowerCase() === "profile" ? (
-                  <NotificationBell />
-                ) : (
+                {title?.toLowerCase() !== "profile" && (
                   <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                     {title}
                   </h1>
