@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { hasOpenDialogInDom, isPopupQueueClear, subscribePopupQueue } from "@/lib/popupQueue";
 
 const STORAGE_KEY = "mansion_party_popup_shown";
 
