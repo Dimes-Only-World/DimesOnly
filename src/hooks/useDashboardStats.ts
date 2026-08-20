@@ -62,10 +62,8 @@ export const useDashboardStats = (
               .select("amount")
               .eq("user_id", userId)
               .eq("payout_status", "completed"),
-            supabase
-              .from("users")
-              .select("id", { count: "exact", head: true })
-              .eq("referred_by", username),
+            supabase.rpc("get_my_referrals_count"),
+
             supabase
               .from("jackpot_tickets")
               .select("code, pool_id, is_winner")
