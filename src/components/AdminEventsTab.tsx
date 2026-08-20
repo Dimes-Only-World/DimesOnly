@@ -297,6 +297,21 @@ const AdminEventsTab: React.FC = () => {
   const fetchEventAttendees = async (eventId: string) => {
     try {
       console.log("🔄 Fetching attendees for event:", eventId);
+      const adminUserId = getAdminUserId();
+
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "fetchEventAttendees", adminUserId, eventId } }
+        );
+        if (fnError) throw fnError;
+        if ((fnData as any)?.error) throw new Error((fnData as any).error);
+        const rows = (fnData as any)?.data ?? fnData;
+        console.log("✅ Attendees fetched:", rows?.length || 0);
+        setAttendees((rows as unknown as Attendee[]) || []);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("user_events")
         .select(
@@ -338,12 +353,12 @@ const AdminEventsTab: React.FC = () => {
       }
 
       console.log("✅ Attendees fetched:", data?.length || 0, "attendees");
-      console.log("📋 Sample attendee data:", data?.[0]);
       setAttendees((data as unknown as Attendee[]) || []);
     } catch (error) {
       console.error("❌ Error in fetchEventAttendees:", error);
     }
   };
+
 
   const handleCheckIn = async (attendeeId: string, currentStatus: boolean) => {
     setCheckingInId(attendeeId);
