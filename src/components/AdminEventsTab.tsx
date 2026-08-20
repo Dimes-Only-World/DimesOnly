@@ -290,11 +290,12 @@ const AdminEventsTab: React.FC = () => {
   };
 
   const fetchEventAttendees = async (eventId: string) => {
-    try {
-      console.log("🔄 Fetching attendees for event:", eventId);
-      const adminUserId = getAdminUserId();
+    console.log("🔄 Fetching attendees for event:", eventId);
+    const adminUserId = getAdminUserId();
 
-      if (adminUserId) {
+    // 1) Preferred: admin edge function (full details, bypasses RLS)
+    if (adminUserId) {
+      try {
         const { data: fnData, error: fnError } = await supabase.functions.invoke(
           "admin-data",
           { body: { action: "fetchEventAttendees", adminUserId, eventId } }
@@ -302,11 +303,16 @@ const AdminEventsTab: React.FC = () => {
         if (fnError) throw fnError;
         if ((fnData as any)?.error) throw new Error((fnData as any).error);
         const rows = (fnData as any)?.data ?? fnData;
-        console.log("✅ Attendees fetched:", rows?.length || 0);
+        console.log("✅ Attendees fetched (admin):", rows?.length || 0);
         setAttendees((rows as unknown as Attendee[]) || []);
         return;
+      } catch (err) {
+        console.warn("⚠️ Admin attendee fetch failed, falling back:", err);
       }
+    }
 
+    // 2) Direct table read (works when signed in with sufficient RLS access)
+    try {
       const { data, error } = await supabase
         .from("user_events")
         .select(
@@ -342,17 +348,54 @@ const AdminEventsTab: React.FC = () => {
         .eq("event_id", eventId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("❌ Error fetching attendees:", error);
-        throw error;
+      if (error) throw error;
+      if (data && data.length > 0) {
+        console.log("✅ Attendees fetched (direct):", data.length);
+        setAttendees((data as unknown as Attendee[]) || []);
+        return;
       }
+    } catch (err) {
+      console.warn("⚠️ Direct attendee query failed, falling back to RPC:", err);
+    }
 
-      console.log("✅ Attendees fetched:", data?.length || 0, "attendees");
-      setAttendees((data as unknown as Attendee[]) || []);
+    // 3) Public RPC fallback (limited public fields, always readable)
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "event_attendees_public",
+        { p_event_id: eventId }
+      );
+      if (rpcError) throw rpcError;
+      const mapped = (rpcData || []).map((r: any, i: number) => ({
+        id: `${r.user_id || "guest"}-${i}`,
+        user_id: r.user_id,
+        event_id: eventId,
+        username: r.username,
+        payment_status: "completed",
+        created_at: r.created_at,
+        first_name: null,
+        last_name: null,
+        phone_number: null,
+        ticket_quantity: r.ticket_quantity,
+        ticket_type: r.ticket_type,
+        amount_paid: null,
+        checked_in: false,
+        checked_in_at: null,
+        guest_name: r.guest_name,
+        users: {
+          username: r.username,
+          profile_photo: r.profile_photo,
+          user_type: r.user_type,
+        },
+      }));
+      console.log("✅ Attendees fetched (public RPC):", mapped.length);
+      setAttendees(mapped as unknown as Attendee[]);
     } catch (error) {
       console.error("❌ Error in fetchEventAttendees:", error);
+      setAttendees([]);
     }
   };
+
+
 
 
   const handleCheckIn = async (attendeeId: string, currentStatus: boolean) => {
