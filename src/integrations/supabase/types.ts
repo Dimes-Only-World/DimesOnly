@@ -3191,6 +3191,7 @@ export type Database = {
           is_active: boolean
           is_business_owner: boolean
           is_ranked: boolean | null
+          last_login_at: string | null
           last_name: string | null
           liked_by: string | null
           likes: number | null
@@ -3262,6 +3263,7 @@ export type Database = {
           is_active?: boolean
           is_business_owner?: boolean
           is_ranked?: boolean | null
+          last_login_at?: string | null
           last_name?: string | null
           liked_by?: string | null
           likes?: number | null
@@ -3333,6 +3335,7 @@ export type Database = {
           is_active?: boolean
           is_business_owner?: boolean
           is_ranked?: boolean | null
+          last_login_at?: string | null
           last_name?: string | null
           liked_by?: string | null
           likes?: number | null

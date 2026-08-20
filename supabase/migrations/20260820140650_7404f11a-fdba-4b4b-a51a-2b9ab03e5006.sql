@@ -1,0 +1,2 @@
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS last_login_at timestamptz;
+UPDATE public.users u SET last_login_at = a.last_sign_in_at FROM auth.users a WHERE a.id = u.id AND u.last_login_at IS NULL AND a.last_sign_in_at IS NOT NULL;
