@@ -106,7 +106,7 @@ export const DashboardBackButtonGuard = () => {
           </AlertDialogCancel>
           <AlertDialogAction onClick={handleLogout}>Log out</AlertDialogAction>
         </AlertDialogFooter>
-      </AlertDialog Content>
+      </AlertDialogContent>
     </AlertDialog>
   );
 };
