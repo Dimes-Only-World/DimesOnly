@@ -4,6 +4,7 @@ import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import App from './App.tsx'
 import './index.css'
 import { supabase } from './integrations/supabase/client'
+import AngelLoader from './components/AngelLoader.tsx'
 
 // Error boundary for PayPal issues
 class PayPalErrorBoundary extends React.Component<
@@ -28,18 +29,7 @@ class PayPalErrorBoundary extends React.Component<
   }
 }
 
-const LoadingFallback = () => (
-  <div style={{
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000',
-    color: '#fff',
-  }}>
-    Loading...
-  </div>
-);
+const LoadingFallback = () => <AngelLoader variant="fullscreen" />;
 
 // Load PayPal client ID from the paypal-config edge function so the frontend
 // SDK always matches PAYPAL_ENVIRONMENT (sandbox/live) on the backend.

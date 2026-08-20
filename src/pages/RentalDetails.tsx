@@ -292,7 +292,7 @@ const RentalDetails: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen pt-24 text-center">Loading...</div>;
+  if (loading) return <AngelLoader variant="fullscreen" className="pt-24" />;
   if (!vehicle)
     return (
       <div className="min-h-screen pt-24 text-center">

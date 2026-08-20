@@ -167,7 +167,7 @@ const Jackpot: React.FC = () => {
                   disabled={loadingTickets}
                 >
                   {loadingTickets ? (
-                    "Loading..."
+                    <AngelLoader variant="inline" />
                   ) : showTicketDetails ? (
                     <>
                       <ChevronUp className="w-4 h-4 mr-2" />
