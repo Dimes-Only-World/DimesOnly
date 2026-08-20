@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Crown, DollarSign, Trophy, Users, Share2, ArrowUpRight } from "lucide-react";
-import { resolveMembership } from "@/lib/membership";
+import { resolveMembership, MEMBERSHIP_OPTIONS } from "@/lib/membership";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +56,11 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
     userData?.first_name || userData?.username || "Member";
   const initials = String(displayName).slice(0, 1).toUpperCase();
   const isMaxTier = membership.rank >= 7;
+  const upgradeTargetRank =
+    MEMBERSHIP_OPTIONS.find((o) => o.key === upgradeTarget.key)?.rank ?? 99;
+  // Never offer a "Plus" upgrade the member already meets or exceeds
+  // (e.g. a Diamond Plus member should not see "Upgrade to Silver Plus").
+  const showPlusUpgrade = !isMaxTier && membership.rank < upgradeTargetRank;
 
   const shareLink = `${window.location.origin}?ref=${userData?.username || ""}`;
 
@@ -128,7 +133,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
             </div>
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 basis-full sm:basis-auto">
             <p className="text-sm text-muted-foreground">Welcome back</p>
             <h2 className="truncate text-xl font-bold md:text-2xl">
               @{userData?.username || "member"}
@@ -145,7 +150,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            {!isMaxTier && (
+            {showPlusUpgrade && (
               <Button
                 onClick={() => navigate(upgradeTarget.href)}
                 className="flex-1 bg-dimes-magenta font-semibold text-white hover:bg-dimes-magenta/90 sm:flex-none"
