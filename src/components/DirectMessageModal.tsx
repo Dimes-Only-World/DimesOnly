@@ -93,13 +93,26 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     const loadThread = async () => {
       setLoading(true);
       try {
-        const { data: recipientData, error: recipientError } = await supabase
+        // Try direct read first (may be blocked by RLS), then fall back to the
+        // public-data edge function which resolves usernames case-insensitively.
+        let recipientData: any = null;
+
+        const direct = await supabase
           .from("users")
           .select("id, username, profile_photo, membership_tier")
-          .eq("username", recipientUsername)
-          .single();
+          .ilike("username", recipientUsername)
+          .maybeSingle();
+        recipientData = direct.data;
 
-        if (recipientError || !recipientData) {
+        if (!recipientData) {
+          const { data: fnData } = await supabase.functions.invoke("public-data", {
+            body: { action: "fetchProfile", username: recipientUsername },
+          });
+          recipientData = (fnData as any)?.data ?? fnData ?? null;
+          if (Array.isArray(recipientData)) recipientData = recipientData[0] ?? null;
+        }
+
+        if (!recipientData?.id) {
           toast({
             title: "Unable to start chat",
             description: "We could not find that performer.",
@@ -109,7 +122,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
           return;
         }
 
-          const rawRecipient = recipientData as {
+        const rawRecipient = recipientData as {
           id: string | number;
           username: string;
           profile_photo?: string | null;
