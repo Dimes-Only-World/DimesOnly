@@ -104,8 +104,24 @@ const AdminUsersListEnhanced: React.FC = () => {
     if (cityFilter) filtered = filtered.filter((u) => u.city?.toLowerCase().includes(cityFilter.toLowerCase()));
     if (stateFilter) filtered = filtered.filter((u) => u.state?.toLowerCase().includes(stateFilter.toLowerCase()));
     if (referredByFilter) filtered = filtered.filter((u) => u.referred_by?.toLowerCase().includes(referredByFilter.toLowerCase()));
+
+    const ts = (v?: string | null) => (v ? new Date(v).getTime() : 0);
+    filtered.sort((a, b) =>
+      sortKey === "last_login"
+        ? ts(b.last_login_at) - ts(a.last_login_at)
+        : ts(b.created_at) - ts(a.created_at)
+    );
+
     setFilteredUsers(filtered);
   };
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "Never";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "Never";
+    return d.toLocaleString();
+  };
+
 
   const getGenderDisplay = (user: User) => {
     const gender = user.gender?.toLowerCase() || "";
