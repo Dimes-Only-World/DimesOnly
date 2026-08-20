@@ -66,11 +66,10 @@ export const DashboardBackButtonGuard = () => {
   const handleStay = () => {
     setOpen(false);
     // Re-push the guard entry so the next back press is also intercepted
-    if (typeof window !== "undefined" && isDashboard) {
-      window.history.pushState(
-        { [HISTORY_STATE_KEY]: true },
-        "",
-        location.pathname + location.search + location.hash
+    if (isDashboard) {
+      navigate(
+        location.pathname + location.search + location.hash,
+        { state: { [HISTORY_STATE_KEY]: true } }
       );
     }
   };
