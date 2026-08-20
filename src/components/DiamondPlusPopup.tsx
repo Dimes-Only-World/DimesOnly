@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { Tables } from "@/types";
 import { resolveMembership } from "@/lib/membership";
 import { supabase } from "@/integrations/supabase/client";
+import { acquirePopupSlot, releasePopupSlot } from "@/lib/popupQueue";
+
+const POPUP_ID = "upgrade-offer";
 
 type UserData = Tables<"users">;
 
@@ -86,8 +89,10 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
 
   const [positionsLeft, setPositionsLeft] = useState<number | null>(null);
 
-  const notifyCleared = () =>
+  const notifyCleared = () => {
+    releasePopupSlot(POPUP_ID);
     window.dispatchEvent(new CustomEvent("dimes:popups-cleared"));
+  };
 
   useEffect(() => {
     const storageKey = offer ? `upgrade_popup_shown_${offer.id}` : null;
@@ -95,9 +100,13 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
       notifyCleared();
       return;
     }
+    acquirePopupSlot(POPUP_ID);
     setOpen(true);
     sessionStorage.setItem(storageKey as string, "true");
   }, [offer]);
+
+  // Always free the slot if this popup unmounts while open.
+  useEffect(() => () => releasePopupSlot(POPUP_ID), []);
 
   useEffect(() => {
     if (!offer) return;
