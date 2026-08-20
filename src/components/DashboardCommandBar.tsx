@@ -128,7 +128,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
             </div>
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 basis-full sm:basis-auto">
             <p className="text-sm text-muted-foreground">Welcome back</p>
             <h2 className="truncate text-xl font-bold md:text-2xl">
               @{userData?.username || "member"}
@@ -145,7 +145,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            {!isMaxTier && (
+            {showPlusUpgrade && (
               <Button
                 onClick={() => navigate(upgradeTarget.href)}
                 className="flex-1 bg-dimes-magenta font-semibold text-white hover:bg-dimes-magenta/90 sm:flex-none"
