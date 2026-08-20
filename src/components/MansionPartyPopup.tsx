@@ -3,8 +3,15 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { hasOpenDialogInDom, isPopupQueueClear, subscribePopupQueue } from "@/lib/popupQueue";
+import { resolveMembership } from "@/lib/membership";
 
+/** Once per login session (sessionStorage clears on a fresh sign-in / new tab). */
 const STORAGE_KEY = "mansion_party_popup_shown";
+
+interface MansionPartyPopupProps {
+  /** Current user record; popup is skipped for Plus members. */
+  userData?: any;
+}
 
 type Particle = {
   x: number;
