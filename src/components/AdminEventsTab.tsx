@@ -364,18 +364,29 @@ const AdminEventsTab: React.FC = () => {
     setCheckingInId(attendeeId);
     try {
       console.log("🔄 Checking in attendee:", attendeeId);
-      const { error } = await supabase
-        .from("user_events")
-        .update({
-          checked_in: !currentStatus,
-          checked_in_at: !currentStatus ? new Date().toISOString() : null,
-        })
-        .eq("id", attendeeId);
+      const adminUserId = getAdminUserId();
+      if (adminUserId) {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke(
+          "admin-data",
+          { body: { action: "checkInAttendee", adminUserId, attendeeId, checkedIn: !currentStatus } }
+        );
+        if (fnError) throw fnError;
+        if ((fnData as any)?.error) throw new Error((fnData as any).error);
+      } else {
+        const { error } = await supabase
+          .from("user_events")
+          .update({
+            checked_in: !currentStatus,
+            checked_in_at: !currentStatus ? new Date().toISOString() : null,
+          })
+          .eq("id", attendeeId);
 
-      if (error) {
-        console.error("❌ Error checking in attendee:", error);
-        throw error;
+        if (error) {
+          console.error("❌ Error checking in attendee:", error);
+          throw error;
+        }
       }
+
 
       toast({
         title: "Success",
