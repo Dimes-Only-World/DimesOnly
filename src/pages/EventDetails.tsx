@@ -587,7 +587,7 @@ const EventDetails: React.FC = () => {
         onClose={() => setVideoModalOpen(false)}
       />
 
-      <div className={`${getContainerClasses()} pb-8`}>
+      <div className={`${getContainerClasses("w-full")} pb-8`}>
         {/* Back Button */}
         <div className="p-4">
           <Button
