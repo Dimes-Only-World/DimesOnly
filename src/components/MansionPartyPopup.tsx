@@ -210,7 +210,7 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
       window.clearTimeout(pending);
       window.clearInterval(poll);
     };
-  }, []);
+  }, [isPlusMember]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
