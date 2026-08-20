@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
 import { formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
+import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import {
   Calendar,
   MapPin,
