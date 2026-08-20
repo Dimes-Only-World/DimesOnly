@@ -18,6 +18,13 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import EventTicketSelector from "@/components/EventTicketSelector";
 import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
 import { formatTime12Hour, formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
 import {
@@ -41,6 +48,7 @@ interface Event {
   name: string;
   date: string;
   date_tba?: boolean;
+  end_date?: string | null;
   start_time: string;
   end_time: string;
   address: string;
@@ -707,7 +715,7 @@ const EventDetails: React.FC = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Calendar className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                      <span>{event.date_tba ? "To Be Announced" : formatDateForDisplay(event.date)}</span>
+                      <span>{event.date_tba ? "To Be Announced" : `${formatDateForDisplay(event.date)}${event.end_date && event.end_date !== event.date ? ` – ${formatDateForDisplay(event.end_date)}` : ""}`}</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Clock className="h-5 w-5 text-yellow-400 flex-shrink-0" />
@@ -862,21 +870,30 @@ const EventDetails: React.FC = () => {
                         <ImageIcon className="h-4 w-4" />
                         Photos ({event.additional_photos.length})
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {event.additional_photos.map((photo, index) => (
-                          <img
-                            key={index}
-                            src={photo}
-                            alt={`Event photo ${index + 1}`}
-                            className="w-full h-20 md:h-24 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => openPhotoLightbox(allPhotos, index + 1)}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = "/placeholder.svg";
-                            }}
-                          />
-                        ))}
-                      </div>
+                      <Carousel opts={{ align: "start", loop: true }} className="w-full">
+                        <CarouselContent className="-ml-2">
+                          {event.additional_photos.map((photo, index) => (
+                            <CarouselItem
+                              key={index}
+                              className="pl-2 basis-1/2 md:basis-1/3"
+                            >
+                              <img
+                                src={photo}
+                                alt={`Event photo ${index + 1}`}
+                                loading="lazy"
+                                className="w-full h-24 md:h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openPhotoLightbox(allPhotos, index + 1)}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = "/placeholder.svg";
+                                }}
+                              />
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-1 bg-black/60 border-white/30 text-white hover:bg-black/80" />
+                        <CarouselNext className="right-1 bg-black/60 border-white/30 text-white hover:bg-black/80" />
+                      </Carousel>
                     </div>
                   )}
 
