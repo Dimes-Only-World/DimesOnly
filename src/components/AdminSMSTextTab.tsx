@@ -9,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Copy, Check, Plus, Trash2 } from "lucide-react";
+import { Copy, Check, Plus, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 type Section = { title: string; text: string };
@@ -128,17 +128,33 @@ const loadSections = (): Section[] => {
 
 const AdminSMSTextTab: React.FC = () => {
   const [sections, setSections] = useState<Section[]>(loadSections);
+  const [drafts, setDrafts] = useState<Section[]>(() => loadSections());
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [openItem, setOpenItem] = useState<string | undefined>(undefined);
 
   const persist = (next: Section[]) => {
     setSections(next);
+    setDrafts(next.map((s) => ({ ...s })));
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
       /* ignore */
     }
   };
+
+  const updateDraft = (index: number, patch: Partial<Section>) => {
+    setDrafts((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  };
+
+  const saveSection = (index: number) => {
+    const next = sections.map((s, i) => (i === index ? { ...s, ...drafts[index] } : s));
+    persist(next);
+    toast.success("Section saved");
+  };
+
+  const isDirty = (index: number) =>
+    drafts[index]?.title !== sections[index]?.title ||
+    drafts[index]?.text !== sections[index]?.text;
 
   // Persist the merged defaults on first load so new sections stick.
   React.useEffect(() => {
@@ -155,10 +171,6 @@ const AdminSMSTextTab: React.FC = () => {
     toast.success("Restored default sections");
   };
 
-  const updateSection = (index: number, patch: Partial<Section>) => {
-    const next = sections.map((s, i) => (i === index ? { ...s, ...patch } : s));
-    persist(next);
-  };
 
   const addSection = () => {
     const next = [...sections, { title: "New Section", text: "" }];
@@ -172,7 +184,7 @@ const AdminSMSTextTab: React.FC = () => {
   };
 
   const handleCopy = async (index: number) => {
-    const text = sections[index]?.text || "";
+    const text = drafts[index]?.text || "";
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -223,8 +235,8 @@ const AdminSMSTextTab: React.FC = () => {
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <Input
-                      value={section.title}
-                      onChange={(e) => updateSection(index, { title: e.target.value })}
+                      value={drafts[index]?.title ?? ""}
+                      onChange={(e) => updateDraft(index, { title: e.target.value })}
                       placeholder="Section title"
                     />
                     <Button
@@ -238,19 +250,28 @@ const AdminSMSTextTab: React.FC = () => {
                     </Button>
                   </div>
                   <Textarea
-                    value={section.text}
-                    onChange={(e) => updateSection(index, { text: e.target.value })}
+                    value={drafts[index]?.text ?? ""}
+                    onChange={(e) => updateDraft(index, { text: e.target.value })}
                     placeholder="Enter your message text here…"
                     rows={6}
                     className="resize-y"
                   />
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => saveSection(index)}
+                      disabled={!isDirty(index)}
+                    >
+                      <Save className="w-4 h-4 mr-1" />
+                      {isDirty(index) ? "Save" : "Saved"}
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopy(index)}
-                      disabled={!section.text?.trim()}
+                      disabled={!drafts[index]?.text?.trim()}
                     >
                       {copiedIndex === index ? (
                         <>
@@ -263,8 +284,11 @@ const AdminSMSTextTab: React.FC = () => {
                       )}
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      {section.text?.length || 0} characters
+                      {drafts[index]?.text?.length || 0} characters
                     </span>
+                    {isDirty(index) && (
+                      <span className="text-xs text-amber-500">Unsaved changes</span>
+                    )}
                   </div>
                 </div>
               </AccordionContent>
