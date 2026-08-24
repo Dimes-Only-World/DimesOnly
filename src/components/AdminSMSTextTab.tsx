@@ -250,19 +250,28 @@ const AdminSMSTextTab: React.FC = () => {
                     </Button>
                   </div>
                   <Textarea
-                    value={section.text}
-                    onChange={(e) => updateSection(index, { text: e.target.value })}
+                    value={drafts[index]?.text ?? ""}
+                    onChange={(e) => updateDraft(index, { text: e.target.value })}
                     placeholder="Enter your message text here…"
                     rows={6}
                     className="resize-y"
                   />
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => saveSection(index)}
+                      disabled={!isDirty(index)}
+                    >
+                      <Save className="w-4 h-4 mr-1" />
+                      {isDirty(index) ? "Save" : "Saved"}
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopy(index)}
-                      disabled={!section.text?.trim()}
+                      disabled={!drafts[index]?.text?.trim()}
                     >
                       {copiedIndex === index ? (
                         <>
