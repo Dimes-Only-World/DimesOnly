@@ -694,7 +694,6 @@ const Events: React.FC = () => {
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">SOLD OUT</Badge>
                       ) : (() => {
-                      }) : (() => {
                         const used = getUsedFreeSpots(event);
                         const alloc = resolveFreeAllocation(
                           event as any,
