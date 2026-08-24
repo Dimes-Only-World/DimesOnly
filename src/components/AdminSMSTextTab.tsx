@@ -128,17 +128,33 @@ const loadSections = (): Section[] => {
 
 const AdminSMSTextTab: React.FC = () => {
   const [sections, setSections] = useState<Section[]>(loadSections);
+  const [drafts, setDrafts] = useState<Section[]>(() => loadSections());
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [openItem, setOpenItem] = useState<string | undefined>(undefined);
 
   const persist = (next: Section[]) => {
     setSections(next);
+    setDrafts(next.map((s) => ({ ...s })));
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
       /* ignore */
     }
   };
+
+  const updateDraft = (index: number, patch: Partial<Section>) => {
+    setDrafts((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  };
+
+  const saveSection = (index: number) => {
+    const next = sections.map((s, i) => (i === index ? { ...s, ...drafts[index] } : s));
+    persist(next);
+    toast.success("Section saved");
+  };
+
+  const isDirty = (index: number) =>
+    drafts[index]?.title !== sections[index]?.title ||
+    drafts[index]?.text !== sections[index]?.text;
 
   // Persist the merged defaults on first load so new sections stick.
   React.useEffect(() => {
