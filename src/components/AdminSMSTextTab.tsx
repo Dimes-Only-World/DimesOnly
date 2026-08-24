@@ -171,10 +171,6 @@ const AdminSMSTextTab: React.FC = () => {
     toast.success("Restored default sections");
   };
 
-  const updateSection = (index: number, patch: Partial<Section>) => {
-    const next = sections.map((s, i) => (i === index ? { ...s, ...patch } : s));
-    persist(next);
-  };
 
   const addSection = () => {
     const next = [...sections, { title: "New Section", text: "" }];
