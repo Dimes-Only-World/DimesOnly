@@ -184,7 +184,7 @@ const AdminSMSTextTab: React.FC = () => {
   };
 
   const handleCopy = async (index: number) => {
-    const text = sections[index]?.text || "";
+    const text = drafts[index]?.text || "";
     try {
       await navigator.clipboard.writeText(text);
     } catch {
