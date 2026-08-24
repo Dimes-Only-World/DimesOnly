@@ -284,8 +284,11 @@ const AdminSMSTextTab: React.FC = () => {
                       )}
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      {section.text?.length || 0} characters
+                      {drafts[index]?.text?.length || 0} characters
                     </span>
+                    {isDirty(index) && (
+                      <span className="text-xs text-amber-500">Unsaved changes</span>
+                    )}
                   </div>
                 </div>
               </AccordionContent>
