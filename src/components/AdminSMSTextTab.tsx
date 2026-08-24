@@ -9,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Copy, Check, Plus, Trash2 } from "lucide-react";
+import { Copy, Check, Plus, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 type Section = { title: string; text: string };
