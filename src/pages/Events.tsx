@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
 import { formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
-import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
+import { resolveFreeAllocation, getFreeBadgeLabel, listConfiguredFreeAllocations } from "@/lib/eventTickets";
 import {
   Calendar,
   MapPin,
@@ -694,18 +694,28 @@ const Events: React.FC = () => {
                       {getAvailableSpots(event) === 0 ? (
                         <Badge className="bg-red-600 text-white font-bold">SOLD OUT</Badge>
                       ) : (() => {
+                        const used = getUsedFreeSpots(event);
                         const alloc = resolveFreeAllocation(
                           event as any,
                           { ...(appUser as any), user_type: (appUser as any)?.userType, gender: (appUser as any)?.gender },
-                          getUsedFreeSpots(event),
+                          used,
                         );
-                        return alloc.remaining > 0 ? (
-                          <Badge className="bg-green-600 text-white font-bold text-xs">
-                            {getFreeBadgeLabel(alloc)}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-yellow-600 text-white font-bold">PAID ONLY</Badge>
-                        );
+                        if (alloc.remaining > 0) {
+                          return (
+                            <Badge className="bg-green-600 text-white font-bold text-xs">
+                              {getFreeBadgeLabel(alloc)}
+                            </Badge>
+                          );
+                        }
+                        const configured = listConfiguredFreeAllocations(event as any, used);
+                        if (configured.length > 0) {
+                          return configured.map((b) => (
+                            <Badge key={b.key} className="bg-green-600 text-white font-bold text-xs">
+                              {getFreeBadgeLabel(b)}
+                            </Badge>
+                          ));
+                        }
+                        return <Badge className="bg-yellow-600 text-white font-bold">PAID ONLY</Badge>;
                       })()}
                       {event.is_attending ? (
                         <Badge className="bg-green-500 text-white font-bold">Going</Badge>

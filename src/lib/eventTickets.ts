@@ -214,6 +214,42 @@ export const getFreeBadgeLabel = (allocation: FreeAllocation) =>
   `${allocation.label}: ${allocation.remaining}`;
 
 /**
+ * Every free bucket the admin configured on the event (regardless of viewer),
+ * so tiles can advertise e.g. "Free Diamond Plus: 300" to visitors who don't
+ * currently qualify.
+ */
+export const listConfiguredFreeAllocations = (
+  event: EventTicketConfig | null | undefined,
+  used: UsedFreeSpots = {},
+): FreeAllocation[] => {
+  if (!event) return [];
+  const usedPlus = num(used.plus);
+  const usedDimes =
+    used.dimes !== undefined ? num(used.dimes) : num(used.strippers) + num(used.exotics);
+  const usedNormals =
+    used.normals !== undefined ? num(used.normals) : num(used.males) + num(used.females);
+
+  const defs: Array<[FreeBucketKey, string, number, number, boolean]> = [
+    ["plus", "Free Plus", num(event.free_spots_plus), usedPlus, true],
+    ["silver_plus", "Free Silver Plus", num(event.free_spots_silver_plus), usedPlus, true],
+    ["diamond_plus", "Free Diamond Plus", num(event.free_spots_diamond_plus), usedPlus, true],
+    ["elite_plus", "Free Elite Plus", num(event.free_spots_elite_plus), usedPlus, true],
+    ["dimes", "Free Dimes", num(event.free_spots_dimes), usedDimes, false],
+    ["normals", "Free Normals", num(event.free_spots_normals), usedNormals, false],
+    ["strippers", "Free Stripper", num(event.free_spots_strippers), num(used.strippers), false],
+    ["exotics", "Free Exotic", num(event.free_spots_exotics), num(used.exotics), false],
+    ["males", "Free Males", num(event.free_spots_males), num(used.males), false],
+    ["females", "Free Females", num(event.free_spots_females), num(used.females), false],
+  ];
+
+  return defs
+    .filter(([, , total]) => total > 0)
+    .map(([key, label, total, u, isPlus]) => bucket(key, label, total, u, isPlus))
+    .filter((b) => b.remaining > 0);
+};
+
+
+/**
  * General Admission price. When admins set a General Admission price it wins;
  * otherwise the legacy gender-specific price (then legacy `price`) is used.
  */

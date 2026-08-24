@@ -26,7 +26,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import AuthGuard from "@/components/AuthGuard";
 import ReferrerDisplay from "@/components/ReferrerDisplay";
 import { formatTimeRange } from "@/lib/timeUtils";
-import { resolveFreeAllocation, getFreeBadgeLabel } from "@/lib/eventTickets";
+import { resolveFreeAllocation, getFreeBadgeLabel, listConfiguredFreeAllocations } from "@/lib/eventTickets";
 import {
   Search,
   MapPin,
@@ -948,20 +948,32 @@ const EventsDimesOnly: React.FC = () => {
                               SOLD OUT
                             </div>
                           ) : (() => {
+                            const used = {
+                              exotics: getSpotsUsedByType(event, 'exotic'),
+                              strippers: getSpotsUsedByType(event, 'stripper'),
+                              plus: getSpotsUsedByType(event, 'exotic') + getSpotsUsedByType(event, 'stripper'),
+                            };
                             const alloc = resolveFreeAllocation(
                               event as any,
                               { ...(user as any), user_type: (user as any)?.user_type || (user as any)?.userType, gender: (user as any)?.gender },
-                              {
-                                exotics: getSpotsUsedByType(event, 'exotic'),
-                                strippers: getSpotsUsedByType(event, 'stripper'),
-                                plus: getSpotsUsedByType(event, 'exotic') + getSpotsUsedByType(event, 'stripper'),
-                              },
+                              used,
                             );
-                            return alloc.remaining > 0 ? (
-                              <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
-                                {getFreeBadgeLabel(alloc)}
-                              </div>
-                            ) : (
+                            if (alloc.remaining > 0) {
+                              return (
+                                <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                  {getFreeBadgeLabel(alloc)}
+                                </div>
+                              );
+                            }
+                            const configured = listConfiguredFreeAllocations(event as any, used);
+                            if (configured.length > 0) {
+                              return configured.map((b) => (
+                                <div key={b.key} className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
+                                  {getFreeBadgeLabel(b)}
+                                </div>
+                              ));
+                            }
+                            return (
                               <div className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
                                 PAID ONLY
                               </div>
