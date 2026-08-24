@@ -235,8 +235,8 @@ const AdminSMSTextTab: React.FC = () => {
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <Input
-                      value={section.title}
-                      onChange={(e) => updateSection(index, { title: e.target.value })}
+                      value={drafts[index]?.title ?? ""}
+                      onChange={(e) => updateDraft(index, { title: e.target.value })}
                       placeholder="Section title"
                     />
                     <Button
