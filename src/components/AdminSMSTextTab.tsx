@@ -192,9 +192,14 @@ const AdminSMSTextTab: React.FC = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle>SMS Text Templates</CardTitle>
-        <Button type="button" size="sm" onClick={addSection}>
-          <Plus className="w-4 h-4 mr-1" /> Add Section
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={resetToDefaults}>
+            Reset to Defaults
+          </Button>
+          <Button type="button" size="sm" onClick={addSection}>
+            <Plus className="w-4 h-4 mr-1" /> Add Section
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
