@@ -140,6 +140,21 @@ const AdminSMSTextTab: React.FC = () => {
     }
   };
 
+  // Persist the merged defaults on first load so new sections stick.
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const resetToDefaults = () => {
+    persist(DEFAULT_SECTIONS.map((s) => ({ ...s })));
+    toast.success("Restored default sections");
+  };
+
   const updateSection = (index: number, patch: Partial<Section>) => {
     const next = sections.map((s, i) => (i === index ? { ...s, ...patch } : s));
     persist(next);
