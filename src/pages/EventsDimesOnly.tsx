@@ -948,7 +948,6 @@ const EventsDimesOnly: React.FC = () => {
                               SOLD OUT
                             </div>
                           ) : (() => {
-                          }) : (() => {
                             const used = {
                               exotics: getSpotsUsedByType(event, 'exotic'),
                               strippers: getSpotsUsedByType(event, 'stripper'),
