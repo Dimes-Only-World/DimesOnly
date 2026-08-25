@@ -134,7 +134,6 @@ const AdminSMSTextTab: React.FC = () => {
 
   const persist = (next: Section[]) => {
     setSections(next);
-    setDrafts(next.map((s) => ({ ...s })));
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
@@ -167,19 +166,24 @@ const AdminSMSTextTab: React.FC = () => {
   }, []);
 
   const resetToDefaults = () => {
-    persist(DEFAULT_SECTIONS.map((s) => ({ ...s })));
+    const defaults = DEFAULT_SECTIONS.map((s) => ({ ...s }));
+    persist(defaults);
+    setDrafts(defaults.map((s) => ({ ...s })));
     toast.success("Restored default sections");
   };
 
 
   const addSection = () => {
-    const next = [...sections, { title: "New Section", text: "" }];
+    const newSection = { title: "New Section", text: "" };
+    const next = [...sections, newSection];
     persist(next);
+    setDrafts((prev) => [...prev, { ...newSection }]);
     setOpenItem(`item-${next.length - 1}`);
   };
 
   const removeSection = (index: number) => {
     persist(sections.filter((_, i) => i !== index));
+    setDrafts((prev) => prev.filter((_, i) => i !== index));
     setOpenItem(undefined);
   };
 
