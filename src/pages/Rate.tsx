@@ -672,6 +672,107 @@ const RatePage: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Free Content Preview */}
+        {(freePhoto || freeVideo) && (
+          <Card className="mb-6">
+            <CardContent className="p-4 sm:p-6">
+              <h2 className="text-lg font-bold mb-4 text-center">
+                Free Content Preview
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {freePhoto && (
+                  <button
+                    type="button"
+                    onClick={() => setLightbox({ url: freePhoto, type: "photo" })}
+                    className="relative w-full overflow-hidden rounded-lg bg-gray-100 aspect-[3/4] md:aspect-square group"
+                  >
+                    <img
+                      src={freePhoto}
+                      alt={`Latest free photo from @${userData.username}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
+                      Photo
+                    </span>
+                  </button>
+                )}
+                {freeVideo && (
+                  <button
+                    type="button"
+                    onClick={() => setLightbox({ url: freeVideo, type: "video" })}
+                    className="relative w-full overflow-hidden rounded-lg bg-black aspect-[3/4] md:aspect-square group"
+                  >
+                    <video
+                      src={freeVideo}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      preload="metadata"
+                      controlsList="nodownload"
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="w-14 h-14 rounded-full bg-white/85 flex items-center justify-center text-2xl">
+                        ▶
+                      </span>
+                    </span>
+                    <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
+                      Video
+                    </span>
+                  </button>
+                )}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <Button
+                  onClick={() => navigate("/upgrade")}
+                  className="w-full sm:w-auto h-12 px-8 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 hover:from-pink-400 hover:via-purple-400 hover:to-yellow-300 text-white"
+                >
+                  Upgrade for More Content
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Media Lightbox */}
+        {lightbox && (
+          <div
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2"
+            onClick={() => setLightbox(null)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              onClick={() => setLightbox(null)}
+              aria-label="Close"
+              className="absolute top-4 right-4 z-10 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white text-xl"
+            >
+              ✕
+            </button>
+            <div
+              className="max-w-[98vw] max-h-[95vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightbox.type === "video" ? (
+                <video
+                  src={lightbox.url}
+                  className="max-w-[98vw] max-h-[95vh] object-contain"
+                  controls
+                  autoPlay
+                  playsInline
+                  controlsList="nodownload"
+                />
+              ) : (
+                <img
+                  src={lightbox.url}
+                  alt="Expanded free content"
+                  className="max-w-[98vw] max-h-[95vh] object-contain"
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+
         {/* Rating Grid */}
         <Card>
           <CardContent className="p-6">
