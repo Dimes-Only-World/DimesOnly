@@ -75,6 +75,36 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
     };
   }, [userData?.id]);
 
+  // Resolve whether the user's referrer is a Dime (stripper/exotic performer).
+  useEffect(() => {
+    let cancelled = false;
+    const referrer = (userData?.referred_by || "").trim();
+    if (!referrer) {
+      setReferrerIsDime(false);
+      return;
+    }
+    supabase
+      .from("public_user_profiles")
+      .select("username, user_type")
+      .ilike("username", referrer)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const type = String((data as any)?.user_type || "").toLowerCase();
+        setReferrerIsDime(type === "stripper" || type === "exotic");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userData?.referred_by]);
+
+  const referrer = (userData?.referred_by || "").trim();
+  const myUsername = (userData?.username || "").trim();
+  const rateHref =
+    referrerIsDime && referrer
+      ? `/rate/?rate=${encodeURIComponent(referrer)}${myUsername ? `&ref=${encodeURIComponent(myUsername)}` : ""}`
+      : `/rate-girls${myUsername ? `?ref=${encodeURIComponent(myUsername)}` : ""}`;
+
   const membership = resolveMembership(userData);
   const upgradeTarget = getPlusUpgradeTarget(userData);
 
