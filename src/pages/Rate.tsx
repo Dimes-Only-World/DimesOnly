@@ -795,13 +795,16 @@ const RatePage: React.FC = () => {
                     className="relative w-full overflow-hidden rounded-lg bg-black aspect-[3/4] md:aspect-square group"
                   >
                     <video
-                      src={previewVideos[0]}
+                      key={previewVideos[0]}
                       className="w-full h-full object-cover"
                       muted
                       playsInline
                       preload="metadata"
                       controlsList="nodownload"
-                    />
+                    >
+                      <source src={previewVideos[0]} />
+                    </video>
+
                     <span className="absolute inset-0 flex items-center justify-center">
                       <span className="w-14 h-14 rounded-full bg-white/85 flex items-center justify-center text-2xl">
                         ▶
