@@ -853,13 +853,15 @@ const RatePage: React.FC = () => {
                   {lightbox.type === "video" ? (
                     <video
                       key={url}
-                      src={url}
                       className="max-w-[98vw] max-h-[95vh] object-contain"
                       controls
                       autoPlay
+                      muted
                       playsInline
                       controlsList="nodownload"
-                    />
+                    >
+                      <source src={url} />
+                    </video>
                   ) : (
                     <img
                       src={url}
