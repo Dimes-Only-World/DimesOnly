@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
+import ZoomableSwipeImage from "@/components/ZoomableSwipeImage";
+
 import { resolveMembership } from "@/lib/membership";
 
 
@@ -763,9 +765,11 @@ const RatePage: React.FC = () => {
         {(previewPhotos.length > 0 || previewVideos.length > 0) && (
           <Card className="mb-6">
             <CardContent className="p-4 sm:p-6">
-              <h2 className="text-lg font-bold mb-4 text-center">
-                Content Preview
-              </h2>
+              <div className="mb-4 text-center">
+                <h2 className="text-lg font-bold">View @{userData.username}</h2>
+                <p className="text-lg font-bold">&amp;</p>
+                <p className="text-lg font-bold">Rate Her Below</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {previewPhotos.length > 0 && (
                   <button
@@ -783,6 +787,11 @@ const RatePage: React.FC = () => {
                         }`}
                       />
                     ))}
+                    <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="text-white font-extrabold tracking-wide text-sm sm:text-base bg-black/55 px-4 py-2 rounded-full animate-pulse">
+                        CLICK TO EXPAND
+                      </span>
+                    </span>
                     <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
                       Photos {photoIndex + 1}/{previewPhotos.length}
                     </span>
@@ -805,9 +814,12 @@ const RatePage: React.FC = () => {
                       <source src={previewVideos[0]} />
                     </video>
 
-                    <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                       <span className="w-14 h-14 rounded-full bg-white/85 flex items-center justify-center text-2xl">
                         ▶
+                      </span>
+                      <span className="text-white font-extrabold tracking-wide text-sm sm:text-base bg-black/55 px-4 py-2 rounded-full animate-pulse">
+                        CLICK TO EXPAND
                       </span>
                     </span>
                     <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
@@ -831,7 +843,7 @@ const RatePage: React.FC = () => {
             <button
               onClick={() => setLightbox(null)}
               aria-label="Close"
-              className="absolute top-4 right-4 z-10 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white text-xl"
+              className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white text-xl"
             >
               ✕
             </button>
@@ -847,13 +859,18 @@ const RatePage: React.FC = () => {
                 });
               return (
                 <div
-                  className="relative max-w-[98vw] max-h-[95vh] flex items-center justify-center"
+                  className="relative w-full max-w-[98vw] max-h-[95vh] flex items-center justify-center"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {showNav && (
+                    <span className="absolute top-4 left-1/2 -translate-x-1/2 z-20 h-11 flex items-center text-white text-sm bg-black/60 px-3 rounded-full">
+                      {lightbox.index + 1} / {items.length}
+                    </span>
+                  )}
                   {lightbox.type === "video" ? (
                     <video
                       key={url}
-                      className="max-w-[98vw] max-h-[95vh] object-contain"
+                      className="max-w-[98vw] max-h-[88vh] object-contain"
                       controls
                       autoPlay
                       muted
@@ -863,10 +880,11 @@ const RatePage: React.FC = () => {
                       <source src={url} />
                     </video>
                   ) : (
-                    <img
+                    <ZoomableSwipeImage
                       src={url}
                       alt="Expanded content"
-                      className="max-w-[98vw] max-h-[95vh] object-contain"
+                      onSwipeLeft={() => showNav && go(1)}
+                      onSwipeRight={() => showNav && go(-1)}
                     />
                   )}
                   {showNav && (
@@ -874,20 +892,17 @@ const RatePage: React.FC = () => {
                       <button
                         onClick={() => go(-1)}
                         aria-label="Previous"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center"
+                        className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white items-center justify-center"
                       >
                         <ChevronLeft className="w-6 h-6" />
                       </button>
                       <button
                         onClick={() => go(1)}
                         aria-label="Next"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center"
+                        className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white items-center justify-center"
                       >
                         <ChevronRight className="w-6 h-6" />
                       </button>
-                      <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white text-sm bg-black/60 px-3 py-1 rounded-full">
-                        {lightbox.index + 1} / {items.length}
-                      </span>
                     </>
                   )}
                 </div>
@@ -898,32 +913,21 @@ const RatePage: React.FC = () => {
         )}
 
 
+
         {/* Rating Grid */}
         <Card>
           <CardContent className="p-6">
+            <p className="text-gray-600 text-center mb-4">
+              Click a number to assign it to this Dime
+            </p>
             <h2 className="text-xl font-bold mb-4 text-center">
               Rate @{userData.username}
             </h2>
             <p className="text-gray-600 text-center mb-6">
-              Click a number to assign it to this user. Higher numbers = better
-              rating!
+              Click 100 = Top Dime in your Eyes!
             </p>
 
-            <div className="grid grid-cols-10 gap-2">
-              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
-                <button
-                  key={num}
-                  onClick={() => handleNumberClick(num)}
-                  className={`aspect-square rounded-lg font-semibold text-sm transition-colors ${getNumberColor(
-                    num
-                  )}`}
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
+            <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-green-500"></div>
                 <span>Available</span>
@@ -938,11 +942,26 @@ const RatePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-4 text-center text-gray-600">
+            <div className="mb-6 text-center text-gray-600">
               Numbers used: {Object.keys(numberAssignments).length}/100
+            </div>
+
+            <div className="grid grid-cols-10 gap-2">
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
+                <button
+                  key={num}
+                  onClick={() => handleNumberClick(num)}
+                  className={`aspect-square rounded-lg font-semibold text-sm transition-colors ${getNumberColor(
+                    num
+                  )}`}
+                >
+                  {num}
+                </button>
+              ))}
             </div>
           </CardContent>
         </Card>
+
 
         {/* Upgrade CTA (above Home) */}
         {!hasDiamond && (
