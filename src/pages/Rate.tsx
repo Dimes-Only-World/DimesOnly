@@ -699,23 +699,22 @@ const RatePage: React.FC = () => {
       </div>
 
       {/* Profile info bar - events style gradient */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
-        <div className="px-4 md:px-6 py-4 md:py-5">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <img
-              src={userData.profile_photo || "/placeholder.svg"}
-              alt={userData.username}
-              className="w-16 h-16 md:w-20 md:h-20 rounded-md object-cover border-2 border-yellow-400 bg-white/10 cursor-pointer"
-              onClick={() =>
-                userData.profile_photo && setExpandedImage(userData.profile_photo)
-              }
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.svg";
-              }}
-            />
-
-            <div className="text-center sm:text-left flex-1">
+      <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
+        <img
+          src={userData.profile_photo || "/placeholder.svg"}
+          alt={userData.username}
+          className="absolute left-1/2 top-0 z-10 h-24 w-24 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-4 border-background bg-background object-cover shadow-lg md:h-28 md:w-28"
+          onClick={() =>
+            userData.profile_photo && setExpandedImage(userData.profile_photo)
+          }
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/placeholder.svg";
+          }}
+        />
+        <div className="px-4 pb-4 pt-16 md:px-6 md:pb-5 md:pt-20">
+          <div className="flex flex-col items-center gap-3">
+            <div className="text-center">
               <h1 className="text-xl md:text-2xl font-bold text-white">
                 @{userData.username}
               </h1>
