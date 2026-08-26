@@ -915,29 +915,17 @@ const RatePage: React.FC = () => {
         {/* Rating Grid */}
         <Card>
           <CardContent className="p-6">
+            <p className="text-gray-600 text-center mb-4">
+              Click a number to assign it to this Dime
+            </p>
             <h2 className="text-xl font-bold mb-4 text-center">
               Rate @{userData.username}
             </h2>
             <p className="text-gray-600 text-center mb-6">
-              Click a number to assign it to this user. Higher numbers = better
-              rating!
+              Click 100 = Top Dime in your Eyes!
             </p>
 
-            <div className="grid grid-cols-10 gap-2">
-              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
-                <button
-                  key={num}
-                  onClick={() => handleNumberClick(num)}
-                  className={`aspect-square rounded-lg font-semibold text-sm transition-colors ${getNumberColor(
-                    num
-                  )}`}
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
+            <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-green-500"></div>
                 <span>Available</span>
@@ -952,11 +940,26 @@ const RatePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-4 text-center text-gray-600">
+            <div className="mb-6 text-center text-gray-600">
               Numbers used: {Object.keys(numberAssignments).length}/100
+            </div>
+
+            <div className="grid grid-cols-10 gap-2">
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
+                <button
+                  key={num}
+                  onClick={() => handleNumberClick(num)}
+                  className={`aspect-square rounded-lg font-semibold text-sm transition-colors ${getNumberColor(
+                    num
+                  )}`}
+                >
+                  {num}
+                </button>
+              ))}
             </div>
           </CardContent>
         </Card>
+
 
         {/* Upgrade CTA (above Home) */}
         {!hasDiamond && (
