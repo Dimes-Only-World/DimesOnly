@@ -143,6 +143,32 @@ const BusinessOwnerElite: React.FC = () => {
 
           <Card className="bg-black/70 border-fuchsia-500 text-white">
             <CardHeader>
+              <CardTitle className="text-fuchsia-400">Membership Benefits</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Profit share up to $200,000 a year max in tier 1</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Profit share $1,200,000 a year minimum in tier 2</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Lifetime full site access</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Priority business owner support</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/70 border-fuchsia-500 text-white">
+            <CardHeader>
               <CardTitle className="text-fuchsia-400">Seat Availability</CardTitle>
             </CardHeader>
             <CardContent>
