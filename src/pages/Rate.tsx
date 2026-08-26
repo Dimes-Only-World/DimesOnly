@@ -96,6 +96,12 @@ const RatePage: React.FC = () => {
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
+  const [freePhoto, setFreePhoto] = useState<string | null>(null);
+  const [freeVideo, setFreeVideo] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    url: string;
+    type: "photo" | "video";
+  } | null>(null);
 
   useEffect(() => {
     if (!rateUsername) {
