@@ -105,6 +105,22 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       cta: "Upload",
     },
     {
+      id: "rate",
+      label: "Rate your first Dime",
+      description: "Ratings boost rankings and help you get discovered.",
+      done: hasRated,
+      action: () => navigate("/rate"),
+      cta: "Rate",
+    },
+    {
+      id: "tip",
+      label: "Tip your first Dime",
+      description: "Tipping earns jackpot tickets and supports your favorites.",
+      done: hasTipped,
+      action: () => navigate("/tip"),
+      cta: "Tip",
+    },
+    {
       id: "share",
       label: "Share your referral link",
       description: "Earn 20% direct and 10% upline on everything they buy.",
