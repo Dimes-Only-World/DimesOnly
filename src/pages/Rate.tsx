@@ -911,8 +911,21 @@ const RatePage: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Upgrade CTA (above Home) */}
+        {!hasDiamond && (
+          <div className="mt-8 flex justify-center max-w-2xl mx-auto">
+            <Button
+              onClick={() => navigate("/upgrade")}
+              className="w-full sm:w-auto h-12 px-8 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 hover:from-pink-400 hover:via-purple-400 hover:to-yellow-300 text-white"
+            >
+              Upgrade for More Content
+            </Button>
+          </div>
+        )}
+
         {/* Navigation Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 max-w-2xl mx-auto">
+        <div className="mt-4 flex flex-col sm:flex-row justify-center gap-4 max-w-2xl mx-auto">
+
           <Button
             variant="outline"
             onClick={() => navigate("/rate-girls")}
