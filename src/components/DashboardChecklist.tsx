@@ -29,6 +29,8 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
   const dismissKey = `dimes-checklist-dismissed-${userData?.id}`;
   const [dismissed, setDismissed] = useState(false);
   const [hasMedia, setHasMedia] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
+  const [hasTipped, setHasTipped] = useState(false);
   const [shared, setShared] = useState(false);
 
   const readShared = useCallback(
@@ -53,6 +55,20 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       .eq("user_id", userData.id)
       .then(({ count }) => {
         if (!cancelled) setHasMedia((count || 0) > 0);
+      });
+    supabase
+      .from("ratings")
+      .select("id", { count: "exact", head: true })
+      .eq("rater_id", userData.id)
+      .then(({ count }) => {
+        if (!cancelled) setHasRated((count || 0) > 0);
+      });
+    supabase
+      .from("tips")
+      .select("id", { count: "exact", head: true })
+      .eq("tipper_id", userData.id)
+      .then(({ count }) => {
+        if (!cancelled) setHasTipped((count || 0) > 0);
       });
     return () => {
       cancelled = true;
