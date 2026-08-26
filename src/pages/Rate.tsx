@@ -779,9 +779,9 @@ const RatePage: React.FC = () => {
       <div className="w-full pb-8">
         {/* Content Preview */}
         {(previewPhotos.length > 0 || previewVideos.length > 0) && (
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-none border-x-0">
             <CardContent className="py-4 sm:py-6 px-0">
-              <div className="mb-4 text-center">
+              <div className="mb-4 text-center px-4">
                 <h2 className="text-lg font-bold">View @{userData.username}</h2>
                 <p className="text-lg font-bold">&amp;</p>
                 <p className="text-lg font-bold">Rate Her Below</p>
