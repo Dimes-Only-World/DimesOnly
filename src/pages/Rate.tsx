@@ -605,28 +605,33 @@ const RatePage: React.FC = () => {
 
             {/* Current Standing */}
             {currentStanding && (
-              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                <div className="bg-yellow-50 rounded-lg p-3">
-                  <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
-                  <div className="text-2xl font-bold text-yellow-600">
-                    #{currentStanding.rank || "—"}
-                  </div>
-                  <div className="text-xs text-gray-600">Current Rank</div>
+              <div className="mt-6">
+                <div className="flex justify-center mb-2">
+                  <Trophy className="w-8 h-8 text-yellow-500 animate-[trophy-rotate-in_1s_ease-out]" />
                 </div>
-                <div className="bg-purple-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {currentStanding.totalScore}
+                <div className="grid grid-cols-3 gap-4 text-center items-stretch">
+                  <div className="bg-purple-50 rounded-lg p-3 flex flex-col justify-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {currentStanding.totalScore}
+                    </div>
+                    <div className="text-xs text-gray-600">Total Score</div>
                   </div>
-                  <div className="text-xs text-gray-600">Total Score</div>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {currentStanding.totalRatings}
+                  <div className="bg-yellow-50 rounded-lg p-3 flex flex-col justify-center">
+                    <div className="text-2xl font-bold text-yellow-600">
+                      #{currentStanding.rank || "—"}
+                    </div>
+                    <div className="text-xs text-gray-600">Current Rank</div>
                   </div>
-                  <div className="text-xs text-gray-600">Total Ratings</div>
+                  <div className="bg-blue-50 rounded-lg p-3 flex flex-col justify-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {currentStanding.totalRatings}
+                    </div>
+                    <div className="text-xs text-gray-600">People Rated You</div>
+                  </div>
                 </div>
               </div>
             )}
+
           </CardContent>
         </Card>
 

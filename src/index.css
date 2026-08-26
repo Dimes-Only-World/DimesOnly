@@ -332,3 +332,8 @@ body.paypal-overlay-open {
     padding: 0 !important;
   }
 }
+
+@keyframes trophy-rotate-in {
+  0% { transform: rotate(-180deg) scale(0.4); opacity: 0; }
+  100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
