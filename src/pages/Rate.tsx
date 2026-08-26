@@ -204,6 +204,30 @@ const RatePage: React.FC = () => {
     }
   };
 
+  const signMediaUrl = async (rawUrl: string): Promise<string> => {
+    const url = String(rawUrl || "");
+    if (!url.includes("/private-media/")) return url;
+    const storagePath = url.split("/private-media/")[1];
+    if (!storagePath) return url;
+    try {
+      const { data: signedResponse, error: signErr } =
+        await supabase.functions.invoke("public-data", {
+          body: {
+            action: "createSignedUrl",
+            storagePath: decodeURIComponent(storagePath),
+            expiresIn: 3600,
+          },
+        });
+      const signedUrl = signedResponse?.data?.signedUrl as string | undefined;
+      return !signErr && signedUrl ? signedUrl : url;
+    } catch {
+      return url;
+    }
+  };
+
+  const signAll = async (urls: string[]) =>
+    Promise.all(urls.map((u) => signMediaUrl(u)));
+
   const fetchFreeMedia = async (
     profile: UserData,
     registrationVideos: string[]
@@ -214,6 +238,11 @@ const RatePage: React.FC = () => {
       profile.front_page_photo,
     ].filter(Boolean);
     const fallbackVideos = registrationVideos.slice(0, 1);
+
+    const applyFallback = async () => {
+      setPreviewPhotos(await signAll(fallbackPhotos));
+      setPreviewVideos(await signAll(fallbackVideos));
+    };
 
     try {
       const { data, error } = await supabase
@@ -226,8 +255,7 @@ const RatePage: React.FC = () => {
 
       if (error) {
         console.error("Error fetching free media:", error);
-        setPreviewPhotos(fallbackPhotos);
-        setPreviewVideos(fallbackVideos);
+        await applyFallback();
         return;
       }
 
@@ -248,14 +276,14 @@ const RatePage: React.FC = () => {
         .slice(0, 3)
         .map((m: any) => String(m.media_url));
 
-      setPreviewPhotos(photos.length > 0 ? photos : fallbackPhotos);
-      setPreviewVideos(videos.length > 0 ? videos : fallbackVideos);
+      setPreviewPhotos(await signAll(photos.length > 0 ? photos : fallbackPhotos));
+      setPreviewVideos(await signAll(videos.length > 0 ? videos : fallbackVideos));
     } catch (e) {
       console.error("Free media error:", e);
-      setPreviewPhotos(fallbackPhotos);
-      setPreviewVideos(fallbackVideos);
+      await applyFallback();
     }
   };
+
 
   // Auto-rotate the photo preview
   useEffect(() => {
