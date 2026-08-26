@@ -133,10 +133,27 @@ const RatePage: React.FC = () => {
       } = await supabase.auth.getUser();
       if (user) {
         setCurrentUser(user);
-        await fetchUserRatings(user.id);
+        await Promise.all([fetchUserRatings(user.id), fetchViewerMembership(user.id)]);
       }
     } catch (error) {
       console.error("Error fetching current user:", error);
+    }
+  };
+
+  const fetchViewerMembership = async (authId: string) => {
+    try {
+      const { data } = await supabase
+        .from("users")
+        .select(
+          "membership_tier, membership_type, user_type, free_membership_tier, silver_plus_active, diamond_plus_active, business_owner_elite_active"
+        )
+        .eq("id", authId)
+        .maybeSingle();
+      if (data) {
+        setHasDiamond(resolveMembership(data).rank >= 4);
+      }
+    } catch (e) {
+      console.error("Membership check error:", e);
     }
   };
 
@@ -169,11 +186,15 @@ const RatePage: React.FC = () => {
         };
         setUserData(userData);
 
+        const registrationVideos: string[] = Array.isArray(data.video_urls)
+          ? data.video_urls.filter(Boolean).map((v: unknown) => String(v))
+          : [];
+
         // Fetch current standing, likes and free preview media
         await Promise.all([
           fetchCurrentStanding(userData.id),
           fetchLikes(userData.id),
-          fetchFreeMedia(userData.id),
+          fetchFreeMedia(userData, registrationVideos),
         ]);
       }
     } catch (error) {
@@ -181,35 +202,68 @@ const RatePage: React.FC = () => {
     }
   };
 
-  const fetchFreeMedia = async (userId: string) => {
+  const fetchFreeMedia = async (
+    profile: UserData,
+    registrationVideos: string[]
+  ) => {
+    const fallbackPhotos = [
+      profile.profile_photo,
+      profile.banner_photo,
+      profile.front_page_photo,
+    ].filter(Boolean);
+    const fallbackVideos = registrationVideos.slice(0, 1);
+
     try {
       const { data, error } = await supabase
         .from("user_media")
         .select("id, media_url, media_type, created_at")
-        .eq("user_id", userId)
+        .eq("user_id", profile.id)
         .eq("content_tier", "free")
         .neq("access_restricted", true)
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching free media:", error);
+        setPreviewPhotos(fallbackPhotos);
+        setPreviewVideos(fallbackVideos);
         return;
       }
 
       const list = data || [];
-      const photo = list.find((m: any) =>
-        String(m.media_type || "").toLowerCase().includes("photo") ||
-        String(m.media_type || "").toLowerCase().includes("image")
-      );
-      const video = list.find((m: any) =>
-        String(m.media_type || "").toLowerCase().includes("video")
-      );
-      setFreePhoto(photo ? String(photo.media_url) : null);
-      setFreeVideo(video ? String(video.media_url) : null);
+      const isPhoto = (m: any) => {
+        const t = String(m.media_type || "").toLowerCase();
+        return t.includes("photo") || t.includes("image");
+      };
+      const isVideo = (m: any) =>
+        String(m.media_type || "").toLowerCase().includes("video");
+
+      const photos = list
+        .filter(isPhoto)
+        .slice(0, 3)
+        .map((m: any) => String(m.media_url));
+      const videos = list
+        .filter(isVideo)
+        .slice(0, 3)
+        .map((m: any) => String(m.media_url));
+
+      setPreviewPhotos(photos.length > 0 ? photos : fallbackPhotos);
+      setPreviewVideos(videos.length > 0 ? videos : fallbackVideos);
     } catch (e) {
       console.error("Free media error:", e);
+      setPreviewPhotos(fallbackPhotos);
+      setPreviewVideos(fallbackVideos);
     }
   };
+
+  // Auto-rotate the photo preview
+  useEffect(() => {
+    if (previewPhotos.length < 2 || lightbox) return;
+    const id = setInterval(() => {
+      setPhotoIndex((i) => (i + 1) % previewPhotos.length);
+    }, 3500);
+    return () => clearInterval(id);
+  }, [previewPhotos, lightbox]);
+
 
   const fetchCurrentStanding = async (userId: string) => {
     try {
