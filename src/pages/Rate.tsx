@@ -774,6 +774,7 @@ const RatePage: React.FC = () => {
           </CardContent>
         </Card>
 
+      <div className="container mx-auto px-4 pb-8">
         {/* Content Preview */}
         {(previewPhotos.length > 0 || previewVideos.length > 0) && (
           <Card className="mb-6">
