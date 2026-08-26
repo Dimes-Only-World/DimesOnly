@@ -694,7 +694,7 @@ const RatePage: React.FC = () => {
           </Button>
           <Button
             onClick={() => navigate(`/profile/${userData.username}`)}
-            className="flex-1 min-w-[160px] h-12 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 hover:from-pink-400 hover:via-purple-400 hover:to-yellow-300 text-white border-transparent shadow-lg animate-pulse"
+            className="flex-1 min-w-[160px] h-12 text-base font-semibold"
           >
             View Full Profile
           </Button>
