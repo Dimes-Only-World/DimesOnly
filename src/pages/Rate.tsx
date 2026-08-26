@@ -677,11 +677,25 @@ const RatePage: React.FC = () => {
         </Card>
 
         {/* Navigation Buttons */}
-        <div className="mt-8 flex justify-center gap-4">
-          <Button variant="outline" onClick={() => navigate("/rate-girls")}>
+        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 max-w-2xl mx-auto">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/rate-girls")}
+            className="flex-1 min-w-[160px] h-12 text-base font-semibold"
+          >
             Rate Another Girl
           </Button>
-          <Button onClick={() => navigate(`/profile/${userData.username}`)}>
+          <Button
+            onClick={() => navigate("/")}
+            className="flex-1 min-w-[160px] h-12 text-base font-semibold bg-green-600 hover:bg-green-500 text-white border-transparent shadow-lg"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            Home
+          </Button>
+          <Button
+            onClick={() => navigate(`/profile/${userData.username}`)}
+            className="flex-1 min-w-[160px] h-12 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 hover:from-pink-400 hover:via-purple-400 hover:to-yellow-300 text-white border-transparent shadow-lg animate-pulse"
+          >
             View Full Profile
           </Button>
         </div>
