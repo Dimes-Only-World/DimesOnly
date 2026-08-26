@@ -32,6 +32,7 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
   const [hasRated, setHasRated] = useState(false);
   const [hasTipped, setHasTipped] = useState(false);
   const [shared, setShared] = useState(false);
+  const [referrerIsDime, setReferrerIsDime] = useState(false);
 
   const readShared = useCallback(
     () => localStorage.getItem(`dimes-shared-link-${userData?.id}`) === "1",
@@ -75,6 +76,36 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
     };
   }, [userData?.id]);
 
+  // Resolve whether the user's referrer is a Dime (stripper/exotic performer).
+  useEffect(() => {
+    let cancelled = false;
+    const referrer = (userData?.referred_by || "").trim();
+    if (!referrer) {
+      setReferrerIsDime(false);
+      return;
+    }
+    supabase
+      .from("public_user_profiles")
+      .select("username, user_type")
+      .ilike("username", referrer)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const type = String((data as any)?.user_type || "").toLowerCase();
+        setReferrerIsDime(type === "stripper" || type === "exotic");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userData?.referred_by]);
+
+  const referrer = (userData?.referred_by || "").trim();
+  const myUsername = (userData?.username || "").trim();
+  const rateHref =
+    referrerIsDime && referrer
+      ? `/rate/?rate=${encodeURIComponent(referrer)}${myUsername ? `&ref=${encodeURIComponent(myUsername)}` : ""}`
+      : `/rate-girls${myUsername ? `?ref=${encodeURIComponent(myUsername)}` : ""}`;
+
   const membership = resolveMembership(userData);
   const upgradeTarget = getPlusUpgradeTarget(userData);
 
@@ -109,7 +140,7 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       label: "Rate your first Dime",
       description: "Ratings boost rankings and help you get discovered.",
       done: hasRated,
-      action: () => navigate("/rate"),
+      action: () => navigate(rateHref),
       cta: "Rate",
     },
     {
