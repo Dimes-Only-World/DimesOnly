@@ -683,10 +683,9 @@ const RatePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* User Profile Card */}
-        <Card className="mb-8 overflow-hidden">
-          <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
+      {/* User Profile Card - full width, flush top */}
+      <Card className="mb-8 overflow-hidden rounded-none md:rounded-none border-0">
+        <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {userData.banner_photo && (
               <img
                 src={userData.banner_photo}
@@ -775,10 +774,11 @@ const RatePage: React.FC = () => {
           </CardContent>
         </Card>
 
+      <div className="container mx-auto px-4 pb-8">
         {/* Content Preview */}
         {(previewPhotos.length > 0 || previewVideos.length > 0) && (
           <Card className="mb-6">
-            <CardContent className="p-4 sm:p-6">
+            <CardContent className="py-4 sm:py-6 px-0">
               <div className="mb-4 text-center">
                 <h2 className="text-lg font-bold">View @{userData.username}</h2>
                 <p className="text-lg font-bold">&amp;</p>
@@ -930,7 +930,7 @@ const RatePage: React.FC = () => {
 
         {/* Rating Grid */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="py-6 px-0">
             <p className="text-gray-600 text-center mb-4">
               Click a # below to assign to this Dime
             </p>
