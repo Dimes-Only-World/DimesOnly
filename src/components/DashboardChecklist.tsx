@@ -105,6 +105,11 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
     referrerIsDime && referrer
       ? `/rate/?rate=${encodeURIComponent(referrer)}${myUsername ? `&ref=${encodeURIComponent(myUsername)}` : ""}`
       : `/rate-girls${myUsername ? `?ref=${encodeURIComponent(myUsername)}` : ""}`;
+  const tipHref =
+    referrerIsDime && referrer
+      ? `/tip/?tip=${encodeURIComponent(referrer)}${myUsername ? `&ref=${encodeURIComponent(myUsername)}` : ""}`
+      : `/tip-girls${myUsername ? `?ref=${encodeURIComponent(myUsername)}` : ""}`;
+
 
   const membership = resolveMembership(userData);
   const upgradeTarget = getPlusUpgradeTarget(userData);
