@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
+import { resolveMembership } from "@/lib/membership";
+
 
 interface UserData {
   id: string;
