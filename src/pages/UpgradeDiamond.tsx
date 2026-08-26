@@ -494,7 +494,7 @@ const UpgradeDiamondPage: React.FC = () => {
               <Crown className="w-12 h-12 text-yellow-400" />
             </div>
             <p className="text-xl text-gray-300 mb-4">
-              Get profit Sharing Position of up to $125,000 a year max for life.
+              Get Profit Sharing Position of up to $1,200,000 a year minimum for life in tier 2.
             </p>
             {spotsLeft > 0 && isEligible && (
               <Badge variant="destructive" className="text-lg px-4 py-2">
@@ -572,7 +572,7 @@ const UpgradeDiamondPage: React.FC = () => {
                       <div className="text-3xl font-bold text-white">
                         $125,000
                       </div>
-                      <div className="text-gray-600">a year max for life</div>
+                      <div className="text-gray-600">a year max for life in tier 1</div>
                       <div className="text-lg text-gray-800">
                         Quarterly pay of up to $31,250 max
                       </div>
