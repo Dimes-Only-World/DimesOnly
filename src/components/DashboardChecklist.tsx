@@ -153,8 +153,9 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       label: "Tip your first Dime",
       description: "Tipping earns jackpot tickets and supports your favorites.",
       done: hasTipped,
-      action: () => navigate("/tip"),
+      action: () => navigate(tipHref),
       cta: "Tip",
+
     },
     {
       id: "share",
