@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { normalizeRefParam } from "@/lib/utils";
 import { getRatingSeasonYear, normalizeUsername } from "@/lib/timeUtils";
@@ -142,6 +142,20 @@ const RatePage: React.FC = () => {
     } catch (error) {
       console.error("Error fetching current user:", error);
     }
+  };
+
+  const handleHomeClick = async () => {
+    const hasStoredSession = Boolean(
+      localStorage.getItem("authToken") && sessionStorage.getItem("userData"),
+    );
+
+    if (currentUser || hasStoredSession) {
+      navigate("/dashboard/profile");
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    navigate(session?.user ? "/dashboard/profile" : "/login");
   };
 
   const fetchViewerMembership = async (authId: string) => {
@@ -986,17 +1000,17 @@ const RatePage: React.FC = () => {
             Rate Another Girl
           </Button>
           <Button
-            onClick={() => navigate("/")}
+            type="button"
+            onClick={handleHomeClick}
             className="flex-1 min-w-[160px] h-12 text-base font-semibold bg-green-600 hover:bg-green-500 text-white border-transparent shadow-lg"
           >
             <Home className="w-5 h-5 mr-2" />
             Home
           </Button>
-          <Button
-            onClick={() => navigate(`/profile/${userData.username}`)}
-            className="flex-1 min-w-[160px] h-12 text-base font-semibold"
-          >
-            View Her Full Profile
+          <Button asChild className="relative z-10 flex-1 min-w-[160px] h-12 text-base font-semibold touch-manipulation">
+            <Link to={`/profile/${encodeURIComponent(userData.username)}`}>
+              View Her Full Profile
+            </Link>
           </Button>
         </div>
       </div>
