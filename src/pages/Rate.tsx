@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
+  Home,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
