@@ -160,10 +160,11 @@ const RatePage: React.FC = () => {
         };
         setUserData(userData);
 
-        // Fetch current standing and likes only (no media on Rate page)
+        // Fetch current standing, likes and free preview media
         await Promise.all([
           fetchCurrentStanding(userData.id),
           fetchLikes(userData.id),
+          fetchFreeMedia(userData.id),
         ]);
       }
     } catch (error) {
