@@ -931,38 +931,40 @@ const RatePage: React.FC = () => {
 
 
         {/* Rating Grid */}
-        <Card>
+        <Card className="rounded-none border-x-0">
           <CardContent className="py-6 px-0">
-            <p className="text-gray-600 text-center mb-4">
-              Click a # below to assign to this Dime
-            </p>
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Rate @{userData.username}
-            </h2>
-            <p className="text-gray-600 text-center mb-6">
-              Click 100 = Top Dime in your Eyes!
-            </p>
+            <div className="px-4">
+              <p className="text-gray-600 text-center mb-4">
+                Click a # below to assign to this Dime
+              </p>
+              <h2 className="text-xl font-bold mb-4 text-center">
+                Rate @{userData.username}
+              </h2>
+              <p className="text-gray-600 text-center mb-6">
+                Click 100 = Top Dime in your Eyes!
+              </p>
 
-            <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500"></div>
-                <span>Available Number</span>
+              <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-500"></div>
+                  <span>Available Number</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-yellow-400"></div>
+                  <span>Assigned to @{userData.username}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-red-500"></div>
+                  <span>Assigned to another user</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-400"></div>
-                <span>Assigned to @{userData.username}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500"></div>
-                <span>Assigned to another user</span>
+
+              <div className="mb-6 text-center text-gray-600">
+                Numbers used: {Object.keys(numberAssignments).length}/100
               </div>
             </div>
 
-            <div className="mb-6 text-center text-gray-600">
-              Numbers used: {Object.keys(numberAssignments).length}/100
-            </div>
-
-            <div className="grid grid-cols-10 gap-2">
+            <div className="grid grid-cols-10 gap-2 px-2 sm:px-0 md:max-w-4xl md:mx-auto">
               {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
                 <button
                   key={num}
