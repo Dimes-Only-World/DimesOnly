@@ -930,11 +930,11 @@ const RatePage: React.FC = () => {
             <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-green-500"></div>
-                <span>Available</span>
+                <span>Available Number</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-yellow-400"></div>
-                <span>Assigned to this user</span>
+                <span>Assigned to @user</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-red-500"></div>
