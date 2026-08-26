@@ -819,7 +819,7 @@ const RatePage: React.FC = () => {
                         ▶
                       </span>
                       <span className="text-white font-extrabold tracking-wide text-sm sm:text-base bg-black/55 px-4 py-2 rounded-full animate-pulse">
-                        CLICK TO EXPAND
+                        CLICK PLAY
                       </span>
                     </span>
                     <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
@@ -918,7 +918,7 @@ const RatePage: React.FC = () => {
         <Card>
           <CardContent className="p-6">
             <p className="text-gray-600 text-center mb-4">
-              Click a number to assign it to this Dime
+              Click a # below to assign to this Dime
             </p>
             <h2 className="text-xl font-bold mb-4 text-center">
               Rate @{userData.username}
@@ -996,7 +996,7 @@ const RatePage: React.FC = () => {
             onClick={() => navigate(`/profile/${userData.username}`)}
             className="flex-1 min-w-[160px] h-12 text-base font-semibold"
           >
-            View Full Profile
+            View Her Full Profile
           </Button>
         </div>
       </div>
