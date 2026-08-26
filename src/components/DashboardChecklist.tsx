@@ -32,6 +32,7 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
   const [hasRated, setHasRated] = useState(false);
   const [hasTipped, setHasTipped] = useState(false);
   const [shared, setShared] = useState(false);
+  const [referrerIsDime, setReferrerIsDime] = useState(false);
 
   const readShared = useCallback(
     () => localStorage.getItem(`dimes-shared-link-${userData?.id}`) === "1",
@@ -139,7 +140,7 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       label: "Rate your first Dime",
       description: "Ratings boost rankings and help you get discovered.",
       done: hasRated,
-      action: () => navigate("/rate"),
+      action: () => navigate(rateHref),
       cta: "Rate",
     },
     {
