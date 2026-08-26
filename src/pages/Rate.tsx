@@ -96,12 +96,15 @@ const RatePage: React.FC = () => {
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
-  const [freePhoto, setFreePhoto] = useState<string | null>(null);
-  const [freeVideo, setFreeVideo] = useState<string | null>(null);
+  const [previewPhotos, setPreviewPhotos] = useState<string[]>([]);
+  const [previewVideos, setPreviewVideos] = useState<string[]>([]);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [hasDiamond, setHasDiamond] = useState(false);
   const [lightbox, setLightbox] = useState<{
-    url: string;
     type: "photo" | "video";
+    index: number;
   } | null>(null);
+
 
   useEffect(() => {
     if (!rateUsername) {
