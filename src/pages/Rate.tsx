@@ -731,38 +731,43 @@ const RatePage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Free Content Preview */}
-        {(freePhoto || freeVideo) && (
+        {/* Content Preview */}
+        {(previewPhotos.length > 0 || previewVideos.length > 0) && (
           <Card className="mb-6">
             <CardContent className="p-4 sm:p-6">
               <h2 className="text-lg font-bold mb-4 text-center">
-                Free Content Preview
+                Content Preview
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {freePhoto && (
+                {previewPhotos.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setLightbox({ url: freePhoto, type: "photo" })}
+                    onClick={() => setLightbox({ type: "photo", index: photoIndex })}
                     className="relative w-full overflow-hidden rounded-lg bg-gray-100 aspect-[3/4] md:aspect-square group"
                   >
-                    <img
-                      src={freePhoto}
-                      alt={`Latest free photo from @${userData.username}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {previewPhotos.map((url, i) => (
+                      <img
+                        key={url + i}
+                        src={url}
+                        alt={`Photo ${i + 1} from @${userData.username}`}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+                          i === photoIndex ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                    ))}
                     <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
-                      Photo
+                      Photos {photoIndex + 1}/{previewPhotos.length}
                     </span>
                   </button>
                 )}
-                {freeVideo && (
+                {previewVideos.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setLightbox({ url: freeVideo, type: "video" })}
+                    onClick={() => setLightbox({ type: "video", index: 0 })}
                     className="relative w-full overflow-hidden rounded-lg bg-black aspect-[3/4] md:aspect-square group"
                   >
                     <video
-                      src={freeVideo}
+                      src={previewVideos[0]}
                       className="w-full h-full object-cover"
                       muted
                       playsInline
@@ -775,18 +780,10 @@ const RatePage: React.FC = () => {
                       </span>
                     </span>
                     <span className="absolute bottom-2 left-2 text-xs font-semibold bg-black/60 text-white px-2 py-1 rounded">
-                      Video
+                      Videos ({previewVideos.length})
                     </span>
                   </button>
                 )}
-              </div>
-              <div className="mt-4 flex justify-center">
-                <Button
-                  onClick={() => navigate("/upgrade")}
-                  className="w-full sm:w-auto h-12 px-8 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 hover:from-pink-400 hover:via-purple-400 hover:to-yellow-300 text-white"
-                >
-                  Upgrade for More Content
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -807,27 +804,63 @@ const RatePage: React.FC = () => {
             >
               ✕
             </button>
-            <div
-              className="max-w-[98vw] max-h-[95vh] flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {lightbox.type === "video" ? (
-                <video
-                  src={lightbox.url}
-                  className="max-w-[98vw] max-h-[95vh] object-contain"
-                  controls
-                  autoPlay
-                  playsInline
-                  controlsList="nodownload"
-                />
-              ) : (
-                <img
-                  src={lightbox.url}
-                  alt="Expanded free content"
-                  className="max-w-[98vw] max-h-[95vh] object-contain"
-                />
-              )}
-            </div>
+            {(() => {
+              const items =
+                lightbox.type === "video" ? previewVideos : previewPhotos;
+              const url = items[lightbox.index];
+              const showNav = items.length > 1;
+              const go = (dir: number) =>
+                setLightbox({
+                  type: lightbox.type,
+                  index: (lightbox.index + dir + items.length) % items.length,
+                });
+              return (
+                <div
+                  className="relative max-w-[98vw] max-h-[95vh] flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {lightbox.type === "video" ? (
+                    <video
+                      key={url}
+                      src={url}
+                      className="max-w-[98vw] max-h-[95vh] object-contain"
+                      controls
+                      autoPlay
+                      playsInline
+                      controlsList="nodownload"
+                    />
+                  ) : (
+                    <img
+                      src={url}
+                      alt="Expanded content"
+                      className="max-w-[98vw] max-h-[95vh] object-contain"
+                    />
+                  )}
+                  {showNav && (
+                    <>
+                      <button
+                        onClick={() => go(-1)}
+                        aria-label="Previous"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center"
+                      >
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={() => go(1)}
+                        aria-label="Next"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+                      <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white text-sm bg-black/60 px-3 py-1 rounded-full">
+                        {lightbox.index + 1} / {items.length}
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+
           </div>
         )}
 
