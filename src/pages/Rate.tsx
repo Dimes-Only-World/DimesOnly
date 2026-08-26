@@ -683,103 +683,105 @@ const RatePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* User Profile Card - full width, flush top */}
-      <Card className="mb-8 overflow-hidden rounded-none md:rounded-none border-0">
-        <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
-            {userData.banner_photo && (
-              <img
-                src={userData.banner_photo}
-                alt="Banner"
-                className="w-full h-full object-cover"
-              />
-            )}
-            <div className="absolute inset-0 bg-black bg-opacity-30" />
-          </div>
+      {/* Banner - full width, events style */}
+      <div className="w-full bg-black">
+        {userData.banner_photo && (
+          <img
+            src={userData.banner_photo}
+            alt={`${userData.username} banner`}
+            className="w-full h-auto object-top"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "/placeholder.svg";
+            }}
+          />
+        )}
+      </div>
 
-          <CardContent className="relative -mt-16 pb-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div
-                className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-white cursor-pointer"
-                onClick={() =>
-                  userData.profile_photo &&
-                  setExpandedImage(userData.profile_photo)
-                }
-              >
-                <img
-                  src={userData.profile_photo || "/placeholder.svg"}
-                  alt={userData.username}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+      {/* Profile info bar - events style gradient */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700">
+        <div className="px-4 md:px-6 py-4 md:py-5">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <img
+              src={userData.profile_photo || "/placeholder.svg"}
+              alt={userData.username}
+              className="w-16 h-16 md:w-20 md:h-20 rounded-md object-cover border-2 border-yellow-400 bg-white/10 cursor-pointer"
+              onClick={() =>
+                userData.profile_photo && setExpandedImage(userData.profile_photo)
+              }
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "/placeholder.svg";
+              }}
+            />
 
-              <div className="text-center sm:text-left flex-1">
-                <h1 className="text-2xl font-bold">@{userData.username}</h1>
-                <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 mt-1">
-                  <MapPin className="w-4 h-4" />
-                  <span className="capitalize">
-                    {userData.city && userData.state
-                      ? `${userData.city}, ${userData.state}`
-                      : userData.city || userData.state || "Location not set"}
-                  </span>
-                </div>
-                {userData.bio && (
-                  <p className="text-gray-600 mt-2">{userData.bio}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col items-center gap-2">
-                <Button
-                  variant={hasLiked ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleLike}
-                  className="flex items-center gap-2"
-                >
-                  <Heart
-                    className={`w-4 h-4 ${hasLiked ? "fill-current" : ""}`}
-                  />
-                  {likes}
-                </Button>
-              </div>
+            <div className="text-center sm:text-left flex-1">
+              <h1 className="text-xl md:text-2xl font-bold text-white">
+                @{userData.username}
+              </h1>
+              <p className="text-sm md:text-base text-yellow-400 font-semibold capitalize">
+                {userData.user_type}
+              </p>
+              <p className="text-sm text-gray-200">
+                {userData.city && userData.state
+                  ? `${userData.city}, ${userData.state}`
+                  : userData.city || userData.state || "Location not set"}
+              </p>
+              {userData.bio && (
+                <p className="text-gray-200 mt-2 text-sm">{userData.bio}</p>
+              )}
             </div>
 
-            {/* Current Standing */}
-            {currentStanding && (
-              <div className="mt-6">
-                <div className="flex justify-center mb-2">
-                  <Trophy className="w-8 h-8 text-yellow-500 animate-[trophy-rotate-in_1s_ease-out]" />
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-center items-stretch">
-                  <div className="bg-purple-50 rounded-lg p-3 flex flex-col justify-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {currentStanding.totalScore}
-                    </div>
-                    <div className="text-xs text-gray-600">Total Score</div>
-                  </div>
-                  <div className="bg-yellow-50 rounded-lg p-3 flex flex-col justify-center">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      #{currentStanding.rank || "—"}
-                    </div>
-                    <div className="text-xs text-gray-600">Current Rank</div>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-3 flex flex-col justify-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {currentStanding.totalRatings}
-                    </div>
-                    <div className="text-xs text-gray-600">People Rated You</div>
-                  </div>
-                </div>
+            <Button
+              variant={hasLiked ? "default" : "outline"}
+              size="sm"
+              onClick={handleLike}
+              className="flex items-center gap-2"
+            >
+              <Heart
+                className={`w-4 h-4 ${hasLiked ? "fill-current" : ""}`}
+              />
+              {likes}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Current Standing */}
+      {currentStanding && (
+        <div className="px-4 md:px-6 py-4">
+          <div className="flex justify-center mb-2">
+            <Trophy className="w-8 h-8 text-yellow-500 animate-[trophy-rotate-in_1s_ease-out]" />
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-center items-stretch max-w-2xl mx-auto">
+            <div className="bg-purple-50 rounded-lg p-3 flex flex-col justify-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {currentStanding.totalScore}
               </div>
-            )}
+              <div className="text-xs text-gray-600">Total Score</div>
+            </div>
+            <div className="bg-yellow-50 rounded-lg p-3 flex flex-col justify-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                #{currentStanding.rank || "—"}
+              </div>
+              <div className="text-xs text-gray-600">Current Rank</div>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-3 flex flex-col justify-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {currentStanding.totalRatings}
+              </div>
+              <div className="text-xs text-gray-600">People Rated You</div>
+            </div>
+          </div>
+        </div>
+      )}
 
-          </CardContent>
-        </Card>
-
-      <div className="container mx-auto px-4 pb-8">
+      <div className="w-full pb-8">
         {/* Content Preview */}
         {(previewPhotos.length > 0 || previewVideos.length > 0) && (
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-none border-x-0">
             <CardContent className="py-4 sm:py-6 px-0">
-              <div className="mb-4 text-center">
+              <div className="mb-4 text-center px-4">
                 <h2 className="text-lg font-bold">View @{userData.username}</h2>
                 <p className="text-lg font-bold">&amp;</p>
                 <p className="text-lg font-bold">Rate Her Below</p>
@@ -929,38 +931,40 @@ const RatePage: React.FC = () => {
 
 
         {/* Rating Grid */}
-        <Card>
+        <Card className="rounded-none border-x-0">
           <CardContent className="py-6 px-0">
-            <p className="text-gray-600 text-center mb-4">
-              Click a # below to assign to this Dime
-            </p>
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Rate @{userData.username}
-            </h2>
-            <p className="text-gray-600 text-center mb-6">
-              Click 100 = Top Dime in your Eyes!
-            </p>
+            <div className="px-4">
+              <p className="text-gray-600 text-center mb-4">
+                Click a # below to assign to this Dime
+              </p>
+              <h2 className="text-xl font-bold mb-4 text-center">
+                Rate @{userData.username}
+              </h2>
+              <p className="text-gray-600 text-center mb-6">
+                Click 100 = Top Dime in your Eyes!
+              </p>
 
-            <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500"></div>
-                <span>Available Number</span>
+              <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 sm:justify-center items-center text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-500"></div>
+                  <span>Available Number</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-yellow-400"></div>
+                  <span>Assigned to @{userData.username}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-red-500"></div>
+                  <span>Assigned to another user</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-400"></div>
-                <span>Assigned to @{userData.username}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500"></div>
-                <span>Assigned to another user</span>
+
+              <div className="mb-6 text-center text-gray-600">
+                Numbers used: {Object.keys(numberAssignments).length}/100
               </div>
             </div>
 
-            <div className="mb-6 text-center text-gray-600">
-              Numbers used: {Object.keys(numberAssignments).length}/100
-            </div>
-
-            <div className="grid grid-cols-10 gap-2">
+            <div className="grid grid-cols-10 gap-2 px-2 sm:px-0 md:max-w-4xl md:mx-auto">
               {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
                 <button
                   key={num}
