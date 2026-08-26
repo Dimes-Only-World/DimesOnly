@@ -29,6 +29,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
 import ZoomableSwipeImage from "@/components/ZoomableSwipeImage";
+import TrophyCelebration from "@/components/TrophyCelebration";
+
 
 import { resolveMembership } from "@/lib/membership";
 
@@ -749,9 +751,8 @@ const RatePage: React.FC = () => {
       {/* Current Standing */}
       {currentStanding && (
         <div className="px-4 md:px-6 py-4">
-          <div className="flex justify-center mb-2">
-            <Trophy className="w-8 h-8 text-yellow-500 animate-[trophy-rotate-in_1s_ease-out]" />
-          </div>
+          <TrophyCelebration className="mb-2" />
+
           <div className="grid grid-cols-3 gap-4 text-center items-stretch max-w-2xl mx-auto">
             <div className="bg-purple-50 rounded-lg p-3 flex flex-col justify-center">
               <div className="text-2xl font-bold text-purple-600">
