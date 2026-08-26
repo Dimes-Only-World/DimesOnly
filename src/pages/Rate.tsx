@@ -930,7 +930,7 @@ const RatePage: React.FC = () => {
 
         {/* Rating Grid */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="py-6 px-0">
             <p className="text-gray-600 text-center mb-4">
               Click a # below to assign to this Dime
             </p>
