@@ -577,7 +577,7 @@ const RatePage: React.FC = () => {
                 <h1 className="text-2xl font-bold">@{userData.username}</h1>
                 <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 mt-1">
                   <MapPin className="w-4 h-4" />
-                  <span>
+                  <span className="capitalize">
                     {userData.city && userData.state
                       ? `${userData.city}, ${userData.state}`
                       : userData.city || userData.state || "Location not set"}
