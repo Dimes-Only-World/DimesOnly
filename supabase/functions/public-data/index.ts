@@ -36,7 +36,7 @@ serve(async (req) => {
         // Try exact match first
         let { data, error } = await supabaseAdmin
           .from('users')
-          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo, user_type, gender, city, state, created_at')
+          .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo, user_type, gender, city, state, created_at, video_urls')
           .eq('username', normalizedUsername)
           .maybeSingle();
 
@@ -44,7 +44,7 @@ serve(async (req) => {
         if (!data) {
           const res = await supabaseAdmin
             .from('users')
-            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo, user_type, gender, city, state, created_at')
+            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo, user_type, gender, city, state, created_at, video_urls')
             .ilike('username', normalizedUsername)
             .maybeSingle();
           data = res.data;
@@ -56,7 +56,7 @@ serve(async (req) => {
         if (!data) {
           const res = await supabaseAdmin
             .from('users')
-            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo, user_type, gender, city, state, created_at')
+            .select('id, username, first_name, last_name, bio, profile_photo, banner_photo, front_page_photo, user_type, gender, city, state, created_at, video_urls')
             .ilike('username', `%${normalizedUsername}%`);
           const rows = res.data as any[] | null;
           if (rows && rows.length > 0) {
