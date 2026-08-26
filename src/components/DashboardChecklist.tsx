@@ -29,6 +29,8 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
   const dismissKey = `dimes-checklist-dismissed-${userData?.id}`;
   const [dismissed, setDismissed] = useState(false);
   const [hasMedia, setHasMedia] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
+  const [hasTipped, setHasTipped] = useState(false);
   const [shared, setShared] = useState(false);
 
   const readShared = useCallback(
@@ -53,6 +55,20 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       .eq("user_id", userData.id)
       .then(({ count }) => {
         if (!cancelled) setHasMedia((count || 0) > 0);
+      });
+    supabase
+      .from("ratings")
+      .select("id", { count: "exact", head: true })
+      .eq("rater_id", userData.id)
+      .then(({ count }) => {
+        if (!cancelled) setHasRated((count || 0) > 0);
+      });
+    supabase
+      .from("tips")
+      .select("id", { count: "exact", head: true })
+      .eq("tipper_id", userData.id)
+      .then(({ count }) => {
+        if (!cancelled) setHasTipped((count || 0) > 0);
       });
     return () => {
       cancelled = true;
@@ -87,6 +103,22 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
       done: hasMedia,
       action: () => navigate("/dashboard/media"),
       cta: "Upload",
+    },
+    {
+      id: "rate",
+      label: "Rate your first Dime",
+      description: "Ratings boost rankings and help you get discovered.",
+      done: hasRated,
+      action: () => navigate("/rate"),
+      cta: "Rate",
+    },
+    {
+      id: "tip",
+      label: "Tip your first Dime",
+      description: "Tipping earns jackpot tickets and supports your favorites.",
+      done: hasTipped,
+      action: () => navigate("/tip"),
+      cta: "Tip",
     },
     {
       id: "share",
