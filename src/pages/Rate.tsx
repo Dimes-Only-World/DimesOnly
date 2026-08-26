@@ -29,6 +29,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
 import ZoomableSwipeImage from "@/components/ZoomableSwipeImage";
+import TrophyCelebration from "@/components/TrophyCelebration";
+
 
 import { resolveMembership } from "@/lib/membership";
 
