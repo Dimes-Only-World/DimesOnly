@@ -934,7 +934,7 @@ const RatePage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-yellow-400"></div>
-                <span>Assigned to @user</span>
+                <span>Assigned to @{userData.username}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-red-500"></div>
