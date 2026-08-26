@@ -172,6 +172,36 @@ const RatePage: React.FC = () => {
     }
   };
 
+  const fetchFreeMedia = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_media")
+        .select("id, media_url, media_type, created_at")
+        .eq("user_id", userId)
+        .eq("content_tier", "free")
+        .neq("access_restricted", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching free media:", error);
+        return;
+      }
+
+      const list = data || [];
+      const photo = list.find((m: any) =>
+        String(m.media_type || "").toLowerCase().includes("photo") ||
+        String(m.media_type || "").toLowerCase().includes("image")
+      );
+      const video = list.find((m: any) =>
+        String(m.media_type || "").toLowerCase().includes("video")
+      );
+      setFreePhoto(photo ? String(photo.media_url) : null);
+      setFreeVideo(video ? String(video.media_url) : null);
+    } catch (e) {
+      console.error("Free media error:", e);
+    }
+  };
+
   const fetchCurrentStanding = async (userId: string) => {
     try {
       const seasonYear = getRatingSeasonYear();
