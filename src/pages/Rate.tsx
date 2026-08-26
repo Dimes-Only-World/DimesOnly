@@ -204,6 +204,30 @@ const RatePage: React.FC = () => {
     }
   };
 
+  const signMediaUrl = async (rawUrl: string): Promise<string> => {
+    const url = String(rawUrl || "");
+    if (!url.includes("/private-media/")) return url;
+    const storagePath = url.split("/private-media/")[1];
+    if (!storagePath) return url;
+    try {
+      const { data: signedResponse, error: signErr } =
+        await supabase.functions.invoke("public-data", {
+          body: {
+            action: "createSignedUrl",
+            storagePath: decodeURIComponent(storagePath),
+            expiresIn: 3600,
+          },
+        });
+      const signedUrl = signedResponse?.data?.signedUrl as string | undefined;
+      return !signErr && signedUrl ? signedUrl : url;
+    } catch {
+      return url;
+    }
+  };
+
+  const signAll = async (urls: string[]) =>
+    Promise.all(urls.map((u) => signMediaUrl(u)));
+
   const fetchFreeMedia = async (
     profile: UserData,
     registrationVideos: string[]
@@ -214,6 +238,11 @@ const RatePage: React.FC = () => {
       profile.front_page_photo,
     ].filter(Boolean);
     const fallbackVideos = registrationVideos.slice(0, 1);
+
+    const applyFallback = async () => {
+      setPreviewPhotos(await signAll(fallbackPhotos));
+      setPreviewVideos(await signAll(fallbackVideos));
+    };
 
     try {
       const { data, error } = await supabase
@@ -226,8 +255,7 @@ const RatePage: React.FC = () => {
 
       if (error) {
         console.error("Error fetching free media:", error);
-        setPreviewPhotos(fallbackPhotos);
-        setPreviewVideos(fallbackVideos);
+        await applyFallback();
         return;
       }
 
@@ -248,14 +276,14 @@ const RatePage: React.FC = () => {
         .slice(0, 3)
         .map((m: any) => String(m.media_url));
 
-      setPreviewPhotos(photos.length > 0 ? photos : fallbackPhotos);
-      setPreviewVideos(videos.length > 0 ? videos : fallbackVideos);
+      setPreviewPhotos(await signAll(photos.length > 0 ? photos : fallbackPhotos));
+      setPreviewVideos(await signAll(videos.length > 0 ? videos : fallbackVideos));
     } catch (e) {
       console.error("Free media error:", e);
-      setPreviewPhotos(fallbackPhotos);
-      setPreviewVideos(fallbackVideos);
+      await applyFallback();
     }
   };
+
 
   // Auto-rotate the photo preview
   useEffect(() => {
@@ -767,13 +795,16 @@ const RatePage: React.FC = () => {
                     className="relative w-full overflow-hidden rounded-lg bg-black aspect-[3/4] md:aspect-square group"
                   >
                     <video
-                      src={previewVideos[0]}
+                      key={previewVideos[0]}
                       className="w-full h-full object-cover"
                       muted
                       playsInline
                       preload="metadata"
                       controlsList="nodownload"
-                    />
+                    >
+                      <source src={previewVideos[0]} />
+                    </video>
+
                     <span className="absolute inset-0 flex items-center justify-center">
                       <span className="w-14 h-14 rounded-full bg-white/85 flex items-center justify-center text-2xl">
                         ▶
@@ -822,13 +853,15 @@ const RatePage: React.FC = () => {
                   {lightbox.type === "video" ? (
                     <video
                       key={url}
-                      src={url}
                       className="max-w-[98vw] max-h-[95vh] object-contain"
                       controls
                       autoPlay
+                      muted
                       playsInline
                       controlsList="nodownload"
-                    />
+                    >
+                      <source src={url} />
+                    </video>
                   ) : (
                     <img
                       src={url}
