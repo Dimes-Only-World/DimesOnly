@@ -683,10 +683,9 @@ const RatePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* User Profile Card */}
-        <Card className="mb-8 overflow-hidden">
-          <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
+      {/* User Profile Card - full width, flush top */}
+      <Card className="mb-8 overflow-hidden rounded-none md:rounded-none border-0">
+        <div className="relative h-48 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {userData.banner_photo && (
               <img
                 src={userData.banner_photo}
