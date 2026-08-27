@@ -481,7 +481,7 @@ const UserDashboard: React.FC = () => {
 
             <LatestDimesCarousel />
 
-            <div className="w-full mb-6 px-4 md:px-0">
+            <div className="w-full mb-6">
               <Button
                 onClick={() => navigate("/feed")}
                 className="w-full h-auto py-4 px-6 rounded-xl bg-dimes-magenta hover:bg-dimes-magenta/90 text-white font-bold text-base shadow-lg flex items-center justify-center gap-2"
