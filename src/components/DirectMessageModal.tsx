@@ -57,6 +57,8 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
   recipientUsername,
 }) => {
   const { user } = useAppContext();
+  const navigate = useNavigate();
+
   const { toast } = useToast();
   const [recipient, setRecipient] = useState<RecipientProfile | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
