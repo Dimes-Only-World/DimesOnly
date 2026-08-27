@@ -263,7 +263,7 @@ const Rankings: React.FC = () => {
         </div>
 
         {/* Separator on pages after the top 20 */}
-        {isAfterFirstPage && rankings.length > 0 && (
+        {isAfterFirstPage && displayRankings.length > 0 && (
           <div className="mb-8 px-4">
             <div className="flex items-center gap-4 max-w-3xl mx-auto">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-400/60 to-transparent" />
@@ -279,7 +279,7 @@ const Rankings: React.FC = () => {
         )}
 
         {/* Rankings List */}
-        {rankings.length === 0 ? (
+        {displayRankings.length === 0 ? (
           <Card
             className={`bg-white/10 backdrop-blur border-white/20 ${
               isMobile ? "mx-4" : "max-w-md mx-auto"
@@ -404,7 +404,7 @@ const Rankings: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {rankings.length > PAGE_SIZE && (
+        {displayRankings.length > PAGE_SIZE && (
           <div className="mt-10 flex items-center justify-center gap-4 px-4">
             <Button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
