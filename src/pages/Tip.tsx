@@ -37,6 +37,7 @@ interface UserData {
   bio?: string;
   user_type: string;
   created_at: string;
+  video_urls?: string[];
 }
 
 interface MediaFile {
@@ -422,7 +423,7 @@ const Tip: React.FC = () => {
       // Use maybeSingle() instead of single() to handle missing users gracefully
       const { data, error } = await supabase
         .from("public_user_profiles")
-        .select("id, username, profile_photo, city, state, bio, user_type, created_at")
+        .select("id, username, profile_photo, city, state, bio, user_type, created_at, video_urls")
         .eq("username", tipUsername)
         .in("user_type", ["stripper", "exotic"])
         .maybeSingle();
@@ -446,6 +447,7 @@ const Tip: React.FC = () => {
           bio: data.bio ? String(data.bio) : undefined,
           user_type: String(data.user_type),
           created_at: data.created_at ? String(data.created_at) : new Date().toISOString(),
+          video_urls: Array.isArray(data.video_urls) ? data.video_urls.filter(Boolean).map(String) : undefined,
         });
       } else {
         console.log("No user found for username:", tipUsername);
