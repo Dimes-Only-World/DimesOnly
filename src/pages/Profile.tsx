@@ -458,7 +458,14 @@ const Profile: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <DirectMessageModal
+        isOpen={messageOpen}
+        onClose={() => setMessageOpen(false)}
+        recipientUsername={profile.username}
+      />
     </div>
+
   );
 };
 
