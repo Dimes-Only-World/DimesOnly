@@ -182,6 +182,7 @@ const Rankings: React.FC = () => {
           </h1>
           <p className="text-gray-300 text-lg">
             Top performers ranked by total rating scores
+            Money will be disbursed at the Malibu Mansion Party
           </p>
         </div>
 
