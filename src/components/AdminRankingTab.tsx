@@ -167,7 +167,7 @@ const AdminRankingTab: React.FC = () => {
       <CardHeader className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle>User Rankings - Top 50 Strippers & Exotic Dancers</CardTitle>
+            <CardTitle>User Rankings - Top 50 Strippers & Exxxotic Females</CardTitle>
             <p className="text-sm text-muted-foreground">
               Ranked by total score (Season {getRatingSeasonYear()})
             </p>
