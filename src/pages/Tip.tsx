@@ -875,24 +875,19 @@ const Tip: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Recent Videos */}
+                  {/* Featured Video */}
                   {recentVideos.length > 0 && (
                     <div className="mb-4">
-                      <h3 className="text-white font-semibold mb-3">
-                        Recent Videos
-                      </h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {recentVideos.map((video) => (
-                          <VideoThumbnail
-                            key={video.id}
-                            videoUrl={video.media_url}
-                            className="aspect-video"
-                            onClick={() => {
-                              setSelectedVideo(video);
-                              setVideoModalOpen(true);
-                            }}
-                          />
-                        ))}
+                      <div className="w-full">
+                        <VideoThumbnail
+                          key={recentVideos[0].id}
+                          videoUrl={recentVideos[0].media_url}
+                          className="aspect-video w-full"
+                          onClick={() => {
+                            setSelectedVideo(recentVideos[0]);
+                            setVideoModalOpen(true);
+                          }}
+                        />
                       </div>
                     </div>
                   )}
