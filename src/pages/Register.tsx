@@ -689,37 +689,37 @@ export const Register: React.FC = () => {
     <div className="w-full min-h-screen relative">
       <RotatingBackground images={backgroundImages} interval={3000} />
 
-      <div className="relative z-10 w-full min-h-screen py-8">
-        <div className={`w-full ${isMobile ? "px-0" : "px-4"}`}>
-          <div className={isMobile ? "w-full" : "max-w-4xl mx-auto"}>
+    <div className="relative z-10 w-full min-h-screen py-8">
+      <LatestDimesCarousel className="mb-6 md:mb-8" />
+
+      <div className={`w-full ${isMobile ? "px-0" : "px-4"}`}>
+        <div className={isMobile ? "w-full" : "max-w-4xl mx-auto"}>
+          <div
+            className={`${getCardClasses(
+              "bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
+            )} ${isMobile ? "rounded-none" : "rounded-lg"}`}
+          >
             <div
-              className={`${getCardClasses(
-                "bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
-              )} ${isMobile ? "rounded-none" : "rounded-lg"}`}
+              className={`text-center ${isMobile ? "py-6 px-0" : "py-6 px-8"} border-b border-white/20`}
             >
-              <div
-                className={`text-center ${isMobile ? "py-6 px-0" : "py-6 px-8"} border-b border-white/20`}
-              >
-                <h1 className="text-4xl font-bold text-white font-inter tracking-tight">
-                  Join Dimes Below
-                </h1>
-                <p className="text-white/80 mt-2 font-inter">
-                  Create your account and start your journey
-                </p>
-                <p className="text-sm text-white/80 mt-3">
-                  Already have an account?{" "}
-                  <a
-                    href="/login"
-                    className="text-blue-300 hover:text-blue-200 underline"
-                  >
-                    Sign in here
-                  </a>
-                </p>
-              </div>
+              <h1 className="text-4xl font-bold text-white font-inter tracking-tight">
+                Join Dimes Below
+              </h1>
+              <p className="text-white/80 mt-2 font-inter">
+                Create your account and start your journey
+              </p>
+              <p className="text-sm text-white/80 mt-3">
+                Already have an account?{" "}
+                <a
+                  href="/login"
+                  className="text-blue-300 hover:text-blue-200 underline"
+                >
+                  Sign in here
+                </a>
+              </p>
+            </div>
 
-              <LatestDimesCarousel />
-
-              <div className={isMobile ? "py-6 px-4" : "p-8"}>
+            <div className={isMobile ? "py-6 px-4" : "p-8"}>
                 {/* Step indicator */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
