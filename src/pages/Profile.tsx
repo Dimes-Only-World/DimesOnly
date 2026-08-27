@@ -299,7 +299,7 @@ const Profile: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Banner Section */}
-        <Card className="mb-4 sm:mb-6 overflow-hidden">
+        <Card className="mb-4 sm:mb-6 overflow-hidden border-0 shadow-none">
           <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {profile.banner_photo && (
               <img src={profile.banner_photo} alt="Banner" className="w-full h-full object-cover" />
@@ -378,7 +378,7 @@ const Profile: React.FC = () => {
 
 
         {/* Content Tiers */}
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardContent className="p-3 sm:p-6">
             {/* Tier Tabs (hidden for male or normal female) */}
             {!(
