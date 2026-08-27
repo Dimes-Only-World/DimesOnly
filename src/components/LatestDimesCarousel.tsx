@@ -203,11 +203,11 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         </p>
       </div>
 
-      <div className="relative mx-auto max-w-7xl">
+      <div className="relative w-full">
         <button
           type="button"
           onClick={() => scrollByCards(-1)}
-          className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:left-4 md:h-12 md:w-12"
+          className="flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:left-4 md:h-12 md:w-12"
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-6 w-6" />
@@ -216,7 +216,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
         <button
           type="button"
           onClick={() => scrollByCards(1)}
-          className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:right-4 md:h-12 md:w-12"
+          className="flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 md:right-4 md:h-12 md:w-12"
           aria-label="Scroll right"
         >
           <ChevronRight className="h-6 w-6" />
@@ -224,7 +224,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-4 py-2 scroll-smooth snap-x snap-mandatory justify-start [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-6 overflow-x-auto px-0 py-2 scroll-smooth snap-x snap-mandatory justify-start touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           {performers.map((performer) => (
             <div
