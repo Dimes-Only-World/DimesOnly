@@ -37,6 +37,7 @@ interface UserData {
   bio?: string;
   user_type: string;
   created_at: string;
+  video_urls?: string[];
 }
 
 interface MediaFile {
@@ -422,7 +423,7 @@ const Tip: React.FC = () => {
       // Use maybeSingle() instead of single() to handle missing users gracefully
       const { data, error } = await supabase
         .from("public_user_profiles")
-        .select("id, username, profile_photo, city, state, bio, user_type, created_at")
+        .select("id, username, profile_photo, city, state, bio, user_type, created_at, video_urls")
         .eq("username", tipUsername)
         .in("user_type", ["stripper", "exotic"])
         .maybeSingle();
@@ -446,6 +447,7 @@ const Tip: React.FC = () => {
           bio: data.bio ? String(data.bio) : undefined,
           user_type: String(data.user_type),
           created_at: data.created_at ? String(data.created_at) : new Date().toISOString(),
+          video_urls: Array.isArray(data.video_urls) ? data.video_urls.filter(Boolean).map(String) : undefined,
         });
       } else {
         console.log("No user found for username:", tipUsername);
@@ -461,10 +463,10 @@ const Tip: React.FC = () => {
     if (!tipUsername) return;
 
     try {
-      // Get user ID from public_user_profiles to bypass RLS
+      // Get user ID and registration video fallback from public_user_profiles to bypass RLS
       const { data: user, error: userError } = await supabase
         .from("public_user_profiles")
-        .select("id")
+        .select("id, video_urls")
         .eq("username", tipUsername)
         .maybeSingle();
 
@@ -543,24 +545,33 @@ const Tip: React.FC = () => {
       // Show photos immediately, don't block on video signed URLs
       setRecentPhotos(allPhotos);
 
-      const allVideos: MediaFile[] = [];
-      for (const tier of tiers) {
-        const v = mediaRows.find(
-          (item) => item.media_type === "video" && item.content_tier === tier,
-        );
+      // Single most recent free video with registration video 1 fallback
+      const freeVideos = mediaRows
+        .filter((item) => item.media_type === "video" && item.content_tier === "free")
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-        if (v) {
-          allVideos.push({
-            id: String(v.id),
-            media_url: await resolveMediaUrl(v),
-            media_type: v.media_type as "photo" | "video",
-            created_at: String(v.created_at),
-            content_tier: tier,
-          });
-        }
+      let featuredVideo: MediaFile | null = null;
+
+      if (freeVideos.length > 0) {
+        const v = freeVideos[0];
+        featuredVideo = {
+          id: String(v.id),
+          media_url: await resolveMediaUrl(v),
+          media_type: v.media_type as "photo" | "video",
+          created_at: String(v.created_at),
+          content_tier: "free",
+        };
+      } else if (user?.video_urls?.[0]) {
+        featuredVideo = {
+          id: "registration-video-1",
+          media_url: await resolveMediaUrl({ media_url: user.video_urls[0] }),
+          media_type: "video",
+          created_at: userData?.created_at ?? new Date().toISOString(),
+          content_tier: "free",
+        };
       }
 
-      setRecentVideos(allVideos);
+      setRecentVideos(featuredVideo ? [featuredVideo] : []);
 
     } catch (error) {
       console.error("Error fetching user media:", error);
@@ -864,24 +875,19 @@ const Tip: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Recent Videos */}
+                  {/* Featured Video */}
                   {recentVideos.length > 0 && (
                     <div className="mb-4">
-                      <h3 className="text-white font-semibold mb-3">
-                        Recent Videos
-                      </h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {recentVideos.map((video) => (
-                          <VideoThumbnail
-                            key={video.id}
-                            videoUrl={video.media_url}
-                            className="aspect-video"
-                            onClick={() => {
-                              setSelectedVideo(video);
-                              setVideoModalOpen(true);
-                            }}
-                          />
-                        ))}
+                      <div className="w-full">
+                        <VideoThumbnail
+                          key={recentVideos[0].id}
+                          videoUrl={recentVideos[0].media_url}
+                          className="aspect-video w-full"
+                          onClick={() => {
+                            setSelectedVideo(recentVideos[0]);
+                            setVideoModalOpen(true);
+                          }}
+                        />
                       </div>
                     </div>
                   )}

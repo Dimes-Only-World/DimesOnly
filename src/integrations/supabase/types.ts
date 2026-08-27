@@ -3678,6 +3678,7 @@ export type Database = {
           user_rank: number | null
           user_type: string | null
           username: string | null
+          video_urls: string[] | null
         }
         Insert: {
           banner_photo?: string | null
@@ -3701,6 +3702,7 @@ export type Database = {
           user_rank?: number | null
           user_type?: string | null
           username?: string | null
+          video_urls?: string[] | null
         }
         Update: {
           banner_photo?: string | null
@@ -3724,6 +3726,7 @@ export type Database = {
           user_rank?: number | null
           user_type?: string | null
           username?: string | null
+          video_urls?: string[] | null
         }
         Relationships: []
       }
