@@ -224,13 +224,15 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-3 md:gap-6 overflow-x-auto px-[20%] md:px-0 py-2 scroll-smooth snap-x snap-mandatory justify-start touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-3 md:gap-6 overflow-x-auto py-2 scroll-smooth snap-x snap-mandatory justify-start touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-          {performers.map((performer) => (
+          {performers.map((performer, index) => (
             <div
               key={performer.id}
               data-carousel-card
-              className="group flex-shrink-0 w-full md:w-72 h-80 md:h-[28rem] snap-center md:snap-start"
+              className={`group flex-shrink-0 w-[60%] md:w-72 h-80 md:h-[28rem] snap-center md:snap-start ${
+                index === 0 ? "ml-[20%] md:ml-0" : ""
+              } ${index === performers.length - 1 ? "mr-[20%] md:mr-0" : ""}`}
               onClick={() => openModal(performer)}
             >
               <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
@@ -247,12 +249,12 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
+                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-3 py-1 text-xs md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
                   New Dime
                 </div>
-                <div className="absolute bottom-6 left-4 right-4 text-white">
-                  <p className="text-lg md:text-2xl font-semibold break-words leading-tight">@{performer.username}</p>
-                  <p className="text-xs md:text-sm text-gray-200 opacity-80">Tap to preview</p>
+                <div className="absolute bottom-5 left-3 right-3 md:bottom-6 md:left-4 md:right-4 text-white">
+                  <p className="text-base md:text-2xl font-semibold break-words leading-tight">@{performer.username}</p>
+                  <p className="text-[10px] md:text-sm text-gray-200 opacity-80 whitespace-nowrap">Tap to preview</p>
                 </div>
               </div>
             </div>
