@@ -340,7 +340,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
                   {/* Results grid */}
                   {paged.length > 0 ? (
                     <div className="rounded-xl border border-slate-200 bg-white/80 backdrop-blur p-4 max-h-96 overflow-y-auto">
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
                         {paged.map((ref) => renderAvatar(ref))}
                       </div>
                     </div>
