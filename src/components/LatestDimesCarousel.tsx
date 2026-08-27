@@ -224,7 +224,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-3 md:gap-6 overflow-x-auto py-2 scroll-smooth snap-x snap-mandatory justify-start touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex w-full gap-3 md:gap-6 overflow-x-auto py-2 px-0 scroll-smooth snap-x snap-mandatory justify-start [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           {performers.map((performer, index) => (
             <div
