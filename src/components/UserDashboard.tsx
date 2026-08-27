@@ -451,7 +451,7 @@ const UserDashboard: React.FC = () => {
     switch (slug) {
       case "profile":
         return (
-          <>
+          <div className="text-black">
             <ApprovalStatusBanner
               status={(userData as any)?.approval_status}
               userType={userData?.user_type}
@@ -552,7 +552,7 @@ const UserDashboard: React.FC = () => {
                 <ProfileInfo userData={userData} onUpdate={updateUserData} />
               </div>
             </div>
-          </>
+          </div>
         );
       case "make-money":
         return <UserMakeMoneyTab />;
