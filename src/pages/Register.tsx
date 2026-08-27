@@ -698,9 +698,7 @@ export const Register: React.FC = () => {
               )} ${isMobile ? "rounded-none" : "rounded-lg"}`}
             >
               <div
-                className={`text-center ${getPaddingClasses(
-                  "py-6 px-8"
-                )} border-b border-white/20`}
+                className={`text-center ${isMobile ? "py-6 px-0" : "py-6 px-8"} border-b border-white/20`}
               >
                 <h1 className="text-4xl font-bold text-white font-inter tracking-tight">
                   Join Dimes Below
