@@ -289,7 +289,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     const ext = type === "photo"
       ? (file.name.split(".").pop() || "jpg")
       : file.name.split(".").pop() || "webm";
-    const path = `dm/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const path = `${user.id}/dm/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from("private-media").upload(path, file, {
       contentType: file.type || (type === "photo" ? "image/jpeg" : "audio/webm"),
       upsert: false,
