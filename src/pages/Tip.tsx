@@ -783,12 +783,12 @@ const Tip: React.FC = () => {
           </div>
         ) : null}
 
-        <div className={`max-w-6xl mx-auto p-4 relative z-10 ${userData.banner_photo ? '-mt-16' : 'pt-8'}`}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={`w-full p-0 relative z-10 ${userData.banner_photo ? '-mt-16' : 'pt-8'}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
             {/* Left Column - Profile */}
             <div className="lg:col-span-1">
-              <Card className="bg-white/10 backdrop-blur border-white/20 shadow-2xl">
-                <CardContent className="p-6">
+              <Card className="bg-white/10 backdrop-blur border-0 shadow-none rounded-none">
+                <CardContent className="p-4">
                   <div className="text-center mb-6">
                     <img
                       src={userData.profile_photo || "/placeholder.svg"}
@@ -891,8 +891,8 @@ const Tip: React.FC = () => {
 
             {/* Right Column - Tipping */}
             <div className="lg:col-span-2">
-              <Card className="bg-white/10 backdrop-blur border-white/20 shadow-2xl">
-                <CardHeader>
+              <Card className="bg-white/10 backdrop-blur border-0 shadow-none rounded-none">
+                <CardHeader className="p-4 pb-0">
                   <CardTitle className="text-3xl font-bold text-center text-white">
                     💎 Tip @{userData.username} 💎
                   </CardTitle>
@@ -900,7 +900,7 @@ const Tip: React.FC = () => {
                     Support your favorite performer and enter the jackpot!
                   </p>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 p-4">
                   <TipAmountSelector
                     selectedAmount={tipAmount}
                     onAmountChange={setTipAmount}
