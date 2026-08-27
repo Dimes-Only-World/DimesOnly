@@ -328,14 +328,23 @@ const Profile: React.FC = () => {
                           ? profile.state
                           : "Location not specified"}
                   </p>
-                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
                     <Badge variant="secondary" className="bg-white/20 text-white text-xs">
                       {profile.gender}
                     </Badge>
                     <Badge variant="secondary" className="bg-white/20 text-white text-xs">
                       {profile.user_type}
                     </Badge>
+                    <Button
+                      onClick={() => setMessageOpen(true)}
+                      size="sm"
+                      className="h-7 bg-[#E916D1] hover:bg-[#E916D1]/90 text-white text-xs px-3"
+                    >
+                      <MessageCircle className="w-3 h-3 mr-1" />
+                      Message Me
+                    </Button>
                   </div>
+
                 </div>
 
                 {/* Action Buttons (hidden for male or normal female) */}
