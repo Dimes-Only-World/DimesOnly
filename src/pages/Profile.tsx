@@ -297,7 +297,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-0 pt-0 pb-4 sm:pb-8">
         {/* Banner Section */}
         <Card className="mb-4 sm:mb-6 overflow-hidden border-0 shadow-none">
           <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
@@ -379,7 +379,7 @@ const Profile: React.FC = () => {
 
         {/* Content Tiers */}
         <Card className="border-0 shadow-none">
-          <CardContent className="p-3 sm:p-6">
+          <CardContent className="px-0 pt-0 pb-3 sm:pb-6">
             {/* Tier Tabs (hidden for male or normal female) */}
             {!(
               profile.gender?.toLowerCase() === "male" ||
