@@ -764,7 +764,18 @@ const RatePage: React.FC = () => {
               <div className="text-2xl font-bold text-yellow-600">
                 #{currentStanding.rank || "—"}
               </div>
-              <div className="text-xs text-gray-600">Current Rank</div>
+              <div className="text-xs text-gray-600">
+                {(() => {
+                  const rank = currentStanding.rank;
+                  if (!rank) return "Current Rank";
+                  if (rank === 1) return "Current Rank = $3,000";
+                  if (rank === 2) return "Current Rank = $1,500";
+                  if (rank === 3) return "Current Rank = $750";
+                  if (rank >= 4 && rank <= 10) return "Current Rank = $200";
+                  if (rank >= 11 && rank <= 20) return "Current Rank = $150";
+                  return "Get to #20 for Cash Prize";
+                })()}
+              </div>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 flex flex-col justify-center">
               <div className="text-2xl font-bold text-blue-600">
@@ -775,6 +786,7 @@ const RatePage: React.FC = () => {
           </div>
         </div>
       )}
+
 
       <div className="w-full pb-8">
         {/* Content Preview */}
