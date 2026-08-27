@@ -59,10 +59,9 @@ const getPrizeForRank = (rank: number): number | null => {
 
 const Rankings: React.FC = () => {
   const [rankings, setRankings] = useState<RankedUser[]>([]);
+  const [displayRankings, setDisplayRankings] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState<
-    "all" | "stripper" | "exotic"
-  >("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
   const { isMobile, getContainerClasses, getPaddingClasses } =
@@ -70,7 +69,21 @@ const Rankings: React.FC = () => {
 
   useEffect(() => {
     fetchRankings();
-  }, [selectedType]);
+  }, []);
+
+  useEffect(() => {
+    const normalized = searchQuery.trim().toLowerCase();
+    if (!normalized) {
+      setDisplayRankings(rankings);
+    } else {
+      setDisplayRankings(
+        rankings.filter((user) =>
+          user.username.toLowerCase().includes(normalized)
+        )
+      );
+    }
+    setPage(0);
+  }, [searchQuery, rankings]);
 
   const fetchRankings = async () => {
     try {
