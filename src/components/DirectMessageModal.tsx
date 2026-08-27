@@ -236,6 +236,13 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
 
   const headerBadge = useMemo(() => prettyTier(recipient?.membership_tier), [recipient]);
 
+  const firstTimestamp = messages[0]?.created_at
+    ? new Date(messages[0].created_at as string).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
+
   return (
     <Dialog
       open={isOpen}
@@ -245,36 +252,84 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
         }
       }}
     >
-      <DialogContent className="max-w-lg w-full p-0 bg-transparent border-none">
-        <div className="flex h-[75vh] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-          <DialogHeader className="px-5 py-4 border-b">
+      <DialogContent className="max-w-md w-full p-0 bg-transparent border-none [&>button]:hidden">
+        <div className="flex h-[85vh] flex-col overflow-hidden rounded-2xl bg-black text-white shadow-2xl">
+          {/* Top bar */}
+          <DialogHeader className="space-y-0 px-3 py-3 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <img
-                src={recipient?.profile_photo || defaultAvatar}
-                alt={recipient?.username || "Performer"}
-                className="h-12 w-12 rounded-full object-cover border"
-              />
-              <div className="flex flex-1 flex-col">
-                <DialogTitle className="text-lg font-semibold capitalize">
+              <button
+                onClick={onClose}
+                aria-label="Back"
+                className="p-1 text-white/90 hover:text-white"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </button>
+              <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-fuchsia-600 p-[2px]">
+                <img
+                  src={recipient?.profile_photo || defaultAvatar}
+                  alt={recipient?.username || "Performer"}
+                  className="h-10 w-10 rounded-full object-cover border-2 border-black"
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <DialogTitle className="truncate text-base font-bold capitalize">
                   {recipient?.username || recipientUsername}
                 </DialogTitle>
-                {headerBadge && (
-                  <Badge className="mt-1 w-fit bg-blue-600 text-white">
-                    {headerBadge}
-                  </Badge>
-                )}
+                <span className="truncate text-xs text-white/50">
+                  @{recipient?.username || recipientUsername}
+                </span>
+              </div>
+              <div className="flex items-center gap-4 text-white/90">
+                <Phone className="h-5 w-5" />
+                <Video className="h-5 w-5" />
               </div>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto bg-gray-50 px-5 py-4 space-y-4">
+          {/* Thread */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+            {/* Profile intro block */}
+            <div className="flex flex-col items-center gap-2 pb-4">
+              <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-fuchsia-600 p-[3px]">
+                <img
+                  src={recipient?.profile_photo || defaultAvatar}
+                  alt={recipient?.username || "Performer"}
+                  className="h-20 w-20 rounded-full object-cover border-2 border-black"
+                />
+              </div>
+              <p className="text-xl font-bold capitalize">
+                {recipient?.username || recipientUsername}
+              </p>
+              <p className="text-sm text-white/60">
+                @{recipient?.username || recipientUsername}
+              </p>
+              {headerBadge && (
+                <Badge className="bg-white/10 text-white hover:bg-white/10">{headerBadge}</Badge>
+              )}
+              {recipient?.username && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate(`/profile/${recipient.username}`);
+                  }}
+                  className="mt-2 rounded-lg bg-white/10 px-5 py-2 text-sm font-semibold text-white hover:bg-white/20"
+                >
+                  View profile
+                </button>
+              )}
+            </div>
+
+            {firstTimestamp && (
+              <p className="text-center text-xs text-white/50">{firstTimestamp}</p>
+            )}
+
             {loading ? (
-              <div className="flex h-full items-center justify-center text-gray-500">
+              <div className="flex items-center justify-center py-8 text-white/60">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Loading conversation...
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-gray-500">
+              <div className="py-8 text-center text-sm text-white/50">
                 Start the conversation by sending a message.
               </div>
             ) : (
@@ -283,77 +338,68 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                 return (
                   <div
                     key={message.id}
-                    className={`flex items-end gap-2 ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                    className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                   >
-                    {!isCurrentUser && (
-                      <img
-                        src={recipient?.profile_photo || defaultAvatar}
-                        alt={recipient?.username || "User"}
-                        className="h-8 w-8 rounded-full object-cover border"
-                      />
-                    )}
                     <div
-                      className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow ${
+                      className={`max-w-[78%] rounded-3xl px-4 py-2.5 text-[15px] leading-snug ${
                         isCurrentUser
-                          ? "rounded-br-sm bg-blue-600 text-white"
-                          : "rounded-bl-sm bg-white text-gray-800 border"
+                          ? "bg-[#6E5BFF] text-white"
+                          : "bg-[#262626] text-white"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap leading-relaxed">
-                        {message.message}
-                      </div>
-                      <div
-                        className={`mt-1 text-[10px] ${
-                          isCurrentUser ? "text-blue-100" : "text-gray-400"
-                        }`}
-                      >
-                        {message.created_at
-                          ? new Date(message.created_at).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : ""}
-                      </div>
+                      <div className="whitespace-pre-wrap break-words">{message.message}</div>
                     </div>
-                    {isCurrentUser && (
-                      <img
-                        src={user?.profilePhoto || defaultAvatar}
-                        alt={user?.username || "Me"}
-                        className="h-8 w-8 rounded-full object-cover border"
-                      />
-                    )}
                   </div>
                 );
               })
             )}
           </div>
 
-          <div className="flex items-end gap-3 border-t bg-white px-5 py-4">
-            <Textarea
-              placeholder="Type a message"
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              rows={2}
-              className="flex-1 resize-none"
-              disabled={sending || loading || !recipient}
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={sending || !input.trim() || !recipient}
-              className="flex items-center gap-2"
-            >
-              {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+          {/* Composer */}
+          <div className="flex items-center gap-2 px-3 py-3">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#6E5BFF]">
+              <Camera className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex flex-1 items-center gap-2 rounded-full bg-[#262626] px-4 py-2">
+              <Textarea
+                placeholder="Message..."
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                className="min-h-0 flex-1 resize-none border-none bg-transparent p-0 text-[15px] text-white placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                disabled={sending || loading || !recipient}
+              />
+              {input.trim() ? (
+                <Button
+                  onClick={sendMessage}
+                  disabled={sending || !recipient}
+                  size="sm"
+                  variant="ghost"
+                  className="h-auto px-2 py-0 text-[#6E5BFF] hover:bg-transparent hover:text-[#8f81ff]"
+                >
+                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
+                </Button>
               ) : (
-                <Send className="h-4 w-4" />
+                <div className="flex items-center gap-3 text-white/80">
+                  <Mic className="h-5 w-5" />
+                  <ImageIcon className="h-5 w-5" />
+                  <Smile className="h-5 w-5" />
+                  <Plus className="h-5 w-5" />
+                </div>
               )}
-              Send
-            </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+
 
 export default DirectMessageModal;
