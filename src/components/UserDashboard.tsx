@@ -479,7 +479,7 @@ const UserDashboard: React.FC = () => {
 
             <Top20DimesCarousel />
 
-            <LatestDimesCarousel />
+            <LatestDimesCarousel theme="light" />
 
             <div className="w-full mb-6">
               <Button
