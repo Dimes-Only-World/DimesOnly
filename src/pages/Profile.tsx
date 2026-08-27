@@ -297,9 +297,9 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto p-0">
+      <div className="w-full p-0">
         {/* Banner Section */}
-        <Card className="mb-4 sm:mb-6 overflow-hidden border-0 shadow-none">
+        <Card className="mb-0 overflow-hidden border-0 shadow-none rounded-none">
           <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
             {profile.banner_photo && (
               <img src={profile.banner_photo} alt="Banner" className="w-full h-full object-cover" />
@@ -378,17 +378,17 @@ const Profile: React.FC = () => {
 
 
         {/* Content Tiers */}
-          <Card className="border-0 shadow-none"><CardContent className="p-0">
+          <Card className="border-0 shadow-none rounded-none"><CardContent className="p-0">
             {/* Tier Tabs (hidden for male or normal female) */}
             {!(
               profile.gender?.toLowerCase() === "male" ||
               (profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal")
             ) && (
-            <div className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
+            <div className="flex flex-col gap-2 w-full">
               <Button
                 variant={activeTab === "free" ? "default" : "outline"}
                 onClick={() => setActiveTab("free")}
-                className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
+                className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
                 size="sm"
               >
                 Free Content
@@ -397,23 +397,23 @@ const Profile: React.FC = () => {
               <Button
                 variant={activeTab === "silver" ? "default" : "outline"}
                 onClick={() => setActiveTab("silver")}
-                className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
+                className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
                 size="sm"
               >
-                <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Crown className="w-4 h-4" />
                 Silver Content
-                {!canAccessTier("silver") && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
+                {!canAccessTier("silver") && <Lock className="w-4 h-4" />}
               </Button>
 
               <Button
                 variant={activeTab === "gold" ? "default" : "outline"}
                 onClick={() => setActiveTab("gold")}
-                className="flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3"
+                className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
                 size="sm"
               >
-                <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                <Crown className="w-4 h-4 text-yellow-500" />
                 Gold Content
-                {!canAccessTier("gold") && <Lock className="w-3 h-3 sm:w-4 sm:h-4" />}
+                {!canAccessTier("gold") && <Lock className="w-4 h-4" />}
               </Button>
             </div>
             )}
