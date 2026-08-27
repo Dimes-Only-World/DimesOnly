@@ -248,38 +248,18 @@ const Rankings: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 px-4">
-          <Button
-            onClick={() => setSelectedType("all")}
-            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
-              selectedType === "all"
-                ? "bg-yellow-500 text-black hover:bg-yellow-600"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            All Performers
-          </Button>
-          <Button
-            onClick={() => setSelectedType("stripper")}
-            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
-              selectedType === "stripper"
-                ? "bg-pink-500 text-white hover:bg-pink-600"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            Strippers
-          </Button>
-          <Button
-            onClick={() => setSelectedType("exotic")}
-            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
-              selectedType === "exotic"
-                ? "bg-purple-500 text-white hover:bg-purple-600"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            Exotics
-          </Button>
+        {/* Username Search */}
+        <div className="max-w-md mx-auto mb-8 px-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search by username..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-xl focus:border-yellow-400 focus:ring-yellow-400"
+            />
+          </div>
         </div>
 
         {/* Separator on pages after the top 20 */}
