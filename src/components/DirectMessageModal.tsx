@@ -12,7 +12,19 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Tables } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
-import { Loader2, Send } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Phone,
+  Video,
+  Camera,
+  Mic,
+  Image as ImageIcon,
+  Smile,
+  Plus,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 type DirectMessage = Tables<"direct_messages">;
 
