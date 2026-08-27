@@ -758,7 +758,11 @@ const RatePage: React.FC = () => {
               <div className="text-2xl font-bold text-purple-600">
                 {currentStanding.totalScore}
               </div>
-              <div className="text-xs text-gray-600">Total Score</div>
+              <div className="text-xs text-gray-600">
+                Total
+                <br />
+                Score
+              </div>
             </div>
             <div className="bg-yellow-50 rounded-lg p-3 flex flex-col justify-center">
               <div className="text-2xl font-bold text-yellow-600">
