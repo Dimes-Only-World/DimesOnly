@@ -224,13 +224,15 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
 
         <div
           ref={scrollRef}
-          className="flex gap-3 md:gap-6 overflow-x-auto px-[20%] md:px-0 py-2 scroll-smooth snap-x snap-mandatory justify-start touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-3 md:gap-6 overflow-x-auto py-2 scroll-smooth snap-x snap-mandatory justify-start touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-          {performers.map((performer) => (
+          {performers.map((performer, index) => (
             <div
               key={performer.id}
               data-carousel-card
-              className="group flex-shrink-0 w-full md:w-72 h-80 md:h-[28rem] snap-center md:snap-start"
+              className={`group flex-shrink-0 w-[60%] md:w-72 h-80 md:h-[28rem] snap-center md:snap-start ${
+                index === 0 ? "ml-[20%] md:ml-0" : ""
+              } ${index === performers.length - 1 ? "mr-[20%] md:mr-0" : ""}`}
               onClick={() => openModal(performer)}
             >
               <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
