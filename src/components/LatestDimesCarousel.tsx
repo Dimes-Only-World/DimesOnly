@@ -44,7 +44,7 @@ const fallbackPerformers: LatestPerformer[] = Array.from({ length: 6 }).map((_, 
   created_at: null,
 }));
 
-const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" }) => {
+const LatestDimesCarousel: React.FC<{ className?: string; theme?: "dark" | "light" }> = ({ className = "", theme = "dark" }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [performers, setPerformers] = useState<LatestPerformer[]>(fallbackPerformers);
   const [selectedPerformer, setSelectedPerformer] = useState<LatestPerformer | null>(null);
@@ -194,11 +194,11 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
             Newest Members
           </span>
         </div>
-        <h2 className="text-white text-3xl md:text-5xl font-extrabold uppercase tracking-tight leading-tight whitespace-pre-line">
+        <h2 className={`${theme === "light" ? "text-black" : "text-white"} text-3xl md:text-5xl font-extrabold uppercase tracking-tight leading-tight whitespace-pre-line`}>
           THE LAST{"\n"}<span className="text-[#E916D1]">20 DIMES</span>{"\n"}TO JOIN
         </h2>
         <div className="mx-auto mt-4 h-[3px] w-24 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
-        <p className="mt-5 text-base md:text-lg text-white max-w-xl mx-auto leading-relaxed">
+        <p className={`mt-5 text-base md:text-lg ${theme === "light" ? "text-black" : "text-white"} max-w-xl mx-auto leading-relaxed`}>
           Fresh talent joining daily — tap any profile for an exclusive preview inside.
         </p>
       </div>
