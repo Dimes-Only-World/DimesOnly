@@ -686,10 +686,10 @@ export const Register: React.FC = () => {
 
   const showUserType = formData.gender === "female";
   return (
-    <div className="w-full min-h-screen relative">
+    <div className="w-full min-h-screen relative overflow-x-hidden">
       <RotatingBackground images={backgroundImages} interval={3000} />
 
-    <div className="relative z-10 w-full min-h-screen py-8">
+    <div className="relative z-10 w-full min-h-screen py-8 overflow-x-hidden">
       <LatestDimesCarousel className="mb-6 md:mb-8" />
 
       <div className={`w-full ${isMobile ? "px-0" : "px-6"}`}>
