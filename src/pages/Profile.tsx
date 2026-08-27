@@ -45,6 +45,8 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"free" | "silver" | "gold">("free");
   const [userMembership, setUserMembership] = useState<string>("free");
+  const [messageOpen, setMessageOpen] = useState(false);
+
 
   useEffect(() => {
     if (username) {
