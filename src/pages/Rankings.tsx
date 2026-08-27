@@ -138,17 +138,12 @@ const Rankings: React.FC = () => {
           .filter((user) => user.rating_count > 0)
           .sort((a, b) => b.total_score - a.total_score);
 
-        if (selectedType !== "all") {
-          rankedUsers = rankedUsers.filter(
-            (user) => user.user_type === selectedType
-          );
-        }
-
         rankedUsers.forEach((user, index) => {
           user.rank = index + 1;
         });
 
         setRankings(rankedUsers);
+        setDisplayRankings(rankedUsers);
         setPage(0);
       }
     } catch (error) {
