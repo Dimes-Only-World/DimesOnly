@@ -378,7 +378,7 @@ const Profile: React.FC = () => {
 
 
         {/* Content Tiers */}
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardContent className="p-3 sm:p-6">
             {/* Tier Tabs (hidden for male or normal female) */}
             {!(
