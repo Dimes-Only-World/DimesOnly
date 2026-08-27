@@ -249,12 +249,12 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-4 py-1 text-base md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
+                <div className="absolute top-4 left-4 bg-black/75 backdrop-blur rounded-full px-3 py-1 text-xs md:text-lg font-semibold text-yellow-300 uppercase tracking-wide">
                   New Dime
                 </div>
-                <div className="absolute bottom-6 left-4 right-4 text-white">
-                  <p className="text-lg md:text-2xl font-semibold break-words leading-tight">@{performer.username}</p>
-                  <p className="text-xs md:text-sm text-gray-200 opacity-80">Tap to preview</p>
+                <div className="absolute bottom-5 left-3 right-3 md:bottom-6 md:left-4 md:right-4 text-white">
+                  <p className="text-base md:text-2xl font-semibold break-words leading-tight">@{performer.username}</p>
+                  <p className="text-[10px] md:text-sm text-gray-200 opacity-80 whitespace-nowrap">Tap to preview</p>
                 </div>
               </div>
             </div>
