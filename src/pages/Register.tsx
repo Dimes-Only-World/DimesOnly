@@ -719,7 +719,7 @@ export const Register: React.FC = () => {
 
               <LatestDimesCarousel />
 
-              <div className={isMobile ? "py-6 px-0" : "p-8"}>
+              <div className={isMobile ? "py-6 px-4" : "p-8"}>
                 {/* Step indicator */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
