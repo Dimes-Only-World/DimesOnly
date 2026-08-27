@@ -391,7 +391,7 @@ const Profile: React.FC = () => {
                 className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
                 size="sm"
               >
-                Free Content
+                Free Silver Content
               </Button>
 
               <Button
@@ -401,7 +401,7 @@ const Profile: React.FC = () => {
                 size="sm"
               >
                 <Crown className="w-4 h-4" />
-                Silver Content
+                Silver Plus Content
                 {!canAccessTier("silver") && <Lock className="w-4 h-4" />}
               </Button>
 
@@ -412,7 +412,7 @@ const Profile: React.FC = () => {
                 size="sm"
               >
                 <Crown className="w-4 h-4 text-yellow-500" />
-                Gold Content
+                Gold or Better Content
                 {!canAccessTier("gold") && <Lock className="w-4 h-4" />}
               </Button>
             </div>
