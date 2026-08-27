@@ -545,24 +545,33 @@ const Tip: React.FC = () => {
       // Show photos immediately, don't block on video signed URLs
       setRecentPhotos(allPhotos);
 
-      const allVideos: MediaFile[] = [];
-      for (const tier of tiers) {
-        const v = mediaRows.find(
-          (item) => item.media_type === "video" && item.content_tier === tier,
-        );
+      // Single most recent free video with registration video 1 fallback
+      const freeVideos = mediaRows
+        .filter((item) => item.media_type === "video" && item.content_tier === "free")
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-        if (v) {
-          allVideos.push({
-            id: String(v.id),
-            media_url: await resolveMediaUrl(v),
-            media_type: v.media_type as "photo" | "video",
-            created_at: String(v.created_at),
-            content_tier: tier,
-          });
-        }
+      let featuredVideo: MediaFile | null = null;
+
+      if (freeVideos.length > 0) {
+        const v = freeVideos[0];
+        featuredVideo = {
+          id: String(v.id),
+          media_url: await resolveMediaUrl(v),
+          media_type: v.media_type as "photo" | "video",
+          created_at: String(v.created_at),
+          content_tier: "free",
+        };
+      } else if (userData?.video_urls?.[0]) {
+        featuredVideo = {
+          id: "registration-video-1",
+          media_url: await resolveMediaUrl({ media_url: userData.video_urls[0] }),
+          media_type: "video",
+          created_at: userData.created_at,
+          content_tier: "free",
+        };
       }
 
-      setRecentVideos(allVideos);
+      setRecentVideos(featuredVideo ? [featuredVideo] : []);
 
     } catch (error) {
       console.error("Error fetching user media:", error);
