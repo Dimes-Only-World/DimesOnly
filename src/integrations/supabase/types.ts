@@ -346,6 +346,9 @@ export type Database = {
           is_admin_message: boolean | null
           is_read: boolean | null
           liked_by: string | null
+          media_storage_path: string | null
+          media_type: string | null
+          media_url: string | null
           message: string
           recipient_id: string | null
           sender_id: string | null
@@ -357,6 +360,9 @@ export type Database = {
           is_admin_message?: boolean | null
           is_read?: boolean | null
           liked_by?: string | null
+          media_storage_path?: string | null
+          media_type?: string | null
+          media_url?: string | null
           message: string
           recipient_id?: string | null
           sender_id?: string | null
@@ -368,6 +374,9 @@ export type Database = {
           is_admin_message?: boolean | null
           is_read?: boolean | null
           liked_by?: string | null
+          media_storage_path?: string | null
+          media_type?: string | null
+          media_url?: string | null
           message?: string
           recipient_id?: string | null
           sender_id?: string | null

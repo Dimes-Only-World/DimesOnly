@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Tables } from "@/types";
@@ -15,8 +16,6 @@ import { useAppContext } from "@/contexts/AppContext";
 import {
   Loader2,
   ArrowLeft,
-  Phone,
-  Video,
   Camera,
   Mic,
   Image as ImageIcon,
@@ -24,9 +23,14 @@ import {
   Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 
 
-type DirectMessage = Tables<"direct_messages">;
+type DirectMessage = Tables<"direct_messages"> & {
+  media_url?: string | null;
+  media_type?: string | null;
+  media_storage_path?: string | null;
+};
 
 interface DirectMessageModalProps {
   isOpen: boolean;
@@ -65,6 +69,15 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let subscription: ReturnType<typeof supabase.channel> | null = null;
@@ -73,6 +86,9 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
       setRecipient(null);
       setMessages([]);
       setInput("");
+      setMediaUrls({});
+      setEmojiOpen(false);
+      setAttachOpen(false);
     };
 
     if (!isOpen) {
@@ -107,8 +123,6 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     const loadThread = async () => {
       setLoading(true);
       try {
-        // Try direct read first (may be blocked by RLS), then fall back to the
-        // public-data edge function which resolves usernames case-insensitively.
         let recipientData: any = null;
 
         const direct = await supabase
@@ -160,7 +174,9 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
 
         if (threadError) throw threadError;
 
-        setMessages((threadData as DirectMessage[]) ?? []);
+        const loaded = (threadData as DirectMessage[]) ?? [];
+        setMessages(loaded);
+        refreshSignedUrls(loaded);
 
         await supabase
           .from("direct_messages")
@@ -169,7 +185,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
           .eq("sender_id", recipientProfile.id)
           .eq("is_read", false);
 
-               subscription = supabase
+        subscription = supabase
           .channel(`dm_directory_${user.id}_${recipientProfile.id}`)
           .on(
             "postgres_changes",
@@ -184,7 +200,9 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                   if (prev.some((message) => message.id === row.id)) {
                     return prev;
                   }
-                  return [...prev, row];
+                  const updated = [...prev, row];
+                  refreshSignedUrls(updated);
+                  return updated;
                 });
                 if (row.recipient_id === user.id) {
                   supabase.from("direct_messages").update({ is_read: true }).eq("id", row.id);
@@ -193,7 +211,6 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
             }
           )
           .subscribe();
-          
       } catch (error) {
         console.error("Failed to load chat thread:", error);
         toast({
@@ -218,7 +235,26 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     };
   }, [isOpen, recipientUsername, user?.id, onClose, toast]);
 
-    const sendMessage = async () => {
+  const refreshSignedUrls = async (msgs: DirectMessage[]) => {
+    const next: Record<string, string> = {};
+    for (const msg of msgs) {
+      if (msg.media_storage_path) {
+        try {
+          const { data, error } = await supabase.storage
+            .from("private-media")
+            .createSignedUrl(msg.media_storage_path, 3600);
+          if (!error && data?.signedUrl) {
+            next[msg.id] = data.signedUrl;
+          }
+        } catch (e) {
+          console.warn("Failed to sign DM media", msg.id, e);
+        }
+      }
+    }
+    setMediaUrls((prev) => ({ ...prev, ...next }));
+  };
+
+  const sendMessage = async () => {
     const text = input.trim();
     if (!text || !user?.id || !recipient?.id) return;
 
@@ -231,7 +267,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
           recipient_id: recipient.id,
           message: text,
           is_read: false,
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -248,6 +284,101 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     }
   };
 
+  const uploadDmMedia = async (file: File, type: "photo" | "audio") => {
+    if (!user?.id) throw new Error("You must be signed in.");
+    const ext = type === "photo"
+      ? (file.name.split(".").pop() || "jpg")
+      : file.name.split(".").pop() || "webm";
+    const path = `dm/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("private-media").upload(path, file, {
+      contentType: file.type || (type === "photo" ? "image/jpeg" : "audio/webm"),
+      upsert: false,
+    });
+    if (error) throw error;
+    return path;
+  };
+
+  const sendMediaMessage = async (file: File, type: "photo" | "audio") => {
+    if (!recipient?.id || !user?.id) return;
+    setUploadingMedia(true);
+    try {
+      const storagePath = await uploadDmMedia(file, type);
+      const { error } = await supabase.from("direct_messages").insert({
+        sender_id: user.id,
+        recipient_id: recipient.id,
+        message: type === "photo" ? "📷 Photo" : "🎙️ Voice message",
+        is_read: false,
+        media_type: type,
+        media_storage_path: storagePath,
+      } as any);
+      if (error) throw error;
+    } catch (error) {
+      console.error("Failed to send media message:", error);
+      toast({
+        title: "Send failed",
+        description: error instanceof Error ? error.message : "Could not send attachment.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const handleImageFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) {
+      await sendMediaMessage(file, "photo");
+    }
+  };
+
+  const startRecording = async () => {
+    if (!recipient?.id || !user?.id) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      let mimeType = "";
+      if (MediaRecorder.isTypeSupported("audio/webm")) mimeType = "audio/webm";
+      else if (MediaRecorder.isTypeSupported("audio/mp4")) mimeType = "audio/mp4";
+      else if (MediaRecorder.isTypeSupported("audio/ogg")) mimeType = "audio/ogg";
+
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const chunks: BlobPart[] = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      mediaRecorder.onstop = () => {
+        const blobType = mimeType || "audio/webm";
+        const blob = new Blob(chunks, { type: blobType });
+        const ext = blobType.includes("mp4") ? "mp4" : blobType.includes("ogg") ? "ogg" : "webm";
+        const file = new File([blob], `voice_${Date.now()}.${ext}`, { type: blobType });
+        sendMediaMessage(file, "audio");
+        stream.getTracks().forEach((track) => track.stop());
+      };
+      mediaRecorder.start();
+      setRecorder(mediaRecorder);
+      setRecording(true);
+    } catch (error) {
+      console.error("Microphone access error:", error);
+      toast({
+        title: "Microphone unavailable",
+        description: "Allow microphone access to send voice messages.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+    setRecorder(null);
+    setRecording(false);
+  };
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setInput((prev) => prev + emojiData.emoji);
+  };
+
   const headerBadge = useMemo(() => prettyTier(recipient?.membership_tier), [recipient]);
 
   const firstTimestamp = messages[0]?.created_at
@@ -256,6 +387,23 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
         minute: "2-digit",
       })
     : null;
+
+  const renderMessageContent = (message: DirectMessage) => {
+    if (message.media_type === "photo" && mediaUrls[message.id]) {
+      return (
+        <img
+          src={mediaUrls[message.id]}
+          alt="Sent"
+          className="max-w-full rounded-2xl"
+          loading="lazy"
+        />
+      );
+    }
+    if (message.media_type === "audio" && mediaUrls[message.id]) {
+      return <audio controls src={mediaUrls[message.id]} className="w-full" />;
+    }
+    return <div className="whitespace-pre-wrap break-words">{message.message}</div>;
+  };
 
   return (
     <Dialog
@@ -268,6 +416,23 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     >
       <DialogContent className="max-w-md w-full p-0 bg-transparent border-none [&>button]:hidden">
         <div className="flex h-[85vh] flex-col overflow-hidden rounded-2xl bg-black text-white shadow-2xl">
+          {/* Hidden file inputs */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleImageFile}
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageFile}
+          />
+
           {/* Top bar */}
           <DialogHeader className="space-y-0 px-3 py-3 border-b border-white/10">
             <div className="flex items-center gap-3">
@@ -292,10 +457,6 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                 <span className="truncate text-xs text-white/50">
                   @{recipient?.username || recipientUsername}
                 </span>
-              </div>
-              <div className="flex items-center gap-4 text-white/90">
-                <Phone className="h-5 w-5" />
-                <Video className="h-5 w-5" />
               </div>
             </div>
           </DialogHeader>
@@ -361,7 +522,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                           : "bg-[#262626] text-white"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap break-words">{message.message}</div>
+                      {renderMessageContent(message)}
                     </div>
                   </div>
                 );
@@ -371,9 +532,15 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
 
           {/* Composer */}
           <div className="flex items-center gap-2 px-3 py-3">
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#6E5BFF]">
-              <Camera className="h-5 w-5 text-white" />
-            </div>
+            <button
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={uploadingMedia || !recipient}
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#6E5BFF] text-white hover:bg-[#5d4ce0] disabled:opacity-50"
+              aria-label="Take photo"
+            >
+              <Camera className="h-5 w-5" />
+            </button>
+
             <div className="flex flex-1 items-center gap-2 rounded-full bg-[#262626] px-4 py-2">
               <Textarea
                 placeholder="Message..."
@@ -387,7 +554,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                   }
                 }}
                 className="min-h-0 flex-1 resize-none border-none bg-transparent p-0 text-[15px] text-white placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0"
-                disabled={sending || loading || !recipient}
+                disabled={sending || loading || !recipient || uploadingMedia}
               />
               {input.trim() ? (
                 <Button
@@ -401,14 +568,123 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                 </Button>
               ) : (
                 <div className="flex items-center gap-3 text-white/80">
-                  <Mic className="h-5 w-5" />
-                  <ImageIcon className="h-5 w-5" />
-                  <Smile className="h-5 w-5" />
-                  <Plus className="h-5 w-5" />
+                  <button
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecording}
+                    onMouseLeave={stopRecording}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      startRecording();
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      stopRecording();
+                    }}
+                    disabled={uploadingMedia || !recipient}
+                    className={`hover:text-white disabled:opacity-50 ${recording ? "text-red-400" : ""}`}
+                    aria-label="Hold to record voice"
+                  >
+                    <Mic className={`h-5 w-5 ${recording ? "animate-pulse" : ""}`} />
+                  </button>
+
+                  <button
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={uploadingMedia || !recipient}
+                    className="hover:text-white disabled:opacity-50"
+                    aria-label="Attach photo"
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                  </button>
+
+                  <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="hover:text-white disabled:opacity-50"
+                        aria-label="Insert emoji"
+                      >
+                        <Smile className="h-5 w-5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="top"
+                      align="end"
+                      className="w-auto p-0 border-none bg-transparent"
+                    >
+                      <EmojiPicker
+                        theme={Theme.DARK}
+                        onEmojiClick={onEmojiClick}
+                        lazyLoadEmojis
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover open={attachOpen} onOpenChange={setAttachOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="hover:text-white disabled:opacity-50"
+                        aria-label="More attachments"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="top"
+                      align="end"
+                      className="w-48 p-2 border-white/10 bg-[#1a1a1a]"
+                    >
+                      <div className="grid grid-cols-2 gap-2 text-xs text-white">
+                        <button
+                          onClick={() => {
+                            cameraInputRef.current?.click();
+                            setAttachOpen(false);
+                          }}
+                          className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
+                        >
+                          <Camera className="h-5 w-5" />
+                          Camera
+                        </button>
+                        <button
+                          onClick={() => {
+                            galleryInputRef.current?.click();
+                            setAttachOpen(false);
+                          }}
+                          className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
+                        >
+                          <ImageIcon className="h-5 w-5" />
+                          Photo
+                        </button>
+                        <button
+                          onClick={() => {
+                            startRecording();
+                            setAttachOpen(false);
+                          }}
+                          className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
+                        >
+                          <Mic className="h-5 w-5" />
+                          Voice
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEmojiOpen(true);
+                            setAttachOpen(false);
+                          }}
+                          className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
+                        >
+                          <Smile className="h-5 w-5" />
+                          Emoji
+                        </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
             </div>
           </div>
+          {(uploadingMedia || recording) && (
+            <div className="px-3 pb-2 text-xs text-white/60">
+              {recording ? "Recording voice... release to send" : "Sending attachment..."}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
