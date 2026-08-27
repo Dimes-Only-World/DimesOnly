@@ -705,7 +705,7 @@ const RatePage: React.FC = () => {
         <img
           src={userData.profile_photo || "/placeholder.svg"}
           alt={userData.username}
-          className="absolute left-1/2 top-0 z-10 h-36 w-36 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-4 border-background bg-background object-cover shadow-lg md:h-48 md:w-48"
+          className="absolute left-1/2 top-0 z-10 h-44 w-44 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-4 border-background bg-background object-cover shadow-lg md:h-60 md:w-60"
           onClick={() =>
             userData.profile_photo && setExpandedImage(userData.profile_photo)
           }
@@ -714,7 +714,7 @@ const RatePage: React.FC = () => {
             target.src = "/placeholder.svg";
           }}
         />
-        <div className="px-4 pb-4 pt-20 md:px-6 md:pb-5 md:pt-28">
+        <div className="px-4 pb-4 pt-24 md:px-6 md:pb-5 md:pt-36">
           <div className="flex flex-col items-center gap-3">
             <div className="text-center">
               <h1 className="text-xl md:text-2xl font-bold text-white">
