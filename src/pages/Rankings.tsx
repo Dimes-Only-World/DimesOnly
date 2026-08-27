@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,6 +14,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Search,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMobileLayout } from "@/hooks/use-mobile";
@@ -57,10 +59,9 @@ const getPrizeForRank = (rank: number): number | null => {
 
 const Rankings: React.FC = () => {
   const [rankings, setRankings] = useState<RankedUser[]>([]);
+  const [displayRankings, setDisplayRankings] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState<
-    "all" | "stripper" | "exotic"
-  >("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
   const { isMobile, getContainerClasses, getPaddingClasses } =
@@ -68,7 +69,21 @@ const Rankings: React.FC = () => {
 
   useEffect(() => {
     fetchRankings();
-  }, [selectedType]);
+  }, []);
+
+  useEffect(() => {
+    const normalized = searchQuery.trim().toLowerCase();
+    if (!normalized) {
+      setDisplayRankings(rankings);
+    } else {
+      setDisplayRankings(
+        rankings.filter((user) =>
+          user.username.toLowerCase().includes(normalized)
+        )
+      );
+    }
+    setPage(0);
+  }, [searchQuery, rankings]);
 
   const fetchRankings = async () => {
     try {
@@ -123,17 +138,12 @@ const Rankings: React.FC = () => {
           .filter((user) => user.rating_count > 0)
           .sort((a, b) => b.total_score - a.total_score);
 
-        if (selectedType !== "all") {
-          rankedUsers = rankedUsers.filter(
-            (user) => user.user_type === selectedType
-          );
-        }
-
         rankedUsers.forEach((user, index) => {
           user.rank = index + 1;
         });
 
         setRankings(rankedUsers);
+        setDisplayRankings(rankedUsers);
         setPage(0);
       }
     } catch (error) {
@@ -169,8 +179,11 @@ const Rankings: React.FC = () => {
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(rankings.length / PAGE_SIZE));
-  const pagedRankings = rankings.slice(
+  const pageCount = Math.max(
+    1,
+    Math.ceil(displayRankings.length / PAGE_SIZE)
+  );
+  const pagedRankings = displayRankings.slice(
     page * PAGE_SIZE,
     (page + 1) * PAGE_SIZE
   );
@@ -235,42 +248,22 @@ const Rankings: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 px-4">
-          <Button
-            onClick={() => setSelectedType("all")}
-            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
-              selectedType === "all"
-                ? "bg-yellow-500 text-black hover:bg-yellow-600"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            All Performers
-          </Button>
-          <Button
-            onClick={() => setSelectedType("stripper")}
-            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
-              selectedType === "stripper"
-                ? "bg-pink-500 text-white hover:bg-pink-600"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            Strippers
-          </Button>
-          <Button
-            onClick={() => setSelectedType("exotic")}
-            className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold ${
-              selectedType === "exotic"
-                ? "bg-purple-500 text-white hover:bg-purple-600"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            Exotics
-          </Button>
+        {/* Username Search */}
+        <div className="max-w-md mx-auto mb-8 px-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search by username..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-xl focus:border-yellow-400 focus:ring-yellow-400"
+            />
+          </div>
         </div>
 
         {/* Separator on pages after the top 20 */}
-        {isAfterFirstPage && rankings.length > 0 && (
+        {isAfterFirstPage && displayRankings.length > 0 && (
           <div className="mb-8 px-4">
             <div className="flex items-center gap-4 max-w-3xl mx-auto">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-400/60 to-transparent" />
@@ -286,7 +279,7 @@ const Rankings: React.FC = () => {
         )}
 
         {/* Rankings List */}
-        {rankings.length === 0 ? (
+        {displayRankings.length === 0 ? (
           <Card
             className={`bg-white/10 backdrop-blur border-white/20 ${
               isMobile ? "mx-4" : "max-w-md mx-auto"
@@ -411,7 +404,7 @@ const Rankings: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {rankings.length > PAGE_SIZE && (
+        {displayRankings.length > PAGE_SIZE && (
           <div className="mt-10 flex items-center justify-center gap-4 px-4">
             <Button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
