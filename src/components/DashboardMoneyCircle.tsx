@@ -250,7 +250,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
 
   return (
     <TooltipProvider delayDuration={150}>
-    <div className="w-full max-w-3xl mx-auto mb-8">
+    <div className="w-full max-w-none mx-0 mb-8">
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-blue-50/40 to-fuchsia-50/40 shadow-lg">
         {/* Accent bar */}
         <div className="h-1 w-full bg-gradient-to-r from-[#E916D1] via-fuchsia-400 to-blue-500" />

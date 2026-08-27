@@ -451,7 +451,7 @@ const UserDashboard: React.FC = () => {
     switch (slug) {
       case "profile":
         return (
-          <div className="text-black">
+          <div className="text-black [--foreground:0_0%_0%] w-full">
             <ApprovalStatusBanner
               status={(userData as any)?.approval_status}
               userType={userData?.user_type}
@@ -463,7 +463,7 @@ const UserDashboard: React.FC = () => {
 
             <DashboardMembershipCard userData={userData} />
 
-            <div className={`${isMobile ? "py-2" : "py-4"} -mx-4 sm:-mx-6 lg:-mx-8`}>
+            <div className={`${isMobile ? "py-2" : "py-4"} w-full`}>
               <DashboardVideoHeader
                 srcDesktop={heroVideoUrl}
                 srcMobile={heroVideoUrl}
@@ -481,7 +481,7 @@ const UserDashboard: React.FC = () => {
 
             <LatestDimesCarousel />
 
-            <div className="w-full max-w-md mx-auto mb-6">
+            <div className="w-full mb-6">
               <Button
                 onClick={() => navigate("/feed")}
                 className="w-full h-auto py-4 px-6 rounded-xl bg-dimes-magenta hover:bg-dimes-magenta/90 text-white font-bold text-base shadow-lg flex items-center justify-center gap-2"
@@ -578,6 +578,7 @@ const UserDashboard: React.FC = () => {
       title={SLUG_TITLES[slug]}
       username={userData.username}
       profilePhoto={userData.profile_photo}
+      fullWidth={slug === "profile"}
     >
       {slug !== "profile" && slug !== "earnings" && <Top20DimesCarousel />}
 
