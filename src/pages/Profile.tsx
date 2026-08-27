@@ -9,6 +9,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import MediaGrid from "@/components/MediaGrid";
 import { formatMemberSince } from "@/lib/formatDate";
+import DirectMessageModal from "@/components/DirectMessageModal";
+
 
 interface UserProfile {
   id: string;
