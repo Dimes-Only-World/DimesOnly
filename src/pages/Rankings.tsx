@@ -179,8 +179,11 @@ const Rankings: React.FC = () => {
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(rankings.length / PAGE_SIZE));
-  const pagedRankings = rankings.slice(
+  const pageCount = Math.max(
+    1,
+    Math.ceil(displayRankings.length / PAGE_SIZE)
+  );
+  const pagedRankings = displayRankings.slice(
     page * PAGE_SIZE,
     (page + 1) * PAGE_SIZE
   );
