@@ -230,7 +230,7 @@ const LatestDimesCarousel: React.FC<{ className?: string }> = ({ className = "" 
             <div
               key={performer.id}
               data-carousel-card
-              className="group flex-shrink-0 w-56 h-80 md:w-72 md:h-[28rem] snap-start"
+              className="group flex-shrink-0 w-56 h-80 md:w-72 md:h-[28rem] snap-start first:ml-auto last:mr-auto"
               onClick={() => openModal(performer)}
             >
               <div className="relative w-full h-full overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-yellow-400/30">
