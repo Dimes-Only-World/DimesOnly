@@ -564,7 +564,7 @@ const Events: React.FC = () => {
                   : "bg-white/10 text-white hover:bg-white/20"
               }`}
             >
-              Going
+              I'm Going
             </Button>
             <Button
               onClick={() => setAttendanceFilter("not_going")}
