@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,6 +14,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Search,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMobileLayout } from "@/hooks/use-mobile";
