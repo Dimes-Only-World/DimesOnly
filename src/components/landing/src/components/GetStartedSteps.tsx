@@ -19,7 +19,7 @@ const steps = [
 const AUDIENCES = [
   "Content Creators",
   "Business Owners",
-  "Exotic Dancers",
+  "Exxxotic Females",
   "Exotic Females",
 ];
 

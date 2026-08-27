@@ -1046,8 +1046,8 @@ const EventDetails: React.FC = () => {
                     className="bg-gray-900 border border-white/20 rounded-md px-3 py-2 text-white"
                   >
                     <option value="all" className="bg-gray-900 text-white">All Types</option>
-                    <option value="normal" className="bg-gray-900 text-white">Normal Male and Female</option>
-                    <option value="exotic" className="bg-gray-900 text-white">Exotic Dancers</option>
+                    <option value="normal" className="bg-gray-900 text-white">Normal Males and Females</option>
+                    <option value="exotic" className="bg-gray-900 text-white">Exxxotic Females</option>
                     <option value="stripper" className="bg-gray-900 text-white">Strippers</option>
                   </select>
                 </div>
