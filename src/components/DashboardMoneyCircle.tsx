@@ -186,7 +186,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
   const hasReferrals = sorted.length > 0;
 
   const renderAvatar = (ref: Referral, size: "lg" | "sm" = "sm") => {
-    const dims = size === "lg" ? "w-16 h-16" : "w-14 h-14";
+    const dims = size === "lg" ? "w-24 h-24 sm:w-28 sm:h-28" : "w-20 h-20 sm:w-24 sm:h-24";
     const isOnline = onlineUsers.has((ref.username || "").toLowerCase());
     return (
       <Link
@@ -206,7 +206,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-lg font-bold text-blue-700">
+              <span className="text-2xl font-bold text-blue-700">
                 {ref.username?.charAt(0).toUpperCase()}
               </span>
             )}
@@ -215,7 +215,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
             <TooltipTrigger asChild>
               <span
                 aria-label={isOnline ? "Online now" : "Offline"}
-                className={`absolute bottom-0 right-0 ${
+                className={`absolute bottom-1 right-1 ${
                   size === "lg" ? "w-4 h-4" : "w-3.5 h-3.5"
                 } rounded-full ring-2 ring-white shadow-sm ${
                   isOnline ? "bg-emerald-500" : "bg-red-500"
@@ -229,14 +229,14 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
         </div>
 
         <p
-          className="text-[11px] font-semibold mt-2 text-center truncate text-slate-900 w-full max-w-[72px] group-hover:text-[#E916D1]"
+          className="text-xs sm:text-sm font-semibold mt-2 text-center text-slate-900 w-full break-all leading-tight group-hover:text-[#E916D1]"
           title={ref.username}
         >
           @{ref.username}
         </p>
         {(ref.city || ref.state) && (
           <p
-            className="text-[10px] text-slate-500 text-center truncate w-full max-w-[72px]"
+            className="text-[11px] text-slate-500 text-center w-full break-words leading-tight"
             title={`${ref.city || ""}${ref.city && ref.state ? ", " : ""}${ref.state || ""}`}
           >
             {ref.city}
@@ -247,6 +247,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
       </Link>
     );
   };
+
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -339,7 +340,7 @@ const DashboardMoneyCircle: React.FC<DashboardMoneyCircleProps> = ({
                   {/* Results grid */}
                   {paged.length > 0 ? (
                     <div className="rounded-xl border border-slate-200 bg-white/80 backdrop-blur p-4 max-h-96 overflow-y-auto">
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
                         {paged.map((ref) => renderAvatar(ref))}
                       </div>
                     </div>
