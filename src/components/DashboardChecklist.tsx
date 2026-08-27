@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Circle, X, Rocket } from "lucide-react";
+import { Check, Circle, Rocket, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { resolveMembership } from "@/lib/membership";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
@@ -28,6 +28,7 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
   const navigate = useNavigate();
   const dismissKey = `dimes-checklist-dismissed-${userData?.id}`;
   const [dismissed, setDismissed] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [hasMedia, setHasMedia] = useState(false);
   const [hasRated, setHasRated] = useState(false);
   const [hasTipped, setHasTipped] = useState(false);
@@ -182,17 +183,23 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
     onProgress?.(percent);
   }, [percent, onProgress]);
 
-  if (dismissed || completed === items.length) return null;
+  if (dismissed) return null;
 
   const dismiss = () => {
     localStorage.setItem(dismissKey, "1");
     setDismissed(true);
   };
 
+  const allDone = completed === items.length;
+
   return (
     <Card className="mb-6 border-border/60 bg-dimes-surface animate-fade-in">
       <CardContent className="p-5 md:p-6">
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mb-4 flex w-full items-start justify-between gap-3 text-left"
+        >
           <div className="flex items-center gap-2">
             <span className="rounded-lg bg-dimes-magenta/15 p-2 text-dimes-magenta">
               <Rocket className="h-5 w-5" />
@@ -204,14 +211,10 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={dismiss}
-            aria-label="Dismiss checklist"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+          <span className="text-muted-foreground">
+            {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </span>
+        </button>
 
         <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-dimes-surface-elevated">
           <div
@@ -220,39 +223,55 @@ const DashboardChecklist: React.FC<DashboardChecklistProps> = ({
           />
         </div>
 
-        <ul className="space-y-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-dimes-surface-elevated p-3"
-            >
-              <span
-                className={
-                  item.done
-                    ? "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white"
-                    : "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground"
-                }
-              >
-                {item.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-2 w-2 fill-current" />}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p
-                  className={`text-sm font-semibold ${item.done ? "text-muted-foreground line-through" : ""}`}
-                >
-                  {item.label}
-                </p>
-                {!item.done && (
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                )}
-              </div>
-              {!item.done && (
-                <Button size="sm" variant="secondary" onClick={item.action}>
-                  {item.cta}
+        {expanded && (
+          <>
+            {!allDone ? (
+              <ul className="space-y-2">
+                {items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center gap-3 rounded-xl border border-border/60 bg-dimes-surface-elevated p-3"
+                  >
+                    <span
+                      className={
+                        item.done
+                          ? "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white"
+                          : "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground"
+                      }
+                    >
+                      {item.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-2 w-2 fill-current" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-sm font-semibold ${item.done ? "text-muted-foreground line-through" : ""}`}
+                      >
+                        {item.label}
+                      </p>
+                      {!item.done && (
+                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                      )}
+                    </div>
+                    {!item.done && (
+                      <Button size="sm" variant="secondary" onClick={item.action}>
+                        {item.cta}
+                      </Button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+                  <p className="font-semibold text-emerald-400">You&apos;re all set!</p>
+                  <p className="text-sm text-muted-foreground">Your account setup is complete.</p>
+                </div>
+                <Button variant="outline" className="w-full" onClick={dismiss}>
+                  Close
                 </Button>
-              )}
-            </li>
-          ))}
-        </ul>
+              </div>
+            )}
+          </>
+        )}
       </CardContent>
     </Card>
   );
