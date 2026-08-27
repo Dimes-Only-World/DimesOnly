@@ -11,6 +11,7 @@ interface DashboardSectionLayoutProps {
   title: string;
   username?: string | null;
   profilePhoto?: string | null;
+  fullWidth?: boolean;
   children: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
   title,
   username,
   profilePhoto,
+  fullWidth = false,
   children,
 }) => {
   const navigate = useNavigate();
