@@ -1124,14 +1124,28 @@ const RatePage: React.FC = () => {
         open={!!expandedImage}
         onOpenChange={() => setExpandedImage(null)}
       >
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl p-2">
           {expandedImage && (
-            <img
-              src={expandedImage}
-              alt="Expanded"
-              className="w-full h-auto rounded-lg"
-            />
+            <button
+              className="relative block w-full cursor-pointer bg-transparent p-0"
+              onClick={() => setExpandedImage(null)}
+              aria-label="Close expanded image"
+            >
+              <img
+                src={expandedImage}
+                alt="Expanded"
+                className="w-full h-auto rounded-lg"
+              />
+              <div className="absolute right-2 top-2 z-50 rounded-full bg-black/70 p-2 text-white hover:bg-black/90">
+                <X className="h-5 w-5" />
+              </div>
+            </button>
           )}
+          <div className="flex justify-center pt-2">
+            <Button variant="secondary" onClick={() => setExpandedImage(null)}>
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
