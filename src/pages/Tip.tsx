@@ -463,10 +463,10 @@ const Tip: React.FC = () => {
     if (!tipUsername) return;
 
     try {
-      // Get user ID from public_user_profiles to bypass RLS
+      // Get user ID and registration video fallback from public_user_profiles to bypass RLS
       const { data: user, error: userError } = await supabase
         .from("public_user_profiles")
-        .select("id")
+        .select("id, video_urls")
         .eq("username", tipUsername)
         .maybeSingle();
 
@@ -561,12 +561,12 @@ const Tip: React.FC = () => {
           created_at: String(v.created_at),
           content_tier: "free",
         };
-      } else if (userData?.video_urls?.[0]) {
+      } else if (user?.video_urls?.[0]) {
         featuredVideo = {
           id: "registration-video-1",
-          media_url: await resolveMediaUrl({ media_url: userData.video_urls[0] }),
+          media_url: await resolveMediaUrl({ media_url: user.video_urls[0] }),
           media_type: "video",
-          created_at: userData.created_at,
+          created_at: userData?.created_at ?? new Date().toISOString(),
           content_tier: "free",
         };
       }
