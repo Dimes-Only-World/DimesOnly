@@ -297,7 +297,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-0 pt-0 pb-4 sm:pb-8">
+      <div className="container mx-auto p-0">
         {/* Banner Section */}
         <Card className="mb-4 sm:mb-6 overflow-hidden border-0 shadow-none">
           <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
@@ -307,7 +307,7 @@ const Profile: React.FC = () => {
             <div className="absolute inset-0 bg-black bg-opacity-30" />
 
             {/* Profile Picture & Info */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 pt-8 sm:p-6 sm:pt-10">
+            <div className="absolute bottom-0 left-0 right-0 p-0">
               <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6">
                 <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg mt-6 sm:mt-0">
                   <img
@@ -378,8 +378,7 @@ const Profile: React.FC = () => {
 
 
         {/* Content Tiers */}
-        <Card className="border-0 shadow-none">
-          <CardContent className="px-0 pt-0 pb-3 sm:pb-6">
+          <Card className="border-0 shadow-none"><CardContent className="p-0">
             {/* Tier Tabs (hidden for male or normal female) */}
             {!(
               profile.gender?.toLowerCase() === "male" ||
@@ -426,13 +425,13 @@ const Profile: React.FC = () => {
                 {getFilteredMedia().length > 0 ? (
                   <MediaGrid media={getFilteredMedia()} currentUserId={user?.id || ""} showLikesAndComments={true} />
                 ) : (
-                  <div className="text-center py-12">
+                    <div className="text-center py-0">
                     <p className="text-gray-500">No {activeTab} content available yet</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-0">
                 <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-xl font-semibold mb-2">
                   {activeTab === "silver" ? "Silver" : "Gold"} Content Locked
