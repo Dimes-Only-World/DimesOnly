@@ -23,6 +23,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getDmSignedUrl } from "@/lib/dmMedia";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 
 
@@ -36,7 +37,10 @@ interface DirectMessageModalProps {
   isOpen: boolean;
   onClose: () => void;
   recipientUsername: string | null;
+  /** Optional: open a thread directly by user id (used by the dashboard tab). */
+  recipientId?: string | null;
 }
+
 
 interface RecipientProfile {
   id: string;
@@ -59,6 +63,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
   isOpen,
   onClose,
   recipientUsername,
+  recipientId,
 }) => {
   const { user } = useAppContext();
   const navigate = useNavigate();
@@ -102,7 +107,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
       };
     }
 
-    if (!recipientUsername || !user?.id) {
+    if ((!recipientUsername && !recipientId) || !user?.id) {
       if (!user?.id) {
         toast({
           title: "Login required",
@@ -125,14 +130,26 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
       try {
         let recipientData: any = null;
 
-        const direct = await supabase
-          .from("users")
-          .select("id, username, profile_photo, membership_tier")
-          .ilike("username", recipientUsername)
-          .maybeSingle();
-        recipientData = direct.data;
+        if (recipientId) {
+          const byId = await supabase
+            .from("public_user_profiles")
+            .select("id, username, profile_photo, membership_tier")
+            .eq("id", recipientId)
+            .maybeSingle();
+          recipientData =
+            byId.data || { id: recipientId, username: "Admin", profile_photo: null, membership_tier: "admin" };
+        }
 
-        if (!recipientData) {
+        if (!recipientData && recipientUsername) {
+          const direct = await supabase
+            .from("users")
+            .select("id, username, profile_photo, membership_tier")
+            .ilike("username", recipientUsername)
+            .maybeSingle();
+          recipientData = direct.data;
+        }
+
+        if (!recipientData && recipientUsername) {
           const { data: fnData } = await supabase.functions.invoke("public-data", {
             body: { action: "fetchProfile", username: recipientUsername },
           });
@@ -233,22 +250,14 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
         } catch {}
       }
     };
-  }, [isOpen, recipientUsername, user?.id, onClose, toast]);
+  }, [isOpen, recipientUsername, recipientId, user?.id, onClose, toast]);
 
   const refreshSignedUrls = async (msgs: DirectMessage[]) => {
     const next: Record<string, string> = {};
     for (const msg of msgs) {
       if (msg.media_storage_path) {
-        try {
-          const { data, error } = await supabase.storage
-            .from("private-media")
-            .createSignedUrl(msg.media_storage_path, 3600);
-          if (!error && data?.signedUrl) {
-            next[msg.id] = data.signedUrl;
-          }
-        } catch (e) {
-          console.warn("Failed to sign DM media", msg.id, e);
-        }
+        const url = await getDmSignedUrl(msg.media_storage_path);
+        if (url) next[msg.id] = url;
       }
     }
     setMediaUrls((prev) => ({ ...prev, ...next }));
@@ -400,7 +409,24 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
       );
     }
     if (message.media_type === "audio" && mediaUrls[message.id]) {
-      return <audio controls src={mediaUrls[message.id]} className="w-full" />;
+      return (
+        <div className="min-w-[180px] space-y-1">
+          <audio controls preload="metadata" className="w-full">
+            <source src={mediaUrls[message.id]} />
+          </audio>
+          <a
+            href={mediaUrls[message.id]}
+            target="_blank"
+            rel="noreferrer"
+            className="block text-[10px] underline opacity-70"
+          >
+            Open recording
+          </a>
+        </div>
+      );
+    }
+    if (message.media_storage_path && !mediaUrls[message.id]) {
+      return <div className="text-xs opacity-70">Loading attachment…</div>;
     }
     return <div className="whitespace-pre-wrap break-words">{message.message}</div>;
   };
