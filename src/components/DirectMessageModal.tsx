@@ -677,13 +677,17 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            startRecording();
+                            if (recording) {
+                              stopRecording();
+                            } else {
+                              startRecording();
+                            }
                             setAttachOpen(false);
                           }}
-                          className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
+                          className={`flex flex-col items-center gap-1 rounded-lg p-2 hover:bg-[#333] ${recording ? "bg-red-500/20 text-red-400" : "bg-[#262626]"}`}
                         >
-                          <Mic className="h-5 w-5" />
-                          Voice
+                          <Mic className={`h-5 w-5 ${recording ? "animate-pulse" : ""}`} />
+                          {recording ? "Stop" : "Voice"}
                         </button>
                         <button
                           onClick={() => {
