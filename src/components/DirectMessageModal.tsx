@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
   Smile,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getDmSignedUrl } from "@/lib/dmMedia";
@@ -388,6 +389,34 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     setInput((prev) => prev + emojiData.emoji);
   };
 
+  const deleteMessage = async (message: DirectMessage) => {
+    if (message.sender_id !== user?.id) return;
+    if (!window.confirm("Delete this message? This cannot be undone.")) return;
+    try {
+      const { error } = await supabase
+        .from("direct_messages")
+        .delete()
+        .eq("id", message.id)
+        .eq("sender_id", user.id);
+      if (error) throw error;
+
+      if (message.media_storage_path) {
+        await supabase.storage.from("private-media").remove([message.media_storage_path]);
+      }
+
+      setMessages((prev) => prev.filter((m) => m.id !== message.id));
+      toast({ title: "Message deleted" });
+    } catch (error) {
+      console.error("Delete message error:", error);
+      toast({
+        title: "Delete failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   const headerBadge = useMemo(() => prettyTier(recipient?.membership_tier), [recipient]);
 
   const firstTimestamp = messages[0]?.created_at
@@ -539,8 +568,17 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                 return (
                   <div
                     key={message.id}
-                    className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                    className={`group flex items-center gap-2 ${isCurrentUser ? "justify-end" : "justify-start"}`}
                   >
+                    {isCurrentUser && (
+                      <button
+                        onClick={() => deleteMessage(message)}
+                        aria-label="Delete message"
+                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white/50 opacity-100 transition hover:bg-white/10 hover:text-red-400 md:opacity-0 md:group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                     <div
                       className={`max-w-[78%] rounded-3xl px-4 py-2.5 text-[15px] leading-snug ${
                         isCurrentUser
@@ -551,6 +589,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                       {renderMessageContent(message)}
                     </div>
                   </div>
+
                 );
               })
             )}
