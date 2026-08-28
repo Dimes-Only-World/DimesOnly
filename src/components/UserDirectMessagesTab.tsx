@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { Tables } from "@/types";
 import UserSearchComponent from "./UserSearchComponent";
+import DirectMessageModal from "./DirectMessageModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DirectMessage extends Tables<"direct_messages"> {
@@ -53,18 +54,6 @@ const UserDirectMessagesTab: React.FC = () => {
   const [sendingReply, setSendingReply] = useState(false);
   const [threadOpen, setThreadOpen] = useState(false);
   const [threadUserId, setThreadUserId] = useState<string | null>(null);
-  const [threadUser, setThreadUser] = useState<{
-    id: string;
-    username: string;
-    profile_photo?: string;
-    membership_tier?: string | null;
-  } | null>(null);
-  const [threadMessages, setThreadMessages] = useState<DirectMessage[]>([]);
-  const [threadLoading, setThreadLoading] = useState(false);
-  const [threadText, setThreadText] = useState("");
-  const [threadChannel, setThreadChannel] = useState<
-    ReturnType<typeof supabase.channel> | null
-  >(null);
   const defaultAvatar = "/placeholder.svg";
   const { toast } = useToast();
   const { user } = useAppContext();
@@ -78,124 +67,28 @@ const UserDirectMessagesTab: React.FC = () => {
   // Filters: All | Unread
   const [messageFilter, setMessageFilter] = useState<"all" | "unread">("all");
 
-  // Open a conversation thread with a given other user
+  // Open a conversation thread with a given other user (new Instagram-style modal)
   const openThread = async (otherUserId: string) => {
     if (!user?.id) return;
     setThreadUserId(otherUserId);
     setThreadOpen(true);
-    setThreadLoading(true);
-    setThreadText("");
-
     try {
-      // Fetch other user profile
-      const { data: udata } = await supabase
-        .from("public_user_profiles")
-        .select("id, username, profile_photo, membership_tier")
-        .eq("id", otherUserId)
-        .maybeSingle();
-      
-      // If user not found, check if this is an admin conversation
-      if (udata) {
-        setThreadUser({
-          id: (udata as any).id as string,
-          username: ((udata as any).username as string) ?? "Unknown",
-          profile_photo: ((udata as any).profile_photo as string) ?? undefined,
-          membership_tier: ((udata as any).membership_tier as string) ?? null,
-        });
-      } else {
-        // Could be admin - check if there are admin messages from this ID
-        const { data: adminCheck } = await supabase
-          .from("direct_messages")
-          .select("id")
-          .eq("sender_id", otherUserId)
-          .eq("is_admin_message", true)
-          .limit(1);
-        
-        setThreadUser(
-          adminCheck && adminCheck.length > 0
-            ? { id: otherUserId, username: "Admin", profile_photo: undefined, membership_tier: "admin" }
-            : null
-        );
-      }
-
-      // Fetch both sent and received messages between the two users (robust filter)
-      const { data: threadData, error: threadErr } = await supabase
-        .from("direct_messages")
-        .select("*")
-        .in("sender_id", [user.id, otherUserId])
-        .in("recipient_id", [user.id, otherUserId])
-        .order("created_at", { ascending: true });
-      if (threadErr) throw threadErr;
-      setThreadMessages((threadData as unknown as DirectMessage[]) || []);
-
-      // Mark their incoming messages as read
       await supabase
         .from("direct_messages")
         .update({ is_read: true })
         .eq("recipient_id", user.id)
         .eq("sender_id", otherUserId)
         .eq("is_read", false);
-      // Refresh conversation list to reflect new unread counts
       fetchMessages();
-
-      // Setup realtime for this pair
-      if (threadChannel) {
-        try { threadChannel.unsubscribe(); } catch {}
-      }
-      const ch = supabase
-        .channel(`dm_thread_${user.id}_${otherUserId}`)
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "direct_messages" },
-          (payload) => {
-            const row = payload.new as DirectMessage;
-            if (
-              (row.sender_id === user.id && row.recipient_id === otherUserId) ||
-              (row.sender_id === otherUserId && row.recipient_id === user.id)
-            ) {
-              setThreadMessages((prev) => [...prev, row]);
-              if (row.recipient_id === user.id) {
-                supabase.from("direct_messages").update({ is_read: true }).eq("id", row.id);
-              }
-              fetchMessages();
-            }
-          }
-        )
-        .subscribe();
-      setThreadChannel(ch);
     } catch (e) {
       console.error("Error opening thread", e);
-      toast({ title: "Error", description: "Failed to open chat", variant: "destructive" });
-    } finally {
-      setThreadLoading(false);
     }
   };
 
   const closeThread = () => {
     setThreadOpen(false);
     setThreadUserId(null);
-    setThreadUser(null);
-    setThreadMessages([]);
-    setThreadText("");
-    if (threadChannel) {
-      try { threadChannel.unsubscribe(); } catch {}
-      setThreadChannel(null);
-    }
-  };
-
-  const sendThread = async () => {
-    if (!user?.id || !threadUserId || !threadText.trim()) return;
-    const text = threadText.trim();
-    setThreadText("");
-    try {
-      const { error } = await supabase
-        .from("direct_messages")
-        .insert({ sender_id: user.id, recipient_id: threadUserId, message: text, is_read: false });
-      if (error) throw error;
-    } catch (e) {
-      console.error("sendThread error", e);
-      toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
-    }
+    fetchMessages();
   };
 
   useEffect(() => {
@@ -552,87 +445,13 @@ const UserDirectMessagesTab: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Conversation Thread Dialog */}
-      <Dialog open={threadOpen} onOpenChange={(o)=> o ? null : closeThread()}>
-        <DialogContent className="max-w-lg w-full p-0">
-          <div className="p-4 border-b flex items-center gap-3">
-            <img
-              src={threadUser?.profile_photo || defaultAvatar}
-              alt={threadUser?.username || "User"}
-              className="h-10 w-10 rounded-full object-cover border"
-            />
-            <div className="flex items-center gap-2 min-w-0">
-              <DialogTitle className="text-base truncate">
-                {threadUser?.username || "Chat"}
-              </DialogTitle>
-              {threadUser?.membership_tier && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        variant={threadUser.membership_tier === "diamond_plus" ? "default" : "secondary"}
-                        className={
-                          threadUser.membership_tier === "diamond_plus"
-                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-none"
-                            : ""
-                        }
-                      >
-                        {prettyTier(threadUser.membership_tier)}
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{prettyTier(threadUser.membership_tier)} member</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-          </div>
-          <div className="h-[60vh] overflow-y-auto p-4 space-y-3 bg-gray-50">
-            {threadLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              threadMessages.map((m) => {
-                const isMe = m.sender_id === user?.id;
-                return (
-                  <div key={m.id} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    {!isMe && (
-                      <img
-                        src={threadUser?.profile_photo || defaultAvatar}
-                        alt={threadUser?.username || 'User'}
-                        className="h-7 w-7 rounded-full object-cover border"
-                      />
-                    )}
-                    <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow ${isMe ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white border text-gray-800 rounded-bl-sm'}`}>
-                      <div className="whitespace-pre-wrap leading-relaxed">{m.message}</div>
-                      <div className={`mt-1 text-[10px] ${isMe ? 'text-blue-100' : 'text-gray-400'}`}>{m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
-                    </div>
-                    {isMe && (
-                      <img
-                        src={currentUserProfile?.profile_photo || defaultAvatar}
-                        alt={currentUserProfile?.username || 'Me'}
-                        className="h-7 w-7 rounded-full object-cover border"
-                      />
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <div className="p-3 border-t flex items-end gap-2">
-            <Textarea
-              placeholder="Type a message"
-              value={threadText}
-              onChange={(e)=> setThreadText(e.target.value)}
-              rows={2}
-              className="flex-1"
-            />
-            <Button onClick={sendThread} disabled={!threadText.trim()} className="bg-blue-600 hover:bg-blue-700">Send</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Conversation Thread — Instagram-style modal */}
+      <DirectMessageModal
+        isOpen={threadOpen && !!threadUserId}
+        onClose={closeThread}
+        recipientUsername={null}
+        recipientId={threadUserId}
+      />
 
       {/* Reply Dialog */}
       <Dialog open={showReplyDialog} onOpenChange={setShowReplyDialog}>
