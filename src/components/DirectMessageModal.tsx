@@ -568,8 +568,17 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                 return (
                   <div
                     key={message.id}
-                    className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                    className={`group flex items-center gap-2 ${isCurrentUser ? "justify-end" : "justify-start"}`}
                   >
+                    {isCurrentUser && (
+                      <button
+                        onClick={() => deleteMessage(message)}
+                        aria-label="Delete message"
+                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white/50 opacity-100 transition hover:bg-white/10 hover:text-red-400 md:opacity-0 md:group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                     <div
                       className={`max-w-[78%] rounded-3xl px-4 py-2.5 text-[15px] leading-snug ${
                         isCurrentUser
@@ -580,6 +589,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                       {renderMessageContent(message)}
                     </div>
                   </div>
+
                 );
               })
             )}
