@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getDmSignedUrl } from "@/lib/dmMedia";
+import { notifyNewDirectMessage } from "@/lib/dmNotify";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 
 
