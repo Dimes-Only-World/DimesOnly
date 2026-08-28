@@ -389,6 +389,34 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
     setInput((prev) => prev + emojiData.emoji);
   };
 
+  const deleteMessage = async (message: DirectMessage) => {
+    if (message.sender_id !== user?.id) return;
+    if (!window.confirm("Delete this message? This cannot be undone.")) return;
+    try {
+      const { error } = await supabase
+        .from("direct_messages")
+        .delete()
+        .eq("id", message.id)
+        .eq("sender_id", user.id);
+      if (error) throw error;
+
+      if (message.media_storage_path) {
+        await supabase.storage.from("private-media").remove([message.media_storage_path]);
+      }
+
+      setMessages((prev) => prev.filter((m) => m.id !== message.id));
+      toast({ title: "Message deleted" });
+    } catch (error) {
+      console.error("Delete message error:", error);
+      toast({
+        title: "Delete failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   const headerBadge = useMemo(() => prettyTier(recipient?.membership_tier), [recipient]);
 
   const firstTimestamp = messages[0]?.created_at
