@@ -36,7 +36,10 @@ interface DirectMessageModalProps {
   isOpen: boolean;
   onClose: () => void;
   recipientUsername: string | null;
+  /** Optional: open a thread directly by user id (used by the dashboard tab). */
+  recipientId?: string | null;
 }
+
 
 interface RecipientProfile {
   id: string;
