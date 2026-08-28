@@ -108,3 +108,6 @@ verify_jwt = false
 
 [functions.notification-config]
 verify_jwt = false
+
+[functions.notify-direct-message]
+verify_jwt = false
