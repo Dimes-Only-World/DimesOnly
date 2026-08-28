@@ -708,7 +708,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
           </div>
           {(uploadingMedia || recording) && (
             <div className="px-3 pb-2 text-xs text-white/60">
-              {recording ? "Recording voice... release to send" : "Sending attachment..."}
+              {recording ? "Recording voice... tap microphone to stop" : "Sending attachment..."}
             </div>
           )}
         </div>
