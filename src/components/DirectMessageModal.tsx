@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getDmSignedUrl } from "@/lib/dmMedia";
+import { notifyNewDirectMessage } from "@/lib/dmNotify";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 
 
@@ -281,6 +282,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
 
       if (error) throw error;
 
+      void notifyNewDirectMessage(user.id, recipient.id, text);
       setInput("");
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -322,6 +324,11 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
         media_storage_path: storagePath,
       } as any);
       if (error) throw error;
+      void notifyNewDirectMessage(
+        user.id,
+        recipient.id,
+        type === "photo" ? "📷 Photo" : "🎙️ Voice message",
+      );
     } catch (error) {
       console.error("Failed to send media message:", error);
       toast({

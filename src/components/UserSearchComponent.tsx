@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Search, Send, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { notifyNewDirectMessage } from "@/lib/dmNotify";
 
 interface User {
   id: string;
@@ -92,20 +93,7 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
       if (messageError) throw messageError;
 
       // Send notification to recipient
-      const { error: notificationError } = await supabase
-        .from("notifications")
-        .insert({
-          recipient_id: selectedUser.id,
-          title: "New Message",
-          message: `You have a new message from ${
-            currentUserData?.username || "Unknown"
-          }`,
-          is_read: false,
-        });
-
-      if (notificationError) {
-        console.warn("Failed to send notification:", notificationError);
-      }
+      void notifyNewDirectMessage(currentUserId, selectedUser.id, message.trim());
 
       toast({
         title: "Success",

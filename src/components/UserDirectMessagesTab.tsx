@@ -88,8 +88,25 @@ const UserDirectMessagesTab: React.FC = () => {
   const closeThread = () => {
     setThreadOpen(false);
     setThreadUserId(null);
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("dm")) {
+        url.searchParams.delete("dm");
+        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      }
+    } catch {}
     fetchMessages();
   };
+
+  // Deep link from a "New Message" notification: /dashboard/messages?dm=<senderId>
+  useEffect(() => {
+    if (!user?.id) return;
+    const dmUserId = new URLSearchParams(window.location.search).get("dm");
+    if (dmUserId && dmUserId !== user.id) {
+      void openThread(dmUserId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
