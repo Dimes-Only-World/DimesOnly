@@ -178,7 +178,9 @@ function AppContent() {
 
       {showNotificationBell && (
 
-        <NotificationBell className="fixed top-3 left-1/2 -translate-x-1/2 z-[60]" />
+        <div className="pointer-events-none fixed inset-x-0 top-3 z-[60] flex justify-center">
+          <NotificationBell className="pointer-events-auto" />
+        </div>
       )}
       {!hideNotificationBell && <AddToHomeScreenPrompt />}
       {isHomePage ? (
