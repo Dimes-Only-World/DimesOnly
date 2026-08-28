@@ -324,6 +324,11 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
         media_storage_path: storagePath,
       } as any);
       if (error) throw error;
+      void notifyNewDirectMessage(
+        user.id,
+        recipient.id,
+        type === "photo" ? "📷 Photo" : "🎙️ Voice message",
+      );
     } catch (error) {
       console.error("Failed to send media message:", error);
       toast({
