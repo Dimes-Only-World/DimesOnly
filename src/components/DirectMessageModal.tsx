@@ -282,6 +282,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
 
       if (error) throw error;
 
+      void notifyNewDirectMessage(user.id, recipient.id, text);
       setInput("");
     } catch (error) {
       console.error("Failed to send message:", error);
