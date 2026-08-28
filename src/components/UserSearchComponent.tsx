@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Search, Send, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { notifyNewDirectMessage } from "@/lib/dmNotify";
 
 interface User {
   id: string;
