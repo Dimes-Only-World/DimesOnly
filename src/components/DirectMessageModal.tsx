@@ -595,20 +595,16 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
               ) : (
                 <div className="flex items-center gap-3 text-white/80">
                   <button
-                    onMouseDown={startRecording}
-                    onMouseUp={stopRecording}
-                    onMouseLeave={stopRecording}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      startRecording();
-                    }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      stopRecording();
+                    onClick={() => {
+                      if (recording) {
+                        stopRecording();
+                      } else {
+                        startRecording();
+                      }
                     }}
                     disabled={uploadingMedia || !recipient}
                     className={`hover:text-white disabled:opacity-50 ${recording ? "text-red-400" : ""}`}
-                    aria-label="Hold to record voice"
+                    aria-label={recording ? "Stop recording" : "Record voice"}
                   >
                     <Mic className={`h-5 w-5 ${recording ? "animate-pulse" : ""}`} />
                   </button>
@@ -681,13 +677,17 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            startRecording();
+                            if (recording) {
+                              stopRecording();
+                            } else {
+                              startRecording();
+                            }
                             setAttachOpen(false);
                           }}
-                          className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
+                          className={`flex flex-col items-center gap-1 rounded-lg p-2 hover:bg-[#333] ${recording ? "bg-red-500/20 text-red-400" : "bg-[#262626]"}`}
                         >
-                          <Mic className="h-5 w-5" />
-                          Voice
+                          <Mic className={`h-5 w-5 ${recording ? "animate-pulse" : ""}`} />
+                          {recording ? "Stop" : "Voice"}
                         </button>
                         <button
                           onClick={() => {
@@ -708,7 +708,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
           </div>
           {(uploadingMedia || recording) && (
             <div className="px-3 pb-2 text-xs text-white/60">
-              {recording ? "Recording voice... release to send" : "Sending attachment..."}
+              {recording ? "Recording voice... tap microphone to stop" : "Sending attachment..."}
             </div>
           )}
         </div>
