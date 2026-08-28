@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
   Smile,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getDmSignedUrl } from "@/lib/dmMedia";
