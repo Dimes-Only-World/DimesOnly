@@ -595,20 +595,16 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
               ) : (
                 <div className="flex items-center gap-3 text-white/80">
                   <button
-                    onMouseDown={startRecording}
-                    onMouseUp={stopRecording}
-                    onMouseLeave={stopRecording}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      startRecording();
-                    }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      stopRecording();
+                    onClick={() => {
+                      if (recording) {
+                        stopRecording();
+                      } else {
+                        startRecording();
+                      }
                     }}
                     disabled={uploadingMedia || !recipient}
                     className={`hover:text-white disabled:opacity-50 ${recording ? "text-red-400" : ""}`}
-                    aria-label="Hold to record voice"
+                    aria-label={recording ? "Stop recording" : "Record voice"}
                   >
                     <Mic className={`h-5 w-5 ${recording ? "animate-pulse" : ""}`} />
                   </button>
