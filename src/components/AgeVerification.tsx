@@ -35,6 +35,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [checking, setChecking] = useState(false);
   const [showReturning, setShowReturning] = useState(false);
+  const [matchProfiles, setMatchProfiles] = useState<{ username: string; photo: string | null }[]>([]);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [showProfiles, setShowProfiles] = useState(false);
+
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
 
@@ -68,9 +72,39 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   }, [refCode]);
 
 
+  // Live check: does this phone already belong to a profile, or was this phone+DOB already submitted?
+  useEffect(() => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10 || !dob) {
+      setMatchProfiles([]);
+      setAlreadySubmitted(false);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
+          body: { check: true, phone, dateOfBirth: dob },
+        });
+        if (cancelled || error) return;
+        setMatchProfiles(Array.isArray(data?.profiles) ? data.profiles : []);
+        setAlreadySubmitted(Boolean(data?.alreadySubmitted));
+        if (data?.leadId) setLeadId(data.leadId);
+      } catch (err) {
+        console.error("Age gate check failed", err);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [phone, dob]);
+
   const markVerified = () => {
     // Intentionally not persisted: age verification is required on every visit.
   };
+
 
 
   const validate = () => {
@@ -138,6 +172,11 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
   // Returning visitor: verify their name + phone already exist in the database.
   const handleAlreadySubmitted = async () => {
+    if (alreadySubmitted && leadId) {
+      markVerified();
+      setShowReturning(true);
+      return;
+    }
     const next: Record<string, string> = {};
     if (fullName.trim().length < 2) next.fullName = "Please enter your full name";
     const lookupDigits = phone.replace(/\D/g, "");
@@ -330,6 +369,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               <p className="text-red-400 text-xs sm:text-sm mt-4 text-center">{errors.lookup}</p>
             )}
 
+            {matchProfiles.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowProfiles(true)}
+                className="w-full mt-4 px-5 py-3 rounded-lg bg-yellow-400/15 border border-yellow-400 text-yellow-300 hover:bg-yellow-400/25 transition-colors text-sm font-semibold"
+              >
+                A Profile Already Has This Phone Number — Click Here to See
+              </button>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 type="button"
@@ -338,23 +387,26 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               >
                 Back
               </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
-              >
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
+              {alreadySubmitted ? (
+                <button
+                  type="button"
+                  onClick={handleAlreadySubmitted}
+                  disabled={checking}
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  {checking ? "Checking..." : "Already Submitted — Click Here"}
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={handleAlreadySubmitted}
-              disabled={checking}
-              className="w-full mt-3 px-6 py-3 rounded-lg border border-orange-500/60 text-orange-300 hover:bg-orange-500/10 disabled:opacity-60 transition-colors text-sm font-semibold"
-            >
-              {checking ? "Checking..." : "Already Submitted"}
-            </button>
 
           </form>
         )}
@@ -404,6 +456,43 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
             </div>
           </div>
         )}
+        {showProfiles && (
+          <div className="fixed inset-0 bg-black/85 z-[70] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center my-auto">
+              <h3 className="text-orange-500 text-lg sm:text-xl font-bold mb-4">
+                This phone number is already registered
+              </h3>
+              <div className="flex flex-wrap justify-center gap-5 mb-6">
+                {matchProfiles.map((p) => (
+                  <div key={p.username} className="flex flex-col items-center gap-2">
+                    <Avatar className="h-24 w-24 border-2 border-orange-500">
+                      {p.photo && <AvatarImage src={p.photo} alt={`@${p.username}`} />}
+                      <AvatarFallback />
+                    </Avatar>
+                    <p className="text-sm font-semibold text-orange-300">@{p.username}</p>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/login";
+                }}
+                className="w-full bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+              >
+                LOGIN
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowProfiles(false)}
+                className="w-full mt-3 px-6 py-3 rounded-lg border border-white/30 text-white/80 hover:bg-white/10 transition-colors text-sm font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
         {showReturning && (
           <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
             <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl border-2 border-orange-500 shadow-2xl max-w-md w-full text-center">
