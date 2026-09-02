@@ -67,7 +67,7 @@ serve(async (req) => {
         // Determine which leads have completed registration (matched by phone / phone + DOB)
         const { data: registeredUsers, error: usersError } = await supabaseAdmin
           .from('users')
-          .select('phone_number, username, first_name, last_name, created_at, date_of_birth')
+          .select('phone_number, mobile_number, username, first_name, last_name, created_at, date_of_birth')
           .limit(5000);
         if (usersError) throw usersError;
 
@@ -80,31 +80,44 @@ serve(async (req) => {
           const d = new Date(s);
           return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
         };
+        const normName = (v: string | null | undefined) =>
+          (v || '').toLowerCase().replace(/[^a-z]/g, '');
+
         type UserEntry = { username: string | null; created_at: string | null; dob: string };
         const byPhone = new Map<string, UserEntry>();
+        const byName = new Map<string, UserEntry>();
         for (const u of registeredUsers || []) {
-          const key = digits((u as any).phone_number);
-          if (key.length === 10 && !byPhone.has(key)) {
-            byPhone.set(key, {
-              username: (u as any).username,
-              created_at: (u as any).created_at,
-              dob: normDob((u as any).date_of_birth),
-            });
+          const entry: UserEntry = {
+            username: (u as any).username,
+            created_at: (u as any).created_at,
+            dob: normDob((u as any).date_of_birth),
+          };
+          for (const raw of [(u as any).phone_number, (u as any).mobile_number]) {
+            const key = digits(raw);
+            if (key.length === 10 && !byPhone.has(key)) byPhone.set(key, entry);
           }
+          const nameKey = normName(`${(u as any).first_name || ''}${(u as any).last_name || ''}`);
+          if (nameKey.length >= 4 && !byName.has(nameKey)) byName.set(nameKey, entry);
         }
 
         result = (data || []).map((lead: any) => {
-          const match = byPhone.get(digits(lead.phone));
-          const dobMatch = !!match && !!match.dob && match.dob === normDob(lead.date_of_birth);
+          const phoneEntry = byPhone.get(digits(lead.phone));
+          const leadDob = normDob(lead.date_of_birth);
+          const nameEntry = byName.get(normName(lead.full_name));
+          // Name matches only count when the date of birth also matches.
+          const nameDobEntry = nameEntry && nameEntry.dob && nameEntry.dob === leadDob ? nameEntry : undefined;
+          const match = phoneEntry || nameDobEntry;
+          const dobMatch = !!match && !!match.dob && match.dob === leadDob;
           return {
             ...lead,
-            phone_match: !!match,
+            phone_match: !!phoneEntry,
             dob_match: dobMatch,
             registration_completed: !!match,
             registered_username: match?.username ?? null,
             registered_at: match?.created_at ?? null,
           };
         });
+
 
 
         break;
