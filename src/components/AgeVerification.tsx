@@ -364,6 +364,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               <p className="text-red-400 text-xs sm:text-sm mt-4 text-center">{errors.lookup}</p>
             )}
 
+            {matchProfiles.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowProfiles(true)}
+                className="w-full mt-4 px-5 py-3 rounded-lg bg-yellow-400/15 border border-yellow-400 text-yellow-300 hover:bg-yellow-400/25 transition-colors text-sm font-semibold"
+              >
+                A Profile Already Has This Phone Number — Click Here to See
+              </button>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 type="button"
@@ -372,23 +382,26 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               >
                 Back
               </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
-              >
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
+              {alreadySubmitted ? (
+                <button
+                  type="button"
+                  onClick={handleAlreadySubmitted}
+                  disabled={checking}
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  {checking ? "Checking..." : "Already Submitted — Click Here"}
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={handleAlreadySubmitted}
-              disabled={checking}
-              className="w-full mt-3 px-6 py-3 rounded-lg border border-orange-500/60 text-orange-300 hover:bg-orange-500/10 disabled:opacity-60 transition-colors text-sm font-semibold"
-            >
-              {checking ? "Checking..." : "Already Submitted"}
-            </button>
 
           </form>
         )}
