@@ -69,6 +69,48 @@ serve(async (req) => {
       return json({ found: true, leadId: match.id }, 200);
     }
 
+    // Check call: does this phone/DOB already belong to a profile or a prior lead?
+    if ((body as any).check) {
+      const rawPhone = String((body as any).phone ?? "").trim();
+      const digits = rawPhone.replace(/\D/g, "").slice(-10);
+      const dob = (body as any).dateOfBirth;
+      if (digits.length !== 10) return json({ error: "Enter a valid phone number" }, 400);
+
+      const { data: users, error: uErr } = await admin
+        .from("users")
+        .select("username, profile_photo, front_page_photo, banner_photo, phone_number, mobile_number, date_of_birth")
+        .limit(5000);
+      if (uErr) throw uErr;
+
+      const norm = (v: unknown) => String(v ?? "").replace(/\D/g, "").slice(-10);
+      const profiles = (users ?? [])
+        .filter((u: any) => norm(u.phone_number) === digits || norm(u.mobile_number) === digits)
+        .map((u: any) => ({
+          username: u.username,
+          photo: u.profile_photo || u.front_page_photo || u.banner_photo || null,
+          dob_match: isIsoDate(dob) && String(u.date_of_birth ?? "").slice(0, 10) === dob,
+        }));
+
+      const { data: leads } = await admin
+        .from("age_gate_leads")
+        .select("id, phone, date_of_birth")
+        .order("created_at", { ascending: false })
+        .limit(2000);
+
+      const lead = (leads ?? []).find(
+        (l: any) =>
+          String(l.phone ?? "").replace(/\D/g, "").slice(-10) === digits &&
+          isIsoDate(dob) &&
+          String(l.date_of_birth ?? "").slice(0, 10) === dob,
+      );
+
+      return json({
+        profiles,
+        alreadySubmitted: Boolean(lead),
+        leadId: lead?.id ?? null,
+      });
+    }
+
     // Second call: record which button the visitor pressed after the video.
     if (leadId) {
       if (!/^[0-9a-f-]{36}$/i.test(leadId)) return json({ error: "Invalid lead id" }, 400);
