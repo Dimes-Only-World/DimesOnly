@@ -35,6 +35,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [checking, setChecking] = useState(false);
   const [showReturning, setShowReturning] = useState(false);
+  const [matchProfiles, setMatchProfiles] = useState<{ username: string; photo: string | null }[]>([]);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [showProfiles, setShowProfiles] = useState(false);
+
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
 
