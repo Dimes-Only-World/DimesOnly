@@ -117,18 +117,16 @@ const AdminLeadsTab: React.FC = () => {
   });
 
   const totalLeads = searchFiltered.length;
-  const incompleteCount = searchFiltered.filter((l) => !l.registration_completed).length;
-  const moreInfoCount = searchFiltered.filter((l) => l.action_taken === "more_information").length;
-  const completeCount = searchFiltered.filter((l) => l.action_taken === "continued_registration").length;
+  const incompleteCount = searchFiltered.filter((l) => leadStatus(l) === "incomplete").length;
+  const moreInfoCount = searchFiltered.filter((l) => leadStatus(l) === "more_info").length;
+  const completeCount = searchFiltered.filter((l) => leadStatus(l) === "complete").length;
   const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
 
   const filtered = searchFiltered.filter((l) => {
     if (displayFilter === "all") return true;
-    if (displayFilter === "incomplete") return !l.registration_completed;
-    if (displayFilter === "more_info") return l.action_taken === "more_information";
-    if (displayFilter === "complete") return l.action_taken === "continued_registration";
-    return true;
+    return leadStatus(l) === displayFilter;
   });
+
 
   const PAGE_SIZE = 50;
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
