@@ -31,7 +31,18 @@ interface Lead {
   registration_completed?: boolean;
   registered_username?: string | null;
   registered_at?: string | null;
+  phone_match?: boolean;
+  dob_match?: boolean;
 }
+
+type LeadStatus = "complete" | "more_info" | "incomplete";
+
+const leadStatus = (l: Lead): LeadStatus => {
+  if (l.phone_match ?? l.registration_completed) return "complete";
+  if (l.action_taken === "more_information") return "more_info";
+  return "incomplete";
+};
+
 
 const ACTION_LABEL: Record<string, string> = {
   submitted: "Form submitted",
@@ -106,18 +117,16 @@ const AdminLeadsTab: React.FC = () => {
   });
 
   const totalLeads = searchFiltered.length;
-  const incompleteCount = searchFiltered.filter((l) => !l.registration_completed).length;
-  const moreInfoCount = searchFiltered.filter((l) => l.action_taken === "more_information").length;
-  const completeCount = searchFiltered.filter((l) => l.action_taken === "continued_registration").length;
+  const incompleteCount = searchFiltered.filter((l) => leadStatus(l) === "incomplete").length;
+  const moreInfoCount = searchFiltered.filter((l) => leadStatus(l) === "more_info").length;
+  const completeCount = searchFiltered.filter((l) => leadStatus(l) === "complete").length;
   const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
 
   const filtered = searchFiltered.filter((l) => {
     if (displayFilter === "all") return true;
-    if (displayFilter === "incomplete") return !l.registration_completed;
-    if (displayFilter === "more_info") return l.action_taken === "more_information";
-    if (displayFilter === "complete") return l.action_taken === "continued_registration";
-    return true;
+    return leadStatus(l) === displayFilter;
   });
+
 
   const PAGE_SIZE = 50;
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -279,7 +288,14 @@ const AdminLeadsTab: React.FC = () => {
                       />
                     </td>
                     <td className="py-2 pr-4">{lead.full_name}</td>
-                    <td className="py-2 pr-4">{lead.phone}</td>
+                    <td
+                      className={`py-2 pr-4 ${
+                        lead.phone_match ? "bg-green-100 text-green-900 font-medium rounded" : ""
+                      }`}
+                      title={lead.phone_match ? "Phone number already registered" : undefined}
+                    >
+                      {lead.phone}
+                    </td>
                     <td className="py-2 pr-4">{lead.date_of_birth}</td>
                     <td className="py-2 pr-4">{lead.referral_code || "—"}</td>
                     <td className="py-2 pr-4">
@@ -288,16 +304,19 @@ const AdminLeadsTab: React.FC = () => {
                       </Badge>
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
-                      {lead.registration_completed ? (
+                      {leadStatus(lead) === "complete" ? (
                         <Badge className="bg-green-600 text-white hover:bg-green-600">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Complete
-                          {lead.registered_username ? ` · ${lead.registered_username}` : ""}
+                          {lead.registered_username ? ` - ${lead.registered_username}` : ""}
                         </Badge>
+                      ) : leadStatus(lead) === "more_info" ? (
+                        <Badge className="bg-yellow-500 text-black hover:bg-yellow-500">Need More Info</Badge>
                       ) : (
                         <Badge className="bg-red-600 text-white hover:bg-red-600">Incomplete</Badge>
                       )}
                     </td>
+
                     <td className="py-2 pr-4 whitespace-nowrap">
                       {new Date(lead.created_at).toLocaleString()}
                     </td>
