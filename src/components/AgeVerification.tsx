@@ -72,9 +72,39 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   }, [refCode]);
 
 
+  // Live check: does this phone already belong to a profile, or was this phone+DOB already submitted?
+  useEffect(() => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10 || !dob) {
+      setMatchProfiles([]);
+      setAlreadySubmitted(false);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
+          body: { check: true, phone, dateOfBirth: dob },
+        });
+        if (cancelled || error) return;
+        setMatchProfiles(Array.isArray(data?.profiles) ? data.profiles : []);
+        setAlreadySubmitted(Boolean(data?.alreadySubmitted));
+        if (data?.leadId) setLeadId(data.leadId);
+      } catch (err) {
+        console.error("Age gate check failed", err);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [phone, dob]);
+
   const markVerified = () => {
     // Intentionally not persisted: age verification is required on every visit.
   };
+
 
 
   const validate = () => {
