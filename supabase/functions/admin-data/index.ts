@@ -64,36 +64,48 @@ serve(async (req) => {
         if (error) throw error;
 
 
-        // Determine which leads have completed registration (matched by phone)
+        // Determine which leads have completed registration (matched by phone / phone + DOB)
         const { data: registeredUsers, error: usersError } = await supabaseAdmin
           .from('users')
-          .select('phone_number, username, first_name, last_name, created_at')
+          .select('phone_number, username, first_name, last_name, created_at, date_of_birth')
           .limit(5000);
         if (usersError) throw usersError;
 
         const digits = (v: string | null | undefined) => (v || '').replace(/\D/g, '').slice(-10);
-        const normName = (v: string | null | undefined) =>
-          (v || '').toLowerCase().replace(/[^a-z]/g, '');
-        const byPhone = new Map<string, { username: string | null; created_at: string | null }>();
-        const byName = new Map<string, { username: string | null; created_at: string | null }>();
+        const normDob = (v: string | null | undefined) => {
+          if (!v) return '';
+          const s = String(v);
+          const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+          const d = new Date(s);
+          return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+        };
+        type UserEntry = { username: string | null; created_at: string | null; dob: string };
+        const byPhone = new Map<string, UserEntry>();
         for (const u of registeredUsers || []) {
-          const entry = { username: (u as any).username, created_at: (u as any).created_at };
           const key = digits((u as any).phone_number);
-          if (key.length === 10 && !byPhone.has(key)) byPhone.set(key, entry);
-          const nameKey = normName(`${(u as any).first_name || ''}${(u as any).last_name || ''}`);
-          if (nameKey.length > 3 && !byName.has(nameKey)) byName.set(nameKey, entry);
+          if (key.length === 10 && !byPhone.has(key)) {
+            byPhone.set(key, {
+              username: (u as any).username,
+              created_at: (u as any).created_at,
+              dob: normDob((u as any).date_of_birth),
+            });
+          }
         }
 
         result = (data || []).map((lead: any) => {
-          const match =
-            byPhone.get(digits(lead.phone)) || byName.get(normName(lead.full_name));
+          const match = byPhone.get(digits(lead.phone));
+          const dobMatch = !!match && !!match.dob && match.dob === normDob(lead.date_of_birth);
           return {
             ...lead,
+            phone_match: !!match,
+            dob_match: dobMatch,
             registration_completed: !!match,
             registered_username: match?.username ?? null,
             registered_at: match?.created_at ?? null,
           };
         });
+
 
         break;
       }
