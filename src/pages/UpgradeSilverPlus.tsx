@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
@@ -39,9 +40,25 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const [plan, setPlan] = useState<Plan>("full");
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const [agreementComplete, setAgreementComplete] = useState(false);
+  const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
   const { toast } = useToast();
 
   const AMOUNT = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      const { data, error } = await supabase.rpc("check_silver_plus_availability");
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const row = data[0];
+        const remaining =
+          typeof row.remaining === "number"
+            ? row.remaining
+            : (row.max_count ?? 300) - (row.current_count ?? 0);
+        setSpotsLeft(Math.max(0, remaining));
+      }
+    };
+    fetchAvailability();
+  }, []);
 
   const resolveUserId = async (): Promise<string | null> => {
     if (effectiveUserId) return effectiveUserId;
@@ -175,9 +192,18 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
 
           <div className="text-center mt-2">
             <h1 className="text-4xl font-bold text-white">Silver Plus Membership</h1>
-            <p className="text-fuchsia-200 mt-2">
+            <p className="text-fuchsia-200 mt-2 mb-4">
               General Member Profit-Sharing position — limited to 300 lifetime seats.
             </p>
+            {spotsLeft !== null && spotsLeft > 0 ? (
+              <Badge variant="destructive" className="text-lg px-4 py-2">
+                Only {spotsLeft} spots remaining!
+              </Badge>
+            ) : spotsLeft === 0 ? (
+              <Badge variant="destructive" className="text-lg px-4 py-2">
+                All 300 Silver Plus positions have been filled.
+              </Badge>
+            ) : null}
           </div>
 
           <MembershipAgreementSection
