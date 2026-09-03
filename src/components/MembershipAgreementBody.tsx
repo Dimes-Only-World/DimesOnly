@@ -176,8 +176,8 @@ const MembershipAgreementBody: React.FC<Props> = ({
           <p>
             4.4 When the Company later reaches a separately announced revenue threshold, Tier 2 is
             intended to activate for the profit-share class, with a stated target of at least
-            $2,500,000 per year from the minimum revenue that triggers Tier 2. If Company revenue
-            later falls below that threshold, Tier 1 is intended to reactivate.
+            $1,170,000 per year from the minimum revenue per quarter that triggers Tier 2. If
+            Company revenue later falls below that threshold, Tier 1 is intended to reactivate.
           </p>
           <p>
             4.5 Profit-share amounts are maximums in tier 1 and miniimums in tier 2, not guaranteed salaries. Actual distributions
@@ -240,8 +240,8 @@ const MembershipAgreementBody: React.FC<Props> = ({
           <p>
             6.1 Base Diamond Membership may be granted as a promotional or early-access membership
             (including a free or term-limited Silver/Diamond grant) as the Company specifies at
-            signup. Any upgrade fee for Diamond Plus is a one-time fee unless the Company states
-            otherwise in writing.
+            signup. Any upgrade fee for Diamond Plus is a one-time fee as noted on this page, unless
+            the Company states otherwise in writing.
           </p>
           <p>
             6.2 Complimentary or early Diamond Membership does not include Diamond Plus profit
