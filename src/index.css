@@ -337,3 +337,12 @@ body.paypal-overlay-open {
   0% { transform: rotate(-180deg) scale(0.4); opacity: 0; }
   100% { transform: rotate(0deg) scale(1); opacity: 1; }
 }
+
+/* Hide scrollbars for horizontally scrolling tab bars */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
