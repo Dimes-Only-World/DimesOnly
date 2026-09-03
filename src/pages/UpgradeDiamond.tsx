@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
-import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,20 +15,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Star,
   Crown,
-  DollarSign,
-  Calendar,
-  Users,
-  FileText,
-  CreditCard,
-  Phone,
   AlertCircle,
-  X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -69,9 +57,7 @@ const UpgradeDiamondPage: React.FC = () => {
   const [paymentOption, setPaymentOption] = useState<
     "full" | "monthly"
   >("full");
-  const [showAgreement, setShowAgreement] = useState(false);
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [agreementComplete, setAgreementComplete] = useState(false);
 
   // Calculate remaining spots (combine stripper and exotic limits)
@@ -239,26 +225,6 @@ const UpgradeDiamondPage: React.FC = () => {
   const handlePayLater = () => initiatePayment("paylater");
   const handleCardRedirect = () => initiatePayment("card");
 
-  const handleUpgradeClick = () => {
-    if (!agreementComplete) {
-      toast({
-        title: "Agreement Required",
-        description:
-          "Complete Diamond Plus Membership Agreement above to continue...",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!phoneNumber.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide your phone number",
-        variant: "destructive",
-      });
-      return;
-    }
-    setShowPaymentDialog(true);
-  };
 
   if (loading) {
     return <AngelLoader variant="fullscreen" />;
