@@ -723,7 +723,7 @@ const UpgradeDiamondPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-white">
                     <FileText className="w-5 h-5" />
-                    Participation Agreement
+                    Diamond Plus Membership Agreement
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
