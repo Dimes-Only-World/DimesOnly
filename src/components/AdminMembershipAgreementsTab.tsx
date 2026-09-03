@@ -52,7 +52,13 @@ const AdminMembershipAgreementsTab: React.FC<Props> = ({ tier, title }) => {
         body: { action: "fetchMembershipAgreements", adminUserId, tier },
       });
       if (error) throw error;
-      setRows((data as AgreementRow[]) || []);
+      const payload: any = data;
+      const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+        ? payload.data
+        : [];
+      setRows(list as AgreementRow[]);
     } catch (e: any) {
       toast({
         title: "Failed to load agreements",
