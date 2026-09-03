@@ -37,6 +37,7 @@ import { useToast } from "@/hooks/use-toast";
 import AuthGuard from "@/components/AuthGuard";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import AngelLoader from "@/components/AngelLoader";
+import MembershipAgreementSection from "@/components/MembershipAgreementSection";
 
 interface MembershipLimits {
   membership_type: string;
@@ -55,188 +56,6 @@ interface UserData {
   email: string;
 }
 
-const DiamondPlusAgreement = () => {
-  return (
-    <ScrollArea className="h-96 w-full rounded-md border p-4">
-      <div className="space-y-4 text-sm">
-        <div className="text-center">
-          <h2 className="text-lg font-bold">HOUSING ANGELS, LLC</h2>
-          <h3 className="text-md font-semibold">
-            STRIPPER & EXOTIC FEMALE MEMBERSHIP AGREEMENT
-          </h3>
-          <p className="text-sm text-gray-600">{"\n"}</p>
-        </div>
-
-        <p>
-          This Diamond Membership Agreement (the “Agreement”) is entered into as of the date of the last signature below (the “Effective Date”), by and between Housing Angels, LLC, an Arizona limited liability company doing business as Dimes Only World (the “Company”), and the individual identified in the uploaded identification below (the “Member”). and the effective as of the date of agree button triggered by member below.
-
-
-
-
-          The Company operates a premium membership, lifestyle, and earning platform known as Dimes Only World, designed for exotic dancers, strippers, members, and club owners. The Member desires to obtain a Diamond Membership and, if elected and accepted, a Diamond Plus upgrade, and to participate in the Company’s referral, content, event, and (if applicable) profit-sharing programs, subject to the terms of this Agreement.
-
-
-
-
-          NOW, THEREFORE, in consideration of the mutual promises herein, the Parties agree as follows:
-        </p>
-
-        <div>
-          <h4 className="font-semibold">1. Program Overview</h4>
-          <p>
-            Housing Angels, LLC offers a profit sharing position of up to $200,000 a year
-            to the first 300 approved Strippers and Exotic Females who meet all
-            program requirements. Payments are issued quarterly in the amount of
-            $50,000.00.
-          </p>
-          <p>
-            The guarantee begins once the platform DimesOnly.World has reached a
-            verified user base of:
-          </p>
-          <ul className="list-disc list-inside ml-4">
-            <li>1,000 Female Stripper/Exotic profiles, and</li>
-            <li>3,000 Male or Female "Normal" profiles.</li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">2. Membership Fee</h4>
-          <p>
-            To activate participation in this program, the Participant must
-            enroll in Diamond Plus Membership.
-          </p>
-          <p>
-            <strong>Diamond Plus Membership Fee: $149.99</strong> (includes
-            online notary fee)
-          </p>
-          <p>This is a one-time, non-refundable fee.</p>
-          <p>
-            Payment confirms commitment to the program and eligibility for
-            quarterly payments upon meeting all requirements.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">
-            3. Participant Requirements (Per Quarter)
-          </h4>
-          <p>
-            To qualify for the $6,250 quarterly payout, Participant must
-            complete the following every quarter:
-          </p>
-
-          <div className="ml-4 space-y-2">
-            <div>
-              <strong>3.1 Weekly Referrals</strong>
-              <ul className="list-disc list-inside ml-4">
-                <li>
-                  Minimum 7 new verified referrals per week (84 per quarter)
-                </li>
-                <li>Deduction: $28.27 per missing referral per week</li>
-              </ul>
-            </div>
-
-            <div>
-              <strong>3.2 Weekly Content Uploads</strong>
-              <ul className="list-disc list-inside ml-4">
-                <li>Minimum 7 new photos/videos per week (168 items total)</li>
-                <li>Deduction: $14.14 per missing photo or video</li>
-              </ul>
-            </div>
-
-            <div>
-              <strong>3.3 Event Participation</strong>
-              <ul className="list-disc list-inside ml-4">
-                <li>1 event per month (3 total per quarter)</li>
-                <li>Deduction: $500 per missed event</li>
-              </ul>
-            </div>
-
-            <div>
-              <strong>3.4 New User Engagement</strong>
-              <ul className="list-disc list-inside ml-4">
-                <li>
-                  Send 7 weekly messages to new users not referred by you (84
-                  total per quarter)
-                </li>
-                <li>Deduction: $28.27 per missing message per week</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">4. Compensation Terms</h4>
-          <p>
-            If all quarterly requirements are met, Participant will receive:
-          </p>
-          <ul className="list-disc list-inside ml-4">
-            <li>$6,250.00 every 3 months</li>
-            <li>$25,000.00 total annually</li>
-          </ul>
-          <p>
-            Proportional Deductions apply for any missed items based on the
-            rates above. Deductions will be subtracted from the quarter's
-            payout.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">5. Diamond Membership Plus Clause</h4>
-          <p>
-            If Participant earns $12,000 or more in platform income during any
-            quarter (e.g., tips, referrals, merchandise, or other features), the
-            $6,250 guarantee becomes void permanently.
-          </p>
-          <p>
-            From that point, all income will be based solely on earned platform
-            revenue.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">6. Terms & Termination</h4>
-          <p>This agreement remains in effect as long as:</p>
-          <ul className="list-disc list-inside ml-4">
-            <li>
-              Participant is one of the first 300 approved Stripper/Exotic
-              members
-            </li>
-            <li>Participant complies with all Section 3 requirements</li>
-            <li>
-              Participant remains active and in good standing on DimesOnly.World
-            </li>
-          </ul>
-          <p>
-            Failure to meet obligations or community standards may result in
-            termination from the program.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">7. Notarization & Activation</h4>
-          <p>
-            This agreement must be signed and notarized digitally. A licensed
-            online notary will verify your identity and provide you with a copy
-            for your records.
-          </p>
-          <p>
-            Once notarized and the $149.99 payment is received, your Diamond Plus
-            Membership will be active.
-          </p>
-        </div>
-
-        <div>
-          <h4 className="font-semibold">8. Signature & Acknowledgment</h4>
-          <p>
-            By signing below, you agree to the terms and confirm your enrollment
-            in the Diamond Plus Membership tier.
-          </p>
-        </div>
-      </div>
-    </ScrollArea>
-  );
-};
 
 const UpgradeDiamondPage: React.FC = () => {
   const { toast } = useToast();
@@ -718,36 +537,9 @@ const UpgradeDiamondPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Agreement Section */}
-              <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <FileText className="w-5 h-5" />
-                    Diamond Plus Membership Agreement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-300 mb-4">
-                    Review the full participation agreement before proceeding
-                    with your upgrade.
-                  </p>
-                  <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
-                    <DialogTrigger asChild>
-                      <Button variant="default" className="w-full">
-                        View Agreement
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl bg-white text-black">
-                      <DialogHeader>
-                        <DialogTitle>
-                          Diamond Plus Membership Agreement
-                        </DialogTitle>
-                      </DialogHeader>
-                      <DiamondPlusAgreement />
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
+              {/* Agreement + Identity Verification Section */}
+              <MembershipAgreementSection tier="diamond_plus" />
+
 
               {/* Upgrade Button */}
               <div className="text-center">

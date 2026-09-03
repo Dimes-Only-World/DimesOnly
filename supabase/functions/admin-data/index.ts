@@ -160,6 +160,57 @@ serve(async (req) => {
 
 
 
+      case 'fetchMembershipAgreements': {
+        const tier = typeof params.tier === 'string' ? params.tier : null;
+        let q = supabaseAdmin
+          .from('membership_agreements')
+          .select('*')
+          .order('agreed_at', { ascending: false })
+          .limit(1000);
+        if (tier) q = q.eq('tier', tier);
+        const { data, error } = await q;
+        if (error) throw error;
+
+        const rows = [] as any[];
+        for (const row of data ?? []) {
+          let idUrl: string | null = null;
+          let selfieUrl: string | null = null;
+          if (row.id_document_path) {
+            const { data: signed } = await supabaseAdmin.storage
+              .from('membership-ids')
+              .createSignedUrl(row.id_document_path, 3600);
+            idUrl = signed?.signedUrl ?? null;
+          }
+          if (row.selfie_path) {
+            const { data: signed } = await supabaseAdmin.storage
+              .from('membership-ids')
+              .createSignedUrl(row.selfie_path, 3600);
+            selfieUrl = signed?.signedUrl ?? null;
+          }
+          rows.push({ ...row, id_document_url: idUrl, selfie_url: selfieUrl });
+        }
+        result = rows;
+        break;
+      }
+
+      case 'updateMembershipAgreementStatus': {
+        const id = typeof params.id === 'string' ? params.id : null;
+        const status = typeof params.status === 'string' ? params.status : null;
+        if (!id || !['pending', 'verified', 'invalid'].includes(status ?? '')) {
+          return new Response(
+            JSON.stringify({ error: 'Valid agreement id and status required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { error } = await supabaseAdmin
+          .from('membership_agreements')
+          .update({ verification_status: status, admin_notes: params.notes ?? null })
+          .eq('id', id);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       // User management
       case 'fetchAllUsers': {
 
