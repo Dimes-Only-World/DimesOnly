@@ -235,7 +235,7 @@ const RoleCard: React.FC<{
       <div className="text-white/70 text-sm">{quarterly}</div>
     </CardHeader>
     <CardContent>
-      <p className="text-white/80 leading-relaxed text-sm md:text-base">{body}</p>
+      <p className="text-black/80 leading-relaxed text-sm md:text-base">{body}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         <Link to={cta.href}>
           <Button className={`${goldBg} text-black hover:brightness-110 font-semibold`}>
