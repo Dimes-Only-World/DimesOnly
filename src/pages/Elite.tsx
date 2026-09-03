@@ -31,12 +31,9 @@ type Cadence = "monthly" | "yearly";
 const Elite: React.FC = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  const tier = ((searchParams.get("tier") || "elite").toLowerCase() === "elite_plus"
-    ? "elite_plus"
-    : "elite") as Tier;
-  const cadence = ((searchParams.get("cadence") || "monthly").toLowerCase() === "yearly"
-    ? "yearly"
-    : "monthly") as Cadence;
+  // /elite is a single $10,000 package. Elite Plus lives on /elite-plus.
+  const tier = "elite" as Tier;
+  const cadence = "yearly" as Cadence;
 
   const { data: stats, isLoading, isError, refetch } = useQuery<SeatStats, Error>({
     queryKey: ["elite-seat-stats"],
@@ -50,42 +47,16 @@ const Elite: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   // Pricing matrix
-  const AMOUNT =
-    tier === "elite"
-      ? cadence === "yearly" ? 10000.0 : 861.75
-      : cadence === "yearly" ? 15000.0 : 1500.0; // elite_plus monthly = first-payment ($1,250 + $250 setup)
+  const AMOUNT = 10000.0;
 
-  const titleText =
-    tier === "elite_plus"
-      ? cadence === "yearly" ? "Elite Plus — Lifetime" : "Elite Plus — 12-Month Plan"
-      : cadence === "yearly" ? "Elite — Annual" : "Elite — Monthly";
+  const titleText = "Elite Membership — $10,000";
 
   const subText =
-    tier === "elite_plus" && cadence === "yearly"
-      ? "One-time $15,000 payment → lifetime access immediately."
-      : tier === "elite_plus" && cadence === "monthly"
-        ? "$1,500 first payment (includes $250 setup fee), then $1,250/mo × 11. Full access starts immediately."
-        : tier === "elite" && cadence === "yearly"
-          ? "$10,000 billed annually. Recurring subscription."
-          : "$861.75 billed every month. Recurring subscription.";
+    "One-time $10,000 Elite Membership. Limited to 50 seats. DOES NOT INCLUDE PROFIT SHARING.";
 
-  const priceDisplay =
-    tier === "elite_plus" && cadence === "yearly"
-      ? "$15,000"
-      : tier === "elite_plus" && cadence === "monthly"
-        ? "$1,500 today"
-        : tier === "elite" && cadence === "yearly"
-          ? "$10,000/yr"
-          : "$861.75/mo";
+  const priceDisplay = "$10,000";
 
-  const paypalLabel =
-    tier === "elite_plus" && cadence === "yearly"
-      ? "Buy Lifetime — $15,000"
-      : tier === "elite_plus" && cadence === "monthly"
-        ? "Start 12-Month Plan — $1,500 today"
-        : tier === "elite" && cadence === "yearly"
-          ? "Subscribe Annually — $10,000/yr"
-          : "Subscribe Monthly — $861.75/mo";
+  const paypalLabel = "Buy Elite — $10,000";
 
   const resolveUserId = async (): Promise<string | null> => {
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -204,7 +175,8 @@ const Elite: React.FC = () => {
             <h1 className="text-4xl font-bold text-white">
               {tier === "elite_plus" ? "Elite Plus Membership" : "Elite Membership"}
             </h1>
-            <p className="text-pink-200 mt-2">Limited to 50 seats (combined Elite + Elite Plus)</p>
+            <p className="text-pink-200 mt-2">Limited to 50 seats only</p>
+            <p className="text-yellow-300 font-semibold mt-2">DOES NOT INCLUDE PROFIT SHARING.</p>
           </div>
 
           <Card className="bg-black/70 border-pink-500 text-white">
@@ -276,7 +248,8 @@ const Elite: React.FC = () => {
                 )}
 
                 <p className="text-xs text-gray-400 mt-4 text-center">
-                  50-seat cap enforced across Elite + Elite Plus combined.
+                  50-seat cap. Elite does not include profit sharing — see Elite Plus for
+                  profit-sharer positions.
                 </p>
               </div>
             </CardContent>

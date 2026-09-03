@@ -590,7 +590,7 @@ const UserDashboard: React.FC = () => {
             <div className="text-fuchsia-200 text-sm">$15,000 lifetime — full access to every area of the site. Only 100 seats.</div>
           </div>
           <button
-            onClick={() => navigate("/business-owner-elite")}
+            onClick={() => navigate("/elite-plus")}
             className="px-5 py-2 rounded-md bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-semibold whitespace-nowrap"
           >
             Upgrade to Elite — $15,000
