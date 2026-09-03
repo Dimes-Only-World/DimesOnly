@@ -262,15 +262,15 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
   };
 
   return (
-    <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
+    <Card className="bg-white/80 backdrop-blur border-black/10 mb-8">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+        <CardTitle className="flex items-center gap-2 text-black">
           <FileText className="w-5 h-5" />
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <p className="text-gray-300">
+        <p className="text-black">
           Review the full membership agreement, verify your identity, then confirm your agreement
           below.
         </p>
