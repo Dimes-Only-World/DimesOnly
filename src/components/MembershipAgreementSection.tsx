@@ -262,22 +262,22 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
   };
 
   return (
-    <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
+    <Card className="bg-white/80 backdrop-blur border-black/10 mb-8">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+        <CardTitle className="flex items-center gap-2 text-black">
           <FileText className="w-5 h-5" />
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <p className="text-gray-300">
+        <p className="text-black">
           Review the full membership agreement, verify your identity, then confirm your agreement
           below.
         </p>
 
         <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
           <DialogTrigger asChild>
-            <Button variant="default" className="w-full text-white">
+            <Button variant="default" className="w-full text-white bg-black hover:bg-gray-800">
               View Agreement
             </Button>
           </DialogTrigger>
@@ -290,13 +290,13 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
         </Dialog>
 
         {/* Identity verification */}
-        <div className="rounded-xl border border-yellow-500/40 bg-yellow-500/5 p-4 space-y-4">
-          <div className="flex items-center gap-2 text-yellow-300 font-semibold">
+        <div className="rounded-xl border border-yellow-500/40 bg-yellow-50 p-4 space-y-4">
+          <div className="flex items-center gap-2 text-black font-semibold">
             <ShieldCheck className="w-5 h-5" />
             Identity Verification
           </div>
 
-          <div className="flex items-start gap-2 text-sm text-yellow-200/90">
+          <div className="flex items-start gap-2 text-sm text-black">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             <p>
               Your ID must be valid. If your ID is not valid, all fees will be retained until your
@@ -305,7 +305,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-200">Government ID</Label>
+            <Label className="text-black">Government ID</Label>
             <input
               ref={idInputRef}
               type="file"
@@ -318,7 +318,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
+                  className="w-full bg-white border-black/20 text-black hover:bg-gray-100"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   {idFile ? "Replace ID" : "Upload ID"}
@@ -349,25 +349,25 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
               </DialogContent>
             </Dialog>
             {idFile && (
-              <p className="text-green-400 text-sm flex items-center gap-1">
+              <p className="text-green-700 text-sm flex items-center gap-1">
                 <CheckCircle className="w-4 h-4" /> {idFile.name}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-200">Photo Verification (selfie holding your ID)</Label>
+            <Label className="text-black">Photo Verification (selfie holding your ID)</Label>
             {selfiePreview && (
               <img
                 src={selfiePreview}
                 alt="Verification selfie holding ID"
-                className="w-40 rounded-lg border border-white/20"
+                className="w-40 rounded-lg border border-black/20"
               />
             )}
             {sharpness !== null && (
               <p
                 className={`text-sm ${
-                  sharpness >= SHARPNESS_MIN ? "text-green-400" : "text-red-400"
+                  sharpness >= SHARPNESS_MIN ? "text-green-700" : "text-red-700"
                 }`}
               >
                 {sharpness >= SHARPNESS_MIN
@@ -378,7 +378,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
+              className="w-full bg-white border-black/20 text-black hover:bg-gray-100"
               onClick={startCamera}
             >
               <Camera className="w-4 h-4 mr-2" />
@@ -422,7 +422,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
 
         {/* Agreement button */}
         {submittedAt ? (
-          <div className="rounded-xl border border-green-500/50 bg-green-500/10 p-4 text-green-300 text-sm flex items-center gap-2">
+          <div className="rounded-xl border border-green-500/50 bg-green-50 p-4 text-green-800 text-sm flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
             Agreement accepted on {new Date(submittedAt).toLocaleString()}. Verification is pending
             admin review.
@@ -437,7 +437,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
             {submitting ? "Submitting..." : "I Agree — Sign & Submit Agreement"}
           </Button>
         )}
-        <p className="text-gray-400 text-xs text-center">
+        <p className="text-gray-700 text-xs text-center">
           Pressing the agreement button records your electronic signature with the date and time and
           sends your verification documents to the Dimes Only World admin team.
         </p>
