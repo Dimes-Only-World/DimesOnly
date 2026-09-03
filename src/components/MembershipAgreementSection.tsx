@@ -356,18 +356,18 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-200">Photo Verification (selfie holding your ID)</Label>
+            <Label className="text-black">Photo Verification (selfie holding your ID)</Label>
             {selfiePreview && (
               <img
                 src={selfiePreview}
                 alt="Verification selfie holding ID"
-                className="w-40 rounded-lg border border-white/20"
+                className="w-40 rounded-lg border border-black/20"
               />
             )}
             {sharpness !== null && (
               <p
                 className={`text-sm ${
-                  sharpness >= SHARPNESS_MIN ? "text-green-400" : "text-red-400"
+                  sharpness >= SHARPNESS_MIN ? "text-green-700" : "text-red-700"
                 }`}
               >
                 {sharpness >= SHARPNESS_MIN
@@ -378,7 +378,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
+              className="w-full bg-white border-black/20 text-black hover:bg-gray-100"
               onClick={startCamera}
             >
               <Camera className="w-4 h-4 mr-2" />
@@ -422,7 +422,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
 
         {/* Agreement button */}
         {submittedAt ? (
-          <div className="rounded-xl border border-green-500/50 bg-green-500/10 p-4 text-green-300 text-sm flex items-center gap-2">
+          <div className="rounded-xl border border-green-500/50 bg-green-50 p-4 text-green-800 text-sm flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
             Agreement accepted on {new Date(submittedAt).toLocaleString()}. Verification is pending
             admin review.
@@ -437,7 +437,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
             {submitting ? "Submitting..." : "I Agree — Sign & Submit Agreement"}
           </Button>
         )}
-        <p className="text-gray-400 text-xs text-center">
+        <p className="text-gray-700 text-xs text-center">
           Pressing the agreement button records your electronic signature with the date and time and
           sends your verification documents to the Dimes Only World admin team.
         </p>
