@@ -180,7 +180,7 @@ const Memberships: React.FC = () => {
                 eyebrow="Exclusive for Female Entertainers"
                 title="Diamond Plus — Up to $125,000 / year"
                 quarterly="Paid quarterly — maximum $31,250 per quarter"
-                body="The first 300 female entertainers who upgrade to Diamond Plus receive up to $125,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a $2,500,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
+                body="The first 300 female entertainers who upgrade to Diamond Plus receive up to $125,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a $1,1700,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
                 cta={{ label: "Upgrade to Diamond Plus", href: "/upgrade-diamond" }}
               />
             )}
@@ -191,7 +191,7 @@ const Memberships: React.FC = () => {
                 eyebrow="Exclusive for Males & Females"
                 title="Silver Plus — Up to $75,000 / year"
                 quarterly="Paid quarterly — maximum $18,750 per quarter"
-                body="The first 300 general members who upgrade to Silver Plus receive up to $75,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a $2,500,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
+                body="The first 300 general members who upgrade to Silver Plus receive up to $75,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a  $1,1700,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
                 cta={{ label: "Upgrade to Silver Plus", href: "/upgrade-silver-plus" }}
               />
             )}
@@ -202,7 +202,7 @@ const Memberships: React.FC = () => {
                 eyebrow="Exclusive for Business Owners"
                 title="Elite Plus — Up to $200,000 / year"
                 quarterly="Paid quarterly — maximum $50,000 per quarter"
-                body="The first 100 business owners who upgrade to Elite Plus receive up to $200,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a $2,500,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
+                body="The first 100 business owners who upgrade to Elite Plus receive up to $200,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a $1,1700,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
                 cta={{ label: "Upgrade to Elite Plus", href: "/business-owner-elite" }}
               />
             )}
