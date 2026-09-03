@@ -90,6 +90,33 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
     };
   }, []);
 
+  // Load any previously submitted agreement for this user + tier.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase
+        .from("membership_agreements")
+        .select("agreed_at")
+        .eq("user_id", user.id)
+        .eq("tier", tier)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data?.agreed_at) {
+        setSubmittedAt(data.agreed_at);
+        onSubmitted?.();
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [tier]);
+
   const startCamera = async () => {
     setCameraError(null);
     setShowCamera(true);
