@@ -536,36 +536,9 @@ const UpgradeDiamondPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Agreement Section */}
-              <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <FileText className="w-5 h-5" />
-                    Diamond Plus Membership Agreement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-300 mb-4">
-                    Review the full participation agreement before proceeding
-                    with your upgrade.
-                  </p>
-                  <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
-                    <DialogTrigger asChild>
-                      <Button variant="default" className="w-full">
-                        View Agreement
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl bg-white text-black">
-                      <DialogHeader>
-                        <DialogTitle>
-                          Diamond Plus Membership Agreement
-                        </DialogTitle>
-                      </DialogHeader>
-                      <DiamondPlusAgreement />
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
+              {/* Agreement + Identity Verification Section */}
+              <MembershipAgreementSection tier="diamond_plus" />
+
 
               {/* Upgrade Button */}
               <div className="text-center">
