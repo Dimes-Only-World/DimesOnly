@@ -1,17 +1,47 @@
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  SILVER_PLUS_AGREEMENT,
+  ELITE_PLUS_AGREEMENT,
+} from "@/lib/membershipAgreementText";
+
+type AgreementTier = "diamond_plus" | "silver_plus" | "elite_plus";
 
 interface Props {
   title?: string;
+  tier?: AgreementTier;
 }
 
+const isHeading = (line: string) => /^\d{1,2}\.\s+[A-Z]/.test(line);
+
+const TextAgreement: React.FC<{ lines: string[] }> = ({ lines }) => (
+  <ScrollArea className="h-[28rem] w-full rounded-md border p-4">
+    <div className="space-y-3 text-sm leading-relaxed">
+      {lines.map((line, i) =>
+        isHeading(line) ? (
+          <h4 key={i} className="font-semibold pt-2">
+            {line}
+          </h4>
+        ) : (
+          <p key={i}>{line}</p>
+        )
+      )}
+    </div>
+  </ScrollArea>
+);
+
 /**
- * Full membership agreement body (Sections 1-15).
- * Shared by Diamond Plus, Silver Plus and Elite Plus agreements.
+ * Full membership agreement body.
+ * Diamond Plus uses the in-file text; Silver Plus and Elite Plus use their
+ * own source documents.
  */
 const MembershipAgreementBody: React.FC<Props> = ({
   title = "STRIPPER & EXOTIC FEMALE MEMBERSHIP AGREEMENT",
+  tier = "diamond_plus",
 }) => {
+  if (tier === "silver_plus") return <TextAgreement lines={SILVER_PLUS_AGREEMENT} />;
+  if (tier === "elite_plus") return <TextAgreement lines={ELITE_PLUS_AGREEMENT} />;
+
   return (
     <ScrollArea className="h-[28rem] w-full rounded-md border p-4">
       <div className="space-y-5 text-sm leading-relaxed">
@@ -19,6 +49,7 @@ const MembershipAgreementBody: React.FC<Props> = ({
           <h2 className="text-lg font-bold">HOUSING ANGELS, LLC</h2>
           <h3 className="text-md font-semibold">{title}</h3>
         </div>
+
 
         <p>
           This Membership Agreement (the “Agreement”) is entered into as of the date of the last
