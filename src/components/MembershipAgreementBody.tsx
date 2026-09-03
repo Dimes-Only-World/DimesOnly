@@ -345,7 +345,7 @@ const MembershipAgreementBody: React.FC<Props> = ({
             IN WITNESS WHEREOF, the Parties have executed this Membership Agreement as of the
             Effective Date.
           </p>
-          <p className="font-semibold">COMPANY</p>
+          <p className="font-semibold">{"\n"}</p>
         </section>
       </div>
     </ScrollArea>
