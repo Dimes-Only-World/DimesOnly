@@ -27,7 +27,7 @@ const plans: Plan[] = [
   { name: "Silver Plus", price: "$249.99", ref20: "$50.00", ref10: "$25.00", href: "/upgrade-silver-plus", highlight: true, tag: "General Members" },
   { name: "Diamond Plus", price: "$149.99", ref20: "$30.00", ref10: "$15.00", href: "/upgrade-diamond", highlight: true, tag: "Female Entertainers" },
   { name: "Elite", price: "$10,000", ref20: "$2,000", ref10: "$1,000", href: "/elite" },
-  { name: "Elite Plus", price: "$15,000", ref20: "$3,000", ref10: "$1,500", href: "/business-owner-elite", highlight: true, tag: "Business Owners" },
+  { name: "Elite Plus", price: "$15,000", ref20: "$3,000", ref10: "$1,500", href: "/elite-plus", highlight: true, tag: "Business Owners" },
 ];
 
 const volumes = [
@@ -203,7 +203,7 @@ const Memberships: React.FC = () => {
                 title="Elite Plus — Up to $200,000 / year"
                 quarterly="Paid quarterly — maximum $50,000 per quarter"
                 body="The first 100 business owners who upgrade to Elite Plus receive up to $200,000 per year. Profit sharing activates once 300 female entertainers, 300 general members, and 100 business owners have upgraded (total 700). After the full 700 are filled, Tier 1 begins. When company revenue reaches the Tier 2 threshold, everyone moves to a higher tier with a $1,1700,000 annual minimum. If revenue later drops below the Tier 2 threshold, Tier 1 is restored."
-                cta={{ label: "Upgrade to Elite Plus", href: "/business-owner-elite" }}
+                cta={{ label: "Upgrade to Elite Plus", href: "/elite-plus" }}
               />
             )}
           </div>

@@ -32,7 +32,7 @@ export const getFreeTierLabel = (user: any) =>
 /** Lifetime "Plus" upgrade available to this member right now. */
 export const getPlusUpgradeTarget = (user: any): PlusUpgradeTarget => {
   if (isBusinessOwner(user)) {
-    return { key: "elite_plus", label: "Lifetime Elite Plus", href: "/business-owner-elite" };
+    return { key: "elite_plus", label: "Lifetime Elite Plus", href: "/elite-plus" };
   }
   if (isEntertainer(user)) {
     return { key: "diamond_plus", label: "Lifetime Diamond Plus", href: "/upgrade-diamond" };

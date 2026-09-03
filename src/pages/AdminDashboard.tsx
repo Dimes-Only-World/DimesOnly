@@ -263,21 +263,21 @@ const AdminDashboard: React.FC = () => {
           <TabsContent value="sdm">
             <AdminMembershipAgreementsTab
               tier="diamond_plus"
-              title="Signed Diamond Plus Memberships (SDM)"
+              title="SDM = Signed Diamond Plus Membership"
             />
           </TabsContent>
 
           <TabsContent value="sem">
             <AdminMembershipAgreementsTab
               tier="elite_plus"
-              title="Signed Elite Plus Memberships (SEM)"
+              title="SEM = Signed Elite Plus membership"
             />
           </TabsContent>
 
           <TabsContent value="ssm">
             <AdminMembershipAgreementsTab
               tier="silver_plus"
-              title="Signed Silver Plus Memberships (SSM)"
+              title="SSM = Signed Silver plus membership"
             />
           </TabsContent>
 
