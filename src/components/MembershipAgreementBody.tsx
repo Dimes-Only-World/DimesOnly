@@ -180,7 +180,7 @@ const MembershipAgreementBody: React.FC<Props> = ({
             later falls below that threshold, Tier 1 is intended to reactivate.
           </p>
           <p>
-            4.5 Profit-share amounts are maximums, not guaranteed salaries. Actual distributions
+            4.5 Profit-share amounts are maximums in tier 1 and miniimums in tier 2, not guaranteed salaries. Actual distributions
             depend on Company profits, the size of the pool, the number of active Plus members in
             good standing, and the Company’s written distribution rules at the time of payout.
             Nothing in this Agreement is a promise of a specific dollar amount in any quarter.
@@ -210,8 +210,8 @@ const MembershipAgreementBody: React.FC<Props> = ({
             referral rules and good standing:
           </p>
           <ul className="list-disc list-inside ml-4">
-            <li>20% commission / override on qualifying activity of persons the Member directly refers</li>
-            <li>10% commission / override on qualifying second-level referrals</li>
+            <li>20% referral fee on all transactions until app release</li>
+            <li>10% referrral fee overrides on qualifying second-level referral transactions</li>
           </ul>
           <p className="mt-2">
             5.2 Overrides from females in the Member’s network are included in override
