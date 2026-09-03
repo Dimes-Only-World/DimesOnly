@@ -245,6 +245,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
       if (dbErr) throw dbErr;
 
       setSubmittedAt(agreedAt);
+      onSubmitted?.();
       toast({
         title: "Agreement submitted",
         description: "Your ID and agreement were sent to the admin team for verification.",
