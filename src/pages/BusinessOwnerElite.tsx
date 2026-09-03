@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import MembershipAgreementSection from "@/components/MembershipAgreementSection";
 
 interface SeatStats {
   seats_max: number;
@@ -261,6 +262,8 @@ const BusinessOwnerElite: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          <MembershipAgreementSection tier="elite_plus" />
         </div>
       </div>
     </AppLayout>

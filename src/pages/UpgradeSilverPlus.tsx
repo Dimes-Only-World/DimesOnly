@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import MembershipAgreementSection from "@/components/MembershipAgreementSection";
 
 interface MembershipUpdate {
   silver_plus_active: boolean;
@@ -328,6 +329,10 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-8 [&_*]:text-inherit">
+          <MembershipAgreementSection tier="silver_plus" />
+        </div>
       </div>
     </AppLayout>
   );
