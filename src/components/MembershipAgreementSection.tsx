@@ -62,7 +62,7 @@ const measureSharpness = (canvas: HTMLCanvasElement): number => {
   return sumSq / n - mean * mean;
 };
 
-const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle }) => {
+const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onSubmitted }) => {
   const { toast } = useToast();
   const title = agreementTitle || TIER_LABEL[tier];
 
