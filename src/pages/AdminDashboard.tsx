@@ -19,6 +19,7 @@ import AdminApprovalsTab from "@/components/AdminApprovalsTab";
 import AdminLeadsTab from "@/components/AdminLeadsTab";
 import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTab";
 import AdminSMSTextTab from "@/components/AdminSMSTextTab";
+import AdminMembershipAgreementsTab from "@/components/AdminMembershipAgreementsTab";
 
 
 
@@ -180,6 +181,15 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="smstext" className="whitespace-nowrap">
                 SMS Text
               </TabsTrigger>
+              <TabsTrigger value="sdm" className="whitespace-nowrap">
+                SDM
+              </TabsTrigger>
+              <TabsTrigger value="sem" className="whitespace-nowrap">
+                SEM
+              </TabsTrigger>
+              <TabsTrigger value="ssm" className="whitespace-nowrap">
+                SSM
+              </TabsTrigger>
 
             </TabsList>
 
@@ -248,6 +258,27 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="smstext">
             <AdminSMSTextTab />
+          </TabsContent>
+
+          <TabsContent value="sdm">
+            <AdminMembershipAgreementsTab
+              tier="diamond_plus"
+              title="Signed Diamond Plus Memberships (SDM)"
+            />
+          </TabsContent>
+
+          <TabsContent value="sem">
+            <AdminMembershipAgreementsTab
+              tier="elite_plus"
+              title="Signed Elite Plus Memberships (SEM)"
+            />
+          </TabsContent>
+
+          <TabsContent value="ssm">
+            <AdminMembershipAgreementsTab
+              tier="silver_plus"
+              title="Signed Silver Plus Memberships (SSM)"
+            />
           </TabsContent>
 
         </Tabs>
