@@ -38,7 +38,7 @@ interface Lead {
 type LeadStatus = "complete" | "more_info" | "incomplete";
 
 const leadStatus = (l: Lead): LeadStatus => {
-  if (l.phone_match ?? l.registration_completed) return "complete";
+  if (l.phone_match || l.registration_completed) return "complete";
   if (l.action_taken === "more_information") return "more_info";
   return "incomplete";
 };
