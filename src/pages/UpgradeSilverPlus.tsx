@@ -33,6 +33,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const [phoneNumber, setPhoneNumber] = useState("");
   const [plan, setPlan] = useState<"full" | "monthly">("full");
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
+  const [agreementComplete, setAgreementComplete] = useState(false);
   const { toast } = useToast();
 
   const FULL_AMOUNT = 249.99;
@@ -247,6 +248,13 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         
+        <div className="mb-8">
+          <MembershipAgreementSection
+            tier="silver_plus"
+            onSubmitted={() => setAgreementComplete(true)}
+          />
+        </div>
+
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold text-blue-600">
@@ -315,24 +323,27 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
                     </p>
                   </div>
 
-                  <PaymentMethodSelector
-                    amount={AMOUNT}
-                    onPayPal={handlePayPal}
-                    onPayLater={handlePayLater}
-                    onCardRedirect={handleCardRedirect}
-                    cardMode="redirect"
-                    isProcessing={loading}
-                    disabled={!phoneNumber}
-                  />
+                  {agreementComplete ? (
+                    <PaymentMethodSelector
+                      amount={AMOUNT}
+                      onPayPal={handlePayPal}
+                      onPayLater={handlePayLater}
+                      onCardRedirect={handleCardRedirect}
+                      cardMode="redirect"
+                      isProcessing={loading}
+                      disabled={!phoneNumber}
+                    />
+                  ) : (
+                    <div className="rounded-lg border border-yellow-500 bg-yellow-50 p-4 text-sm text-yellow-900 text-center font-semibold">
+                      Complete Silver Plus Membership Agreement above to continue...
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="mt-8 [&_*]:text-inherit">
-          <MembershipAgreementSection tier="silver_plus" />
-        </div>
       </div>
     </AppLayout>
   );
