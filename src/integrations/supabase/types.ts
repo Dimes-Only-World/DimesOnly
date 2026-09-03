@@ -1667,6 +1667,48 @@ export type Database = {
           },
         ]
       }
+      membership_agreements: {
+        Row: {
+          admin_notes: string | null
+          agreed_at: string
+          created_at: string
+          id: string
+          id_document_path: string | null
+          selfie_path: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+          username: string | null
+          verification_status: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          agreed_at?: string
+          created_at?: string
+          id?: string
+          id_document_path?: string | null
+          selfie_path?: string | null
+          tier: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          verification_status?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          agreed_at?: string
+          created_at?: string
+          id?: string
+          id_document_path?: string | null
+          selfie_path?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          verification_status?: string
+        }
+        Relationships: []
+      }
       membership_limits: {
         Row: {
           created_at: string | null
