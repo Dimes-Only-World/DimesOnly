@@ -48,6 +48,7 @@ const BusinessOwnerElite: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [plan, setPlan] = useState<Plan>("lifetime");
   const [showAgreement, setShowAgreement] = useState(false);
+  const [agreementComplete, setAgreementComplete] = useState(false);
 
   useEffect(() => {
     setShowAgreement(true);
@@ -138,9 +139,16 @@ const BusinessOwnerElite: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-900 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center mt-4">
-            <h1 className="text-4xl font-bold text-white">Business Owner Elite Plus</h1>
-            <p className="text-fuchsia-200 mt-2">Limited to 100 lifetime seats — full site access for Business Owners</p>
+            <h1 className="text-4xl font-bold text-white">Elite Plus Membership</h1>
+            <p className="text-fuchsia-200 mt-2">
+              Business Owner Profit-Sharer position — limited to 100 lifetime seats with full site access.
+            </p>
           </div>
+
+          <MembershipAgreementSection
+            tier="elite_plus"
+            onSubmitted={() => setAgreementComplete(true)}
+          />
 
           <Card className="bg-black/70 border-fuchsia-500 text-white">
             <CardHeader>
@@ -154,7 +162,7 @@ const BusinessOwnerElite: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
-                  <span>Profit share $1,200,000 a year minimum in tier 2</span>
+                  <span>Profit share $1,170,000 a year minimum in tier 2</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
@@ -248,6 +256,7 @@ const BusinessOwnerElite: React.FC = () => {
                     <p className="text-xs text-gray-400">Required for payment verification</p>
                   </div>
 
+                  {agreementComplete ? (
                   <PaymentMethodSelector
                     amount={AMOUNT}
                     onPayPal={() => startPayment("paypal")}
@@ -258,12 +267,15 @@ const BusinessOwnerElite: React.FC = () => {
                     disabled={!phoneNumber}
                     paypalLabel={plan === "lifetime" ? "Pay $15,000 Lifetime" : "Start 12-Month Plan"}
                   />
+                  ) : (
+                    <div className="rounded-lg border border-yellow-500 bg-yellow-500/10 p-4 text-sm text-yellow-200 text-center font-semibold">
+                      Complete Elite Plus Membership Agreement above to continue...
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
           </Card>
-
-          <MembershipAgreementSection tier="elite_plus" />
         </div>
       </div>
     </AppLayout>
