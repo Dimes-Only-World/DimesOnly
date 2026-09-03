@@ -62,17 +62,23 @@ const DiamondPlusAgreement = () => {
         <div className="text-center">
           <h2 className="text-lg font-bold">HOUSING ANGELS, LLC</h2>
           <h3 className="text-md font-semibold">
-            STRIPPER & EXOTIC FEMALE PARTICIPATION AGREEMENT
+            STRIPPER & EXOTIC FEMALE MEMBERSHIP AGREEMENT
           </h3>
-          <p className="text-sm text-gray-600">
-            Annual Compensation Guarantee Program – Diamond Plus Membership
-          </p>
+          <p className="text-sm text-gray-600">{"\n"}</p>
         </div>
 
         <p>
-          This Agreement ("Agreement") is entered into by and between Housing
-          Angels, LLC ("Company") and the undersigned participant
-          ("Participant"), effective as of the date of signing.
+          This Diamond Membership Agreement (the “Agreement”) is entered into as of the date of the last signature below (the “Effective Date”), by and between Housing Angels, LLC, an Arizona limited liability company doing business as Dimes Only World (the “Company”), and the individual identified in the uploaded identification below (the “Member”). and the effective as of the date of agree button triggered by member below.
+
+
+
+
+          The Company operates a premium membership, lifestyle, and earning platform known as Dimes Only World, designed for exotic dancers, strippers, members, and club owners. The Member desires to obtain a Diamond Membership and, if elected and accepted, a Diamond Plus upgrade, and to participate in the Company’s referral, content, event, and (if applicable) profit-sharing programs, subject to the terms of this Agreement.
+
+
+
+
+          NOW, THEREFORE, in consideration of the mutual promises herein, the Parties agree as follows:
         </p>
 
         <div>
@@ -734,7 +740,7 @@ const UpgradeDiamondPage: React.FC = () => {
                     <DialogContent className="max-w-4xl bg-white text-black">
                       <DialogHeader>
                         <DialogTitle>
-                          Diamond Plus Participation Agreement
+                          Diamond Plus Membership Agreement
                         </DialogTitle>
                       </DialogHeader>
                       <DiamondPlusAgreement />
