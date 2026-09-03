@@ -392,225 +392,137 @@ const UpgradeDiamondPage: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <>
-              {/* Benefits Section */}
-              <div className="grid md:grid-cols-2 gap-8 mb-12">
-                <Card className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border-yellow-500/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-yellow-800">
-                      <DollarSign className="w-6 h-6" />
-                      Profit Sharing Income
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="text-3xl font-bold text-white">
-                        $125,000
-                      </div>
-                      <div className="text-gray-600">a year max for life in tier 1</div>
-                      <div className="text-lg text-gray-800">
-                        Quarterly pay of up to $31,250 max
-                      </div>
-                      <p className="text-gray-800 text-sm">
-                        Profit sharing compensation max is based on companies net
-                        profits.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-purple-800">
-                      <Star className="w-6 h-6" />
-                      Exclusive Benefits
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 text-gray-600">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Priority placement in rankings
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Guaranteed bi weekly payouts
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Access to exclusive events
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        Direct support channel to CEO
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Pricing Section */}
-              <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-center text-white">
-                    Choose Your Payment Option
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Full Payment */}
-                    <div
-                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
-                        paymentOption === "full"
-                          ? "border-yellow-400 bg-yellow-400/10"
-                          : "border-gray-600 hover:border-gray-500"
-                      }`}
-                      onClick={() => setPaymentOption("full")}
-                    >
-                      <div className="text-center">
-                        <CreditCard className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          Full Payment
-                        </h3>
-                        <div className="text-3xl font-bold text-yellow-400 mb-2">
-                          $149.99
-                        </div>
-                        <p className="text-gray-300 text-sm">
-                          One-time payment, immediate activation
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Monthly Plan */}
-                    <div
-                      className={`p-6 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-center ${
-                        paymentOption === "monthly"
-                          ? "border-yellow-400 bg-yellow-400/10"
-                          : "border-gray-600 hover:border-gray-500"
-                      }`}
-                      onClick={() => setPaymentOption("monthly")}
-                    >
-                      <div className="text-center">
-                        <Calendar className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          Monthly Plan
-                        </h3>
-                        <div className="text-3xl font-bold text-yellow-400 mb-1">
-                          $80.00<span className="text-base">/mo</span>
-                        </div>
-                        <div className="text-sm text-gray-400 mb-2">
-                          12 monthly payments = $960 total
-                        </div>
-                        <p className="text-gray-300 text-sm">
-                          Immediate activation after first payment
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-
-              {/* Phone Number Input */}
-              <Card className="bg-white/10 backdrop-blur border-white/20 mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Phone className="w-5 h-5" />
-                    Contact Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="phone" className="text-gray-300">
-                        Phone Number (Required for PayPal)
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="(555) 123-4567"
-                        className="bg-white/20 border-white/30 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-gray-300">Email</Label>
-                      <Input
-                        type="email"
-                        value={userData.email}
-                        disabled
-                        className="bg-gray-800 border-gray-600 text-gray-400"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+            <div className="space-y-6">
               {/* Agreement + Identity Verification Section */}
               <MembershipAgreementSection
                 tier="diamond_plus"
                 onSubmitted={() => setAgreementComplete(true)}
               />
 
+              <Card className="bg-black/70 border-fuchsia-500 text-white">
+                <CardHeader>
+                  <CardTitle className="text-fuchsia-400">Membership Benefits</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <span>Profit share up to $125,000 a year max in tier 1</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <span>Profit share $1,170,000 a year minimum in tier 2</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <span>Quarterly pay of up to $31,250 max</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <span>Priority placement in rankings</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <span>Access to exclusive events</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <span>Direct support channel to CEO</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
 
-              {/* Upgrade Button */}
-              <div className="text-center">
-                <Button
-                  onClick={handleUpgradeClick}
-                  disabled={upgradeInProgress}
-                  className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold text-lg px-12 py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card
+                  onClick={() => setPaymentOption("full")}
+                  className={`cursor-pointer bg-black/70 text-white transition-all ${paymentOption === "full" ? "border-fuchsia-400 ring-2 ring-fuchsia-500" : "border-fuchsia-500/40"}`}
                 >
-                  <Crown className="w-5 h-5 mr-2" />
-                  {paymentOption === "full"
-                    ? "Pay $149.99 - Upgrade Now"
-                    : "Pay $80.00 - First Monthly Payment"}
-                </Button>
-                <p className="text-gray-400 text-sm mt-4">
-                  After payment, you'll receive instructions for your
-                  notarization video call
-                </p>
+                  <CardHeader>
+                    <CardTitle className="text-fuchsia-400">One-Time Lifetime</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold text-yellow-300">$149.99</div>
+                    <p className="text-sm text-gray-300 mt-2">
+                      One-time payment → immediate activation.
+                    </p>
+                  </CardContent>
+                </Card>
 
-                {/* Payment Method Dialog */}
-                <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-                  <DialogContent className="max-w-md bg-gray-900 border-white/20">
-                    <DialogHeader>
-                      <DialogTitle className="text-white text-center text-xl">
-                        Choose Payment Method
-                      </DialogTitle>
-                      <p className="text-gray-300 text-center text-sm pt-2">
-                        {paymentOption === "full"
-                          ? "Total: $149.99 (One-time Payment)"
-                          : "First Monthly Payment: $80.00 (of 12 × $80 = $960)"}
-                      </p>
-                    </DialogHeader>
-                    
-                    <div className="py-4">
+                <Card
+                  onClick={() => setPaymentOption("monthly")}
+                  className={`cursor-pointer bg-black/70 text-white transition-all ${paymentOption === "monthly" ? "border-fuchsia-400 ring-2 ring-fuchsia-500" : "border-fuchsia-500/40"}`}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-fuchsia-400">12-Month Plan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold text-yellow-300">
+                      $80.00<span className="text-xl">/mo</span>
+                    </div>
+                    <p className="text-sm text-gray-300 mt-2">
+                      12 monthly payments = $960 total.{" "}
+                      <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="bg-black/70 border-fuchsia-500 text-white">
+                <CardHeader>
+                  <CardTitle className="text-fuchsia-400">
+                    Checkout — {paymentOption === "full" ? "Lifetime $149.99" : "First Payment $80.00"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-white">
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                        disabled={upgradeInProgress}
+                        className="bg-white/10 border-fuchsia-500/50 text-white placeholder:text-gray-400"
+                        required
+                      />
+                      <p className="text-xs text-gray-400">Required for payment verification</p>
+                    </div>
+
+                    {agreementComplete ? (
                       <PaymentMethodSelector
-                        amount={
-                          paymentOption === "full"
-                            ? 149.99
-                            : paymentOption === "monthly"
-                            ? 80
-                            : 49.99
-                        }
+                        amount={paymentOption === "full" ? 149.99 : 80}
                         onPayPal={handlePayPal}
                         onPayLater={handlePayLater}
                         onCardRedirect={handleCardRedirect}
                         cardMode="redirect"
                         isProcessing={upgradeInProgress}
-                        disabled={false}
+                        disabled={!phoneNumber}
+                        paypalLabel={
+                          paymentOption === "full"
+                            ? "Pay $149.99 - Upgrade Now"
+                            : "Pay $80.00 - First Monthly Payment"
+                        }
                       />
-                    </div>
-                    
+                    ) : (
+                      <div className="rounded-lg border border-yellow-500 bg-yellow-500/10 p-4 text-sm text-yellow-200 text-center font-semibold">
+                        Complete Diamond Plus Membership Agreement above to continue...
+                      </div>
+                    )}
+
                     <p className="text-gray-400 text-xs text-center">
-                      Secure payment processed by PayPal
+                      After payment, you'll receive instructions for your notarization video call
                     </p>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
+
         </div>
       </div>
     </AuthGuard>
