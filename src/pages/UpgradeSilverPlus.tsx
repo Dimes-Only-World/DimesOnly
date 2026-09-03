@@ -259,7 +259,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Membership Benefits</h3>
                 <ul className="space-y-2">
-                  {['Lifetime access', 'Exclusive content', 'Priority support', 'Member-only events', 'Profit share up to $75,000 a year max in tier 1', 'Profit share $1,200,000 a year minimum in tier 2'].map((benefit) => (
+                  {['Lifetime access', 'Exclusive content', 'Priority support', 'Member-only events', 'Profit share up to $75,000 a year max in tier 1', 'Profit share $1,170,000 a year minimum in tier 2'].map((benefit) => (
                     <li key={benefit} className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5" />
                       <span>{benefit}</span>
