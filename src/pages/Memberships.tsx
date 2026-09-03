@@ -55,7 +55,7 @@ const Memberships: React.FC = () => {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-b from-black via-[#0b0710] to-black text-white">
+      <div className="min-h-screen bg-gradient-to-b from-black via-[#0b0710] to-black text-black">
         <div className="max-w-6xl mx-auto px-4 py-10 md:py-16">
           {/* Header */}
           <div className="text-center mb-10 md:mb-14">
@@ -63,7 +63,7 @@ const Memberships: React.FC = () => {
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
               Choose Your <span className={gold}>Membership</span>
             </h1>
-            <p className="mt-4 text-white/70 max-w-2xl mx-auto text-sm md:text-base">
+            <p className="mt-4 text-black/70 max-w-2xl mx-auto text-sm md:text-base">
               Every membership sold through your referral link pays you a commission.
               Direct referrals earn <span className={gold}>20%</span>, upline referrals earn <span className={gold}>10%</span>.
             </p>
@@ -77,17 +77,17 @@ const Memberships: React.FC = () => {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <div className="font-semibold text-lg">{p.name}</div>
-                      {p.tag && <div className="text-xs text-white/50">{p.tag}</div>}
+                      {p.tag && <div className="text-xs text-black/50">{p.tag}</div>}
                     </div>
                     <div className={`text-xl font-bold ${gold}`}>{p.price}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm mt-3">
                     <div className="bg-white/5 rounded p-2">
-                      <div className="text-white/50 text-xs">20% Referral</div>
+                      <div className="text-black/50 text-xs">20% Referral</div>
                       <div className={`font-semibold ${gold}`}>{p.ref20}</div>
                     </div>
                     <div className="bg-white/5 rounded p-2">
-                      <div className="text-white/50 text-xs">10% Referral</div>
+                      <div className="text-black/50 text-xs">10% Referral</div>
                       <div className={`font-semibold ${gold}`}>{p.ref10}</div>
                     </div>
                   </div>
@@ -103,7 +103,7 @@ const Memberships: React.FC = () => {
 
           <div className="hidden md:block mb-16 overflow-hidden rounded-xl border border-white/10">
             <table className="w-full text-sm">
-              <thead className="bg-white/[0.04] text-white/70">
+              <thead className="bg-white/[0.04] text-black/70">
                 <tr>
                   <th className="text-left p-4">Membership</th>
                   <th className="text-right p-4">Price</th>
@@ -117,7 +117,7 @@ const Memberships: React.FC = () => {
                   <tr key={p.name} className={`border-t border-white/5 ${p.highlight ? "bg-[#F4C860]/[0.04]" : ""}`}>
                     <td className="p-4">
                       <div className="font-semibold">{p.name}</div>
-                      {p.tag && <div className="text-xs text-white/50">{p.tag}</div>}
+                      {p.tag && <div className="text-xs text-black/50">{p.tag}</div>}
                     </td>
                     <td className={`p-4 text-right font-semibold ${gold}`}>{p.price}</td>
                     <td className="p-4 text-right">{p.ref20}</td>
@@ -138,7 +138,7 @@ const Memberships: React.FC = () => {
           {/* Volume examples */}
           <div className="mb-16">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">Volume Referral Examples</h2>
-            <p className="text-white/60 mb-6 text-sm">What full tiers look like when they sell out.</p>
+            <p className="text-black/60 mb-6 text-sm">What full tiers look like when they sell out.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {volumes.map((v) => (
                 <Card key={v.label} className={`bg-white/[0.03] border ${goldBorder}`}>
@@ -149,15 +149,15 @@ const Memberships: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-sm">
                       <div>
-                        <div className="text-white/50 text-xs">Total</div>
+                        <div className="text-black/50 text-xs">Total</div>
                         <div className={`font-bold ${gold}`}>{v.total}</div>
                       </div>
                       <div>
-                        <div className="text-white/50 text-xs">20% Pool</div>
+                        <div className="text-black/50 text-xs">20% Pool</div>
                         <div className="font-semibold">{v.ref20}</div>
                       </div>
                       <div>
-                        <div className="text-white/50 text-xs">10% Pool</div>
+                        <div className="text-black/50 text-xs">10% Pool</div>
                         <div className="font-semibold">{v.ref10}</div>
                       </div>
                     </div>
@@ -170,7 +170,7 @@ const Memberships: React.FC = () => {
           {/* Role-based profit sharing */}
           <div className="space-y-6">
             <h2 className="text-2xl md:text-3xl font-bold text-center">Profit Sharing Program</h2>
-            <p className="text-center text-white/60 max-w-2xl mx-auto text-sm">
+            <p className="text-center text-black/60 max-w-2xl mx-auto text-sm">
               Early upgraders unlock quarterly profit sharing once all founding seats are filled.
             </p>
 
@@ -208,7 +208,7 @@ const Memberships: React.FC = () => {
             )}
           </div>
 
-          <div className="text-center text-xs text-white/40 mt-12">
+          <div className="text-center text-xs text-black/40 mt-12">
             Referral commissions are paid on every membership sold through your unique link.
           </div>
         </div>
@@ -229,13 +229,13 @@ const RoleCard: React.FC<{
     <CardHeader className="pb-2">
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-xs uppercase tracking-wider text-white/60">{eyebrow}</span>
+        <span className="text-xs uppercase tracking-wider text-black/60">{eyebrow}</span>
       </div>
       <CardTitle className={`text-xl md:text-2xl ${gold}`}>{title}</CardTitle>
-      <div className="text-white/70 text-sm">{quarterly}</div>
+      <div className="text-black/70 text-sm">{quarterly}</div>
     </CardHeader>
     <CardContent>
-      <p className="text-white/80 leading-relaxed text-sm md:text-base">{body}</p>
+      <p className="text-black/80 leading-relaxed text-sm md:text-base">{body}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         <Link to={cta.href}>
           <Button className={`${goldBg} text-black hover:brightness-110 font-semibold`}>
@@ -243,7 +243,7 @@ const RoleCard: React.FC<{
             {cta.label}
           </Button>
         </Link>
-        <div className="flex items-center text-xs text-white/50 gap-2">
+        <div className="flex items-center text-xs text-black/50 gap-2">
           <CheckCircle2 className={`w-4 h-4 ${gold}`} />
           Quarterly profit sharing eligible
         </div>
