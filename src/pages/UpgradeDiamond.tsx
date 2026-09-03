@@ -240,6 +240,15 @@ const UpgradeDiamondPage: React.FC = () => {
   const handleCardRedirect = () => initiatePayment("card");
 
   const handleUpgradeClick = () => {
+    if (!agreementComplete) {
+      toast({
+        title: "Agreement Required",
+        description:
+          "Complete Diamond Plus Membership Agreement above to continue...",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!phoneNumber.trim()) {
       toast({
         title: "Missing Information",
