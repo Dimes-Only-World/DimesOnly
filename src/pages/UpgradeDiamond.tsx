@@ -72,6 +72,7 @@ const UpgradeDiamondPage: React.FC = () => {
   const [showAgreement, setShowAgreement] = useState(false);
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [agreementComplete, setAgreementComplete] = useState(false);
 
   // Calculate remaining spots (combine stripper and exotic limits)
   const diamondPlusLimits = membershipLimits.filter(
@@ -239,6 +240,15 @@ const UpgradeDiamondPage: React.FC = () => {
   const handleCardRedirect = () => initiatePayment("card");
 
   const handleUpgradeClick = () => {
+    if (!agreementComplete) {
+      toast({
+        title: "Agreement Required",
+        description:
+          "Complete Diamond Plus Membership Agreement above to continue...",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!phoneNumber.trim()) {
       toast({
         title: "Missing Information",
@@ -538,14 +548,17 @@ const UpgradeDiamondPage: React.FC = () => {
               </Card>
 
               {/* Agreement + Identity Verification Section */}
-              <MembershipAgreementSection tier="diamond_plus" />
+              <MembershipAgreementSection
+                tier="diamond_plus"
+                onSubmitted={() => setAgreementComplete(true)}
+              />
 
 
               {/* Upgrade Button */}
               <div className="text-center">
                 <Button
                   onClick={handleUpgradeClick}
-                  disabled={!phoneNumber.trim()}
+                  disabled={upgradeInProgress}
                   className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold text-lg px-12 py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   <Crown className="w-5 h-5 mr-2" />
