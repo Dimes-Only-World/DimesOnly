@@ -1,7 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  Users,
+  UserCheck,
+  Trophy,
+  DollarSign,
+  BarChart3,
+  Bell,
+  MessageSquare,
+  Calendar,
+  Car,
+  FlaskConical,
+  Video,
+  CreditCard,
+  Settings,
+  Filter,
+  Smartphone,
+  MessageCircle,
+  FileText,
+  FileSignature,
+  FileCheck,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import AdminEmailSettings from "@/components/AdminEmailSettings";
 import AdminAppLaunchSettings from "@/components/AdminAppLaunchSettings";
 import AdminUsersListEnhanced from "@/components/AdminUsersListEnhanced";
@@ -21,19 +46,74 @@ import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTa
 import AdminSMSTextTab from "@/components/AdminSMSTextTab";
 import AdminMembershipAgreementsTab from "@/components/AdminMembershipAgreementsTab";
 
-
-
 import { supabase } from "@/integrations/supabase/client";
+
+const AdminTabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      "flex h-auto items-center gap-1.5 rounded-full border border-border/50 bg-muted/50 p-1.5 text-muted-foreground w-max",
+      className
+    )}
+    {...props}
+  />
+));
+AdminTabsList.displayName = TabsPrimitive.List.displayName;
+
+const AdminTabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dimes-magenta focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-dimes-magenta data-[state=active]:text-dimes-surface data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-dimes-magenta/10 data-[state=inactive]:hover:text-dimes-magenta",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </TabsPrimitive.Trigger>
+));
+AdminTabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+
+const tabs = [
+  { value: "users", label: "Users", icon: Users },
+  { value: "approvals", label: "Approvals", icon: UserCheck },
+  { value: "jackpot", label: "Jackpot", icon: Trophy },
+  { value: "earnings", label: "Earnings", icon: DollarSign },
+  { value: "ranking", label: "Ranking", icon: BarChart3 },
+  { value: "notifications", label: "Notifications", icon: Bell },
+  { value: "messages", label: "Messages", icon: MessageSquare },
+  { value: "events", label: "Events", icon: Calendar },
+  { value: "rentals", label: "Rentals", icon: Car },
+  { value: "testing", label: "Testing", icon: FlaskConical },
+  { value: "videos", label: "Videos", icon: Video },
+  { value: "payouts", label: "Payouts", icon: CreditCard },
+  { value: "settings", label: "Settings", icon: Settings },
+  { value: "leads", label: "Leads", icon: Filter },
+  { value: "shortform", label: "S-F-B", icon: Smartphone },
+  { value: "smstext", label: "SMS Text", icon: MessageCircle },
+  { value: "sdm", label: "SDM", icon: FileText },
+  { value: "sem", label: "SEM", icon: FileSignature },
+  { value: "ssm", label: "SSM", icon: FileCheck },
+];
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState("users");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     const verifyAdminAccess = async () => {
       try {
-        // Check for admin session in sessionStorage (set by AdminLogin)
         const adminUserData = sessionStorage.getItem('adminUser');
         
         if (!adminUserData) {
@@ -43,7 +123,6 @@ const AdminDashboard: React.FC = () => {
 
         const adminUser = JSON.parse(adminUserData);
         
-        // Verify admin role server-side using security definer function
         const { data: hasAdminRole, error } = await supabase
           .rpc('check_admin_by_user_id', { _user_id: adminUser.id });
 
@@ -78,6 +157,34 @@ const AdminDashboard: React.FC = () => {
     navigate("/adminlogin");
   };
 
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  const scroll = (amount: number) => {
+    scrollRef.current?.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const active = el.querySelector('[data-state="active"]') as HTMLElement | null;
+    if (active) {
+      active.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+    checkScroll();
+  }, [activeTab]);
+
   if (isVerifying) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -95,7 +202,6 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Introduction Video */}
       <div className="bg-black">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
@@ -129,70 +235,42 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <Tabs defaultValue="users" className="w-full">
-          {/* Mobile Scrollable Tabs */}
-          <div className="w-full mb-8 overflow-x-auto -webkit-overflow-scrolling-touch pb-2">
-            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-max lg:w-full lg:grid lg:grid-cols-12">
-              <TabsTrigger value="users" className="whitespace-nowrap">
-                Users
-              </TabsTrigger>
-              <TabsTrigger value="approvals" className="whitespace-nowrap">
-                Approvals
-              </TabsTrigger>
-              <TabsTrigger value="jackpot" className="whitespace-nowrap">
-                Jackpot
-              </TabsTrigger>
-              <TabsTrigger value="earnings" className="whitespace-nowrap">
-                Earnings
-              </TabsTrigger>
-              <TabsTrigger value="ranking" className="whitespace-nowrap">
-                Ranking
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="whitespace-nowrap">
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="whitespace-nowrap">
-                Messages
-              </TabsTrigger>
-              <TabsTrigger value="events" className="whitespace-nowrap">
-                Events
-              </TabsTrigger>
-              <TabsTrigger value="rentals" className="whitespace-nowrap">
-                Rentals
-              </TabsTrigger>
-              <TabsTrigger value="testing" className="whitespace-nowrap">
-                Testing
-              </TabsTrigger>
-              <TabsTrigger value="videos" className="whitespace-nowrap">
-                Videos
-              </TabsTrigger>
-              <TabsTrigger value="payouts" className="whitespace-nowrap">
-                Payouts
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="whitespace-nowrap">
-                Settings
-              </TabsTrigger>
-              <TabsTrigger value="leads" className="whitespace-nowrap">
-                Leads
-              </TabsTrigger>
-              <TabsTrigger value="shortform" className="whitespace-nowrap">
-                S-F-B
-              </TabsTrigger>
-              <TabsTrigger value="smstext" className="whitespace-nowrap">
-                SMS Text
-              </TabsTrigger>
-              <TabsTrigger value="sdm" className="whitespace-nowrap">
-                SDM
-              </TabsTrigger>
-              <TabsTrigger value="sem" className="whitespace-nowrap">
-                SEM
-              </TabsTrigger>
-              <TabsTrigger value="ssm" className="whitespace-nowrap">
-                SSM
-              </TabsTrigger>
-
-            </TabsList>
-
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="relative mb-8">
+            {canScrollLeft && (
+              <button
+                type="button"
+                onClick={() => scroll(-320)}
+                className="absolute left-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-dimes-magenta/20 bg-dimes-surface text-dimes-magenta shadow-sm transition-colors hover:bg-dimes-magenta/10 lg:flex"
+                aria-label="Scroll tabs left"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+            <div
+              ref={scrollRef}
+              onScroll={checkScroll}
+              className="overflow-x-auto scrollbar-hide [-webkit-overflow-scrolling:touch] px-1"
+            >
+              <AdminTabsList>
+                {tabs.map((tab) => (
+                  <AdminTabsTrigger key={tab.value} value={tab.value} data-value={tab.value}>
+                    <tab.icon className="h-4 w-4 opacity-80 group-data-[state=active]:opacity-100" />
+                    <span>{tab.label}</span>
+                  </AdminTabsTrigger>
+                ))}
+              </AdminTabsList>
+            </div>
+            {canScrollRight && (
+              <button
+                type="button"
+                onClick={() => scroll(320)}
+                className="absolute right-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-dimes-magenta/20 bg-dimes-surface text-dimes-magenta shadow-sm transition-colors hover:bg-dimes-magenta/10 lg:flex"
+                aria-label="Scroll tabs right"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <TabsContent value="users">
@@ -280,9 +358,7 @@ const AdminDashboard: React.FC = () => {
               title="SSM = Signed Silver plus membership"
             />
           </TabsContent>
-
         </Tabs>
-
       </div>
     </div>
   );
