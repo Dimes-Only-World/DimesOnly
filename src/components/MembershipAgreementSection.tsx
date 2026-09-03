@@ -277,7 +277,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
 
         <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
           <DialogTrigger asChild>
-            <Button variant="default" className="w-full text-white">
+            <Button variant="default" className="w-full text-white bg-black hover:bg-gray-800">
               View Agreement
             </Button>
           </DialogTrigger>
