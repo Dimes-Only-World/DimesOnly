@@ -434,7 +434,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
             className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold text-base py-6 rounded-xl shadow-lg"
           >
             <FileText className="w-5 h-5 mr-2" />
-            {submitting ? "Submitting..." : "I Agree — Sign & Submit Agreement"}
+            {submitting ? "Submitting..." : "I Agree, Sign & Submit Agreement"}
           </Button>
         )}
         <p className="text-gray-700 text-xs text-center">
