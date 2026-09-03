@@ -20,6 +20,7 @@ type Tier = "diamond_plus" | "silver_plus" | "elite_plus";
 interface Props {
   tier: Tier;
   agreementTitle?: string;
+  onSubmitted?: () => void;
 }
 
 const TIER_LABEL: Record<Tier, string> = {
