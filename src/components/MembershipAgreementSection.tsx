@@ -290,13 +290,13 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
         </Dialog>
 
         {/* Identity verification */}
-        <div className="rounded-xl border border-yellow-500/40 bg-yellow-500/5 p-4 space-y-4">
-          <div className="flex items-center gap-2 text-yellow-300 font-semibold">
+        <div className="rounded-xl border border-yellow-500/40 bg-yellow-50 p-4 space-y-4">
+          <div className="flex items-center gap-2 text-black font-semibold">
             <ShieldCheck className="w-5 h-5" />
             Identity Verification
           </div>
 
-          <div className="flex items-start gap-2 text-sm text-yellow-200/90">
+          <div className="flex items-start gap-2 text-sm text-black">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             <p>
               Your ID must be valid. If your ID is not valid, all fees will be retained until your
@@ -305,7 +305,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-200">Government ID</Label>
+            <Label className="text-black">Government ID</Label>
             <input
               ref={idInputRef}
               type="file"
@@ -318,7 +318,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
+                  className="w-full bg-white border-black/20 text-black hover:bg-gray-100"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   {idFile ? "Replace ID" : "Upload ID"}
@@ -349,7 +349,7 @@ const MembershipAgreementSection: React.FC<Props> = ({ tier, agreementTitle, onS
               </DialogContent>
             </Dialog>
             {idFile && (
-              <p className="text-green-400 text-sm flex items-center gap-1">
+              <p className="text-green-700 text-sm flex items-center gap-1">
                 <CheckCircle className="w-4 h-4" /> {idFile.name}
               </p>
             )}
