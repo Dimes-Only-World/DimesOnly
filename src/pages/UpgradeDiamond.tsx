@@ -72,6 +72,7 @@ const UpgradeDiamondPage: React.FC = () => {
   const [showAgreement, setShowAgreement] = useState(false);
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [agreementComplete, setAgreementComplete] = useState(false);
 
   // Calculate remaining spots (combine stripper and exotic limits)
   const diamondPlusLimits = membershipLimits.filter(
