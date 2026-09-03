@@ -355,7 +355,7 @@ const AdminDashboard: React.FC = () => {
           <TabsContent value="ssm">
             <AdminMembershipAgreementsTab
               tier="silver_plus"
-              title="SSM = Signed Silver plus membership"
+              title="SSM = Signed Silver Plus Membership"
             />
           </TabsContent>
         </Tabs>
