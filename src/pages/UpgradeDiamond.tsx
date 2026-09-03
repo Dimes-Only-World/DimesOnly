@@ -548,7 +548,10 @@ const UpgradeDiamondPage: React.FC = () => {
               </Card>
 
               {/* Agreement + Identity Verification Section */}
-              <MembershipAgreementSection tier="diamond_plus" />
+              <MembershipAgreementSection
+                tier="diamond_plus"
+                onSubmitted={() => setAgreementComplete(true)}
+              />
 
 
               {/* Upgrade Button */}
