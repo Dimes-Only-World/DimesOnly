@@ -37,6 +37,7 @@ import { useToast } from "@/hooks/use-toast";
 import AuthGuard from "@/components/AuthGuard";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import AngelLoader from "@/components/AngelLoader";
+import MembershipAgreementSection from "@/components/MembershipAgreementSection";
 
 interface MembershipLimits {
   membership_type: string;
