@@ -460,7 +460,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         <div><Label>Model</Label><Input value={f.model} onChange={(e) => setF({ ...f, model: e.target.value })} /></div>
         <div><Label>VIN</Label><Input value={f.vin || ""} onChange={(e) => setF({ ...f, vin: e.target.value })} /></div>
         <div><Label>License Plate</Label><Input value={f.license_plate || ""} onChange={(e) => setF({ ...f, license_plate: e.target.value })} /></div>
-        <div><Label>Mileage</Label><Input type="number" value={f.mileage || 0} onChange={(e) => setF({ ...f, mileage: e.target.value })} /></div>
+        <div><Label>Security Deposit ($)</Label><Input type="number" value={f.security_deposit || 0} onChange={(e) => setF({ ...f, security_deposit: e.target.value })} /></div>
         <div><Label>Vehicle Type</Label><Input value={f.vehicle_type || ""} onChange={(e) => setF({ ...f, vehicle_type: e.target.value })} placeholder="Exotic, SUV, ..." /></div>
         <div><Label>Pickup Location</Label><Input value={f.pickup_location || ""} onChange={(e) => setF({ ...f, pickup_location: e.target.value })} /></div>
         <div><Label>Availability</Label>
