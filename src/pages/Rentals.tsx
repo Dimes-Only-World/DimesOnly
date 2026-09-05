@@ -235,6 +235,7 @@ const Rentals: React.FC = () => {
                   <div className="aspect-video bg-muted relative overflow-hidden">
                     {v.hero_url ? (
                       <img
+                        loading="lazy"
                         src={v.hero_url}
                         alt={`${v.year} ${v.make} ${v.model}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
