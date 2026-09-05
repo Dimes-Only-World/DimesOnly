@@ -53,11 +53,13 @@ serve(async (req) => {
         const { vehicleId } = params;
         const { data, error } = await admin.from("vehicle_media").select("*").eq("vehicle_id", vehicleId).order("sort_order");
         if (error) throw error;
-        const withUrls = await Promise.all((data || []).map(async (m: any) => {
-          const { data: s } = await admin.storage.from("vehicle-media").createSignedUrl(m.storage_path, 60 * 60);
-          return { ...m, url: s?.signedUrl };
-        }));
-        return json({ data: withUrls });
+        const paths = (data || []).map((m: any) => m.storage_path);
+        const urlByPath = new Map<string, string>();
+        if (paths.length) {
+          const { data: signedList } = await admin.storage.from("vehicle-media").createSignedUrls(paths, 60 * 60);
+          for (const s of signedList || []) if (s?.path && s?.signedUrl) urlByPath.set(s.path, s.signedUrl);
+        }
+        return json({ data: (data || []).map((m: any) => ({ ...m, url: urlByPath.get(m.storage_path) || null })) });
       }
       case "uploadMedia": {
         const { vehicleId, mediaType, fileName, contentType, base64, sortOrder } = params;

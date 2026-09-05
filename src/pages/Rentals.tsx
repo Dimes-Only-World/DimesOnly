@@ -37,41 +37,55 @@ const Rentals: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data: vs } = await (supabase as any)
-        .from("vehicles")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+      // Fetch vehicles, media, and rented-until rows in parallel
+      const [vsRes, mediaRes, rentedRes] = await Promise.all([
+        (supabase as any)
+          .from("vehicles")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false }),
+        (supabase as any)
+          .from("vehicle_media")
+          .select("vehicle_id, storage_path, sort_order")
+          .eq("media_type", "photo")
+          .order("sort_order", { ascending: true }),
+        (supabase as any).from("v_vehicle_rented_until").select("vehicle_id, rented_until"),
+      ]);
 
-      const items: Vehicle[] = vs || [];
-      // Fetch hero photo per vehicle
-      const withMedia = await Promise.all(
-        items.map(async (v) => {
-          const { data: media } = await (supabase as any)
-            .from("vehicle_media")
-            .select("storage_path")
-            .eq("vehicle_id", v.id)
-            .eq("media_type", "photo")
-            .order("sort_order", { ascending: true })
-            .limit(1);
-          const path = media?.[0]?.storage_path;
-          if (path) {
-            const { data: signed } = await supabase.storage
-              .from("vehicle-media")
-              .createSignedUrl(path, 60 * 60);
-            return { ...v, hero_url: signed?.signedUrl || null };
-          }
-          return { ...v, hero_url: null };
+      const items: Vehicle[] = vsRes.data || [];
+
+      // Pick first photo per vehicle (already sorted by sort_order)
+      const heroPathByVehicle = new Map<string, string>();
+      for (const m of mediaRes.data || []) {
+        if (!heroPathByVehicle.has(m.vehicle_id)) heroPathByVehicle.set(m.vehicle_id, m.storage_path);
+      }
+
+      // One batched signed-URL call for all hero photos
+      const paths = Array.from(heroPathByVehicle.values());
+      const urlByPath = new Map<string, string>();
+      if (paths.length) {
+        const { data: signedList } = await supabase.storage
+          .from("vehicle-media")
+          .createSignedUrls(paths, 60 * 60);
+        for (const s of signedList || []) {
+          if (s?.path && s?.signedUrl) urlByPath.set(s.path, s.signedUrl);
+        }
+      }
+
+      const rentedMap = new Map<string, string>(
+        (rentedRes.data || []).map((r: any) => [r.vehicle_id, r.rented_until])
+      );
+
+      setVehicles(
+        items.map((v) => {
+          const p = heroPathByVehicle.get(v.id);
+          return {
+            ...v,
+            hero_url: p ? urlByPath.get(p) || null : null,
+            rented_until: rentedMap.get(v.id) || null,
+          };
         })
       );
-      const { data: rentedRows } = await (supabase as any)
-        .from("v_vehicle_rented_until")
-        .select("vehicle_id, rented_until");
-      const rentedMap = new Map<string, string>(
-        (rentedRows || []).map((r: any) => [r.vehicle_id, r.rented_until])
-      );
-
-      setVehicles(withMedia.map((v) => ({ ...v, rented_until: rentedMap.get(v.id) || null })));
       setLoading(false);
     };
     load();
