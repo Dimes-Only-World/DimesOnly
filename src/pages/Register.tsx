@@ -637,7 +637,10 @@ export const Register: React.FC = () => {
           title: "Registration Successful!",
           description: "Please sign in with your new credentials.",
         });
-        navigate("/login");
+        {
+          const rd = new URLSearchParams(window.location.search).get("redirect");
+          navigate(rd ? `/login?redirect=${encodeURIComponent(rd)}` : "/login");
+        }
         return;
       }
 
@@ -669,7 +672,7 @@ export const Register: React.FC = () => {
         description: "Welcome to Dimes Only!",
       });
 
-      navigate("/dashboard/profile");
+      navigate(new URLSearchParams(window.location.search).get("redirect") || "/dashboard/profile");
     } catch (error) {
       console.error("Registration error:", error);
       const errorMessage =
