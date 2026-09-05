@@ -70,6 +70,7 @@ const AdminRentalsTab: React.FC = () => {
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="packages">Themed Packages</TabsTrigger>
+          <TabsTrigger value="promos">Promo Codes</TabsTrigger>
           <TabsTrigger value="captures">Captures</TabsTrigger>
           <TabsTrigger value="contests">Contests</TabsTrigger>
         </TabsList>
@@ -137,6 +138,10 @@ const AdminRentalsTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="packages"><PackagesPanel /></TabsContent>
+        <TabsContent value="promos" className="space-y-4">
+          <PromoCodesPanel />
+        </TabsContent>
+
         <TabsContent value="captures"><CapturesPanel /></TabsContent>
         <TabsContent value="contests"><ContestsPanel /></TabsContent>
       </Tabs>
@@ -371,11 +376,102 @@ const ContestsPanel: React.FC = () => {
   );
 };
 
+const PromoCodesPanel: React.FC = () => {
+  const [codes, setCodes] = useState<any[]>([]);
+  const [form, setForm] = useState<any>({ code: "", description: "", discount_type: "percent", discount_value: 10, is_active: true, max_uses: "", expires_at: "" });
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    try {
+      const res = await callAdmin("listPromoCodes");
+      setCodes(res?.data || []);
+    } catch (e: any) {
+      toast({ title: "Load failed", description: e.message, variant: "destructive" });
+    }
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await callAdmin("upsertPromoCode", {
+        payload: {
+          id: form.id,
+          code: form.code,
+          description: form.description || null,
+          discount_type: form.discount_type,
+          discount_value: Number(form.discount_value) || 0,
+          is_active: !!form.is_active,
+          max_uses: form.max_uses === "" ? null : Number(form.max_uses),
+          expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
+        },
+      });
+      toast({ title: "Promo code saved" });
+      setForm({ code: "", description: "", discount_type: "percent", discount_value: 10, is_active: true, max_uses: "", expires_at: "" });
+      load();
+    } catch (e: any) {
+      toast({ title: "Save failed", description: e.message, variant: "destructive" });
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card><CardContent className="p-4 space-y-3">
+        <h3 className="font-semibold">{form.id ? "Edit" : "New"} Promo Code</h3>
+        <p className="text-xs text-muted-foreground">Each code can be used one time per signed-in member.</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div><Label>Code</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="SUMMER10" /></div>
+          <div><Label>Discount Type</Label>
+            <Select value={form.discount_type} onValueChange={(v) => setForm({ ...form, discount_type: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="percent">Percent (%)</SelectItem>
+                <SelectItem value="amount">Fixed amount ($)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Value</Label><Input type="number" value={form.discount_value} onChange={(e) => setForm({ ...form, discount_value: e.target.value })} /></div>
+          <div><Label>Max Total Uses (blank = unlimited)</Label><Input type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} /></div>
+          <div><Label>Expires</Label><Input type="date" value={form.expires_at ? String(form.expires_at).slice(0, 10) : ""} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} /></div>
+          <div className="flex items-end"><label className="flex items-center gap-2 text-sm"><Checkbox checked={!!form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: !!v })} /> Active</label></div>
+        </div>
+        <div><Label>Description</Label><Input value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+        <div className="flex gap-2">
+          <Button onClick={save} disabled={saving || !form.code}>{saving ? "Saving..." : "Save Promo Code"}</Button>
+          {form.id && <Button variant="ghost" onClick={() => setForm({ code: "", description: "", discount_type: "percent", discount_value: 10, is_active: true, max_uses: "", expires_at: "" })}>Cancel</Button>}
+        </div>
+      </CardContent></Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {codes.map((c) => (
+          <Card key={c.id}><CardContent className="p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold">{c.code} · {c.discount_type === "amount" ? `$${Number(c.discount_value).toLocaleString()}` : `${c.discount_value}%`}</p>
+              <p className="text-xs text-muted-foreground">{c.description || "—"}</p>
+              <p className="text-xs">Used {c.uses_count || 0}{c.max_uses ? ` / ${c.max_uses}` : ""} · {c.is_active ? "Active" : "Inactive"}{c.expires_at ? ` · expires ${new Date(c.expires_at).toLocaleDateString()}` : ""}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <Button size="sm" variant="outline" onClick={() => setForm({ ...c, max_uses: c.max_uses ?? "" })}>Edit</Button>
+              <Button size="sm" variant="destructive" onClick={async () => {
+                if (!confirm(`Delete promo code ${c.code}?`)) return;
+                try { await callAdmin("deletePromoCode", { id: c.id }); load(); }
+                catch (e: any) { toast({ title: "Delete failed", description: e.message, variant: "destructive" }); }
+              }}><Trash2 className="w-3 h-3" /></Button>
+            </div>
+          </CardContent></Card>
+        ))}
+        {codes.length === 0 && <p className="text-muted-foreground">No promo codes yet.</p>}
+      </div>
+    </div>
+  );
+};
+
 const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved: (v: any) => void }> = ({ initial, onClose, onSaved }) => {
   const [f, setF] = useState<any>(initial || {
     year: new Date().getFullYear(), make: "", model: "", vin: "", license_plate: "",
-    mileage: 0, description: "", vehicle_type: "", pickup_location: "",
-    day_rate: 0, weekly_rate: 0, monthly_rate: 0, down_payment: 0,
+    description: "", vehicle_type: "", pickup_location: "",
+    day_rate: 0, three_day_rate: 0, weekly_rate: 0, monthly_rate: 0, down_payment: 0,
+    security_deposit: 0,
     rental_options: ["daily"], availability_status: "available", is_active: true,
   });
   const [currentId, setCurrentId] = useState<string | null>(initial?.id || null);
@@ -397,8 +493,9 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
     setSaving(true);
     try {
       const payload = { ...f,
-        mileage: Number(f.mileage) || 0,
         day_rate: Number(f.day_rate) || null,
+        three_day_rate: Number(f.three_day_rate) || null,
+        security_deposit: Number(f.security_deposit) || 0,
         weekly_rate: Number(f.weekly_rate) || null,
         monthly_rate: Number(f.monthly_rate) || null,
         down_payment: Number(f.down_payment) || null,
