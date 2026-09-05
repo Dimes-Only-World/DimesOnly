@@ -6,6 +6,7 @@ export interface DashboardStats {
   totalEarnings: number;
   jackpotTickets: number;
   referrals: number;
+  rentalCommissions: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -13,6 +14,7 @@ const EMPTY: DashboardStats = {
   totalEarnings: 0,
   jackpotTickets: 0,
   referrals: 0,
+  rentalCommissions: 0,
 };
 
 const sum = (rows: any[] | null | undefined, key: string) =>
@@ -39,7 +41,7 @@ export const useDashboardStats = (
     const load = async () => {
       setLoading(true);
       try {
-        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool] =
+        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
             supabase
@@ -69,16 +71,22 @@ export const useDashboardStats = (
               .select("code, pool_id, is_winner")
               .eq("user_id", userId),
             supabase.from("v_jackpot_active_pool").select("pool_id").maybeSingle(),
+            (supabase as any)
+              .from("rental_commissions")
+              .select("amount")
+              .eq("user_id", userId),
           ]);
 
         if (cancelled) return;
 
+        const rentalCommissions = sum((rentals as any)?.data as any[], "amount");
         const earned =
+          rentalCommissions +
           sum(tips.data as any[], "tip_amount") +
           sum(payments.data as any[], "referrer_commission") +
           sum(tipRefs.data as any[], "referrer_commission");
         const weeklyTotal = sum(weekly.data as any[], "amount");
-        const totalEarnings = Math.max(earned, weeklyTotal);
+        const totalEarnings = Math.max(earned, weeklyTotal + rentalCommissions);
         const paidOut = sum(payouts.data as any[], "amount");
 
         const activePoolId = (activePool.data as any)?.pool_id
@@ -109,6 +117,7 @@ export const useDashboardStats = (
           availableEarnings: Math.max(0, totalEarnings - paidOut),
           jackpotTickets: codes.size,
           referrals,
+          rentalCommissions,
         });
 
       } catch (error) {
