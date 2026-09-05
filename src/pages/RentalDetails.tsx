@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Car, MapPin, Gauge, Calendar, ArrowLeft, Upload, Expand, Star } from "lucide-react";
+import { Car, MapPin, Calendar, ArrowLeft, Upload, Expand, Star, ShieldCheck, CalendarX2, Tag, Clock } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
@@ -25,16 +25,31 @@ type Review = {
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
 
-const priceBreakdown = (v: Vehicle, type: string, start?: string, end?: string) => {
-  if (!v) return { unitRate: 0, units: 1, unitLabel: "", total: 0 };
+const priceBreakdown = (
+  v: Vehicle,
+  type: string,
+  start?: string,
+  end?: string,
+): { unitRate: number; units: number; unitLabel: string; total: number; discount?: number } => {
+  if (!v) return { unitRate: 0, units: 1, unitLabel: "", total: 0, discount: 0 };
   const startD = start ? new Date(start) : null;
   const endD = end ? new Date(end) : null;
   const days =
     startD && endD ? Math.max(1, Math.ceil((+endD - +startD) / 86400000)) : 1;
   switch (type) {
     case "daily": {
-      const unitRate = Number(v.day_rate || 0);
-      return { unitRate, units: days, unitLabel: days === 1 ? "day" : "days", total: unitRate * days };
+      const baseRate = Number(v.day_rate || 0);
+      const threeDayRate = Number(v.three_day_rate || 0);
+      const useDiscount = days >= 3 && threeDayRate > 0 && threeDayRate < baseRate;
+      const unitRate = useDiscount ? threeDayRate : baseRate;
+      const discount = useDiscount ? (baseRate - threeDayRate) * days : 0;
+      return {
+        unitRate: baseRate,
+        units: days,
+        unitLabel: days === 1 ? "day" : "days",
+        total: unitRate * days,
+        discount,
+      };
     }
     case "weekly": {
       const unitRate = Number(v.weekly_rate || 0);
@@ -108,6 +123,9 @@ const RentalDetails: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
   const [addonTotal, setAddonTotal] = useState(0);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; discount: number } | null>(null);
+  const [promoChecking, setPromoChecking] = useState(false);
 
   useEffect(() => {
     // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
@@ -191,11 +209,49 @@ const RentalDetails: React.FC = () => {
   const breakdown = vehicle
     ? priceBreakdown(vehicle, rentalType, startDate, endDate)
     : { unitRate: 0, units: 1, unitLabel: "", total: 0 };
-  const total = breakdown.total + addonTotal;
+  const subtotal = breakdown.total + addonTotal;
+  const dayDiscount = Number(breakdown.discount || 0);
+  const promoDiscount = Math.min(promo?.discount || 0, subtotal);
+  const total = Math.max(0, subtotal - promoDiscount);
+  const securityDeposit = Number(vehicle?.security_deposit || 0);
   const downPayment =
     rentalType === "long_term" || rentalType === "rent_to_own"
       ? Number(vehicle?.down_payment || 0) + addonTotal
       : 0;
+
+  const requireAccount = () => {
+    if (user) return true;
+    toast({
+      title: "Create your profile to continue",
+      description: "You'll come right back to this vehicle after signing up.",
+    });
+    navigate(`/register?redirect=${encodeURIComponent(`/rentals/${id}`)}`);
+    return false;
+  };
+
+  const applyPromo = async () => {
+    if (!requireAccount()) return;
+    if (!promoInput.trim()) return;
+    setPromoChecking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("rental-booking", {
+        body: { action: "validatePromo", userId: user.id, promoCode: promoInput.trim(), subtotal },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) {
+        setPromo(null);
+        toast({ title: "Promo code", description: (data as any).error, variant: "destructive" });
+        return;
+      }
+      const d = (data as any).data;
+      setPromo({ code: d.code, discount: Number(d.discount) || 0 });
+      toast({ title: "Promo applied", description: `${d.code} saved you $${Number(d.discount).toLocaleString()}.` });
+    } catch (e: any) {
+      toast({ title: "Promo code", description: e.message || "Could not apply that code.", variant: "destructive" });
+    } finally {
+      setPromoChecking(false);
+    }
+  };
 
   // Recompute add-on subtotal when selection changes
   useEffect(() => {
@@ -211,11 +267,7 @@ const RentalDetails: React.FC = () => {
   }, [selectedPackageIds]);
 
   const submitBooking = async () => {
-    if (!user) {
-      toast({ title: "Sign in required", description: "Please log in to book.", variant: "destructive" });
-      navigate("/login");
-      return;
-    }
+    if (!requireAccount()) return;
     if (!startDate || !signature || !agree || !licenseFile || !insuranceFile) {
       toast({ title: "Missing info", description: "Fill all fields, upload ID + insurance, sign and agree.", variant: "destructive" });
       return;
@@ -240,7 +292,8 @@ const RentalDetails: React.FC = () => {
           start_date: startDate,
           end_date: endDate || null,
           pickup_location: pickup,
-          total_price: total,
+          total_price: subtotal,
+          security_deposit: securityDeposit,
           down_payment_amount: downPayment,
           signature_text: signature,
           signed_at: new Date().toISOString(),
@@ -259,6 +312,7 @@ const RentalDetails: React.FC = () => {
           },
         },
         addonPackageIds: selectedPackageIds,
+        promoCode: promo?.code || null,
       };
 
       // Booking submit path MUST go through the Edge Function. Do not insert
@@ -401,28 +455,57 @@ const RentalDetails: React.FC = () => {
                   <MapPin className="w-4 h-4 text-primary" /> {vehicle.pickup_location}
                 </div>
               )}
-              {vehicle.mileage != null && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Gauge className="w-4 h-4 text-primary" /> {Number(vehicle.mileage).toLocaleString()} mi
-                </div>
-              )}
             </div>
 
             <Card className="bg-card/60 border-border/50 mb-6">
               <CardContent className="p-4 space-y-2 text-sm">
-                <h3 className="font-semibold mb-2">Rates</h3>
+                <h3 className="font-semibold mb-2 text-center uppercase tracking-widest text-xs text-muted-foreground">Rates</h3>
                 {vehicle.day_rate && <div className="flex justify-between"><span>Daily</span><span>${Number(vehicle.day_rate).toLocaleString()}</span></div>}
+                {vehicle.three_day_rate > 0 && (
+                  <div className="flex justify-between text-emerald-400">
+                    <span>3+ days (per day)</span>
+                    <span>${Number(vehicle.three_day_rate).toLocaleString()}</span>
+                  </div>
+                )}
                 {vehicle.weekly_rate && <div className="flex justify-between"><span>Weekly</span><span>${Number(vehicle.weekly_rate).toLocaleString()}</span></div>}
                 {vehicle.monthly_rate && <div className="flex justify-between"><span>Monthly</span><span>${Number(vehicle.monthly_rate).toLocaleString()}</span></div>}
                 {vehicle.down_payment && <div className="flex justify-between"><span>Down (long-term / rent-to-own)</span><span>${Number(vehicle.down_payment).toLocaleString()}</span></div>}
+                {securityDeposit > 0 && (
+                  <div className="flex justify-between border-t border-border/50 pt-2">
+                    <span>Security deposit</span>
+                    <span>${securityDeposit.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="pt-2 text-xs text-muted-foreground">
                   Options: {(vehicle.rental_options || []).join(", ") || "—"}
                 </div>
               </CardContent>
             </Card>
 
+            <Card className="bg-emerald-500/10 border-emerald-500/30 mb-6">
+              <CardContent className="p-4 flex items-start gap-3">
+                <CalendarX2 className="w-5 h-5 text-emerald-400 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-emerald-400">Free cancellation</p>
+                  <p className="text-sm text-emerald-300/80">Full refund if cancelled within 1 hour.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/60 border-border/50 mb-6">
+              <CardContent className="p-4 flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold">Insurance &amp; Protection</p>
+                  <p className="text-sm text-muted-foreground">
+                    Every trip is covered by our protection plan for peace of mind on the road.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {!showBook ? (
-              <Button size="lg" className="w-full" onClick={() => setShowBook(true)} disabled={vehicle.availability_status !== "available"}>
+              <Button size="lg" className="w-full" onClick={() => { if (requireAccount()) setShowBook(true); }} disabled={vehicle.availability_status !== "available"}>
                 {vehicle.availability_status === "available" ? "Rent This Car" : "Currently Unavailable"}
               </Button>
             ) : (
@@ -499,13 +582,48 @@ const RentalDetails: React.FC = () => {
                   </div>
 
 
+                  <div className="border-t pt-3 space-y-2">
+                    <Label className="flex items-center gap-1 text-xs"><Tag className="w-3 h-3" /> Promo code</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                        placeholder="Enter promo code"
+                        disabled={!!promo}
+                      />
+                      {promo ? (
+                        <Button type="button" variant="outline" onClick={() => { setPromo(null); setPromoInput(""); }}>
+                          Remove
+                        </Button>
+                      ) : (
+                        <Button type="button" variant="outline" onClick={applyPromo} disabled={promoChecking}>
+                          {promoChecking ? "Checking..." : "Apply"}
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">One use per member.</p>
+                  </div>
+
                   <div className="border-t pt-3 space-y-1 text-sm">
+                    <p className="text-center uppercase tracking-widest text-[11px] text-muted-foreground mb-1">Price details</p>
                     {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
                       <div className="flex justify-between text-muted-foreground">
                         <span>
                           ${breakdown.unitRate.toLocaleString()} × {breakdown.units} {breakdown.unitLabel}
                         </span>
-                        <span>${breakdown.total.toLocaleString()}</span>
+                        <span>${(breakdown.unitRate * breakdown.units).toLocaleString()}</span>
+                      </div>
+                    )}
+                    {dayDiscount > 0 && (
+                      <div className="flex justify-between text-emerald-400">
+                        <span>3+ days discount</span>
+                        <span>-${dayDiscount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {promoDiscount > 0 && (
+                      <div className="flex justify-between text-emerald-400">
+                        <span>Promo {promo?.code}</span>
+                        <span>-${promoDiscount.toLocaleString()}</span>
                       </div>
                     )}
                     {addonTotal > 0 && (
@@ -514,10 +632,16 @@ const RentalDetails: React.FC = () => {
                         <span>+${addonTotal.toLocaleString()}</span>
                       </div>
                     )}
-                    <div className="flex justify-between">
-                      <span>Estimated total</span>
-                      <span className="font-semibold">${total.toLocaleString()}</span>
+                    <div className="flex justify-between border-t border-border/50 pt-2 text-base">
+                      <span>Total</span>
+                      <span className="font-bold">${total.toLocaleString()}</span>
                     </div>
+                    {securityDeposit > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Security deposit (authorized before pickup)</span>
+                        <span>${securityDeposit.toLocaleString()}</span>
+                      </div>
+                    )}
                     {downPayment > 0 && (
                       <div className="flex justify-between text-primary">
                         <span>Down payment</span>

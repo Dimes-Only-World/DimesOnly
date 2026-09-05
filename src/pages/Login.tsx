@@ -135,7 +135,7 @@ const Login: React.FC = () => {
       });
 
       // Navigate immediately - don't wait for Supabase Auth sync
-      navigate("/dashboard", { replace: true });
+      navigate(new URLSearchParams(window.location.search).get("redirect") || "/dashboard", { replace: true });
 
       // Fire-and-forget: sync Supabase Auth session in the background
       const emailForSync = isEmail(identifier) ? identifier : userData.email;
