@@ -4011,6 +4011,21 @@ export type Database = {
         }
         Relationships: []
       }
+      v_vehicle_rented_until: {
+        Row: {
+          rented_until: string | null
+          vehicle_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       api_jackpot_close_and_open: {
