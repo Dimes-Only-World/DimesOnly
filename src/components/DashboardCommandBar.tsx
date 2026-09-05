@@ -90,6 +90,12 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       to: "/dashboard/earnings",
     },
     {
+      label: "Rental Commissions",
+      value: formatCurrency(stats.rentalCommissions),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
       label: "Jackpot Tickets",
       value: String(stats.jackpotTickets),
       Icon: Trophy,
