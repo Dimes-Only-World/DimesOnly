@@ -243,6 +243,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     winnings: [],
   });
   const [currentEarnings, setCurrentEarnings] = useState(0);
+  const [rentalCommissions, setRentalCommissions] = useState<
+    Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
+  >([]);
+  const [rentalCommissionTotal, setRentalCommissionTotal] = useState(0);
   const [tabValue, setTabValue] = useState("weekly");
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
@@ -653,6 +657,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         referralTipsResult,
         jackpotWinningsResult,
         payoutsResult,
+        rentalCommissionsResult,
       ] = await Promise.all([
         supabase
           .from("weekly_earnings")
@@ -703,6 +708,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .select("*")
           .eq("user_id", userData.id)
           .eq("payout_status", "completed"),
+
+        (supabase as any)
+          .from("rental_commissions")
+          .select("id, amount, commission_type, status, created_at")
+          .eq("user_id", userData.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       if (weeklyResult.error) throw weeklyResult.error;
@@ -711,6 +722,17 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       if (referralTipsResult.error) throw referralTipsResult.error;
       if (jackpotWinningsResult.error) throw jackpotWinningsResult.error;
       if (payoutsResult.error) throw payoutsResult.error;
+
+      const rentalRows = (((rentalCommissionsResult as any)?.data as any[]) || []).map((row) => ({
+        id: String(row.id),
+        amount: Number(row.amount || 0),
+        commission_type: String(row.commission_type || "direct"),
+        status: String(row.status || "pending"),
+        created_at: String(row.created_at || ""),
+      }));
+      const rentalTotal = rentalRows.reduce((sum, row) => sum + row.amount, 0);
+      setRentalCommissions(rentalRows);
+      setRentalCommissionTotal(rentalTotal);
 
       setWeeklyEarnings(
         (weeklyResult.data as unknown as WeeklyEarning[]) || [],
@@ -829,7 +851,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const weeklyTotal = (
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
-      const totalEarnings = Math.max(tipsTotal + referralTotal, weeklyTotal);
+      const totalEarnings =
+        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal;
 
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
@@ -1390,7 +1413,7 @@ return (
           </CardContent>
         </Card>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card className="border-green-200 bg-green-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-green-700">
@@ -1416,6 +1439,22 @@ return (
               {formatCurrency(currentEarnings)}
             </div>
             <p className="text-sm text-blue-600">All time total</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-amber-700">
+              Rental Commissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-800">
+              {formatCurrency(rentalCommissionTotal)}
+            </div>
+            <p className="text-sm text-amber-600">
+              {rentalCommissions.length} car rental{rentalCommissions.length === 1 ? "" : "s"} referred
+            </p>
           </CardContent>
         </Card>
 
