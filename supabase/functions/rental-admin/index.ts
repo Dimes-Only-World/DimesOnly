@@ -54,8 +54,8 @@ serve(async (req) => {
         const { data, error } = await admin.from("vehicle_media").select("*").eq("vehicle_id", vehicleId).order("sort_order");
         if (error) throw error;
         const withUrls = await Promise.all((data || []).map(async (m: any) => {
-          const { data: pub } = admin.storage.from("vehicle-media").getPublicUrl(m.storage_path);
-          return { ...m, url: pub.publicUrl };
+          const { data: s } = await admin.storage.from("vehicle-media").createSignedUrl(m.storage_path, 60 * 60);
+          return { ...m, url: s?.signedUrl };
         }));
         return json({ data: withUrls });
       }
