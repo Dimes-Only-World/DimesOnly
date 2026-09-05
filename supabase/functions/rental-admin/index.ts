@@ -123,7 +123,36 @@ serve(async (req) => {
         return json({ url: data.signedUrl });
       }
 
+      // ============ Promo Codes ============
+      case "listPromoCodes": {
+        const { data, error } = await admin.from("promo_codes").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        return json({ data });
+      }
+      case "upsertPromoCode": {
+        const { payload } = params;
+        const row = { ...payload };
+        delete row.created_at; delete row.updated_at; delete row.uses_count;
+        if (!row.id) delete row.id;
+        row.code = String(row.code || "").trim().toUpperCase();
+        if (!row.code) return json({ error: "Code is required" }, 400);
+        row.discount_value = Number(row.discount_value) || 0;
+        row.max_uses = row.max_uses ? Number(row.max_uses) : null;
+        row.expires_at = row.expires_at || null;
+        row.updated_at = new Date().toISOString();
+        const { data, error } = await admin.from("promo_codes").upsert(row, { onConflict: "id" }).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "deletePromoCode": {
+        const { id } = params;
+        const { error } = await admin.from("promo_codes").delete().eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+
       // ============ Themed Packages ============
+
       case "listPackages": {
         const { data, error } = await admin.from("themed_packages").select("*").order("price");
         if (error) throw error;
