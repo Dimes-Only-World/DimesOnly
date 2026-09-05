@@ -14,6 +14,7 @@ import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
 import AngelLoader from "@/components/AngelLoader";
+import { CancellationPolicyDialog, PaymentDetailsDialog } from "@/components/rentals/RentalPolicyDialogs";
 
 type Review = {
   id: string;
@@ -108,6 +109,8 @@ const RentalDetails: React.FC = () => {
 
   // booking form
   const [showBook, setShowBook] = useState(false);
+  const [showCancelPolicy, setShowCancelPolicy] = useState(false);
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [rentalType, setRentalType] = useState<string>("daily");
@@ -482,12 +485,18 @@ const RentalDetails: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-emerald-500/10 border-emerald-500/30 mb-6">
+            <Card
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowCancelPolicy(true)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowCancelPolicy(true); } }}
+              className="bg-emerald-500/10 border-emerald-500/30 mb-6 cursor-pointer hover:border-emerald-400/60 transition-colors"
+            >
               <CardContent className="p-4 flex items-start gap-3">
                 <CalendarX2 className="w-5 h-5 text-emerald-400 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-emerald-400">Free cancellation</p>
-                  <p className="text-sm text-emerald-300/80">Full refund if cancelled within 1 hour.</p>
+                  <p className="font-semibold text-emerald-400 underline underline-offset-4">Free cancellation</p>
+                  <p className="text-sm text-emerald-300/80">Tap to view the full cancellation policy.</p>
                 </div>
               </CardContent>
             </Card>
@@ -605,7 +614,16 @@ const RentalDetails: React.FC = () => {
                   </div>
 
                   <div className="border-t pt-3 space-y-1 text-sm">
-                    <p className="text-center uppercase tracking-widest text-[11px] text-muted-foreground mb-1">Price details</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="uppercase tracking-widest text-[11px] text-muted-foreground">Price details</p>
+                      <button
+                        type="button"
+                        onClick={() => setShowPaymentDetails(true)}
+                        className="text-[11px] font-semibold text-primary underline underline-offset-4"
+                      >
+                        Payment details
+                      </button>
+                    </div>
                     {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
                       <div className="flex justify-between text-muted-foreground">
                         <span>
@@ -703,6 +721,9 @@ const RentalDetails: React.FC = () => {
         {id && <CapturesGallery vehicleId={id} limit={12} />}
       </div>
 
+
+      <CancellationPolicyDialog open={showCancelPolicy} onOpenChange={setShowCancelPolicy} />
+      <PaymentDetailsDialog open={showPaymentDetails} onOpenChange={setShowPaymentDetails} />
 
       <PhotoLightbox
         photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}

@@ -24,7 +24,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle } from "lucide-react";
+import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
 
 type Booking = {
@@ -43,6 +45,8 @@ type Booking = {
     year: number | null;
     make: string | null;
     model: string | null;
+    day_rate?: number | null;
+    three_day_rate?: number | null;
   } | null;
   heroPhoto?: string | null;
   review?: { id: string; rating: number; review_text: string | null } | null;
@@ -93,6 +97,8 @@ const MyBookings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
+  const [extendTarget, setExtendTarget] = useState<Booking | null>(null);
+  const [extendDate, setExtendDate] = useState("");
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
@@ -118,7 +124,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, status, created_at, vehicles ( id, year, make, model )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, status, created_at, vehicles ( id, year, make, model, day_rate, three_day_rate )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -185,6 +191,77 @@ const MyBookings: React.FC = () => {
   const canCapture = (b: Booking) => {
     const label = statusMeta(b.status).label;
     return label === "Active" || label === "Completed";
+  };
+
+  const canExtend = (b: Booking) => {
+    const label = statusMeta(b.status).label;
+    return (label === "Upcoming" || label === "Active") && !!b.end_date;
+  };
+
+  const extraDays = (b: Booking | null, newEnd: string) => {
+    if (!b?.end_date || !newEnd) return 0;
+    const diff = new Date(newEnd).getTime() - new Date(b.end_date).getTime();
+    return diff <= 0 ? 0 : Math.ceil(diff / 86400000);
+  };
+
+  const extendRate = (b: Booking | null) => {
+    if (!b) return 0;
+    const base = Number(b.vehicles?.day_rate || 0);
+    const three = Number(b.vehicles?.three_day_rate || 0);
+    const totalDays =
+      b.end_date && b.start_date
+        ? Math.ceil(
+            (new Date(extendDate || b.end_date).getTime() - new Date(b.start_date).getTime()) /
+              86400000
+          )
+        : 0;
+    return totalDays >= 3 && three > 0 && three < base ? three : base;
+  };
+
+  const extendCost = useMemo(
+    () => extraDays(extendTarget, extendDate) * extendRate(extendTarget),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [extendTarget, extendDate]
+  );
+
+  const confirmExtend = async () => {
+    if (!extendTarget) return;
+    const days = extraDays(extendTarget, extendDate);
+    if (days <= 0) {
+      toast({
+        title: "Pick a later date",
+        description: "The new return date must be after your current one.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await (supabase as any)
+        .from("rental_bookings")
+        .update({
+          end_date: new Date(extendDate).toISOString(),
+          total_price: Number(extendTarget.total_price || 0) + extendCost,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", extendTarget.id);
+      if (error) throw error;
+      toast({
+        title: "Rental extended",
+        description: `Added ${days} day${days > 1 ? "s" : ""} for $${extendCost.toLocaleString()}.`,
+      });
+      setExtendTarget(null);
+      setExtendDate("");
+      if (userId) await loadBookings(userId);
+    } catch (e: any) {
+      toast({
+        title: "Extension failed",
+        description: e.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const confirmCancel = async () => {
@@ -347,6 +424,20 @@ const MyBookings: React.FC = () => {
                     vehicleTitle={v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim() : undefined}
                   />
                 )}
+                {canExtend(b) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setExtendTarget(b);
+                      setExtendDate(
+                        b.end_date ? new Date(b.end_date).toISOString().slice(0, 16) : ""
+                      );
+                    }}
+                  >
+                    <CalendarPlus className="w-4 h-4 mr-1" /> Extend
+                  </Button>
+                )}
                 {canCancel(b) && (
                   <Button
                     size="sm"
@@ -423,6 +514,75 @@ const MyBookings: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Extend rental */}
+      <Dialog
+        open={!!extendTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setExtendTarget(null);
+            setExtendDate("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Extend your rental</DialogTitle>
+            <DialogDescription>
+              Current return: {formatDate(extendTarget?.end_date)}. Choose a new return date and
+              time.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label>New return date/time</Label>
+            <Input
+              type="datetime-local"
+              value={extendDate}
+              min={
+                extendTarget?.end_date
+                  ? new Date(extendTarget.end_date).toISOString().slice(0, 16)
+                  : undefined
+              }
+              onChange={(e) => setExtendDate(e.target.value)}
+            />
+            <div className="rounded-lg border border-border/60 bg-card/60 p-3 text-sm space-y-1">
+              <div className="flex justify-between text-muted-foreground">
+                <span>
+                  Extra days × ${extendRate(extendTarget).toLocaleString()}/day
+                </span>
+                <span>{extraDays(extendTarget, extendDate)}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Additional cost</span>
+                <span>${extendCost.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>New total</span>
+                <span>
+                  ${(Number(extendTarget?.total_price || 0) + extendCost).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setExtendTarget(null);
+                setExtendDate("");
+              }}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmExtend} disabled={submitting || extendCost <= 0}>
+              {submitting ? "Extending…" : "Confirm Extension"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel confirmation */}
       <AlertDialog open={!!cancelTarget} onOpenChange={(o) => !o && setCancelTarget(null)}>

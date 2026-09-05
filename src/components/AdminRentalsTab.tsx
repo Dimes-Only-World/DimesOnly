@@ -667,7 +667,8 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
             {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.rental_type}
           </p>
           <p className="text-xs text-muted-foreground">
-            Renter {b.renter_user_id.slice(0, 8)} · Start {new Date(b.start_date).toLocaleString()}
+            Renter {b.renter_user_id.slice(0, 8)} · Start {new Date(b.start_date).toLocaleString()} · Return{" "}
+            {b.end_date ? new Date(b.end_date).toLocaleString() : "—"}
           </p>
           <p className="text-xs">Total ${Number(b.total_price).toLocaleString()} · Status: <b>{b.status}</b></p>
           {b.referrer_username && <p className="text-xs text-muted-foreground">Ref: {b.referrer_username} · Upline: {b.upline_referrer_username || "—"}</p>}

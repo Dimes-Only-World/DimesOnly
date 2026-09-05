@@ -24,6 +24,7 @@ interface Vehicle {
   rental_options: string[];
   availability_status: string;
   hero_url?: string | null;
+  rented_until?: string | null;
 }
 
 const Rentals: React.FC = () => {
@@ -63,7 +64,14 @@ const Rentals: React.FC = () => {
           return { ...v, hero_url: null };
         })
       );
-      setVehicles(withMedia);
+      const { data: rentedRows } = await (supabase as any)
+        .from("v_vehicle_rented_until")
+        .select("vehicle_id, rented_until");
+      const rentedMap = new Map<string, string>(
+        (rentedRows || []).map((r: any) => [r.vehicle_id, r.rented_until])
+      );
+
+      setVehicles(withMedia.map((v) => ({ ...v, rented_until: rentedMap.get(v.id) || null })));
       setLoading(false);
     };
     load();
@@ -225,6 +233,9 @@ const Rentals: React.FC = () => {
                     {v.availability_status !== "available" && (
                       <div className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded">
                         {v.availability_status}
+                        {v.rented_until
+                          ? ` till ${new Date(v.rented_until).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}`
+                          : ""}
                       </div>
                     )}
                   </div>
