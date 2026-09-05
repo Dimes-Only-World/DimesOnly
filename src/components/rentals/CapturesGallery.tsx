@@ -32,15 +32,17 @@ const CapturesGallery: React.FC<{ vehicleId?: string; limit?: number }> = ({ veh
         if (vehicleId) query = query.eq("vehicle_id", vehicleId);
         const { data, error } = await query;
         if (error) throw error;
-        const withUrls = await Promise.all(
-          (data || []).map(async (c: Capture) => {
-            const { data: s } = await supabase.storage
-              .from("rental-captures")
-              .createSignedUrl(c.storage_path, 60 * 60);
-            return { ...c, signedUrl: s?.signedUrl };
-          }),
-        );
-        setItems(withUrls);
+        const paths = (data || []).map((c: Capture) => c.storage_path);
+        const urlByPath = new Map<string, string>();
+        if (paths.length) {
+          const { data: signedList } = await supabase.storage
+            .from("rental-captures")
+            .createSignedUrls(paths, 60 * 60);
+          for (const s of signedList || []) {
+            if (s?.path && s?.signedUrl) urlByPath.set(s.path, s.signedUrl);
+          }
+        }
+        setItems((data || []).map((c: Capture) => ({ ...c, signedUrl: urlByPath.get(c.storage_path) })));
       } catch (e) {
         console.error("Load captures failed", e);
       } finally {
