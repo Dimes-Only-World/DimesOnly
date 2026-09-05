@@ -474,6 +474,8 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
           </Select>
         </div>
         <div><Label>Day Rate ($)</Label><Input type="number" value={f.day_rate || 0} onChange={(e) => setF({ ...f, day_rate: e.target.value })} /></div>
+        <div><Label>3+ Day Rate ($ / day)</Label><Input type="number" value={f.three_day_rate || 0} onChange={(e) => setF({ ...f, three_day_rate: e.target.value })} placeholder="Discounted daily rate for 3+ days" /></div>
+
         <div><Label>Weekly Rate ($)</Label><Input type="number" value={f.weekly_rate || 0} onChange={(e) => setF({ ...f, weekly_rate: e.target.value })} /></div>
         <div><Label>Monthly Rate ($)</Label><Input type="number" value={f.monthly_rate || 0} onChange={(e) => setF({ ...f, monthly_rate: e.target.value })} /></div>
         <div><Label>Down Payment ($)</Label><Input type="number" value={f.down_payment || 0} onChange={(e) => setF({ ...f, down_payment: e.target.value })} /></div>
