@@ -2305,6 +2305,80 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_redemptions: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          promo_code_id: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          promo_code_id: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          promo_code_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          updated_at: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          updated_at?: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          updated_at?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           created_at: string
@@ -2485,6 +2559,7 @@ export type Database = {
         Row: {
           admin_notes: string | null
           created_at: string
+          discount_amount: number
           down_payment_amount: number
           end_date: string | null
           id: string
@@ -2492,9 +2567,11 @@ export type Database = {
           license_path: string | null
           paypal_order_id: string | null
           pickup_location: string | null
+          promo_code: string | null
           referrer_username: string | null
           rental_type: string
           renter_user_id: string
+          security_deposit: number
           signature_text: string | null
           signed_at: string | null
           start_date: string
@@ -2507,6 +2584,7 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           created_at?: string
+          discount_amount?: number
           down_payment_amount?: number
           end_date?: string | null
           id?: string
@@ -2514,9 +2592,11 @@ export type Database = {
           license_path?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
+          promo_code?: string | null
           referrer_username?: string | null
           rental_type: string
           renter_user_id: string
+          security_deposit?: number
           signature_text?: string | null
           signed_at?: string | null
           start_date: string
@@ -2529,6 +2609,7 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           created_at?: string
+          discount_amount?: number
           down_payment_amount?: number
           end_date?: string | null
           id?: string
@@ -2536,9 +2617,11 @@ export type Database = {
           license_path?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
+          promo_code?: string | null
           referrer_username?: string | null
           rental_type?: string
           renter_user_id?: string
+          security_deposit?: number
           signature_text?: string | null
           signed_at?: string | null
           start_date?: string
@@ -3580,6 +3663,8 @@ export type Database = {
           monthly_rate: number | null
           pickup_location: string | null
           rental_options: string[]
+          security_deposit: number
+          three_day_rate: number | null
           updated_at: string
           vehicle_type: string | null
           vin: string | null
@@ -3603,6 +3688,8 @@ export type Database = {
           monthly_rate?: number | null
           pickup_location?: string | null
           rental_options?: string[]
+          security_deposit?: number
+          three_day_rate?: number | null
           updated_at?: string
           vehicle_type?: string | null
           vin?: string | null
@@ -3626,6 +3713,8 @@ export type Database = {
           monthly_rate?: number | null
           pickup_location?: string | null
           rental_options?: string[]
+          security_deposit?: number
+          three_day_rate?: number | null
           updated_at?: string
           vehicle_type?: string | null
           vin?: string | null
