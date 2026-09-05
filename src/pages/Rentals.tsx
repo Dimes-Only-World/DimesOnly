@@ -237,6 +237,11 @@ const Rentals: React.FC = () => {
                         <MapPin className="w-3 h-3" /> {v.pickup_location}
                       </p>
                     )}
+                    {(v as any).three_day_rate > 0 && (
+                      <p className="text-xs font-medium text-emerald-400">
+                        3+ days: ${Number((v as any).three_day_rate).toLocaleString()}/day
+                      </p>
+                    )}
                     <div className="flex items-center justify-between pt-2">
                       <div>
                         <span className="text-xs text-muted-foreground">from</span>
@@ -246,6 +251,7 @@ const Rentals: React.FC = () => {
                           <span className="text-xs text-muted-foreground">{rateLabel}</span>
                         </p>
                       </div>
+
                       <Link to={`/rentals/${v.id}`}>
                         <Button size="sm">View Details</Button>
                       </Link>
