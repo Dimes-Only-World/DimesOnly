@@ -228,6 +228,41 @@ Deno.serve(async (req) => {
       console.log('Unknown password hash format - rejecting login');
     }
 
+    // Fallback: if the stored hash doesn't match, verify against Supabase Auth.
+    // This covers passwords changed via the recovery flow where the custom table
+    // sync failed, and self-heals by re-syncing the bcrypt hash.
+    if (!passwordMatch && user.email) {
+      try {
+        const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+        const authClient = createClient(supabaseUrl, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false }
+        });
+        const { data: authData, error: authErr } = await authClient.auth.signInWithPassword({
+          email: user.email,
+          password,
+        });
+        if (!authErr && authData?.user && authData.user.id === user.id) {
+          console.log('Supabase Auth verified password - re-syncing custom hash');
+          passwordMatch = true;
+          try {
+            const bcryptModule = await import('https://esm.sh/bcryptjs@2.4.3');
+            const bcrypt = bcryptModule.default || bcryptModule;
+            const newHash = bcrypt.hashSync(password, 10);
+            await supabase
+              .from('users')
+              .update({ password_hash: newHash, hash_type: 'bcrypt', updated_at: new Date().toISOString() })
+              .eq('id', user.id);
+          } catch (syncErr) {
+            console.error('Hash re-sync failed:', syncErr);
+          }
+        } else if (authErr) {
+          console.log('Supabase Auth fallback did not verify:', authErr.message);
+        }
+      } catch (e) {
+        console.error('Supabase Auth fallback error:', e);
+      }
+    }
+
     if (!passwordMatch) {
       recordFailedAttempt(clientIP);
       console.log('Password validation failed - failed attempt recorded');
