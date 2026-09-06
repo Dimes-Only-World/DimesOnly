@@ -89,15 +89,32 @@ Deno.serve(async (req) => {
     // NOTE: Using a slightly lower cost factor improves reset speed while remaining secure.
     const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
-    // Find the user in our custom users table
-    const { data: userData, error: fetchError } = await supabaseAdmin
+    // Find the user in our custom users table.
+    // Match by auth user id first, then fall back to a CASE-INSENSITIVE email match
+    // (stored emails may have different capitalization than the auth email).
+    let userData: { id: string; username: string; email: string } | null = null;
+
+    const { data: byId } = await supabaseAdmin
       .from('users')
       .select('id, username, email')
-      .eq('email', email)
-      .single();
+      .eq('id', user.id)
+      .maybeSingle();
 
-    if (fetchError || !userData) {
-      console.error('User not found in custom users table:', fetchError);
+    if (byId) {
+      userData = byId;
+    } else {
+      const { data: byEmail, error: fetchError } = await supabaseAdmin
+        .from('users')
+        .select('id, username, email')
+        .ilike('email', email)
+        .limit(1)
+        .maybeSingle();
+      if (fetchError) console.error('Email lookup error:', fetchError);
+      userData = byEmail ?? null;
+    }
+
+    if (!userData) {
+      console.error('User not found in custom users table for', user.id, email);
       return new Response(JSON.stringify({ error: 'User profile not found. Please contact support.' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

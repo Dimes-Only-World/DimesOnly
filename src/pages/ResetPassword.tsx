@@ -132,13 +132,16 @@ const ResetPassword: React.FC = () => {
         })
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         console.error('Password sync error:', result);
-        // The Supabase Auth password was updated, but sync failed
-        // Still show success since the user can login with email
-        console.warn('Custom table sync failed, but auth password was updated');
+        // Auth password was updated; login now self-heals the profile hash on first
+        // successful sign-in, so surface a soft warning instead of failing.
+        toast({
+          title: "Password updated",
+          description: "Your new password is saved. If username login fails, sign in with your email once.",
+        });
       }
 
       console.log('✅ Password successfully updated');
