@@ -7,6 +7,11 @@ export interface DashboardStats {
   jackpotTickets: number;
   referrals: number;
   rentalCommissions: number;
+  tipsEarned: number;
+  tipOverrides: number;
+  eventEarnings: number;
+  eventCommissions: number;
+  eventOverrides: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -15,7 +20,13 @@ const EMPTY: DashboardStats = {
   jackpotTickets: 0,
   referrals: 0,
   rentalCommissions: 0,
+  tipsEarned: 0,
+  tipOverrides: 0,
+  eventEarnings: 0,
+  eventCommissions: 0,
+  eventOverrides: 0,
 };
+
 
 const sum = (rows: any[] | null | undefined, key: string) =>
   (rows || []).reduce((acc, row) => acc + Number(row?.[key] || 0), 0);
