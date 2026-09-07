@@ -35,12 +35,13 @@ const LoadingFallback = () => <AngelLoader variant="fullscreen" />;
 // SDK always matches PAYPAL_ENVIRONMENT (sandbox/live) on the backend.
 const AppWithPayPal: React.FC = () => {
   const [clientId, setClientId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     // Never let a slow/blocked network keep the app on the loading screen.
     const timer = setTimeout(() => {
-      if (!cancelled) setClientId((prev) => (prev === null ? '' : prev));
+      if (!cancelled) setReady(true);
     }, 4000);
     (async () => {
       try {
@@ -50,23 +51,21 @@ const AppWithPayPal: React.FC = () => {
       } catch (err) {
         console.error('Failed to load PayPal config:', err);
         if (!cancelled) setClientId('');
+      } finally {
+        if (!cancelled) setReady(true);
       }
     })();
     return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
-  if (clientId === null) return <LoadingFallback />;
+  if (!ready) return <LoadingFallback />;
 
-
-  if (!clientId) {
-    // PayPal not configured — render app anyway; PayPal buttons will be disabled.
-    return <App />;
-  }
-
+  // Always render the same tree shape so a late config response never remounts
+  // the app; only the PayPal SDK options change.
   return (
     <PayPalScriptProvider
       options={{
-        clientId,
+        clientId: clientId || 'sb',
         currency: "USD",
         intent: "capture" as const,
         "data-sdk-integration-source": "integrationbuilder_sc",
@@ -77,6 +76,7 @@ const AppWithPayPal: React.FC = () => {
     </PayPalScriptProvider>
   );
 };
+
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
