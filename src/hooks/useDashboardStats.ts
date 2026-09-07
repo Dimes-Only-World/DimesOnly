@@ -7,6 +7,11 @@ export interface DashboardStats {
   jackpotTickets: number;
   referrals: number;
   rentalCommissions: number;
+  tipsEarned: number;
+  tipOverrides: number;
+  eventEarnings: number;
+  eventCommissions: number;
+  eventOverrides: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -15,7 +20,13 @@ const EMPTY: DashboardStats = {
   jackpotTickets: 0,
   referrals: 0,
   rentalCommissions: 0,
+  tipsEarned: 0,
+  tipOverrides: 0,
+  eventEarnings: 0,
+  eventCommissions: 0,
+  eventOverrides: 0,
 };
+
 
 const sum = (rows: any[] | null | undefined, key: string) =>
   (rows || []).reduce((acc, row) => acc + Number(row?.[key] || 0), 0);
@@ -41,7 +52,7 @@ export const useDashboardStats = (
     const load = async () => {
       setLoading(true);
       try {
-        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals] =
+        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
             supabase
@@ -75,18 +86,42 @@ export const useDashboardStats = (
               .from("rental_commissions")
               .select("amount")
               .eq("user_id", userId),
+            (supabase as any)
+              .from("event_owner_earnings")
+              .select("amount, earnings_type")
+              .eq("user_id", userId),
           ]);
 
         if (cancelled) return;
 
         const rentalCommissions = sum((rentals as any)?.data as any[], "amount");
+        const tipsEarned = sum(tips.data as any[], "tip_amount");
+        const tipOverrides = sum(tipRefs.data as any[], "referrer_commission");
+        const eventRows = (((eventEarn as any)?.data as any[]) || []);
+        const isOverride = (t: any) =>
+          String(t || "").toLowerCase().includes("override") ||
+          String(t || "").toLowerCase().includes("upline");
+        const eventOverrides = sum(
+          eventRows.filter((r) => isOverride(r?.earnings_type)),
+          "amount",
+        );
+        const eventCommissions = sum(
+          eventRows.filter((r) => !isOverride(r?.earnings_type)),
+          "amount",
+        );
+        const eventEarnings = eventCommissions + eventOverrides;
         const earned =
           rentalCommissions +
-          sum(tips.data as any[], "tip_amount") +
+          eventEarnings +
+          tipsEarned +
           sum(payments.data as any[], "referrer_commission") +
-          sum(tipRefs.data as any[], "referrer_commission");
+          tipOverrides;
         const weeklyTotal = sum(weekly.data as any[], "amount");
-        const totalEarnings = Math.max(earned, weeklyTotal + rentalCommissions);
+        const totalEarnings = Math.max(
+          earned,
+          weeklyTotal + rentalCommissions + eventEarnings,
+        );
+
         const paidOut = sum(payouts.data as any[], "amount");
 
         const activePoolId = (activePool.data as any)?.pool_id
@@ -118,6 +153,12 @@ export const useDashboardStats = (
           jackpotTickets: codes.size,
           referrals,
           rentalCommissions,
+          tipsEarned,
+          tipOverrides,
+          eventEarnings,
+          eventCommissions,
+          eventOverrides,
+
         });
 
       } catch (error) {

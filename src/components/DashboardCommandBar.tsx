@@ -82,6 +82,9 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
     }
   };
 
+  const userType = String(userData?.user_type || "").toLowerCase();
+  const isEntertainer = userType.includes("exotic") || userType.includes("stripper");
+
   const kpis = [
     {
       label: "Available Earnings",
@@ -92,6 +95,12 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
     {
       label: "Rental Commissions",
       value: formatCurrency(stats.rentalCommissions),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
+      label: "Event Earnings",
+      value: formatCurrency(stats.eventEarnings),
       Icon: DollarSign,
       to: "/dashboard/earnings",
     },
@@ -107,7 +116,25 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       Icon: Users,
       to: "/dashboard/referrals",
     },
+    // Entertainers see the tips they've collected; everyone sees tip overrides.
+    ...(isEntertainer
+      ? [
+          {
+            label: "Tips Earned",
+            value: formatCurrency(stats.tipsEarned),
+            Icon: DollarSign,
+            to: "/dashboard/earnings",
+          },
+        ]
+      : []),
+    {
+      label: "Overrides From Tips",
+      value: formatCurrency(stats.tipOverrides),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
   ];
+
 
   const ringStyle = {
     background: `conic-gradient(hsl(var(--dimes-magenta)) ${completion * 3.6}deg, hsl(var(--dimes-surface-elevated)) 0deg)`,

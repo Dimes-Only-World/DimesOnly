@@ -247,6 +247,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
   const [rentalCommissionTotal, setRentalCommissionTotal] = useState(0);
+  const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
+    commissions: 0,
+    overrides: 0,
+    count: 0,
+  });
+
   const [tabValue, setTabValue] = useState("weekly");
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
@@ -658,6 +664,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         jackpotWinningsResult,
         payoutsResult,
         rentalCommissionsResult,
+        eventEarningsResult,
+
       ] = await Promise.all([
         supabase
           .from("weekly_earnings")
@@ -714,6 +722,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .select("id, amount, commission_type, status, created_at")
           .eq("user_id", userData.id)
           .order("created_at", { ascending: false }),
+
+        (supabase as any)
+          .from("event_owner_earnings")
+          .select("id, amount, earnings_type, created_at")
+          .eq("user_id", userData.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       if (weeklyResult.error) throw weeklyResult.error;
@@ -733,6 +747,22 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const rentalTotal = rentalRows.reduce((sum, row) => sum + row.amount, 0);
       setRentalCommissions(rentalRows);
       setRentalCommissionTotal(rentalTotal);
+
+      const eventRows = ((eventEarningsResult as any)?.data as any[]) || [];
+      const isEventOverride = (t: any) => {
+        const v = String(t || "").toLowerCase();
+        return v.includes("override") || v.includes("upline");
+      };
+      setEventEarningsBreakdown({
+        commissions: eventRows
+          .filter((r) => !isEventOverride(r?.earnings_type))
+          .reduce((sum, r) => sum + Number(r?.amount || 0), 0),
+        overrides: eventRows
+          .filter((r) => isEventOverride(r?.earnings_type))
+          .reduce((sum, r) => sum + Number(r?.amount || 0), 0),
+        count: eventRows.length,
+      });
+
 
       setWeeklyEarnings(
         (weeklyResult.data as unknown as WeeklyEarning[]) || [],
@@ -1458,6 +1488,27 @@ return (
           </CardContent>
         </Card>
 
+        <Card className="border-indigo-200 bg-indigo-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-indigo-700">
+              Event Earnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-indigo-800">
+              {formatCurrency(
+                eventEarningsBreakdown.commissions + eventEarningsBreakdown.overrides,
+              )}
+            </div>
+            <p className="text-sm text-indigo-600">
+              Commissions {formatCurrency(eventEarningsBreakdown.commissions)} ·
+              Overrides {formatCurrency(eventEarningsBreakdown.overrides)}
+            </p>
+          </CardContent>
+        </Card>
+
+
+
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-purple-700">
@@ -1482,7 +1533,11 @@ return (
               <DollarSign className="w-4 h-4" />
               Car Rental Commissions
             </CardTitle>
+            <p className="text-xs text-gray-500">
+              Overrides pay 5% on rentals and 10% on direct referrals.
+            </p>
           </CardHeader>
+
           <CardContent className="space-y-2">
             {rentalCommissions.slice(0, 10).map((c) => (
               <div
