@@ -720,6 +720,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .select("id, amount, commission_type, status, created_at")
           .eq("user_id", userData.id)
           .order("created_at", { ascending: false }),
+
+        (supabase as any)
+          .from("event_owner_earnings")
+          .select("id, amount, earnings_type, created_at")
+          .eq("user_id", userData.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       if (weeklyResult.error) throw weeklyResult.error;
@@ -739,6 +745,22 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const rentalTotal = rentalRows.reduce((sum, row) => sum + row.amount, 0);
       setRentalCommissions(rentalRows);
       setRentalCommissionTotal(rentalTotal);
+
+      const eventRows = ((eventEarningsResult as any)?.data as any[]) || [];
+      const isEventOverride = (t: any) => {
+        const v = String(t || "").toLowerCase();
+        return v.includes("override") || v.includes("upline");
+      };
+      setEventEarningsBreakdown({
+        commissions: eventRows
+          .filter((r) => !isEventOverride(r?.earnings_type))
+          .reduce((sum, r) => sum + Number(r?.amount || 0), 0),
+        overrides: eventRows
+          .filter((r) => isEventOverride(r?.earnings_type))
+          .reduce((sum, r) => sum + Number(r?.amount || 0), 0),
+        count: eventRows.length,
+      });
+
 
       setWeeklyEarnings(
         (weeklyResult.data as unknown as WeeklyEarning[]) || [],
