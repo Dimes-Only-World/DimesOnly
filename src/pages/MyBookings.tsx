@@ -193,6 +193,18 @@ const MyBookings: React.FC = () => {
     return label === "Active" || label === "Completed";
   };
 
+  // Converts an ISO/UTC timestamp into a local wall-clock string for
+  // <input type="datetime-local">, which interprets its value as local time.
+  const toLocalInputValue = (iso?: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}`;
+  };
+
   const canExtend = (b: Booking) => {
     const label = statusMeta(b.status).label;
     return (label === "Upcoming" || label === "Active") && !!b.end_date;
