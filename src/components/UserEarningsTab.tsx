@@ -1533,7 +1533,11 @@ return (
               <DollarSign className="w-4 h-4" />
               Car Rental Commissions
             </CardTitle>
+            <p className="text-xs text-gray-500">
+              Overrides pay 5% on rentals and 10% on direct referrals.
+            </p>
           </CardHeader>
+
           <CardContent className="space-y-2">
             {rentalCommissions.slice(0, 10).map((c) => (
               <div
