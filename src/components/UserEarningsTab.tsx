@@ -247,6 +247,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
   const [rentalCommissionTotal, setRentalCommissionTotal] = useState(0);
+  const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
+    commissions: 0,
+    overrides: 0,
+    count: 0,
+  });
+
   const [tabValue, setTabValue] = useState("weekly");
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
