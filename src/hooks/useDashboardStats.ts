@@ -153,6 +153,12 @@ export const useDashboardStats = (
           jackpotTickets: codes.size,
           referrals,
           rentalCommissions,
+          tipsEarned,
+          tipOverrides,
+          eventEarnings,
+          eventCommissions,
+          eventOverrides,
+
         });
 
       } catch (error) {
