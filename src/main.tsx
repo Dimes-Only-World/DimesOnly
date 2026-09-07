@@ -38,6 +38,10 @@ const AppWithPayPal: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Never let a slow/blocked network keep the app on the loading screen.
+    const timer = setTimeout(() => {
+      if (!cancelled) setClientId((prev) => (prev === null ? '' : prev));
+    }, 4000);
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke('paypal-config');
@@ -48,10 +52,11 @@ const AppWithPayPal: React.FC = () => {
         if (!cancelled) setClientId('');
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   if (clientId === null) return <LoadingFallback />;
+
 
   if (!clientId) {
     // PayPal not configured — render app anyway; PayPal buttons will be disabled.
