@@ -125,12 +125,20 @@ export const useDashboardStats = (
           "amount",
         );
         const eventEarnings = eventCommissions + eventOverrides;
+        // Tip commissions are already counted via tips_transactions
+        const referralCommissions = sum(
+          ((payments.data as any[]) || []).filter(
+            (p) => !String(p?.payment_type || "").startsWith("tip_"),
+          ),
+          "amount",
+        );
         const earned =
           rentalCommissions +
           eventEarnings +
           tipsEarned +
-          sum(payments.data as any[], "referrer_commission") +
+          referralCommissions +
           tipOverrides;
+
         const weeklyTotal = sum(weekly.data as any[], "amount");
         const totalEarnings = Math.max(
           earned,
