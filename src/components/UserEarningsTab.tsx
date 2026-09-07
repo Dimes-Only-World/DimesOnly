@@ -664,6 +664,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         jackpotWinningsResult,
         payoutsResult,
         rentalCommissionsResult,
+        eventEarningsResult,
+
       ] = await Promise.all([
         supabase
           .from("weekly_earnings")
