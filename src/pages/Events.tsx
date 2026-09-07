@@ -545,7 +545,7 @@ const Events: React.FC = () => {
           </div>
 
           {/* Attendance Filter Tabs */}
-          <div className="flex justify-center gap-2 mb-4">
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
             <Button
               onClick={() => setAttendanceFilter("all")}
               className={`px-4 py-2 font-semibold ${

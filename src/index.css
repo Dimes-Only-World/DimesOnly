@@ -346,3 +346,48 @@ body.paypal-overlay-open {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ---------------------------------------------
+   Foldable phone support (Galaxy Fold 4/5/6/7/8)
+   Cover screens are ~280-360px wide; unfolded
+   inner screens are ~650-900px (tablet-like).
+---------------------------------------------- */
+
+/* Narrow cover screens */
+@media (max-width: 400px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-wrap: break-word;
+  }
+
+  h1, h2, h3, h4, p, span, a, button, label {
+    overflow-wrap: anywhere;
+  }
+
+  img, video, canvas, svg, iframe {
+    max-width: 100%;
+  }
+
+  /* Keep wide data tables scrollable instead of pushing the page sideways */
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Tighter default gutters so cards keep breathing room */
+  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Unfolded inner screens behave like small tablets */
+@media (min-width: 600px) and (max-width: 900px) {
+  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    width: 100%;
+  }
+}
