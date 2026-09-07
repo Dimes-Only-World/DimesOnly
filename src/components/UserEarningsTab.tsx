@@ -1488,6 +1488,27 @@ return (
           </CardContent>
         </Card>
 
+        <Card className="border-indigo-200 bg-indigo-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-indigo-700">
+              Event Earnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-indigo-800">
+              {formatCurrency(
+                eventEarningsBreakdown.commissions + eventEarningsBreakdown.overrides,
+              )}
+            </div>
+            <p className="text-sm text-indigo-600">
+              Commissions {formatCurrency(eventEarningsBreakdown.commissions)} ·
+              Overrides {formatCurrency(eventEarningsBreakdown.overrides)}
+            </p>
+          </CardContent>
+        </Card>
+
+
+
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-purple-700">
