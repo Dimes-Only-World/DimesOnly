@@ -554,8 +554,6 @@ const MyBookings: React.FC = () => {
                   ? toLocalInputValue(extendTarget.end_date)
                   : undefined
               }
-                  : undefined
-              }
               onChange={(e) => setExtendDate(e.target.value)}
             />
             <div className="rounded-lg border border-border/60 bg-card/60 p-3 text-sm space-y-1">
