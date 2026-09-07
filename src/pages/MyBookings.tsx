@@ -193,6 +193,18 @@ const MyBookings: React.FC = () => {
     return label === "Active" || label === "Completed";
   };
 
+  // Converts an ISO/UTC timestamp into a local wall-clock string for
+  // <input type="datetime-local">, which interprets its value as local time.
+  const toLocalInputValue = (iso?: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}`;
+  };
+
   const canExtend = (b: Booking) => {
     const label = statusMeta(b.status).label;
     return (label === "Upcoming" || label === "Active") && !!b.end_date;
@@ -430,9 +442,7 @@ const MyBookings: React.FC = () => {
                     variant="outline"
                     onClick={() => {
                       setExtendTarget(b);
-                      setExtendDate(
-                        b.end_date ? new Date(b.end_date).toISOString().slice(0, 16) : ""
-                      );
+                      setExtendDate(toLocalInputValue(b.end_date));
                     }}
                   >
                     <CalendarPlus className="w-4 h-4 mr-1" /> Extend
@@ -541,7 +551,7 @@ const MyBookings: React.FC = () => {
               value={extendDate}
               min={
                 extendTarget?.end_date
-                  ? new Date(extendTarget.end_date).toISOString().slice(0, 16)
+                  ? toLocalInputValue(extendTarget.end_date)
                   : undefined
               }
               onChange={(e) => setExtendDate(e.target.value)}
