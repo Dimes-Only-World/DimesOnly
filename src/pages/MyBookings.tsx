@@ -430,9 +430,7 @@ const MyBookings: React.FC = () => {
                     variant="outline"
                     onClick={() => {
                       setExtendTarget(b);
-                      setExtendDate(
-                        b.end_date ? new Date(b.end_date).toISOString().slice(0, 16) : ""
-                      );
+                      setExtendDate(toLocalInputValue(b.end_date));
                     }}
                   >
                     <CalendarPlus className="w-4 h-4 mr-1" /> Extend
