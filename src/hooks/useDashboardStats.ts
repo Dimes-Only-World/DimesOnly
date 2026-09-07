@@ -52,23 +52,37 @@ export const useDashboardStats = (
     const load = async () => {
       setLoading(true);
       try {
+        const COMMISSION_TYPES = [
+          "subscription_referral_commission",
+          "subscription_upline_referral_commission",
+          "referral_commission",
+          "upline_referral_commission",
+          "diamond_plus_referral_commission",
+          "diamond_plus_upline_referral_commission",
+          "elite_plus_referral_commission",
+          "elite_plus_upline_referral_commission",
+          "tip_referral_commission",
+          "tip_upline_referral_commission",
+        ];
+
         const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
             supabase
               .from("tips")
               .select("tip_amount")
-              .eq("tipped_username", username)
+              .ilike("tipped_username", username)
               .eq("status", "completed"),
+            // Commission earnings are recorded as payments rows owned by the earner
             supabase
               .from("payments")
-              .select("referrer_commission")
-              .eq("referred_by", username)
-              .not("referrer_commission", "is", null),
+              .select("amount, payment_type")
+              .eq("user_id", userId)
+              .in("payment_type", COMMISSION_TYPES),
             supabase
               .from("tips_transactions")
               .select("referrer_commission")
-              .eq("referrer_username", username)
+              .ilike("referrer_username", username)
               .eq("payment_status", "completed"),
             supabase
               .from("commission_payouts")
@@ -91,6 +105,7 @@ export const useDashboardStats = (
               .select("amount, earnings_type")
               .eq("user_id", userId),
           ]);
+
 
         if (cancelled) return;
 
