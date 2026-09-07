@@ -539,7 +539,9 @@ const MyBookings: React.FC = () => {
               value={extendDate}
               min={
                 extendTarget?.end_date
-                  ? new Date(extendTarget.end_date).toISOString().slice(0, 16)
+                  ? toLocalInputValue(extendTarget.end_date)
+                  : undefined
+              }
                   : undefined
               }
               onChange={(e) => setExtendDate(e.target.value)}
