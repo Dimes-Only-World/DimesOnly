@@ -96,3 +96,10 @@ export const defaultShipping = {
   express_cents: 1499,
   free_threshold_cents: 15000,
 };
+
+export async function signStorePaths(paths: string[]): Promise<Record<string, string>> {
+  const need = [...new Set(paths.filter((p) => p && !p.startsWith("/") && !p.startsWith("http")))];
+  if (!need.length) return {};
+  const { data } = await supabase.functions.invoke("store-images", { body: { paths: need } });
+  return (data?.urls as Record<string, string>) || {};
+}
