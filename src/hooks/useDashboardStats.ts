@@ -14,6 +14,8 @@ export interface DashboardStats {
   eventOverrides: number;
   membershipReferralFees: number;
   membershipOverrideFees: number;
+  clothingCommissions: number;
+  clothingOverrides: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -29,6 +31,8 @@ const EMPTY: DashboardStats = {
   eventOverrides: 0,
   membershipReferralFees: 0,
   membershipOverrideFees: 0,
+  clothingCommissions: 0,
+  clothingOverrides: 0,
 };
 
 
