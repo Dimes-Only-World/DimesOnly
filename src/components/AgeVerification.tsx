@@ -23,7 +23,10 @@ interface Referrer {
 
 const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
   const [step, setStep] = useState<Step>("warning");
-  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "invalid"
+  >("idle");
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -101,6 +104,40 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     };
   }, [phone, dob]);
 
+  // Live username availability check.
+  useEffect(() => {
+    const uname = username.trim().toLowerCase();
+    if (!uname) {
+      setUsernameStatus("idle");
+      return;
+    }
+    if (!/^[a-z0-9._-]{3,30}$/.test(uname)) {
+      setUsernameStatus("invalid");
+      return;
+    }
+    let cancelled = false;
+    setUsernameStatus("checking");
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("public-data", {
+          body: { action: "checkUsername", username: uname },
+        });
+        if (cancelled) return;
+        if (error) {
+          setUsernameStatus("idle");
+          return;
+        }
+        setUsernameStatus(data?.data?.available ?? data?.available ? "available" : "taken");
+      } catch {
+        if (!cancelled) setUsernameStatus("idle");
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [username]);
+
   const markVerified = () => {
     // Intentionally not persisted: age verification is required on every visit.
   };
@@ -109,8 +146,11 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
   const validate = () => {
     const next: Record<string, string> = {};
-    const name = fullName.trim();
-    if (name.length < 2 || name.length > 100) next.fullName = "Please enter your full name";
+    const uname = username.trim();
+    if (!/^[a-zA-Z0-9._-]{3,30}$/.test(uname))
+      next.username = "Username must be 3+ characters (letters, numbers, . _ -)";
+    else if (usernameStatus === "taken") next.username = "That username is already taken";
+    else if (usernameStatus === "checking") next.username = "Checking username availability...";
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 10) next.phone = "Please enter a 10-digit phone number";
     else if (digits.startsWith("1")) next.phone = "Phone number cannot start with 1";
@@ -128,7 +168,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     try {
       const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
         body: {
-          fullName: fullName.trim(),
+          username: username.trim(),
+          fullName: username.trim(),
           phone: phone.trim(),
           dateOfBirth: dob,
           referralCode: refCode || null,
@@ -160,7 +201,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     try {
       sessionStorage.setItem(
         "ageGatePrefill",
-        JSON.stringify({ fullName: fullName.trim(), phone: phone.trim(), dateOfBirth: dob }),
+        JSON.stringify({ username: username.trim(), phone: phone.trim(), dateOfBirth: dob }),
       );
     } catch (e) {
       console.error("Unable to store prefill data", e);
@@ -178,7 +219,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
       return;
     }
     const next: Record<string, string> = {};
-    if (fullName.trim().length < 2) next.fullName = "Please enter your full name";
+    if (username.trim().length < 3) next.username = "Please enter your username";
     const lookupDigits = phone.replace(/\D/g, "");
     if (lookupDigits.length !== 10) next.phone = "Please enter a 10-digit phone number";
     else if (lookupDigits.startsWith("1")) next.phone = "Phone number cannot start with 1";
@@ -189,7 +230,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     setChecking(true);
     try {
       const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
-        body: { lookup: true, fullName: fullName.trim(), phone: phone.trim() },
+        body: { lookup: true, fullName: username.trim(), username: username.trim(), phone: phone.trim() },
       });
       if (error) throw error;
 
@@ -241,13 +282,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   };
 
-  // Capitalize first letter of each word in the full name.
-  const formatFullName = (value: string) =>
-    value
-      .replace(/\s+/g, " ")
-      .split(" ")
-      .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
-      .join(" ");
+  // Usernames are lowercase and free of spaces.
+  const formatUsername = (value: string) =>
+    value.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30);
 
   const inputClass =
     "w-full rounded-lg bg-white/10 border border-white/30 text-white placeholder-white/50 px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400";
@@ -333,16 +370,27 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5">Name</label>
+                <label className="block text-sm font-medium mb-1.5">Username</label>
                 <input
                   type="text"
-                  value={fullName}
-                  maxLength={100}
-                  onChange={(e) => setFullName(formatFullName(e.target.value))}
-                  placeholder="Your full name"
+                  value={username}
+                  maxLength={30}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  onChange={(e) => setUsername(formatUsername(e.target.value))}
+                  placeholder="Choose a username"
                   className={inputClass}
                 />
-                {errors.fullName && <p className="text-red-400 text-xs mt-1">{errors.fullName}</p>}
+                {usernameStatus === "checking" && (
+                  <p className="text-white/60 text-xs mt-1">Checking availability…</p>
+                )}
+                {usernameStatus === "available" && (
+                  <p className="text-green-400 text-xs mt-1">@{username} is available</p>
+                )}
+                {usernameStatus === "taken" && (
+                  <p className="text-red-400 text-xs mt-1">That username is already taken</p>
+                )}
+                {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username}</p>}
               </div>
 
               <div>
@@ -360,7 +408,20 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5">Date of Birth</label>
+                <label className="flex items-center gap-2 text-sm font-medium mb-1.5">
+                  <span>Date of Birth</span>
+                  {dob && (calculateAge(dob) ?? 0) >= 18 ? (
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/40">
+                      Age {calculateAge(dob)} — Verified 18+
+                    </span>
+                  ) : dob ? (
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/40">
+                      Must be 18+
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-white/50">(age verification)</span>
+                  )}
+                </label>
                 <DateOfBirthSelect value={dob} onChange={setDob} error={errors.dob} />
               </div>
             </div>

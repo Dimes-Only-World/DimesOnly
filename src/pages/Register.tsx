@@ -162,14 +162,16 @@ export const Register: React.FC = () => {
       const raw = sessionStorage.getItem("ageGatePrefill");
       if (!raw) return null;
       const parsed = JSON.parse(raw) as {
+        username?: string;
         fullName?: string;
         phone?: string;
         dateOfBirth?: string;
       };
       const parts = (parsed.fullName || "").trim().split(/\s+/);
       return {
-        firstName: parts[0] || "",
-        lastName: parts.slice(1).join(" ") || "",
+        username: (parsed.username || "").trim().toLowerCase(),
+        firstName: parsed.username ? "" : parts[0] || "",
+        lastName: parsed.username ? "" : parts.slice(1).join(" ") || "",
         mobileNumber: parsed.phone || "",
         dateOfBirth: parsed.dateOfBirth || "",
       };
@@ -181,7 +183,7 @@ export const Register: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     firstName: agePrefill?.firstName || "",
     lastName: agePrefill?.lastName || "",
-    username: "",
+    username: agePrefill?.username || "",
     email: "",
     password: "",
     confirmPassword: "",

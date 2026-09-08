@@ -40,6 +40,7 @@ export type Database = {
           phone: string
           referral_code: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           action_taken?: string
@@ -51,6 +52,7 @@ export type Database = {
           phone: string
           referral_code?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           action_taken?: string
@@ -62,6 +64,7 @@ export type Database = {
           phone?: string
           referral_code?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }

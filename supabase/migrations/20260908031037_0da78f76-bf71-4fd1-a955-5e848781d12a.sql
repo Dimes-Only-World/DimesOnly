@@ -1,0 +1,1 @@
+ALTER TABLE public.age_gate_leads ADD COLUMN IF NOT EXISTS username TEXT;

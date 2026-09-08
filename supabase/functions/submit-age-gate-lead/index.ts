@@ -126,7 +126,8 @@ serve(async (req) => {
     }
 
     // First call: create the lead.
-    const fullName = String((body as any).fullName ?? "").trim();
+    const usernameRaw = String((body as any).username ?? "").trim().toLowerCase();
+    const fullName = usernameRaw || String((body as any).fullName ?? "").trim();
     const phone = String((body as any).phone ?? "").trim();
     const dateOfBirth = (body as any).dateOfBirth;
     const referralCode = (body as any).referralCode
@@ -146,6 +147,7 @@ serve(async (req) => {
       .from("age_gate_leads")
       .insert({
         full_name: fullName,
+        username: usernameRaw || null,
         phone,
         date_of_birth: dateOfBirth,
         referral_code: referralCode,
