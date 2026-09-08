@@ -247,6 +247,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
   const [rentalCommissionTotal, setRentalCommissionTotal] = useState(0);
+  const [clothingCommissions, setClothingCommissions] = useState<
+    Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
+  >([]);
+  const [clothingTotals, setClothingTotals] = useState({ direct: 0, override: 0 });
   const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
     commissions: 0,
     overrides: 0,
@@ -665,6 +669,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         payoutsResult,
         rentalCommissionsResult,
         eventEarningsResult,
+        clothingCommissionsResult,
+
 
       ] = await Promise.all([
         supabase
@@ -728,6 +734,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .select("id, amount, earnings_type, created_at")
           .eq("user_id", userData.id)
           .order("created_at", { ascending: false }),
+
+        (supabase as any)
+          .from("commission_payouts")
+          .select("id, amount, commission_type, payout_status, created_at")
+          .eq("user_id", userData.id)
+          .in("commission_type", ["clothing_commission", "clothing_upline"])
+          .order("created_at", { ascending: false }),
       ]);
 
       if (weeklyResult.error) throw weeklyResult.error;
@@ -745,6 +758,24 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         created_at: String(row.created_at || ""),
       }));
       const rentalTotal = rentalRows.reduce((sum, row) => sum + row.amount, 0);
+
+      const clothingRows = (((clothingCommissionsResult as any)?.data as any[]) || []).map((row) => ({
+        id: String(row.id),
+        amount: Number(row.amount || 0),
+        commission_type: String(row.commission_type || "clothing_commission"),
+        status: String(row.payout_status || "pending"),
+        created_at: String(row.created_at || ""),
+      }));
+      setClothingCommissions(clothingRows);
+      setClothingTotals({
+        direct: clothingRows
+          .filter((r) => r.commission_type === "clothing_commission")
+          .reduce((sum, r) => sum + r.amount, 0),
+        override: clothingRows
+          .filter((r) => r.commission_type === "clothing_upline")
+          .reduce((sum, r) => sum + r.amount, 0),
+      });
+      const clothingTotal = clothingRows.reduce((sum, r) => sum + r.amount, 0);
       setRentalCommissions(rentalRows);
       setRentalCommissionTotal(rentalTotal);
 
@@ -882,7 +913,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
       const totalEarnings =
-        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal;
+        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal;
 
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
@@ -1509,6 +1540,23 @@ return (
 
 
 
+        <Card className="border-pink-200 bg-pink-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-pink-700">
+              Clothing Commissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-pink-800">
+              {formatCurrency(clothingTotals.direct + clothingTotals.override)}
+            </div>
+            <p className="text-sm text-pink-600">
+              Commissions {formatCurrency(clothingTotals.direct)} ·
+              Overrides {formatCurrency(clothingTotals.override)}
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-purple-700">
@@ -1555,6 +1603,44 @@ return (
                 <div className="text-right">
                   <p className="font-bold text-green-700">{formatCurrency(c.amount)}</p>
                   <Badge variant={c.status === "paid" ? "default" : "secondary"}>{c.status}</Badge>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {clothingCommissions.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Clothing Commissions
+            </CardTitle>
+            <p className="text-xs text-gray-500">
+              Clothing pays 10% on direct referrals and a 5% override on second-level referrals.
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-2">
+            {clothingCommissions.slice(0, 10).map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+              >
+                <div>
+                  <p className="text-sm font-medium">
+                    {c.commission_type === "clothing_upline"
+                      ? "Override (5%)"
+                      : "Direct referral (10%)"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {c.created_at ? new Date(c.created_at).toLocaleDateString() : ""}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-green-700">{formatCurrency(c.amount)}</p>
+                  <Badge variant={c.status === "completed" ? "default" : "secondary"}>{c.status}</Badge>
                 </div>
               </div>
             ))}

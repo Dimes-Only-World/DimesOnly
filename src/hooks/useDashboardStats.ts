@@ -14,6 +14,8 @@ export interface DashboardStats {
   eventOverrides: number;
   membershipReferralFees: number;
   membershipOverrideFees: number;
+  clothingCommissions: number;
+  clothingOverrides: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -29,6 +31,8 @@ const EMPTY: DashboardStats = {
   eventOverrides: 0,
   membershipReferralFees: 0,
   membershipOverrideFees: 0,
+  clothingCommissions: 0,
+  clothingOverrides: 0,
 };
 
 
@@ -83,7 +87,7 @@ export const useDashboardStats = (
           "upline_referral_commission",
         ];
 
-        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn] =
+        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn, clothing] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
             supabase
@@ -122,6 +126,11 @@ export const useDashboardStats = (
               .from("event_owner_earnings")
               .select("amount, earnings_type")
               .eq("user_id", userId),
+            (supabase as any)
+              .from("commission_payouts")
+              .select("amount, commission_type")
+              .eq("user_id", userId)
+              .in("commission_type", ["clothing_commission", "clothing_upline"]),
           ]);
 
 
@@ -168,8 +177,20 @@ export const useDashboardStats = (
           ),
           "amount",
         );
+        const clothingRows = (((clothing as any)?.data as any[]) || []);
+        const clothingCommissions = sum(
+          clothingRows.filter((r) => r?.commission_type === "clothing_commission"),
+          "amount",
+        );
+        const clothingOverrides = sum(
+          clothingRows.filter((r) => r?.commission_type === "clothing_upline"),
+          "amount",
+        );
+
         const earned =
           rentalCommissions +
+          clothingCommissions +
+          clothingOverrides +
           eventEarnings +
           tipsEarned +
           referralCommissions +
@@ -180,7 +201,7 @@ export const useDashboardStats = (
         const weeklyTotal = sum(weekly.data as any[], "amount");
         const totalEarnings = Math.max(
           earned,
-          weeklyTotal + rentalCommissions + eventEarnings,
+          weeklyTotal + rentalCommissions + eventEarnings + clothingCommissions + clothingOverrides,
         );
 
         const paidOut = sum(payouts.data as any[], "amount");
@@ -214,6 +235,8 @@ export const useDashboardStats = (
           jackpotTickets: codes.size,
           referrals,
           rentalCommissions,
+          clothingCommissions,
+          clothingOverrides,
           tipsEarned,
           tipOverrides,
           eventEarnings,

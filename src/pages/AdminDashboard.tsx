@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Calendar,
   Car,
+  Shirt,
   FlaskConical,
   Video,
   CreditCard,
@@ -45,6 +46,7 @@ import AdminLeadsTab from "@/components/AdminLeadsTab";
 import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTab";
 import AdminSMSTextTab from "@/components/AdminSMSTextTab";
 import AdminMembershipAgreementsTab from "@/components/AdminMembershipAgreementsTab";
+import AdminStoreTab from "@/components/AdminStoreTab";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -90,6 +92,7 @@ const tabs = [
   { value: "messages", label: "Messages", icon: MessageSquare },
   { value: "events", label: "Events", icon: Calendar },
   { value: "rentals", label: "Rentals", icon: Car },
+  { value: "clothes", label: "Clothes", icon: Shirt },
   { value: "testing", label: "Testing", icon: FlaskConical },
   { value: "videos", label: "Videos", icon: Video },
   { value: "payouts", label: "Payouts", icon: CreditCard },
@@ -307,6 +310,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="rentals">
             <AdminRentalsTab />
+          </TabsContent>
+
+          <TabsContent value="clothes">
+            <AdminStoreTab />
           </TabsContent>
 
           <TabsContent value="testing">

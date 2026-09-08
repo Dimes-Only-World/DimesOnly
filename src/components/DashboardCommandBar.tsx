@@ -105,6 +105,18 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       to: "/dashboard/earnings",
     },
     {
+      label: "Clothing Commissions",
+      value: formatCurrency(stats.clothingCommissions),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
+      label: "Clothing Override Commissions",
+      value: formatCurrency(stats.clothingOverrides),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
       label: "Jackpot Tickets",
       value: String(stats.jackpotTickets),
       Icon: Trophy,
