@@ -391,3 +391,20 @@ body.paypal-overlay-open {
     width: 100%;
   }
 }
+
+/* Dimes Only Clothing store theme */
+.store-theme {
+  --store-bg: 0 0% 4%;
+  --store-surface: 0 0% 8%;
+  --store-line: 0 0% 16%;
+  --store-fg: 0 0% 96%;
+  --store-muted: 0 0% 63%;
+  --store-gold: 45 68% 47%;
+  --store-pink: 337 100% 59%;
+  background-color: hsl(var(--store-bg));
+  color: hsl(var(--store-fg));
+}
+.store-display {
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.02em;
+}
