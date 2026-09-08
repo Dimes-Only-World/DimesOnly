@@ -243,7 +243,24 @@ const VariantDialog: React.FC<{ product: StoreProduct | null; onClose: () => voi
   return (
     <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
-        <DialogHeader><DialogTitle>{product?.name} — sizes & stock</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{product?.name} — colors, sizes & stock</DialogTitle></DialogHeader>
+        {colors.length > 0 && (
+          <div className="space-y-2 rounded border p-3">
+            <p className="text-sm font-medium">Color photos</p>
+            {colors.map((c) => (
+              <div key={c} className="flex items-center gap-3 text-sm">
+                <span className="w-24">{c}</span>
+                {colorImage(c) && preview(colorImage(c)) && (
+                  <img src={preview(colorImage(c))} alt={c} loading="lazy" className="h-14 w-12 rounded object-cover" />
+                )}
+                <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadColorImage(c, e.target.files[0])} />
+                {colorImage(c) && (
+                  <Button size="sm" variant="ghost" onClick={() => clearColorImage(c)}>Remove</Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         <div className="space-y-2">
           {variants.map((v) => (
             <div key={v.id} className="flex items-center gap-3 rounded border p-2 text-sm">
