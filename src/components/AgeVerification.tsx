@@ -9,6 +9,7 @@ import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarouse
 
 interface AgeVerificationProps {
   onVerified: () => void;
+  initialStep?: Step;
 }
 
 const FALLBACK_VIDEO =
@@ -21,8 +22,8 @@ interface Referrer {
   photo: string | null;
 }
 
-const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
-  const [step, setStep] = useState<Step>("warning");
+const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialStep }) => {
+  const [step, setStep] = useState<Step>(initialStep ?? "warning");
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<
     "idle" | "checking" | "available" | "taken" | "invalid"

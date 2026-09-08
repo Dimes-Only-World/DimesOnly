@@ -8,6 +8,7 @@ interface AgeVerificationWrapperProps {
 
 const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ children }) => {
   const [showAgeVerification, setShowAgeVerification] = useState(true);
+  const [forceFormStep, setForceFormStep] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -16,6 +17,17 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
     sessionStorage.removeItem('ageVerifiedThisSession');
     setShowAgeVerification(true);
     setIsLoading(false);
+  }, []);
+
+  // ?signup=1 forces the age gate back open directly on the short form step,
+  // even if the visitor already verified during this session (e.g. the
+  // "Sign up" link on /login navigates client-side without a reload).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('signup') === '1') {
+      setForceFormStep(true);
+      setShowAgeVerification(true);
+    }
   }, []);
 
 
@@ -39,7 +51,7 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
   return (
     <>
       {showAgeVerification ? (
-        <AgeVerification onVerified={handleAgeVerified} />
+        <AgeVerification onVerified={handleAgeVerified} initialStep={forceFormStep ? 'form' : undefined} />
       ) : (
         children
       )}
