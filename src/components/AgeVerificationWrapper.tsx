@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import AgeVerification from './AgeVerification';
 import AngelLoader from './AngelLoader';
 
@@ -7,6 +8,7 @@ interface AgeVerificationWrapperProps {
 }
 
 const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ children }) => {
+  const location = useLocation();
   const [showAgeVerification, setShowAgeVerification] = useState(true);
   const [forceFormStep, setForceFormStep] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,12 +25,13 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
   // even if the visitor already verified during this session (e.g. the
   // "Sign up" link on /login navigates client-side without a reload).
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search || window.location.search);
     if (params.get('signup') === '1') {
       setForceFormStep(true);
       setShowAgeVerification(true);
     }
-  }, []);
+  }, [location.key, location.search, location.pathname]);
+
 
 
   const handleAgeVerified = () => {
