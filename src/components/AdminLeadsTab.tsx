@@ -31,6 +31,7 @@ interface Lead {
   deleted_at?: string | null;
   registration_completed?: boolean;
   registered_username?: string | null;
+  registered_full_name?: string | null;
   registered_at?: string | null;
   phone_match?: boolean;
   dob_match?: boolean;
@@ -291,7 +292,11 @@ const AdminLeadsTab: React.FC = () => {
                       />
                     </td>
                     <td className="py-2 pr-4">{lead.username || "—"}</td>
-                    <td className="py-2 pr-4">{lead.full_name}</td>
+                    <td className="py-2 pr-4">
+                      {lead.registration_completed && lead.registered_full_name
+                        ? lead.registered_full_name
+                        : lead.full_name}
+                    </td>
                     <td
                       className={`py-2 pr-4 ${
                         lead.phone_match ? "bg-green-100 text-green-900 font-medium rounded" : ""
@@ -303,9 +308,16 @@ const AdminLeadsTab: React.FC = () => {
                     <td className="py-2 pr-4">{lead.date_of_birth}</td>
                     <td className="py-2 pr-4">{lead.referral_code || "—"}</td>
                     <td className="py-2 pr-4">
-                      <Badge variant={lead.action_taken === "continued_registration" ? "default" : "secondary"}>
-                        {ACTION_LABEL[lead.action_taken] || lead.action_taken}
-                      </Badge>
+                      {lead.registration_completed ? (
+                        <Badge className="bg-green-600 text-white hover:bg-green-600">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Done
+                        </Badge>
+                      ) : (
+                        <Badge variant={lead.action_taken === "continued_registration" ? "default" : "secondary"}>
+                          {ACTION_LABEL[lead.action_taken] || lead.action_taken}
+                        </Badge>
+                      )}
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
                       {leadStatus(lead) === "complete" ? (
