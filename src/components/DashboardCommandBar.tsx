@@ -87,19 +87,19 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
 
   const kpis = [
     {
-      label: "Available Earnings",
+      label: "Total Available Earnings",
       value: formatCurrency(animatedEarnings),
       Icon: DollarSign,
       to: "/dashboard/earnings",
     },
     {
-      label: "Rental Commissions",
+      label: "Rental Cars Commissions",
       value: formatCurrency(stats.rentalCommissions),
       Icon: DollarSign,
       to: "/dashboard/earnings",
     },
     {
-      label: "Event Earnings",
+      label: "Events Earnings",
       value: formatCurrency(stats.eventEarnings),
       Icon: DollarSign,
       to: "/dashboard/earnings",
