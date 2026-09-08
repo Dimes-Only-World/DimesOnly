@@ -142,7 +142,43 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
     // Intentionally not persisted: age verification is required on every visit.
   };
 
+  // Aggressively unmute the explainer video once it is mounted. Browsers often
+  // force-muted autoplay; retrying on canplay/play gives the best chance of
+  // starting with sound, and the preceding Submit click counts as a user gesture.
+  useEffect(() => {
+    if (step !== "video") return;
+    const v = videoRef.current;
+    if (!v) return;
 
+    const unmuteAndPlay = async () => {
+      if (!v) return;
+      v.muted = false;
+      v.volume = 1;
+      try {
+        await v.play();
+      } catch (err) {
+        // If unmuted autoplay is blocked, muted autoplay will still be running.
+        console.log("[AgeVerification] Unmuted autoplay blocked:", err);
+      }
+    };
+
+    if (v.readyState >= 2) {
+      unmuteAndPlay();
+    } else {
+      v.addEventListener("canplay", unmuteAndPlay, { once: true });
+    }
+
+    return () => {
+      v.removeEventListener("canplay", unmuteAndPlay);
+    };
+  }, [step, explainerUrl]);
+
+  const handleVideoPlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.volume = 1;
+  };
 
   const validate = () => {
     const next: Record<string, string> = {};
