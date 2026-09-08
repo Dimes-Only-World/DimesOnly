@@ -74,6 +74,10 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
     navigate(`/dimes?ref=${username}`);
   };
 
+  const handleClothes = () => {
+    navigate("/clothes");
+  };
+
   return (
     <div className="w-full">
       <div
