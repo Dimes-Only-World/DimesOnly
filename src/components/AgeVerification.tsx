@@ -379,7 +379,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 </button>
                 <button
                   onClick={() => {
-                    window.location.href = "/login";
+                    const query = refCode ? `?ref=${encodeURIComponent(refCode)}` : "";
+                    window.location.href = `/login${query}`;
                   }}
                   type="button"
                   className="bg-pink-600 hover:bg-pink-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
@@ -586,7 +587,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               <button
                 type="button"
                 onClick={() => {
-                  window.location.href = "/login";
+                  const query = refCode ? `?ref=${encodeURIComponent(refCode)}` : "";
+                  window.location.href = `/login${query}`;
                 }}
                 className="w-full bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
               >

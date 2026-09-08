@@ -716,7 +716,10 @@ export const Register: React.FC = () => {
               <p className="text-sm text-white/80 mt-3">
                 Already have an account?{" "}
                 <a
-                  href="/login"
+                  href={(() => {
+                    const ref = new URLSearchParams(window.location.search).get("ref");
+                    return ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login";
+                  })()}
                   className="text-blue-300 hover:text-blue-200 underline"
                 >
                   Sign in here
