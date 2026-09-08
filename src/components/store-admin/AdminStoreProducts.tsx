@@ -173,8 +173,50 @@ const VariantDialog: React.FC<{ product: StoreProduct | null; onClose: () => voi
   const { toast } = useToast();
   const [variants, setVariants] = useState<StoreVariant[]>([]);
   const [draft, setDraft] = useState({ size: "", color: "", stock: "0", sku: "" });
+  const [signed, setSigned] = useState<Record<string, string>>({});
 
   useEffect(() => { setVariants(product?.store_variants || []); }, [product]);
+
+  useEffect(() => {
+    const paths = (product?.store_variants || [])
+      .map((v) => v.image_path)
+      .filter((p): p is string => !!p && !p.startsWith("/") && !p.startsWith("http"));
+    if (!paths.length) { setSigned({}); return; }
+    storeAdmin<{ urls: Record<string, string> }>("signImages", { paths })
+      .then((r) => setSigned(r.urls || {}))
+      .catch(() => setSigned({}));
+  }, [product]);
+
+  const colors = [...new Set(variants.map((v) => v.color))];
+  const colorImage = (c: string) => variants.find((v) => v.color === c && v.image_path)?.image_path || "";
+  const preview = (p: string) => (p.startsWith("/") || p.startsWith("http") ? p : signed[p] || "");
+
+  const uploadColorImage = async (c: string, file: File) => {
+    if (!product) return;
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(",")[1]);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      const path = `variants/${product.slug}-${c.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}.jpg`;
+      await storeAdmin("uploadImage", { data: base64, path, content_type: file.type });
+      await storeAdmin("setColorImage", { product_id: product.id, color: c, image_path: path });
+      setVariants((prev) => prev.map((v) => v.color === c ? { ...v, image_path: path } : v));
+      const s = await storeAdmin<{ urls: Record<string, string> }>("signImages", { paths: [path] });
+      setSigned((prev) => ({ ...prev, ...(s.urls || {}) }));
+      toast({ title: `${c} photo saved` });
+    } catch (e) {
+      toast({ title: "Upload failed", description: (e as Error).message, variant: "destructive" });
+    }
+  };
+
+  const clearColorImage = async (c: string) => {
+    if (!product) return;
+    await storeAdmin("setColorImage", { product_id: product.id, color: c, image_path: null });
+    setVariants((prev) => prev.map((v) => v.color === c ? { ...v, image_path: null } : v));
+  };
 
   const run = async (fn: () => Promise<unknown>) => {
     try { await fn(); } catch (e) { toast({ title: "Failed", description: (e as Error).message, variant: "destructive" }); }
