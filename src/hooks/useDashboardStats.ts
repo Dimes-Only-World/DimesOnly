@@ -12,6 +12,8 @@ export interface DashboardStats {
   eventEarnings: number;
   eventCommissions: number;
   eventOverrides: number;
+  membershipReferralFees: number;
+  membershipOverrideFees: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -25,6 +27,8 @@ const EMPTY: DashboardStats = {
   eventEarnings: 0,
   eventCommissions: 0,
   eventOverrides: 0,
+  membershipReferralFees: 0,
+  membershipOverrideFees: 0,
 };
 
 
@@ -63,6 +67,20 @@ export const useDashboardStats = (
           "elite_plus_upline_referral_commission",
           "tip_referral_commission",
           "tip_upline_referral_commission",
+        ];
+
+        const MEMBERSHIP_DIRECT_TYPES = [
+          "subscription_referral_commission",
+          "diamond_plus_referral_commission",
+          "elite_plus_referral_commission",
+          "referral_commission",
+        ];
+
+        const MEMBERSHIP_OVERRIDE_TYPES = [
+          "subscription_upline_referral_commission",
+          "diamond_plus_upline_referral_commission",
+          "elite_plus_upline_referral_commission",
+          "upline_referral_commission",
         ];
 
         const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn] =
@@ -125,10 +143,28 @@ export const useDashboardStats = (
           "amount",
         );
         const eventEarnings = eventCommissions + eventOverrides;
+        const paymentRows = (payments.data as any[]) || [];
+        const isMembershipDirect = (t: string) =>
+          MEMBERSHIP_DIRECT_TYPES.includes(t);
+        const isMembershipOverride = (t: string) =>
+          MEMBERSHIP_OVERRIDE_TYPES.includes(t);
+
+        const membershipReferralFees = sum(
+          paymentRows.filter((p) => isMembershipDirect(String(p?.payment_type || ""))),
+          "amount",
+        );
+        const membershipOverrideFees = sum(
+          paymentRows.filter((p) => isMembershipOverride(String(p?.payment_type || ""))),
+          "amount",
+        );
+
         // Tip commissions are already counted via tips_transactions
         const referralCommissions = sum(
-          ((payments.data as any[]) || []).filter(
-            (p) => !String(p?.payment_type || "").startsWith("tip_"),
+          paymentRows.filter(
+            (p) =>
+              !String(p?.payment_type || "").startsWith("tip_") &&
+              !isMembershipDirect(String(p?.payment_type || "")) &&
+              !isMembershipOverride(String(p?.payment_type || "")),
           ),
           "amount",
         );
@@ -137,7 +173,9 @@ export const useDashboardStats = (
           eventEarnings +
           tipsEarned +
           referralCommissions +
-          tipOverrides;
+          tipOverrides +
+          membershipReferralFees +
+          membershipOverrideFees;
 
         const weeklyTotal = sum(weekly.data as any[], "amount");
         const totalEarnings = Math.max(
@@ -181,7 +219,8 @@ export const useDashboardStats = (
           eventEarnings,
           eventCommissions,
           eventOverrides,
-
+          membershipReferralFees,
+          membershipOverrideFees,
         });
 
       } catch (error) {

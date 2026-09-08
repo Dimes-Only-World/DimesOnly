@@ -133,6 +133,18 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       Icon: DollarSign,
       to: "/dashboard/earnings",
     },
+    {
+      label: "Membership Referral Fees",
+      value: formatCurrency(stats.membershipReferralFees),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
+      label: "Overrides Membership Referral Fees",
+      value: formatCurrency(stats.membershipOverrideFees),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
   ];
 
 
