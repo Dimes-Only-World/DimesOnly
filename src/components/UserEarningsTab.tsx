@@ -913,7 +913,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
       const totalEarnings =
-        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal;
+        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal;
 
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
