@@ -74,6 +74,10 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
     navigate(`/dimes?ref=${username}`);
   };
 
+  const handleClothes = () => {
+    navigate("/clothes");
+  };
+
   return (
     <div className="w-full">
       <div
@@ -164,7 +168,7 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
         </Button>
 
         <Button 
-          onClick={() => { window.location.href = "/clothes"; }}
+          onClick={handleClothes}
           className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm font-medium py-3 px-4 h-auto text-sm transition-all duration-200 hover:shadow-md hover:border-purple-300 hover:text-purple-700 group"
         >
           <div className="flex flex-col items-center gap-1">
