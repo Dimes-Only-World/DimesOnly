@@ -99,15 +99,32 @@ serve(async (req) => {
         const v = params.variant;
         if (v.id) {
           const { error } = await supabase.from("store_variants")
-            .update({ size: v.size, color: v.color, sku: v.sku, stock: v.stock }).eq("id", v.id);
+            .update({ size: v.size, color: v.color, sku: v.sku, stock: v.stock, image_path: v.image_path ?? null }).eq("id", v.id);
           if (error) throw error;
         } else {
           const { error } = await supabase.from("store_variants").insert({
-            product_id: v.product_id, size: v.size, color: v.color, sku: v.sku || null, stock: v.stock || 0,
+            product_id: v.product_id, size: v.size, color: v.color, sku: v.sku || null, stock: v.stock || 0, image_path: v.image_path || null,
           });
           if (error) throw error;
         }
         await audit("save", "variant", v.id, v);
+        return json({ ok: true });
+      }
+      case "setVariantImage": {
+        const { error } = await supabase.from("store_variants")
+          .update({ image_path: params.image_path || null })
+          .eq("id", params.variant_id);
+        if (error) throw error;
+        await audit("set_image", "variant", params.variant_id, { image_path: params.image_path });
+        return json({ ok: true });
+      }
+      case "setColorImage": {
+        const { error } = await supabase.from("store_variants")
+          .update({ image_path: params.image_path || null })
+          .eq("product_id", params.product_id)
+          .eq("color", params.color);
+        if (error) throw error;
+        await audit("set_image", "color", params.product_id, { color: params.color, image_path: params.image_path });
         return json({ ok: true });
       }
       case "deleteVariant": {
