@@ -219,7 +219,8 @@ export const useDashboardStats = (
           eventEarnings,
           eventCommissions,
           eventOverrides,
-
+          membershipReferralFees,
+          membershipOverrideFees,
         });
 
       } catch (error) {
