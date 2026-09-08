@@ -83,14 +83,16 @@ serve(async (req) => {
         const normName = (v: string | null | undefined) =>
           (v || '').toLowerCase().replace(/[^a-z]/g, '');
 
-        type UserEntry = { username: string | null; created_at: string | null; dob: string };
+        type UserEntry = { username: string | null; created_at: string | null; dob: string; full_name: string };
         const byPhone = new Map<string, UserEntry>();
         const byName = new Map<string, UserEntry>();
         for (const u of registeredUsers || []) {
+          const regName = `${(u as any).first_name || ''} ${(u as any).last_name || ''}`.trim();
           const entry: UserEntry = {
             username: (u as any).username,
             created_at: (u as any).created_at,
             dob: normDob((u as any).date_of_birth),
+            full_name: regName,
           };
           for (const raw of [(u as any).phone_number, (u as any).mobile_number]) {
             const key = digits(raw);
@@ -114,6 +116,7 @@ serve(async (req) => {
             dob_match: dobMatch,
             registration_completed: !!match,
             registered_username: match?.username ?? null,
+            registered_full_name: match?.full_name || null,
             registered_at: match?.created_at ?? null,
           };
         });
