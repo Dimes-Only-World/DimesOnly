@@ -1540,6 +1540,23 @@ return (
 
 
 
+        <Card className="border-pink-200 bg-pink-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-pink-700">
+              Clothing Commissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-pink-800">
+              {formatCurrency(clothingTotals.direct + clothingTotals.override)}
+            </div>
+            <p className="text-sm text-pink-600">
+              Commissions {formatCurrency(clothingTotals.direct)} ·
+              Overrides {formatCurrency(clothingTotals.override)}
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-purple-700">
