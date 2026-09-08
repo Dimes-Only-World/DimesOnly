@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import StoreLayout from "@/components/store/StoreLayout";
 import ProductCard from "@/components/store/ProductCard";
-import { StoreProduct as Product, SIZE_GUIDE, fetchProductBySlug, fetchProducts, money, productImage } from "@/lib/store";
+import { StoreProduct as Product, SIZE_GUIDE, fetchProductBySlug, fetchProducts, money, productImage, signStorePaths } from "@/lib/store";
 import { useStoreCart } from "@/contexts/StoreCartContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ const StoreProductPage: React.FC = () => {
   const [size, setSize] = useState("");
   const [activeImage, setActiveImage] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
+  const [signed, setSigned] = useState<Record<string, string>>({});
   const { add } = useStoreCart();
   const { wishlistIds, toggleWishlist, signedIn } = useWishlist();
   const { toast } = useToast();
