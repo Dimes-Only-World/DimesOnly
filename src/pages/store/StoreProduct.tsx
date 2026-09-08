@@ -60,7 +60,15 @@ const StoreProductPage: React.FC = () => {
     );
   }
 
-  const images = product.image_paths?.length ? product.image_paths : [productImage(product)];
+  const colorImages = [
+    ...new Set(
+      (product.store_variants || [])
+        .filter((v) => v.color === color && v.image_path)
+        .map((v) => v.image_path as string),
+    ),
+  ];
+  const baseImages = product.image_paths?.length ? product.image_paths : [productImage(product)];
+  const images = colorImages.length ? [...colorImages, ...baseImages] : baseImages;
   const onSale = product.compare_at_cents && product.compare_at_cents > product.price_cents;
 
   const addToBag = () => {
