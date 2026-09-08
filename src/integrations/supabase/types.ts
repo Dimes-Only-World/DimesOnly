@@ -3168,6 +3168,7 @@ export type Database = {
           color: string
           created_at: string
           id: string
+          image_path: string | null
           product_id: string
           size: string
           sku: string | null
@@ -3177,6 +3178,7 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          image_path?: string | null
           product_id: string
           size?: string
           sku?: string | null
@@ -3186,6 +3188,7 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          image_path?: string | null
           product_id?: string
           size?: string
           sku?: string | null
