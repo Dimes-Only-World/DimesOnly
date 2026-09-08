@@ -7,6 +7,7 @@ export type StoreVariant = {
   color: string;
   stock: number;
   sku?: string | null;
+  image_path?: string | null;
 };
 
 export type StoreProduct = {
