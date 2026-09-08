@@ -69,6 +69,20 @@ export const useDashboardStats = (
           "tip_upline_referral_commission",
         ];
 
+        const MEMBERSHIP_DIRECT_TYPES = [
+          "subscription_referral_commission",
+          "diamond_plus_referral_commission",
+          "elite_plus_referral_commission",
+          "referral_commission",
+        ];
+
+        const MEMBERSHIP_OVERRIDE_TYPES = [
+          "subscription_upline_referral_commission",
+          "diamond_plus_upline_referral_commission",
+          "elite_plus_upline_referral_commission",
+          "upline_referral_commission",
+        ];
+
         const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
