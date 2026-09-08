@@ -120,3 +120,6 @@ verify_jwt = false
 
 [functions.store-admin]
 verify_jwt = false
+
+[functions.store-images]
+verify_jwt = false
