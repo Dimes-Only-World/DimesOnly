@@ -87,7 +87,7 @@ export const useDashboardStats = (
           "upline_referral_commission",
         ];
 
-        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn] =
+        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn, clothing] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
             supabase
@@ -126,6 +126,11 @@ export const useDashboardStats = (
               .from("event_owner_earnings")
               .select("amount, earnings_type")
               .eq("user_id", userId),
+            (supabase as any)
+              .from("commission_payouts")
+              .select("amount, commission_type")
+              .eq("user_id", userId)
+              .in("commission_type", ["clothing_commission", "clothing_upline"]),
           ]);
 
 
