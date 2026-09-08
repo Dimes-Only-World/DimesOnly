@@ -758,6 +758,24 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         created_at: String(row.created_at || ""),
       }));
       const rentalTotal = rentalRows.reduce((sum, row) => sum + row.amount, 0);
+
+      const clothingRows = (((clothingCommissionsResult as any)?.data as any[]) || []).map((row) => ({
+        id: String(row.id),
+        amount: Number(row.amount || 0),
+        commission_type: String(row.commission_type || "clothing_commission"),
+        status: String(row.payout_status || "pending"),
+        created_at: String(row.created_at || ""),
+      }));
+      setClothingCommissions(clothingRows);
+      setClothingTotals({
+        direct: clothingRows
+          .filter((r) => r.commission_type === "clothing_commission")
+          .reduce((sum, r) => sum + r.amount, 0),
+        override: clothingRows
+          .filter((r) => r.commission_type === "clothing_upline")
+          .reduce((sum, r) => sum + r.amount, 0),
+      });
+      const clothingTotal = clothingRows.reduce((sum, r) => sum + r.amount, 0);
       setRentalCommissions(rentalRows);
       setRentalCommissionTotal(rentalTotal);
 
