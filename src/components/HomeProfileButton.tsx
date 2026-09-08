@@ -78,7 +78,9 @@ const HomeProfileButton: React.FC<HomeProfileButtonProps> = ({ className = "" })
     if (user) {
       navigate("/dashboard/profile");
     } else {
-      navigate("/login");
+      // Preserve referral credit (?ref=username) when sending visitors to login
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      navigate(ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login");
     }
   };
 
