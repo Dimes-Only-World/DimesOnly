@@ -111,3 +111,12 @@ verify_jwt = false
 
 [functions.notify-direct-message]
 verify_jwt = false
+
+[functions.store-checkout]
+verify_jwt = false
+
+[functions.store-capture]
+verify_jwt = false
+
+[functions.store-admin]
+verify_jwt = false
