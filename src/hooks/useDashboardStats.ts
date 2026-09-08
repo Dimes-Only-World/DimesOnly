@@ -27,6 +27,8 @@ const EMPTY: DashboardStats = {
   eventEarnings: 0,
   eventCommissions: 0,
   eventOverrides: 0,
+  membershipReferralFees: 0,
+  membershipOverrideFees: 0,
 };
 
 
