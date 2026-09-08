@@ -131,6 +131,12 @@ const Login: React.FC = () => {
       setUser(user);
       window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));
 
+      // Referral credit applies to new signups only — an existing user logging
+      // in voids any ?ref= in the URL so it can't credit the wrong referrer.
+      if (currentRef) {
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+
       toast({
         title: "Login Successful!",
         description: `Welcome back, ${userData.username}!`,
