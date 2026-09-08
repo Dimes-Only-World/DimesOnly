@@ -177,8 +177,20 @@ export const useDashboardStats = (
           ),
           "amount",
         );
+        const clothingRows = (((clothing as any)?.data as any[]) || []);
+        const clothingCommissions = sum(
+          clothingRows.filter((r) => r?.commission_type === "clothing_commission"),
+          "amount",
+        );
+        const clothingOverrides = sum(
+          clothingRows.filter((r) => r?.commission_type === "clothing_upline"),
+          "amount",
+        );
+
         const earned =
           rentalCommissions +
+          clothingCommissions +
+          clothingOverrides +
           eventEarnings +
           tipsEarned +
           referralCommissions +
