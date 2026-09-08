@@ -1610,6 +1610,44 @@ return (
         </Card>
       )}
 
+      {clothingCommissions.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Clothing Commissions
+            </CardTitle>
+            <p className="text-xs text-gray-500">
+              Clothing pays 10% on direct referrals and a 5% override on second-level referrals.
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-2">
+            {clothingCommissions.slice(0, 10).map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+              >
+                <div>
+                  <p className="text-sm font-medium">
+                    {c.commission_type === "clothing_upline"
+                      ? "Override (5%)"
+                      : "Direct referral (10%)"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {c.created_at ? new Date(c.created_at).toLocaleDateString() : ""}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-green-700">{formatCurrency(c.amount)}</p>
+                  <Badge variant={c.status === "completed" ? "default" : "secondary"}>{c.status}</Badge>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
