@@ -34,7 +34,7 @@ const Login: React.FC = () => {
   const { setUser } = useAppContext();
   const { toast } = useToast();
   const currentRef = searchParams.get('ref');
-  const registerUrl = currentRef ? `/register?ref=${encodeURIComponent(currentRef)}` : "/register?ref=company";
+  const shortFormUrl = currentRef ? `/?ref=${encodeURIComponent(currentRef)}` : "/";
 
   const isEmail = (input: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -287,7 +287,7 @@ const Login: React.FC = () => {
                     <p className="text-sm text-white/80">
                       Don't have an account?{" "}
                       <Link
-                        to={registerUrl}
+                        to={shortFormUrl}
                         className="text-blue-300 hover:text-blue-200 hover:underline font-medium"
                       >
                         Sign up
