@@ -143,10 +143,28 @@ export const useDashboardStats = (
           "amount",
         );
         const eventEarnings = eventCommissions + eventOverrides;
+        const paymentRows = (payments.data as any[]) || [];
+        const isMembershipDirect = (t: string) =>
+          MEMBERSHIP_DIRECT_TYPES.includes(t);
+        const isMembershipOverride = (t: string) =>
+          MEMBERSHIP_OVERRIDE_TYPES.includes(t);
+
+        const membershipReferralFees = sum(
+          paymentRows.filter((p) => isMembershipDirect(String(p?.payment_type || ""))),
+          "amount",
+        );
+        const membershipOverrideFees = sum(
+          paymentRows.filter((p) => isMembershipOverride(String(p?.payment_type || ""))),
+          "amount",
+        );
+
         // Tip commissions are already counted via tips_transactions
         const referralCommissions = sum(
-          ((payments.data as any[]) || []).filter(
-            (p) => !String(p?.payment_type || "").startsWith("tip_"),
+          paymentRows.filter(
+            (p) =>
+              !String(p?.payment_type || "").startsWith("tip_") &&
+              !isMembershipDirect(String(p?.payment_type || "")) &&
+              !isMembershipOverride(String(p?.payment_type || "")),
           ),
           "amount",
         );
@@ -155,7 +173,9 @@ export const useDashboardStats = (
           eventEarnings +
           tipsEarned +
           referralCommissions +
-          tipOverrides;
+          tipOverrides +
+          membershipReferralFees +
+          membershipOverrideFees;
 
         const weeklyTotal = sum(weekly.data as any[], "amount");
         const totalEarnings = Math.max(
