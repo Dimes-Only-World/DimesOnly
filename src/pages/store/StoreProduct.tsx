@@ -65,6 +65,7 @@ const StoreProductPage: React.FC = () => {
     );
   }
 
+  const resolve = (p: string) => (p.startsWith("/") || p.startsWith("http") ? p : signed[p] || "");
   const colorImages = [
     ...new Set(
       (product.store_variants || [])
@@ -73,7 +74,9 @@ const StoreProductPage: React.FC = () => {
     ),
   ];
   const baseImages = product.image_paths?.length ? product.image_paths : [productImage(product)];
-  const images = colorImages.length ? [...colorImages, ...baseImages] : baseImages;
+  const images = (colorImages.length ? [...colorImages, ...baseImages] : baseImages)
+    .map(resolve)
+    .filter(Boolean);
   const onSale = product.compare_at_cents && product.compare_at_cents > product.price_cents;
 
   const addToBag = () => {
