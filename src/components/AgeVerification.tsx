@@ -220,6 +220,15 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
       setSubmitting(false);
       markVerified();
       setStep("video");
+      // Try to start the video with sound while the user's Submit click still
+      // counts as a user gesture for autoplay policies.
+      requestAnimationFrame(() => {
+        const v = videoRef.current;
+        if (!v) return;
+        v.muted = false;
+        v.volume = 1;
+        v.play().catch(() => {});
+      });
     }
   };
 
