@@ -57,6 +57,16 @@ import DashboardBackButtonGuard from "./components/DashboardBackButtonGuard";
 import NotificationBell from "./components/NotificationBell";
 
 import AddToHomeScreenPrompt from "./components/AddToHomeScreenPrompt";
+import { StoreCartProvider } from "./contexts/StoreCartContext";
+import StoreHome from "./pages/store/StoreHome";
+import StoreShop from "./pages/store/StoreShop";
+import StoreProductPage from "./pages/store/StoreProduct";
+import StoreCart from "./pages/store/StoreCart";
+import StoreCheckout from "./pages/store/StoreCheckout";
+import StoreOrderReturn from "./pages/store/StoreOrderReturn";
+import StoreOrders from "./pages/store/StoreOrders";
+import StoreWishlist from "./pages/store/StoreWishlist";
+import StorePolicies from "./pages/store/StorePolicies";
 import "./App.css";
 
 // Error boundary to catch any rendering errors
@@ -166,6 +176,16 @@ function AppContent() {
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/feed" element={<Feed />} />
       <Route path="/feed/create" element={<FeedCreate />} />
+      <Route path="/clothes" element={<StoreHome />} />
+      <Route path="/clothes/shop" element={<StoreShop />} />
+      <Route path="/clothes/shop/:category" element={<StoreShop />} />
+      <Route path="/clothes/product/:slug" element={<StoreProductPage />} />
+      <Route path="/clothes/cart" element={<StoreCart />} />
+      <Route path="/clothes/checkout" element={<StoreCheckout />} />
+      <Route path="/clothes/order-return" element={<StoreOrderReturn />} />
+      <Route path="/clothes/orders" element={<StoreOrders />} />
+      <Route path="/clothes/wishlist" element={<StoreWishlist />} />
+      <Route path="/clothes/:page" element={<StorePolicies />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -198,6 +218,7 @@ function App() {
   return (
     <AppErrorBoundary>
       <AppProvider>
+        <StoreCartProvider>
         <Router
           future={{
             v7_startTransition: true,
@@ -206,6 +227,7 @@ function App() {
         >
           <AppContent />
         </Router>
+        </StoreCartProvider>
       </AppProvider>
     </AppErrorBoundary>
   );
