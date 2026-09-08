@@ -22,6 +22,7 @@ import { toast } from "sonner";
 interface Lead {
   id: string;
   full_name: string;
+  username?: string | null;
   phone: string;
   date_of_birth: string;
   referral_code: string | null;
@@ -110,6 +111,7 @@ const AdminLeadsTab: React.FC = () => {
     if (!q) return true;
     return (
       l.full_name.toLowerCase().includes(q) ||
+      (l.username || "").toLowerCase().includes(q) ||
       l.phone.toLowerCase().includes(q) ||
       (l.referral_code || "").toLowerCase().includes(q) ||
       (l.registered_username || "").toLowerCase().includes(q)
@@ -266,6 +268,7 @@ const AdminLeadsTab: React.FC = () => {
                   <th className="py-2 pr-4 font-medium">
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Select all" />
                   </th>
+                  <th className="py-2 pr-4 font-medium">Username</th>
                   <th className="py-2 pr-4 font-medium">Name</th>
                   <th className="py-2 pr-4 font-medium">Phone</th>
                   <th className="py-2 pr-4 font-medium">Date of Birth</th>
@@ -287,6 +290,7 @@ const AdminLeadsTab: React.FC = () => {
                         aria-label={`Select ${lead.full_name}`}
                       />
                     </td>
+                    <td className="py-2 pr-4">{lead.username || "—"}</td>
                     <td className="py-2 pr-4">{lead.full_name}</td>
                     <td
                       className={`py-2 pr-4 ${
