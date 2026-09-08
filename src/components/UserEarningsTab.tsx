@@ -734,6 +734,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .select("id, amount, earnings_type, created_at")
           .eq("user_id", userData.id)
           .order("created_at", { ascending: false }),
+
+        (supabase as any)
+          .from("commission_payouts")
+          .select("id, amount, commission_type, payout_status, created_at")
+          .eq("user_id", userData.id)
+          .in("commission_type", ["clothing_commission", "clothing_upline"])
+          .order("created_at", { ascending: false }),
       ]);
 
       if (weeklyResult.error) throw weeklyResult.error;
