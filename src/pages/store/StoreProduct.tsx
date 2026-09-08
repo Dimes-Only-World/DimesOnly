@@ -106,7 +106,7 @@ const StoreProductPage: React.FC = () => {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 lg:grid-cols-2">
         <div>
           <div className="aspect-[4/5] overflow-hidden" style={{ backgroundColor: "hsl(var(--store-surface))" }}>
-            <img src={images[activeImage]} alt={product.name} width={768} height={960} className="h-full w-full object-cover" />
+            <img src={images[activeImage] || images[0]} alt={product.name} width={768} height={960} className="h-full w-full object-cover" />
           </div>
           {images.length > 1 && (
             <div className="mt-3 flex gap-3">
@@ -133,7 +133,7 @@ const StoreProductPage: React.FC = () => {
               {colors.map((c) => (
                 <button
                   key={c}
-                  onClick={() => { setColor(c); setSize(""); }}
+                  onClick={() => { setColor(c); setSize(""); setActiveImage(0); }}
                   className="border px-4 py-2 text-xs uppercase tracking-widest"
                   style={{ borderColor: c === color ? "hsl(var(--store-gold))" : "hsl(var(--store-line))" }}
                 >
