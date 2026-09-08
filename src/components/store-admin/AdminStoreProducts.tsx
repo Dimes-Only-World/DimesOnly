@@ -173,8 +173,50 @@ const VariantDialog: React.FC<{ product: StoreProduct | null; onClose: () => voi
   const { toast } = useToast();
   const [variants, setVariants] = useState<StoreVariant[]>([]);
   const [draft, setDraft] = useState({ size: "", color: "", stock: "0", sku: "" });
+  const [signed, setSigned] = useState<Record<string, string>>({});
 
   useEffect(() => { setVariants(product?.store_variants || []); }, [product]);
+
+  useEffect(() => {
+    const paths = (product?.store_variants || [])
+      .map((v) => v.image_path)
+      .filter((p): p is string => !!p && !p.startsWith("/") && !p.startsWith("http"));
+    if (!paths.length) { setSigned({}); return; }
+    storeAdmin<{ urls: Record<string, string> }>("signImages", { paths })
+      .then((r) => setSigned(r.urls || {}))
+      .catch(() => setSigned({}));
+  }, [product]);
+
+  const colors = [...new Set(variants.map((v) => v.color))];
+  const colorImage = (c: string) => variants.find((v) => v.color === c && v.image_path)?.image_path || "";
+  const preview = (p: string) => (p.startsWith("/") || p.startsWith("http") ? p : signed[p] || "");
+
+  const uploadColorImage = async (c: string, file: File) => {
+    if (!product) return;
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(",")[1]);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      const path = `variants/${product.slug}-${c.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}.jpg`;
+      await storeAdmin("uploadImage", { data: base64, path, content_type: file.type });
+      await storeAdmin("setColorImage", { product_id: product.id, color: c, image_path: path });
+      setVariants((prev) => prev.map((v) => v.color === c ? { ...v, image_path: path } : v));
+      const s = await storeAdmin<{ urls: Record<string, string> }>("signImages", { paths: [path] });
+      setSigned((prev) => ({ ...prev, ...(s.urls || {}) }));
+      toast({ title: `${c} photo saved` });
+    } catch (e) {
+      toast({ title: "Upload failed", description: (e as Error).message, variant: "destructive" });
+    }
+  };
+
+  const clearColorImage = async (c: string) => {
+    if (!product) return;
+    await storeAdmin("setColorImage", { product_id: product.id, color: c, image_path: null });
+    setVariants((prev) => prev.map((v) => v.color === c ? { ...v, image_path: null } : v));
+  };
 
   const run = async (fn: () => Promise<unknown>) => {
     try { await fn(); } catch (e) { toast({ title: "Failed", description: (e as Error).message, variant: "destructive" }); }
@@ -201,7 +243,24 @@ const VariantDialog: React.FC<{ product: StoreProduct | null; onClose: () => voi
   return (
     <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
-        <DialogHeader><DialogTitle>{product?.name} — sizes & stock</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{product?.name} — colors, sizes & stock</DialogTitle></DialogHeader>
+        {colors.length > 0 && (
+          <div className="space-y-2 rounded border p-3">
+            <p className="text-sm font-medium">Color photos</p>
+            {colors.map((c) => (
+              <div key={c} className="flex items-center gap-3 text-sm">
+                <span className="w-24">{c}</span>
+                {colorImage(c) && preview(colorImage(c)) && (
+                  <img src={preview(colorImage(c))} alt={c} loading="lazy" className="h-14 w-12 rounded object-cover" />
+                )}
+                <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadColorImage(c, e.target.files[0])} />
+                {colorImage(c) && (
+                  <Button size="sm" variant="ghost" onClick={() => clearColorImage(c)}>Remove</Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         <div className="space-y-2">
           {variants.map((v) => (
             <div key={v.id} className="flex items-center gap-3 rounded border p-2 text-sm">

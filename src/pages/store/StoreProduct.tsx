@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import StoreLayout from "@/components/store/StoreLayout";
 import ProductCard from "@/components/store/ProductCard";
-import { StoreProduct as Product, SIZE_GUIDE, fetchProductBySlug, fetchProducts, money, productImage } from "@/lib/store";
+import { StoreProduct as Product, SIZE_GUIDE, fetchProductBySlug, fetchProducts, money, productImage, signStorePaths } from "@/lib/store";
 import { useStoreCart } from "@/contexts/StoreCartContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ const StoreProductPage: React.FC = () => {
   const [size, setSize] = useState("");
   const [activeImage, setActiveImage] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
+  const [signed, setSigned] = useState<Record<string, string>>({});
   const { add } = useStoreCart();
   const { wishlistIds, toggleWishlist, signedIn } = useWishlist();
   const { toast } = useToast();
@@ -28,6 +29,10 @@ const StoreProductPage: React.FC = () => {
         if (p) {
           document.title = `${p.name} | Dimes Only Clothing`;
           setColor(p.store_variants?.[0]?.color || "");
+          signStorePaths([
+            ...(p.image_paths || []),
+            ...(p.store_variants || []).map((v) => v.image_path || ""),
+          ]).then(setSigned).catch(() => undefined);
           const all = await fetchProducts();
           setRelated(all.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4));
         }
@@ -60,6 +65,7 @@ const StoreProductPage: React.FC = () => {
     );
   }
 
+  const resolve = (p: string) => (p.startsWith("/") || p.startsWith("http") ? p : signed[p] || "");
   const colorImages = [
     ...new Set(
       (product.store_variants || [])
@@ -68,7 +74,9 @@ const StoreProductPage: React.FC = () => {
     ),
   ];
   const baseImages = product.image_paths?.length ? product.image_paths : [productImage(product)];
-  const images = colorImages.length ? [...colorImages, ...baseImages] : baseImages;
+  const images = (colorImages.length ? [...colorImages, ...baseImages] : baseImages)
+    .map(resolve)
+    .filter(Boolean);
   const onSale = product.compare_at_cents && product.compare_at_cents > product.price_cents;
 
   const addToBag = () => {
@@ -98,7 +106,7 @@ const StoreProductPage: React.FC = () => {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 lg:grid-cols-2">
         <div>
           <div className="aspect-[4/5] overflow-hidden" style={{ backgroundColor: "hsl(var(--store-surface))" }}>
-            <img src={images[activeImage]} alt={product.name} width={768} height={960} className="h-full w-full object-cover" />
+            <img src={images[activeImage] || images[0]} alt={product.name} width={768} height={960} className="h-full w-full object-cover" />
           </div>
           {images.length > 1 && (
             <div className="mt-3 flex gap-3">
@@ -125,7 +133,7 @@ const StoreProductPage: React.FC = () => {
               {colors.map((c) => (
                 <button
                   key={c}
-                  onClick={() => { setColor(c); setSize(""); }}
+                  onClick={() => { setColor(c); setSize(""); setActiveImage(0); }}
                   className="border px-4 py-2 text-xs uppercase tracking-widest"
                   style={{ borderColor: c === color ? "hsl(var(--store-gold))" : "hsl(var(--store-line))" }}
                 >
