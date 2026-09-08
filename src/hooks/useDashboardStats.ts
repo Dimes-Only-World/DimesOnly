@@ -12,6 +12,8 @@ export interface DashboardStats {
   eventEarnings: number;
   eventCommissions: number;
   eventOverrides: number;
+  membershipReferralFees: number;
+  membershipOverrideFees: number;
 }
 
 const EMPTY: DashboardStats = {
