@@ -247,6 +247,10 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
   const [rentalCommissionTotal, setRentalCommissionTotal] = useState(0);
+  const [clothingCommissions, setClothingCommissions] = useState<
+    Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
+  >([]);
+  const [clothingTotals, setClothingTotals] = useState({ direct: 0, override: 0 });
   const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
     commissions: 0,
     overrides: 0,
@@ -665,6 +669,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         payoutsResult,
         rentalCommissionsResult,
         eventEarningsResult,
+        clothingCommissionsResult,
+
 
       ] = await Promise.all([
         supabase
