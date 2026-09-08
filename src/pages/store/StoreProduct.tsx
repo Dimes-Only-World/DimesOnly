@@ -29,6 +29,10 @@ const StoreProductPage: React.FC = () => {
         if (p) {
           document.title = `${p.name} | Dimes Only Clothing`;
           setColor(p.store_variants?.[0]?.color || "");
+          signStorePaths([
+            ...(p.image_paths || []),
+            ...(p.store_variants || []).map((v) => v.image_path || ""),
+          ]).then(setSigned).catch(() => undefined);
           const all = await fetchProducts();
           setRelated(all.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4));
         }
