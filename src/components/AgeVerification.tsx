@@ -531,6 +531,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified }) => {
               controls
               controlsList="nodownload noplaybackrate"
               muted={false}
+              onPlay={handleVideoPlay}
+              onLoadedMetadata={handleVideoPlay}
               onEnded={() => setVideoEnded(true)}
               className="w-full h-auto rounded-lg border-2 border-orange-500 bg-black object-contain"
             >
