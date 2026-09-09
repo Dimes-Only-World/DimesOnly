@@ -29,6 +29,8 @@ const EMPTY_TITLE = {
   tags: "",
   poster_url: "",
   backdrop_url: "",
+  poster_mobile_url: "",
+  backdrop_mobile_url: "",
   trailer_url: "",
   video_url: "",
   featured: false,
@@ -298,7 +300,10 @@ const AdminFlixTab: React.FC = () => {
                 [
                   ["name", "Name"], ["logline", "Logline"], ["genres", "Genres (comma separated)"],
                   ["cast_members", "Cast (comma separated)"], ["tags", "Tags (comma separated)"],
-                  ["poster_url", "Poster URL"], ["backdrop_url", "Backdrop URL"],
+                  ["poster_url", "Poster URL — Portrait 2:3 · 600×900 px"],
+                  ["backdrop_url", "Backdrop URL — Landscape 16:9 · 1920×1080 px"],
+                  ["poster_mobile_url", "Poster Mobile URL — Portrait 2:3 · 400×600 px (optional)"],
+                  ["backdrop_mobile_url", "Backdrop Mobile URL — Landscape 16:9 · 780×440 px (optional)"],
                   ["trailer_url", "Trailer URL (mp4)"], ["video_url", "Video URL (mp4)"],
                 ] as const
               ).map(([key, label]) => (
