@@ -157,6 +157,18 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       Icon: DollarSign,
       to: "/dashboard/earnings",
     },
+    {
+      label: "FlameFlix Commissions",
+      value: formatCurrency(stats.flixCommissions),
+      Icon: DollarSign,
+      to: "/flix/earn",
+    },
+    {
+      label: "FlameFlix Override Commissions",
+      value: formatCurrency(stats.flixOverrides),
+      Icon: DollarSign,
+      to: "/flix/earn",
+    },
   ];
 
 
