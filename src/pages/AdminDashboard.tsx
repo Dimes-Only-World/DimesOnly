@@ -15,6 +15,7 @@ import {
   Calendar,
   Car,
   Shirt,
+  Flame,
   FlaskConical,
   Video,
   CreditCard,
