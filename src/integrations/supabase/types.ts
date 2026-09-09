@@ -1225,6 +1225,7 @@ export type Database = {
       }
       flix_titles: {
         Row: {
+          backdrop_mobile_url: string
           backdrop_url: string | null
           cast_members: string[] | null
           created_at: string
@@ -1237,6 +1238,7 @@ export type Database = {
           is_original: boolean | null
           logline: string | null
           name: string
+          poster_mobile_url: string
           poster_url: string | null
           rating: string | null
           status: string
@@ -1247,6 +1249,7 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          backdrop_mobile_url?: string
           backdrop_url?: string | null
           cast_members?: string[] | null
           created_at?: string
@@ -1259,6 +1262,7 @@ export type Database = {
           is_original?: boolean | null
           logline?: string | null
           name: string
+          poster_mobile_url?: string
           poster_url?: string | null
           rating?: string | null
           status?: string
@@ -1269,6 +1273,7 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          backdrop_mobile_url?: string
           backdrop_url?: string | null
           cast_members?: string[] | null
           created_at?: string
@@ -1281,6 +1286,7 @@ export type Database = {
           is_original?: boolean | null
           logline?: string | null
           name?: string
+          poster_mobile_url?: string
           poster_url?: string | null
           rating?: string | null
           status?: string

@@ -70,6 +70,8 @@ serve(async (req) => {
           tags: t.tags || [],
           poster_url: t.poster_url || "",
           backdrop_url: t.backdrop_url || "",
+          poster_mobile_url: t.poster_mobile_url || "",
+          backdrop_mobile_url: t.backdrop_mobile_url || "",
           trailer_url: t.trailer_url || "",
           video_url: t.video_url || "",
           featured: !!t.featured,
