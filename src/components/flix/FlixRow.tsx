@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
-import type { FlixTitle } from "@/lib/flix";
+import { flixImage, type FlixTitle } from "@/lib/flix";
 
 export const FlixPosterCard: React.FC<{ title: FlixTitle; progress?: number }> = ({ title, progress }) => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ export const FlixPosterCard: React.FC<{ title: FlixTitle; progress?: number }> =
       aria-label={title.name}
     >
       <div className="relative aspect-[2/3]">
-        <img src={title.poster_url} alt={`${title.name} poster`} loading="lazy" width={512} height={768} className="w-full h-full object-cover" />
+        <img src={flixImage(title, "poster")} alt={`${title.name} poster`} loading="lazy" width={512} height={768} className="w-full h-full object-cover" />
         {title.is_original && (
           <span className="absolute top-2 left-2 flex items-center gap-1 bg-[#FF4D1A] text-white text-[10px] font-black px-2 py-0.5 rounded">
             <Flame size={10} className="fill-[#FFB020]" /> ORIGINAL
