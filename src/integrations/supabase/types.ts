@@ -969,6 +969,378 @@ export type Database = {
         }
         Relationships: []
       }
+      flix_earnings: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          earner_username: string
+          id: string
+          level: number
+          note: string | null
+          paid_at: string | null
+          qualified_at: string | null
+          source_subscriber_id: string | null
+          status: string
+          subscription_id: string | null
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          earner_username: string
+          id?: string
+          level?: number
+          note?: string | null
+          paid_at?: string | null
+          qualified_at?: string | null
+          source_subscriber_id?: string | null
+          status?: string
+          subscription_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          earner_username?: string
+          id?: string
+          level?: number
+          note?: string | null
+          paid_at?: string | null
+          qualified_at?: string | null
+          source_subscriber_id?: string | null
+          status?: string
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flix_earnings_source_subscriber_id_fkey"
+            columns: ["source_subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_earnings_source_subscriber_id_fkey"
+            columns: ["source_subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_earnings_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "flix_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flix_link_clicks: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+        }
+        Relationships: []
+      }
+      flix_my_list: {
+        Row: {
+          created_at: string
+          id: string
+          title_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flix_my_list_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "flix_titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_my_list_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_my_list_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flix_payout_requests: {
+        Row: {
+          admin_note: string | null
+          amount_cents: number
+          created_at: string
+          id: string
+          method: string
+          method_details: string | null
+          status: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_cents: number
+          created_at?: string
+          id?: string
+          method?: string
+          method_details?: string | null
+          status?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          method?: string
+          method_details?: string | null
+          status?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      flix_referral_attributions: {
+        Row: {
+          created_at: string
+          id: string
+          level: number
+          referrer_username: string
+          subscriber_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level?: number
+          referrer_username: string
+          subscriber_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: number
+          referrer_username?: string
+          subscriber_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flix_referral_attributions_subscriber_user_id_fkey"
+            columns: ["subscriber_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_referral_attributions_subscriber_user_id_fkey"
+            columns: ["subscriber_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flix_subscriptions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          current_period_end: string | null
+          id: string
+          is_demo: boolean | null
+          plan: string
+          referral_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          is_demo?: boolean | null
+          plan?: string
+          referral_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          is_demo?: boolean | null
+          plan?: string
+          referral_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flix_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flix_titles: {
+        Row: {
+          backdrop_url: string | null
+          cast_members: string[] | null
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          featured: boolean | null
+          featured_order: number | null
+          genres: string[] | null
+          id: string
+          is_original: boolean | null
+          logline: string | null
+          name: string
+          poster_url: string | null
+          rating: string | null
+          status: string
+          tags: string[] | null
+          trailer_url: string | null
+          updated_at: string
+          video_url: string | null
+          year: number | null
+        }
+        Insert: {
+          backdrop_url?: string | null
+          cast_members?: string[] | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          featured?: boolean | null
+          featured_order?: number | null
+          genres?: string[] | null
+          id?: string
+          is_original?: boolean | null
+          logline?: string | null
+          name: string
+          poster_url?: string | null
+          rating?: string | null
+          status?: string
+          tags?: string[] | null
+          trailer_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+          year?: number | null
+        }
+        Update: {
+          backdrop_url?: string | null
+          cast_members?: string[] | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          featured?: boolean | null
+          featured_order?: number | null
+          genres?: string[] | null
+          id?: string
+          is_original?: boolean | null
+          logline?: string | null
+          name?: string
+          poster_url?: string | null
+          rating?: string | null
+          status?: string
+          tags?: string[] | null
+          trailer_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
+      flix_watch_progress: {
+        Row: {
+          duration_seconds: number | null
+          id: string
+          seconds: number
+          title_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          duration_seconds?: number | null
+          id?: string
+          seconds?: number
+          title_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          duration_seconds?: number | null
+          id?: string
+          seconds?: number
+          title_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flix_watch_progress_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "flix_titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_watch_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_watch_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       installment_payments: {
         Row: {
           amount: number
