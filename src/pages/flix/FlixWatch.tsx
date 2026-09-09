@@ -105,14 +105,6 @@ const FlixWatch: React.FC = () => {
     else containerRef.current?.requestFullscreen?.();
   };
 
-  if (subscribed === false) {
-    return (
-      <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
-        <FlixPaywall titleName={title?.name} onClose={() => navigate(id ? `/flix/title/${id}` : "/flix/browse")} />
-      </div>
-    );
-  }
-
   if (!title || subscribed === null) {
     return <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center"><div className="w-16 h-16 border-4 border-[#2A2A2A] border-t-[#FF4D1A] rounded-full animate-spin" /></div>;
   }
