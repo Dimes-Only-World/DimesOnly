@@ -177,15 +177,17 @@ const DashboardBanner: React.FC<DashboardBannerProps> = ({
           </div>
         </Button>
 
-        <Button
-          onClick={() => navigate("/flix")}
-          className="relative bg-gradient-to-r from-orange-500 via-red-600 to-yellow-500 hover:from-orange-600 hover:via-red-700 hover:to-yellow-600 text-white border-0 shadow-lg font-semibold py-3 px-4 h-auto text-sm transition-all duration-200 animate-[flame_2s_ease-in-out_infinite] overflow-hidden"
-        >
-          <div className="flex flex-col items-center gap-1">
-            <Flame className="w-5 h-5 text-yellow-200" />
-            <span>FLAMEFLIX</span>
-          </div>
-        </Button>
+        <div className="col-span-2 md:col-span-6 flex justify-center">
+          <Button
+            onClick={() => navigate("/flix")}
+            className="relative bg-gradient-to-r from-orange-500 via-red-600 to-yellow-500 hover:from-orange-600 hover:via-red-700 hover:to-yellow-600 text-white border-0 shadow-lg font-semibold py-3 px-4 h-auto text-sm transition-all duration-200 animate-[flame_2s_ease-in-out_infinite] overflow-hidden"
+          >
+            <div className="flex flex-col items-center gap-1">
+              <Flame className="w-5 h-5 text-yellow-200" />
+              <span>FLAMEFLIX</span>
+            </div>
+          </Button>
+        </div>
       </div>
 
       {/* Video Modals */}
