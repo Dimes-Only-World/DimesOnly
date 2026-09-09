@@ -22,6 +22,24 @@ const AdminStoreProducts: React.FC = () => {
   const [editing, setEditing] = useState<typeof emptyProduct | null>(null);
   const [variantsFor, setVariantsFor] = useState<StoreProduct | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editSigned, setEditSigned] = useState<Record<string, string>>({});
+
+  const editImages = (editing?.images || "").split(",").map((s) => s.trim()).filter(Boolean);
+
+  useEffect(() => {
+    const paths = editImages.filter((p) => !p.startsWith("/") && !p.startsWith("http"));
+    if (!paths.length) return;
+    storeAdmin<{ urls: Record<string, string> }>("signImages", { paths })
+      .then((r) => setEditSigned((prev) => ({ ...prev, ...(r.urls || {}) })))
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing?.images]);
+
+  const editPreview = (p: string) => (p.startsWith("/") || p.startsWith("http") ? p : editSigned[p] || "");
+
+  const setImages = (list: string[]) => setEditing((prev) => (prev ? { ...prev, images: list.join(", ") } : prev));
+  const makeMain = (path: string) => setImages([path, ...editImages.filter((p) => p !== path)]);
+  const removeImage = (path: string) => setImages(editImages.filter((p) => p !== path));
 
   const load = useCallback(async () => {
     setLoading(true);
