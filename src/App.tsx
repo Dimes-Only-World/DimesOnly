@@ -55,6 +55,15 @@ import GARefTracker from "./components/GARefTracker";
 import GlobalVideoDownloadBlocker from "./components/GlobalVideoDownloadBlocker";
 import DashboardBackButtonGuard from "./components/DashboardBackButtonGuard";
 import NotificationBell from "./components/NotificationBell";
+import FlixLanding from "@/pages/flix/FlixLanding";
+import FlixBrowse from "@/pages/flix/FlixBrowse";
+import FlixTitlePage from "@/pages/flix/FlixTitle";
+import FlixWatch from "@/pages/flix/FlixWatch";
+import FlixSearch from "@/pages/flix/FlixSearch";
+import FlixPricing from "@/pages/flix/FlixPricing";
+import FlixAccount from "@/pages/flix/FlixAccount";
+import FlixEarn from "@/pages/flix/FlixEarn";
+import FlixLegal from "@/pages/flix/FlixLegal";
 
 import AddToHomeScreenPrompt from "./components/AddToHomeScreenPrompt";
 import { StoreCartProvider } from "./contexts/StoreCartContext";
@@ -186,6 +195,15 @@ function AppContent() {
       <Route path="/clothes/orders" element={<StoreOrders />} />
       <Route path="/clothes/wishlist" element={<StoreWishlist />} />
       <Route path="/clothes/:page" element={<StorePolicies />} />
+      <Route path="/flix" element={<FlixLanding />} />
+      <Route path="/flix/browse" element={<FlixBrowse />} />
+      <Route path="/flix/title/:id" element={<FlixTitlePage />} />
+      <Route path="/flix/watch/:id" element={<FlixWatch />} />
+      <Route path="/flix/search" element={<FlixSearch />} />
+      <Route path="/flix/pricing" element={<FlixPricing />} />
+      <Route path="/flix/account" element={<FlixAccount />} />
+      <Route path="/flix/earn" element={<FlixEarn />} />
+      <Route path="/flix/legal/:doc" element={<FlixLegal />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
