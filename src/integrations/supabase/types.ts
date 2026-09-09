@@ -2939,6 +2939,8 @@ export type Database = {
       rental_bookings: {
         Row: {
           admin_notes: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string
           discount_amount: number
           down_payment_amount: number
@@ -2946,6 +2948,8 @@ export type Database = {
           id: string
           insurance_path: string | null
           license_path: string | null
+          paid_at: string | null
+          paypal_capture_id: string | null
           paypal_order_id: string | null
           pickup_location: string | null
           promo_code: string | null
@@ -2964,6 +2968,8 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           discount_amount?: number
           down_payment_amount?: number
@@ -2971,6 +2977,8 @@ export type Database = {
           id?: string
           insurance_path?: string | null
           license_path?: string | null
+          paid_at?: string | null
+          paypal_capture_id?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
           promo_code?: string | null
@@ -2989,6 +2997,8 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           discount_amount?: number
           down_payment_amount?: number
@@ -2996,6 +3006,8 @@ export type Database = {
           id?: string
           insurance_path?: string | null
           license_path?: string | null
+          paid_at?: string | null
+          paypal_capture_id?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
           promo_code?: string | null
