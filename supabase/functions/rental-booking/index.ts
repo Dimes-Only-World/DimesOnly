@@ -81,6 +81,32 @@ const decodeBase64 = (value: string) => {
   return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
 };
 
+const paypalBase = () =>
+  (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox") === "live"
+    ? "https://api-m.paypal.com"
+    : "https://api-m.sandbox.paypal.com";
+
+const paypalToken = async (requestId: string) => {
+  const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
+  const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+  if (!clientId || !clientSecret) throw new Error("PayPal credentials missing");
+
+  const res = await fetch(`${paypalBase()}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    logError(requestId, "paypal auth failed", body);
+    throw new Error("PayPal authentication failed");
+  }
+  return body.access_token as string;
+};
+
 const createServiceClient = (requestId: string) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
