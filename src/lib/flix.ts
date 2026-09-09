@@ -13,6 +13,8 @@ export interface FlixTitle {
   tags: string[];
   poster_url: string;
   backdrop_url: string;
+  poster_mobile_url?: string;
+  backdrop_mobile_url?: string;
   trailer_url: string;
   video_url: string;
   featured: boolean;
@@ -132,6 +134,14 @@ export function getFlixRefCode(): string {
 }
 
 export const formatCents = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
+/** Picks the mobile-size image on small screens when one is set. */
+export function flixImage(title: Pick<FlixTitle, "poster_url" | "backdrop_url" | "poster_mobile_url" | "backdrop_mobile_url">, kind: "poster" | "backdrop"): string {
+  const desktop = kind === "poster" ? title.poster_url : title.backdrop_url;
+  const mobile = kind === "poster" ? title.poster_mobile_url : title.backdrop_mobile_url;
+  if (mobile && typeof window !== "undefined" && window.innerWidth < 768) return mobile;
+  return desktop;
+}
 
 export const formatDuration = (mins: number) => {
   const h = Math.floor(mins / 60);
