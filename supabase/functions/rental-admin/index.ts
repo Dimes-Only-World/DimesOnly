@@ -94,14 +94,15 @@ serve(async (req) => {
         if (bErr) throw bErr;
         if (status === "paid" && b) {
           const rows: any[] = [];
-          const amt = Number(b.total_price) * 0.10;
+          const directAmt = Number(b.total_price) * 0.10;
+          const uplineAmt = Number(b.total_price) * 0.05;
           if (b.referrer_username) {
             const { data: u } = await admin.from("users").select("id").ilike("username", b.referrer_username).maybeSingle();
-            if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "direct", amount: amt, status: "pending" });
+            if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "direct", amount: directAmt, status: "pending" });
           }
           if (b.upline_referrer_username) {
             const { data: u } = await admin.from("users").select("id").ilike("username", b.upline_referrer_username).maybeSingle();
-            if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "upline", amount: amt, status: "pending" });
+            if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "upline", amount: uplineAmt, status: "pending" });
           }
           if (rows.length) await admin.from("rental_commissions").insert(rows);
         }
