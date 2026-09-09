@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Upload, Heart } from "lucide-react";
+import { Camera, Upload, Heart, Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase"; // Import your Supabase client
 import { useToast } from "@/hooks/use-toast"; // For error notifications
 
@@ -368,6 +368,13 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
                 className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-4 h-auto"
               >
                 CLOTHES
+              </Button>
+              <Button
+                onClick={() => handleButtonClick("/flix")}
+                className="relative bg-gradient-to-r from-orange-600 via-red-600 to-yellow-500 hover:from-orange-700 hover:via-red-700 hover:to-yellow-600 text-white font-semibold py-3 px-4 h-auto flex items-center gap-2 animate-[flame_2s_ease-in-out_infinite]"
+              >
+                <Flame className="w-4 h-4" />
+                FLAMEFLIX
               </Button>
             </div>
           </CardContent>
