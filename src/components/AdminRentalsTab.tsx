@@ -650,6 +650,22 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
     }
   };
 
+  const [verifying, setVerifying] = React.useState(false);
+
+  const verifyPayment = async () => {
+    setVerifying(true);
+    try {
+      const res = await callAdmin("verifyPaypalPayment", { id: b.id });
+      if (res?.error) throw new Error(res.error);
+      toast({ title: "Payment verified", description: "PayPal payment confirmed and commissions created." });
+      onChange();
+    } catch (e: any) {
+      toast({ title: "Not verified", description: e.message, variant: "destructive" });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const setStatus = async (status: string) => {
     try {
       await callAdmin("updateBookingStatus", { id: b.id, status });
