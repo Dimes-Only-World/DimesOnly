@@ -151,7 +151,19 @@ serve(async (req) => {
       return json({ error: "Invalid booking payload", fields: parsed.error.flatten().fieldErrors, requestId }, 400);
     }
 
-    const { action, userId, booking, documentFiles, addonPackageIds, promoCode, subtotal } = parsed.data;
+    const {
+      action,
+      userId,
+      booking,
+      documentFiles,
+      addonPackageIds,
+      promoCode,
+      subtotal,
+      bookingId,
+      returnUrl,
+      cancelUrl,
+      paypalOrderId,
+    } = parsed.data;
     const admin = createServiceClient(requestId);
 
     log(requestId, "request received", {
