@@ -22,6 +22,24 @@ const AdminStoreProducts: React.FC = () => {
   const [editing, setEditing] = useState<typeof emptyProduct | null>(null);
   const [variantsFor, setVariantsFor] = useState<StoreProduct | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editSigned, setEditSigned] = useState<Record<string, string>>({});
+
+  const editImages = (editing?.images || "").split(",").map((s) => s.trim()).filter(Boolean);
+
+  useEffect(() => {
+    const paths = editImages.filter((p) => !p.startsWith("/") && !p.startsWith("http"));
+    if (!paths.length) return;
+    storeAdmin<{ urls: Record<string, string> }>("signImages", { paths })
+      .then((r) => setEditSigned((prev) => ({ ...prev, ...(r.urls || {}) })))
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing?.images]);
+
+  const editPreview = (p: string) => (p.startsWith("/") || p.startsWith("http") ? p : editSigned[p] || "");
+
+  const setImages = (list: string[]) => setEditing((prev) => (prev ? { ...prev, images: list.join(", ") } : prev));
+  const makeMain = (path: string) => setImages([path, ...editImages.filter((p) => p !== path)]);
+  const removeImage = (path: string) => setImages(editImages.filter((p) => p !== path));
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -150,6 +168,35 @@ const AdminStoreProducts: React.FC = () => {
               <Input placeholder="Tags (comma separated)" value={editing.tags} onChange={(e) => setEditing({ ...editing, tags: e.target.value })} />
               <Input placeholder="Image paths (comma separated)" value={editing.images} onChange={(e) => setEditing({ ...editing, images: e.target.value })} />
               <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
+              {editImages.length > 0 && (
+                <div className="space-y-2 rounded border p-3">
+                  <p className="text-sm font-medium">Photos — the first one is the display photo</p>
+                  <div className="flex flex-wrap gap-3">
+                    {editImages.map((p, i) => (
+                      <div key={p} className="w-24 space-y-1">
+                        <div className="relative">
+                          {editPreview(p) ? (
+                            <img src={editPreview(p)} alt="" loading="lazy" className="h-28 w-24 rounded object-cover" />
+                          ) : (
+                            <div className="flex h-28 w-24 items-center justify-center rounded border text-[10px] text-gray-400">no preview</div>
+                          )}
+                          {i === 0 && (
+                            <span className="absolute left-1 top-1 rounded bg-black/70 px-1 text-[10px] text-white">Display</span>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button type="button" size="sm" variant="outline" className="h-7 px-2 text-[11px]" disabled={i === 0} onClick={() => makeMain(p)}>
+                            Set display
+                          </Button>
+                          <Button type="button" size="sm" variant="ghost" className="h-7 px-2" onClick={() => removeImage(p)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-6 text-sm">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={editing.featured} onChange={(e) => setEditing({ ...editing, featured: e.target.checked })} /> Featured
