@@ -103,3 +103,51 @@ export async function signStorePaths(paths: string[]): Promise<Record<string, st
   const { data } = await supabase.functions.invoke("store-images", { body: { paths: need } });
   return (data?.urls as Record<string, string>) || {};
 }
+
+/* ---- batched signed image URLs for list/grid views ---- */
+const signedCache = new Map<string, string>();
+const signedListeners = new Set<() => void>();
+let pendingPaths: string[] = [];
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function needsSigning(path?: string | null) {
+  return !!path && !path.startsWith("/") && !path.startsWith("http") && !path.startsWith("data:");
+}
+
+async function flushSigning() {
+  flushTimer = null;
+  const batch = [...new Set(pendingPaths)];
+  pendingPaths = [];
+  if (!batch.length) return;
+  try {
+    const urls = await signStorePaths(batch);
+    for (const [k, v] of Object.entries(urls)) if (v) signedCache.set(k, v);
+  } catch {
+    /* leave unsigned; placeholder shown */
+  }
+  signedListeners.forEach((fn) => fn());
+}
+
+export function requestSignedStoreImage(path: string) {
+  if (!needsSigning(path) || signedCache.has(path)) return;
+  pendingPaths.push(path);
+  if (!flushTimer) flushTimer = setTimeout(flushSigning, 30);
+}
+
+/** Returns a displayable URL for a storage path, signing it in a shared batch. */
+export function useSignedStoreImage(path?: string | null): string {
+  const [, force] = React.useReducer((n: number) => n + 1, 0);
+  React.useEffect(() => {
+    if (!needsSigning(path)) return;
+    if (signedCache.has(path as string)) return;
+    signedListeners.add(force);
+    requestSignedStoreImage(path as string);
+    return () => {
+      signedListeners.delete(force);
+    };
+  }, [path]);
+
+  if (!path) return "/store/placeholder.jpg";
+  if (!needsSigning(path)) return path;
+  return signedCache.get(path) || "/store/placeholder.jpg";
+}
