@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
-import { StoreProduct, money, productImage } from "@/lib/store";
+import { StoreProduct, money, productImage, useSignedStoreImage } from "@/lib/store";
 
 type Props = {
   product: StoreProduct;
@@ -10,13 +10,14 @@ type Props = {
 };
 
 const ProductCard: React.FC<Props> = ({ product, wishlisted, onToggleWishlist }) => {
+  const cardImage = useSignedStoreImage(productImage(product));
   const onSale = product.compare_at_cents && product.compare_at_cents > product.price_cents;
   return (
     <div className="group relative">
       <Link to={`/clothes/product/${product.slug}`} className="block overflow-hidden">
         <div className="relative aspect-[4/5] overflow-hidden" style={{ backgroundColor: "hsl(var(--store-surface))" }}>
           <img
-            src={productImage(product)}
+            src={cardImage}
             alt={product.name}
             loading="lazy"
             width={768}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import StoreLayout from "@/components/store/StoreLayout";
 import ProductCard from "@/components/store/ProductCard";
-import { StoreProduct, fetchProducts, productImage } from "@/lib/store";
+import { StoreProduct, fetchProducts, productImage, useSignedStoreImage } from "@/lib/store";
 import { useWishlist } from "@/hooks/useWishlist";
 
 const StoreHome: React.FC = () => {
