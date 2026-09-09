@@ -22,11 +22,17 @@ const BookingPayloadSchema = z.object({
   signature_text: z.string().max(5000).nullable().optional(),
   signed_at: z.string().nullable().optional(),
   security_deposit: z.coerce.number().nonnegative().optional().default(0),
+  contact_email: z.string().max(255).nullable().optional(),
+  contact_phone: z.string().max(50).nullable().optional(),
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment"]),
   userId: z.string().uuid(),
+  bookingId: z.string().uuid().optional(),
+  returnUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+  paypalOrderId: z.string().max(120).optional(),
   promoCode: z.string().max(60).nullable().optional(),
   subtotal: z.coerce.number().nonnegative().optional(),
   booking: BookingPayloadSchema.optional(),
@@ -73,6 +79,32 @@ const cleanExt = (fileName?: string) => {
 const decodeBase64 = (value: string) => {
   const base64 = value.includes(",") ? value.split(",").pop() || "" : value;
   return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+};
+
+const paypalBase = () =>
+  (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox") === "live"
+    ? "https://api-m.paypal.com"
+    : "https://api-m.sandbox.paypal.com";
+
+const paypalToken = async (requestId: string) => {
+  const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
+  const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+  if (!clientId || !clientSecret) throw new Error("PayPal credentials missing");
+
+  const res = await fetch(`${paypalBase()}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    logError(requestId, "paypal auth failed", body);
+    throw new Error("PayPal authentication failed");
+  }
+  return body.access_token as string;
 };
 
 const createServiceClient = (requestId: string) => {
@@ -145,7 +177,19 @@ serve(async (req) => {
       return json({ error: "Invalid booking payload", fields: parsed.error.flatten().fieldErrors, requestId }, 400);
     }
 
-    const { action, userId, booking, documentFiles, addonPackageIds, promoCode, subtotal } = parsed.data;
+    const {
+      action,
+      userId,
+      booking,
+      documentFiles,
+      addonPackageIds,
+      promoCode,
+      subtotal,
+      bookingId,
+      returnUrl,
+      cancelUrl,
+      paypalOrderId,
+    } = parsed.data;
     const admin = createServiceClient(requestId);
 
     log(requestId, "request received", {
@@ -302,6 +346,8 @@ serve(async (req) => {
           renter_user_id: userId,
           referrer_username: directRef,
           upline_referrer_username: uplineRef,
+          contact_email: booking.contact_email || null,
+          contact_phone: booking.contact_phone || null,
           status: "pending",
         };
 
@@ -370,6 +416,104 @@ serve(async (req) => {
 
         log(requestId, "booking created", { bookingId: bookingRow.id });
         return json({ data: bookingRow, requestId });
+      }
+      case "createPayment": {
+        if (!bookingId || !returnUrl || !cancelUrl) {
+          return json({ error: "Missing payment details", requestId }, 400);
+        }
+
+        const { data: bk, error: bkErr } = await admin
+          .from("rental_bookings")
+          .select("id, renter_user_id, total_price, status, vehicle_id")
+          .eq("id", bookingId)
+          .maybeSingle();
+
+        if (bkErr) {
+          logError(requestId, "booking lookup failed", bkErr, { bookingId });
+          return json({ error: "Could not load booking", requestId }, 500);
+        }
+        if (!bk || bk.renter_user_id !== userId) return json({ error: "Booking not found", requestId }, 404);
+        if (["paid", "active", "completed"].includes(String(bk.status))) {
+          return json({ error: "This booking is already paid", requestId }, 400);
+        }
+
+        const amount = Number(bk.total_price) || 0;
+        if (amount <= 0) return json({ error: "Nothing to pay for this booking", requestId }, 400);
+
+        const token = await paypalToken(requestId);
+        const res = await fetch(`${paypalBase()}/v2/checkout/orders`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            intent: "CAPTURE",
+            purchase_units: [
+              {
+                custom_id: `rental_${bk.id}`,
+                description: "Dimes Only vehicle rental",
+                amount: { currency_code: "USD", value: amount.toFixed(2) },
+              },
+            ],
+            application_context: {
+              brand_name: "Dimes Only Rentals",
+              user_action: "PAY_NOW",
+              shipping_preference: "NO_SHIPPING",
+              return_url: returnUrl,
+              cancel_url: cancelUrl,
+            },
+          }),
+        });
+        const orderJson = await res.json();
+        if (!res.ok) {
+          logError(requestId, "paypal order create failed", orderJson, { bookingId });
+          return json({ error: "Could not start PayPal checkout", requestId }, 400);
+        }
+
+        await admin.from("rental_bookings").update({ paypal_order_id: orderJson.id }).eq("id", bk.id);
+
+        const approve = (orderJson.links || []).find((l: any) => l.rel === "approve")?.href;
+        return json({ data: { paypal_order_id: orderJson.id, approve_url: approve }, requestId });
+      }
+      case "capturePayment": {
+        if (!bookingId || !paypalOrderId) return json({ error: "Missing payment reference", requestId }, 400);
+
+        const { data: bk } = await admin
+          .from("rental_bookings")
+          .select("id, renter_user_id, status, paypal_order_id")
+          .eq("id", bookingId)
+          .maybeSingle();
+
+        if (!bk || bk.renter_user_id !== userId) return json({ error: "Booking not found", requestId }, 404);
+        if (bk.paypal_order_id && bk.paypal_order_id !== paypalOrderId) {
+          return json({ error: "Payment reference mismatch", requestId }, 400);
+        }
+        if (["paid", "active", "completed"].includes(String(bk.status))) {
+          return json({ data: { status: bk.status, alreadyPaid: true }, requestId });
+        }
+
+        const token = await paypalToken(requestId);
+        const capRes = await fetch(`${paypalBase()}/v2/checkout/orders/${paypalOrderId}/capture`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        });
+        const capJson = await capRes.json();
+        const capture = capJson?.purchase_units?.[0]?.payments?.captures?.[0];
+        const completed = capJson?.status === "COMPLETED" || capture?.status === "COMPLETED";
+
+        if (!capRes.ok || !completed) {
+          logError(requestId, "paypal capture not completed", capJson, { bookingId });
+          return json({ error: "PayPal payment was not completed", requestId }, 400);
+        }
+
+        await admin
+          .from("rental_bookings")
+          .update({
+            status: "paid",
+            paypal_capture_id: capture?.id || null,
+            paid_at: new Date().toISOString(),
+          })
+          .eq("id", bk.id);
+
+        return json({ data: { status: "paid", capture_id: capture?.id || null }, requestId });
       }
       default:
         return json({ error: "Unknown action", requestId }, 400);

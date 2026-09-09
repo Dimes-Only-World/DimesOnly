@@ -86,27 +86,83 @@ serve(async (req) => {
           .select("*, vehicles(year,make,model)")
           .order("created_at", { ascending: false });
         if (error) throw error;
-        return json({ data });
+
+        const renterIds = [...new Set((data || []).map((b: any) => b.renter_user_id).filter(Boolean))];
+        const contactById = new Map<string, any>();
+        if (renterIds.length) {
+          const { data: users } = await admin
+            .from("users")
+            .select("id, username, email, phone_number")
+            .in("id", renterIds);
+          for (const u of users || []) contactById.set(u.id, u);
+        }
+
+        const rows = (data || []).map((b: any) => {
+          const u = contactById.get(b.renter_user_id);
+          return {
+            ...b,
+            renter_username: u?.username || null,
+            renter_email: b.contact_email || u?.email || null,
+            renter_phone: b.contact_phone || u?.phone_number || null,
+          };
+        });
+        return json({ data: rows });
       }
       case "updateBookingStatus": {
         const { id, status } = params;
         const { data: b, error: bErr } = await admin.from("rental_bookings").update({ status }).eq("id", id).select().single();
         if (bErr) throw bErr;
-        if (status === "paid" && b) {
-          const rows: any[] = [];
-          const directAmt = Number(b.total_price) * 0.10;
-          const uplineAmt = Number(b.total_price) * 0.05;
-          if (b.referrer_username) {
-            const { data: u } = await admin.from("users").select("id").ilike("username", b.referrer_username).maybeSingle();
-            if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "direct", amount: directAmt, status: "pending" });
-          }
-          if (b.upline_referrer_username) {
-            const { data: u } = await admin.from("users").select("id").ilike("username", b.upline_referrer_username).maybeSingle();
-            if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "upline", amount: uplineAmt, status: "pending" });
-          }
-          if (rows.length) await admin.from("rental_commissions").insert(rows);
-        }
+        if (status === "paid" && b) await createCommissions(admin, b);
         return json({ data: b });
+      }
+      case "verifyPaypalPayment": {
+        const { id } = params;
+        const { data: b, error: bErr } = await admin.from("rental_bookings").select("*").eq("id", id).single();
+        if (bErr) throw bErr;
+        if (!b.paypal_order_id) return json({ error: "No PayPal payment has been started for this booking" }, 400);
+
+        const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
+        const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+        if (!clientId || !clientSecret) return json({ error: "PayPal credentials missing" }, 400);
+        const base = (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox") === "live"
+          ? "https://api-m.paypal.com"
+          : "https://api-m.sandbox.paypal.com";
+
+        const authRes = await fetch(`${base}/v1/oauth2/token`, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: "grant_type=client_credentials",
+        });
+        const authJson = await authRes.json();
+        if (!authRes.ok) return json({ error: "PayPal authentication failed" }, 400);
+
+        const orderRes = await fetch(`${base}/v2/checkout/orders/${b.paypal_order_id}`, {
+          headers: { Authorization: `Bearer ${authJson.access_token}` },
+        });
+        const orderJson = await orderRes.json();
+        const capture = orderJson?.purchase_units?.[0]?.payments?.captures?.[0];
+        const completed = orderJson?.status === "COMPLETED" || capture?.status === "COMPLETED";
+        if (!orderRes.ok || !completed) {
+          return json({ error: `PayPal payment not completed (status: ${orderJson?.status || "unknown"})` }, 400);
+        }
+
+        const alreadyPaid = ["paid", "active", "completed"].includes(String(b.status));
+        const { data: updated, error: upErr } = await admin
+          .from("rental_bookings")
+          .update({
+            status: alreadyPaid ? b.status : "paid",
+            paypal_capture_id: capture?.id || b.paypal_capture_id || null,
+            paid_at: b.paid_at || new Date().toISOString(),
+          })
+          .eq("id", id)
+          .select()
+          .single();
+        if (upErr) throw upErr;
+        if (!alreadyPaid) await createCommissions(admin, updated);
+        return json({ data: updated, verified: true });
       }
       case "listCommissions": {
         const { data, error } = await admin.from("rental_commissions").select("*").order("created_at", { ascending: false });
@@ -252,6 +308,24 @@ serve(async (req) => {
     return json({ error: e.message || String(e) }, 500);
   }
 });
+
+async function createCommissions(admin: any, b: any) {
+  const { data: existing } = await admin.from("rental_commissions").select("id").eq("booking_id", b.id).limit(1);
+  if (existing?.length) return;
+
+  const rows: any[] = [];
+  const directAmt = Number(b.total_price) * 0.10;
+  const uplineAmt = Number(b.total_price) * 0.05;
+  if (b.referrer_username) {
+    const { data: u } = await admin.from("users").select("id").ilike("username", b.referrer_username).maybeSingle();
+    if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "direct", amount: directAmt, status: "pending" });
+  }
+  if (b.upline_referrer_username) {
+    const { data: u } = await admin.from("users").select("id").ilike("username", b.upline_referrer_username).maybeSingle();
+    if (u) rows.push({ booking_id: b.id, user_id: u.id, commission_type: "upline", amount: uplineAmt, status: "pending" });
+  }
+  if (rows.length) await admin.from("rental_commissions").insert(rows);
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

@@ -48,6 +48,7 @@ import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
 import Rentals from "./pages/Rentals";
 import RentalDetails from "./pages/RentalDetails";
+import RentalPayment from "./pages/RentalPayment";
 import MyBookings from "./pages/MyBookings";
 import Feed from "./pages/Feed";
 import FeedCreate from "./pages/FeedCreate";
@@ -181,6 +182,7 @@ function AppContent() {
       <Route path="/jackpot" element={<Jackpot />} />
       <Route path="/rentals" element={<Rentals />} />
       <Route path="/rental" element={<Rentals />} />
+      <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/feed" element={<Feed />} />

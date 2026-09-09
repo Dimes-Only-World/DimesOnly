@@ -650,6 +650,22 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
     }
   };
 
+  const [verifying, setVerifying] = React.useState(false);
+
+  const verifyPayment = async () => {
+    setVerifying(true);
+    try {
+      const res = await callAdmin("verifyPaypalPayment", { id: b.id });
+      if (res?.error) throw new Error(res.error);
+      toast({ title: "Payment verified", description: "PayPal payment confirmed and commissions created." });
+      onChange();
+    } catch (e: any) {
+      toast({ title: "Not verified", description: e.message, variant: "destructive" });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const setStatus = async (status: string) => {
     try {
       await callAdmin("updateBookingStatus", { id: b.id, status });
@@ -667,8 +683,12 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
             {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.rental_type}
           </p>
           <p className="text-xs text-muted-foreground">
-            Renter {b.renter_user_id.slice(0, 8)} · Start {new Date(b.start_date).toLocaleString()} · Return{" "}
+            Renter {b.renter_username || b.renter_user_id.slice(0, 8)} · Start {new Date(b.start_date).toLocaleString()} · Return{" "}
             {b.end_date ? new Date(b.end_date).toLocaleString() : "—"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Email: {b.renter_email ? <a className="underline" href={`mailto:${b.renter_email}`}>{b.renter_email}</a> : "—"} · Phone:{" "}
+            {b.renter_phone ? <a className="underline" href={`tel:${b.renter_phone}`}>{b.renter_phone}</a> : "—"}
           </p>
           <p className="text-xs">Total ${Number(b.total_price).toLocaleString()} · Status: <b>{b.status}</b></p>
           {b.referrer_username && <p className="text-xs text-muted-foreground">Ref: {b.referrer_username} · Upline: {b.upline_referrer_username || "—"}</p>}
@@ -684,8 +704,12 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
           <Button size="sm" onClick={() => setStatus("approved")}>Approve</Button>
           <Button size="sm" variant="destructive" onClick={() => setStatus("rejected")}>Reject</Button>
         </>}
-        {b.status === "approved" && <Button size="sm" onClick={() => setStatus("paid")}>Mark Paid (trigger commissions)</Button>}
-        {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active</Button>}
+        {["pending", "approved"].includes(b.status) && (
+          <Button size="sm" onClick={verifyPayment} disabled={verifying}>
+            {verifying ? "Verifying PayPal..." : "Mark Paid (verify PayPal payment)"}
+          </Button>
+        )}
+        {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (shows rented)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
         {["pending", "approved", "paid", "active"].includes(b.status) && <Button size="sm" variant="ghost" onClick={() => setStatus("cancelled")}>Cancel</Button>}
       </div>
