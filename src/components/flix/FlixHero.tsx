@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flame, Play } from "lucide-react";
 import { flixImage, type FlixTitle } from "@/lib/flix";
@@ -12,12 +12,26 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(true);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
     if (titles.length < 2) return;
     const t = setInterval(() => setIndex((i) => (i + 1) % titles.length), 8000);
     return () => clearInterval(t);
   }, [titles.length]);
+
+  // Pause and silence every slide except the active one.
+  useEffect(() => {
+    videoRefs.current.forEach((video, i) => {
+      if (!video) return;
+      if (i === index % titles.length) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+        video.muted = true;
+      }
+    });
+  }, [index, titles.length]);
 
   if (!titles.length) return null;
   const current = titles[index % titles.length];
@@ -29,6 +43,7 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
           {t.trailer_url ? (
             <video
               key={t.id}
+              ref={(el) => { videoRefs.current[i] = el; }}
               autoPlay={i === index % titles.length}
               muted={muted}
               loop
