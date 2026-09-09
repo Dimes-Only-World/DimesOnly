@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Maximize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import FlixPaywall from "@/components/flix/FlixPaywall";
-import { fetchLiveTitles, fetchMySubscription, fetchTitle, formatClock, saveProgress, type FlixTitle } from "@/lib/flix";
+import { fetchLiveTitles, fetchMySubscription, fetchTitle, flixImage, formatClock, saveProgress, type FlixTitle } from "@/lib/flix";
 import { useAppContext } from "@/contexts/AppContext";
 
 const GUEST_LIMIT_SECONDS = 30;
@@ -128,7 +128,7 @@ const FlixWatch: React.FC = () => {
           ref={videoRef}
           key={title.id}
           src={title.video_url}
-          poster={title.backdrop_url}
+          poster={flixImage(title, "backdrop")}
           playsInline
           autoPlay
           onClick={togglePlay}

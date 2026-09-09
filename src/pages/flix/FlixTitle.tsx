@@ -97,7 +97,7 @@ const FlixTitlePage: React.FC = () => {
             muted
             loop
             playsInline
-            poster={title.backdrop_url}
+            poster={flixImage(title, "backdrop")}
             className="w-full h-full object-cover"
           >
             {title.trailer_url && <source src={title.trailer_url} type="video/mp4" />}
@@ -107,7 +107,7 @@ const FlixTitlePage: React.FC = () => {
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 -mt-24 relative z-10">
           <div className="flex flex-col md:flex-row gap-6 md:gap-10">
             <img
-              src={title.poster_url}
+              src={flixImage(title, "poster")}
               alt={`${title.name} poster`}
               width={512}
               height={768}
