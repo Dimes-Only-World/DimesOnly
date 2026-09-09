@@ -320,6 +320,8 @@ serve(async (req) => {
           renter_user_id: userId,
           referrer_username: directRef,
           upline_referrer_username: uplineRef,
+          contact_email: booking.contact_email || null,
+          contact_phone: booking.contact_phone || null,
           status: "pending",
         };
 
