@@ -5,7 +5,7 @@ import FlixNav from "@/components/flix/FlixNav";
 import FlixRow from "@/components/flix/FlixRow";
 import FlixFooter from "@/components/flix/FlixFooter";
 import FlixPaywall from "@/components/flix/FlixPaywall";
-import { fetchLiveTitles, fetchMyListIds, fetchMySubscription, fetchTitle, formatDuration, toggleMyList, type FlixTitle } from "@/lib/flix";
+import { fetchLiveTitles, fetchMyListIds, fetchMySubscription, fetchTitle, flixImage, formatDuration, toggleMyList, type FlixTitle } from "@/lib/flix";
 import { useAppContext } from "@/contexts/AppContext";
 import "@/components/flix/flix.css";
 

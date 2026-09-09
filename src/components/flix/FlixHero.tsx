@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flame, Play } from "lucide-react";
-import type { FlixTitle } from "@/lib/flix";
+import { flixImage, type FlixTitle } from "@/lib/flix";
 
 interface FlixHeroProps {
   titles: FlixTitle[];
@@ -33,13 +33,13 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
               muted={muted}
               loop
               playsInline
-              poster={t.backdrop_url}
+              poster={flixImage(t, "backdrop")}
               className="w-full h-full object-cover"
             >
               <source src={t.trailer_url} type="video/mp4" />
             </video>
           ) : (
-            <img src={t.backdrop_url} alt="" className="w-full h-full object-cover" />
+            <img src={flixImage(t, "backdrop")} alt="" className="w-full h-full object-cover" />
           )}
         </div>
       ))}
