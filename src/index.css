@@ -338,6 +338,11 @@ body.paypal-overlay-open {
   100% { transform: rotate(0deg) scale(1); opacity: 1; }
 }
 
+@keyframes flame {
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 94, 0, 0.5), 0 0 12px rgba(255, 60, 0, 0.35); filter: brightness(1); }
+  50% { box-shadow: 0 0 14px rgba(255, 94, 0, 0.8), 0 0 28px rgba(255, 60, 0, 0.55); filter: brightness(1.08); }
+}
+
 /* Hide scrollbars for horizontally scrolling tab bars */
 .scrollbar-hide {
   -ms-overflow-style: none;
