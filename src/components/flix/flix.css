@@ -1,0 +1,70 @@
+/* FlameFlix brand tokens + animations */
+.flix-flame-flicker {
+  animation: flix-flicker 1.6s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+@keyframes flix-flicker {
+  0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+  25% { transform: scale(1.08) rotate(2deg); opacity: 0.92; }
+  50% { transform: scale(0.96) rotate(-1deg); opacity: 1; }
+  75% { transform: scale(1.05) rotate(1deg); opacity: 0.95; }
+}
+
+.flix-intro-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  animation: flix-letter-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+@keyframes flix-letter-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.flix-intro-flame {
+  animation: flix-ignite 1.4s ease-out forwards;
+  transform-origin: 50% 90%;
+}
+@keyframes flix-ignite {
+  0% { transform: scale(0); opacity: 0; }
+  30% { transform: scale(0.4); opacity: 0.7; }
+  60% { transform: scale(1.25); opacity: 1; filter: drop-shadow(0 0 18px rgba(255,77,26,0.9)); }
+  100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,176,32,0.7)); }
+}
+
+.flix-ember-particle {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #ffb020 0%, #ff4d1a 60%, transparent 100%);
+  animation: flix-ember-rise linear forwards;
+  pointer-events: none;
+}
+@keyframes flix-ember-rise {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.9; }
+  100% { transform: translateY(-160px) translateX(var(--ember-x, 12px)) scale(0.2); opacity: 0; }
+}
+
+.flix-ember-hover {
+  transition: box-shadow 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
+}
+.flix-ember-hover:hover {
+  box-shadow: 0 0 18px rgba(255, 77, 26, 0.55), 0 0 42px rgba(255, 176, 32, 0.25);
+}
+
+.flix-poster-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.flix-poster-card:hover, .flix-poster-card:focus-visible {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(255, 77, 26, 0.25);
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flix-flame-flicker, .flix-intro-letter, .flix-intro-flame, .flix-ember-particle {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .flix-poster-card, .flix-ember-hover { transition: none; }
+  .flix-poster-card:hover, .flix-poster-card:focus-visible { transform: none; }
+}
