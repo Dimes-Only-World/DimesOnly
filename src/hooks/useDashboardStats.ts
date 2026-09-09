@@ -16,6 +16,8 @@ export interface DashboardStats {
   membershipOverrideFees: number;
   clothingCommissions: number;
   clothingOverrides: number;
+  flixCommissions: number;
+  flixOverrides: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -33,6 +35,8 @@ const EMPTY: DashboardStats = {
   membershipOverrideFees: 0,
   clothingCommissions: 0,
   clothingOverrides: 0,
+  flixCommissions: 0,
+  flixOverrides: 0,
 };
 
 
@@ -87,7 +91,7 @@ export const useDashboardStats = (
           "upline_referral_commission",
         ];
 
-        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn, clothing] =
+        const [weekly, tips, payments, tipRefs, payouts, referralCount, tickets, activePool, rentals, eventEarn, clothing, flix] =
           await Promise.all([
             supabase.from("weekly_earnings").select("amount").eq("user_id", userId),
             supabase
@@ -131,6 +135,10 @@ export const useDashboardStats = (
               .select("amount, commission_type")
               .eq("user_id", userId)
               .in("commission_type", ["clothing_commission", "clothing_upline"]),
+            (supabase as any)
+              .from("flix_earnings")
+              .select("amount_cents, level")
+              .eq("user_id", userId),
           ]);
 
 
@@ -187,10 +195,19 @@ export const useDashboardStats = (
           "amount",
         );
 
+        // flix_earnings amounts are stored in cents — convert to dollars
+        const flixRows = (((flix as any)?.data as any[]) || []);
+        const flixCommissions =
+          sum(flixRows.filter((r) => r?.level === 1), "amount_cents") / 100;
+        const flixOverrides =
+          sum(flixRows.filter((r) => r?.level === 2), "amount_cents") / 100;
+
         const earned =
           rentalCommissions +
           clothingCommissions +
           clothingOverrides +
+          flixCommissions +
+          flixOverrides +
           eventEarnings +
           tipsEarned +
           referralCommissions +
