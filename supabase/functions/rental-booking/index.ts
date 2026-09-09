@@ -22,11 +22,17 @@ const BookingPayloadSchema = z.object({
   signature_text: z.string().max(5000).nullable().optional(),
   signed_at: z.string().nullable().optional(),
   security_deposit: z.coerce.number().nonnegative().optional().default(0),
+  contact_email: z.string().max(255).nullable().optional(),
+  contact_phone: z.string().max(50).nullable().optional(),
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment"]),
   userId: z.string().uuid(),
+  bookingId: z.string().uuid().optional(),
+  returnUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+  paypalOrderId: z.string().max(120).optional(),
   promoCode: z.string().max(60).nullable().optional(),
   subtotal: z.coerce.number().nonnegative().optional(),
   booking: BookingPayloadSchema.optional(),
