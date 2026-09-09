@@ -218,7 +218,7 @@ export const useDashboardStats = (
         const weeklyTotal = sum(weekly.data as any[], "amount");
         const totalEarnings = Math.max(
           earned,
-          weeklyTotal + rentalCommissions + eventEarnings + clothingCommissions + clothingOverrides,
+          weeklyTotal + rentalCommissions + eventEarnings + clothingCommissions + clothingOverrides + flixCommissions + flixOverrides,
         );
 
         const paidOut = sum(payouts.data as any[], "amount");
@@ -254,6 +254,8 @@ export const useDashboardStats = (
           rentalCommissions,
           clothingCommissions,
           clothingOverrides,
+          flixCommissions,
+          flixOverrides,
           tipsEarned,
           tipOverrides,
           eventEarnings,
