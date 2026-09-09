@@ -688,8 +688,12 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
           <Button size="sm" onClick={() => setStatus("approved")}>Approve</Button>
           <Button size="sm" variant="destructive" onClick={() => setStatus("rejected")}>Reject</Button>
         </>}
-        {b.status === "approved" && <Button size="sm" onClick={() => setStatus("paid")}>Mark Paid (trigger commissions)</Button>}
-        {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active</Button>}
+        {["pending", "approved"].includes(b.status) && (
+          <Button size="sm" onClick={verifyPayment} disabled={verifying}>
+            {verifying ? "Verifying PayPal..." : "Mark Paid (verify PayPal payment)"}
+          </Button>
+        )}
+        {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (shows rented)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
         {["pending", "approved", "paid", "active"].includes(b.status) && <Button size="sm" variant="ghost" onClick={() => setStatus("cancelled")}>Cancel</Button>}
       </div>
