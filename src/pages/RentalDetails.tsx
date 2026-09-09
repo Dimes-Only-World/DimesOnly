@@ -342,8 +342,11 @@ const RentalDetails: React.FC = () => {
         throw new Error(`${(fnData as any).error}${requestId}`);
       }
 
-      toast({ title: "Booking submitted", description: "Admin will review and email you next steps." });
-      navigate("/dashboard/profile");
+      const createdBooking = (fnData as any)?.data;
+      if (!createdBooking?.id) throw new Error("Booking was created but no reference was returned.");
+
+      toast({ title: "Booking submitted", description: "Complete your payment to lock in this rental." });
+      navigate(`/rentals/pay/${createdBooking.id}`);
     } catch (e: any) {
       toast({ title: "Booking failed", description: e.message || "Try again.", variant: "destructive" });
     } finally {
