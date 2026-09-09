@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import StoreLayout from "@/components/store/StoreLayout";
 import ProductCard from "@/components/store/ProductCard";
-import { StoreProduct, fetchProducts, productImage } from "@/lib/store";
+import { StoreProduct, fetchProducts, productImage, useSignedStoreImage } from "@/lib/store";
 import { useWishlist } from "@/hooks/useWishlist";
 
 const StoreHome: React.FC = () => {
@@ -20,13 +20,14 @@ const StoreHome: React.FC = () => {
 
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const hero = featured[0] || products[0];
+  const heroImage = useSignedStoreImage(hero ? productImage(hero) : null);
 
   return (
     <StoreLayout>
       <section className="relative flex min-h-[70vh] items-center overflow-hidden">
         {hero && (
           <img
-            src={productImage(hero)}
+            src={heroImage}
             alt="Dimes Only Clothing"
             width={768}
             height={960}

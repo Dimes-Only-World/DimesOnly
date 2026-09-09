@@ -146,11 +146,11 @@ const StoreLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div className="text-sm" style={{ color: "hsl(var(--store-muted))" }}>
             <p className="mb-2 uppercase tracking-widest" style={{ color: "hsl(var(--store-fg))" }}>Help</p>
-            <Link to="/clothes/policies/shipping" className="block hover:opacity-70">Shipping</Link>
-            <Link to="/clothes/policies/returns" className="block hover:opacity-70">Returns</Link>
-            <Link to="/clothes/policies/privacy" className="block hover:opacity-70">Privacy</Link>
-            <Link to="/clothes/policies/terms" className="block hover:opacity-70">Terms</Link>
-            <Link to="/clothes/policies/contact" className="block hover:opacity-70">Contact</Link>
+            <Link to="/clothes/shipping" className="block hover:opacity-70">Shipping</Link>
+            <Link to="/clothes/returns" className="block hover:opacity-70">Returns</Link>
+            <Link to="/clothes/privacy" className="block hover:opacity-70">Privacy</Link>
+            <Link to="/clothes/terms" className="block hover:opacity-70">Terms</Link>
+            <Link to="/clothes/contact" className="block hover:opacity-70">Contact</Link>
           </div>
           <div className="text-sm" style={{ color: "hsl(var(--store-muted))" }}>
             <p className="mb-2 uppercase tracking-widest" style={{ color: "hsl(var(--store-fg))" }}>Account</p>
