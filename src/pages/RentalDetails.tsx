@@ -300,7 +300,8 @@ const RentalDetails: React.FC = () => {
           down_payment_amount: downPayment,
           signature_text: signature,
           signed_at: new Date().toISOString(),
-          admin_notes: JSON.stringify({ contact_email: email, contact_phone: phone }),
+          contact_email: email || null,
+          contact_phone: phone || null,
         },
         documentFiles: {
           license: {
