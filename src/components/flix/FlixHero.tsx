@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Play } from "lucide-react";
+import { CalendarClock, Flame, Play } from "lucide-react";
 import { flixImage, type FlixTitle } from "@/lib/flix";
 
 interface FlixHeroProps {
@@ -62,6 +62,11 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0D] via-[#0B0B0D]/40 to-[#0B0B0D]/30" />
       <div className="absolute inset-x-0 bottom-0 px-4 md:px-8 pb-10 md:pb-16 max-w-[1400px] mx-auto">
         <div className="max-w-xl">
+          {current.coming_soon && (
+            <p className="mb-3 inline-flex items-center gap-2 rounded border border-[#FFB020]/70 bg-[#0B0B0D]/80 px-3 py-1.5 text-xs font-black text-[#FFB020] shadow-lg backdrop-blur-sm">
+              <CalendarClock size={14} /> COMING SOON
+            </p>
+          )}
           {current.is_original && (
             <p className="flex items-center gap-1.5 text-[#FFB020] text-xs font-black tracking-widest mb-3">
               <Flame size={14} className="fill-[#FF4D1A] text-[#FF4D1A]" /> A FLAMEFLIX ORIGINAL
@@ -70,18 +75,26 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
           <h1 className="text-white text-4xl md:text-6xl font-black leading-tight drop-shadow-lg">{current.name}</h1>
           <p className="text-[#F5F5F5] mt-3 text-sm md:text-base drop-shadow line-clamp-2">{current.logline}</p>
           <div className="flex flex-wrap items-center gap-3 mt-6">
-            <button
-              onClick={() => navigate(`/flix/watch/${current.id}`)}
-              className="flix-ember-hover flex items-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-6 py-3 rounded-md"
-            >
-              <Play size={18} className="fill-current" /> Watch Now
-            </button>
-            <button
-              onClick={() => navigate(`/flix/title/${current.id}`)}
-              className="flex items-center gap-2 bg-[#2A2A2A]/80 hover:bg-[#3A3A3A] text-white font-bold px-6 py-3 rounded-md transition-colors"
-            >
-              Start Free Preview
-            </button>
+            {current.coming_soon ? (
+              <button disabled className="flex cursor-not-allowed items-center gap-2 rounded-md border border-[#FFB020]/40 bg-[#2A2A2A]/80 px-6 py-3 font-bold text-[#FFB020] opacity-90">
+                <CalendarClock size={18} /> Coming Soon
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate(`/flix/watch/${current.id}`)}
+                  className="flix-ember-hover flex items-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-6 py-3 rounded-md"
+                >
+                  <Play size={18} className="fill-current" /> Watch Now
+                </button>
+                <button
+                  onClick={() => navigate(`/flix/title/${current.id}`)}
+                  className="flex items-center gap-2 bg-[#2A2A2A]/80 hover:bg-[#3A3A3A] text-white font-bold px-6 py-3 rounded-md transition-colors"
+                >
+                  Start Free Preview
+                </button>
+              </>
+            )}
             <span className="text-[#FFB020] text-sm font-bold">$5.99/mo · $29.99 first year</span>
           </div>
         </div>

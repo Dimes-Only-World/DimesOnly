@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Check, Flame, Play, Plus, Share2 } from "lucide-react";
+import { CalendarClock, Check, Flame, Play, Plus, Share2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixRow from "@/components/flix/FlixRow";
 import FlixFooter from "@/components/flix/FlixFooter";
@@ -114,6 +114,11 @@ const FlixTitlePage: React.FC = () => {
               className="w-40 md:w-56 rounded-lg shadow-2xl shrink-0"
             />
             <div className="flex-1 md:pt-16">
+              {title.coming_soon && (
+                <p className="mb-2 inline-flex items-center gap-2 rounded border border-[#FFB020]/70 bg-[#141416]/90 px-3 py-1.5 text-xs font-black text-[#FFB020] shadow-lg">
+                  <CalendarClock size={14} /> COMING SOON
+                </p>
+              )}
               {title.is_original && (
                 <p className="flex items-center gap-1.5 text-[#FFB020] text-xs font-black tracking-widest mb-2">
                   <Flame size={14} className="fill-[#FF4D1A] text-[#FF4D1A]" /> A FLAMEFLIX ORIGINAL
@@ -127,9 +132,15 @@ const FlixTitlePage: React.FC = () => {
                 <span>{title.genres.join(" · ")}</span>
               </div>
               <div className="flex flex-wrap gap-3 mt-6">
-                <button onClick={handleWatch} className="flix-ember-hover flex items-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-6 py-3 rounded-md">
-                  <Play size={18} className="fill-current" /> Watch Now
-                </button>
+                {title.coming_soon ? (
+                  <button disabled className="flex cursor-not-allowed items-center gap-2 rounded-md border border-[#FFB020]/40 bg-[#2A2A2A] px-6 py-3 font-bold text-[#FFB020]">
+                    <CalendarClock size={18} /> Coming Soon
+                  </button>
+                ) : (
+                  <button onClick={handleWatch} className="flix-ember-hover flex items-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-6 py-3 rounded-md">
+                    <Play size={18} className="fill-current" /> Watch Now
+                  </button>
+                )}
                 <button onClick={handleMyList} className="flex items-center gap-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white font-bold px-5 py-3 rounded-md transition-colors">
                   {inList ? <Check size={18} className="text-[#FFB020]" /> : <Plus size={18} />} My List
                 </button>

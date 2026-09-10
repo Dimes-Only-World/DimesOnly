@@ -20,6 +20,7 @@ export interface FlixTitle {
   featured: boolean;
   featured_order: number;
   is_original: boolean;
+  coming_soon: boolean;
   status: string;
   created_at: string;
 }

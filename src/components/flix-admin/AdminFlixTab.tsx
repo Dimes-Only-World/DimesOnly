@@ -36,6 +36,7 @@ const EMPTY_TITLE = {
   featured: false,
   featured_order: 0,
   is_original: false,
+  coming_soon: false,
   status: "draft",
 };
 
@@ -162,7 +163,10 @@ const AdminFlixTab: React.FC = () => {
               <div key={t.id} className="flex items-center gap-4 bg-[#141416] border border-[#2A2A2A] rounded-lg p-3">
                 <img src={t.poster_url} alt="" className="w-10 h-14 object-cover rounded" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold truncate">{t.name} {t.is_original && <span className="text-[#FFB020] text-xs">ORIGINAL</span>}</p>
+                  <p className="font-bold truncate">
+                    {t.name} {t.is_original && <span className="text-[#FFB020] text-xs">ORIGINAL</span>}{" "}
+                    {t.coming_soon && <span className="text-[#FF4D1A] text-xs">COMING SOON</span>}
+                  </p>
                   <p className="text-[#A1A1A1] text-xs truncate">{(t.genres || []).join(" · ")} — {t.status}</p>
                 </div>
                 <select
@@ -347,6 +351,9 @@ const AdminFlixTab: React.FC = () => {
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={editing.is_original} onChange={(e) => setEditing({ ...editing, is_original: e.target.checked })} /> FlameFlix Original
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={editing.coming_soon} onChange={(e) => setEditing({ ...editing, coming_soon: e.target.checked })} /> Coming Soon!
                 </label>
                 <label className="flex items-center gap-2">
                   <span className="text-[#A1A1A1]">Status</span>
