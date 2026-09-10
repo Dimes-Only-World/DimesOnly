@@ -11,27 +11,28 @@ interface FlixHeroProps {
 const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
     if (titles.length < 2) return;
-    const t = setInterval(() => setIndex((i) => (i + 1) % titles.length), 8000);
+    const t = setInterval(() => setIndex((i) => (i + 1) % titles.length), 15000);
     return () => clearInterval(t);
   }, [titles.length]);
 
-  // Pause and silence every slide except the active one.
+  // Play the active slide and pause/mute inactive slides.
   useEffect(() => {
     videoRefs.current.forEach((video, i) => {
       if (!video) return;
       if (i === index % titles.length) {
+        video.muted = muted;
         video.play().catch(() => {});
       } else {
         video.pause();
         video.muted = true;
       }
     });
-  }, [index, titles.length]);
+  }, [index, titles.length, muted]);
 
   if (!titles.length) return null;
   const current = titles[index % titles.length];
