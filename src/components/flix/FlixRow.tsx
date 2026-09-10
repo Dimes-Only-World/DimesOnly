@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { flixImage, type FlixTitle } from "@/lib/flix";
 
 export const FlixPosterCard: React.FC<{ title: FlixTitle; progress?: number }> = ({ title, progress }) => {
@@ -14,12 +14,16 @@ export const FlixPosterCard: React.FC<{ title: FlixTitle; progress?: number }> =
     >
       <div className="relative aspect-[2/3]">
         <img src={flixImage(title, "poster")} alt={`${title.name} poster`} loading="lazy" width={512} height={768} className="w-full h-full object-cover" />
-        {title.is_original && (
+        {title.coming_soon ? (
+          <span className="absolute top-2 left-2 flex items-center gap-1 border border-[#FFB020]/70 bg-[#0B0B0D]/90 text-[#FFB020] text-[10px] font-black px-2 py-1 rounded shadow-lg backdrop-blur-sm">
+            <CalendarClock size={10} /> COMING SOON
+          </span>
+        ) : title.is_original && (
           <span className="absolute top-2 left-2 flex items-center gap-1 bg-[#FF4D1A] text-white text-[10px] font-black px-2 py-0.5 rounded">
             <Flame size={10} className="fill-[#FFB020]" /> ORIGINAL
           </span>
         )}
-        {isNew && !title.is_original && (
+        {isNew && !title.is_original && !title.coming_soon && (
           <span className="absolute top-2 left-2 bg-[#FFB020] text-black text-[10px] font-black px-2 py-0.5 rounded">NEW</span>
         )}
         <span className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">{title.rating}</span>

@@ -1228,6 +1228,7 @@ export type Database = {
           backdrop_mobile_url: string
           backdrop_url: string | null
           cast_members: string[] | null
+          coming_soon: boolean
           created_at: string
           description: string | null
           duration_minutes: number | null
@@ -1252,6 +1253,7 @@ export type Database = {
           backdrop_mobile_url?: string
           backdrop_url?: string | null
           cast_members?: string[] | null
+          coming_soon?: boolean
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
@@ -1276,6 +1278,7 @@ export type Database = {
           backdrop_mobile_url?: string
           backdrop_url?: string | null
           cast_members?: string[] | null
+          coming_soon?: boolean
           created_at?: string
           description?: string | null
           duration_minutes?: number | null

@@ -77,6 +77,7 @@ serve(async (req) => {
           featured: !!t.featured,
           featured_order: t.featured_order || 0,
           is_original: !!t.is_original,
+          coming_soon: !!t.coming_soon,
           status: t.status || "draft",
         };
         if (t.id) {
