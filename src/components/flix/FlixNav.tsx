@@ -59,7 +59,8 @@ const FlixNav: React.FC = () => {
                 to="/flix/pricing"
                 className="flix-ember-hover bg-[#FF4D1A] hover:bg-[#ff5d30] text-white text-sm font-bold px-4 py-2 rounded-md"
               >
-                Join FlameFlix
+                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Join FlameFlix</span>
               </Link>
             </>
           )}
