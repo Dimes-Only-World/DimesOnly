@@ -107,6 +107,48 @@ const paypalToken = async (requestId: string) => {
   return body.access_token as string;
 };
 
+const rentalDaysBetween = (start: string, end?: string | null) => {
+  if (!end) return 1;
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) {
+    throw new Error("Return date must be after pickup date");
+  }
+  return Math.max(1, Math.ceil((endTime - startTime) / 86_400_000));
+};
+
+const calculateBaseRentalTotal = (vehicle: any, rentalType: string, start: string, end?: string | null) => {
+  if (rentalType === "long_term" || rentalType === "rent_to_own") {
+    return Math.max(0, Number(vehicle.down_payment || 0));
+  }
+
+  const days = rentalDaysBetween(start, end);
+  const dayRate = Math.max(0, Number(vehicle.day_rate || 0));
+  const threeDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
+  const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
+  const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
+  let remaining = days;
+  let total = 0;
+
+  if (monthlyRate > 0 && remaining >= 30) {
+    const months = Math.floor(remaining / 30);
+    total += months * monthlyRate;
+    remaining %= 30;
+  }
+  if (weeklyRate > 0 && remaining >= 7) {
+    const weeks = Math.floor(remaining / 7);
+    total += weeks * weeklyRate;
+    remaining %= 7;
+  }
+  if (remaining > 0) {
+    const remainderRate = remaining >= 3 && threeDayRate > 0 && (dayRate === 0 || threeDayRate < dayRate)
+      ? threeDayRate
+      : dayRate;
+    total += remaining * remainderRate;
+  }
+  return Math.round(total * 100) / 100;
+};
+
 const createServiceClient = (requestId: string) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -273,6 +315,41 @@ serve(async (req) => {
       }
       case "createBooking": {
         if (!booking) return json({ error: "Missing booking payload", requestId }, 400);
+
+        const { data: vehicle, error: vehicleErr } = await admin
+          .from("vehicles")
+          .select("id, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment, security_deposit, rental_options, is_active")
+          .eq("id", booking.vehicle_id)
+          .maybeSingle();
+        if (vehicleErr || !vehicle || !vehicle.is_active) {
+          return json({ error: "This vehicle is not available", requestId }, 400);
+        }
+        if (!Array.isArray(vehicle.rental_options) || !vehicle.rental_options.includes(booking.rental_type)) {
+          return json({ error: "That rental option is not available for this vehicle", requestId }, 400);
+        }
+
+        const baseRentalTotal = calculateBaseRentalTotal(
+          vehicle,
+          booking.rental_type,
+          booking.start_date,
+          booking.end_date,
+        );
+        const { data: selectedPackages, error: packageLookupErr } = addonPackageIds.length
+          ? await admin.from("themed_packages").select("id, name, price").in("id", addonPackageIds)
+          : { data: [], error: null };
+        if (packageLookupErr) {
+          logError(requestId, "themed package lookup failed", packageLookupErr, { addonPackageIds });
+          return json({ error: "Could not verify selected add-ons", requestId }, 400);
+        }
+        if ((selectedPackages || []).length !== addonPackageIds.length) {
+          return json({ error: "One or more selected add-ons are unavailable", requestId }, 400);
+        }
+        const addonTotal = (selectedPackages || []).reduce(
+          (sum: number, item: any) => sum + Math.max(0, Number(item.price || 0)),
+          0,
+        );
+        const verifiedSubtotal = Math.round((baseRentalTotal + addonTotal) * 100) / 100;
+
         const uploadDocument = async (file: UploadedDocument, label: "license" | "insurance") => {
           const path = `${userId}/${crypto.randomUUID()}-${label}.${cleanExt(file.name)}`;
           log(requestId, "uploading rental document", {
@@ -322,7 +399,7 @@ serve(async (req) => {
         let appliedPromo: any = null;
         let discountAmount = 0;
         if (promoCode) {
-          const result = await resolvePromo(String(promoCode), Number(booking.total_price) || 0);
+          const result = await resolvePromo(String(promoCode), verifiedSubtotal);
           if ("error" in result) return json({ error: result.error, requestId }, 400);
           appliedPromo = result.promo;
           discountAmount = result.discount;
@@ -334,9 +411,12 @@ serve(async (req) => {
           start_date: booking.start_date,
           end_date: booking.end_date || null,
           pickup_location: booking.pickup_location || null,
-          total_price: Math.max(0, Number(booking.total_price) - discountAmount),
-          down_payment_amount: booking.down_payment_amount || 0,
-          security_deposit: booking.security_deposit || 0,
+          total_price: Math.max(0, verifiedSubtotal - discountAmount),
+          down_payment_amount:
+            booking.rental_type === "long_term" || booking.rental_type === "rent_to_own"
+              ? Math.max(0, Number(vehicle.down_payment || 0)) + addonTotal
+              : 0,
+          security_deposit: Math.max(0, Number(vehicle.security_deposit || 0)),
           promo_code: appliedPromo?.code || null,
           discount_amount: discountAmount,
           signature_text: booking.signature_text || null,
@@ -376,21 +456,12 @@ serve(async (req) => {
           );
         }
 
-        if (bookingRow?.id && Array.isArray(addonPackageIds) && addonPackageIds.length) {
-          const { data: pkgs, error: pkgErr } = await admin
-            .from("themed_packages")
-            .select("id, name, price")
-            .in("id", addonPackageIds);
-
-          if (pkgErr) {
-            logError(requestId, "themed package lookup failed", pkgErr, { addonPackageIds });
-          }
-
-          const rows = (pkgs || []).map((p) => ({
+        if (bookingRow?.id && selectedPackages?.length) {
+          const rows = selectedPackages.map((p: any) => ({
             booking_id: bookingRow.id,
             package_id: p.id,
-            package_name: p.name,
-            price: p.price,
+            name_snapshot: p.name,
+            price_snapshot: p.price,
           }));
 
           if (rows.length) {
