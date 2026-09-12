@@ -31,8 +31,8 @@ const currency = (value: number) =>
   value.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
 /** Season runs Jan 1 12:00AM through Dec 31, resetting every year. */
@@ -231,7 +231,7 @@ const TipLeaderboard: React.FC = () => {
                       {currency(dime.total_tipped)}
                     </div>
                     <div className="text-[11px] uppercase tracking-wider text-slate-400">
-                      Tipped in {seasonYear}
+                      Received in {seasonYear}
                     </div>
                     {prize && (
                       <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-200">
@@ -296,10 +296,12 @@ const TipLeaderboard: React.FC = () => {
             <Plane className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" />
             <div className="space-y-1 text-sm leading-relaxed text-slate-200">
               <p className="font-bold uppercase tracking-wide text-white">
-                Highest Tipper of the Year
+                Highest Tipper of the Year — Who Gives the Most
               </p>
               <p>
-                The highest tipper for the year gets{" "}
+                This is a separate race from the Top 3 above. It tracks the member who{" "}
+                <strong className="text-white">sends</strong> the most tips, not the Dimes who
+                receive them. The highest tipper for the year gets{" "}
                 <strong className="text-yellow-300">
                   flown out to the New Year&apos;s Eve party and housed for 2 nights
                 </strong>
@@ -320,11 +322,11 @@ const TipLeaderboard: React.FC = () => {
               />
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-slate-400">
-                  Current Leader
+                  Top Tipper (Gave Most)
                 </div>
                 <div className="text-sm font-bold text-white">@{topTipper.username}</div>
                 <div className="text-xs font-semibold text-yellow-300">
-                  {currency(topTipper.total_tipped)} tipped
+                  {currency(topTipper.total_tipped)} sent in tips
                 </div>
               </div>
             </div>

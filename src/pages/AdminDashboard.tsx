@@ -49,6 +49,7 @@ import AdminSMSTextTab from "@/components/AdminSMSTextTab";
 import AdminMembershipAgreementsTab from "@/components/AdminMembershipAgreementsTab";
 import AdminStoreTab from "@/components/AdminStoreTab";
 import AdminFlixTab from "@/components/flix-admin/AdminFlixTab";
+import AdminTipsTab from "@/components/AdminTipsTab";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -88,6 +89,7 @@ const tabs = [
   { value: "users", label: "Users", icon: Users },
   { value: "approvals", label: "Approvals", icon: UserCheck },
   { value: "jackpot", label: "Jackpot", icon: Trophy },
+  { value: "tips", label: "Tips", icon: DollarSign },
   { value: "earnings", label: "Earnings", icon: DollarSign },
   { value: "ranking", label: "Ranking", icon: BarChart3 },
   { value: "notifications", label: "Notifications", icon: Bell },
@@ -289,6 +291,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="jackpot">
             <AdminJackpotTab />
+          </TabsContent>
+
+          <TabsContent value="tips">
+            <AdminTipsTab />
           </TabsContent>
 
           <TabsContent value="earnings">
