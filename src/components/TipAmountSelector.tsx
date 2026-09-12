@@ -1,8 +1,6 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Ticket } from "lucide-react";
 
 interface TipAmountSelectorProps {
   selectedAmount: number;
@@ -22,7 +20,6 @@ const TipAmountSelector: React.FC<TipAmountSelectorProps> = ({
   const presetAmounts = [5, 10, 20, 50, 100, 200];
 
   const handleCustomAmountChange = (value: string) => {
-    // Allow only numeric characters and decimal point
     const sanitized = value.replace(/[^0-9.]/g, "");
     onCustomAmountChange(sanitized);
 
@@ -31,78 +28,83 @@ const TipAmountSelector: React.FC<TipAmountSelectorProps> = ({
     if (!isNaN(numericValue) && numericValue >= MIN_TIP && numericValue <= MAX_TIP) {
       onAmountChange(numericValue);
     } else if (!isNaN(numericValue) && numericValue > MAX_TIP) {
-      // Cap at max
       onAmountChange(MAX_TIP);
     } else {
-      // Reset to 0 if under the minimum
       onAmountChange(0);
     }
   };
 
   return (
-    <Card className="bg-gray-900 border-gray-700">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="w-5 h-5 text-green-400" />
-          <h3 className="text-lg font-semibold text-white">
-            Select Tip Amount
+    <div className="rounded-2xl border border-white/10 bg-[#0B0611]/80 p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-[#FF5FD1]" />
+          <h3 className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-200">
+            Choose Amount
           </h3>
         </div>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">
+          ${MIN_TIP} min · ${MAX_TIP} max
+        </span>
+      </div>
 
-        {/* Preset amounts */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          {presetAmounts.map((amount) => (
-            <Button
+      <div className="grid grid-cols-3 gap-2.5">
+        {presetAmounts.map((amount) => {
+          const active = selectedAmount === amount;
+          return (
+            <button
               key={amount}
-              variant={selectedAmount === amount ? "default" : "outline"}
+              type="button"
               onClick={() => {
                 onAmountChange(amount);
                 onCustomAmountChange("");
               }}
-              className={`h-12 text-lg font-semibold ${
-                selectedAmount === amount
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700"
+              className={`h-12 rounded-xl border text-base font-bold transition-all duration-200 ${
+                active
+                  ? "border-[#E916D1] bg-gradient-to-br from-[#E916D1] to-[#FF5FD1] text-white shadow-[0_0_25px_-8px_rgba(233,22,209,0.9)]"
+                  : "border-white/10 bg-white/5 text-slate-200 hover:border-[#E916D1]/50 hover:bg-[#E916D1]/10"
               }`}
             >
               ${amount}
-            </Button>
-          ))}
-        </div>
+            </button>
+          );
+        })}
+      </div>
 
-        {/* Custom amount */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-300">
-            Or enter custom amount:
-          </label>
-          <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="0.00"
-              value={customAmount}
-              onChange={(e) => handleCustomAmountChange(e.target.value)}
-              className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-green-500"
-            />
+      <div className="mt-4 space-y-2">
+        <label className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+          Or enter a custom amount
+        </label>
+        <div className="relative">
+          <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            type="text"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={customAmount}
+            onChange={(e) => handleCustomAmountChange(e.target.value)}
+            className="h-12 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-500 focus-visible:ring-[#E916D1]"
+          />
+        </div>
+      </div>
+
+      {selectedAmount >= MIN_TIP && (
+        <div className="mt-4 flex items-center justify-between rounded-xl border border-[#E916D1]/30 bg-[#E916D1]/10 px-4 py-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-slate-300">Tip total</div>
+            <div className="text-xl font-black text-white">
+              ${selectedAmount.toFixed(2)}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-yellow-400/40 bg-yellow-400/10 px-3 py-1.5">
+            <Ticket className="h-3.5 w-3.5 text-yellow-300" />
+            <span className="text-xs font-bold text-yellow-200">
+              {Math.floor(selectedAmount)} entries
+            </span>
           </div>
         </div>
-
-        {selectedAmount >= MIN_TIP && (
-          <div className="mt-4 p-3 bg-green-900/20 border border-green-700 rounded-lg">
-            <p className="text-green-400 text-sm">
-              You're about to tip{" "}
-              <span className="font-bold">${selectedAmount.toFixed(2)}</span>
-            </p>
-            <p className="text-green-300 text-xs mt-1">
-              This will generate {Math.floor(selectedAmount)} lottery tickets
-            </p>
-            <p className="text-gray-400 text-xs mt-1">
-              Max tip: ${MAX_TIP} per transaction
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
 
