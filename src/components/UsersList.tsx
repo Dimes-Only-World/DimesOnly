@@ -179,19 +179,19 @@ const UsersList: React.FC<UsersListProps> = ({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
         {[...Array(8)].map((_, i) => (
-          <Card
+          <div
             key={i}
-            className="bg-white/10 backdrop-blur border-white/20 animate-pulse"
+            className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-pulse"
           >
-            <CardContent className="p-4">
-              <div className="w-full h-48 bg-gray-700 rounded-lg mb-4"></div>
-              <div className="h-4 bg-gray-700 rounded mb-2"></div>
-              <div className="h-3 bg-gray-700 rounded mb-4"></div>
-              <div className="h-8 bg-gray-700 rounded"></div>
-            </CardContent>
-          </Card>
+            <div className="aspect-[3/4] w-full bg-white/10" />
+            <div className="space-y-2 p-4">
+              <div className="h-4 w-2/3 rounded bg-white/10" />
+              <div className="h-3 w-1/2 rounded bg-white/10" />
+              <div className="h-9 w-full rounded-xl bg-white/10" />
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -199,48 +199,54 @@ const UsersList: React.FC<UsersListProps> = ({
 
   if (filteredUsers.length === 0) {
     return (
-      <Card className="bg-white/10 backdrop-blur border-white/20">
-        <CardContent className="p-8 text-center">
-          <h3 className="text-white font-bold text-xl mb-2">
-            {noDataMessage || "No users found"}
-          </h3>
-          <p className="text-gray-300">
-            {searchName || searchCity || searchState
-              ? "Try adjusting your search criteria."
-              : "Check back later for updates."}
-          </p>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur">
+        <h3 className="mb-2 text-xl font-bold text-white">
+          {noDataMessage || "No users found"}
+        </h3>
+        <p className="text-gray-400">
+          {searchName || searchCity || searchState
+            ? "Try adjusting your search criteria."
+            : "Check back later for updates."}
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-      {filteredUsers.map((user) => (
-        <Card
-          key={user.id}
-          className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 group"
-        >
-          <CardContent className="p-4">
-            <div className="relative mb-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+      {filteredUsers.map((user) => {
+        const photo = user.profile_photo || defaultAvatar.url;
+        return (
+          <div
+            key={user.id}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-[0_20px_50px_-20px_rgba(233,22,209,0.45)]"
+          >
+            <div className="relative aspect-[3/4] w-full overflow-hidden">
               <img
-                src={user.profile_photo || "/placeholder.svg"}
+                src={photo}
                 alt={user.username}
-                className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                loading="lazy"
+                onError={(e) => {
+                  if (e.currentTarget.src !== defaultAvatar.url) {
+                    e.currentTarget.src = defaultAvatar.url;
+                  }
+                }}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
                 onClick={
                   onImageClick
-                    ? (e) =>
-                        onImageClick(
-                          user.profile_photo || "/placeholder.svg",
-                          user.username,
-                          e
-                        )
+                    ? (e) => onImageClick(photo, user.username, e)
                     : undefined
                 }
               />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute right-2 top-2">
+                <span className="rounded-full bg-fuchsia-600/90 px-2.5 py-1 text-[11px] font-semibold capitalize text-white shadow-lg">
+                  {user.user_type}
+                </span>
+              </div>
               {actionType !== "tip" && (
-                <div className="absolute top-2 left-2">
-                  <span className="bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                <div className="absolute left-2 top-2">
+                  <span className="rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
                     {usePersonalRatings
                       ? user.myRating !== null
                         ? `Your Rating ${user.myRating}`
@@ -249,37 +255,42 @@ const UsersList: React.FC<UsersListProps> = ({
                   </span>
                 </div>
               )}
-              <div className="absolute top-2 right-2">
-                <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
-                  {user.user_type}
-                </span>
-              </div>
             </div>
 
-            <h3 className="text-white font-bold text-lg mb-2 truncate">
-              @{user.username}
-            </h3>
+            <div className="p-3 sm:p-4">
+              <h3 className="truncate text-base font-bold text-white sm:text-lg">
+                @{user.username}
+              </h3>
 
-            {(user.city || user.state) && (
-              <div className="flex items-center text-gray-300 text-sm mb-4">
-                <MapPin size={14} className="mr-1" />
-                <span className="truncate">
-                  {user.city}
-                  {user.city && user.state ? ", " : ""}
-                  {user.state}
-                </span>
-              </div>
-            )}
+              {(user.city || user.state) && (
+                <div className="mb-3 mt-1 flex items-center text-xs text-gray-400 sm:text-sm">
+                  <MapPin size={13} className="mr-1 shrink-0" />
+                  <span className="truncate">
+                    {user.city}
+                    {user.city && user.state ? ", " : ""}
+                    {user.state}
+                  </span>
+                </div>
+              )}
 
-            <Button
-              onClick={() => onUserSelect(user)}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold"
-            >
-              {actionType === "tip" ? "💎 Tip Now" : "⭐ Rate Now"}
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+              <Button
+                onClick={() => onUserSelect(user)}
+                className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.6)] transition-all hover:from-purple-500 hover:to-pink-500 hover:shadow-[0_12px_32px_-8px_rgba(219,39,119,0.8)]"
+              >
+                {actionType === "tip" ? (
+                  <>
+                    <Gem className="mr-2 h-4 w-4" /> Tip Now
+                  </>
+                ) : (
+                  <>
+                    <Star className="mr-2 h-4 w-4" /> Rate Now
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
