@@ -15,6 +15,7 @@ import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
 import AngelLoader from "@/components/AngelLoader";
 import { CancellationPolicyDialog, PaymentDetailsDialog } from "@/components/rentals/RentalPolicyDialogs";
+import { calculateRentalPricing } from "@/lib/rentalPricing";
 
 type Review = {
   id: string;
@@ -25,55 +26,6 @@ type Review = {
 
 type Vehicle = any;
 type Media = { id: string; media_type: string; storage_path: string; signedUrl?: string };
-
-const priceBreakdown = (
-  v: Vehicle,
-  type: string,
-  start?: string,
-  end?: string,
-): { unitRate: number; units: number; unitLabel: string; total: number; discount?: number } => {
-  if (!v) return { unitRate: 0, units: 1, unitLabel: "", total: 0, discount: 0 };
-  const startD = start ? new Date(start) : null;
-  const endD = end ? new Date(end) : null;
-  const days =
-    startD && endD ? Math.max(1, Math.ceil((+endD - +startD) / 86400000)) : 1;
-  switch (type) {
-    case "daily": {
-      const baseRate = Number(v.day_rate || 0);
-      const threeDayRate = Number(v.three_day_rate || 0);
-      const useDiscount = days >= 3 && threeDayRate > 0 && threeDayRate < baseRate;
-      const unitRate = useDiscount ? threeDayRate : baseRate;
-      const discount = useDiscount ? (baseRate - threeDayRate) * days : 0;
-      return {
-        unitRate: baseRate,
-        units: days,
-        unitLabel: days === 1 ? "day" : "days",
-        total: unitRate * days,
-        discount,
-      };
-    }
-    case "weekly": {
-      const unitRate = Number(v.weekly_rate || 0);
-      const units = Math.max(1, Math.ceil(days / 7));
-      return { unitRate, units, unitLabel: units === 1 ? "week" : "weeks", total: unitRate * units };
-    }
-    case "monthly": {
-      const unitRate = Number(v.monthly_rate || 0);
-      const units = Math.max(1, Math.ceil(days / 30));
-      return { unitRate, units, unitLabel: units === 1 ? "month" : "months", total: unitRate * units };
-    }
-    case "long_term":
-    case "rent_to_own": {
-      const unitRate = Number(v.down_payment || 0);
-      return { unitRate, units: 1, unitLabel: "down payment", total: unitRate };
-    }
-    default:
-      return { unitRate: 0, units: 1, unitLabel: "", total: 0 };
-  }
-};
-
-const rateFor = (v: Vehicle, type: string, start?: string, end?: string) =>
-  priceBreakdown(v, type, start, end).total;
 
 const redactBookingPayloadForLogs = (payload: any) => ({
   action: payload?.action,
@@ -210,10 +162,10 @@ const RentalDetails: React.FC = () => {
       : 0;
 
   const breakdown = vehicle
-    ? priceBreakdown(vehicle, rentalType, startDate, endDate)
-    : { unitRate: 0, units: 1, unitLabel: "", total: 0 };
+    ? calculateRentalPricing(vehicle, rentalType, startDate, endDate)
+    : { days: 1, lines: [], total: 0, standardDailyTotal: 0, savings: 0 };
   const subtotal = breakdown.total + addonTotal;
-  const dayDiscount = Number(breakdown.discount || 0);
+  const dayDiscount = Number(breakdown.savings || 0);
   const promoDiscount = Math.min(promo?.discount || 0, subtotal);
   const total = Math.max(0, subtotal - promoDiscount);
   const securityDeposit = Number(vehicle?.security_deposit || 0);
@@ -628,18 +580,16 @@ const RentalDetails: React.FC = () => {
                         Payment details
                       </button>
                     </div>
-                    {rentalType !== "long_term" && rentalType !== "rent_to_own" && (
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>
-                          ${breakdown.unitRate.toLocaleString()} × {breakdown.units} {breakdown.unitLabel}
-                        </span>
-                        <span>${(breakdown.unitRate * breakdown.units).toLocaleString()}</span>
+                    {breakdown.lines.map((line) => (
+                      <div key={`${line.label}-${line.quantity}`} className="flex justify-between text-muted-foreground">
+                        <span>{line.quantity} {line.label.toLowerCase()} × ${line.unitRate.toLocaleString()}</span>
+                        <span>${line.total.toLocaleString()}</span>
                       </div>
-                    )}
+                    ))}
                     {dayDiscount > 0 && (
                       <div className="flex justify-between text-emerald-400">
-                        <span>3+ days discount</span>
-                        <span>-${dayDiscount.toLocaleString()}</span>
+                        <span>Longer-trip savings</span>
+                        <span>You save ${dayDiscount.toLocaleString()}</span>
                       </div>
                     )}
                     {promoDiscount > 0 && (
@@ -678,7 +628,7 @@ const RentalDetails: React.FC = () => {
                     {submitting ? "Submitting..." : "Submit Booking Request"}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
-                    Admin will review your documents and email you a payment link once approved.
+                    Continue to secure payment after submitting your booking request.
                   </p>
                 </CardContent>
               </Card>

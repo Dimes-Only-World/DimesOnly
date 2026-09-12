@@ -61,6 +61,18 @@ export default {
         'dimes-surface': 'hsl(var(--dimes-surface))',
         'dimes-surface-elevated': 'hsl(var(--dimes-surface-elevated))',
 
+        rental: {
+          background: 'hsl(var(--rental-background))',
+          surface: 'hsl(var(--rental-surface))',
+          elevated: 'hsl(var(--rental-elevated))',
+          foreground: 'hsl(var(--rental-foreground))',
+          muted: 'hsl(var(--rental-muted))',
+          line: 'hsl(var(--rental-line))',
+          primary: 'hsl(var(--rental-primary))',
+          'primary-foreground': 'hsl(var(--rental-primary-foreground))',
+          success: 'hsl(var(--rental-success))',
+        },
+
         /* Payment brand colors (semantic tokens) */
         paypal: 'hsl(var(--brand-paypal))',
 
@@ -83,6 +95,8 @@ export default {
       fontFamily: {
         mono: ['JetBrains Mono', 'monospace'],
         sans: ['Inter', 'sans-serif'],
+        barlow: ['Barlow', 'sans-serif'],
+        bebas: ['Bebas Neue', 'sans-serif'],
       },
       borderRadius: {
         lg: 'calc(var(--radius) + 2px)',

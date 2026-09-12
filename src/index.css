@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -412,4 +411,35 @@ body.paypal-overlay-open {
 .store-display {
   font-family: 'Playfair Display', Georgia, serif;
   letter-spacing: 0.02em;
+}
+
+/* Dimes Only Rentals — carbon editorial showroom */
+.rentals-showroom {
+  --rental-background: 220 10% 4%;
+  --rental-surface: 220 9% 10%;
+  --rental-elevated: 220 9% 15%;
+  --rental-foreground: 0 0% 96%;
+  --rental-muted: 216 8% 65%;
+  --rental-line: 216 8% 22%;
+  --rental-primary: 358 82% 47%;
+  --rental-primary-foreground: 0 0% 100%;
+  --rental-success: 151 55% 54%;
+  background: hsl(var(--rental-background));
+  color: hsl(var(--rental-foreground));
+  font-family: "Barlow", sans-serif;
+}
+
+.rentals-wordmark {
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0;
+}
+
+.bg-rental-hero {
+  background: linear-gradient(90deg, hsl(var(--rental-background) / 0.94) 0%, hsl(var(--rental-background) / 0.58) 52%, hsl(var(--rental-background) / 0.2) 100%), linear-gradient(0deg, hsl(var(--rental-background)) 0%, transparent 38%);
+}
+
+@media (max-width: 640px) {
+  .bg-rental-hero {
+    background: linear-gradient(0deg, hsl(var(--rental-background) / 0.98) 0%, hsl(var(--rental-background) / 0.34) 72%, hsl(var(--rental-background) / 0.5) 100%);
+  }
 }

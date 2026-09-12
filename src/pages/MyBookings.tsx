@@ -28,6 +28,7 @@ import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus } from "l
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
+import { calculateRentalPricing } from "@/lib/rentalPricing";
 
 type Booking = {
   id: string;
@@ -47,6 +48,9 @@ type Booking = {
     model: string | null;
     day_rate?: number | null;
     three_day_rate?: number | null;
+    weekly_rate?: number | null;
+    monthly_rate?: number | null;
+    down_payment?: number | null;
   } | null;
   heroPhoto?: string | null;
   review?: { id: string; rating: number; review_text: string | null } | null;
@@ -124,7 +128,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, status, created_at, vehicles ( id, year, make, model, day_rate, three_day_rate )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, status, created_at, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -216,23 +220,13 @@ const MyBookings: React.FC = () => {
     return diff <= 0 ? 0 : Math.ceil(diff / 86400000);
   };
 
-  const extendRate = (b: Booking | null) => {
-    if (!b) return 0;
-    const base = Number(b.vehicles?.day_rate || 0);
-    const three = Number(b.vehicles?.three_day_rate || 0);
-    const totalDays =
-      b.end_date && b.start_date
-        ? Math.ceil(
-            (new Date(extendDate || b.end_date).getTime() - new Date(b.start_date).getTime()) /
-              86400000
-          )
-        : 0;
-    return totalDays >= 3 && three > 0 && three < base ? three : base;
-  };
-
   const extendCost = useMemo(
-    () => extraDays(extendTarget, extendDate) * extendRate(extendTarget),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => {
+      if (!extendTarget?.vehicles || !extendTarget.end_date || !extendDate) return 0;
+      const current = calculateRentalPricing(extendTarget.vehicles, extendTarget.rental_type, extendTarget.start_date, extendTarget.end_date);
+      const extended = calculateRentalPricing(extendTarget.vehicles, extendTarget.rental_type, extendTarget.start_date, extendDate);
+      return Math.max(0, extended.total - current.total);
+    },
     [extendTarget, extendDate]
   );
 
@@ -559,7 +553,7 @@ const MyBookings: React.FC = () => {
             <div className="rounded-lg border border-border/60 bg-card/60 p-3 text-sm space-y-1">
               <div className="flex justify-between text-muted-foreground">
                 <span>
-                  Extra days × ${extendRate(extendTarget).toLocaleString()}/day
+                  Added rental time
                 </span>
                 <span>{extraDays(extendTarget, extendDate)}</span>
               </div>
