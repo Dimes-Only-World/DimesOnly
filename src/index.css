@@ -448,16 +448,17 @@ body.paypal-overlay-open {
 .dimes-flame {
   position: relative;
   display: inline-block;
-  width: 10px;
-  height: 14px;
+  width: 18px;
+  height: 24px;
+  filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.7)) drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
 }
 
 .dimes-flame span {
   position: absolute;
   bottom: 0;
   left: 50%;
-  width: 8px;
-  height: 10px;
+  width: 14px;
+  height: 18px;
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   transform: translateX(-50%) rotate(-45deg);
   background: linear-gradient(0deg, #f97316, #fbbf24);
@@ -466,16 +467,16 @@ body.paypal-overlay-open {
 }
 
 .dimes-flame span:nth-child(2) {
-  width: 6px;
-  height: 7px;
+  width: 10px;
+  height: 13px;
   background: linear-gradient(0deg, #fbbf24, #fef08a);
   animation-duration: 0.8s;
   animation-delay: 0.15s;
 }
 
 .dimes-flame span:nth-child(3) {
-  width: 3.5px;
-  height: 4px;
+  width: 6px;
+  height: 8px;
   background: #fffbeb;
   animation-duration: 0.6s;
   animation-delay: 0.3s;
@@ -483,8 +484,8 @@ body.paypal-overlay-open {
 
 @keyframes dimes-flicker {
   0%, 100% { transform: translateX(-50%) rotate(-45deg) scale(1); opacity: 0.95; }
-  35% { transform: translateX(-58%) rotate(-45deg) scale(1.14); opacity: 1; }
-  70% { transform: translateX(-44%) rotate(-45deg) scale(0.9); opacity: 0.85; }
+  35% { transform: translateX(-58%) rotate(-45deg) scale(1.2); opacity: 1; }
+  70% { transform: translateX(-44%) rotate(-45deg) scale(0.92); opacity: 0.88; }
 }
 
 .dimes-zoom-fade {
