@@ -49,6 +49,7 @@ import AdminSMSTextTab from "@/components/AdminSMSTextTab";
 import AdminMembershipAgreementsTab from "@/components/AdminMembershipAgreementsTab";
 import AdminStoreTab from "@/components/AdminStoreTab";
 import AdminFlixTab from "@/components/flix-admin/AdminFlixTab";
+import AdminTipsTab from "@/components/AdminTipsTab";
 
 import { supabase } from "@/integrations/supabase/client";
 
