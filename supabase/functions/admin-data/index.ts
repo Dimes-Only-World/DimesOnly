@@ -1098,6 +1098,83 @@ serve(async (req) => {
         break;
       }
 
+      case 'fetchTipLeaderboard': {
+        const year = Number(params.year) || new Date().getFullYear();
+        const [dimesRes, tippersRes] = await Promise.all([
+          supabaseAdmin.rpc('tip_leaderboard_top_dimes', { p_year: year, p_limit: 50 }),
+          supabaseAdmin.rpc('tip_leaderboard_top_tippers', { p_year: year, p_limit: 50 }),
+        ]);
+        if (dimesRes.error) throw dimesRes.error;
+        if (tippersRes.error) throw tippersRes.error;
+        result = { year, topDimes: dimesRes.data || [], topTippers: tippersRes.data || [] };
+        break;
+      }
+
+      case 'searchTipProfiles': {
+        const term = String(params.term || '').trim();
+        let query = supabaseAdmin
+          .from('users')
+          .select('id, username, profile_photo, city, state, user_type')
+          .in('user_type', ['stripper', 'exotic'])
+          .order('username', { ascending: true })
+          .limit(30);
+        if (term) query = query.ilike('username', `%${term}%`);
+        const { data, error } = await query;
+        if (error) throw error;
+        result = data || [];
+        break;
+      }
+
+      case 'adminSendTip': {
+        const tippedUsername = String(params.tippedUsername || '').trim();
+        const amount = Number(params.amount);
+        const note = String(params.message || '').slice(0, 200);
+
+        if (!tippedUsername || !Number.isFinite(amount) || amount < 5 || amount > 1000) {
+          return new Response(
+            JSON.stringify({ error: 'A recipient username and an amount between $5 and $1000 are required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data: recipient, error: recipientError } = await supabaseAdmin
+          .from('users')
+          .select('username')
+          .ilike('username', tippedUsername)
+          .maybeSingle();
+        if (recipientError) throw recipientError;
+        if (!recipient) {
+          return new Response(
+            JSON.stringify({ error: `No profile found for "${tippedUsername}"` }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data: adminProfile } = await supabaseAdmin
+          .from('users')
+          .select('username')
+          .eq('id', adminUserId)
+          .maybeSingle();
+
+        const captureId = `ADMIN-${crypto.randomUUID()}`;
+
+        const { data: tipResult, error: tipError } = await supabaseAdmin.functions.invoke('process-tip', {
+          body: {
+            tipper_id: adminUserId,
+            tipper_username: (adminProfile as { username?: string } | null)?.username || 'admin',
+            tipped_username: (recipient as { username: string }).username,
+            amount,
+            message: note,
+            referrer_username: null,
+            paypal_capture_id: captureId,
+          },
+        });
+        if (tipError) throw tipError;
+
+        result = { capture_id: captureId, tip: tipResult };
+        break;
+      }
+
       default:
 
         return new Response(
