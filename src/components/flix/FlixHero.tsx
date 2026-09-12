@@ -20,18 +20,29 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
     return () => clearInterval(t);
   }, [titles.length]);
 
-  // Play the active slide and pause/mute inactive slides.
+  // Prefer sound, but retry muted when the browser blocks unmuted autoplay.
   useEffect(() => {
+    let cancelled = false;
+
     videoRefs.current.forEach((video, i) => {
       if (!video) return;
       if (i === index % titles.length) {
         video.muted = muted;
-        video.play().catch(() => {});
+        video.play().catch(() => {
+          if (cancelled || muted || videoRefs.current[i] !== video) return;
+          video.muted = true;
+          setMuted(true);
+          void video.play().catch(() => {});
+        });
       } else {
         video.pause();
         video.muted = true;
       }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [index, titles.length, muted]);
 
   if (!titles.length) return null;
