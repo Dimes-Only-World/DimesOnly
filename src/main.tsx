@@ -5,6 +5,11 @@ import App from './App.tsx'
 import './index.css'
 import { supabase } from './integrations/supabase/client'
 import AngelLoader from './components/AngelLoader.tsx'
+import '@fontsource/bebas-neue/400.css'
+import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/500.css'
+import '@fontsource/barlow/600.css'
+import '@fontsource/barlow/700.css'
 
 // Error boundary for PayPal issues
 class PayPalErrorBoundary extends React.Component<
