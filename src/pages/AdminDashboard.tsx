@@ -89,6 +89,7 @@ const tabs = [
   { value: "users", label: "Users", icon: Users },
   { value: "approvals", label: "Approvals", icon: UserCheck },
   { value: "jackpot", label: "Jackpot", icon: Trophy },
+  { value: "tips", label: "Tips", icon: DollarSign },
   { value: "earnings", label: "Earnings", icon: DollarSign },
   { value: "ranking", label: "Ranking", icon: BarChart3 },
   { value: "notifications", label: "Notifications", icon: Bell },
