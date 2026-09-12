@@ -5011,6 +5011,28 @@ export type Database = {
         }
         Returns: Json
       }
+      tip_leaderboard_top_dimes: {
+        Args: { p_limit?: number; p_year: number }
+        Returns: {
+          city: string
+          profile_photo: string
+          state: string
+          tip_count: number
+          total_tipped: number
+          user_id: string
+          username: string
+        }[]
+      }
+      tip_leaderboard_top_tippers: {
+        Args: { p_limit?: number; p_year: number }
+        Returns: {
+          profile_photo: string
+          tip_count: number
+          total_tipped: number
+          user_id: string
+          username: string
+        }[]
+      }
       update_user_silver_plus: {
         Args: {
           membership_number_param: number
