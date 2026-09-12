@@ -450,13 +450,13 @@ const DimesDirectory: React.FC = () => {
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0611] via-[#0B0611]/25 to-transparent" />
 
                   {isTop20 && (
-                    <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-orange-400/50 bg-black/60 px-2.5 py-1 backdrop-blur">
+                    <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full border border-orange-400/60 bg-gradient-to-r from-black/80 to-orange-950/70 px-3 py-1.5 shadow-[0_0_20px_rgba(249,115,22,0.45)] backdrop-blur animate-pulse">
                       <span className="dimes-flame" aria-hidden="true">
                         <span />
                         <span />
                         <span />
                       </span>
-                      <span className="text-xs font-black tracking-wide text-orange-200">
+                      <span className="text-sm font-black tracking-wide text-orange-100">
                         #{rank}
                       </span>
                     </div>
