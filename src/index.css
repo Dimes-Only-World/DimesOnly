@@ -443,3 +443,42 @@ body.paypal-overlay-open {
     background: linear-gradient(0deg, hsl(var(--rental-background) / 0.98) 0%, hsl(var(--rental-background) / 0.34) 72%, hsl(var(--rental-background) / 0.5) 100%);
   }
 }
+
+/* Dimes Only — Dimes directory (Magenta Noir cinematic showcase) */
+.dimes-noir {
+  --dime-bg: 260 30% 4%;
+  --dime-surface: 262 24% 9%;
+  --dime-line: 300 30% 22%;
+  --dime-accent: 306 82% 50%;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, hsl(var(--dime-accent) / 0.22), transparent 60%),
+    radial-gradient(900px 500px at 92% 8%, hsl(48 96% 56% / 0.12), transparent 60%),
+    hsl(var(--dime-bg));
+  color: hsl(0 0% 98%);
+}
+
+@keyframes dime-flicker {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 0.95; }
+  35% { transform: scale(1.14) translateY(-2px); opacity: 1; }
+  60% { transform: scale(0.94) translateY(1px); opacity: 0.85; }
+  80% { transform: scale(1.08) translateY(-1px); opacity: 1; }
+}
+
+.dime-flame {
+  animation: dime-flicker 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px hsl(24 100% 55% / 0.9)) drop-shadow(0 0 14px hsl(48 100% 55% / 0.6));
+}
+.dime-flame-2 { animation-delay: 0.35s; }
+.dime-flame-3 { animation-delay: 0.7s; }
+
+@keyframes dime-zoom-in {
+  from { transform: scale(0.82); opacity: 0; }
+  to { transform: scale(1.06); opacity: 1; }
+}
+.dime-zoom-stage img {
+  animation: dime-zoom-in 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dime-flame, .dime-zoom-stage img { animation: none !important; }
+}
