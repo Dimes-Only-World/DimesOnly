@@ -296,10 +296,12 @@ const TipLeaderboard: React.FC = () => {
             <Plane className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" />
             <div className="space-y-1 text-sm leading-relaxed text-slate-200">
               <p className="font-bold uppercase tracking-wide text-white">
-                Highest Tipper of the Year
+                Highest Tipper of the Year — Who Gives the Most
               </p>
               <p>
-                The highest tipper for the year gets{" "}
+                This is a separate race from the Top 3 above. It tracks the member who{" "}
+                <strong className="text-white">sends</strong> the most tips, not the Dimes who
+                receive them. The highest tipper for the year gets{" "}
                 <strong className="text-yellow-300">
                   flown out to the New Year&apos;s Eve party and housed for 2 nights
                 </strong>
