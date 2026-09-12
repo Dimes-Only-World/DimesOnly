@@ -82,6 +82,11 @@ const DimesDirectory: React.FC = () => {
   const { videoUrl: dimesVideoUrl } = usePageVideo("dimes_directory_page");
   const [messageRecipient, setMessageRecipient] = useState<DimeProfile | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [zoom, setZoom] = useState<{
+    src: string;
+    username: string;
+    rect: { top: number; left: number; width: number; height: number };
+  } | null>(null);
   const onlineUsers = useOnlinePresence(true);
 
   const isOnline = (username: string) => onlineUsers.has(username.trim().toLowerCase());
@@ -296,6 +301,28 @@ const DimesDirectory: React.FC = () => {
     navigate(`/profile/${username}`);
   };
 
+  const handleZoomNavigate = (
+    e: React.MouseEvent,
+    profile: DimeProfile,
+    imgEl: HTMLImageElement | null
+  ) => {
+    e.stopPropagation();
+    const src = profile.profile_photo || defaultAvatar.url;
+    const rect = imgEl?.getBoundingClientRect();
+    if (!rect) {
+      handleProfileClick(profile.username);
+      return;
+    }
+    setZoom({
+      src,
+      username: profile.username,
+      rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+    });
+    window.setTimeout(() => {
+      navigate(`/profile/${profile.username}`);
+    }, 720);
+  };
+
     const handleMessageClick = (profile: DimeProfile) => {
     setMessageRecipient(profile);
     setIsMessageModalOpen(true);
@@ -308,44 +335,53 @@ const DimesDirectory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading profiles...</div>
+      <div className="flex items-center justify-center py-24">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#E916D1]/30 border-t-[#E916D1]" />
+          <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Loading Dimes</div>
+        </div>
       </div>
     );
   }
 
+  const ranked = [...visibleProfiles].sort((a, b) => {
+    const ra = a.rank_number ?? 9999;
+    const rb = b.rank_number ?? 9999;
+    return ra - rb;
+  });
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Video Banner */}
       {dimesVideoUrl && (
-        <BannerVideo src={dimesVideoUrl} className="rounded-lg" />
+        <BannerVideo src={dimesVideoUrl} className="rounded-2xl" />
       )}
 
-      <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 px-6 py-10 md:px-10 md:py-12">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[#E916D1]/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-yellow-400/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-12 md:px-12 md:py-16">
+        <div className="pointer-events-none absolute -top-32 -right-24 h-72 w-72 rounded-full bg-[#E916D1]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-yellow-400/10 blur-3xl" />
 
         <div className="relative text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 backdrop-blur">
             <Crown className="h-4 w-4 text-yellow-400" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F5A3EA]">
-              Member Directory
+            <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA]">
+              The Official Dimes Directory
             </span>
           </div>
 
-          <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight text-white">
-            Browse <span className="text-[#E916D1]">Diamond</span> Members
-          </h2>
-          <div className="mx-auto mt-3 h-[3px] w-24 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
+          <h1 className="mt-5 text-4xl font-black uppercase leading-[0.95] tracking-tight text-white md:text-6xl">
+            Browse <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">Dimes</span>
+          </h1>
+          <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
 
-          <p className="mx-auto mt-4 max-w-xl text-sm md:text-base leading-relaxed text-slate-300">
-            Search and discover Diamond member profiles.
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
+            Search and discover the Dimes profiles.
           </p>
-          <p className="mx-auto mt-2 inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-medium text-yellow-300">
+          <p className="mx-auto mt-3 inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-medium text-yellow-300">
             Full content will be available when the app is released
           </p>
 
-          <div className="mx-auto mt-8 flex max-w-2xl flex-col gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:flex-row sm:items-center">
+          <div className="mx-auto mt-8 flex max-w-2xl flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
@@ -365,18 +401,16 @@ const DimesDirectory: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-slate-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-slate-300">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
             {visibleProfiles.length} profile{visibleProfiles.length !== 1 ? "s" : ""} found
           </div>
         </div>
       </section>
 
-
-      {visibleProfiles.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {visibleProfiles.map((profile) => {
-
+      {ranked.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {ranked.map((profile) => {
             const location =
               profile.city && profile.state
                 ? `${profile.city}, ${profile.state}`
@@ -384,134 +418,167 @@ const DimesDirectory: React.FC = () => {
 
             const membership = getMembershipLabel(profile);
             const rankText = getRankText(profile);
+            const rank = profile.rank_number ?? 0;
+            const isTop20 = rank >= 1 && rank <= 20;
+            const online = isOnline(profile.username);
 
             return (
-              <Card
+              <article
                 key={profile.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                onClick={() => handleProfileClick(profile.username)}
+                className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#100A17] shadow-[0_10px_40px_-20px_rgba(233,22,209,0.6)] transition-all duration-300 hover:-translate-y-1 hover:border-[#E916D1]/50 hover:shadow-[0_25px_60px_-25px_rgba(233,22,209,0.85)]"
+                onClick={(e) =>
+                  handleZoomNavigate(
+                    e,
+                    profile,
+                    (e.currentTarget.querySelector("img") as HTMLImageElement) ?? null
+                  )
+                }
               >
-                <CardContent className="p-4">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="relative w-24 h-24 flex-shrink-0">
-                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
-                          <img
-                            src={profile.profile_photo || defaultAvatar.url}
-                            alt={`${profile.username} profile photo`}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const img = e.currentTarget;
-                              if (img.src !== window.location.origin + defaultAvatar.url) {
-                                img.src = defaultAvatar.url;
-                              }
-                            }}
-                          />
-                        </div>
-                        <span
-                          title={isOnline(profile.username) ? "Online now" : "Offline"}
-                          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                            isOnline(profile.username) ? "bg-emerald-500" : "bg-red-500"
-                          }`}
-                        />
-                      </div>
+                <div className="relative aspect-[3/4] overflow-hidden bg-slate-900">
+                  <img
+                    src={profile.profile_photo || defaultAvatar.url}
+                    alt={`${profile.username} profile photo`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.src !== window.location.origin + defaultAvatar.url) {
+                        img.src = defaultAvatar.url;
+                      }
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0611] via-[#0B0611]/25 to-transparent" />
 
-
-                      <div className="flex-1 space-y-2">
-                        <div className="flex flex-col">
-                          <h3 className="font-semibold text-lg">@{profile.username}</h3>
-                          <p className="text-gray-600 text-sm">{location}</p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="secondary" className="text-xs capitalize">
-                            {profile.gender}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs flex items-center gap-1 capitalize">
-                            <Crown className="w-3 h-3" />
-                            {profile.user_type}
-                          </Badge>
-                          <Badge className="text-xs bg-amber-100 text-amber-700">
-                            {membership}
-                          </Badge>
-                        </div>
-                      </div>
+                  {isTop20 && (
+                    <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-orange-400/50 bg-black/60 px-2.5 py-1 backdrop-blur">
+                      <span className="dimes-flame" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                      <span className="text-xs font-black tracking-wide text-orange-200">
+                        #{rank}
+                      </span>
                     </div>
+                  )}
 
-                    <div className="flex flex-col gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-rose-600">Message Me</span>
-                         <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex items-center gap-2 border-rose-500 text-rose-600 hover:bg-rose-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMessageClick(profile);
-                          }}
-                        >
-                          <Mail className="w-4 h-4" />
-                          Message
-                        </Button>
-                      </div>
+                  <span
+                    title={online ? "Online now" : "Offline"}
+                    className={`absolute right-3 top-3 flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur ${
+                      online
+                        ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
+                        : "border-white/15 bg-black/50 text-slate-300"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        online ? "animate-pulse bg-emerald-400" : "bg-slate-500"
+                      }`}
+                    />
+                    {online ? "Online" : "Offline"}
+                  </span>
 
-                      <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
-                        <span>
-                          <strong className="font-semibold text-gray-900">Rated:</strong>{" "}
-                          {profile.ratings_count}
-                        </span>
-                        <span>
-                          <strong className="font-semibold text-gray-900">Ranked:</strong>{" "}
-                          {rankText}
-                        </span>
-                        <span>
-                          <strong className="font-semibold text-gray-900">Free Content:</strong>{" "}
-                          <span className={profile.content_free_count > 0 ? "text-green-600 font-semibold" : "text-gray-400"}>
-                            {profile.content_free_count > 0 ? "Yes" : "No"}
-                          </span>
-                        </span>
-                        <span>
-                          <strong className="font-semibold text-gray-900">Nude Content:</strong>{" "}
-                          <span className={profile.content_nude_count > 0 ? "text-green-600 font-semibold" : "text-gray-400"}>
-                            {profile.content_nude_count > 0 ? "Yes" : "No"}
-                          </span>
-                        </span>
-                        <span>
-                          <strong className="font-semibold text-gray-900">X-Rated Content:</strong>{" "}
-                          <span className={profile.content_xrated_count > 0 ? "text-green-600 font-semibold" : "text-gray-400"}>
-                            {profile.content_xrated_count > 0 ? "Yes" : "No"}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <h3 className="truncate text-lg font-extrabold text-white">@{profile.username}</h3>
+                    <p className="truncate text-xs text-slate-300">{location}</p>
+                  </div>
+                </div>
 
+                <div className="space-y-3 p-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    <Badge className="border-0 bg-[#E916D1]/15 text-[11px] capitalize text-[#F5A3EA]">
+                      {profile.user_type}
+                    </Badge>
+                    <Badge className="border-0 bg-yellow-400/15 text-[11px] text-yellow-300">
+                      {membership}
+                    </Badge>
+                    <Badge className="border-0 bg-white/10 text-[11px] text-slate-300">
+                      Rank {rankText}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-y-1.5 rounded-xl border border-white/5 bg-white/5 p-3 text-[11px] text-slate-300">
+                    <span>Rated: <strong className="text-white">{profile.ratings_count}</strong></span>
+                    <span>
+                      Free:{" "}
+                      <strong className={profile.content_free_count > 0 ? "text-emerald-400" : "text-slate-500"}>
+                        {profile.content_free_count > 0 ? "Yes" : "No"}
+                      </strong>
+                    </span>
+                    <span>
+                      Nude:{" "}
+                      <strong className={profile.content_nude_count > 0 ? "text-emerald-400" : "text-slate-500"}>
+                        {profile.content_nude_count > 0 ? "Yes" : "No"}
+                      </strong>
+                    </span>
+                    <span>
+                      X-Rated:{" "}
+                      <strong className={profile.content_xrated_count > 0 ? "text-emerald-400" : "text-slate-500"}>
+                        {profile.content_xrated_count > 0 ? "Yes" : "No"}
+                      </strong>
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
-                      className="w-full"
+                      className="flex-1 bg-gradient-to-r from-[#E916D1] to-[#FF5FD1] text-white hover:opacity-90"
+                      onClick={(e) =>
+                        handleZoomNavigate(
+                          e,
+                          profile,
+                          (e.currentTarget.closest("article")?.querySelector("img") as HTMLImageElement) ?? null
+                        )
+                      }
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleProfileClick(profile.username);
+                        handleMessageClick(profile);
                       }}
                     >
-                      <User className="w-4 h-4 mr-2" />
-                      View Profile
+                      <Mail className="h-4 w-4" />
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </article>
             );
           })}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <User className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No profiles found</h3>
-          <p className="text-gray-600">
+        <div className="rounded-2xl border border-white/10 bg-white/5 py-16 text-center">
+          <User className="mx-auto mb-4 h-16 w-16 text-slate-600" />
+          <h3 className="mb-2 text-xl font-semibold text-white">No profiles found</h3>
+          <p className="text-slate-400">
             {searchTerm ? "Try adjusting your search terms" : "No dimes profiles available"}
           </p>
         </div>
       )}
+
+      {zoom && (
+        <div className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-sm dimes-zoom-fade">
+          <img
+            src={zoom.src}
+            alt={`${zoom.username} profile photo`}
+            className="dimes-zoom-img absolute object-contain"
+            style={
+              {
+                top: zoom.rect.top,
+                left: zoom.rect.left,
+                width: zoom.rect.width,
+                height: zoom.rect.height,
+              } as React.CSSProperties
+            }
+          />
+        </div>
+      )}
+
         <DirectMessageModal
         isOpen={isMessageModalOpen}
         onClose={closeMessageModal}
