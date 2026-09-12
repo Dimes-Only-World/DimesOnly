@@ -322,7 +322,7 @@ const TipLeaderboard: React.FC = () => {
               />
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-slate-400">
-                  Current Leader
+                  Top Tipper (Gave Most)
                 </div>
                 <div className="text-sm font-bold text-white">@{topTipper.username}</div>
                 <div className="text-xs font-semibold text-yellow-300">
