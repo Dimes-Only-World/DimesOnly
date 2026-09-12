@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin } from "lucide-react";
+import { MapPin, Gem, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
+import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 
 type RateFilter = "all" | "rated" | "not-rated";
 
