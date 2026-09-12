@@ -10,7 +10,7 @@ import AuthGuard from "@/components/AuthGuard";
 import JackpotDisplay from "@/components/JackpotDisplay";
 import TipAmountSelector from "@/components/TipAmountSelector";
 import PayPalTipButton from "@/components/PayPalTipButton";
-import UserProfileCard from "@/components/UserProfileCard";
+
 import UsersList from "@/components/UsersList";
 import TipLeaderboard from "@/components/TipLeaderboard";
 import BannerVideo from "@/components/BannerVideo";
