@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Flag, User, Heart, Trophy, Ticket, Sparkles } from "lucide-react";
+import { Search, MapPin, Flag, User, Heart, Trophy, Ticket, Sparkles, ArrowLeft } from "lucide-react";
 import HomeProfileButton from "@/components/HomeProfileButton";
 import AuthGuard from "@/components/AuthGuard";
 import JackpotDisplay from "@/components/JackpotDisplay";
@@ -12,11 +11,10 @@ import TipAmountSelector from "@/components/TipAmountSelector";
 import PayPalTipButton from "@/components/PayPalTipButton";
 import UserProfileCard from "@/components/UserProfileCard";
 import UsersList from "@/components/UsersList";
-import TipStatusChecker from "@/components/TipStatusChecker";
+import TipLeaderboard from "@/components/TipLeaderboard";
 import BannerVideo from "@/components/BannerVideo";
 import { supabase } from "@/lib/supabase";
 import { normalizeRefParam } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 
 type RateFilter = "all" | "rated" | "not-rated";
 
@@ -47,7 +45,7 @@ const TipGirls: React.FC = () => {
     email?: string;
     username?: string;
   } | null>(null);
-  const [rateFilter, setRateFilter] = useState<RateFilter>("all");
+  const [rateFilter] = useState<RateFilter>("all");
 
   useEffect(() => {
     getCurrentUser();
@@ -88,7 +86,6 @@ const TipGirls: React.FC = () => {
 
   const fetchUserByUsername = async (username: string) => {
     try {
-      console.log("Fetching user by username:", username);
       // Use public_user_profiles view to bypass RLS restrictions
       const { data, error } = await supabase
         .from("public_user_profiles")
@@ -97,8 +94,6 @@ const TipGirls: React.FC = () => {
         .in("user_type", ["stripper", "exotic"])
         .maybeSingle();
 
-      console.log("TipGirls query result - data:", data, "error:", error);
-      
       if (error) {
         console.error("Error fetching user:", error);
         return;
@@ -112,8 +107,6 @@ const TipGirls: React.FC = () => {
           state: String(data.state || ""),
           user_type: String(data.user_type),
         });
-      } else {
-        console.log("No user found for username:", username);
       }
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -128,7 +121,6 @@ const TipGirls: React.FC = () => {
 
   const handleTipSuccess = (transactionId?: string) => {
     console.log("Tip successful, transaction:", transactionId);
-    // Reset and go back to directory after a delay
     setTimeout(() => {
       setSelectedUser(null);
       setTipAmount(0);
@@ -140,37 +132,27 @@ const TipGirls: React.FC = () => {
     console.error("Tip error:", error);
   };
 
-  // inside TipGirls.tsx
-const renderRateFilterButton = (value: RateFilter, label: string) => {
-  const isActive = rateFilter === value;
-  return (
-    <Button
-      type="button"
-      onClick={() => setRateFilter(value)}
-      className={`rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200 ${
-        isActive
-          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg border-transparent"
-          : "bg-white/10 text-gray-100 border border-white/20 hover:bg-white/20"
-      }`}
-    >
-      {label}
-    </Button>
-  );
-};
-
   if (selectedUser) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-16">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <Card className="bg-white/10 backdrop-blur border-white/20">
-              <CardHeader className="text-center">
-                <CardTitle className="text-white text-3xl mb-4">
-                  <Heart className="w-8 h-8 inline-block mr-2 text-red-500" />
-                  Tip @{selectedUser.username}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+        <div className="min-h-screen bg-[#070409] py-12 text-white">
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(233,22,209,0.16),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(250,204,21,0.08),transparent_55%)]" />
+
+          <div className="relative mx-auto max-w-3xl px-4">
+            <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#100A17] shadow-[0_20px_60px_-30px_rgba(233,22,209,0.8)]">
+              <div className="border-b border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-8 text-center">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5">
+                  <Heart className="h-4 w-4 text-[#FF5FD1]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA]">
+                    Send a Tip
+                  </span>
+                </div>
+                <h1 className="mt-4 text-3xl font-black text-white md:text-4xl">
+                  @{selectedUser.username}
+                </h1>
+              </div>
+
+              <div className="space-y-6 p-6">
                 <UserProfileCard
                   username={selectedUser.username}
                   profileImage={selectedUser.profile_photo}
@@ -185,14 +167,14 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                 />
 
                 <div>
-                  <label className="block text-white mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-slate-200">
                     Message (Optional)
                   </label>
                   <textarea
                     placeholder="Leave a nice message..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 resize-none"
+                    className="w-full resize-none rounded-lg border border-white/15 bg-slate-900/60 p-3 text-white placeholder:text-slate-400 focus:border-[#E916D1] focus:outline-none"
                     rows={3}
                     maxLength={200}
                   />
@@ -215,12 +197,14 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
                 <Button
                   onClick={() => setSelectedUser(null)}
                   variant="outline"
-                  className="w-full border-white/30 text-white hover:bg-white/20"
+                  className="w-full border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
                 >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Directory
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
             <div className="mt-6">
               <JackpotDisplay />
             </div>
@@ -232,129 +216,108 @@ const renderRateFilterButton = (value: RateFilter, label: string) => {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        {tipVideoUrl && (
-          <BannerVideo src={tipVideoUrl} />
-        )}
+      <div className="min-h-screen bg-[#070409] text-white">
+        <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(233,22,209,0.16),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(250,204,21,0.08),transparent_55%)]" />
 
-        <section className="relative overflow-hidden border-b border-white/10">
-          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-fuchsia-500/20 blur-3xl" />
-          <div className="relative mx-auto max-w-4xl px-6 py-14 md:py-20 text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/40 bg-fuchsia-500/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-fuchsia-300 backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5" />
-              Weekly Jackpot Entry
-            </span>
+        {tipVideoUrl && <BannerVideo src={tipVideoUrl} />}
 
-            <h1 className="mt-6 text-5xl md:text-7xl font-black tracking-tight">
-              <span className="bg-gradient-to-b from-white via-white to-fuchsia-400 bg-clip-text text-transparent">
-                Tip &amp; Win
-              </span>
-            </h1>
-
-            <p className="mx-auto mt-5 max-w-xl text-base md:text-lg leading-relaxed text-white/70">
-              Support your favorite Dimes and earn entries into the weekly jackpot drawing.
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-widest text-white/60">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                <Ticket className="h-3.5 w-3.5 text-fuchsia-300" />
-                Every tip earns entries
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                <Trophy className="h-3.5 w-3.5 text-amber-300" />
-                Drawings every Saturday
-              </span>
-            </div>
-          </div>
-        </section>
-
-
-        <div className="max-w-7xl mx-auto p-4">
-          <div className="flex justify-start mb-4">
+        <div className="relative mx-auto max-w-7xl space-y-8 px-4 py-8">
+          <div className="flex justify-start">
             <HomeProfileButton />
           </div>
-          <div className="mb-8">
+
+          {/* Hero */}
+          <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-12 md:px-12 md:py-16">
+            <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#E916D1]/20 blur-3xl" />
+
+            <div className="relative text-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA] backdrop-blur">
+                <Sparkles className="h-3.5 w-3.5" />
+                Weekly Jackpot Entry
+              </span>
+
+              <h1 className="mt-6 text-5xl font-black uppercase leading-[0.95] tracking-tight text-white md:text-7xl">
+                Tip{" "}
+                <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">
+                  &amp; Win
+                </span>
+              </h1>
+              <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
+
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
+                Support your favorite Dimes and earn entries into the weekly jackpot drawing.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-widest text-slate-300">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                  <Ticket className="h-3.5 w-3.5 text-[#FF5FD1]" />
+                  Every tip earns entries
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                  <Trophy className="h-3.5 w-3.5 text-yellow-300" />
+                  Drawings every Saturday
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Yearly top 3 highest tipped */}
+          <TipLeaderboard />
+
+          {/* Jackpot */}
+          <div>
             <JackpotDisplay />
             <div className="mt-4 text-center">
               <Button
                 onClick={() => navigate("/jackpot")}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-semibold px-6 py-3 h-auto text-center"
+                className="h-auto bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 text-center font-semibold text-black hover:from-yellow-600 hover:to-orange-600"
               >
-                Want to know more about the jackpot?<br />Click here
+                Want to know more about the jackpot?
+                <br />
+                Click here
               </Button>
             </div>
           </div>
 
-          <Card className="bg-white/10 backdrop-blur border-white/20 mb-6">
-            <CardContent className="p-6">
-              <div className="space-y-4 md:space-y-0 md:flex md:space-x-4">
-                <div className="relative flex-1">
-                  <User
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 z-10"
-                    size={20}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Search by name..."
-                    value={searchName}
-                    onChange={(e) => setSearchName(e.target.value)}
-                    className="pl-10 bg-white/90 border-2 border-purple-400 text-gray-900 placeholder-gray-500 w-full focus:border-yellow-400"
-                  />
-                </div>
-                <div className="relative flex-1">
-                  <MapPin
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 z-10"
-                    size={20}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Search by city..."
-                    value={searchCity}
-                    onChange={(e) => setSearchCity(e.target.value)}
-                    className="pl-10 bg-white/90 border-2 border-purple-400 text-gray-900 placeholder-gray-500 w-full focus:border-yellow-400"
-                  />
-                </div>
-                <div className="relative flex-1">
-                  <Flag
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 z-10"
-                    size={20}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Search by state..."
-                    value={searchState}
-                    onChange={(e) => setSearchState(e.target.value)}
-                    className="pl-10 bg-white/90 border-2 border-purple-400 text-gray-900 placeholder-gray-500 w-full focus:border-yellow-400"
-                  />
-                </div>
+          {/* Filters */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <Search className="h-3.5 w-3.5 text-[#E916D1]" />
+              Find a Dime to tip
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search by name..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                />
               </div>
-
-        
-            </CardContent>
-          </Card>
-
-          {/* {currentUser && (
-            <TipStatusChecker userId={currentUser.id}>
-              {(hasTips, hasBeenTipped) => {
-                if (!hasTips && !hasBeenTipped) {
-                  return (
-                    <Card className="bg-yellow-900/20 border-yellow-500 mb-6">
-                      <CardContent className="p-4 text-center">
-                        <h3 className="text-yellow-400 font-bold text-lg mb-2">
-                          NO TIPS YET MADE IN 2025. BE THE 1ST!
-                        </h3>
-                        <p className="text-yellow-300 text-sm">
-                          Start tipping your favorite Dimes to enter the
-                          jackpot below!
-                        </p>
-                      </CardContent>
-                    </Card>
-                  );
-                }
-                return null;
-              }}
-            </TipStatusChecker>
-          )} */}
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search by city..."
+                  value={searchCity}
+                  onChange={(e) => setSearchCity(e.target.value)}
+                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                />
+              </div>
+              <div className="relative">
+                <Flag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search by state..."
+                  value={searchState}
+                  onChange={(e) => setSearchState(e.target.value)}
+                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                />
+              </div>
+            </div>
+          </div>
 
           <UsersList
             searchName={searchName}
