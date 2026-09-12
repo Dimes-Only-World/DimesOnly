@@ -31,8 +31,8 @@ const currency = (value: number) =>
   value.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
 /** Season runs Jan 1 12:00AM through Dec 31, resetting every year. */
