@@ -133,79 +133,142 @@ const TipGirls: React.FC = () => {
   };
 
   if (selectedUser) {
+    const location = [selectedUser.city, selectedUser.state].filter(Boolean).join(", ");
+
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#070409] py-12 text-white">
+        <div className="min-h-screen bg-[#070409] py-10 text-white">
           <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(233,22,209,0.16),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(250,204,21,0.08),transparent_55%)]" />
 
-          <div className="relative mx-auto max-w-3xl px-4">
-            <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#100A17] shadow-[0_20px_60px_-30px_rgba(233,22,209,0.8)]">
-              <div className="border-b border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-8 text-center">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5">
-                  <Heart className="h-4 w-4 text-[#FF5FD1]" />
+          <div className="relative mx-auto max-w-6xl px-4">
+            <Button
+              onClick={() => setSelectedUser(null)}
+              variant="outline"
+              className="mb-6 border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Directory
+            </Button>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+              {/* Recipient panel */}
+              <aside className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] shadow-[0_24px_70px_-40px_rgba(233,22,209,0.9)]">
+                <div className="relative aspect-[4/5] overflow-hidden bg-slate-900">
+                  <img
+                    src={selectedUser.profile_photo || defaultAvatar.url}
+                    alt={`${selectedUser.username} profile photo`}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultAvatar.url;
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0611] via-[#0B0611]/30 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-black/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#F5A3EA] backdrop-blur">
+                      <Heart className="h-3 w-3 text-[#FF5FD1]" />
+                      Tipping
+                    </span>
+                    <h1 className="mt-3 truncate text-3xl font-black text-white">
+                      @{selectedUser.username}
+                    </h1>
+                    {location && (
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-300">
+                        <MapPin className="h-3.5 w-3.5 text-[#FF5FD1]" />
+                        {location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-5 text-sm text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-yellow-300" />
+                    <p>Every $1 tipped earns you 1 entry into the weekly jackpot drawing.</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5FD1]" />
+                    <p>Your tips count toward her yearly Top 3 standing and your Top Tipper race.</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                    <p>Payments are processed securely through PayPal.</p>
+                  </div>
+                </div>
+              </aside>
+
+              {/* Tip form */}
+              <section className="rounded-3xl border border-white/10 bg-[#100A17] p-6 md:p-8">
+                <div className="border-b border-white/10 pb-5">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA]">
-                    Send a Tip
+                    Tip Now
                   </span>
-                </div>
-                <h1 className="mt-4 text-3xl font-black text-white md:text-4xl">
-                  @{selectedUser.username}
-                </h1>
-              </div>
-
-              <div className="space-y-6 p-6">
-                <UserProfileCard
-                  username={selectedUser.username}
-                  profileImage={selectedUser.profile_photo}
-                  location={`${selectedUser.city}, ${selectedUser.state}`}
-                />
-
-                <TipAmountSelector
-                  selectedAmount={tipAmount}
-                  onAmountChange={setTipAmount}
-                  customAmount={customAmount}
-                  onCustomAmountChange={setCustomAmount}
-                />
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-200">
-                    Message (Optional)
-                  </label>
-                  <textarea
-                    placeholder="Leave a nice message..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="w-full resize-none rounded-lg border border-white/15 bg-slate-900/60 p-3 text-white placeholder:text-slate-400 focus:border-[#E916D1] focus:outline-none"
-                    rows={3}
-                    maxLength={200}
-                  />
+                  <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+                    Send Your{" "}
+                    <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">
+                      Tip
+                    </span>
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Pick an amount, add a message, and complete your tip in seconds.
+                  </p>
                 </div>
 
-                {currentUser && (
-                  <PayPalTipButton
-                    tipAmount={tipAmount}
-                    tippedUsername={selectedUser.username}
-                    tipperUserId={currentUser.id}
-                    tipperUsername={currentUser.username || currentUser.email || "anonymous"}
-                    referrerUsername={refUsername || undefined}
-                    tipMessage={message}
-                    onSuccess={handleTipSuccess}
-                    onError={handleTipError}
-                    disabled={tipAmount < 5}
+                <div className="mt-6 space-y-6">
+                  <TipAmountSelector
+                    selectedAmount={tipAmount}
+                    onAmountChange={setTipAmount}
+                    customAmount={customAmount}
+                    onCustomAmountChange={setCustomAmount}
                   />
-                )}
 
-                <Button
-                  onClick={() => setSelectedUser(null)}
-                  variant="outline"
-                  className="w-full border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Directory
-                </Button>
-              </div>
+                  <div className="rounded-2xl border border-white/10 bg-[#0B0611]/80 p-5">
+                    <div className="mb-3 flex items-center justify-between">
+                      <label className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-200">
+                        Add a Message
+                      </label>
+                      <span className="text-[10px] uppercase tracking-wider text-slate-500">
+                        {message.length}/200
+                      </span>
+                    </div>
+                    <textarea
+                      placeholder="Say something nice..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      className="w-full resize-none rounded-xl border border-white/15 bg-slate-900/60 p-3 text-white placeholder:text-slate-500 focus:border-[#E916D1] focus:outline-none"
+                      rows={3}
+                      maxLength={200}
+                    />
+                  </div>
+
+                  {currentUser ? (
+                    <div className="space-y-3">
+                      {tipAmount < 5 && (
+                        <p className="text-center text-xs uppercase tracking-wider text-slate-400">
+                          Select at least $5 to continue
+                        </p>
+                      )}
+                      <PayPalTipButton
+                        tipAmount={tipAmount}
+                        tippedUsername={selectedUser.username}
+                        tipperUserId={currentUser.id}
+                        tipperUsername={currentUser.username || currentUser.email || "anonymous"}
+                        referrerUsername={refUsername || undefined}
+                        tipMessage={message}
+                        onSuccess={handleTipSuccess}
+                        onError={handleTipError}
+                        disabled={tipAmount < 5}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-center text-sm text-slate-400">
+                      Sign in to send a tip.
+                    </p>
+                  )}
+                </div>
+              </section>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-8">
               <JackpotDisplay />
             </div>
           </div>
