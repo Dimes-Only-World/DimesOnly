@@ -326,7 +326,7 @@ const TipLeaderboard: React.FC = () => {
                 </div>
                 <div className="text-sm font-bold text-white">@{topTipper.username}</div>
                 <div className="text-xs font-semibold text-yellow-300">
-                  {currency(topTipper.total_tipped)} tipped
+                  {currency(topTipper.total_tipped)} sent in tips
                 </div>
               </div>
             </div>
