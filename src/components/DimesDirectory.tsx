@@ -82,6 +82,11 @@ const DimesDirectory: React.FC = () => {
   const { videoUrl: dimesVideoUrl } = usePageVideo("dimes_directory_page");
   const [messageRecipient, setMessageRecipient] = useState<DimeProfile | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [zoom, setZoom] = useState<{
+    src: string;
+    username: string;
+    rect: { top: number; left: number; width: number; height: number };
+  } | null>(null);
   const onlineUsers = useOnlinePresence(true);
 
   const isOnline = (username: string) => onlineUsers.has(username.trim().toLowerCase());
