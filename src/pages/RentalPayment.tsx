@@ -112,22 +112,23 @@ const RentalPayment: React.FC = () => {
   const v = booking.vehicles;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-24 pb-16 px-4">
+    <div className="rentals-showroom min-h-screen px-4 pb-16 pt-24">
       <div className="max-w-xl mx-auto">
-        <Link to="/rentals" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-4">
+        <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 text-sm text-rental-muted hover:text-rental-primary">
           <ArrowLeft className="w-4 h-4" /> Back to rentals
         </Link>
 
-        <Card>
-          <CardContent className="p-6 space-y-5">
+        <Card className="rounded-none border-rental-line bg-rental-surface text-rental-foreground">
+          <CardContent className="space-y-6 p-6 sm:p-8">
             <div>
-              <h1 className="text-2xl font-bold">Complete your payment</h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="mb-1 text-xs font-semibold uppercase text-rental-primary">Secure checkout</p>
+              <h1 className="rentals-wordmark text-4xl">COMPLETE YOUR PAYMENT</h1>
+              <p className="text-sm text-rental-muted">
                 {v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}` : "Vehicle rental"} · {booking.rental_type}
               </p>
             </div>
 
-            <div className="space-y-1 text-sm border-t pt-4">
+            <div className="space-y-2 border-t border-rental-line pt-5 text-sm">
               <div className="flex justify-between">
                 <span>Start</span>
                 <span>{new Date(booking.start_date).toLocaleString()}</span>
@@ -147,7 +148,7 @@ const RentalPayment: React.FC = () => {
                 <span>${Number(booking.total_price).toLocaleString()}</span>
               </div>
               {Number(booking.security_deposit) > 0 && (
-                <div className="flex justify-between text-muted-foreground">
+                <div className="flex justify-between text-rental-muted">
                   <span>Security deposit (authorized before pickup)</span>
                   <span>${Number(booking.security_deposit).toLocaleString()}</span>
                 </div>
@@ -162,15 +163,15 @@ const RentalPayment: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   Admin will verify your PayPal payment and confirm your pickup details.
                 </p>
-                <Button className="w-full" onClick={() => navigate("/my-bookings")}>View my bookings</Button>
+                 <Button className="w-full rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90" onClick={() => navigate("/my-bookings")}>View my bookings</Button>
               </div>
             ) : (
               <>
-                <Button className="w-full" size="lg" disabled={working} onClick={startPayment}>
+                <Button className="w-full rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90" size="lg" disabled={working} onClick={startPayment}>
                   <CreditCard className="w-4 h-4 mr-2" />
                   {working ? "Connecting to PayPal..." : `Pay $${Number(booking.total_price).toLocaleString()} with PayPal`}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-center text-xs text-rental-muted">
                   You can pay with PayPal or a debit/credit card. Your booking is held until payment is completed.
                 </p>
               </>
