@@ -33,6 +33,8 @@ export interface FlixSubscription {
   amount_cents: number;
   current_period_end: string | null;
   is_demo?: boolean;
+  activated_at?: string | null;
+  notify_phone?: string | null;
   created_at: string;
 }
 
