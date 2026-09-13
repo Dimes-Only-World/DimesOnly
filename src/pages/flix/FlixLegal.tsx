@@ -8,7 +8,7 @@ const CONTENT: Record<string, { title: string; body: string[] }> = {
   terms: {
     title: "Terms of Service",
     body: [
-      "Welcome to FlameFlix, a streaming service operated by Flame Flix, LLC, a Dimes Only World company. By creating an account or streaming content, you agree to these terms.",
+      "Welcome to FlameFlix, a streaming service operated by FlameFlix, Inc., a Dimes Only World company. By creating an account or streaming content, you agree to these terms.",
       "Subscriptions renew automatically at the end of each billing period. The annual promotional rate of $29.99 applies to your first year only; renewal occurs at the then-current annual rate (currently $59.99/year). You may cancel anytime before renewal.",
       "Content is for personal, non-commercial viewing only. You may not redistribute, record, or rebroadcast any FlameFlix content.",
       "FlameFlix is intended for audiences 18 and older. Some content is rated TV-MA and intended for mature audiences.",
@@ -17,7 +17,7 @@ const CONTENT: Record<string, { title: string; body: string[] }> = {
   privacy: {
     title: "Privacy Policy",
     body: [
-      "Flame Flix, LLC respects your privacy. We collect only the information needed to run your account: your Dimes Only identity, watch progress, and subscription status.",
+      "FlameFlix, Inc. respects your privacy. We collect only the information needed to run your account: your Dimes Only identity, watch progress, and subscription status.",
       "Watch history and progress are stored to power Continue Watching and recommendations. We do not sell your personal data.",
       "Referral attribution data is used solely to calculate and pay Dimes Only earnings.",
       "Contact support@dimesonly.world with any privacy questions or deletion requests.",
