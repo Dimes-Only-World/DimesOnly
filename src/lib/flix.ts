@@ -40,7 +40,7 @@ export interface FlixSubscription {
 
 export const FLIX_PLANS = {
   monthly: { label: "Monthly", price: 5.99, cents: 599, note: "Charged once per month. Cancel anytime." },
-  annual: { label: "Annual", price: 29.99, cents: 2999, note: "Only $2.50 per month the first year. Renews at the then-current annual rate ($59.99 after year 1)." },
+  annual: { label: "Introductory Annual", price: 29.99, cents: 2999, note: "Only $2.50 per month the first year. Renews at the then-current annual rate ($59.99 after year 1)." },
 };
 
 export const FLIX_DIRECT_RATE = 0.10;
