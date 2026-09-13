@@ -2,17 +2,13 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixFooter from "@/components/flix/FlixFooter";
+import { FLIX_TERMS_BODY } from "@/data/flixTerms";
 import "@/components/flix/flix.css";
 
 const CONTENT: Record<string, { title: string; body: string[] }> = {
   terms: {
     title: "Terms of Service",
-    body: [
-      "Welcome to FlameFlix, a streaming service operated by FlameFlix, Inc., a Dimes Only World company. By creating an account or streaming content, you agree to these terms.",
-      "Subscriptions renew automatically at the end of each billing period. The annual promotional rate of $29.99 applies to your first year only; renewal occurs at the then-current annual rate (currently $59.99/year). You may cancel anytime before renewal.",
-      "Content is for personal, non-commercial viewing only. You may not redistribute, record, or rebroadcast any FlameFlix content.",
-      "FlameFlix is intended for audiences 18 and older. Some content is rated TV-MA and intended for mature audiences.",
-    ],
+    body: FLIX_TERMS_BODY,
   },
   privacy: {
     title: "Privacy Policy",
@@ -111,7 +107,10 @@ const FlixLegal: React.FC = () => {
         <h1 className="text-4xl font-black">{page.title}</h1>
         <div className="mt-8 space-y-5">
           {page.body.map((p, i) => {
-            const isSection = p === p.toUpperCase() && /[A-Z]/.test(p);
+            const isMarkedSection = p.startsWith("## ");
+            const isMarkedSubheading = p.startsWith("### ");
+            const displayText = p.replace(/^#{2,3} /, "");
+            const isSection = isMarkedSection || (p === p.toUpperCase() && /[A-Z]/.test(p));
             const isSubheading = [
               "Account Registration Information",
               "Payment Information",
@@ -127,17 +126,17 @@ const FlixLegal: React.FC = () => {
               "Marketing Emails",
               "California Users",
               "Nevada Users",
-            ].includes(p);
+            ].includes(p) || isMarkedSubheading;
 
             if (isSection) {
-              return <h2 key={i} className="pt-6 text-2xl font-black text-[#F5F5F5]">{p}</h2>;
+              return <h2 key={i} className="pt-6 text-2xl font-black text-[#F5F5F5]">{displayText}</h2>;
             }
             if (isSubheading) {
-              return <h3 key={i} className="pt-3 text-lg font-bold text-[#F5F5F5]">{p}</h3>;
+              return <h3 key={i} className="pt-3 text-lg font-bold text-[#F5F5F5]">{displayText}</h3>;
             }
             return (
               <p key={i} className={`leading-relaxed ${p.startsWith("• ") ? "pl-5 text-[#C7C7C7]" : "text-[#A1A1A1]"}`}>
-                {p}
+                {displayText}
               </p>
             );
           })}
