@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Check, Flame, Loader2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixFooter from "@/components/flix/FlixFooter";
@@ -10,6 +10,13 @@ import "@/components/flix/flix.css";
 
 const PERKS = ["Unlimited streaming", "Watch on any device", "Support the creators", "Cancel anytime"];
 
+const cancelByDate = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+};
+
 const FlixPricing: React.FC = () => {
   const { user } = useAppContext();
   const navigate = useNavigate();
@@ -17,10 +24,15 @@ const FlixPricing: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const subscribe = async () => {
     if (!user?.id) {
       navigate("/login?next=/flix/pricing");
+      return;
+    }
+    if (!agreed) {
+      setError("Please check the box to agree to the renewal terms.");
       return;
     }
     setLoading(true);
@@ -33,20 +45,12 @@ const FlixPricing: React.FC = () => {
       }
       const selected = FLIX_PLANS[plan];
       const refCode = getFlixRefCode();
-      const periodEnd = new Date();
-      if (plan === "annual") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-      else periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-      const { error: insertError } = await supabase.from("flix_subscriptions").insert({
-        user_id: user.id,
-        plan,
-        status: "active",
-        amount_cents: selected.cents,
-        referral_code: refCode || null,
-        is_demo: true,
-        current_period_end: periodEnd.toISOString(),
+      const { data, error: fnError } = await supabase.functions.invoke("flix-subscribe", {
+        body: { userId: user.id, plan, amountCents: selected.cents, referralCode: refCode || null },
       });
-      if (insertError) throw insertError;
+      if (fnError) throw new Error(fnError.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
       setDone(true);
     } catch (e) {
       setError((e as Error).message || "Checkout failed. Please try again.");
@@ -54,6 +58,7 @@ const FlixPricing: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   if (done) {
     return (
