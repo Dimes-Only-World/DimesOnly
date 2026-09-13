@@ -11,10 +11,7 @@ import "@/components/flix/flix.css";
 const PERKS = ["Unlimited streaming", "Watch on any device", "Support the creators", "Cancel anytime"];
 
 const cancelByDate = () => {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() + 1);
-  d.setDate(d.getDate() - 1);
-  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return "December 12, 2027";
 };
 
 const FlixPricing: React.FC = () => {
