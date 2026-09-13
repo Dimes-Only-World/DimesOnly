@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Check, Flame, Loader2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixFooter from "@/components/flix/FlixFooter";
@@ -17,11 +17,55 @@ const cancelByDate = () => {
 const FlixPricing: React.FC = () => {
   const { user } = useAppContext();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [plan, setPlan] = useState<"monthly" | "annual">("annual");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [phone, setPhone] = useState("");
+
+  const paypalToken = searchParams.get("token");
+
+  // Returning from PayPal approval -> capture the payment and create the subscription
+  useEffect(() => {
+    if (!paypalToken || !user?.id) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const pending = (() => {
+          try {
+            return JSON.parse(sessionStorage.getItem("flix_checkout") || "{}");
+          } catch {
+            return {} as any;
+          }
+        })();
+        const { data, error: fnError } = await supabase.functions.invoke("flix-subscribe", {
+          body: {
+            action: "captureOrder",
+            userId: user.id,
+            paypalOrderId: paypalToken,
+            plan: pending.plan || plan,
+            referralCode: pending.referralCode || getFlixRefCode() || null,
+            notifyPhone: pending.phone || null,
+          },
+        });
+        if (fnError) throw new Error(fnError.message);
+        if ((data as any)?.error) throw new Error((data as any).error);
+        sessionStorage.removeItem("flix_checkout");
+        if (!cancelled) setDone(true);
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message || "We could not confirm your payment.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paypalToken, user?.id]);
 
   const subscribe = async () => {
     if (!user?.id) {
@@ -40,21 +84,40 @@ const FlixPricing: React.FC = () => {
         setDone(true);
         return;
       }
-      const selected = FLIX_PLANS[plan];
       const refCode = getFlixRefCode();
+      const base = `${window.location.origin}/flix/pricing`;
+
+      sessionStorage.setItem(
+        "flix_checkout",
+        JSON.stringify({ plan, referralCode: refCode || null, phone: phone.trim() || null }),
+      );
 
       const { data, error: fnError } = await supabase.functions.invoke("flix-subscribe", {
-        body: { userId: user.id, plan, amountCents: selected.cents, referralCode: refCode || null },
+        body: {
+          action: "createOrder",
+          userId: user.id,
+          plan,
+          referralCode: refCode || null,
+          notifyPhone: phone.trim() || null,
+          returnUrl: base,
+          cancelUrl: `${base}?cancelled=1`,
+        },
       });
       if (fnError) throw new Error(fnError.message);
       if ((data as any)?.error) throw new Error((data as any).error);
-      setDone(true);
+      if ((data as any)?.data?.alreadyActive) {
+        setDone(true);
+        return;
+      }
+      const approve = (data as any)?.data?.approve_url;
+      if (!approve) throw new Error("Checkout could not be started. Please try again.");
+      window.location.href = approve;
     } catch (e) {
       setError((e as Error).message || "Checkout failed. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
+
 
 
   if (done) {
@@ -66,7 +129,10 @@ const FlixPricing: React.FC = () => {
             <Check size={32} className="text-[#FF4D1A]" />
           </div>
           <h1 className="text-3xl font-black mt-6">You're in.</h1>
-          <p className="text-[#A1A1A1] mt-2">Welcome to FlameFlix. Time to heat up the night.</p>
+          <p className="text-[#A1A1A1] mt-2">
+            Payment received. You will be notified when content is up for viewing via text message. Your subscription
+            does not begin until you login and watch your first movie or series.
+          </p>
           <button onClick={() => navigate("/flix/browse")} className="flix-ember-hover mt-8 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-8 py-3 rounded-md">
             Start Watching
           </button>
