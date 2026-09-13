@@ -61,6 +61,15 @@ export async function fetchTitle(id: string): Promise<FlixTitle | null> {
   return (data as FlixTitle) || null;
 }
 
+/** Starts the paid period the first time a member plays a title. */
+export async function activateSubscription(userId: string) {
+  try {
+    await supabase.functions.invoke("flix-subscribe", { body: { action: "activate", userId } });
+  } catch {
+    /* non-blocking */
+  }
+}
+
 export async function fetchMySubscription(userId: string): Promise<FlixSubscription | null> {
   const { data, error } = await supabase
     .from("flix_subscriptions")
