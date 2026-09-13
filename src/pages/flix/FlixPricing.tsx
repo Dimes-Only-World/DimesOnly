@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Check, Flame, Loader2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixFooter from "@/components/flix/FlixFooter";
@@ -10,6 +10,13 @@ import "@/components/flix/flix.css";
 
 const PERKS = ["Unlimited streaming", "Watch on any device", "Support the creators", "Cancel anytime"];
 
+const cancelByDate = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+};
+
 const FlixPricing: React.FC = () => {
   const { user } = useAppContext();
   const navigate = useNavigate();
@@ -17,10 +24,15 @@ const FlixPricing: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const subscribe = async () => {
     if (!user?.id) {
       navigate("/login?next=/flix/pricing");
+      return;
+    }
+    if (!agreed) {
+      setError("Please check the box to agree to the renewal terms.");
       return;
     }
     setLoading(true);
@@ -33,20 +45,12 @@ const FlixPricing: React.FC = () => {
       }
       const selected = FLIX_PLANS[plan];
       const refCode = getFlixRefCode();
-      const periodEnd = new Date();
-      if (plan === "annual") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-      else periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-      const { error: insertError } = await supabase.from("flix_subscriptions").insert({
-        user_id: user.id,
-        plan,
-        status: "active",
-        amount_cents: selected.cents,
-        referral_code: refCode || null,
-        is_demo: true,
-        current_period_end: periodEnd.toISOString(),
+      const { data, error: fnError } = await supabase.functions.invoke("flix-subscribe", {
+        body: { userId: user.id, plan, amountCents: selected.cents, referralCode: refCode || null },
       });
-      if (insertError) throw insertError;
+      if (fnError) throw new Error(fnError.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
       setDone(true);
     } catch (e) {
       setError((e as Error).message || "Checkout failed. Please try again.");
@@ -54,6 +58,7 @@ const FlixPricing: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   if (done) {
     return (
@@ -114,18 +119,38 @@ const FlixPricing: React.FC = () => {
           ))}
         </ul>
 
+        <label className="mt-10 max-w-2xl mx-auto flex items-start gap-3 text-xs leading-relaxed text-[#A1A1A1] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF4D1A]"
+          />
+          <span>
+            By checking this box, you understand and agree that you are enrolling in a subscription that will
+            automatically renew every year at $69.99 (plus any tax) until you cancel. Pricing is subject to change. You
+            may cancel your subscription in your Billing Settings or by contacting Customer Support no later than{" "}
+            {cancelByDate()}.
+          </span>
+        </label>
+
         {error && <p className="text-red-400 text-sm text-center mt-6">{error}</p>}
         <button
           onClick={subscribe}
-          disabled={loading}
-          className="flix-ember-hover w-full max-w-md mx-auto mt-8 flex items-center justify-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] disabled:opacity-60 text-white font-bold py-4 rounded-md"
+          disabled={loading || !agreed}
+          className="flix-ember-hover w-full max-w-md mx-auto mt-6 flex items-center justify-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] disabled:opacity-60 text-white font-bold py-4 rounded-md"
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Flame size={18} className="fill-[#FFB020]" />}
-          {user ? `Start ${FLIX_PLANS[plan].label} — Demo Checkout` : "Sign In to Subscribe"}
+          {user ? "Start subscription" : "Sign In to Subscribe"}
         </button>
-        <p className="text-center text-xs text-[#A1A1A1] mt-4">
-          Demo mode: no payment is collected. Annual renews at the then-current annual rate (currently $59.99/yr after year one).
+        <p className="max-w-2xl mx-auto text-center text-xs text-[#A1A1A1] mt-4">
+          By clicking "Start subscription," you agree to our{" "}
+          <Link to="/flix/legal/terms" className="text-[#FF4D1A] hover:underline">Terms of Service</Link>, acknowledge
+          our{" "}
+          <Link to="/flix/legal/privacy" className="text-[#FF4D1A] hover:underline">Privacy Policy</Link>, and authorize
+          your payment method to be charged. FlameFlix, Inc.
         </p>
+
       </div>
       <FlixFooter />
     </div>
