@@ -108,7 +108,7 @@ const paypalToken = async (requestId: string) => {
 };
 
 const rentalDaysBetween = (start: string, end?: string | null) => {
-  if (!end) return 1;
+  if (!end) throw new Error("Return date is required");
   const startTime = new Date(start).getTime();
   const endTime = new Date(end).getTime();
   if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) {
@@ -127,7 +127,8 @@ const calculateBaseRentalTotal = (vehicle: any, rentalType: string, start: strin
   const threeDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
   const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
   const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
-  let remaining = days;
+  const minimumDays = rentalType === "monthly" ? 30 : rentalType === "weekly" ? 7 : 1;
+  let remaining = Math.max(days, minimumDays);
   let total = 0;
 
   if (monthlyRate > 0 && remaining >= 30) {
@@ -144,7 +145,13 @@ const calculateBaseRentalTotal = (vehicle: any, rentalType: string, start: strin
     const remainderRate = remaining >= 3 && threeDayRate > 0 && (dayRate === 0 || threeDayRate < dayRate)
       ? threeDayRate
       : dayRate;
-    total += remaining * remainderRate;
+    if (remainderRate > 0) {
+      total += remaining * remainderRate;
+    } else if (weeklyRate > 0) {
+      total += weeklyRate;
+    } else if (monthlyRate > 0) {
+      total += monthlyRate;
+    }
   }
   return Math.round(total * 100) / 100;
 };

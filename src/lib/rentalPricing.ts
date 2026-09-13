@@ -52,7 +52,8 @@ export const calculateRentalPricing = (
   const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
   const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
   const discountedDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
-  let remaining = days;
+  const minimumDays = rentalType === "monthly" ? 30 : rentalType === "weekly" ? 7 : 1;
+  let remaining = Math.max(days, minimumDays);
   const lines: RentalPriceLine[] = [];
 
   if (monthlyRate > 0 && remaining >= 30) {
@@ -70,12 +71,18 @@ export const calculateRentalPricing = (
   if (remaining > 0) {
     const useThreeDayRate = remaining >= 3 && discountedDayRate > 0 && (dayRate === 0 || discountedDayRate < dayRate);
     const unitRate = useThreeDayRate ? discountedDayRate : dayRate;
-    lines.push({
-      label: useThreeDayRate ? "Discounted days" : remaining === 1 ? "Day" : "Days",
-      quantity: remaining,
-      unitRate,
-      total: remaining * unitRate,
-    });
+    if (unitRate > 0) {
+      lines.push({
+        label: useThreeDayRate ? "Discounted days" : remaining === 1 ? "Day" : "Days",
+        quantity: remaining,
+        unitRate,
+        total: remaining * unitRate,
+      });
+    } else if (weeklyRate > 0) {
+      lines.push({ label: "Week", quantity: 1, unitRate: weeklyRate, total: weeklyRate });
+    } else if (monthlyRate > 0) {
+      lines.push({ label: "Month", quantity: 1, unitRate: monthlyRate, total: monthlyRate });
+    }
   }
 
   const total = lines.reduce((sum, line) => sum + line.total, 0);
