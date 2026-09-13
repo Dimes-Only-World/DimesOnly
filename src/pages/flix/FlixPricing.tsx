@@ -119,18 +119,38 @@ const FlixPricing: React.FC = () => {
           ))}
         </ul>
 
+        <label className="mt-10 max-w-2xl mx-auto flex items-start gap-3 text-xs leading-relaxed text-[#A1A1A1] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF4D1A]"
+          />
+          <span>
+            By checking this box, you understand and agree that you are enrolling in a subscription that will
+            automatically renew every year at $69.99 (plus any tax) until you cancel. Pricing is subject to change. You
+            may cancel your subscription in your Billing Settings or by contacting Customer Support no later than{" "}
+            {cancelByDate()}.
+          </span>
+        </label>
+
         {error && <p className="text-red-400 text-sm text-center mt-6">{error}</p>}
         <button
           onClick={subscribe}
-          disabled={loading}
-          className="flix-ember-hover w-full max-w-md mx-auto mt-8 flex items-center justify-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] disabled:opacity-60 text-white font-bold py-4 rounded-md"
+          disabled={loading || !agreed}
+          className="flix-ember-hover w-full max-w-md mx-auto mt-6 flex items-center justify-center gap-2 bg-[#FF4D1A] hover:bg-[#ff5d30] disabled:opacity-60 text-white font-bold py-4 rounded-md"
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Flame size={18} className="fill-[#FFB020]" />}
-          {user ? `Start ${FLIX_PLANS[plan].label} — Demo Checkout` : "Sign In to Subscribe"}
+          {user ? "Start subscription" : "Sign In to Subscribe"}
         </button>
-        <p className="text-center text-xs text-[#A1A1A1] mt-4">
-          Demo mode: no payment is collected. Annual renews at the then-current annual rate (currently $59.99/yr after year one).
+        <p className="max-w-2xl mx-auto text-center text-xs text-[#A1A1A1] mt-4">
+          By clicking "Start subscription," you agree to our{" "}
+          <Link to="/flix/legal/terms" className="text-[#FF4D1A] hover:underline">Terms of Service</Link>, acknowledge
+          our{" "}
+          <Link to="/flix/legal/privacy" className="text-[#FF4D1A] hover:underline">Privacy Policy</Link>, and authorize
+          your payment method to be charged. FlameFlix, Inc.
         </p>
+
       </div>
       <FlixFooter />
     </div>
