@@ -65,7 +65,7 @@ const FlixAccount: React.FC = () => {
                     {sub.plan === "annual" && " at the then-current annual rate"}
                   </p>
                 )}
-                {sub.is_demo && <p className="text-[#A1A1A1] text-xs mt-1">Demo subscription — no billing.</p>}
+                {!sub.activated_at && <p className="text-[#A1A1A1] text-xs mt-1">Your subscription starts when you watch your first movie or series. We will text you when content is live.</p>}
               </div>
               <button onClick={() => navigate("/flix/pricing")} className="ml-auto text-sm font-semibold text-[#A1A1A1] hover:text-white border border-[#2A2A2A] rounded-md px-4 py-2">
                 Manage Plan

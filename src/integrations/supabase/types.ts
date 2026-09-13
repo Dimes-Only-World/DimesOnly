@@ -1171,11 +1171,16 @@ export type Database = {
       }
       flix_subscriptions: {
         Row: {
+          activated_at: string | null
           amount_cents: number
           created_at: string
           current_period_end: string | null
           id: string
           is_demo: boolean | null
+          notify_phone: string | null
+          paid_at: string | null
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
           plan: string
           referral_code: string | null
           status: string
@@ -1183,11 +1188,16 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          activated_at?: string | null
           amount_cents?: number
           created_at?: string
           current_period_end?: string | null
           id?: string
           is_demo?: boolean | null
+          notify_phone?: string | null
+          paid_at?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
           plan?: string
           referral_code?: string | null
           status?: string
@@ -1195,11 +1205,16 @@ export type Database = {
           user_id: string
         }
         Update: {
+          activated_at?: string | null
           amount_cents?: number
           created_at?: string
           current_period_end?: string | null
           id?: string
           is_demo?: boolean | null
+          notify_phone?: string | null
+          paid_at?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
           plan?: string
           referral_code?: string | null
           status?: string

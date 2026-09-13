@@ -33,6 +33,8 @@ export interface FlixSubscription {
   amount_cents: number;
   current_period_end: string | null;
   is_demo?: boolean;
+  activated_at?: string | null;
+  notify_phone?: string | null;
   created_at: string;
 }
 
@@ -59,6 +61,15 @@ export async function fetchTitle(id: string): Promise<FlixTitle | null> {
   const { data, error } = await supabase.from("flix_titles").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as FlixTitle) || null;
+}
+
+/** Starts the paid period the first time a member plays a title. */
+export async function activateSubscription(userId: string) {
+  try {
+    await supabase.functions.invoke("flix-subscribe", { body: { action: "activate", userId } });
+  } catch {
+    /* non-blocking */
+  }
 }
 
 export async function fetchMySubscription(userId: string): Promise<FlixSubscription | null> {

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Maximize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import FlixPaywall from "@/components/flix/FlixPaywall";
-import { fetchLiveTitles, fetchMySubscription, fetchTitle, flixImage, formatClock, saveProgress, type FlixTitle } from "@/lib/flix";
+import { activateSubscription, fetchLiveTitles, fetchMySubscription, fetchTitle, flixImage, formatClock, saveProgress, type FlixTitle } from "@/lib/flix";
 import { useAppContext } from "@/contexts/AppContext";
 
 const GUEST_LIMIT_SECONDS = 30;
@@ -67,12 +67,18 @@ const FlixWatch: React.FC = () => {
     hideTimer.current = window.setTimeout(() => setShowControls(false), 3000);
   };
 
+  const activatedRef = useRef(false);
+
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
       v.play();
       setPlaying(true);
+      if (user?.id && subscribed && !activatedRef.current) {
+        activatedRef.current = true;
+        activateSubscription(user.id);
+      }
     } else {
       v.pause();
       setPlaying(false);
