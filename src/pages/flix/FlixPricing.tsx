@@ -147,7 +147,11 @@ const FlixPricing: React.FC = () => {
       <FlixNav />
       <div className="max-w-3xl mx-auto px-4 py-16">
         <h1 className="text-4xl md:text-5xl font-black text-center">Get in. Get charged.</h1>
-        <p className="text-center text-[#A1A1A1] mt-3">One subscription. Every flame. Demo checkout — no card required.</p>
+        <p className="text-center text-[#A1A1A1] mt-3">One subscription. Every flame. Secure checkout.</p>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-[#F5F5F5]">
+          You will be notified when content is up for viewing via text message. Subscription does not begin until you
+          login and watch your first movie or series.
+        </p>
 
         <div className="grid sm:grid-cols-2 gap-6 mt-12">
           {(["monthly", "annual"] as const).map((key) => {
@@ -182,7 +186,24 @@ const FlixPricing: React.FC = () => {
           ))}
         </ul>
 
-        <label className="mt-10 max-w-2xl mx-auto flex items-start gap-3 text-xs leading-relaxed text-[#A1A1A1] cursor-pointer">
+        <div className="mt-10 max-w-sm mx-auto">
+          <label htmlFor="flix-phone" className="block text-xs font-bold tracking-widest text-[#A1A1A1] uppercase">
+            Mobile number for launch alerts
+          </label>
+          <input
+            id="flix-phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="(555) 555-5555"
+            className="mt-2 w-full rounded-md border border-[#2A2A2A] bg-[#141416] px-4 py-3 text-white placeholder:text-[#5A5A5A] focus:border-[#FF4D1A] focus:outline-none"
+          />
+          <p className="mt-2 text-xs text-[#A1A1A1]">We will text you the moment new content is live.</p>
+        </div>
+
+        <label className="mt-8 max-w-2xl mx-auto flex items-start gap-3 text-xs leading-relaxed text-[#A1A1A1] cursor-pointer">
           <input
             type="checkbox"
             checked={agreed}
