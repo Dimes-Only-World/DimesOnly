@@ -227,6 +227,15 @@ const RentalDetails: React.FC = () => {
       toast({ title: "Missing info", description: "Fill all fields, upload ID + insurance, sign and agree.", variant: "destructive" });
       return;
     }
+    const needsReturnDate = rentalType !== "long_term" && rentalType !== "rent_to_own";
+    if (needsReturnDate && !endDate) {
+      toast({ title: "Return date required", description: "Choose the date you'll return the vehicle.", variant: "destructive" });
+      return;
+    }
+    if (needsReturnDate && new Date(endDate).getTime() <= new Date(startDate).getTime()) {
+      toast({ title: "Check your dates", description: "The return date must be after the pickup date.", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const fileToBase64 = (file: File) => {
