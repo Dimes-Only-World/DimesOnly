@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
 import HomeProfileButton from "@/components/HomeProfileButton";
-import AuthGuard from "@/components/AuthGuard";
+
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import BannerVideo from "@/components/BannerVideo";
