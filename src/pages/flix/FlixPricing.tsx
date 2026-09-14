@@ -11,7 +11,10 @@ import "@/components/flix/flix.css";
 const PERKS = ["Unlimited streaming", "Watch on any device", "Support the creators", "Cancel anytime"];
 
 const cancelByDate = () => {
-  return "December 12, 2027";
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 };
 
 const FlixPricing: React.FC = () => {
@@ -212,9 +215,9 @@ const FlixPricing: React.FC = () => {
           />
           <span>
             By checking this box, you understand and agree that you are enrolling in a subscription that will
-             automatically renew every year at $59.99 (plus any tax) until you cancel. Pricing is subject to change. You
-            may cancel your subscription in your Billing Settings or by contacting Customer Support no later than{" "}
-            {cancelByDate()}.
+            automatically renew every {plan === "annual" ? "year at $59.99" : "month at $5.99"} (plus any tax) until
+            you cancel. Pricing is subject to change. You may cancel your subscription in your Billing Settings or by
+            contacting Customer Support no later than {cancelByDate()}.
           </span>
         </label>
 
