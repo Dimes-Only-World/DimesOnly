@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 interface DashboardCommandBarProps {
   userData: any;
   completion: number; // 0-100
+  /** "header" = greeting + actions only, "kpis" = earnings tiles only, "all" = both */
+  section?: "header" | "kpis" | "all";
 }
 
 const formatCurrency = (value: number) =>
