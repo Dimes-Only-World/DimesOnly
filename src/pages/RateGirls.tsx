@@ -238,10 +238,10 @@ const RateGirls: React.FC = () => {
         )}
 
         <div className="text-center py-6 px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4">
+          <h1 className="rate-hero-title font-bold text-yellow-400 mb-4">
             ⭐ Rate 100 Ladies' Profiles ⭐
           </h1>
-          <p className="text-xl text-gray-300">
+          <p className="text-base sm:text-xl text-gray-300">
             Search by name, city, or state to find a specific lady you want to rate!
           </p>
         </div>
