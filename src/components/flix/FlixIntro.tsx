@@ -7,7 +7,17 @@ interface FlixIntroProps {
   onDone: () => void;
 }
 
-const SESSION_KEY = "flix_intro_seen";
+const SESSION_KEY = "flix_intro_seen_for";
+
+const currentViewerKey = () => {
+  try {
+    const raw = sessionStorage.getItem("userData");
+    const id = raw ? JSON.parse(raw)?.id : null;
+    return id ? String(id) : "guest";
+  } catch {
+    return "guest";
+  }
+};
 
 /** Full-screen animated intro — plays once per session. */
 const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
@@ -34,7 +44,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
 
   const finish = () => {
     setFading(true);
-    sessionStorage.setItem(SESSION_KEY, "1");
+    sessionStorage.setItem(SESSION_KEY, currentViewerKey());
     setTimeout(onDone, 600);
   };
 
@@ -106,6 +116,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
   );
 };
 
-export const shouldShowFlixIntro = () => !sessionStorage.getItem(SESSION_KEY);
+export const shouldShowFlixIntro = () =>
+  sessionStorage.getItem(SESSION_KEY) !== currentViewerKey();
 
 export default FlixIntro;
