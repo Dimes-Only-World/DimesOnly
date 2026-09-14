@@ -123,6 +123,7 @@
     opacity: 1 !important;
     transform: none !important;
   }
+  .flix-logo-spark { display: none !important; }
   .flix-poster-card, .flix-ember-hover { transition: none; }
   .flix-poster-card:hover, .flix-poster-card:focus-visible { transform: none; }
 }
