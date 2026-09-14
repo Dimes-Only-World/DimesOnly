@@ -171,7 +171,14 @@ const RateGirls: React.FC = () => {
     }
   };
 
+  const requireLogin = () => {
+    if (currentUser?.id) return false;
+    navigate("/login");
+    return true;
+  };
+
   const handleUserSelect = (user: User) => {
+    if (requireLogin()) return;
     const trimmedUsername = user.username.trim();
     const url = `/rate/?rate=${trimmedUsername}${
       refUsername ? `&ref=${refUsername}` : ""
@@ -185,6 +192,7 @@ const RateGirls: React.FC = () => {
     event: React.MouseEvent
   ) => {
     event.stopPropagation();
+    if (requireLogin()) return;
     setSelectedImage({ url: imageUrl, username });
     setShowImageModal(true);
   };
