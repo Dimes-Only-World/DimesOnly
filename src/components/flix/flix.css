@@ -118,7 +118,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .flix-flame-flicker, .flix-intro-letter, .flix-intro-flame, .flix-ember-particle,
-  .flix-logo-burn, .flix-logo-emberglow, .flix-intro-logo, .flix-intro-logo-burn {
+  .flix-logo-burn, .flix-logo-spark, .flix-intro-logo, .flix-intro-logo-burn {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
