@@ -72,7 +72,7 @@ const RateGirls: React.FC = () => {
     url: string;
     username: string;
   } | null>(null);
-  const [rateFilter, setRateFilter] = useState<RateFilter>("all");
+  const [rateFilter, setRateFilter] = useState<RateFilter>("not-rated");
   const [topApi, setTopApi] = useState<CarouselApi | null>(null);
   const [topCurrent, setTopCurrent] = useState(0);
   const [topCount, setTopCount] = useState(0);
