@@ -44,7 +44,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
 
   const finish = () => {
     setFading(true);
-    sessionStorage.setItem(SESSION_KEY, "1");
+    sessionStorage.setItem(SESSION_KEY, currentViewerKey());
     setTimeout(onDone, 600);
   };
 
