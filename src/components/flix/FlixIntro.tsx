@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Flame } from "lucide-react";
+import introWordmark from "@/assets/flix/flameflix-wordmark-flames.png.asset.json";
 import "./flix.css";
 
 interface FlixIntroProps {
   onDone: () => void;
 }
 
-const WORD = "FLAMEFLIX";
 const SESSION_KEY = "flix_intro_seen";
 
 /** Full-screen animated intro — plays once per session. */
@@ -24,7 +23,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
       return () => clearTimeout(t);
     }
     const skipTimer = setTimeout(() => setCanSkip(true), 1500);
-    const doneTimer = setTimeout(finish, WORD.length * 120 + 2600);
+    const doneTimer = setTimeout(finish, 4200);
     return () => {
       clearTimeout(skipTimer);
       clearTimeout(doneTimer);
@@ -40,13 +39,13 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
 
   const embers = useMemo(
     () =>
-      Array.from({ length: 14 }, (_, i) => ({
+      Array.from({ length: 18 }, (_, i) => ({
         id: i,
-        left: 44 + Math.random() * 12,
+        left: 58 + Math.random() * 34,
         size: 3 + Math.random() * 5,
-        delay: 1.2 + Math.random() * 1.8,
+        delay: 0.8 + Math.random() * 2.2,
         duration: 1.6 + Math.random() * 1.6,
-        x: (Math.random() - 0.5) * 60,
+        x: (Math.random() - 0.5) * 70,
       })),
     [],
   );
@@ -57,25 +56,24 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
       role="dialog"
       aria-label="FlameFlix intro"
     >
-      <div className="relative font-black tracking-tight text-white text-6xl md:text-8xl select-none">
-        {WORD.split("").map((ch, i) => {
-          // The "I" (index 7 in FLAMEFLIX) gets the flaming tittle
-          const isFlamingI = i === 7;
-          return (
-            <span key={i} className="flix-intro-letter relative" style={{ animationDelay: `${i * 0.12}s` }}>
-              {isFlamingI ? (
-                <span className="relative inline-flex flex-col items-center justify-end">
-                  <span className="relative block h-[0.35em] w-[0.35em]">
-                    <Flame className="flix-intro-flame absolute inset-0 h-full w-full text-[#FF4D1A] fill-[#FFB020]" aria-hidden />
-                  </span>
-                  <span className="leading-none">{ch}</span>
-                </span>
-              ) : (
-                ch
-              )}
-            </span>
-          );
-        })}
+      <div className="relative w-[86vw] max-w-[860px]">
+        <div className="flix-intro-logo relative">
+          <img
+            src={introWordmark.url}
+            alt="FlameFlix"
+            className="block w-full h-auto object-contain drop-shadow-[0_0_28px_rgba(255,77,26,0.45)]"
+            draggable={false}
+          />
+          {/* Live burning layer over the flames in FLIX */}
+          <img
+            src={introWordmark.url}
+            alt=""
+            aria-hidden
+            className="flix-intro-logo-burn pointer-events-none absolute inset-0 w-full h-auto object-contain mix-blend-screen"
+            style={{ filter: "brightness(1.6) saturate(1.5)" }}
+            draggable={false}
+          />
+        </div>
         {!reducedMotion &&
           embers.map((e) => (
             <span
@@ -84,7 +82,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
               style={
                 {
                   left: `${e.left}%`,
-                  bottom: "30%",
+                  bottom: "35%",
                   width: e.size,
                   height: e.size,
                   animationDelay: `${e.delay}s`,
@@ -97,7 +95,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
       </div>
       <p
         className="absolute bottom-1/4 text-[#A1A1A1] text-sm md:text-base tracking-wide flix-intro-letter"
-        style={{ animationDelay: `${WORD.length * 0.12 + 0.3}s` }}
+        style={{ animationDelay: "1.2s" }}
       >
         Heat up the night. Stream what hits.
       </p>

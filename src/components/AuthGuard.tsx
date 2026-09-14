@@ -69,11 +69,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         // Background is_active check - only force logout on explicit false
         try {
           const { data: userRecord, error } = await withTimeout(
-            supabase
-              .from('users')
-              .select('is_active')
-              .eq('id', userId)
-              .single(),
+            Promise.resolve(
+              supabase
+                .from('users')
+                .select('is_active')
+                .eq('id', userId)
+                .single()
+            ),
             VALIDATION_TIMEOUT_MS
           );
 
