@@ -249,7 +249,9 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
 
           </div>
         </div>
+        )}
 
+        {section !== "header" && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {kpis.map(({ label, value, Icon, to }) => (
             <button
