@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
 import HomeProfileButton from "@/components/HomeProfileButton";
-import AuthGuard from "@/components/AuthGuard";
+
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import BannerVideo from "@/components/BannerVideo";
@@ -102,7 +102,16 @@ const RateGirls: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      if (user?.id) {
+        setCurrentUser(user);
+        return;
+      }
+      // Fallback: custom session stored locally
+      const stored = sessionStorage.getItem("userData");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.id) setCurrentUser({ id: String(parsed.id) });
+      }
     } catch (error) {
       console.error("Error getting current user:", error);
     }
@@ -171,7 +180,14 @@ const RateGirls: React.FC = () => {
     }
   };
 
+  const requireLogin = () => {
+    if (currentUser?.id) return false;
+    navigate("/login");
+    return true;
+  };
+
   const handleUserSelect = (user: User) => {
+    if (requireLogin()) return;
     const trimmedUsername = user.username.trim();
     const url = `/rate/?rate=${trimmedUsername}${
       refUsername ? `&ref=${refUsername}` : ""
@@ -185,6 +201,7 @@ const RateGirls: React.FC = () => {
     event: React.MouseEvent
   ) => {
     event.stopPropagation();
+    if (requireLogin()) return;
     setSelectedImage({ url: imageUrl, username });
     setShowImageModal(true);
   };
@@ -213,7 +230,7 @@ const RateGirls: React.FC = () => {
   };
 
   return (
-    <AuthGuard>
+    <>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         {/* Video Banner */}
         {rateVideoUrl && (
@@ -526,7 +543,7 @@ const RateGirls: React.FC = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthGuard>
+    </>
   );
 };
 
