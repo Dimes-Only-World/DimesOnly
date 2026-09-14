@@ -22,6 +22,7 @@ import EventsDimes from "@/pages/EventsDimes";
 import EventsDimesOnly from "@/pages/EventsDimesOnly";
 import Rate from "@/pages/Rate";
 import RateGirls from "@/pages/RateGirls";
+import AuthGuard from "@/components/AuthGuard";
 import Rankings from "@/pages/Rankings";
 import Tip from "@/pages/Tip";
 import TipGirls from "@/pages/TipGirls";
@@ -157,7 +158,14 @@ function AppContent() {
       <Route path="/eventsdimes" element={<EventsDimes />} />
       <Route path="/events-dimes-only" element={<EventsDimesOnly />} />
       <Route path="/rate" element={<Rate />} />
-      <Route path="/rate-girls" element={<RateGirls />} />
+      <Route
+        path="/rate-girls"
+        element={
+          <AuthGuard>
+            <RateGirls />
+          </AuthGuard>
+        }
+      />
       <Route path="/rankings" element={<Rankings />} />
       <Route path="/tip" element={<Tip />} />
       <Route path="/tip-girls" element={<TipGirls />} />
