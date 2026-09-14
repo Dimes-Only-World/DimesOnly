@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 import { User, DollarSign, Bell, TrendingUp, MessageSquare, Image, Trophy, Users, Smartphone } from "lucide-react";
 import DashboardBanner from "./DashboardBanner";
@@ -452,57 +458,14 @@ const UserDashboard: React.FC = () => {
       case "profile":
         return (
           <div className="text-black [--foreground:0_0%_0%] w-full">
-            <ApprovalStatusBanner
-              status={(userData as any)?.approval_status}
-              userType={userData?.user_type}
-            />
-
-            <DashboardCommandBar userData={userData} completion={completion} />
-
-            <DashboardChecklist userData={userData} onProgress={setCompletion} />
-
-            <DashboardMembershipCard userData={userData} />
-
-            <div className={`${isMobile ? "py-2" : "py-4"} w-full`}>
-              <DashboardVideoHeader
-                srcDesktop={heroVideoUrl}
-                srcMobile={heroVideoUrl}
-                thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
-              />
-            </div>
-
-            <DashboardMoneyCircle
-              userId={userData.id}
-              onViewAll={() => navigate("/dashboard/referrals")}
-              onGetLink={() => navigate("/dashboard/make-money#referral-link")}
-            />
-
-            <Top20DimesCarousel />
-
-            <LatestDimesCarousel theme="light" />
-
-            <div className="w-full mb-6">
-              <Button
-                onClick={() => navigate("/feed")}
-                className="w-full h-auto py-4 px-6 rounded-xl bg-dimes-magenta hover:bg-dimes-magenta/90 text-white font-bold text-base shadow-lg flex items-center justify-center gap-2"
-              >
-                <Smartphone className="w-5 h-5" />
-                Social Feed — Post Photos &amp; Reels
-              </Button>
-            </div>
-
-            <DiamondPlusPopup userData={userData} />
-            
-
-            <SubscriptionProgress userId={userData.id} />
-
-            <Card className="mb-6 overflow-hidden border-border/60">
+            {/* 1. Banner wall-to-wall + quick actions */}
+            <div className="-mx-3 mb-6 sm:-mx-4 lg:-mx-6">
               <DashboardBanner
                 bannerPhoto={userData.banner_photo}
                 userData={userData}
                 onImageUpload={(file) => handleImageUpload(file, "banner")}
               />
-            </Card>
+            </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6">
               {[
@@ -539,19 +502,81 @@ const UserDashboard: React.FC = () => {
               ))}
             </div>
 
+            {/* 2. Money circle */}
+            <DashboardMoneyCircle
+              userId={userData.id}
+              onViewAll={() => navigate("/dashboard/referrals")}
+              onGetLink={() => navigate("/dashboard/make-money#referral-link")}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-1">
-                <ProfileSidebar
-                  userData={userData}
-                  referrerData={null}
-                  onImageUpload={(file) => handleImageUpload(file, "profile")}
-                />
-              </div>
-              <div className="lg:col-span-3">
-                <ProfileInfo userData={userData} onUpdate={updateUserData} />
-              </div>
+            {/* 3. Video */}
+            <div className={`${isMobile ? "py-2" : "py-4"} w-full`}>
+              <DashboardVideoHeader
+                srcDesktop={heroVideoUrl}
+                srcMobile={heroVideoUrl}
+                thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
+              />
             </div>
+
+            {/* 4. Approval status + welcome */}
+            <ApprovalStatusBanner
+              status={(userData as any)?.approval_status}
+              userType={userData?.user_type}
+            />
+
+            <DashboardCommandBar userData={userData} completion={completion} section="header" />
+
+            {/* 5. Membership */}
+            <DashboardMembershipCard userData={userData} />
+
+            {/* 6. Earnings */}
+            <DashboardCommandBar userData={userData} completion={completion} section="kpis" />
+
+            {/* 7. Finish your profile */}
+            <DashboardChecklist userData={userData} onProgress={setCompletion} />
+
+            {/* 8. Seasonal leaderboard */}
+            <Top20DimesCarousel />
+
+            {/* 9. Last 20 dimes to join */}
+            <LatestDimesCarousel theme="light" />
+
+            <div className="w-full mb-6">
+              <Button
+                onClick={() => navigate("/feed")}
+                className="w-full h-auto py-4 px-6 rounded-xl bg-dimes-magenta hover:bg-dimes-magenta/90 text-white font-bold text-base shadow-lg flex items-center justify-center gap-2"
+              >
+                <Smartphone className="w-5 h-5" />
+                Social Feed — Post Photos &amp; Reels
+              </Button>
+            </div>
+
+            <SubscriptionProgress userId={userData.id} />
+
+            <DiamondPlusPopup userData={userData} />
+
+            {/* 10. Profile information (collapsible) */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="profile-info" className="rounded-xl border border-border/60 bg-dimes-surface px-4">
+                <AccordionTrigger className="text-base font-bold hover:no-underline">
+                  Profile Information
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 pb-4">
+                    <div className="lg:col-span-1">
+                      <ProfileSidebar
+                        userData={userData}
+                        referrerData={null}
+                        onImageUpload={(file) => handleImageUpload(file, "profile")}
+                      />
+                    </div>
+                    <div className="lg:col-span-3">
+                      <ProfileInfo userData={userData} onUpdate={updateUserData} />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         );
       case "make-money":

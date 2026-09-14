@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 interface DashboardCommandBarProps {
   userData: any;
   completion: number; // 0-100
+  /** "header" = greeting + actions only, "kpis" = earnings tiles only, "all" = both */
+  section?: "header" | "kpis" | "all";
 }
 
 const formatCurrency = (value: number) =>
@@ -44,6 +46,7 @@ const useCountUp = (target: number, active: boolean) => {
 const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
   userData,
   completion,
+  section = "all",
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -179,6 +182,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
   return (
     <Card className="mb-6 overflow-hidden border-border/60 bg-dimes-surface text-foreground shadow-lg animate-fade-in">
       <CardContent className="p-5 md:p-6 space-y-5">
+        {section !== "kpis" && (
         <div className="flex flex-wrap items-center gap-4">
           <div
             className="relative h-16 w-16 shrink-0 rounded-full p-[3px]"
@@ -245,7 +249,19 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
 
           </div>
         </div>
+        )}
 
+        {section === "kpis" && (
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold tracking-tight md:text-xl">Earnings</h2>
+            <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/earnings")} className="border-border/60">
+              View all
+              <ArrowUpRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {section !== "header" && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {kpis.map(({ label, value, Icon, to }) => (
             <button
@@ -265,6 +281,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
             </button>
           ))}
         </div>
+        )}
       </CardContent>
     </Card>
   );
