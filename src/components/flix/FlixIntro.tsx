@@ -116,6 +116,7 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
   );
 };
 
-export const shouldShowFlixIntro = () => !sessionStorage.getItem(SESSION_KEY);
+export const shouldShowFlixIntro = () =>
+  sessionStorage.getItem(SESSION_KEY) !== currentViewerKey();
 
 export default FlixIntro;
