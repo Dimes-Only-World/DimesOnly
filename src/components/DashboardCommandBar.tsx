@@ -182,6 +182,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
   return (
     <Card className="mb-6 overflow-hidden border-border/60 bg-dimes-surface text-foreground shadow-lg animate-fade-in">
       <CardContent className="p-5 md:p-6 space-y-5">
+        {section !== "kpis" && (
         <div className="flex flex-wrap items-center gap-4">
           <div
             className="relative h-16 w-16 shrink-0 rounded-full p-[3px]"
