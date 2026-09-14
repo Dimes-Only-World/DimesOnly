@@ -102,7 +102,16 @@ const RateGirls: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      if (user?.id) {
+        setCurrentUser(user);
+        return;
+      }
+      // Fallback: custom session stored locally
+      const stored = sessionStorage.getItem("userData");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.id) setCurrentUser({ id: String(parsed.id) });
+      }
     } catch (error) {
       console.error("Error getting current user:", error);
     }
