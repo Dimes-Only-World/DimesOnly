@@ -46,6 +46,7 @@ const useCountUp = (target: number, active: boolean) => {
 const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
   userData,
   completion,
+  section = "all",
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
