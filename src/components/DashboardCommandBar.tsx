@@ -251,6 +251,16 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
         </div>
         )}
 
+        {section === "kpis" && (
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold tracking-tight md:text-xl">Earnings</h2>
+            <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/earnings")} className="border-border/60">
+              View all
+              <ArrowUpRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {section !== "header" && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {kpis.map(({ label, value, Icon, to }) => (
