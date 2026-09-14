@@ -238,10 +238,10 @@ const RateGirls: React.FC = () => {
         )}
 
         <div className="text-center py-6 px-4">
-          <h1 className="rate-hero-title font-bold text-yellow-400 mb-4">
+          <h1 className="rate-hero-title font-extrabold uppercase tracking-tight text-yellow-400 mb-4">
             ⭐ Rate 100 Ladies' Profiles ⭐
           </h1>
-          <p className="text-base sm:text-xl text-gray-300">
+          <p className="text-sm sm:text-lg font-medium tracking-wide text-gray-300/90">
             Search by name, city, or state to find a specific lady you want to rate!
           </p>
         </div>
@@ -254,12 +254,12 @@ const RateGirls: React.FC = () => {
           {topRanked.length > 0 && (
             <div className="mb-12">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-2 flex items-center justify-center gap-2">
-                  <Crown className="w-8 h-8" />
+                <h2 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-yellow-400 mb-2 flex items-center justify-center gap-3">
+                  <Crown className="w-7 h-7" />
                   Top 20 Ranked Ladies
-                  <Crown className="w-8 h-8" />
+                  <Crown className="w-7 h-7" />
                 </h2>
-                <p className="text-gray-300">
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-gray-400">
                   Leading performers in the {getRatingSeasonYear()} rankings
                 </p>
               </div>
