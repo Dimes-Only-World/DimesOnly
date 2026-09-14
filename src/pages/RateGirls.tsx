@@ -543,7 +543,7 @@ const RateGirls: React.FC = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthGuard>
+    <?>
   );
 };
 
