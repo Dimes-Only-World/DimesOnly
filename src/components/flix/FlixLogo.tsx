@@ -27,7 +27,7 @@ const FlixLogo: React.FC<FlixLogoProps> = ({ size = "md", className = "" }) => {
         className={`flix-logo-base block w-auto ${heights[size]} object-contain mix-blend-screen`}
         draggable={false}
       />
-      {/* Live flame layer: same art, burning hotter, pulsing over the base */}
+      {/* Live flame layer: only the flame above the I, drifting continuously */}
       <img
         src={wordmark.url}
         alt=""
@@ -35,8 +35,19 @@ const FlixLogo: React.FC<FlixLogoProps> = ({ size = "md", className = "" }) => {
         className={`flix-logo-burn pointer-events-none absolute inset-0 w-auto ${heights[size]} object-contain mix-blend-screen`}
         draggable={false}
       />
-      {/* Ember glow anchored over the burning I in FLIX */}
-      <span className="flix-logo-emberglow pointer-events-none" aria-hidden />
+      {/* Embers drifting off the flame tip */}
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          aria-hidden
+          className="flix-logo-spark pointer-events-none"
+          style={{
+            left: `${70 + i * 3}%`,
+            animationDelay: `${i * 0.7}s`,
+            ["--spark-x" as string]: `${i % 2 === 0 ? 3 : -3}px`,
+          }}
+        />
+      ))}
     </span>
   );
 };
