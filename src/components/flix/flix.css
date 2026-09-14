@@ -59,41 +59,47 @@
   z-index: 5;
 }
 
-/* --- Image wordmark with a live burning I --- */
+/* --- Image wordmark with a live moving flame on the I (no glow halo) --- */
 .flix-logo {
   line-height: 0;
 }
 .flix-logo-base {
-  filter: drop-shadow(0 0 6px rgba(255, 77, 26, 0.35));
+  filter: none;
 }
+/* Only the flame area above the I is shown from this layer, and it drifts
+   like a real flame instead of pulsing in place. */
 .flix-logo-burn {
-  opacity: 0.55;
-  filter: brightness(1.55) saturate(1.5) drop-shadow(0 0 10px rgba(255, 140, 20, 0.75));
-  animation: flix-logo-burn 1.5s ease-in-out infinite;
-  transform-origin: 78% 60%;
+  opacity: 1;
+  filter: brightness(1.35) saturate(1.35) contrast(1.1);
+  clip-path: inset(0 12% 46% 62%);
+  animation: flix-logo-flame 1.15s linear infinite;
+  transform-origin: 72% 100%;
+  will-change: transform;
 }
-@keyframes flix-logo-burn {
-  0%, 100% { opacity: 0.35; transform: scaleY(1) scaleX(1); }
-  22% { opacity: 0.75; transform: scaleY(1.035) scaleX(0.995); }
-  45% { opacity: 0.45; transform: scaleY(0.985) scaleX(1.004); }
-  68% { opacity: 0.85; transform: scaleY(1.05) scaleX(1); }
-  84% { opacity: 0.5; transform: scaleY(0.99) scaleX(1.002); }
+@keyframes flix-logo-flame {
+  0%   { transform: translateX(0)      skewX(0deg)    scaleY(1)    scaleX(1); }
+  15%  { transform: translateX(-0.6px) skewX(-2.4deg) scaleY(1.07) scaleX(0.97); }
+  32%  { transform: translateX(0.5px)  skewX(2deg)    scaleY(0.95) scaleX(1.03); }
+  48%  { transform: translateX(-0.4px) skewX(-3deg)   scaleY(1.1)  scaleX(0.96); }
+  63%  { transform: translateX(0.7px)  skewX(1.4deg)  scaleY(0.98) scaleX(1.02); }
+  80%  { transform: translateX(-0.3px) skewX(-1.6deg) scaleY(1.05) scaleX(0.99); }
+  100% { transform: translateX(0)      skewX(0deg)    scaleY(1)    scaleX(1); }
 }
-.flix-logo-emberglow {
+/* Ember sparks drifting up off the flame */
+.flix-logo-spark {
   position: absolute;
-  top: -18%;
-  left: 68%;
-  width: 22%;
-  height: 136%;
+  bottom: 52%;
+  width: 2px;
+  height: 2px;
   border-radius: 9999px;
-  background: radial-gradient(ellipse at 50% 60%, rgba(255, 176, 32, 0.45) 0%, rgba(255, 77, 26, 0.25) 42%, transparent 72%);
-  filter: blur(4px);
-  animation: flix-logo-emberglow 1.9s ease-in-out infinite;
+  background: radial-gradient(circle, #ffd27a 0%, #ff6a1a 70%, transparent 100%);
+  opacity: 0;
+  animation: flix-logo-spark-rise 2.1s linear infinite;
 }
-@keyframes flix-logo-emberglow {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  40% { opacity: 0.95; transform: scale(1.12); }
-  70% { opacity: 0.6; transform: scale(0.96); }
+@keyframes flix-logo-spark-rise {
+  0%   { opacity: 0; transform: translate(0, 0) scale(1); }
+  12%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--spark-x, 3px), -120%) scale(0.3); }
 }
 
 .flix-intro-logo {
@@ -112,11 +118,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .flix-flame-flicker, .flix-intro-letter, .flix-intro-flame, .flix-ember-particle,
-  .flix-logo-burn, .flix-logo-emberglow, .flix-intro-logo, .flix-intro-logo-burn {
+  .flix-logo-burn, .flix-logo-spark, .flix-intro-logo, .flix-intro-logo-burn {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
+  .flix-logo-spark { display: none !important; }
   .flix-poster-card, .flix-ember-hover { transition: none; }
   .flix-poster-card:hover, .flix-poster-card:focus-visible { transform: none; }
 }
