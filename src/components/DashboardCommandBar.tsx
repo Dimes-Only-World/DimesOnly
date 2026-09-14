@@ -271,6 +271,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
             </button>
           ))}
         </div>
+        )}
       </CardContent>
     </Card>
   );
