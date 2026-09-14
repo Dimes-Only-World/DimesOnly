@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import introWordmark from "@/assets/flix/flameflix-wordmark-flames.png.asset.json";
+import LiveFlame from "./LiveFlame";
 import "./flix.css";
 
 interface FlixIntroProps {
@@ -61,18 +62,12 @@ const FlixIntro: React.FC<FlixIntroProps> = ({ onDone }) => {
           <img
             src={introWordmark.url}
             alt="FlameFlix"
-            className="block w-full h-auto object-contain drop-shadow-[0_0_28px_rgba(255,77,26,0.45)]"
+            className="block w-full h-auto object-contain"
             draggable={false}
           />
-          {/* Live burning layer over the flames in FLIX */}
-          <img
-            src={introWordmark.url}
-            alt=""
-            aria-hidden
-            className="flix-intro-logo-burn pointer-events-none absolute inset-0 w-full h-auto object-contain mix-blend-screen"
-            style={{ filter: "brightness(1.6) saturate(1.5)" }}
-            draggable={false}
-          />
+          {/* Live fire on the F and the I only — the letters themselves stay still */}
+          <LiveFlame left={54} width={20} bottom={10} height={90} />
+          <LiveFlame left={74} width={15} bottom={12} height={80} />
         </div>
         {!reducedMotion &&
           embers.map((e) => (
