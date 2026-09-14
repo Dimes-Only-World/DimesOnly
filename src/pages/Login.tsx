@@ -116,6 +116,8 @@ const Login: React.FC = () => {
       }
       sessionStorage.setItem("currentUser", userData.username);
       sessionStorage.setItem("userData", JSON.stringify(user));
+      // Replay the FlameFlix opening intro on every sign-in
+      sessionStorage.removeItem("flix_intro_seen_for");
       // Reset upgrade popup flags so the offer shows on every login
       Object.keys(sessionStorage)
         .filter((k) => k.startsWith("upgrade_popup_shown_"))
