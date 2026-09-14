@@ -215,9 +215,9 @@ const FlixPricing: React.FC = () => {
           />
           <span>
             By checking this box, you understand and agree that you are enrolling in a subscription that will
-             automatically renew every year at $59.99 (plus any tax) until you cancel. Pricing is subject to change. You
-            may cancel your subscription in your Billing Settings or by contacting Customer Support no later than{" "}
-            {cancelByDate()}.
+            automatically renew every {plan === "annual" ? "year at $59.99" : "month at $5.99"} (plus any tax) until
+            you cancel. Pricing is subject to change. You may cancel your subscription in your Billing Settings or by
+            contacting Customer Support no later than {cancelByDate()}.
           </span>
         </label>
 
