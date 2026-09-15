@@ -357,37 +357,37 @@ const TipGirls: React.FC = () => {
                 Find a Dime to tip
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchName}
-                  onChange={(e) => setSearchName(e.target.value)}
-                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                  />
+                </div>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by city..."
+                    value={searchCity}
+                    onChange={(e) => setSearchCity(e.target.value)}
+                    className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                  />
+                </div>
+                <div className="relative">
+                  <Flag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by state..."
+                    value={searchState}
+                    onChange={(e) => setSearchState(e.target.value)}
+                    className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by city..."
-                  value={searchCity}
-                  onChange={(e) => setSearchCity(e.target.value)}
-                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
-                />
-              </div>
-              <div className="relative">
-                <Flag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by state..."
-                  value={searchState}
-                  onChange={(e) => setSearchState(e.target.value)}
-                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
-                />
-              </div>
-            </div>
           </div>
 
           <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
