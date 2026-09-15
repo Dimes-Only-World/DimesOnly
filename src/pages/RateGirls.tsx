@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, User, MapPin, Flag, Trophy, Crown, X } from "lucide-react";
+import { Search, User, MapPin, Flag, Trophy, X } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -232,13 +232,14 @@ const RateGirls: React.FC = () => {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        <div className="px-4 pb-5 pt-7 text-center sm:pb-7 sm:pt-9">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">
+        <div className="px-4 pb-7 pt-9 text-center sm:pb-9 sm:pt-12">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">
             Dimes Only Rankings
           </p>
-          <h1 className="rate-hero-title font-extrabold tracking-tight text-yellow-400">
-            <span aria-hidden="true">⭐</span> Rate 100 Ladies' Profiles <span aria-hidden="true">⭐</span>
+          <h1 className="rate-hero-title font-black uppercase leading-[0.95] tracking-normal text-white">
+            Rate 100 Ladies' <span className="text-yellow-400">Profiles</span>
           </h1>
+          <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
         </div>
 
         {/* Video Banner */}
@@ -254,12 +255,10 @@ const RateGirls: React.FC = () => {
           {topRanked.length > 0 && (
             <div className="mb-12">
               <div className="text-center mb-8">
-                <h2 className="mb-2 flex items-center justify-center gap-3 text-2xl font-extrabold tracking-tight text-yellow-400 sm:text-4xl">
-                  <Crown className="w-7 h-7" />
-                  Top 20 Ranked Ladies
-                  <Crown className="w-7 h-7" />
+                <h2 className="mb-3 text-3xl font-black uppercase leading-none tracking-normal text-white sm:text-5xl">
+                  Top 20 <span className="text-yellow-400">Ranked Ladies</span>
                 </h2>
-                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-gray-400">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 sm:text-sm">
                   Leading performers in the {getRatingSeasonYear()} rankings
                 </p>
               </div>
@@ -360,10 +359,10 @@ const RateGirls: React.FC = () => {
           )}
 
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">
-              <span className="text-red-500">RATE GIRLS PAGE</span>
+            <h2 className="mb-6 text-3xl font-black uppercase leading-none tracking-normal text-white md:text-5xl">
+              <span className="text-red-500">Rate Girls Page</span>
               <br />
-              How it works:
+              How It Works
             </h2>
           </div>
         </div>
