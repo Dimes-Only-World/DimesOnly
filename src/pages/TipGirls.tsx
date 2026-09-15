@@ -283,47 +283,47 @@ const TipGirls: React.FC = () => {
       <div className="min-h-screen bg-[#070409] text-white">
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(233,22,209,0.16),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(250,204,21,0.08),transparent_55%)]" />
 
+        {/* Hero banner */}
+        <section className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#E916D1]/20 blur-3xl" />
+
+          <div className="relative mx-auto max-w-7xl text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA] backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5" />
+              Weekly Jackpot Entry
+            </span>
+
+            <h1 className="mt-6 text-5xl font-black uppercase leading-[0.95] tracking-tight text-white md:text-7xl">
+              Tip{" "}
+              <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">
+                &amp; Win
+              </span>
+            </h1>
+            <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
+
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
+              Support your favorite Dimes and earn entries into the weekly jackpot drawing.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-widest text-slate-300">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                <Ticket className="h-3.5 w-3.5 text-[#FF5FD1]" />
+                Every tip earns entries
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                <Trophy className="h-3.5 w-3.5 text-yellow-300" />
+                Drawings every Saturday
+              </span>
+            </div>
+          </div>
+        </section>
+
         {tipVideoUrl && <BannerVideo src={tipVideoUrl} />}
 
         <div className="relative mx-auto max-w-7xl space-y-8 px-4 py-8">
           <div className="flex justify-start">
             <HomeProfileButton />
           </div>
-
-          {/* Hero */}
-          <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-12 md:px-12 md:py-16">
-            <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#E916D1]/20 blur-3xl" />
-
-            <div className="relative text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA] backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" />
-                Weekly Jackpot Entry
-              </span>
-
-              <h1 className="mt-6 text-5xl font-black uppercase leading-[0.95] tracking-tight text-white md:text-7xl">
-                Tip{" "}
-                <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">
-                  &amp; Win
-                </span>
-              </h1>
-              <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
-
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
-                Support your favorite Dimes and earn entries into the weekly jackpot drawing.
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-widest text-slate-300">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  <Ticket className="h-3.5 w-3.5 text-[#FF5FD1]" />
-                  Every tip earns entries
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  <Trophy className="h-3.5 w-3.5 text-yellow-300" />
-                  Drawings every Saturday
-                </span>
-              </div>
-            </div>
-          </section>
 
           {/* Yearly top 3 highest tipped */}
           <TipLeaderboard />
