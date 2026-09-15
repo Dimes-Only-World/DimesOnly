@@ -388,6 +388,7 @@ const TipGirls: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
           </div>
 
           <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
