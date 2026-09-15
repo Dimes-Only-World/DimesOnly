@@ -326,7 +326,11 @@ const TipGirls: React.FC = () => {
           </div>
 
           {/* Yearly top 3 highest tipped */}
-          <TipLeaderboard />
+          <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <TipLeaderboard />
+            </div>
+          </div>
 
           {/* Jackpot */}
           <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
