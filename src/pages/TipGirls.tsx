@@ -385,17 +385,21 @@ const TipGirls: React.FC = () => {
             </div>
           </div>
 
-          <UsersList
-            searchName={searchName}
-            searchCity={searchCity}
-            searchState={searchState}
-            rateFilter={rateFilter}
-            onUserSelect={handleUserSelect}
-            actionType="tip"
-            noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
-            orderBy="created_at"
-            orderDirection="desc"
-          />
+          <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <UsersList
+                searchName={searchName}
+                searchCity={searchCity}
+                searchState={searchState}
+                rateFilter={rateFilter}
+                onUserSelect={handleUserSelect}
+                actionType="tip"
+                noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
+                orderBy="created_at"
+                orderDirection="desc"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </AuthGuard>
