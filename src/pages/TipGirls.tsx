@@ -283,6 +283,41 @@ const TipGirls: React.FC = () => {
       <div className="min-h-screen bg-[#070409] text-white">
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(233,22,209,0.16),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(250,204,21,0.08),transparent_55%)]" />
 
+        {/* Hero banner */}
+        <section className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#E916D1]/20 blur-3xl" />
+
+          <div className="relative mx-auto max-w-7xl text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA] backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5" />
+              Weekly Jackpot Entry
+            </span>
+
+            <h1 className="mt-6 text-5xl font-black uppercase leading-[0.95] tracking-tight text-white md:text-7xl">
+              Tip{" "}
+              <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">
+                &amp; Win
+              </span>
+            </h1>
+            <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
+
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
+              Support your favorite Dimes and earn entries into the weekly jackpot drawing.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-widest text-slate-300">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                <Ticket className="h-3.5 w-3.5 text-[#FF5FD1]" />
+                Every tip earns entries
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                <Trophy className="h-3.5 w-3.5 text-yellow-300" />
+                Drawings every Saturday
+              </span>
+            </div>
+          </div>
+        </section>
+
         {tipVideoUrl && <BannerVideo src={tipVideoUrl} />}
 
         <div className="relative mx-auto max-w-7xl space-y-8 px-4 py-8">
@@ -290,110 +325,87 @@ const TipGirls: React.FC = () => {
             <HomeProfileButton />
           </div>
 
-          {/* Hero */}
-          <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-12 md:px-12 md:py-16">
-            <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#E916D1]/20 blur-3xl" />
-
-            <div className="relative text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F5A3EA] backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" />
-                Weekly Jackpot Entry
-              </span>
-
-              <h1 className="mt-6 text-5xl font-black uppercase leading-[0.95] tracking-tight text-white md:text-7xl">
-                Tip{" "}
-                <span className="bg-gradient-to-r from-[#E916D1] via-[#FF5FD1] to-yellow-300 bg-clip-text text-transparent">
-                  &amp; Win
-                </span>
-              </h1>
-              <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-[#E916D1] to-transparent" />
-
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
-                Support your favorite Dimes and earn entries into the weekly jackpot drawing.
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-widest text-slate-300">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  <Ticket className="h-3.5 w-3.5 text-[#FF5FD1]" />
-                  Every tip earns entries
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  <Trophy className="h-3.5 w-3.5 text-yellow-300" />
-                  Drawings every Saturday
-                </span>
-              </div>
-            </div>
-          </section>
-
           {/* Yearly top 3 highest tipped */}
-          <TipLeaderboard />
+          <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <TipLeaderboard />
+            </div>
+          </div>
 
           {/* Jackpot */}
-          <div>
-            <JackpotDisplay />
-            <div className="mt-4 text-center">
-              <Button
-                onClick={() => navigate("/jackpot")}
-                className="h-auto bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 text-center font-semibold text-black hover:from-yellow-600 hover:to-orange-600"
-              >
-                Want to know more about the jackpot?
-                <br />
-                Click here
-              </Button>
+          <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <JackpotDisplay />
+              <div className="mt-4 text-center">
+                <Button
+                  onClick={() => navigate("/jackpot")}
+                  className="h-auto bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 text-center font-semibold text-black hover:from-yellow-600 hover:to-orange-600"
+                >
+                  Want to know more about the jackpot?
+                  <br />
+                  Click here
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
-              <Search className="h-3.5 w-3.5 text-[#E916D1]" />
-              Find a Dime to tip
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchName}
-                  onChange={(e) => setSearchName(e.target.value)}
-                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
-                />
+          <div className="-mx-4 border-y border-white/10 bg-[#08050A] px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <Search className="h-3.5 w-3.5 text-[#E916D1]" />
+                Find a Dime to tip
               </div>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by city..."
-                  value={searchCity}
-                  onChange={(e) => setSearchCity(e.target.value)}
-                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
-                />
-              </div>
-              <div className="relative">
-                <Flag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by state..."
-                  value={searchState}
-                  onChange={(e) => setSearchState(e.target.value)}
-                  className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
-                />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                  />
+                </div>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by city..."
+                    value={searchCity}
+                    onChange={(e) => setSearchCity(e.target.value)}
+                    className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                  />
+                </div>
+                <div className="relative">
+                  <Flag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by state..."
+                    value={searchState}
+                    onChange={(e) => setSearchState(e.target.value)}
+                    className="h-11 border-white/15 bg-slate-900/60 pl-10 text-white placeholder:text-slate-400 focus-visible:ring-[#E916D1]"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <UsersList
-            searchName={searchName}
-            searchCity={searchCity}
-            searchState={searchState}
-            rateFilter={rateFilter}
-            onUserSelect={handleUserSelect}
-            actionType="tip"
-            noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
-            orderBy="created_at"
-            orderDirection="desc"
-          />
+          <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <UsersList
+                searchName={searchName}
+                searchCity={searchCity}
+                searchState={searchState}
+                rateFilter={rateFilter}
+                onUserSelect={handleUserSelect}
+                actionType="tip"
+                noDataMessage="NO TIPS YET IN 2025. BE THE 1ST!"
+                orderBy="created_at"
+                orderDirection="desc"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </AuthGuard>
