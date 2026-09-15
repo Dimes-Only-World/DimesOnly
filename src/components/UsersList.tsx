@@ -36,6 +36,7 @@ interface UsersListProps {
   rateFilter?: RateFilter;
   currentUserId?: string | null;
   usePersonalRatings?: boolean;
+  pageSize?: number;
 }
 
 const UsersList: React.FC<UsersListProps> = ({
@@ -51,9 +52,11 @@ const UsersList: React.FC<UsersListProps> = ({
   rateFilter = "all",
   currentUserId = null,
   usePersonalRatings = false,
+  pageSize,
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchUsers();
@@ -177,6 +180,21 @@ const UsersList: React.FC<UsersListProps> = ({
     });
   }, [users, searchName, searchCity, searchState, rateFilter, usePersonalRatings]);
 
+  const totalPages = pageSize
+    ? Math.max(1, Math.ceil(filteredUsers.length / pageSize))
+    : 1;
+  const visibleUsers = pageSize
+    ? filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : filteredUsers;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchName, searchCity, searchState, rateFilter, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -213,8 +231,9 @@ const UsersList: React.FC<UsersListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-      {filteredUsers.map((user) => {
+    <div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+      {visibleUsers.map((user) => {
         const photo = user.profile_photo || defaultAvatar.url;
         return (
           <div
@@ -291,6 +310,31 @@ const UsersList: React.FC<UsersListProps> = ({
           </div>
         );
       })}
+      </div>
+
+      {totalPages > 1 && (
+        <nav className="mt-8 flex items-center justify-center gap-3" aria-label="Profile pages">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+          >
+            Previous
+          </Button>
+          <span className="min-w-24 text-center text-sm font-semibold text-gray-300">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+          >
+            Next
+          </Button>
+        </nav>
+      )}
     </div>
   );
 };

@@ -232,19 +232,19 @@ const RateGirls: React.FC = () => {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+        <div className="px-4 pb-5 pt-7 text-center sm:pb-7 sm:pt-9">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">
+            Dimes Only Rankings
+          </p>
+          <h1 className="rate-hero-title font-extrabold tracking-tight text-yellow-400">
+            <span aria-hidden="true">⭐</span> Rate 100 Ladies' Profiles <span aria-hidden="true">⭐</span>
+          </h1>
+        </div>
+
         {/* Video Banner */}
         {rateVideoUrl && (
           <BannerVideo src={rateVideoUrl} />
         )}
-
-        <div className="text-center py-6 px-4">
-          <h1 className="rate-hero-title font-extrabold uppercase tracking-tight text-yellow-400 mb-4">
-            ⭐ Rate 100 Ladies' Profiles ⭐
-          </h1>
-          <p className="text-sm sm:text-lg font-medium tracking-wide text-gray-300/90">
-            Search by name, city, or state to find a specific lady you want to rate!
-          </p>
-        </div>
 
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex justify-start mb-4">
@@ -254,7 +254,7 @@ const RateGirls: React.FC = () => {
           {topRanked.length > 0 && (
             <div className="mb-12">
               <div className="text-center mb-8">
-                <h2 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-yellow-400 mb-2 flex items-center justify-center gap-3">
+                <h2 className="mb-2 flex items-center justify-center gap-3 text-2xl font-extrabold tracking-tight text-yellow-400 sm:text-4xl">
                   <Crown className="w-7 h-7" />
                   Top 20 Ranked Ladies
                   <Crown className="w-7 h-7" />
@@ -390,6 +390,9 @@ const RateGirls: React.FC = () => {
           {/* Search Section */}
           <div className="max-w-6xl mx-auto mb-8">
             <div className="bg-white/10 backdrop-blur rounded-2xl p-8 shadow-lg border border-white/20">
+              <p className="mb-6 text-center text-sm font-medium leading-relaxed text-gray-300 sm:text-lg">
+                Search by name, city, or state to find a specific lady you want to rate!
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="relative group">
                   <label className="block text-sm font-semibold text-white mb-2 items-center gap-2">
@@ -515,6 +518,7 @@ const RateGirls: React.FC = () => {
             onImageClick={handleImageClick}
             currentUserId={currentUser?.id ?? null}
             usePersonalRatings={Boolean(currentUser?.id)}
+            pageSize={20}
           />
         </div>
         {/* Image Modal */}
