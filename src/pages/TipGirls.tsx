@@ -329,17 +329,19 @@ const TipGirls: React.FC = () => {
           <TipLeaderboard />
 
           {/* Jackpot */}
-          <div>
-            <JackpotDisplay />
-            <div className="mt-4 text-center">
-              <Button
-                onClick={() => navigate("/jackpot")}
-                className="h-auto bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 text-center font-semibold text-black hover:from-yellow-600 hover:to-orange-600"
-              >
-                Want to know more about the jackpot?
-                <br />
-                Click here
-              </Button>
+          <div className="-mx-4 -my-8 bg-[#070409] px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <JackpotDisplay />
+              <div className="mt-4 text-center">
+                <Button
+                  onClick={() => navigate("/jackpot")}
+                  className="h-auto bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 text-center font-semibold text-black hover:from-yellow-600 hover:to-orange-600"
+                >
+                  Want to know more about the jackpot?
+                  <br />
+                  Click here
+                </Button>
+              </div>
             </div>
           </div>
 
