@@ -346,12 +346,13 @@ const TipGirls: React.FC = () => {
           </div>
 
           {/* Filters */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
-              <Search className="h-3.5 w-3.5 text-[#E916D1]" />
-              Find a Dime to tip
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="-mx-4 border-y border-white/10 bg-[#08050A] px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <Search className="h-3.5 w-3.5 text-[#E916D1]" />
+                Find a Dime to tip
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
