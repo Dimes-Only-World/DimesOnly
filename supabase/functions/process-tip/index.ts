@@ -1,6 +1,7 @@
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { EMAIL_BRAND, sendDimesEmail } from "../_shared/dimes-emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -216,7 +217,7 @@ serve(async (req) => {
 
     const { data: tippedUser, error: tippedErr } = await supabase
       .from("users")
-      .select("id, username, referred_by")
+      .select("id, username, referred_by, email, first_name")
       .ilike("username", tipped_username)
       .maybeSingle();
 
@@ -226,7 +227,7 @@ serve(async (req) => {
 
     const { data: tipperUser, error: tipperErr } = await supabase
       .from("users")
-      .select("id, username, referred_by")
+      .select("id, username, referred_by, profile_photo")
       .eq("id", tipper_id)
       .single();
 
@@ -751,6 +752,32 @@ serve(async (req) => {
 
       if (payoutErr) {
         console.error("commission_payouts insert error", payoutErr);
+      }
+    }
+
+    // Send the "You received a tip" email to the Dime. Never let an email
+    // failure affect the payment result.
+    if (tippedUser.email) {
+      try {
+        const emailResult = await sendDimesEmail(
+          {
+            email: tippedUser.email,
+            name: tippedUser.first_name || tippedUser.username,
+          },
+          "tip",
+          {
+            dime_name: tippedUser.first_name || tippedUser.username,
+            commission: `$${performerShare.toFixed(2)}`,
+            username: tipperUser.username || tipper_username || "A member",
+            profile_photo: tipperUser.profile_photo || "",
+            button_url: `${EMAIL_BRAND.siteUrl}/dashboard/messages`,
+          },
+        );
+        if (!emailResult.ok) {
+          console.error("tip email send failed", emailResult);
+        }
+      } catch (emailErr) {
+        console.error("tip email error", emailErr);
       }
     }
 
