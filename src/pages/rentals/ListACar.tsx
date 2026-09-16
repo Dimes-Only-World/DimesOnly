@@ -19,6 +19,7 @@ import {
   Wrench,
 } from "lucide-react";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
+import ScheduleCallDialog from "@/components/rentals/ScheduleCallDialog";
 
 const SCHEDULE_CALL_URL =
   "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
