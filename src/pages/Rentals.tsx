@@ -9,6 +9,7 @@ import { ArrowRight, CalendarDays, Car, Check, MapPin, Search, ShieldCheck, Spar
 import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
+import RentalsFooter from "@/components/rentals/RentalsFooter";
 
 interface Vehicle {
   id: string;
