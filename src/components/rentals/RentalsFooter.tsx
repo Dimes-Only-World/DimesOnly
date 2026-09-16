@@ -21,7 +21,7 @@ const RentalsFooter: React.FC = () => {
       links: [
         { label: "Book a car", to: "/rentals" },
         { label: "List a car", href: APPLY_FORM_URL },
-        { label: "Become a Host", href: APPLY_FORM_URL },
+        { label: "Become a Host", to: "/rentals/host" },
       ],
     },
     {
