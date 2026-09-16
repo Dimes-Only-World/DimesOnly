@@ -175,7 +175,7 @@ const FOOTNOTES = [
   "Please note: Be informed of existing peer-to-peer car sharing legislation in California that limits the amount of income you are supposed to earn from car sharing in certain scenarios. For more details about these regulations and to determine if car sharing is a good fit for you, check out this article.",
   "*Figures represent the average Best earnings for all California-based vehicles with at least three distinct vehicles between 01/01/2025 and 01/01/2026. Vehicles have a fair market value ranging from $10,000 to $130,000 and are model years 2019-2026. Earnings do not account for costs such as vehicle maintenance, repairs, insurance, and deductibles.",
   "** If your first-month revenue is less than this amount, Best pays the difference.",
-  "*** Insurance is provided under a policy issued to Carsan by a third-party insurance company. Terms, conditions, and exclusions apply. For questions or information about the insurance included in protection plans, consumers may contact Carsan at claims@carsan.com. Liability coverage is up to $750,000. The insurance coverage limit is reduced by any amounts available and paid under any other policy issued to the guest.",
+  "*** Insurance is provided under a policy issued to Best by a third-party insurance company. Terms, conditions, and exclusions apply. For questions or information about the insurance included in protection plans, consumers may contact Best at claims@dimesonly.world. Liability coverage is up to $750,000. The insurance coverage limit is reduced by any amounts available and paid under any other policy issued to the guest.",
 ];
 
 const ListACar: React.FC = () => {
