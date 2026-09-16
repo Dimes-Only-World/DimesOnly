@@ -441,6 +441,7 @@ const ListACar: React.FC = () => {
       </section>
 
       <RentalsFooter />
+      <ScheduleCallDialog open={callOpen} onOpenChange={setCallOpen} />
     </div>
   );
 };
