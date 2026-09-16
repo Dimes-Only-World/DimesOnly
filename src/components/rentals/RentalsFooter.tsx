@@ -8,6 +8,7 @@ const APPLY_FORM_URL =
 
 const RentalsFooter: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
 
   const withRef = (path: string) => {
     const ref = normalizeRefParam(new URLSearchParams(window.location.search).get("ref"));
