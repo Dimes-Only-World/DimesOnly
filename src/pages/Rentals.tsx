@@ -320,6 +320,7 @@ const Rentals: React.FC = () => {
 
         <div className="font-barlow"><CapturesGallery limit={12} /></div>
       </main>
+      <RentalsFooter />
     </div>
   );
 };
