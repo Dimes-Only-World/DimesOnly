@@ -26,7 +26,7 @@ const SCHEDULE_CALL_URL =
 const ESTIMATOR_MAKES: Record<string, string[]> = {
   Tesla: ["Model 3", "Model Y", "Model S"],
   BMW: ["3 Series", "5 Series", "X5"],
-  Mercedes-Benz: ["C-Class", "E-Class", "GLE"],
+  "Mercedes-Benz": ["C-Class", "E-Class", "GLE"],
   Toyota: ["Camry", "Corolla", "RAV4"],
   Honda: ["Accord", "Civic", "CR-V"],
 };
