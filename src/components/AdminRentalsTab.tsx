@@ -71,6 +71,7 @@ const AdminRentalsTab: React.FC = () => {
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="calls">Call Requests</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="packages">Themed Packages</TabsTrigger>
           <TabsTrigger value="promos">Promo Codes</TabsTrigger>
@@ -120,6 +121,13 @@ const AdminRentalsTab: React.FC = () => {
             <BookingRow key={b.id} b={b} onChange={loadAll} />
           ))}
           {bookings.length === 0 && <p className="text-muted-foreground">No bookings yet.</p>}
+        </TabsContent>
+
+        <TabsContent value="calls" className="space-y-3">
+          {callRequests.map((r) => (
+            <CallRequestRow key={r.id} r={r} onChange={loadAll} />
+          ))}
+          {callRequests.length === 0 && <p className="text-muted-foreground">No call requests yet.</p>}
         </TabsContent>
 
         <TabsContent value="commissions" className="space-y-3">
