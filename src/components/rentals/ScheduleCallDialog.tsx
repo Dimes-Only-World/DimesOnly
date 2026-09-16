@@ -109,7 +109,7 @@ const ScheduleCallDialog: React.FC<ScheduleCallDialogProps> = ({ open, onOpenCha
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-3xl border-rental-line bg-rental-surface font-barlow text-rental-foreground">
+        <DialogContent className="rentals-showroom max-w-3xl border-rental-line bg-rental-surface font-barlow text-rental-foreground">
           <DialogHeader>
             <DialogTitle className="font-barlow text-xl text-rental-foreground">
               Schedule a call with our team member to find out more about Best
