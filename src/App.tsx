@@ -49,6 +49,7 @@ import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
 import Rentals from "./pages/Rentals";
 import BecomeAHost from "./pages/rentals/BecomeAHost";
+import ListACar from "./pages/rentals/ListACar";
 import RentalDetails from "./pages/RentalDetails";
 import RentalPayment from "./pages/RentalPayment";
 import MyBookings from "./pages/MyBookings";
@@ -190,7 +191,7 @@ function AppContent() {
       <Route path="/event-payment-return" element={<EventPayPalReturn />} />
       <Route path="/jackpot" element={<Jackpot />} />
       <Route path="/rentals" element={<Rentals />} />
-      <Route path="/rentals/host" element={<BecomeAHost />} />
+      <Route path="/rentals/list" element={<ListACar />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
