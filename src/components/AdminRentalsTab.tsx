@@ -42,19 +42,22 @@ const AdminRentalsTab: React.FC = () => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [commissions, setCommissions] = useState<any[]>([]);
+  const [callRequests, setCallRequests] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const loadAll = async () => {
     try {
-      const [vs, bs, cs] = await Promise.all([
+      const [vs, bs, cs, crs] = await Promise.all([
         callAdmin("listVehicles"),
         callAdmin("listBookings"),
         callAdmin("listCommissions"),
+        callAdmin("listCallRequests"),
       ]);
       setVehicles(vs?.data || []);
       setBookings(bs?.data || []);
       setCommissions(cs?.data || []);
+      setCallRequests(crs?.data || []);
     } catch (e: any) {
       toast({ title: "Load failed", description: e.message, variant: "destructive" });
     }
