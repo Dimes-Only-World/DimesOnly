@@ -243,9 +243,9 @@ const ListACar: React.FC = () => {
                   <SelectTrigger className="w-full rounded-none border-rental-line bg-rental-background font-barlow text-rental-foreground">
                     <SelectValue placeholder="Make" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-none border-rental-line bg-rental-elevated text-rental-foreground">
+                  <SelectContent className="rounded-none border-[hsl(var(--rental-line,216_8%_22%))] bg-[hsl(var(--rental-elevated,220_9%_15%))] text-[hsl(var(--rental-foreground,0_0%_96%))]">
                     {Object.keys(ESTIMATOR_MAKES).map((m) => (
-                      <SelectItem key={m} value={m} className="font-barlow">{m}</SelectItem>
+                      <SelectItem key={m} value={m} className="font-barlow focus:bg-[hsl(var(--rental-surface,220_9%_25%))] focus:text-[hsl(var(--rental-foreground,0_0%_96%))]">{m}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -253,9 +253,9 @@ const ListACar: React.FC = () => {
                   <SelectTrigger className="w-full rounded-none border-rental-line bg-rental-background font-barlow text-rental-foreground">
                     <SelectValue placeholder="Model" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-none border-rental-line bg-rental-elevated text-rental-foreground">
+                  <SelectContent className="rounded-none border-[hsl(var(--rental-line,216_8%_22%))] bg-[hsl(var(--rental-elevated,220_9%_15%))] text-[hsl(var(--rental-foreground,0_0%_96%))]">
                     {models.map((m) => (
-                      <SelectItem key={m} value={m} className="font-barlow">{m}</SelectItem>
+                      <SelectItem key={m} value={m} className="font-barlow focus:bg-[hsl(var(--rental-surface,220_9%_25%))] focus:text-[hsl(var(--rental-foreground,0_0%_96%))]">{m}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -263,9 +263,9 @@ const ListACar: React.FC = () => {
                   <SelectTrigger className="w-full rounded-none border-rental-line bg-rental-background font-barlow text-rental-foreground">
                     <SelectValue placeholder="Year" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-none border-rental-line bg-rental-elevated text-rental-foreground">
+                  <SelectContent className="rounded-none border-[hsl(var(--rental-line,216_8%_22%))] bg-[hsl(var(--rental-elevated,220_9%_15%))] text-[hsl(var(--rental-foreground,0_0%_96%))]">
                     {ESTIMATOR_YEARS.map((y) => (
-                      <SelectItem key={y} value={y} className="font-barlow">{y}</SelectItem>
+                      <SelectItem key={y} value={y} className="font-barlow focus:bg-[hsl(var(--rental-surface,220_9%_25%))] focus:text-[hsl(var(--rental-foreground,0_0%_96%))]">{y}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
