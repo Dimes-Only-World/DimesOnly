@@ -297,7 +297,7 @@ const ScheduleCallDialog: React.FC<ScheduleCallDialogProps> = ({ open, onOpenCha
       </Dialog>
 
       <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
-        <DialogContent className="max-w-2xl border-rental-line bg-rental-surface font-barlow text-rental-foreground">
+        <DialogContent className="rentals-showroom max-w-2xl border-rental-line bg-rental-surface font-barlow text-rental-foreground">
           <DialogHeader>
             <DialogTitle className="font-barlow text-lg text-rental-foreground">Privacy Notice</DialogTitle>
           </DialogHeader>
