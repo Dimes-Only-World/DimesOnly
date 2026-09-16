@@ -20,7 +20,7 @@ const RentalsFooter: React.FC = () => {
       heading: "Product",
       links: [
         { label: "Book a car", to: "/rentals" },
-        { label: "List a car", href: APPLY_FORM_URL },
+        { label: "List a car", to: "/rentals/list" },
         { label: "Become a Host", to: "/rentals/host" },
       ],
     },
