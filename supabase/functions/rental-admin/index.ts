@@ -300,6 +300,21 @@ serve(async (req) => {
         return json({ ok: true });
       }
 
+      case "listCallRequests": {
+        const { data, error } = await admin.from("rental_call_requests").select("*").order("scheduled_date", { ascending: true }).order("scheduled_time", { ascending: true });
+        if (error) throw error;
+        return json({ data });
+      }
+      case "updateCallRequest": {
+        const { id, payload } = params;
+        const allowed = ["status", "notes"];
+        const clean: Record<string, any> = {};
+        for (const k of allowed) if (k in (payload || {})) clean[k] = payload[k];
+        const { data, error } = await admin.from("rental_call_requests").update(clean).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+
       default:
         return json({ error: "Unknown action" }, 400);
     }
