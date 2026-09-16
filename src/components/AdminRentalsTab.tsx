@@ -161,6 +161,51 @@ const AdminRentalsTab: React.FC = () => {
 };
 
 // ============ Themed Packages Admin ============
+const CALL_STATUSES = ["new", "contacted", "completed", "cancelled"];
+
+const CallRequestRow: React.FC<{ r: any; onChange: () => void }> = ({ r, onChange }) => {
+  const [saving, setSaving] = useState(false);
+  const dateLabel = r.scheduled_date
+    ? new Date(`${r.scheduled_date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
+    : "";
+
+  const setStatus = async (status: string) => {
+    setSaving(true);
+    try {
+      await callAdmin("updateCallRequest", { id: r.id, payload: { status } });
+      toast({ title: "Updated", description: `Call request marked ${status}.` });
+      onChange();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="font-semibold">{r.name} — {dateLabel} at {r.scheduled_time}</p>
+          <p className="text-sm text-muted-foreground">{r.email} · {r.phone}</p>
+          {r.vehicle && <p className="text-sm text-muted-foreground">Vehicle: {r.vehicle}</p>}
+          <p className="text-xs text-muted-foreground">{r.timezone} · Requested {new Date(r.created_at).toLocaleString()}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={r.status} onValueChange={setStatus} disabled={saving}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CALL_STATUSES.map((s) => (
+                <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const PackagesPanel: React.FC = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
