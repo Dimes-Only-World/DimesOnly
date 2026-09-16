@@ -3052,6 +3052,48 @@ export type Database = {
           },
         ]
       }
+      rental_call_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          scheduled_date: string
+          scheduled_time: string
+          status: string
+          timezone: string
+          vehicle: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          scheduled_date: string
+          scheduled_time: string
+          status?: string
+          timezone?: string
+          vehicle?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          status?: string
+          timezone?: string
+          vehicle?: string | null
+        }
+        Relationships: []
+      }
       rental_captures: {
         Row: {
           booking_id: string | null

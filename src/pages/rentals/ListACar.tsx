@@ -19,6 +19,7 @@ import {
   Wrench,
 } from "lucide-react";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
+import ScheduleCallDialog from "@/components/rentals/ScheduleCallDialog";
 
 const SCHEDULE_CALL_URL =
   "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
@@ -184,6 +185,7 @@ const ListACar: React.FC = () => {
   const [year, setYear] = useState<string>("");
   const [estimate, setEstimate] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
+  const [callOpen, setCallOpen] = useState(false);
 
   const models = useMemo(() => (make ? ESTIMATOR_MAKES[make] || [] : []), [make]);
 
@@ -367,10 +369,8 @@ const ListACar: React.FC = () => {
               * You may request your car back at any time after the first 30 days.
             </p>
             <div className="mt-6">
-              <Button asChild size="lg" className="rounded-none bg-rental-primary font-barlow font-semibold uppercase tracking-wide text-rental-primary-foreground hover:bg-rental-primary/90">
-                <a href={SCHEDULE_CALL_URL} target="_blank" rel="noopener noreferrer">
-                  <PhoneCall className="mr-2 h-4 w-4" /> Schedule a Call
-                </a>
+              <Button size="lg" onClick={() => setCallOpen(true)} className="rounded-none bg-rental-primary font-barlow font-semibold uppercase tracking-wide text-rental-primary-foreground hover:bg-rental-primary/90">
+                <PhoneCall className="mr-2 h-4 w-4" /> Schedule a Call
               </Button>
             </div>
           </div>
@@ -441,6 +441,7 @@ const ListACar: React.FC = () => {
       </section>
 
       <RentalsFooter />
+      <ScheduleCallDialog open={callOpen} onOpenChange={setCallOpen} />
     </div>
   );
 };
