@@ -34,8 +34,8 @@ const RentalsFooter: React.FC = () => {
     {
       heading: "Company",
       links: [
-        { label: "Terms of Service", href: "https://www.dimesonly.world/terms" },
-        { label: "Cancellation policy", onClick: () => setShowPrivacy(false) },
+        { label: "Terms of Service", to: "/clothes/terms" },
+        { label: "Cancellation policy", onClick: () => setShowCancel(true) },
         { label: "Privacy Policy", onClick: () => setShowPrivacy(true) },
       ],
     },
