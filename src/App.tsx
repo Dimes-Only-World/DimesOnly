@@ -189,6 +189,7 @@ function AppContent() {
       <Route path="/event-payment-return" element={<EventPayPalReturn />} />
       <Route path="/jackpot" element={<Jackpot />} />
       <Route path="/rentals" element={<Rentals />} />
+      <Route path="/rentals/host" element={<BecomeAHost />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
