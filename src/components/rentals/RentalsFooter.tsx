@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { normalizeRefParam } from "@/lib/utils";
+import { CancellationPolicyDialog } from "@/components/rentals/RentalPolicyDialogs";
 
 const APPLY_FORM_URL =
   "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
