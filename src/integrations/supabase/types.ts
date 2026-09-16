@@ -483,6 +483,24 @@ export type Database = {
           },
         ]
       }
+      email_hook_config: {
+        Row: {
+          created_at: string
+          key: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       entries: {
         Row: {
           amount: number | null
