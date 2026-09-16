@@ -82,7 +82,7 @@ const RentalsFooter: React.FC = () => {
           ))}
         </div>
         <div className="mt-10 border-t border-rental-line pt-6 text-center text-xs text-rental-muted">
-          © {new Date().getFullYear()} Dimes Only. All rights reserved.
+          © {new Date().getFullYear()} Best Holdings Enterprise, Inc. All rights reserved.
         </div>
       </div>
 
