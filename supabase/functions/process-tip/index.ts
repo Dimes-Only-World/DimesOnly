@@ -755,6 +755,32 @@ serve(async (req) => {
       }
     }
 
+    // Send the "You received a tip" email to the Dime. Never let an email
+    // failure affect the payment result.
+    if (tippedUser.email) {
+      try {
+        const emailResult = await sendDimesEmail(
+          {
+            email: tippedUser.email,
+            name: tippedUser.first_name || tippedUser.username,
+          },
+          "tip",
+          {
+            dime_name: tippedUser.first_name || tippedUser.username,
+            commission: `$${performerShare.toFixed(2)}`,
+            username: tipperUser.username || tipper_username || "A member",
+            profile_photo: tipperUser.profile_photo || "",
+            button_url: `${EMAIL_BRAND.siteUrl}/dashboard/messages`,
+          },
+        );
+        if (!emailResult.ok) {
+          console.error("tip email send failed", emailResult);
+        }
+      } catch (emailErr) {
+        console.error("tip email error", emailErr);
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, ticket_codes: ticketCodes }),
       {
