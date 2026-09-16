@@ -86,6 +86,8 @@ const RentalsFooter: React.FC = () => {
         </div>
       </div>
 
+      <CancellationPolicyDialog open={showCancel} onOpenChange={setShowCancel} />
+
       {showPrivacy && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="relative max-h-[80vh] max-w-2xl overflow-y-auto rounded-lg bg-rental-elevated text-rental-foreground shadow-lg">
