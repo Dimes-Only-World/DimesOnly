@@ -1,6 +1,7 @@
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { EMAIL_BRAND, sendDimesEmail } from "../_shared/dimes-emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -216,7 +217,7 @@ serve(async (req) => {
 
     const { data: tippedUser, error: tippedErr } = await supabase
       .from("users")
-      .select("id, username, referred_by")
+      .select("id, username, referred_by, email, first_name")
       .ilike("username", tipped_username)
       .maybeSingle();
 
@@ -226,7 +227,7 @@ serve(async (req) => {
 
     const { data: tipperUser, error: tipperErr } = await supabase
       .from("users")
-      .select("id, username, referred_by")
+      .select("id, username, referred_by, profile_photo")
       .eq("id", tipper_id)
       .single();
 
