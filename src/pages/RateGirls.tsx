@@ -182,7 +182,8 @@ const RateGirls: React.FC = () => {
 
   const requireLogin = () => {
     if (currentUser?.id) return false;
-    navigate("/login");
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    navigate(`/login?redirect=${encodeURIComponent(returnTo)}`);
     return true;
   };
 
