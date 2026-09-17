@@ -33,6 +33,14 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const navigate = useNavigate();
+  const goToLogin = () => {
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    const suffix =
+      returnTo && returnTo !== '/login'
+        ? `?redirect=${encodeURIComponent(returnTo)}`
+        : '';
+    navigate(`/login${suffix}`);
+  };
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Optimistic: if we have a local session, render immediately.
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
@@ -58,7 +66,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         if (!userId) {
           if (!cancelled) {
             setIsAuthenticated(false);
-            navigate('/login');
+            goToLogin();
           }
           return;
         }
@@ -89,7 +97,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
             sessionStorage.removeItem("dimesPushAuthToken");
             await supabase.auth.signOut().catch(() => {});
             setIsAuthenticated(false);
-            navigate('/login');
+            goToLogin();
           }
         } catch (bgError) {
           // Don't block the UI if the background check times out or fails.
@@ -108,7 +116,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         }
         if (!localUserId && !cancelled) {
           setIsAuthenticated(false);
-          navigate('/login');
+          goToLogin();
         }
       }
     };
@@ -122,7 +130,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         sessionStorage.removeItem("currentUser");
         sessionStorage.removeItem("dimesPushAuthToken");
         setIsAuthenticated(false);
-        navigate('/login');
+        goToLogin();
       }
     });
 
@@ -131,7 +139,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
       const userData = sessionStorage.getItem("userData");
       if (!authToken && !userData) {
         setIsAuthenticated(false);
-        navigate('/login');
+        goToLogin();
       }
     };
     window.addEventListener('storage', handleStorageChange);
