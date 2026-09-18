@@ -354,9 +354,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 muted
                 loop
                 playsInline
+                key={warningVideoUrl || FALLBACK_VIDEO}
                 className="w-full h-auto object-contain bg-black rounded-lg border-2 border-orange-500"
               >
-                <source src={FALLBACK_VIDEO} type="video/webm" />
+                <source src={warningVideoUrl || FALLBACK_VIDEO} />
               </video>
             </div>
 
