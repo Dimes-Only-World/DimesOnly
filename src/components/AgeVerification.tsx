@@ -45,6 +45,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
 
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
+  const { videoUrl: warningVideoUrl } = usePageVideo("age_gate_warning");
 
   const refCode = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
