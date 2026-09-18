@@ -192,6 +192,7 @@ function AppContent() {
       <Route path="/jackpot" element={<Jackpot />} />
       <Route path="/rentals" element={<Rentals />} />
       <Route path="/rentals/list" element={<ListACar />} />
+      <Route path="/rentals/host" element={<BecomeAHost />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
