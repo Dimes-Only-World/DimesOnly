@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { useNavigate } from "react-router-dom";
 import { Flame, Plus, Trash2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";

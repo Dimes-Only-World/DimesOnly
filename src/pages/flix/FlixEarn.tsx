@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { useNavigate } from "react-router-dom";
 import { Copy, DollarSign, Flame, Link2, Loader2, TrendingUp, Users } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
