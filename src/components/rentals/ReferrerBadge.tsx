@@ -39,7 +39,7 @@ const ReferrerBadge: React.FC<{ className?: string }> = ({ className = "" }) => 
   const avatar = profile.front_page_photo || profile.profile_photo;
 
   return (
-    <div className={`mt-2 flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2 ${className}`}>
       {avatar ? (
         <img
           src={avatar}
