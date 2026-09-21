@@ -180,7 +180,7 @@ const RentalDetails: React.FC = () => {
       title: "Create your profile to continue",
       description: "You'll come right back to this vehicle after signing up.",
     });
-    navigate(`/register?redirect=${encodeURIComponent(`/rentals/${id}`)}`);
+    navigate(buildAuthUrl("/register", `/rentals/${id}`));
     return false;
   };
 
