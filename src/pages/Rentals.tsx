@@ -10,6 +10,7 @@ import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
+import ReferrerBadge from "@/components/rentals/ReferrerBadge";
 
 interface Vehicle {
   id: string;
@@ -118,10 +119,13 @@ const Rentals: React.FC = () => {
   return (
     <div className="rentals-showroom min-h-screen pb-16">
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 py-4 sm:px-8 lg:px-12">
-        <Link to="/" className="rentals-wordmark text-2xl leading-none text-rental-foreground sm:text-3xl">
-          DIMES ONLY
-          <span className="block font-barlow text-[9px] font-semibold uppercase text-rental-muted sm:text-[10px]">World</span>
-        </Link>
+        <div>
+          <Link to="/" className="rentals-wordmark block text-2xl leading-none text-rental-foreground sm:text-3xl">
+            DIMES ONLY
+            <span className="block font-barlow text-[9px] font-semibold uppercase text-rental-muted sm:text-[10px]">World</span>
+          </Link>
+          <ReferrerBadge />
+        </div>
         <div className="rentals-wordmark text-right text-3xl leading-[0.75] text-rental-foreground sm:text-5xl">
           BEST
           <span className="block text-rental-primary">RENTAL CARS</span>
