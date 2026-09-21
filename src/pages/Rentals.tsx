@@ -122,7 +122,6 @@ const Rentals: React.FC = () => {
         <div>
           <Link to="/" className="rentals-wordmark block text-2xl leading-none text-rental-foreground sm:text-3xl">
             DIMES ONLY
-            <span className="block font-barlow text-[9px] font-semibold uppercase text-rental-muted sm:text-[10px]">World</span>
           </Link>
           <ReferrerBadge />
         </div>
