@@ -72,7 +72,7 @@ const FlixPricing: React.FC = () => {
 
   const subscribe = async () => {
     if (!user?.id) {
-      navigate("/login?next=/flix/pricing");
+      navigate(buildAuthUrl("/login", "/flix/pricing"));
       return;
     }
     if (!agreed) {

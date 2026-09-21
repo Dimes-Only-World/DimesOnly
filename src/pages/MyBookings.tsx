@@ -113,7 +113,7 @@ const MyBookings: React.FC = () => {
       const uid = await resolveUserId();
       if (!uid) {
         toast({ title: "Sign in required", description: "Please log in to view your bookings." });
-        navigate("/login");
+        navigate(buildAuthUrl("/login", window.location.pathname));
         return;
       }
       setUserId(uid);

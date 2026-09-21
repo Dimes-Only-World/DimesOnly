@@ -43,7 +43,7 @@ const FlixTitlePage: React.FC = () => {
   );
 
   const handleMyList = async () => {
-    if (!user?.id) return navigate("/login?next=/flix/title/" + id);
+    if (!user?.id) return navigate(buildAuthUrl("/login", "/flix/title/" + id));
     await toggleMyList(user.id, id!, inList);
     setInList(!inList);
   };

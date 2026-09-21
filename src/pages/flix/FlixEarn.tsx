@@ -111,7 +111,7 @@ const FlixEarn: React.FC = () => {
           <Flame size={40} className="mx-auto text-[#FF4D1A] fill-[#FFB020]" />
           <h1 className="text-2xl font-black mt-4">Join Dimes Only to earn</h1>
           <p className="text-[#A1A1A1] mt-2">Earn 10% residual + 5% override on every FlameFlix subscription you spark.</p>
-          <button onClick={() => navigate("/login?next=/flix/earn")} className="mt-6 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-8 py-3 rounded-md">
+          <button onClick={() => navigate(buildAuthUrl("/login", "/flix/earn"))} className="mt-6 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-8 py-3 rounded-md">
             Sign In
           </button>
         </div>

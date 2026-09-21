@@ -16,6 +16,7 @@ import CapturesGallery from "@/components/rentals/CapturesGallery";
 import AngelLoader from "@/components/AngelLoader";
 import { CancellationPolicyDialog, PaymentDetailsDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { calculateRentalPricing } from "@/lib/rentalPricing";
+import { buildAuthUrl } from "@/lib/refCapture";
 
 type Review = {
   id: string;
