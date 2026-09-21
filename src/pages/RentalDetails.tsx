@@ -16,6 +16,7 @@ import CapturesGallery from "@/components/rentals/CapturesGallery";
 import AngelLoader from "@/components/AngelLoader";
 import { CancellationPolicyDialog, PaymentDetailsDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { calculateRentalPricing } from "@/lib/rentalPricing";
+import { buildAuthUrl } from "@/lib/refCapture";
 
 type Review = {
   id: string;
@@ -180,7 +181,7 @@ const RentalDetails: React.FC = () => {
       title: "Create your profile to continue",
       description: "You'll come right back to this vehicle after signing up.",
     });
-    navigate(`/register?redirect=${encodeURIComponent(`/rentals/${id}`)}`);
+    navigate(buildAuthUrl("/register", `/rentals/${id}`));
     return false;
   };
 

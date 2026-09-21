@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -113,7 +114,7 @@ const MyBookings: React.FC = () => {
       const uid = await resolveUserId();
       if (!uid) {
         toast({ title: "Sign in required", description: "Please log in to view your bookings." });
-        navigate("/login");
+        navigate(buildAuthUrl("/login", window.location.pathname));
         return;
       }
       setUserId(uid);

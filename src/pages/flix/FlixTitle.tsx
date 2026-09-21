@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { useNavigate, useParams } from "react-router-dom";
 import { CalendarClock, Check, Flame, Play, Plus, Share2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
@@ -43,7 +44,7 @@ const FlixTitlePage: React.FC = () => {
   );
 
   const handleMyList = async () => {
-    if (!user?.id) return navigate("/login?next=/flix/title/" + id);
+    if (!user?.id) return navigate(buildAuthUrl("/login", "/flix/title/" + id));
     await toggleMyList(user.id, id!, inList);
     setInList(!inList);
   };

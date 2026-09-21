@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ const RentalPayment: React.FC = () => {
       const uid = await resolveUserId();
       setUserId(uid);
       if (!uid) {
-        navigate("/login");
+        navigate(buildAuthUrl("/login", window.location.pathname));
         return;
       }
 

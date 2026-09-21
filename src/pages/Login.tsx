@@ -133,6 +133,10 @@ const Login: React.FC = () => {
       setUser(user);
       window.dispatchEvent(new CustomEvent("dimes-auth-session-ready"));
 
+      // Capture the return path before any URL cleanup below.
+      const loginParams = new URLSearchParams(window.location.search);
+      const returnTo = loginParams.get("redirect") || loginParams.get("next") || "/dashboard";
+
       // Referral credit applies to new signups only — an existing user logging
       // in voids any ?ref= in the URL so it can't credit the wrong referrer.
       if (currentRef) {
@@ -145,7 +149,7 @@ const Login: React.FC = () => {
       });
 
       // Navigate immediately - don't wait for Supabase Auth sync
-      navigate(new URLSearchParams(window.location.search).get("redirect") || "/dashboard", { replace: true });
+      navigate(returnTo, { replace: true });
 
       // Fire-and-forget: sync Supabase Auth session in the background
       const emailForSync = isEmail(identifier) ? identifier : userData.email;

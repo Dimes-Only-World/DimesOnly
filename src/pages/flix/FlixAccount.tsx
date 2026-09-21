@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { useNavigate } from "react-router-dom";
 import { Flame, Plus, Trash2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
@@ -32,7 +33,7 @@ const FlixAccount: React.FC = () => {
         <div className="max-w-md mx-auto px-4 py-24 text-center">
           <Flame size={40} className="mx-auto text-[#FF4D1A] fill-[#FFB020]" />
           <h1 className="text-2xl font-black mt-4">Sign in to view your account</h1>
-          <button onClick={() => navigate("/login?next=/flix/account")} className="mt-6 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-8 py-3 rounded-md">
+          <button onClick={() => navigate(buildAuthUrl("/login", "/flix/account"))} className="mt-6 bg-[#FF4D1A] hover:bg-[#ff5d30] text-white font-bold px-8 py-3 rounded-md">
             Sign In
           </button>
         </div>

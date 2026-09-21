@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { getReferralUsername } from "@/lib/utils";
+import { getStoredRef } from "@/lib/refCapture";
 import { useAppContext } from "@/contexts/AppContext";
 
 const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
@@ -195,7 +196,7 @@ export const Register: React.FC = () => {
     gender: "",
     userType: "",
     dateOfBirth: agePrefill?.dateOfBirth || "",
-    referredBy: getReferralUsername(searchParams),
+    referredBy: getReferralUsername(searchParams) || getStoredRef(),
   });
 
 

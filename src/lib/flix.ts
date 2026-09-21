@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getActiveRef } from "@/lib/refCapture";
 
 export interface FlixTitle {
   id: string;
@@ -134,15 +135,7 @@ export async function recordLinkClick(code: string) {
 }
 
 export function getFlixRefCode(): string {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get("ref");
-    if (ref) {
-      sessionStorage.setItem("flix_ref", ref);
-      return ref;
-    }
-  } catch { /* ignore */ }
-  return sessionStorage.getItem("flix_ref") || "";
+  return getActiveRef();
 }
 
 export const formatCents = (cents: number) => `$${(cents / 100).toFixed(2)}`;
