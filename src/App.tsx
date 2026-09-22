@@ -24,6 +24,7 @@ import Rate from "@/pages/Rate";
 import RateGirls from "@/pages/RateGirls";
 import AuthGuard from "@/components/AuthGuard";
 import Rankings from "@/pages/Rankings";
+import MoneyCircle from "@/pages/MoneyCircle";
 import Tip from "@/pages/Tip";
 import TipGirls from "@/pages/TipGirls";
 import Upgrade from "@/pages/Upgrade";
@@ -169,6 +170,7 @@ function AppContent() {
         }
       />
       <Route path="/rankings" element={<Rankings />} />
+      <Route path="/money-circle" element={<MoneyCircle />} />
       <Route path="/tip" element={<Tip />} />
       <Route path="/tip-girls" element={<TipGirls />} />
       <Route path="/dimes" element={<DimesPage />} />
