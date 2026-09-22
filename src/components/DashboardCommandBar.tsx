@@ -246,6 +246,15 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
               <Share2 className="mr-1 h-4 w-4" />
               Share My Link
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/money-circle")}
+              className="flex-1 border-border/60 sm:flex-none"
+            >
+              <Users className="mr-1 h-4 w-4" />
+              My Money Circle
+            </Button>
+
 
           </div>
         </div>

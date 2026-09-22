@@ -94,6 +94,39 @@ serve(async (req) => {
       console.log("Skipping user record update:", updateError.message);
     }
 
+    // Registration photos also become entry-level ("silver") feed content.
+    try {
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+
+      if (userRow?.id && url) {
+        const { data: existing } = await supabase
+          .from("user_media")
+          .select("id")
+          .eq("user_id", userRow.id)
+          .eq("media_url", url)
+          .maybeSingle();
+
+        if (!existing) {
+          const { error: mediaError } = await supabase.from("user_media").insert({
+            user_id: userRow.id,
+            media_url: url,
+            media_type: "photo",
+            filename: file.name,
+            file_size: file.size,
+            storage_path: storagePath,
+            content_tier: "free",
+          });
+          if (mediaError) console.log("Skipping user_media insert:", mediaError.message);
+        }
+      }
+    } catch (mediaErr) {
+      console.log("user_media insert skipped:", mediaErr);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
