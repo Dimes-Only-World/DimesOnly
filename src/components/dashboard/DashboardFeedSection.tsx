@@ -43,7 +43,16 @@ interface FeedItem extends MediaRow {
   liked: boolean;
 }
 
-const DIME_TYPES = ["exotic", "stripper"];
+/** Keep only the newest photo and newest video per uploader. */
+const latestPerUser = (rows: MediaRow[]) => {
+  const seen = new Set<string>();
+  return rows.filter((r) => {
+    const key = `${r.user_id}:${r.media_type}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 const timeAgo = (iso: string) => {
   const diff = Date.now() - new Date(iso).getTime();
