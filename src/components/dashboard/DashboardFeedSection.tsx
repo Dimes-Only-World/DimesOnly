@@ -143,7 +143,32 @@ const DashboardFeedSection: React.FC = () => {
         liked: likedByMe.has(r.id),
       }));
 
-      setPhotos(items.filter((i) => i.media_type === "photo"));
+      const photoItems = items.filter((i) => i.media_type === "photo");
+
+      // Users with no uploaded photo still appear, using their profile photo.
+      const covered = new Set(photoItems.map((p) => p.user_id));
+      const { data: profileRows } = await supabase
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, front_page_photo, user_type, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      const fallbacks: FeedItem[] = (profileRows || [])
+        .filter((p: any) => !covered.has(p.id) && (p.front_page_photo || p.profile_photo))
+        .map((p: any) => ({
+          id: `profile:${p.id}`,
+          user_id: p.id,
+          media_url: p.front_page_photo || p.profile_photo,
+          media_type: "photo",
+          filename: null,
+          created_at: p.created_at || new Date().toISOString(),
+          author: { id: p.id, username: p.username, profile_photo: p.profile_photo, user_type: p.user_type },
+          likeCount: 0,
+          commentCount: 0,
+          liked: false,
+        }));
+
+      setPhotos([...photoItems, ...fallbacks]);
       setVideos(items.filter((i) => i.media_type === "video"));
       setAds(adRows);
     } catch (e) {
@@ -160,6 +185,10 @@ const DashboardFeedSection: React.FC = () => {
   const toggleLike = async (item: FeedItem) => {
     if (!user?.id) {
       toast({ title: "Sign in required", description: "Log in to like content." });
+      return;
+    }
+    if (item.id.startsWith("profile:")) {
+      toast({ title: "Profile photo", description: "Likes are available on uploaded posts." });
       return;
     }
     const setter = item.media_type === "photo" ? setPhotos : setVideos;
@@ -202,13 +231,13 @@ const DashboardFeedSection: React.FC = () => {
     }
   };
 
-  /** Split a list into rows and drop an ad in after every 4 rows. */
+  /** Split a list into rows and drop an ad post in after every 3 rows. */
   const withAds = <T,>(list: T[], perRow: number) => {
     const rows: T[][] = [];
     for (let i = 0; i < list.length; i += perRow) rows.push(list.slice(i, i + perRow));
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
-    for (let i = 0; i < rows.length; i += 4) {
-      blocks.push({ rows: rows.slice(i, i + 4), ad: ads[Math.floor(i / 4) % (ads.length || 1)] });
+    for (let i = 0; i < rows.length; i += 3) {
+      blocks.push({ rows: rows.slice(i, i + 3), ad: ads[Math.floor(i / 3) % (ads.length || 1)] });
     }
     return blocks;
   };
@@ -405,6 +434,10 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
   const [text, setText] = useState("");
 
   const loadComments = useCallback(async () => {
+    if (item.id.startsWith("profile:")) {
+      setComments([]);
+      return;
+    }
     const { data } = await supabase
       .from("media_comments")
       .select("id, user_id, comment_text, created_at")
