@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
+import DashboardNavAvatar from "./dashboard/DashboardNavAvatar";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -49,21 +50,7 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
             {/* pr-* keeps the logout button clear of the fixed notification bell */}
             <div className="flex items-center justify-between py-3 gap-3">
 
-              <Link
-                to="/dashboard/profile"
-                aria-label="Go to your profile"
-                className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-pink-400 shadow-md hover:ring-pink-500 transition-all bg-slate-200"
-              >
-                {profilePhoto ? (
-                  <img
-                    src={profilePhoto}
-                    alt={username ? `${username} profile` : "Profile"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <UserIcon className="h-6 w-6 text-slate-600" />
-                )}
-              </Link>
+              <DashboardNavAvatar profilePhoto={profilePhoto} username={username} />
 
               <div className="flex flex-1 items-center justify-center">
                 {title?.toLowerCase() !== "profile" && (

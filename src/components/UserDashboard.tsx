@@ -32,6 +32,7 @@ import SubscriptionProgress from "./SubscriptionProgress";
 import DashboardCommandBar from "./DashboardCommandBar";
 import DashboardChecklist from "./DashboardChecklist";
 import DashboardMembershipCard from "./DashboardMembershipCard";
+import DashboardFeedSection from "./dashboard/DashboardFeedSection";
 import AuthGuard from "./AuthGuard";
 
 
@@ -535,7 +536,10 @@ const UserDashboard: React.FC = () => {
             {/* 7. Finish your profile */}
             <DashboardChecklist userData={userData} onProgress={setCompletion} />
 
-            {/* 8. Seasonal leaderboard */}
+            {/* 8. Social feed */}
+            <DashboardFeedSection />
+
+            {/* 9. Seasonal leaderboard */}
             <Top20DimesCarousel />
 
             {/* 9. Last 20 dimes to join */}
