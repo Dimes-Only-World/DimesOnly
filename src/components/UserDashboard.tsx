@@ -43,6 +43,7 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import { useNavigate, useParams, Navigate } from "react-router-dom";
 import { Tables } from "@/types";
 import { usePageVideo } from "@/hooks/usePageVideo";
+import { useAccountSetup } from "@/hooks/useAccountSetup";
 
 type UserData = Tables<"users">;
 
@@ -182,7 +183,8 @@ const UserDashboard: React.FC = () => {
   const initialUserData = normalizeStoredUser(user as StoredDashboardUser | null) || readStoredUser();
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
   const [loading, setLoading] = useState(!initialUserData);
-  const [completion, setCompletion] = useState(0);
+  const setup = useAccountSetup(initialUserData);
+  const completion = setup.percent;
   const { toast } = useToast();
   const { isMobile } = useMobileLayout();
   const navigate = useNavigate();
