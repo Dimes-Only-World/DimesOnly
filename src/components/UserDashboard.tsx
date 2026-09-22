@@ -461,8 +461,8 @@ const UserDashboard: React.FC = () => {
       case "profile":
         return (
           <div className="text-black [--foreground:0_0%_0%] w-full">
-            {/* 1. Video header */}
-            <div className={`${isMobile ? "py-2" : "py-4"} w-full`}>
+            {/* 1. Video header — full-bleed, flush to top */}
+            <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen -mt-6">
               <DashboardVideoHeader
                 srcDesktop={heroVideoUrl}
                 srcMobile={heroVideoUrl}
@@ -473,8 +473,17 @@ const UserDashboard: React.FC = () => {
             {/* 2. Welcome back */}
             <DashboardCommandBar userData={userData} completion={completion} section="header" />
 
-            {/* 3. Membership */}
-            <DashboardMembershipCard userData={userData} />
+            {/* 3. Membership (collapsible) */}
+            <Accordion type="single" collapsible className="mb-6 w-full">
+              <AccordionItem value="membership" className="rounded-xl border border-border/60 bg-dimes-surface px-4">
+                <AccordionTrigger className="text-base font-bold hover:no-underline">
+                  Your Membership
+                </AccordionTrigger>
+                <AccordionContent>
+                  <DashboardMembershipCard userData={userData} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
             {/* 4. Earnings (collapsible) */}
             <Accordion type="single" collapsible className="mb-6 w-full">
@@ -487,6 +496,7 @@ const UserDashboard: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+
 
             {/* 5. The feed */}
             <DashboardFeedSection />
