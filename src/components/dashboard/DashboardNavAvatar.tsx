@@ -196,6 +196,18 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
                 </button>
               ))}
             </div>
+
+            {showSetup && (
+              <div className="mx-auto max-w-7xl px-3 pb-3">
+                <button
+                  onClick={() => go(PROFILE_INFO_LINK.to)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-dimes-magenta/40 bg-dimes-magenta/10 px-4 py-3 text-sm font-bold tracking-wide text-slate-900 transition-colors hover:bg-dimes-magenta hover:text-white"
+                >
+                  <PROFILE_INFO_LINK.Icon className="h-4 w-4" />
+                  {PROFILE_INFO_LINK.label}
+                </button>
+              </div>
+            )}
           </nav>
         </>
       )}
