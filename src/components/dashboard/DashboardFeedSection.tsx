@@ -131,8 +131,12 @@ const DashboardFeedSection: React.FC = () => {
         commentCounts.set(c.media_id, (commentCounts.get(c.media_id) || 0) + 1),
       );
 
+      // Stored URLs point at a private bucket, so they need signed links to render.
+      const urlMap = await resolveMediaUrls(rows.map((r) => r.media_url));
+
       const items: FeedItem[] = rows.map((r) => ({
         ...r,
+        media_url: urlMap[r.media_url] || r.media_url,
         author: authorMap.get(r.user_id),
         likeCount: likeCounts.get(r.id) || 0,
         commentCount: commentCounts.get(r.id) || 0,
@@ -140,13 +144,7 @@ const DashboardFeedSection: React.FC = () => {
       }));
 
       setPhotos(items.filter((i) => i.media_type === "photo"));
-      setVideos(
-        items.filter(
-          (i) =>
-            i.media_type === "video" &&
-            DIME_TYPES.includes(String(i.author?.user_type || "").toLowerCase()),
-        ),
-      );
+      setVideos(items.filter((i) => i.media_type === "video"));
       setAds(adRows);
     } catch (e) {
       console.warn("dashboard feed load failed", e);
