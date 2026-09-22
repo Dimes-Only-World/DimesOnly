@@ -83,7 +83,7 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
     <>
       <Card
         ref={cardRef}
-        className="mb-6 overflow-hidden border-border/60 bg-dimes-surface animate-fade-in"
+        className="mb-2 overflow-hidden border-border/60 bg-dimes-surface animate-fade-in"
       >
         <CardContent className="p-5 md:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
