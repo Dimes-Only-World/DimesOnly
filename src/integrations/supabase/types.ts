@@ -341,6 +341,45 @@ export type Database = {
           },
         ]
       }
+      dashboard_ads: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          link_url: string | null
+          media_type: string
+          media_url: string | null
+          position: number
+          slot_number: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link_url?: string | null
+          media_type?: string
+          media_url?: string | null
+          position: number
+          slot_number: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link_url?: string | null
+          media_type?: string
+          media_url?: string | null
+          position?: number
+          slot_number?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           created_at: string | null

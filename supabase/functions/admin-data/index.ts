@@ -1175,6 +1175,90 @@ serve(async (req) => {
         break;
       }
 
+      case 'listDashboardAds': {
+        const { data, error } = await supabaseAdmin
+          .from('dashboard_ads')
+          .select('*')
+          .order('position', { ascending: true });
+        if (error) throw error;
+        result = data || [];
+        break;
+      }
+
+      case 'saveDashboardAd': {
+        const { adId, title, mediaUrl, mediaType, linkUrl, isActive } = params;
+        if (!adId) {
+          return new Response(
+            JSON.stringify({ error: 'adId is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (mediaType && !['image', 'gif', 'video'].includes(mediaType)) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid mediaType' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data, error } = await supabaseAdmin
+          .from('dashboard_ads')
+          .update({
+            title: title ?? null,
+            media_url: mediaUrl || null,
+            media_type: mediaType || 'image',
+            link_url: linkUrl || null,
+            is_active: !!isActive,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', adId)
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
+      case 'clearDashboardAd': {
+        const { adId } = params;
+        if (!adId) {
+          return new Response(
+            JSON.stringify({ error: 'adId is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { error } = await supabaseAdmin
+          .from('dashboard_ads')
+          .update({
+            title: null,
+            media_url: null,
+            link_url: null,
+            is_active: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', adId);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+      case 'reorderDashboardAds': {
+        const { order } = params as { order?: string[] };
+        if (!Array.isArray(order) || order.length === 0) {
+          return new Response(
+            JSON.stringify({ error: 'order array is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        for (let i = 0; i < order.length; i++) {
+          const { error } = await supabaseAdmin
+            .from('dashboard_ads')
+            .update({ position: i + 1, updated_at: new Date().toISOString() })
+            .eq('id', order[i]);
+          if (error) throw error;
+        }
+        result = { success: true };
+        break;
+      }
+
       default:
 
         return new Response(
