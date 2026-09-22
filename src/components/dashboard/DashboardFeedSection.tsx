@@ -86,17 +86,21 @@ const DashboardFeedSection: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      // Upgraded members (Silver Plus and above) see the higher tier of content.
+      const upgraded = resolveMembership(user).rank >= 2;
+      const tier = upgraded ? "gold" : "silver";
+
       const [{ data: media }, adRows] = await Promise.all([
         supabase
           .from("user_media")
           .select("id, user_id, media_url, media_type, filename, created_at")
-          .eq("content_tier", "silver")
+          .eq("content_tier", tier)
           .order("created_at", { ascending: false })
-          .limit(120),
+          .limit(400),
         fetchActiveAds(),
       ]);
 
-      const rows = (media || []) as MediaRow[];
+      const rows = latestPerUser((media || []) as MediaRow[]);
       const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
       const mediaIds = rows.map((r) => r.id);
 
