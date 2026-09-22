@@ -16,6 +16,8 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchActiveAds, DashboardAd } from "@/lib/dashboardAds";
+import { resolveMediaUrls } from "@/lib/privateMedia";
+import { resolveMembership } from "@/lib/membership";
 import AdSlot from "./AdSlot";
 
 interface MediaRow {
