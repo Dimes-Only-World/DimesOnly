@@ -86,9 +86,9 @@ const DashboardFeedSection: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Upgraded members (Silver Plus and above) see the higher tier of content.
-      const upgraded = resolveMembership(user).rank >= 2;
-      const tier = upgraded ? "gold" : "silver";
+      // The feed only ever shows silver-tier content.
+      const tier = "silver";
+
 
       const [{ data: media }, adRows] = await Promise.all([
         supabase
