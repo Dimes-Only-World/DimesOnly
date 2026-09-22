@@ -85,8 +85,9 @@ const DashboardFeedSection: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // The feed only ever shows silver-tier content.
-      const tier = "silver";
+      // "Silver Content" (entry-level member content) is stored as the "free" tier.
+      const tier = "free";
+
 
 
       const [{ data: media }, adRows] = await Promise.all([
