@@ -187,6 +187,10 @@ const DashboardFeedSection: React.FC = () => {
       toast({ title: "Sign in required", description: "Log in to like content." });
       return;
     }
+    if (item.id.startsWith("profile:")) {
+      toast({ title: "Profile photo", description: "Likes are available on uploaded posts." });
+      return;
+    }
     const setter = item.media_type === "photo" ? setPhotos : setVideos;
     const nextLiked = !item.liked;
     setter((prev) =>
@@ -227,13 +231,13 @@ const DashboardFeedSection: React.FC = () => {
     }
   };
 
-  /** Split a list into rows and drop an ad in after every 4 rows. */
+  /** Split a list into rows and drop an ad post in after every 3 rows. */
   const withAds = <T,>(list: T[], perRow: number) => {
     const rows: T[][] = [];
     for (let i = 0; i < list.length; i += perRow) rows.push(list.slice(i, i + perRow));
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
-    for (let i = 0; i < rows.length; i += 4) {
-      blocks.push({ rows: rows.slice(i, i + 4), ad: ads[Math.floor(i / 4) % (ads.length || 1)] });
+    for (let i = 0; i < rows.length; i += 3) {
+      blocks.push({ rows: rows.slice(i, i + 3), ad: ads[Math.floor(i / 3) % (ads.length || 1)] });
     }
     return blocks;
   };
