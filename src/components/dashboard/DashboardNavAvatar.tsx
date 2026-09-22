@@ -20,7 +20,11 @@ import {
   UserPlus,
   IdCard,
   X,
+  Rocket,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { useAccountSetup } from "@/hooks/useAccountSetup";
 
 export interface NavLink {
   label: string;
@@ -44,11 +48,16 @@ export const DASHBOARD_NAV_LINKS: NavLink[] = [
   { label: "MEDIA", to: "/dashboard/media", Icon: ImageIcon },
   { label: "JACKPOT", to: "/dashboard/jackpot", Icon: Trophy },
   { label: "REFERRALS", to: "/dashboard/referrals", Icon: Users },
-  { label: "MONEY CIRCLE", to: "/feed", Icon: UserPlus },
+  { label: "MONEY CIRCLE", to: "/money-circle", Icon: UserPlus },
   { label: "TOP 20", to: "/rankings", Icon: Crown },
   { label: "NEW DIMES", to: "/dimes", Icon: Sparkles },
-  { label: "PROFILE INFO", to: "/dashboard/profile#profile-info", Icon: IdCard },
 ];
+
+export const PROFILE_INFO_LINK: NavLink = {
+  label: "PROFILE INFO",
+  to: "/dashboard/profile#profile-info",
+  Icon: IdCard,
+};
 
 interface Props {
   profilePhoto?: string | null;
@@ -62,7 +71,10 @@ interface Props {
 const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
   const [showMenuFace, setShowMenuFace] = useState(false);
   const [open, setOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const navigate = useNavigate();
+  const setup = useAccountSetup();
+  const showSetup = setup.hasUser && !setup.loading && !setup.allDone;
 
   useEffect(() => {
     if (open) return;
@@ -118,6 +130,60 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
             className="fixed left-0 right-0 top-[72px] z-50 border-y border-dimes-magenta/30 bg-white shadow-2xl sm:top-[84px]"
             aria-label="Main navigation"
           >
+            {showSetup && (
+              <div className="mx-auto max-w-7xl px-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setSetupOpen((v) => !v)}
+                  className="w-full rounded-xl border border-dimes-magenta/40 bg-dimes-magenta/10 px-4 py-3 text-left"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Rocket className="h-5 w-5 text-dimes-magenta" />
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">Finish setting up your account</p>
+                        <p className="text-xs text-slate-600">
+                          {setup.completed} of {setup.total} steps complete
+                        </p>
+                      </div>
+                    </div>
+                    {setupOpen ? (
+                      <ChevronUp className="h-4 w-4 text-slate-600" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-slate-600" />
+                    )}
+                  </div>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full bg-dimes-magenta transition-all duration-500"
+                      style={{ width: `${setup.percent}%` }}
+                    />
+                  </div>
+                </button>
+
+                {setupOpen && (
+                  <ul className="mt-2 space-y-1.5">
+                    {setup.steps
+                      .filter((s) => !s.done)
+                      .map((s) => (
+                        <li
+                          key={s.id}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                        >
+                          <span className="text-sm font-medium text-slate-800">{s.label}</span>
+                          <button
+                            onClick={() => go(s.href)}
+                            className="rounded-md bg-dimes-magenta px-3 py-1 text-xs font-bold text-white"
+                          >
+                            {s.cta}
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
             <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 p-3 sm:grid-cols-5 lg:grid-cols-7">
               {DASHBOARD_NAV_LINKS.map(({ label, to, Icon }) => (
                 <button
@@ -134,6 +200,18 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
                 </button>
               ))}
             </div>
+
+            {showSetup && (
+              <div className="mx-auto max-w-7xl px-3 pb-3">
+                <button
+                  onClick={() => go(PROFILE_INFO_LINK.to)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-dimes-magenta/40 bg-dimes-magenta/10 px-4 py-3 text-sm font-bold tracking-wide text-slate-900 transition-colors hover:bg-dimes-magenta hover:text-white"
+                >
+                  <PROFILE_INFO_LINK.Icon className="h-4 w-4" />
+                  {PROFILE_INFO_LINK.label}
+                </button>
+              </div>
+            )}
           </nav>
         </>
       )}
