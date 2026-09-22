@@ -434,6 +434,10 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
   const [text, setText] = useState("");
 
   const loadComments = useCallback(async () => {
+    if (item.id.startsWith("profile:")) {
+      setComments([]);
+      return;
+    }
     const { data } = await supabase
       .from("media_comments")
       .select("id, user_id, comment_text, created_at")

@@ -33,6 +33,7 @@ import DashboardCommandBar from "./DashboardCommandBar";
 import DashboardChecklist from "./DashboardChecklist";
 import DashboardMembershipCard from "./DashboardMembershipCard";
 import DashboardFeedSection from "./dashboard/DashboardFeedSection";
+import SharedLeadsList from "./SharedLeadsList";
 import AuthGuard from "./AuthGuard";
 
 
@@ -493,6 +494,9 @@ const UserDashboard: React.FC = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <DashboardCommandBar userData={userData} completion={completion} section="kpis" />
+                  <div className="mt-4">
+                    <SharedLeadsList />
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
