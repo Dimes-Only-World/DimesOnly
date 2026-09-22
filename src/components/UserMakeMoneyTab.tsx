@@ -182,6 +182,26 @@ const UserMakeMoneyTab: React.FC = () => {
 
   return (
     <div className="w-full max-w-none px-0 md:px-4 space-y-8">
+      {/* Diamond Yearly subscription */}
+      <div className="rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-amber-500/15 p-5 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-500">Best Value</p>
+            <h3 className="text-xl md:text-2xl font-bold">Diamond Yearly — $150 / year</h3>
+            <p className="text-sm text-muted-foreground max-w-xl">
+              A full year of Diamond access. Your referrals earn you $30 direct and $15 upline on every Diamond Yearly
+              signup.
+            </p>
+          </div>
+          <a
+            href="/upgrade-diamond-monthly"
+            className="inline-flex shrink-0 items-center justify-center rounded-xl bg-amber-500 px-6 py-3 font-bold text-black transition-colors hover:bg-amber-400"
+          >
+            Get Diamond Yearly
+          </a>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl md:text-3xl font-bold text-primary">Share Your Link & Grow Your Network</h2>

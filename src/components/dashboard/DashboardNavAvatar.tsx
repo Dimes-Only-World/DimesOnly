@@ -20,7 +20,11 @@ import {
   UserPlus,
   IdCard,
   X,
+  Rocket,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { useAccountSetup } from "@/hooks/useAccountSetup";
 
 export interface NavLink {
   label: string;
