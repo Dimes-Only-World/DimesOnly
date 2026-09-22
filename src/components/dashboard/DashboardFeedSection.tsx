@@ -16,6 +16,8 @@ import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchActiveAds, DashboardAd } from "@/lib/dashboardAds";
+import { resolveMediaUrls } from "@/lib/privateMedia";
+import { resolveMembership } from "@/lib/membership";
 import AdSlot from "./AdSlot";
 
 interface MediaRow {
@@ -41,7 +43,16 @@ interface FeedItem extends MediaRow {
   liked: boolean;
 }
 
-const DIME_TYPES = ["exotic", "stripper"];
+/** Keep only the newest photo and newest video per uploader. */
+const latestPerUser = (rows: MediaRow[]) => {
+  const seen = new Set<string>();
+  return rows.filter((r) => {
+    const key = `${r.user_id}:${r.media_type}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 const timeAgo = (iso: string) => {
   const diff = Date.now() - new Date(iso).getTime();
@@ -75,17 +86,21 @@ const DashboardFeedSection: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      // Upgraded members (Silver Plus and above) see the higher tier of content.
+      const upgraded = resolveMembership(user).rank >= 2;
+      const tier = upgraded ? "gold" : "silver";
+
       const [{ data: media }, adRows] = await Promise.all([
         supabase
           .from("user_media")
           .select("id, user_id, media_url, media_type, filename, created_at")
-          .eq("content_tier", "silver")
+          .eq("content_tier", tier)
           .order("created_at", { ascending: false })
-          .limit(120),
+          .limit(400),
         fetchActiveAds(),
       ]);
 
-      const rows = (media || []) as MediaRow[];
+      const rows = latestPerUser((media || []) as MediaRow[]);
       const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
       const mediaIds = rows.map((r) => r.id);
 
@@ -116,8 +131,12 @@ const DashboardFeedSection: React.FC = () => {
         commentCounts.set(c.media_id, (commentCounts.get(c.media_id) || 0) + 1),
       );
 
+      // Stored URLs point at a private bucket, so they need signed links to render.
+      const urlMap = await resolveMediaUrls(rows.map((r) => r.media_url));
+
       const items: FeedItem[] = rows.map((r) => ({
         ...r,
+        media_url: urlMap[r.media_url] || r.media_url,
         author: authorMap.get(r.user_id),
         likeCount: likeCounts.get(r.id) || 0,
         commentCount: commentCounts.get(r.id) || 0,
@@ -125,13 +144,7 @@ const DashboardFeedSection: React.FC = () => {
       }));
 
       setPhotos(items.filter((i) => i.media_type === "photo"));
-      setVideos(
-        items.filter(
-          (i) =>
-            i.media_type === "video" &&
-            DIME_TYPES.includes(String(i.author?.user_type || "").toLowerCase()),
-        ),
-      );
+      setVideos(items.filter((i) => i.media_type === "video"));
       setAds(adRows);
     } catch (e) {
       console.warn("dashboard feed load failed", e);
