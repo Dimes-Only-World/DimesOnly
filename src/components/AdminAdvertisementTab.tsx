@@ -1,0 +1,234 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { ArrowDown, ArrowUp, Eraser, Save } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface AdRow {
+  id: string;
+  slot_number: number;
+  position: number;
+  title: string | null;
+  media_url: string | null;
+  media_type: "image" | "gif" | "video";
+  link_url: string | null;
+  is_active: boolean;
+}
+
+const getAdminUserId = (): string | null => {
+  try {
+    const raw = sessionStorage.getItem("adminUser");
+    return raw ? JSON.parse(raw)?.id || null : null;
+  } catch {
+    return null;
+  }
+};
+
+const AdminAdvertisementTab: React.FC = () => {
+  const { toast } = useToast();
+  const [ads, setAds] = useState<AdRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [onlyFilled, setOnlyFilled] = useState(false);
+
+  const call = useCallback(
+    async (action: string, extra: Record<string, unknown> = {}) => {
+      const adminUserId = getAdminUserId();
+      if (!adminUserId) throw new Error("Admin session not found");
+      const { data, error } = await supabase.functions.invoke("admin-data", {
+        body: { action, adminUserId, ...extra },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return (data as any)?.data;
+    },
+    [],
+  );
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const rows = await call("listDashboardAds");
+      setAds((rows || []) as AdRow[]);
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to load ads", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [call, toast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const patch = (id: string, changes: Partial<AdRow>) =>
+    setAds((prev) => prev.map((a) => (a.id === id ? { ...a, ...changes } : a)));
+
+  const save = async (ad: AdRow) => {
+    setSavingId(ad.id);
+    try {
+      await call("saveDashboardAd", {
+        adId: ad.id,
+        title: ad.title,
+        mediaUrl: ad.media_url,
+        mediaType: ad.media_type,
+        linkUrl: ad.link_url,
+        isActive: ad.is_active,
+      });
+      toast({ title: "Saved", description: `Spot ${ad.slot_number} updated` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Save failed", variant: "destructive" });
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const clear = async (ad: AdRow) => {
+    if (!window.confirm(`Clear advertisement spot ${ad.slot_number}?`)) return;
+    try {
+      await call("clearDashboardAd", { adId: ad.id });
+      patch(ad.id, { title: null, media_url: null, link_url: null, is_active: false });
+      toast({ title: "Cleared", description: `Spot ${ad.slot_number} is empty` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed", variant: "destructive" });
+    }
+  };
+
+  const move = async (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= ads.length) return;
+    const next = [...ads];
+    [next[index], next[target]] = [next[target], next[index]];
+    setAds(next.map((a, i) => ({ ...a, position: i + 1 })));
+    try {
+      await call("reorderDashboardAds", { order: next.map((a) => a.id) });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Reorder failed", variant: "destructive" });
+      load();
+    }
+  };
+
+  const visible = onlyFilled ? ads.filter((a) => a.media_url) : ads;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+        <CardTitle>Advertisements — 100 Spots</CardTitle>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="only-filled" className="text-sm">
+            Show only filled spots
+          </Label>
+          <Switch id="only-filled" checked={onlyFilled} onCheckedChange={setOnlyFilled} />
+          <Button variant="outline" onClick={load}>
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Paste a video or GIF/image link into a spot, switch it on, and save. Ads appear in the member
+          dashboard feed after every 4 rows, in the order shown below. Use the arrows to move a spot up
+          or down.
+        </p>
+
+        {loading ? (
+          <p className="py-8 text-center text-muted-foreground">Loading spots…</p>
+        ) : (
+          visible.map((ad) => {
+            const index = ads.findIndex((a) => a.id === ad.id);
+            return (
+              <div
+                key={ad.id}
+                className="rounded-lg border p-3 md:grid md:grid-cols-[110px_1fr_auto] md:items-start md:gap-4"
+              >
+                <div className="mb-2 flex items-center gap-2 md:mb-0 md:flex-col md:items-start">
+                  <span className="rounded bg-slate-900 px-2 py-1 text-xs font-bold text-white">
+                    Spot {ad.slot_number}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Order #{index + 1}</span>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="outline" onClick={() => move(index, -1)} aria-label="Move up">
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="outline" onClick={() => move(index, 1)} aria-label="Move down">
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <Label className="text-xs">Title (optional)</Label>
+                    <Input
+                      value={ad.title || ""}
+                      onChange={(e) => patch(ad.id, { title: e.target.value })}
+                      placeholder="Headline shown over the ad"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Click-through link (optional)</Label>
+                    <Input
+                      value={ad.link_url || ""}
+                      onChange={(e) => patch(ad.id, { link_url: e.target.value })}
+                      placeholder="https://…"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs">Video / GIF / image URL</Label>
+                    <Input
+                      value={ad.media_url || ""}
+                      onChange={(e) => patch(ad.id, { media_url: e.target.value })}
+                      placeholder="https://…mp4 or .gif or .jpg"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label className="text-xs">Type</Label>
+                    <select
+                      value={ad.media_type}
+                      onChange={(e) => patch(ad.id, { media_type: e.target.value as AdRow["media_type"] })}
+                      className="h-9 rounded-md border bg-background px-2 text-sm"
+                    >
+                      <option value="image">Image</option>
+                      <option value="gif">GIF</option>
+                      <option value="video">Video</option>
+                    </select>
+                    <Label className="ml-2 text-xs">Live</Label>
+                    <Switch
+                      checked={ad.is_active}
+                      onCheckedChange={(v) => patch(ad.id, { is_active: v })}
+                    />
+                  </div>
+                  {ad.media_url && (
+                    <div className="sm:col-span-2">
+                      {ad.media_type === "video" ? (
+                        <video src={ad.media_url} className="h-28 rounded border object-cover" muted controls />
+                      ) : (
+                        <img src={ad.media_url} alt="" className="h-28 rounded border object-cover" />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-2 flex gap-2 md:mt-0 md:flex-col">
+                  <Button onClick={() => save(ad)} disabled={savingId === ad.id}>
+                    <Save className="mr-1 h-4 w-4" />
+                    {savingId === ad.id ? "Saving…" : "Save"}
+                  </Button>
+                  <Button variant="outline" onClick={() => clear(ad)}>
+                    <Eraser className="mr-1 h-4 w-4" /> Clear
+                  </Button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default AdminAdvertisementTab;
