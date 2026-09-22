@@ -459,58 +459,7 @@ const UserDashboard: React.FC = () => {
       case "profile":
         return (
           <div className="text-black [--foreground:0_0%_0%] w-full">
-            {/* 1. Banner wall-to-wall + quick actions */}
-            <div className="-mx-3 mb-6 sm:-mx-4 lg:-mx-6">
-              <DashboardBanner
-                bannerPhoto={userData.banner_photo}
-                userData={userData}
-                onImageUpload={(file) => handleImageUpload(file, "banner")}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6">
-              {[
-                { slug: "profile", label: "PROFILE", Icon: User, tint: "bg-pink-500/15 text-pink-500" },
-                { slug: "make-money", label: "MAKE MONEY", Icon: DollarSign, tint: "bg-emerald-500/15 text-emerald-500" },
-                { slug: "notifications", label: "NOTIFICATIONS", Icon: Bell, tint: "bg-blue-500/15 text-blue-500" },
-                { slug: "earnings", label: "EARNINGS", Icon: TrendingUp, tint: "bg-amber-500/15 text-amber-500" },
-                { slug: "messages", label: "MESSAGES", Icon: MessageSquare, tint: "bg-purple-500/15 text-purple-500" },
-                { slug: "media", label: "MEDIA", Icon: Image, tint: "bg-red-500/15 text-red-500" },
-                { slug: "jackpot", label: "JACKPOT", Icon: Trophy, tint: "bg-orange-500/15 text-orange-500" },
-                { slug: "referrals", label: "REFERRALS", Icon: Users, tint: "bg-cyan-500/15 text-cyan-500" },
-              ].map(({ slug: s, label, Icon, tint }) => (
-                <button
-                  key={s}
-                  onClick={() =>
-                    navigate(
-                      s === "profile" && userData?.username
-                        ? `/profile/${userData.username}`
-                        : `/dashboard/${s}`,
-                    )
-                  }
-                  className="group rounded-xl border border-border/60 bg-dimes-surface p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-dimes-magenta/50 hover:shadow-md"
-                  aria-label={label}
-                >
-                  <span className="flex flex-col items-center gap-2">
-                    <span className={`flex h-9 w-9 items-center justify-center rounded-full ${tint}`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="truncate text-[11px] font-semibold tracking-wide sm:text-xs">
-                      {label}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* 2. Money circle */}
-            <DashboardMoneyCircle
-              userId={userData.id}
-              onViewAll={() => navigate("/dashboard/referrals")}
-              onGetLink={() => navigate("/dashboard/make-money#referral-link")}
-            />
-
-            {/* 3. Video */}
+            {/* 1. Video header */}
             <div className={`${isMobile ? "py-2" : "py-4"} w-full`}>
               <DashboardVideoHeader
                 srcDesktop={heroVideoUrl}
@@ -519,68 +468,28 @@ const UserDashboard: React.FC = () => {
               />
             </div>
 
-            {/* 4. Approval status + welcome */}
-            <ApprovalStatusBanner
-              status={(userData as any)?.approval_status}
-              userType={userData?.user_type}
-            />
-
+            {/* 2. Welcome back */}
             <DashboardCommandBar userData={userData} completion={completion} section="header" />
 
-            {/* 5. Membership */}
+            {/* 3. Membership */}
             <DashboardMembershipCard userData={userData} />
 
-            {/* 6. Earnings */}
-            <DashboardCommandBar userData={userData} completion={completion} section="kpis" />
-
-            {/* 7. Finish your profile */}
-            <DashboardChecklist userData={userData} onProgress={setCompletion} />
-
-            {/* 8. Social feed */}
-            <DashboardFeedSection />
-
-            {/* 9. Seasonal leaderboard */}
-            <Top20DimesCarousel />
-
-            {/* 9. Last 20 dimes to join */}
-            <LatestDimesCarousel theme="light" />
-
-            <div className="w-full mb-6">
-              <Button
-                onClick={() => navigate("/feed")}
-                className="w-full h-auto py-4 px-6 rounded-xl bg-dimes-magenta hover:bg-dimes-magenta/90 text-white font-bold text-base shadow-lg flex items-center justify-center gap-2"
-              >
-                <Smartphone className="w-5 h-5" />
-                Social Feed — Post Photos &amp; Reels
-              </Button>
-            </div>
-
-            <SubscriptionProgress userId={userData.id} />
-
-            <DiamondPlusPopup userData={userData} />
-
-            {/* 10. Profile information (collapsible) */}
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="profile-info" className="rounded-xl border border-border/60 bg-dimes-surface px-4">
+            {/* 4. Earnings (collapsible) */}
+            <Accordion type="single" collapsible className="mb-6 w-full">
+              <AccordionItem value="earnings" className="rounded-xl border border-border/60 bg-dimes-surface px-4">
                 <AccordionTrigger className="text-base font-bold hover:no-underline">
-                  Profile Information
+                  Earnings
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 pb-4">
-                    <div className="lg:col-span-1">
-                      <ProfileSidebar
-                        userData={userData}
-                        referrerData={null}
-                        onImageUpload={(file) => handleImageUpload(file, "profile")}
-                      />
-                    </div>
-                    <div className="lg:col-span-3">
-                      <ProfileInfo userData={userData} onUpdate={updateUserData} />
-                    </div>
-                  </div>
+                  <DashboardCommandBar userData={userData} completion={completion} section="kpis" />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+
+            {/* 5. The feed */}
+            <DashboardFeedSection />
+
+            <DiamondPlusPopup userData={userData} />
           </div>
         );
       case "make-money":
