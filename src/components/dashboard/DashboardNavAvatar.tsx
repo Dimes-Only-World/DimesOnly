@@ -44,11 +44,16 @@ export const DASHBOARD_NAV_LINKS: NavLink[] = [
   { label: "MEDIA", to: "/dashboard/media", Icon: ImageIcon },
   { label: "JACKPOT", to: "/dashboard/jackpot", Icon: Trophy },
   { label: "REFERRALS", to: "/dashboard/referrals", Icon: Users },
-  { label: "MONEY CIRCLE", to: "/feed", Icon: UserPlus },
+  { label: "MONEY CIRCLE", to: "/money-circle", Icon: UserPlus },
   { label: "TOP 20", to: "/rankings", Icon: Crown },
   { label: "NEW DIMES", to: "/dimes", Icon: Sparkles },
-  { label: "PROFILE INFO", to: "/dashboard/profile#profile-info", Icon: IdCard },
 ];
+
+export const PROFILE_INFO_LINK: NavLink = {
+  label: "PROFILE INFO",
+  to: "/dashboard/profile#profile-info",
+  Icon: IdCard,
+};
 
 interface Props {
   profilePhoto?: string | null;
