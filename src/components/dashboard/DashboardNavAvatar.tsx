@@ -67,7 +67,10 @@ interface Props {
 const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
   const [showMenuFace, setShowMenuFace] = useState(false);
   const [open, setOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const navigate = useNavigate();
+  const setup = useAccountSetup();
+  const showSetup = setup.hasUser && !setup.loading && !setup.allDone;
 
   useEffect(() => {
     if (open) return;
