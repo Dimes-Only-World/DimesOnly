@@ -143,7 +143,32 @@ const DashboardFeedSection: React.FC = () => {
         liked: likedByMe.has(r.id),
       }));
 
-      setPhotos(items.filter((i) => i.media_type === "photo"));
+      const photoItems = items.filter((i) => i.media_type === "photo");
+
+      // Users with no uploaded photo still appear, using their profile photo.
+      const covered = new Set(photoItems.map((p) => p.user_id));
+      const { data: profileRows } = await supabase
+        .from("public_user_profiles")
+        .select("id, username, profile_photo, front_page_photo, user_type, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      const fallbacks: FeedItem[] = (profileRows || [])
+        .filter((p: any) => !covered.has(p.id) && (p.front_page_photo || p.profile_photo))
+        .map((p: any) => ({
+          id: `profile:${p.id}`,
+          user_id: p.id,
+          media_url: p.front_page_photo || p.profile_photo,
+          media_type: "photo",
+          filename: null,
+          created_at: p.created_at || new Date().toISOString(),
+          author: { id: p.id, username: p.username, profile_photo: p.profile_photo, user_type: p.user_type },
+          likeCount: 0,
+          commentCount: 0,
+          liked: false,
+        }));
+
+      setPhotos([...photoItems, ...fallbacks]);
       setVideos(items.filter((i) => i.media_type === "video"));
       setAds(adRows);
     } catch (e) {
