@@ -509,6 +509,30 @@ const UserDashboard: React.FC = () => {
             <DiamondPlusPopup userData={userData} />
           </div>
         );
+      case "profile-info":
+        return (
+          <div className="space-y-6" id="profile-info">
+            <Card className="overflow-hidden">
+              <DashboardBanner
+                bannerPhoto={(userData as any).banner_photo}
+                userData={userData}
+                onImageUpload={(file) => handleImageUpload(file, "banner")}
+              />
+            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-1">
+                <ProfileSidebar
+                  userData={userData}
+                  referrerData={null}
+                  onImageUpload={(file) => handleImageUpload(file, "profile")}
+                />
+              </div>
+              <div className="lg:col-span-3">
+                <ProfileInfo userData={userData} onUpdate={updateUserData} />
+              </div>
+            </div>
+          </div>
+        );
       case "make-money":
         return <UserMakeMoneyTab />;
       case "notifications":

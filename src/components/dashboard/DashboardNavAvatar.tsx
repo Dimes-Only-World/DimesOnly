@@ -55,7 +55,7 @@ export const DASHBOARD_NAV_LINKS: NavLink[] = [
 
 export const PROFILE_INFO_LINK: NavLink = {
   label: "PROFILE INFO",
-  to: "/dashboard/profile#profile-info",
+  to: "/dashboard/profile-info",
   Icon: IdCard,
 };
 
