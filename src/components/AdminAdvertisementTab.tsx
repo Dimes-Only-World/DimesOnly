@@ -8,6 +8,15 @@ import { ArrowDown, ArrowUp, Eraser, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface ClickRow {
+  id: string;
+  ad_id: string;
+  user_id: string | null;
+  username: string | null;
+  link_url: string | null;
+  clicked_at: string;
+}
+
 interface AdRow {
   id: string;
   slot_number: number;
@@ -113,6 +122,85 @@ const AdminAdvertisementTab: React.FC = () => {
   };
 
   const visible = onlyFilled ? ads.filter((a) => a.media_url) : ads;
+
+  /* ------------------------------------------------ click report */
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [reportAdId, setReportAdId] = useState("");
+  const [clicks, setClicks] = useState<ClickRow[] | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const runReport = async () => {
+    if (!fromDate || !toDate) {
+      toast({ title: "Pick dates", description: "Choose a From and To date first.", variant: "destructive" });
+      return;
+    }
+    setReportLoading(true);
+    try {
+      const rows = await call("listDashboardAdClicks", {
+        adId: reportAdId || undefined,
+        fromDate,
+        toDate,
+      });
+      setClicks((rows || []) as ClickRow[]);
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Report failed", variant: "destructive" });
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const slotFor = (adId: string) => ads.find((a) => a.id === adId)?.slot_number ?? "";
+
+  const downloadCsv = () => {
+    if (!clicks?.length) return;
+    const header = ["Date", "Time", "Username", "Spot", "Link"];
+    const lines = clicks.map((c) => {
+      const d = new Date(c.clicked_at);
+      return [
+        d.toLocaleDateString("en-US"),
+        d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+        c.username ? `@${c.username}` : "guest",
+        `Spot ${slotFor(c.ad_id)}`,
+        c.link_url || "",
+      ]
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",");
+    });
+    const csv = [
+      `"Report date","From ${fromDate}","To ${toDate}"`,
+      `"Number of clicks","${clicks.length}"`,
+      "",
+      header.map((h) => `"${h}"`).join(","),
+      ...lines,
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ad-clicks_${fromDate}_to_${toDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const deleteOne = async (id: string) => {
+    try {
+      await call("deleteDashboardAdClicks", { clickIds: [id] });
+      setClicks((prev) => (prev || []).filter((c) => c.id !== id));
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Delete failed", variant: "destructive" });
+    }
+  };
+
+  const deleteRange = async () => {
+    if (!window.confirm(`Delete all click records from ${fromDate} to ${toDate}?`)) return;
+    try {
+      await call("deleteDashboardAdClicks", { adId: reportAdId || undefined, fromDate, toDate });
+      setClicks([]);
+      toast({ title: "Deleted", description: "Click records removed" });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Delete failed", variant: "destructive" });
+    }
+  };
 
   return (
     <Card>
