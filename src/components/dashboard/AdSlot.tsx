@@ -1,5 +1,6 @@
 import React from "react";
-import { DashboardAd } from "@/lib/dashboardAds";
+import { DashboardAd, recordAdClick } from "@/lib/dashboardAds";
+import { useAppContext } from "@/contexts/AppContext";
 
 interface Props {
   ad: DashboardAd;
@@ -7,6 +8,7 @@ interface Props {
 
 /** A single sponsored placement rendered inside the dashboard feed. */
 const AdSlot: React.FC<Props> = ({ ad }) => {
+  const { user } = useAppContext();
   if (!ad.media_url) return null;
 
   const body =
@@ -42,7 +44,15 @@ const AdSlot: React.FC<Props> = ({ ad }) => {
   return (
     <div className="my-6 w-full">
       {ad.link_url ? (
-        <a href={ad.link_url} target="_blank" rel="noopener noreferrer" className="block">
+        <a
+          href={ad.link_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+          onClick={() =>
+            recordAdClick(ad, (user as any)?.id || null, (user as any)?.username || null)
+          }
+        >
           {inner}
         </a>
       ) : (

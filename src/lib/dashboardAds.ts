@@ -25,3 +25,21 @@ export async function fetchActiveAds(): Promise<DashboardAd[]> {
   }
   return (data || []) as DashboardAd[];
 }
+
+/** Log an advertisement click so admins can report on it. Never blocks the click. */
+export async function recordAdClick(
+  ad: DashboardAd,
+  userId?: string | null,
+  username?: string | null,
+): Promise<void> {
+  try {
+    await supabase.from("dashboard_ad_clicks").insert({
+      ad_id: ad.id,
+      user_id: userId || null,
+      username: username || null,
+      link_url: ad.link_url,
+    });
+  } catch (e) {
+    console.warn("recordAdClick failed", e);
+  }
+}
