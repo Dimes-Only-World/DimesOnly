@@ -85,7 +85,7 @@ export function useAccountSetup(externalUser?: any) {
     {
       id: "photo",
       label: "Add a profile photo",
-      href: "/dashboard/profile",
+      href: "/dashboard/profile-info",
       cta: "Add photo",
       done: Boolean(userData?.profile_photo),
     },
