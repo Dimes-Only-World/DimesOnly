@@ -341,6 +341,41 @@ export type Database = {
           },
         ]
       }
+      dashboard_ad_clicks: {
+        Row: {
+          ad_id: string
+          clicked_at: string
+          id: string
+          link_url: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          ad_id: string
+          clicked_at?: string
+          id?: string
+          link_url?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          ad_id?: string
+          clicked_at?: string
+          id?: string
+          link_url?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_ad_clicks_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dashboard_ads: {
         Row: {
           created_at: string
