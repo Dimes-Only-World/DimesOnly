@@ -194,7 +194,7 @@ const UserMakeMoneyTab: React.FC = () => {
             </p>
           </div>
           <a
-            href="/upgrade-diamond-monthly"
+            href="/upgrade-diamond-monthly?cadence=yearly"
             className="inline-flex shrink-0 items-center justify-center rounded-xl bg-amber-500 px-6 py-3 font-bold text-black transition-colors hover:bg-amber-400"
           >
             Get Diamond Yearly

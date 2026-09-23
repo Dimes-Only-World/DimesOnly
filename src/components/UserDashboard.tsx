@@ -170,6 +170,7 @@ const mergeUserDataWithMemberDate = (
 
 const SLUG_TITLES: Record<string, string> = {
   profile: "Profile",
+  "profile-info": "Profile Info",
   "make-money": "Make Money",
   notifications: "Notifications",
   earnings: "Earnings",
