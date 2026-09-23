@@ -1259,6 +1259,60 @@ serve(async (req) => {
         break;
       }
 
+      case 'listDashboardAdClicks': {
+        const { adId, fromDate, toDate } = params as {
+          adId?: string;
+          fromDate?: string;
+          toDate?: string;
+        };
+        let query = supabaseAdmin
+          .from('dashboard_ad_clicks')
+          .select('id, ad_id, user_id, username, link_url, clicked_at')
+          .order('clicked_at', { ascending: false })
+          .limit(5000);
+        if (adId) query = query.eq('ad_id', adId);
+        if (fromDate) query = query.gte('clicked_at', new Date(fromDate).toISOString());
+        if (toDate) {
+          const end = new Date(toDate);
+          end.setHours(23, 59, 59, 999);
+          query = query.lte('clicked_at', end.toISOString());
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        result = data || [];
+        break;
+      }
+
+      case 'deleteDashboardAdClicks': {
+        const { clickIds, adId, fromDate, toDate } = params as {
+          clickIds?: string[];
+          adId?: string;
+          fromDate?: string;
+          toDate?: string;
+        };
+        let del = supabaseAdmin.from('dashboard_ad_clicks').delete();
+        if (Array.isArray(clickIds) && clickIds.length > 0) {
+          del = del.in('id', clickIds);
+        } else if (adId || fromDate || toDate) {
+          if (adId) del = del.eq('ad_id', adId);
+          if (fromDate) del = del.gte('clicked_at', new Date(fromDate).toISOString());
+          if (toDate) {
+            const end = new Date(toDate);
+            end.setHours(23, 59, 59, 999);
+            del = del.lte('clicked_at', end.toISOString());
+          }
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'clickIds or a date range is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const { error } = await del;
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
       default:
 
         return new Response(
