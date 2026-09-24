@@ -86,6 +86,19 @@ serve(async (req) => {
       );
     }
 
+    {
+      const _sb = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+      const { data: ev } = await _sb.from("events").select("*").eq("id", event_id).maybeSingle();
+      if (!ev) return new Response(JSON.stringify({ success: false, error: "Event not found." }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 });
+      const qty = Math.min(Math.max(Number(ticket_quantity) || 1, 1), 50);
+      const prices = ["price","general_admission_price","males_price","females_price","vip_price","vip_section_price","group_discount_price"]
+        .map((k) => Number((ev as any)[k])).filter((n) => Number.isFinite(n) && n > 0);
+      const minUnit = prices.length ? Math.min(...prices) : 0;
+      if (parsedAmount + 0.001 < minUnit * qty * 0.5) {
+        return new Response(JSON.stringify({ success: false, error: "Invalid amount." }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
+      }
+    }
+
     const PAYPAL_BASE_URL =
       paypalEnvironment === "production" || paypalEnvironment === "live"
         ? "https://api-m.paypal.com"
