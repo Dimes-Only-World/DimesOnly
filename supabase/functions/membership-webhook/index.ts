@@ -66,10 +66,7 @@ serve(async (req) => {
         const errorMessage = `Order not found for ID: ${orderId}`;
         console.error(errorMessage);
         return new Response(JSON.stringify({ 
-          error: "Order not found",
-          details: errorMessage,
-          orderId,
-          upgradeError: upgradeError?.message
+          error: "Order not found"
         }), {
           status: 404,
           headers: {
@@ -289,10 +286,7 @@ serve(async (req) => {
     const stackTrace = error instanceof Error ? error.stack : undefined;
     
     return new Response(JSON.stringify({ 
-      error: "Webhook error",
-      message: errorMessage,
-      stack: stackTrace,
-      requestBody: webhookBody
+      error: "Webhook error"
     }), {
       status: 500,
       headers: {
