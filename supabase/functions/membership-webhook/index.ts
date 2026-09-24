@@ -1,3 +1,4 @@
+import { verifyPayPalWebhookSignature } from "../_shared/paypalVerify.ts";
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -30,7 +31,7 @@ serve(async (req) => {
 
     // Log request body for debugging
     const body = await req.text();
-    console.log("Request body:", body);
+    if (!(await verifyPayPalWebhookSignature(req.headers, body))) return new Response(JSON.stringify({ error: "Invalid webhook signature" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     webhookBody = JSON.parse(body);
     console.log("Diamond Plus webhook received:", webhookBody);
 
