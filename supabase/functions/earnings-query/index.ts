@@ -374,7 +374,8 @@ function sourceLabelFor(paymentType: string): string {
 
 function toCsv(headers: string[] | [], rows: any[][]): string {
   const escape = (v: any) => {
-    const s = v === null || v === undefined ? '' : String(v);
+    let s = v === null || v === undefined ? '' : String(v);
+    if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
     if (s.includes(',') || s.includes('"') || s.includes('\n')) {
       return '"' + s.replace(/"/g, '""') + '"';
     }
