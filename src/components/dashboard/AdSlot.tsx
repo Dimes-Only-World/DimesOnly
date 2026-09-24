@@ -28,7 +28,7 @@ const AdSlot: React.FC<Props> = ({ ad }) => {
     );
 
   const inner = (
-    <div className="relative aspect-[16/6] w-full overflow-hidden rounded-xl border border-amber-400/60 bg-black">
+    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-amber-400/60 bg-black">
       {body}
       <span className="absolute left-2 top-2 rounded bg-black/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
         Sponsored
