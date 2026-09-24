@@ -22,6 +22,7 @@ const RentalsFooter: React.FC = () => {
         { label: "Book a car", to: "/rentals" },
         { label: "List a car", to: "/rentals/list" },
         { label: "Become a Host", to: "/rentals/host" },
+        { label: "My Fleet", to: "/rentals/my-fleet" },
       ],
     },
     {

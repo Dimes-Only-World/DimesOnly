@@ -6,7 +6,7 @@ interface Props {
   callAdmin: (action: string, extra?: Record<string, any>) => Promise<any>;
 }
 
-const STATUSES = ["new", "approved", "active", "removed", "rejected"];
+const STATUSES = ["new", "approved", "disapproved", "active", "removed"];
 const DEPOSIT = ["pending", "paid", "refunded", "forfeited"];
 
 const HostApplicationsPanel: React.FC<Props> = ({ callAdmin }) => {
@@ -71,7 +71,17 @@ const HostApplicationsPanel: React.FC<Props> = ({ callAdmin }) => {
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => openDoc(a.drivers_license_path)}>Driver's License</Button>
                 <Button size="sm" variant="outline" onClick={() => openDoc(a.registration_path)}>Registration</Button>
-                <Button size="sm" variant="outline" onClick={() => openDoc(a.signature_path)}>Signature</Button>
+                <Button size="sm" variant="outline" onClick={() => openDoc(a.signature_path)}>Signed Agreement</Button>
+                {a.vehicle_photo_path && <Button size="sm" variant="outline" onClick={() => openDoc(a.vehicle_photo_path)}>Vehicle Photo</Button>}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`rounded px-2 py-0.5 text-xs font-bold uppercase ${a.status === "approved" || a.status === "active" ? "bg-primary text-primary-foreground" : a.status === "disapproved" ? "bg-destructive text-destructive-foreground" : "bg-muted"}`}>{a.status}</span>
+                <Button size="sm" onClick={() => update(a.id, { status: "approved" })}>Approve</Button>
+                <Button size="sm" variant="destructive" onClick={() => update(a.id, { status: "disapproved" })}>Disapprove</Button>
+                <label className="ml-2 flex items-center gap-1">Money made $
+                  <input type="number" min="0" step="0.01" defaultValue={a.earnings_total ?? 0} className="w-24 rounded border bg-background px-2 py-1"
+                    onBlur={(e) => { const v = Number(e.target.value) || 0; if (v !== Number(a.earnings_total || 0)) update(a.id, { earnings_total: v }); }} />
+                </label>
               </div>
               <div className="flex flex-wrap gap-3">
                 <label className="flex items-center gap-1">

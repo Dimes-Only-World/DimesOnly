@@ -53,6 +53,7 @@ const HostApplication: React.FC = () => {
   const [f, setF] = useState<Form>(initial);
   const [dl, setDl] = useState<File | null>(null);
   const [reg, setReg] = useState<File | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
   const [agree, setAgree] = useState(false);
   const [signed, setSigned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
