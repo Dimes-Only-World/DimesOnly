@@ -1,6 +1,7 @@
+import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
@@ -239,6 +240,10 @@ serve(async (req) => {
       cancelUrl,
       paypalOrderId,
     } = parsed.data;
+    {
+      const _caller = await getCallerId(req);
+      if (!_caller || _caller !== userId) return json({ error: "Please sign in again to continue.", requestId }, 401);
+    }
     const admin = createServiceClient(requestId);
 
     log(requestId, "request received", {
@@ -358,6 +363,9 @@ serve(async (req) => {
         const verifiedSubtotal = Math.round((baseRentalTotal + addonTotal) * 100) / 100;
 
         const uploadDocument = async (file: UploadedDocument, label: "license" | "insurance") => {
+          const okDocTypes = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
+          if (!okDocTypes.includes(String(file.type || "").toLowerCase())) throw new Error("Documents must be an image or PDF");
+          if (String((file as any).base64 ?? (file as any).data ?? "").length > 14 * 1024 * 1024) throw new Error("Document too large (10MB max)");
           const path = `${userId}/${crypto.randomUUID()}-${label}.${cleanExt(file.name)}`;
           log(requestId, "uploading rental document", {
             bucket: "rental-documents",
