@@ -99,7 +99,6 @@ const tabs = [
   { value: "rentals", label: "Rentals", icon: Car },
   { value: "clothes", label: "Clothes", icon: Shirt },
   { value: "flix", label: "FlameFlix", icon: Flame },
-  { value: "testing", label: "Testing", icon: FlaskConical },
   { value: "videos", label: "Videos", icon: Video },
   { value: "ads", label: "Ads", icon: Megaphone },
   { value: "payouts", label: "Payouts", icon: CreditCard },
