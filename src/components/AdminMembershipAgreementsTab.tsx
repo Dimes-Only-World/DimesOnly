@@ -60,9 +60,15 @@ const AdminMembershipAgreementsTab: React.FC<Props> = ({ tier, title }) => {
         : [];
       setRows(list as AgreementRow[]);
     } catch (e: any) {
+      const { msg, status } = await edgeError(e);
+      if (status === 401) {
+        sessionStorage.removeItem("adminToken");
+        window.location.href = "/adminlogin";
+        return;
+      }
       toast({
         title: "Failed to load agreements",
-        description: e?.message || "Please try again.",
+        description: msg,
         variant: "destructive",
       });
     } finally {
@@ -85,9 +91,10 @@ const AdminMembershipAgreementsTab: React.FC<Props> = ({ tier, title }) => {
       );
       toast({ title: "Status updated" });
     } catch (e: any) {
+      const { msg } = await edgeError(e);
       toast({
         title: "Update failed",
-        description: e?.message || "Please try again.",
+        description: msg,
         variant: "destructive",
       });
     }
@@ -190,5 +197,17 @@ const AdminMembershipAgreementsTab: React.FC<Props> = ({ tier, title }) => {
     </Card>
   );
 };
+
+
+async function edgeError(e: any): Promise<{ msg: string; status?: number }> {
+  try {
+    const res = e?.context;
+    if (res && typeof res.json === "function") {
+      const body = await res.clone().json().catch(() => null);
+      return { msg: body?.error || e?.message || "Please try again.", status: res.status };
+    }
+  } catch {}
+  return { msg: e?.message || "Please try again." };
+}
 
 export default AdminMembershipAgreementsTab;
