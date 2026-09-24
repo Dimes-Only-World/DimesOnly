@@ -41,6 +41,13 @@ const Row: React.FC<{ k: string; v?: string }> = ({ k, v }) => (
   </div>
 );
 
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="space-y-4 border border-rental-border bg-rental-surface/40 p-5">
+    <h2 className="font-barlow text-lg font-bold uppercase tracking-wide text-rental-primary">{title}</h2>
+    {children}
+  </section>
+);
+
 const HostApplication: React.FC = () => {
   const { toast } = useToast();
   const [f, setF] = useState<Form>(initial);
@@ -136,13 +143,6 @@ const HostApplication: React.FC = () => {
       setSubmitting(false);
     }
   };
-
-  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <section className="space-y-4 border border-rental-border bg-rental-surface/40 p-5">
-      <h2 className="font-barlow text-lg font-bold uppercase tracking-wide text-rental-primary">{title}</h2>
-      {children}
-    </section>
-  );
 
   if (done) {
     return (
