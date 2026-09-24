@@ -5123,6 +5123,7 @@ export type Database = {
         }[]
       }
       check_user_exists: { Args: { username: string }; Returns: boolean }
+      current_username: { Args: never; Returns: string }
       decrement_stock: {
         Args: { p_qty: number; p_variant_id: string }
         Returns: number
