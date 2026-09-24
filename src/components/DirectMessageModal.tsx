@@ -533,7 +533,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
       }}
     >
       <DialogContent className="max-w-md w-full p-0 bg-transparent border-none [&>button]:hidden">
-        <div className="flex h-[85vh] flex-col overflow-hidden rounded-2xl bg-black text-white shadow-2xl">
+        <div className="relative flex h-[85vh] flex-col overflow-hidden rounded-2xl bg-black text-white shadow-2xl">
           {/* Hidden file inputs */}
           <input
             ref={cameraInputRef}
@@ -550,6 +550,16 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
             className="hidden"
             onChange={handleImageFile}
           />
+
+          {cameraOpen && (
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black">
+              <video ref={cameraVideoRef} autoPlay playsInline muted className="max-h-[70%] w-full object-contain" />
+              <div className="flex gap-3">
+                <button onClick={stopLiveCamera} className="rounded-full bg-[#262626] px-5 py-2 text-sm">Cancel</button>
+                <button onClick={snapPhoto} className="rounded-full bg-[#6E5BFF] px-5 py-2 text-sm font-semibold">Take photo</button>
+              </div>
+            </div>
+          )}
 
           {/* Top bar */}
           <DialogHeader className="space-y-0 px-3 py-3 border-b border-white/10">
@@ -661,7 +671,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
           {/* Composer */}
           <div className="flex items-center gap-2 px-3 py-3">
             <button
-              onClick={() => cameraInputRef.current?.click()}
+              onClick={openCamera}
               disabled={uploadingMedia || !recipient}
               className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#6E5BFF] text-white hover:bg-[#5d4ce0] disabled:opacity-50"
               aria-label="Take photo"
@@ -759,8 +769,8 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
                       <div className="grid grid-cols-2 gap-2 text-xs text-white">
                         <button
                           onClick={() => {
-                            cameraInputRef.current?.click();
                             setAttachOpen(false);
+                            openCamera();
                           }}
                           className="flex flex-col items-center gap-1 rounded-lg bg-[#262626] p-2 hover:bg-[#333]"
                         >
