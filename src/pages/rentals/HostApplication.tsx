@@ -364,7 +364,7 @@ const HostApplication: React.FC = () => {
           </section>
 
           <Button type="submit" disabled={submitting} size="lg" className="w-full rounded-none bg-rental-primary font-barlow font-semibold uppercase tracking-wide text-rental-primary-foreground hover:bg-rental-primary/90">
-            {submitting ? "Submitting…" : "Sign & Submit"}
+            {submitting ? "Submitting…" : `Sign, Submit & Pay $${DEPOSIT} Deposit`}
           </Button>
         </form>
       </div>
