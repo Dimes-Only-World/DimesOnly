@@ -231,13 +231,14 @@ const DashboardFeedSection: React.FC = () => {
     }
   };
 
-  /** Split a list into rows and drop an ad post in after every 3 rows. */
+  /** Split a list into rows and show the ad only in the first (spot 1) block. */
   const withAds = <T,>(list: T[], perRow: number) => {
     const rows: T[][] = [];
     for (let i = 0; i < list.length; i += perRow) rows.push(list.slice(i, i + perRow));
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
+    const firstAd = ads.find((a) => a.position === 1 || a.slot_number === 1) || ads[0];
     for (let i = 0; i < rows.length; i += 3) {
-      blocks.push({ rows: rows.slice(i, i + 3), ad: ads[Math.floor(i / 3) % (ads.length || 1)] });
+      blocks.push({ rows: rows.slice(i, i + 3), ad: i === 0 ? firstAd : undefined });
     }
     return blocks;
   };
