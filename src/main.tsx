@@ -1,3 +1,4 @@
+import "./lib/edgeAuthFetch";
 import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from 'react-dom/client'
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";

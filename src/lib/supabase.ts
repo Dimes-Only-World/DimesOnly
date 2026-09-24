@@ -1,3 +1,4 @@
+import "./edgeAuthFetch";
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Exported constants for use across the app (e.g., calling Edge Functions)
