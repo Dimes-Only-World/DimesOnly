@@ -1,3 +1,4 @@
+import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -136,14 +137,8 @@ const RentalDetails: React.FC = () => {
         .select("*")
         .eq("vehicle_id", id)
         .order("sort_order", { ascending: true });
-      const withUrls = await Promise.all(
-        (ms || []).map(async (m: Media) => {
-          const { data: s } = await supabase.storage
-            .from("vehicle-media")
-            .createSignedUrl(m.storage_path, 60 * 60);
-          return { ...m, signedUrl: s?.signedUrl };
-        })
-      );
+      const signedMap = await signRentalMedia("vehicle-media", (ms || []).map((m: Media) => m.storage_path));
+      const withUrls = (ms || []).map((m: Media) => ({ ...m, signedUrl: signedMap.get(m.storage_path) }));
       setMedia(withUrls);
 
       const { data: rvs } = await (supabase as any)
