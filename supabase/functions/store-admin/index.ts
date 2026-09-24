@@ -235,10 +235,14 @@ serve(async (req) => {
       }
       case "uploadImage": {
         const base64: string = params.data;
-        const path: string = params.path;
+        const path: string = String(params.path || "");
+        const ctype = String(params.content_type || "image/jpeg");
+        if (!["image/jpeg","image/png","image/webp","image/gif"].includes(ctype)) return json({ error: "Only images allowed" }, 400);
+        if (!/^[A-Za-z0-9/_.-]{1,200}$/.test(path) || path.includes("..")) return json({ error: "Invalid path" }, 400);
+        if (typeof base64 !== "string" || base64.length > 14 * 1024 * 1024) return json({ error: "Image too large (10MB max)" }, 400);
         const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
         const { error } = await supabase.storage.from("product-images")
-          .upload(path, bytes, { contentType: params.content_type || "image/jpeg", upsert: true });
+          .upload(path, bytes, { contentType: ctype, upsert: true });
         if (error) throw error;
         await audit("upload", "image", path);
         return json({ path });

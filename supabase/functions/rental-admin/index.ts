@@ -64,6 +64,9 @@ serve(async (req) => {
       case "uploadMedia": {
         const { vehicleId, mediaType, fileName, contentType, base64, sortOrder } = params;
         const ext = (fileName?.split(".").pop() || "bin").toLowerCase();
+        const okTypes = ["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/quicktime","video/webm"];
+        if (!okTypes.includes(String(contentType)) || !["photo","video"].includes(mediaType)) return json({ error: "Unsupported file type" }, 400);
+        if (!/^[a-z0-9]{1,5}$/.test(ext) || typeof base64 !== "string" || base64.length > 140 * 1024 * 1024) return json({ error: "File too large or invalid" }, 400);
         const path = `${vehicleId}/${crypto.randomUUID()}.${ext}`;
         const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
         const { error: upErr } = await admin.storage.from("vehicle-media").upload(path, bytes, { contentType });
