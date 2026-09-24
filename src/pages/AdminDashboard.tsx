@@ -40,7 +40,6 @@ import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
 import AdminRentalsTab from "@/components/AdminRentalsTab";
 import AdminJackpotTab from "@/components/AdminJackpotTab";
-import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
 import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
@@ -334,9 +333,6 @@ const AdminDashboard: React.FC = () => {
             <AdminFlixTab />
           </TabsContent>
 
-          <TabsContent value="testing">
-            <AdminTipAllocationTest />
-          </TabsContent>
 
           <TabsContent value="videos">
             <AdminBannerVideoTab />
