@@ -84,11 +84,14 @@ serve(async (req) => {
 
       const norm = (v: unknown) => String(v ?? "").replace(/\D/g, "").slice(-10);
       const profiles = (users ?? [])
-        .filter((u: any) => norm(u.phone_number) === digits || norm(u.mobile_number) === digits)
+        // Only reveal a profile when BOTH phone and date of birth match.
+        .filter((u: any) =>
+          (norm(u.phone_number) === digits || norm(u.mobile_number) === digits) &&
+          isIsoDate(dob) && String(u.date_of_birth ?? "").slice(0, 10) === dob)
         .map((u: any) => ({
           username: u.username,
           photo: u.profile_photo || u.front_page_photo || u.banner_photo || null,
-          dob_match: isIsoDate(dob) && String(u.date_of_birth ?? "").slice(0, 10) === dob,
+          dob_match: true,
         }));
 
       const { data: leads } = await admin
