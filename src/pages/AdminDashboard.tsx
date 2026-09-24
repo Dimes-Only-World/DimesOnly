@@ -127,7 +127,8 @@ const AdminDashboard: React.FC = () => {
       try {
         const adminUserData = sessionStorage.getItem('adminUser');
         
-        if (!adminUserData) {
+        if (!adminUserData || !sessionStorage.getItem('adminToken')) {
+          sessionStorage.removeItem('adminUser');
           navigate("/adminlogin");
           return;
         }
@@ -165,6 +166,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem('adminUser');
+    sessionStorage.removeItem('adminToken');
     navigate("/adminlogin");
   };
 
