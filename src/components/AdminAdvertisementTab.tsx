@@ -164,7 +164,7 @@ const AdminAdvertisementTab: React.FC = () => {
         `Spot ${slotFor(c.ad_id)}`,
         c.link_url || "",
       ]
-        .map((v) => { const t = String(v); const safe = /^[=+\-@\t\r]/.test(t) && !t.startsWith("@") ? `'${t}` : t.startsWith("@") && /^@[=+\-@]/.test(t) ? `'${t}` : t; return `"${safe.replace(/"/g, '""')}"`; })
+        .map((v) => { const t = String(v); const safe = /^[=+\-@\t\r]/.test(t) ? `'${t}` : t; return `"${safe.replace(/"/g, '""')}"`; })
         .join(",");
     });
     const csv = [
