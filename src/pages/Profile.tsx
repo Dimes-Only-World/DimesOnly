@@ -213,9 +213,9 @@ const Profile: React.FC = () => {
 
   const getFilteredMedia = () => {
     const tier = isDime ? activeTab : "free";
-    const wantType = view === "videos" ? "video" : null;
+    const wantType = view === "videos" ? "video" : "photo";
     return media
-      .filter((item) => item.content_tier === tier && (!wantType || item.type === wantType))
+      .filter((item) => item.content_tier === tier && item.type === wantType)
       .map((item) => ({ ...item, media_type: item.type, media_url: absUrl(item.url), url: absUrl(item.url) }));
   };
 
