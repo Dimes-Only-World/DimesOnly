@@ -315,6 +315,26 @@ serve(async (req) => {
         return json({ data });
       }
 
+      case "listHostApplications": {
+        const { data, error } = await admin.from("host_applications").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        return json({ data });
+      }
+      case "updateHostApplication": {
+        const { id, payload } = params;
+        const clean: Record<string, any> = {};
+        for (const k of ["status", "deposit_status", "notes"]) if (k in (payload || {})) clean[k] = payload[k];
+        const { data, error } = await admin.from("host_applications").update(clean).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+      case "signHostDoc": {
+        const { path } = params;
+        const { data, error } = await admin.storage.from("host-documents").createSignedUrl(path, 300);
+        if (error) throw error;
+        return json({ url: data.signedUrl });
+      }
+
       default:
         return json({ error: "Unknown action" }, 400);
     }

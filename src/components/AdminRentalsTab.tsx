@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import HostApplicationsPanel from "@/components/rentals/HostApplicationsPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -72,6 +73,7 @@ const AdminRentalsTab: React.FC = () => {
           <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="calls">Call Requests</TabsTrigger>
+          <TabsTrigger value="hosts">Host Applications</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="packages">Themed Packages</TabsTrigger>
           <TabsTrigger value="promos">Promo Codes</TabsTrigger>
@@ -129,6 +131,8 @@ const AdminRentalsTab: React.FC = () => {
           ))}
           {callRequests.length === 0 && <p className="text-muted-foreground">No call requests yet.</p>}
         </TabsContent>
+
+        <TabsContent value="hosts"><HostApplicationsPanel callAdmin={callAdmin} /></TabsContent>
 
         <TabsContent value="commissions" className="space-y-3">
           {commissions.map((c) => (

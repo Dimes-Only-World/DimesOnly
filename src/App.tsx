@@ -49,6 +49,7 @@ import TipPayPalReturn from "./pages/TipPayPalReturn";
 import EventPayPalReturn from "./pages/EventPayPalReturn";
 import Jackpot from "./pages/Jackpot";
 import Rentals from "./pages/Rentals";
+import HostApplication from "./pages/rentals/HostApplication";
 import BecomeAHost from "./pages/rentals/BecomeAHost";
 import ListACar from "./pages/rentals/ListACar";
 import RentalDetails from "./pages/RentalDetails";
@@ -195,6 +196,7 @@ function AppContent() {
       <Route path="/rentals" element={<Rentals />} />
       <Route path="/rentals/list" element={<ListACar />} />
       <Route path="/rentals/host" element={<BecomeAHost />} />
+      <Route path="/rentals/host/apply" element={<HostApplication />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />

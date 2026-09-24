@@ -21,8 +21,6 @@ import {
 } from "lucide-react";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
 
-const APPLY_FORM_URL =
-  "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
 
 const EARNINGS_PER_CAR = 485;
 
@@ -200,9 +198,9 @@ const BecomeAHost: React.FC = () => {
             </p>
             <div className="mt-8">
               <Button asChild size="lg" className="rounded-none bg-rental-primary font-barlow font-semibold uppercase tracking-wide text-rental-primary-foreground hover:bg-rental-primary/90">
-                <a href={APPLY_FORM_URL} target="_blank" rel="noopener noreferrer">
+                <Link to="/rentals/host/apply">
                   Become a Host <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
+                </Link>
               </Button>
             </div>
           </div>
@@ -286,7 +284,7 @@ const BecomeAHost: React.FC = () => {
           </div>
           <div className="mt-10 text-center">
             <Button asChild size="lg" variant="outline" className="rounded-none border-rental-primary bg-transparent font-barlow font-semibold uppercase tracking-wide text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground">
-              <a href={APPLY_FORM_URL} target="_blank" rel="noopener noreferrer">Become a Host</a>
+              <Link to="/rentals/host/apply">Become a Host</Link>
             </Button>
           </div>
 
@@ -328,7 +326,7 @@ const BecomeAHost: React.FC = () => {
           </div>
           <div className="mt-10 text-center">
             <Button asChild size="lg" className="rounded-none bg-rental-primary font-barlow font-semibold uppercase tracking-wide text-rental-primary-foreground hover:bg-rental-primary/90">
-              <a href={APPLY_FORM_URL} target="_blank" rel="noopener noreferrer">Become a Host</a>
+              <Link to="/rentals/host/apply">Become a Host</Link>
             </Button>
           </div>
         </div>
@@ -353,7 +351,7 @@ const BecomeAHost: React.FC = () => {
           </div>
           <div className="mt-10 text-center">
             <Button asChild size="lg" variant="outline" className="rounded-none border-rental-primary bg-transparent font-barlow font-semibold uppercase tracking-wide text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground">
-              <a href={APPLY_FORM_URL} target="_blank" rel="noopener noreferrer">Become a Host</a>
+              <Link to="/rentals/host/apply">Become a Host</Link>
             </Button>
           </div>
         </div>
@@ -381,7 +379,7 @@ const BecomeAHost: React.FC = () => {
           </div>
           <div className="mt-12 text-center">
             <Button asChild size="lg" className="rounded-none bg-rental-primary font-barlow font-semibold uppercase tracking-wide text-rental-primary-foreground hover:bg-rental-primary/90">
-              <a href={APPLY_FORM_URL} target="_blank" rel="noopener noreferrer">Become a Host</a>
+              <Link to="/rentals/host/apply">Become a Host</Link>
             </Button>
           </div>
         </div>
