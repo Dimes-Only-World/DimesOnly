@@ -30,19 +30,19 @@ const Field: React.FC<{ label: string; name: string; value: string; onChange: (n
   <label className="block space-y-1">
     <span className="text-xs font-semibold uppercase tracking-wide text-rental-muted">{label}{required && " *"}</span>
     <Input type={type || "text"} value={value} required={required} onChange={(e) => onChange(name, e.target.value)} maxLength={200}
-      className="rounded-none border-rental-border bg-rental-surface text-rental-foreground" />
+      className="rounded-none border-rental-line bg-rental-surface text-rental-foreground" />
   </label>
 );
 
 const Row: React.FC<{ k: string; v?: string }> = ({ k, v }) => (
-  <div className="grid grid-cols-[160px_1fr] border-b border-rental-border py-1 text-sm">
+  <div className="grid grid-cols-[160px_1fr] border-b border-rental-line py-1 text-sm">
     <span className="text-rental-muted">{k}</span>
     <span className="font-semibold">{v || "—"}</span>
   </div>
 );
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="space-y-4 border border-rental-border bg-rental-surface/40 p-5">
+  <section className="space-y-4 border border-rental-line bg-rental-surface/40 p-5">
     <h2 className="font-barlow text-lg font-bold uppercase tracking-wide text-rental-primary">{title}</h2>
     {children}
   </section>
@@ -146,7 +146,7 @@ const HostApplication: React.FC = () => {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-rental-bg px-4 py-24 text-center text-rental-foreground">
+      <div className="min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
         <h1 className="font-barlow text-3xl font-bold uppercase">Application received</h1>
         <p className="mx-auto mt-3 max-w-md text-rental-muted">
           Thanks, {f.full_name.split(" ")[0]}. Your signed Co-Host Agreement and vehicle details were sent to our team. We'll contact you at {f.email} about the ${DEPOSIT} refundable deposit and next steps.
@@ -159,7 +159,7 @@ const HostApplication: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-rental-bg text-rental-foreground">
+    <div className="min-h-screen bg-rental-background text-rental-foreground">
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <Link to="/rentals/host" className="text-sm text-rental-muted hover:text-rental-foreground">← Back</Link>
         <header>
@@ -212,7 +212,7 @@ const HostApplication: React.FC = () => {
                 { v: "60", t: "Earn 60%", d: "of the Trip Price · $1,500 deductible" },
               ].map((o) => (
                 <button type="button" key={o.v} onClick={() => set("earnings_plan", o.v)}
-                  className={`border p-4 text-left ${f.earnings_plan === o.v ? "border-rental-primary bg-rental-primary/10" : "border-rental-border"}`}>
+                  className={`border p-4 text-left ${f.earnings_plan === o.v ? "border-rental-primary bg-rental-primary/10" : "border-rental-line"}`}>
                   <p className="font-barlow text-xl font-bold">{o.t}</p>
                   <p className="text-sm text-rental-muted">{o.d}</p>
                 </button>
@@ -237,7 +237,7 @@ const HostApplication: React.FC = () => {
                 <Field label="Account number" name="account" value={f.account} onChange={set} />
                 <label className="block space-y-1">
                   <span className="text-xs font-semibold uppercase tracking-wide text-rental-muted">Account type</span>
-                  <select value={f.account_type} onChange={(e) => set("account_type", e.target.value)} className="h-10 w-full border border-rental-border bg-rental-surface px-2">
+                  <select value={f.account_type} onChange={(e) => set("account_type", e.target.value)} className="h-10 w-full border border-rental-line bg-rental-surface px-2">
                     <option value="checking">Checking</option>
                     <option value="savings">Savings</option>
                   </select>

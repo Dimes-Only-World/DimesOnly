@@ -21,8 +21,6 @@ import {
 } from "lucide-react";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
 
-const APPLY_FORM_URL =
-  "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
 
 const EARNINGS_PER_CAR = 485;
 
