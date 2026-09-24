@@ -1,3 +1,5 @@
+import { verifyPayPalWebhookSignature } from "../_shared/paypalVerify.ts";
+import { isServiceCall } from "../_shared/caller.ts";
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -30,7 +32,7 @@ serve(async (req) => {
 
     // Log request body for debugging
     const body = await req.text();
-    console.log("Request body:", body);
+    if (!isServiceCall(req) && !(await verifyPayPalWebhookSignature(req.headers, body))) return new Response(JSON.stringify({ error: "Invalid webhook signature" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     webhookBody = JSON.parse(body);
     console.log("Diamond Plus webhook received:", webhookBody);
 
@@ -65,10 +67,7 @@ serve(async (req) => {
         const errorMessage = `Order not found for ID: ${orderId}`;
         console.error(errorMessage);
         return new Response(JSON.stringify({ 
-          error: "Order not found",
-          details: errorMessage,
-          orderId,
-          upgradeError: upgradeError?.message
+          error: "Order not found"
         }), {
           status: 404,
           headers: {
@@ -288,10 +287,7 @@ serve(async (req) => {
     const stackTrace = error instanceof Error ? error.stack : undefined;
     
     return new Response(JSON.stringify({ 
-      error: "Webhook error",
-      message: errorMessage,
-      stack: stackTrace,
-      requestBody: webhookBody
+      error: "Webhook error"
     }), {
       status: 500,
       headers: {

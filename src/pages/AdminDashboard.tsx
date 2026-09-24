@@ -40,7 +40,6 @@ import AdminDirectMessageTab from "@/components/AdminDirectMessageTab";
 import AdminEventsTab from "@/components/AdminEventsTab";
 import AdminRentalsTab from "@/components/AdminRentalsTab";
 import AdminJackpotTab from "@/components/AdminJackpotTab";
-import AdminTipAllocationTest from "@/components/AdminTipAllocationTest";
 import AdminBannerVideoTab from "@/components/AdminBannerVideoTab";
 import AdminPayoutTab from "@/components/AdminPayoutTab";
 import AdminApprovalsTab from "@/components/AdminApprovalsTab";
@@ -100,7 +99,6 @@ const tabs = [
   { value: "rentals", label: "Rentals", icon: Car },
   { value: "clothes", label: "Clothes", icon: Shirt },
   { value: "flix", label: "FlameFlix", icon: Flame },
-  { value: "testing", label: "Testing", icon: FlaskConical },
   { value: "videos", label: "Videos", icon: Video },
   { value: "ads", label: "Ads", icon: Megaphone },
   { value: "payouts", label: "Payouts", icon: CreditCard },
@@ -127,7 +125,8 @@ const AdminDashboard: React.FC = () => {
       try {
         const adminUserData = sessionStorage.getItem('adminUser');
         
-        if (!adminUserData) {
+        if (!adminUserData || !sessionStorage.getItem('adminToken')) {
+          sessionStorage.removeItem('adminUser');
           navigate("/adminlogin");
           return;
         }
@@ -165,6 +164,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem('adminUser');
+    sessionStorage.removeItem('adminToken');
     navigate("/adminlogin");
   };
 
@@ -332,9 +332,6 @@ const AdminDashboard: React.FC = () => {
             <AdminFlixTab />
           </TabsContent>
 
-          <TabsContent value="testing">
-            <AdminTipAllocationTest />
-          </TabsContent>
 
           <TabsContent value="videos">
             <AdminBannerVideoTab />

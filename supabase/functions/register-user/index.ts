@@ -111,6 +111,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Reject values that could become markup in emails or formulas in spreadsheets
+    const bad400 = (msg: string) => new Response(JSON.stringify({ error: msg }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!/^[A-Za-z0-9_.-]{2,40}$/.test(String(username))) return bad400('Username can only use letters, numbers, dots, dashes and underscores');
+    const safeText = (v: unknown) => typeof v !== 'string' || (!/[<>"'`]/.test(v) && !/^[=+\-@\t\r]/.test(v.trim()));
+    for (const v of [firstName, lastName, referredBy]) if (!safeText(v)) return bad400('Names cannot contain special characters like < > " or start with = + - @');
+    for (const u of [profilePhotoUrl, bannerPhotoUrl, frontPagePhotoUrl]) {
+      if (u && (typeof u !== 'string' || !/^https:\/\/[^\s"'<>`]+$/.test(u))) return bad400('Invalid photo link');
+    }
+
     // Initialize Supabase client with service role key (server-side only)
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -126,7 +135,7 @@ Deno.serve(async (req) => {
     const { data: existingUsers, error: checkError } = await supabaseClient
       .from('users')
       .select('username, email')
-      .or(`username.eq.${username},email.eq.${email}`);
+      .or(`username.eq.${JSON.stringify(String(username))},email.eq.${JSON.stringify(String(email))}`);
 
     if (checkError) {
       console.error('Error checking existing users:', checkError);

@@ -60,6 +60,8 @@ const AdminLogin = () => {
 
       // Store admin session data (username-based auth doesn't use Supabase Auth)
       // This is validated server-side via edge function + admin role check
+      if (data.push_auth_token) sessionStorage.setItem('adminToken', String(data.push_auth_token));
+      if (data.push_auth_token) sessionStorage.setItem('dimesPushAuthToken', String(data.push_auth_token));
       sessionStorage.setItem('adminUser', JSON.stringify({
         id: data.user.id,
         username: data.user.username,

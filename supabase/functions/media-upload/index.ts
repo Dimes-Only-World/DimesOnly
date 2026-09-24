@@ -1,9 +1,10 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": AUTH_HEADERS,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -38,6 +39,8 @@ serve(async (req) => {
     const mediaType = String((body as any).media_type ?? "photo").toLowerCase();
 
     if (!userId) return json({ error: "user_id is required" }, 400);
+    { const _caller = await getCallerId(req); if (!_caller || _caller !== String(userId)) { if (!(await getVerifiedAdminId(req))) return json({ error: "Please sign in again to continue." }, 401); } }
+
     if (!ALLOWED_TIERS.has(contentTier)) return json({ error: "invalid content_tier" }, 400);
     if (!ALLOWED_MEDIA.has(mediaType)) return json({ error: "invalid media_type" }, 400);
 

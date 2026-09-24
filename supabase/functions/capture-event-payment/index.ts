@@ -1,9 +1,10 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": AUTH_HEADERS,
 };
 
 // PayPal fee calculation (2.75% + $0.50)
@@ -30,6 +31,8 @@ serve(async (req) => {
       ticket_type,
       ticket_quantity,
     } = await req.json();
+    { const _caller = await getCallerId(req); if ((buyer_id) && _caller !== String(buyer_id)) { if (!(await getVerifiedAdminId(req))) return new Response(JSON.stringify({ success: false, error: "Please sign in again to continue." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } }
+
 
     console.log("=== CAPTURE EVENT PAYMENT STARTED ===");
     console.log("Order ID:", order_id);

@@ -1,5 +1,6 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const PLAN_CENTS: Record<string, number> = { monthly: 599, annual: 2999 };
 
@@ -36,6 +37,8 @@ Deno.serve(async (req) => {
     const action = String(body.action || "createOrder");
     const userId = body.userId;
     if (!userId || typeof userId !== "string") return json({ error: "Missing userId" }, 400);
+    { const _caller = await getCallerId(req); if (!_caller || _caller !== String(userId)) { if (!(await getVerifiedAdminId(req))) return json({ error: "Please sign in again to continue." }, 401); } }
+
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,

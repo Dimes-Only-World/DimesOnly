@@ -1,10 +1,11 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": AUTH_HEADERS,
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
@@ -22,6 +23,8 @@ serve(async (req) => {
     if (!userId) {
       return json({ error: "Missing user_id" }, 400);
     }
+    { const _caller = await getCallerId(req); if (!_caller || _caller !== String(userId)) { if (!(await getVerifiedAdminId(req))) return json({ error: "Please sign in again to continue." }, 401); } }
+
 
     // Optional filters
     const startDate = params.get("start_date"); // YYYY-MM-DD
@@ -371,7 +374,8 @@ function sourceLabelFor(paymentType: string): string {
 
 function toCsv(headers: string[] | [], rows: any[][]): string {
   const escape = (v: any) => {
-    const s = v === null || v === undefined ? '' : String(v);
+    let s = v === null || v === undefined ? '' : String(v);
+    if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
     if (s.includes(',') || s.includes('"') || s.includes('\n')) {
       return '"' + s.replace(/"/g, '""') + '"';
     }

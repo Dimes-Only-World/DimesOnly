@@ -33,13 +33,7 @@ async function getPayPalAccessToken(): Promise<string> {
 
 async function verifyPayPalWebhook(headers: Headers, rawBody: string): Promise<boolean> {
   const webhookId = Deno.env.get("PAYPAL_WEBHOOK_ID");
-  if (!webhookId) {
-    console.warn("PAYPAL_WEBHOOK_ID missing; skipping verification (treating as VERIFIED in non-prod)");
-    const env = (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox").toLowerCase();
-    // In live without WEBHOOK_ID, fail closed
-    if (env === "live") return false;
-    return true;
-  }
+  if (!webhookId) return false;
 
   const authAlgo = headers.get("paypal-auth-algo") || headers.get("PayPal-Auth-Algo") || "";
   const certUrl = headers.get("paypal-cert-url") || headers.get("PayPal-Cert-Url") || "";

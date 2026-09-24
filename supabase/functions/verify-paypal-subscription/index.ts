@@ -1,6 +1,7 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 type VerifyBody = {
   subscription_id?: string;
@@ -234,10 +235,16 @@ serve(async (req) => {
     }
 
     const custom = parseCustomId(details?.custom_id);
-    const tier = String(body.tier || custom.tier || "").toLowerCase();
-    const cadence = String(body.cadence || custom.cadence || "monthly").toLowerCase();
-    const billingOption = body.billing_option || custom.billing_option || null;
-    const userId = String(body.user_id || custom.user_id || "").trim();
+    const tier = String(custom.tier || body.tier || "").toLowerCase();
+    const cadence = String(custom.cadence || body.cadence || "monthly").toLowerCase();
+    const billingOption = custom.billing_option || body.billing_option || null;
+    const userId = String(custom.user_id || body.user_id || "").trim();
+    {
+      const _caller = await getCallerId(req);
+      if (!_caller || _caller !== userId) {
+        if (!(await getVerifiedAdminId(req))) return json({ success: false, error: "Please sign in again to continue." }, 401);
+      }
+    }
 
     if (!allowedTiers.has(tier)) return json({ success: false, error: "Invalid membership tier" }, 400);
     if (!allowedCadences.has(cadence)) return json({ success: false, error: "Invalid billing cadence" }, 400);

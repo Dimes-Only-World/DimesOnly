@@ -1,5 +1,6 @@
+import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -32,6 +33,8 @@ Deno.serve(async (req) => {
     const mediaType = body.mediaType ? String(body.mediaType).trim() : null;
 
     if (!adminUserId) return json({ error: "Admin user ID required" }, 401);
+    { const _vid = await getVerifiedAdminId(req); if (!_vid || _vid !== adminUserId) return json({ error: "Admin session expired. Please sign in again." }, 401); }
+
     if (!message || message.length > 500) return json({ error: "Message is required (max 500 chars)" }, 400);
 
     const { data: isAdmin, error: adminError } = await admin.rpc("check_admin_by_user_id", { _user_id: adminUserId });

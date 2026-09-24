@@ -387,7 +387,7 @@ const AdminEarningsTab: React.FC = () => {
     ]);
 
     const csvContent = [headers, ...csvData]
-      .map((row) => row.map((field) => `"${field}"`).join(","))
+      .map((row) => row.map((field) => { const v = String(field ?? ""); const safe = typeof field === "string" && /^[=+\-@\t\r]/.test(v) ? `'${v}` : v; return `"${safe.replace(/"/g, '""')}"`; }).join(","))
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
