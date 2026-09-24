@@ -127,7 +127,14 @@ serve(async (req) => {
         );
       }
 
-      finalAmount = amount;
+      if (upgrade.user_id !== user_id) throw new Error("Membership upgrade does not belong to this user");
+      {
+        const total = Number(upgrade.payment_amount) || 0;
+        const count = upgrade.installment_plan ? Math.max(Number(upgrade.installment_count) || 2, 1) : 1;
+        const expected = Math.round((total / count) * 100) / 100;
+        finalAmount = expected > 0 ? expected : NaN;
+        if (!Number.isFinite(finalAmount)) throw new Error("Membership price not set");
+      }
       orderDescription = upgrade.installment_plan
         ? `Diamond Plus Membership - Installment ${installment_number}/2`
         : "Diamond Plus Membership - Full Payment";
@@ -149,7 +156,7 @@ serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
         );
       }
-      finalAmount = Number(amount ?? 10000.0);
+      finalAmount = 10000.0;
       if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
         return new Response(
           JSON.stringify({ success: false, error: "Invalid amount for elite_yearly" }),
@@ -185,7 +192,7 @@ serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
         );
       }
-      finalAmount = Number(amount ?? 15000.0);
+      finalAmount = 15000.0;
       if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
         return new Response(
           JSON.stringify({ success: false, error: "Invalid amount for elite_plus_lifetime" }),
@@ -225,7 +232,7 @@ serve(async (req) => {
       // Fetch current event details including pricing
       const { data: eventData, error: eventError } = await supabase
         .from("events")
-        .select("id, name, price, max_attendees")
+        .select("*")
         .eq("id", event_id)
         .single();
 
@@ -250,7 +257,14 @@ serve(async (req) => {
         throw new Error("Event is sold out");
       }
 
-      finalAmount = amount || event.price;
+      {
+        const priceFields = ["price","general_admission_price","males_price","females_price","vip_price","vip_section_price","group_discount_price"];
+        const prices = priceFields.map((k) => Number(event[k])).filter((n) => Number.isFinite(n) && n > 0);
+        const minPrice = prices.length ? Math.min(...prices) : 0;
+        const requested = Number(amount);
+        finalAmount = Number.isFinite(requested) && requested > 0 ? requested : Number(event.price);
+        if (!Number.isFinite(finalAmount) || finalAmount <= 0 || finalAmount < minPrice) throw new Error("Invalid ticket amount");
+      }
       orderDescription = description || `Event Ticket Purchase - ${event.name}`;
       customId = `event_${event_id}_user_${user_id}`;
 
@@ -386,7 +400,8 @@ serve(async (req) => {
           paypal_order_id: order.id,
           payment_status: "pending_payment",
         })
-        .eq("id", membership_upgrade_id);
+        .eq("id", membership_upgrade_id)
+        .eq("user_id", user_id);
 
       if (updateError) {
         console.error("Failed to update membership upgrade:", updateError);
@@ -422,7 +437,9 @@ serve(async (req) => {
           guest_name: guest_name || null, // Store guest name in payment record
           updated_at: new Date().toISOString(),
         })
-        .eq("id", payment_id);
+        .eq("id", payment_id)
+        .eq("user_id", user_id)
+        .in("payment_status", ["pending", "created"]);
 
       if (updateError) {
         console.error("Failed to update payment record:", updateError);
