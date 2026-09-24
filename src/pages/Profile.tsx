@@ -182,88 +182,41 @@ const Profile: React.FC = () => {
   const fetchUserMembership = async () => {
     if (!user?.id) return;
     try {
-      // 1) Trust the users table first (updated by webhook)
-      const { data: userRow, error: userErr } = await supabase
-        .from("users")
-        .select("membership_tier, membership_type, silver_plus_active, diamond_plus_active")
-        .eq("id", user.id)
-        .single();
-
-      if (!userErr && userRow) {
-        const rawTier = (userRow.membership_tier || userRow.membership_type || "").toString().toLowerCase();
-        const normalizedTier =
-          rawTier === "gold" || rawTier === "diamond" ? "diamond_plus" : rawTier === "silver" ? "silver_plus" : rawTier;
-
-        if (userRow.diamond_plus_active || normalizedTier === "diamond_plus") {
-          setUserMembership("diamond_plus");
-          return;
-        }
-        if (userRow.silver_plus_active || normalizedTier === "silver_plus") {
-          setUserMembership("silver_plus");
-          return;
-        }
-      }
-
-      // 2) Fallback to completed upgrades in membership_upgrades
-      const { data: upgrades, error: upgErr } = await supabase
-        .from("membership_upgrades")
-        .select("upgrade_type, upgrade_status")
-        .eq("user_id", user.id)
-        .eq("upgrade_status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (!upgErr && upgrades && upgrades.length > 0) {
-        const rawUpgrade = String(upgrades[0].upgrade_type || "").toLowerCase();
-        const normalizedUpgrade =
-          rawUpgrade === "gold" || rawUpgrade === "diamond"
-            ? "diamond_plus"
-            : rawUpgrade === "silver"
-              ? "silver_plus"
-              : rawUpgrade;
-        setUserMembership(normalizedUpgrade);
-        return;
-      }
-
-      // Default
-      setUserMembership("free");
+      const { data: userRow } = await supabase.from("users").select("*").eq("id", user.id).maybeSingle();
+      setMemberRank(resolveMembership(userRow || user).rank);
     } catch (error) {
       console.error("Error fetching membership:", error);
-      setUserMembership("free");
+      setMemberRank(0);
     }
   };
 
-  const isTierless =
-    profile?.gender?.toLowerCase() === "male" ||
-    (profile?.gender?.toLowerCase() === "female" && profile?.user_type?.toLowerCase() === "normal");
-
-  const getFilteredMedia = () => {
-    const filtered = media.filter((item) => {
-      if (isTierless) return true;
-      if (activeTab === "free") return item.content_tier === "free";
-      if (activeTab === "silver") return item.content_tier === "silver";
-      if (activeTab === "gold") return item.content_tier === "gold";
-      return false;
-    });
-
-    // Transform for MediaGrid: ensure media_type is set and URLs are absolute
-    return filtered.map((item) => ({
-      ...item,
-      media_type: item.type, // required by MediaGrid
-      media_url: item.url.startsWith("http")
-        ? item.url
-        : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
-      url: item.url.startsWith("http")
-        ? item.url
-        : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
-    }));
+  const fetchCircleAndTagged = async (uname: string, uid: string) => {
+    const [circleRes, taggedRes] = await Promise.all([
+      supabase.functions.invoke("public-data", { body: { action: "fetchMoneyCircle", username: uname } }),
+      supabase.functions.invoke("public-data", { body: { action: "fetchTaggedPosts", username: uname, userId: uid } }),
+    ]);
+    setCircle((circleRes.data as any)?.data || []);
+    setTagged((taggedRes.data as any)?.data || []);
   };
 
+  const isDime = ["exotic", "stripper"].includes(String(profile?.user_type || "").toLowerCase());
 
+  const absUrl = (u: string) =>
+    u.startsWith("http") ? u : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${u}`;
+
+  const getFilteredMedia = () => {
+    const tier = isDime ? activeTab : "free";
+    const wantType = view === "videos" ? "video" : null;
+    return media
+      .filter((item) => item.content_tier === tier && (!wantType || item.type === wantType))
+      .map((item) => ({ ...item, media_type: item.type, media_url: absUrl(item.url), url: absUrl(item.url) }));
+  };
+
+  // silver (Gold content) = Silver Plus & up; gold (Gold+ content) = Diamond, Diamond Plus, Elite & up
   const canAccessTier = (tier: string) => {
     if (tier === "free") return true;
-    if (tier === "silver") return ["silver_plus", "diamond_plus"].includes(userMembership);
-    if (tier === "gold") return userMembership === "diamond_plus";
+    if (tier === "silver") return memberRank >= 2;
+    if (tier === "gold") return memberRank >= 4;
     return false;
   };
 
