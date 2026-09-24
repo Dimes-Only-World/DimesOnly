@@ -91,7 +91,6 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
 
   return (
     <>
-    <>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -218,7 +217,6 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
           </nav>
         </>
       )}
-    </>
       <ShareLinkDialog open={shareOpen} onOpenChange={setShareOpen} userId={setup.userId} username={setup.username} />
     </>
   );
