@@ -1,3 +1,4 @@
+import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,15 +72,7 @@ const Rentals: React.FC = () => {
 
       // One batched signed-URL call for all hero photos
       const paths = Array.from(heroPathByVehicle.values());
-      const urlByPath = new Map<string, string>();
-      if (paths.length) {
-        const { data: signedList } = await supabase.storage
-          .from("vehicle-media")
-          .createSignedUrls(paths, 60 * 60);
-        for (const s of signedList || []) {
-          if (s?.path && s?.signedUrl) urlByPath.set(s.path, s.signedUrl);
-        }
-      }
+      const urlByPath = await signRentalMedia("vehicle-media", paths);
 
       const rentedMap = new Map<string, string>(
         (rentedRes.data || []).map((r: any) => [r.vehicle_id, r.rented_until])

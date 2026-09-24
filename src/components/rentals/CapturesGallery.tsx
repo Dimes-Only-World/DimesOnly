@@ -1,3 +1,4 @@
+import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,15 +34,7 @@ const CapturesGallery: React.FC<{ vehicleId?: string; limit?: number }> = ({ veh
         const { data, error } = await query;
         if (error) throw error;
         const paths = (data || []).map((c: Capture) => c.storage_path);
-        const urlByPath = new Map<string, string>();
-        if (paths.length) {
-          const { data: signedList } = await supabase.storage
-            .from("rental-captures")
-            .createSignedUrls(paths, 60 * 60);
-          for (const s of signedList || []) {
-            if (s?.path && s?.signedUrl) urlByPath.set(s.path, s.signedUrl);
-          }
-        }
+        const urlByPath = await signRentalMedia("rental-captures", paths);
         setItems((data || []).map((c: Capture) => ({ ...c, signedUrl: urlByPath.get(c.storage_path) })));
       } catch (e) {
         console.error("Load captures failed", e);

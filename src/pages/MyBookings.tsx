@@ -1,3 +1,4 @@
+import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useMemo, useState } from "react";
 import { buildAuthUrl } from "@/lib/refCapture";
 import { Link, useNavigate } from "react-router-dom";
@@ -157,10 +158,8 @@ const MyBookings: React.FC = () => {
           let heroPhoto: string | null = null;
           const first = media?.[0];
           if (first?.storage_path) {
-            const { data: s } = await supabase.storage
-              .from("vehicle-media")
-              .createSignedUrl(first.storage_path, 60 * 60);
-            heroPhoto = s?.signedUrl || null;
+            const signed = await signRentalMedia("vehicle-media", [first.storage_path]);
+            heroPhoto = signed.get(first.storage_path) || null;
           }
           return { ...b, heroPhoto, review: reviews || null };
         })
