@@ -1468,6 +1468,7 @@ export type Database = {
           drivers_license_no: string
           drivers_license_path: string | null
           earnings_plan: string
+          earnings_total: number
           email: string
           full_name: string
           id: string
@@ -1486,6 +1487,7 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string | null
+          vehicle_photo_path: string | null
           vin: string
           year: string
         }
@@ -1499,6 +1501,7 @@ export type Database = {
           drivers_license_no: string
           drivers_license_path?: string | null
           earnings_plan: string
+          earnings_total?: number
           email: string
           full_name: string
           id?: string
@@ -1517,6 +1520,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+          vehicle_photo_path?: string | null
           vin: string
           year: string
         }
@@ -1530,6 +1534,7 @@ export type Database = {
           drivers_license_no?: string
           drivers_license_path?: string | null
           earnings_plan?: string
+          earnings_total?: number
           email?: string
           full_name?: string
           id?: string
@@ -1548,6 +1553,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+          vehicle_photo_path?: string | null
           vin?: string
           year?: string
         }
