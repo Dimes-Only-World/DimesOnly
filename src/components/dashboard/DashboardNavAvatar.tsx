@@ -25,6 +25,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useAccountSetup } from "@/hooks/useAccountSetup";
+import ShareLinkDialog from "./ShareLinkDialog";
 
 export interface NavLink {
   label: string;
@@ -74,6 +75,7 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
   const [setupOpen, setSetupOpen] = useState(false);
   const navigate = useNavigate();
   const setup = useAccountSetup();
+  const [shareOpen, setShareOpen] = useState(false);
   const showSetup = setup.hasUser && !setup.loading && !setup.allDone;
 
   useEffect(() => {
@@ -88,6 +90,7 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
   };
 
   return (
+    <>
     <>
       <button
         type="button"
@@ -172,7 +175,7 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
                         >
                           <span className="text-sm font-medium text-slate-800">{s.label}</span>
                           <button
-                            onClick={() => go(s.href)}
+                            onClick={() => (s.id === "share" ? setShareOpen(true) : go(s.href))}
                             className="rounded-md bg-dimes-magenta px-3 py-1 text-xs font-bold text-white"
                           >
                             {s.cta}
@@ -215,6 +218,8 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
           </nav>
         </>
       )}
+    </>
+      <ShareLinkDialog open={shareOpen} onOpenChange={setShareOpen} userId={setup.userId} username={setup.username} />
     </>
   );
 };
