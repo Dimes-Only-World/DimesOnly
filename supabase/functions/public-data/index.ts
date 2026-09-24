@@ -108,6 +108,7 @@ serve(async (req) => {
           .eq('user_id', userId)
           .eq('media_type', 'video')
           .eq('flagged', false)
+          .eq('content_tier', 'free')
           .order('created_at', { ascending: false })
           .limit(10);
 
