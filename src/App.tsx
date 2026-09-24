@@ -1,3 +1,4 @@
+import MyFleet from "@/pages/rentals/MyFleet";
 import React from "react";
 // App component - Dimes Only Network
 import {
@@ -196,6 +197,7 @@ function AppContent() {
       <Route path="/rentals" element={<Rentals />} />
       <Route path="/rentals/list" element={<ListACar />} />
       <Route path="/rentals/host" element={<BecomeAHost />} />
+      <Route path="/rentals/my-fleet" element={<MyFleet />} />
       <Route path="/rentals/host/apply" element={<HostApplication />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
