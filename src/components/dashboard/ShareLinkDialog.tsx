@@ -32,7 +32,7 @@ const ShareLinkDialog: React.FC<Props> = ({ open, onOpenChange, userId, username
   };
 
   const enc = encodeURIComponent;
-  const openUrl = (u: string) => window.open(u, "_blank", "noopener");
+  const openUrl = (u: string): void => { window.open(u, "_blank", "noopener"); };
   const copy = async () => {
     await navigator.clipboard.writeText(link);
     toast({ title: "Link copied", description: link });
