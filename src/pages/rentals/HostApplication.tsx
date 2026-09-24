@@ -146,7 +146,7 @@ const HostApplication: React.FC = () => {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
+      <div className="rentals-showroom min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
         <h1 className="font-barlow text-3xl font-bold uppercase">Application received</h1>
         <p className="mx-auto mt-3 max-w-md text-rental-muted">
           Thanks, {f.full_name.split(" ")[0]}. Your signed Co-Host Agreement and vehicle details were sent to our team. We'll contact you at {f.email} about the ${DEPOSIT} refundable deposit and next steps.
@@ -159,7 +159,7 @@ const HostApplication: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-rental-background text-rental-foreground">
+    <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <Link to="/rentals/host" className="text-sm text-rental-muted hover:text-rental-foreground">← Back</Link>
         <header>
