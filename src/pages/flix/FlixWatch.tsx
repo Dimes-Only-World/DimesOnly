@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Maximize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import FlixPaywall from "@/components/flix/FlixPaywall";
-import { activateSubscription, fetchLiveTitles, fetchMySubscription, fetchTitle, flixImage, formatClock, saveProgress, type FlixTitle } from "@/lib/flix";
+import { activateSubscription, fetchLiveTitles, fetchMySubscription, fetchTitle, flixImage, formatClock, saveProgress, type FlixTitle, fetchVideoUrl } from "@/lib/flix";
 import { useAppContext } from "@/contexts/AppContext";
 
 const GUEST_LIMIT_SECONDS = 30;
@@ -40,6 +40,12 @@ const FlixWatch: React.FC = () => {
     }
     fetchMySubscription(user.id).then((s) => setSubscribed(!!s));
   }, [user]);
+
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!id || !subscribed) { setVideoUrl(null); return; }
+    fetchVideoUrl(id).then(setVideoUrl);
+  }, [id, subscribed]);
 
   const next = all.find((t) => t.id !== id && t.is_original) || all.find((t) => t.id !== id);
 
@@ -133,7 +139,7 @@ const FlixWatch: React.FC = () => {
         <video
           ref={videoRef}
           key={title.id}
-          src={title.video_url}
+          src={videoUrl || undefined}
           poster={flixImage(title, "backdrop")}
           playsInline
           autoPlay

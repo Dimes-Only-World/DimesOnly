@@ -48,10 +48,19 @@ export const FLIX_DIRECT_RATE = 0.10;
 export const FLIX_OVERRIDE_RATE = 0.05;
 export const FLIX_MIN_PAYOUT_CENTS = 1000;
 
+const TITLE_COLS = "id,name,logline,description,genres,rating,year,duration_minutes,cast_members,tags,poster_url,backdrop_url,trailer_url,featured,featured_order,is_original,status,created_at,updated_at,poster_mobile_url,backdrop_mobile_url,coming_soon";
+
+/** Video link is only returned to active subscribers. */
+export async function fetchVideoUrl(id: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc("flix_get_video_url", { p_title_id: id });
+  if (error) return null;
+  return (data as string) || null;
+}
+
 export async function fetchLiveTitles(): Promise<FlixTitle[]> {
   const { data, error } = await supabase
     .from("flix_titles")
-    .select("*")
+    .select(TITLE_COLS)
     .eq("status", "live")
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -59,7 +68,7 @@ export async function fetchLiveTitles(): Promise<FlixTitle[]> {
 }
 
 export async function fetchTitle(id: string): Promise<FlixTitle | null> {
-  const { data, error } = await supabase.from("flix_titles").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("flix_titles").select(TITLE_COLS).eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as FlixTitle) || null;
 }
@@ -96,7 +105,7 @@ export interface FlixProgressRow {
 export async function fetchContinueWatching(userId: string) {
   const { data, error } = await supabase
     .from("flix_watch_progress")
-    .select("title_id, seconds, duration_seconds, updated_at, flix_titles(*)")
+    .select("title_id, seconds, duration_seconds, updated_at, flix_titles(" + TITLE_COLS + ")")
     .eq("user_id", userId)
     .gt("seconds", 5)
     .order("updated_at", { ascending: false })
