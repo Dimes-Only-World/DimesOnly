@@ -1,4 +1,4 @@
-import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+import { getCallerId, getVerifiedAdminId, isServiceCall, AUTH_HEADERS } from "../_shared/caller.ts";
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -66,7 +66,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     const body = await req.json();
-    { const _caller = await getCallerId(req); if (!_caller || _caller !== String(body.tipper_id)) { if (!(await getVerifiedAdminId(req))) return new Response(JSON.stringify({ success: false, error: "Please sign in again to continue." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } }
+    if (!isServiceCall(req)) { const _caller = await getCallerId(req); if (!_caller || _caller !== String(body.tipper_id)) { if (!(await getVerifiedAdminId(req))) return new Response(JSON.stringify({ success: false, error: "Please sign in again to continue." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } }
 
 
     const {
