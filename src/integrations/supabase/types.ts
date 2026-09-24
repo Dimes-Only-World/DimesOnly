@@ -5145,6 +5145,7 @@ export type Database = {
           username: string
         }[]
       }
+      flix_get_video_url: { Args: { p_title_id: string }; Returns: string }
       get_diamond_plus_count: { Args: never; Returns: number }
       get_elite_plus_count: { Args: never; Returns: number }
       get_my_referrals: {
