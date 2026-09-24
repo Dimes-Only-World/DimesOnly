@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { HOST_AGREEMENT_SECTIONS_A, HOST_AGREEMENT_SECTIONS_B } from "@/lib/hostAgreementText";
+import { buildAuthUrl } from "@/lib/refCapture";
 
 const COMPANY = {
   name: "Best Holdings Enterprises, Inc.",
@@ -63,6 +64,17 @@ const HostApplication: React.FC = () => {
 
   const set = (n: string, v: string) => setF((p) => ({ ...p, [n]: v }));
   const today = new Date().toLocaleDateString();
+
+  const [authChecked, setAuthChecked] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSignedIn(!!session);
+      if (session?.user?.email) setF((p) => ({ ...p, email: p.email || session.user.email! }));
+      setAuthChecked(true);
+    });
+  }, []);
 
   useEffect(() => {
     const c = canvasRef.current;
