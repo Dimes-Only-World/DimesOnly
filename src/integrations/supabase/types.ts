@@ -1457,6 +1457,102 @@ export type Database = {
           },
         ]
       }
+      host_applications: {
+        Row: {
+          address: string
+          city_state_zip: string
+          color: string | null
+          created_at: string
+          deposit_amount: number
+          deposit_status: string
+          drivers_license_no: string
+          drivers_license_path: string | null
+          earnings_plan: string
+          email: string
+          full_name: string
+          id: string
+          license_plate: string | null
+          make: string
+          mileage: string | null
+          model: string
+          notes: string | null
+          payout_details: Json
+          payout_method: string | null
+          phone: string
+          registration_path: string | null
+          signature_path: string | null
+          signed_at: string
+          signed_name: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          vin: string
+          year: string
+        }
+        Insert: {
+          address: string
+          city_state_zip: string
+          color?: string | null
+          created_at?: string
+          deposit_amount?: number
+          deposit_status?: string
+          drivers_license_no: string
+          drivers_license_path?: string | null
+          earnings_plan: string
+          email: string
+          full_name: string
+          id?: string
+          license_plate?: string | null
+          make: string
+          mileage?: string | null
+          model: string
+          notes?: string | null
+          payout_details?: Json
+          payout_method?: string | null
+          phone: string
+          registration_path?: string | null
+          signature_path?: string | null
+          signed_at?: string
+          signed_name: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          vin: string
+          year: string
+        }
+        Update: {
+          address?: string
+          city_state_zip?: string
+          color?: string | null
+          created_at?: string
+          deposit_amount?: number
+          deposit_status?: string
+          drivers_license_no?: string
+          drivers_license_path?: string | null
+          earnings_plan?: string
+          email?: string
+          full_name?: string
+          id?: string
+          license_plate?: string | null
+          make?: string
+          mileage?: string | null
+          model?: string
+          notes?: string | null
+          payout_details?: Json
+          payout_method?: string | null
+          phone?: string
+          registration_path?: string | null
+          signature_path?: string | null
+          signed_at?: string
+          signed_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          vin?: string
+          year?: string
+        }
+        Relationships: []
+      }
       installment_payments: {
         Row: {
           amount: number
