@@ -1,6 +1,7 @@
+import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -26,6 +27,8 @@ serve(async (req) => {
     
     const body = await req.json();
     const { action, adminUserId, ...params } = body;
+    { const _vid = await getVerifiedAdminId(req); if (!_vid || _vid !== adminUserId) return new Response(JSON.stringify({ error: 'Admin session expired. Please sign in again.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }); }
+
     
     // Verify admin user ID is provided
     if (!adminUserId) {

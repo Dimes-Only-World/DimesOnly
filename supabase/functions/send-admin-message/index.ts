@@ -1,10 +1,7 @@
+import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -13,6 +10,8 @@ Deno.serve(async (req) => {
 
   try {
     const { adminUserId, recipientIds, message } = await req.json();
+    { const _vid = await getVerifiedAdminId(req); if (!_vid || _vid !== adminUserId) return new Response(JSON.stringify({ error: 'Admin session expired. Please sign in again.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }); }
+
 
     if (!adminUserId || !recipientIds?.length || !message?.trim()) {
       return new Response(
