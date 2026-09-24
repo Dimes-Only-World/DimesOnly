@@ -17,7 +17,7 @@ export interface FlixTitle {
   poster_mobile_url?: string;
   backdrop_mobile_url?: string;
   trailer_url: string;
-  video_url: string;
+  video_url?: string | null;
   featured: boolean;
   featured_order: number;
   is_original: boolean;
