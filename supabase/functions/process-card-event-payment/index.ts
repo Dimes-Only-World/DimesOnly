@@ -1,10 +1,10 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": AUTH_HEADERS,
 };
 
 serve(async (req) => {
@@ -14,6 +14,8 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
+    { const _caller = await getCallerId(req); if ((requestBody.buyer_id) && _caller !== String(requestBody.buyer_id)) { if (!(await getVerifiedAdminId(req))) return new Response(JSON.stringify({ success: false, error: "Please sign in again to continue." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } }
+
     console.log("process-card-event-payment request received");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");

@@ -1,9 +1,9 @@
+import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-dimes-auth-token",
+  "Access-Control-Allow-Headers": AUTH_HEADERS,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -31,6 +31,8 @@ Deno.serve(async (req) => {
     const preview = String(body.preview ?? "").trim().slice(0, 140);
 
     if (!senderId || !recipientId) return json({ error: "sender_id and recipient_id are required" }, 400);
+    { const _caller = await getCallerId(req); if (!_caller || _caller !== String(senderId)) { if (!(await getVerifiedAdminId(req))) return json({ error: "Please sign in again to continue." }, 401); } }
+
     if (senderId === recipientId) return json({ success: true, skipped: "self" });
 
     // Verify the caller really is the sender (Supabase JWT).
