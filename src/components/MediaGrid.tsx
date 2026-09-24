@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Image, Video, Replace, Crown, Star, Lock, Heart, MessageCircle, Play } from "lucide-react";
+import { X, Replace, Crown, Star, Lock, Heart, MessageCircle, Play } from "lucide-react";
 import MediaLikes from "./MediaLikes";
 import MediaComments from "./MediaComments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -244,25 +244,6 @@ const MediaGrid: React.FC<MediaGridProps> = ({
               </div>
             )}
 
-            {/* Bottom info bar - simplified */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-              <div className="flex items-center justify-between text-white">
-                <div className="flex items-center gap-1">
-                  {file.media_type === "photo" ? (
-                    <Image className="w-3 h-3" />
-                  ) : (
-                    <Video className="w-3 h-3" />
-                  )}
-                  <span className="text-xs font-medium capitalize">{file.media_type}</span>
-                </div>
-                <div className="text-xs opacity-75">
-                  {file.upload_date 
-                    ? new Date(file.upload_date).toLocaleDateString()
-                    : new Date(file.created_at).toLocaleDateString()
-                  }
-                </div>
-              </div>
-            </div>
           
           {/* Engagement section - clean and accessible */}
           {showLikesAndComments && currentUserId && (
