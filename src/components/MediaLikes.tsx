@@ -54,17 +54,32 @@ const MediaLikes: React.FC<MediaLikesProps> = ({
     try {
       const { data, error } = await supabase
         .from('media_likes')
-        .select(`
-          user:users(username, profile_photo)
-        `)
+        .select('user_id, created_at')
         .eq('media_id', mediaId)
-        .limit(10);
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) throw error;
 
-      const likersList = (data || [])
-        .map((item: any) => item.user)
-        .filter(Boolean) as Array<{ username: string; profile_photo: string }>;
+      const ids = Array.from(new Set((data || []).map((r: any) => r.user_id).filter(Boolean)));
+      if (ids.length === 0) {
+        setLikers([]);
+        return;
+      }
+
+      const { data: profiles } = await supabase
+        .from('public_user_profiles')
+        .select('id, username, profile_photo, front_page_photo')
+        .in('id', ids);
+
+      const map = new Map((profiles || []).map((p: any) => [p.id, p]));
+      const likersList = ids
+        .map((id) => map.get(id))
+        .filter(Boolean)
+        .map((p: any) => ({
+          username: p.username || 'user',
+          profile_photo: p.profile_photo || p.front_page_photo || '',
+        }));
 
       setLikers(likersList);
     } catch (error) {
