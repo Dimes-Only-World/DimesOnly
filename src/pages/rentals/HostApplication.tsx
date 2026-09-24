@@ -108,6 +108,7 @@ const HostApplication: React.FC = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!f.earnings_plan) return toast({ title: "Choose Earn 50% or 60%", variant: "destructive" });
+    if (!photo) return toast({ title: "Upload a photo of your vehicle", variant: "destructive" });
     if (!dl || !reg) return toast({ title: "Upload your driver's license and registration", variant: "destructive" });
     if (!/^[A-HJ-NPR-Z0-9]{11,17}$/i.test(f.vin.trim())) return toast({ title: "Enter a valid VIN", variant: "destructive" });
     if (!agree || !signed || !f.signed_name.trim()) return toast({ title: "Sign the agreement to finish", variant: "destructive" });
@@ -116,10 +117,11 @@ const HostApplication: React.FC = () => {
     try {
       const ext = (file: File) => (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 5);
       const sigBlob: Blob = await new Promise((res) => canvasRef.current!.toBlob((b) => res(b!), "image/png"));
-      const [dlPath, regPath, sigPath] = await Promise.all([
+      const [dlPath, regPath, sigPath, photoPath] = await Promise.all([
         upload(dl, "licenses", ext(dl), dl.type || "application/octet-stream"),
         upload(reg, "registrations", ext(reg), reg.type || "application/octet-stream"),
         upload(sigBlob, "signatures", "png", "image/png"),
+        upload(photo, "vehicle-photos", ext(photo), photo.type || "image/jpeg"),
       ]);
       const payout_details =
         f.payout_method === "ach"
@@ -131,7 +133,7 @@ const HostApplication: React.FC = () => {
         make: f.make.trim(), model: f.model.trim(), year: f.year.trim(), color: f.color.trim(), vin: f.vin.trim().toUpperCase(),
         license_plate: f.license_plate.trim(), mileage: f.mileage.trim(), earnings_plan: f.earnings_plan,
         payout_method: f.payout_method, payout_details,
-        drivers_license_path: dlPath, registration_path: regPath, signature_path: sigPath,
+        drivers_license_path: dlPath, registration_path: regPath, signature_path: sigPath, vehicle_photo_path: photoPath,
         signed_name: f.signed_name.trim(),
       });
       if (error) throw error;
@@ -194,6 +196,11 @@ const HostApplication: React.FC = () => {
 
           <Section title="Documents">
             <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block space-y-1 sm:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-rental-muted">Upload vehicle photo *</span>
+                <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] || null)} className="block w-full text-sm" />
+                {photo && <img src={URL.createObjectURL(photo)} alt="Vehicle" className="mt-2 h-32 w-auto object-cover" />}
+              </label>
               <label className="block space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-wide text-rental-muted">Upload driver's license *</span>
                 <input type="file" accept="image/*,application/pdf" onChange={(e) => setDl(e.target.files?.[0] || null)} className="block w-full text-sm" />

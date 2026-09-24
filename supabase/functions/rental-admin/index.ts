@@ -323,7 +323,7 @@ serve(async (req) => {
       case "updateHostApplication": {
         const { id, payload } = params;
         const clean: Record<string, any> = {};
-        for (const k of ["status", "deposit_status", "notes"]) if (k in (payload || {})) clean[k] = payload[k];
+        for (const k of ["status", "deposit_status", "notes", "earnings_total"]) if (k in (payload || {})) clean[k] = payload[k];
         const { data, error } = await admin.from("host_applications").update(clean).eq("id", id).select().single();
         if (error) throw error;
         return json({ data });
