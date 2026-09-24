@@ -85,6 +85,62 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+  const cameraVideoRef = useRef<HTMLVideoElement>(null);
+
+  const stopLiveCamera = () => {
+    cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+    cameraStreamRef.current = null;
+    setCameraOpen(false);
+  };
+
+  const openCamera = async () => {
+    const isTouch = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+    // Phones/tablets: the native camera app opens via the capture input
+    if (isTouch || !navigator.mediaDevices?.getUserMedia) {
+      cameraInputRef.current?.click();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      cameraStreamRef.current = stream;
+      setCameraOpen(true);
+      setTimeout(() => {
+        if (cameraVideoRef.current) {
+          cameraVideoRef.current.srcObject = stream;
+          cameraVideoRef.current.play().catch(() => {});
+        }
+      }, 50);
+    } catch (err) {
+      console.error("Camera unavailable", err);
+      cameraInputRef.current?.click();
+    }
+  };
+
+  const snapPhoto = () => {
+    const video = cameraVideoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")?.drawImage(video, 0, 0);
+    canvas.toBlob(async (blob) => {
+      stopLiveCamera();
+      if (blob) {
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
+        await sendMediaMessage(file, "photo");
+      }
+    }, "image/jpeg", 0.9);
+  };
+
+  useEffect(() => {
+    if (!isOpen) stopLiveCamera();
+    return () => {
+      cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   useEffect(() => {
     let subscription: ReturnType<typeof supabase.channel> | null = null;
