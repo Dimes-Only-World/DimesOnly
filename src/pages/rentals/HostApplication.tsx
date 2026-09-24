@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { HOST_AGREEMENT_SECTIONS_A, HOST_AGREEMENT_SECTIONS_B } from "@/lib/hostAgreementText";
+import { buildAuthUrl } from "@/lib/refCapture";
 
 const COMPANY = {
   name: "Best Holdings Enterprises, Inc.",
@@ -63,6 +64,17 @@ const HostApplication: React.FC = () => {
 
   const set = (n: string, v: string) => setF((p) => ({ ...p, [n]: v }));
   const today = new Date().toLocaleDateString();
+
+  const [authChecked, setAuthChecked] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSignedIn(!!session);
+      if (session?.user?.email) setF((p) => ({ ...p, email: p.email || session.user.email! }));
+      setAuthChecked(true);
+    });
+  }, []);
 
   useEffect(() => {
     const c = canvasRef.current;
@@ -146,6 +158,25 @@ const HostApplication: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  if (authChecked && !signedIn) {
+    return (
+      <div className="rentals-showroom min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
+        <h1 className="font-barlow text-3xl font-bold uppercase">Log in to list your vehicle</h1>
+        <p className="mx-auto mt-3 max-w-md text-rental-muted">
+          You need a free Dimes Only account to become a host. Your vehicle, agreement and earnings will be attached to your account so you can track them in My Fleet.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button asChild className="rounded-none bg-rental-primary px-8 text-rental-primary-foreground">
+            <Link to={buildAuthUrl("/login", "/rentals/host/apply")}>Log in</Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-none border-rental-primary px-8 text-rental-primary">
+            <Link to={buildAuthUrl("/register", "/rentals/host/apply")}>Create account</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (done) {
     return (
