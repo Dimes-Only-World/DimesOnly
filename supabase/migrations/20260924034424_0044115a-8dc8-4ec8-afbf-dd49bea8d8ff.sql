@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.host_app_set_owner() FROM PUBLIC, anon, authenticated;
