@@ -26,4 +26,5 @@ export const getAdminUserId = (): string | null => {
 
 export const clearAdminSession = (): void => {
   sessionStorage.removeItem('adminUser');
+  sessionStorage.removeItem('adminToken');
 };
