@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MessageCircle, DollarSign, Star, Lock, Crown, Calendar } from "lucide-react";
+import { MessageCircle, DollarSign, Star, Lock, Crown, Grid3x3, PlaySquare, UserSquare2, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { resolveMembership } from "@/lib/membership";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +48,11 @@ const Profile: React.FC = () => {
   const [media, setMedia] = useState<UserMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"free" | "silver" | "gold">("free");
-  const [userMembership, setUserMembership] = useState<string>("free");
+  const [memberRank, setMemberRank] = useState(0);
+  const [view, setView] = useState<"grid" | "videos" | "tagged">("grid");
+  const [circle, setCircle] = useState<any[]>([]);
+  const [tagged, setTagged] = useState<any[]>([]);
+  const [showCircle, setShowCircle] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
 
 
@@ -108,6 +114,7 @@ const Profile: React.FC = () => {
       }
 
       setProfile(data as UserProfile);
+      fetchCircleAndTagged(data.username, data.id);
       await fetchMedia(data.id);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -182,88 +189,41 @@ const Profile: React.FC = () => {
   const fetchUserMembership = async () => {
     if (!user?.id) return;
     try {
-      // 1) Trust the users table first (updated by webhook)
-      const { data: userRow, error: userErr } = await supabase
-        .from("users")
-        .select("membership_tier, membership_type, silver_plus_active, diamond_plus_active")
-        .eq("id", user.id)
-        .single();
-
-      if (!userErr && userRow) {
-        const rawTier = (userRow.membership_tier || userRow.membership_type || "").toString().toLowerCase();
-        const normalizedTier =
-          rawTier === "gold" || rawTier === "diamond" ? "diamond_plus" : rawTier === "silver" ? "silver_plus" : rawTier;
-
-        if (userRow.diamond_plus_active || normalizedTier === "diamond_plus") {
-          setUserMembership("diamond_plus");
-          return;
-        }
-        if (userRow.silver_plus_active || normalizedTier === "silver_plus") {
-          setUserMembership("silver_plus");
-          return;
-        }
-      }
-
-      // 2) Fallback to completed upgrades in membership_upgrades
-      const { data: upgrades, error: upgErr } = await supabase
-        .from("membership_upgrades")
-        .select("upgrade_type, upgrade_status")
-        .eq("user_id", user.id)
-        .eq("upgrade_status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (!upgErr && upgrades && upgrades.length > 0) {
-        const rawUpgrade = String(upgrades[0].upgrade_type || "").toLowerCase();
-        const normalizedUpgrade =
-          rawUpgrade === "gold" || rawUpgrade === "diamond"
-            ? "diamond_plus"
-            : rawUpgrade === "silver"
-              ? "silver_plus"
-              : rawUpgrade;
-        setUserMembership(normalizedUpgrade);
-        return;
-      }
-
-      // Default
-      setUserMembership("free");
+      const { data: userRow } = await supabase.from("users").select("*").eq("id", user.id).maybeSingle();
+      setMemberRank(resolveMembership(userRow || user).rank);
     } catch (error) {
       console.error("Error fetching membership:", error);
-      setUserMembership("free");
+      setMemberRank(0);
     }
   };
 
-  const isTierless =
-    profile?.gender?.toLowerCase() === "male" ||
-    (profile?.gender?.toLowerCase() === "female" && profile?.user_type?.toLowerCase() === "normal");
-
-  const getFilteredMedia = () => {
-    const filtered = media.filter((item) => {
-      if (isTierless) return true;
-      if (activeTab === "free") return item.content_tier === "free";
-      if (activeTab === "silver") return item.content_tier === "silver";
-      if (activeTab === "gold") return item.content_tier === "gold";
-      return false;
-    });
-
-    // Transform for MediaGrid: ensure media_type is set and URLs are absolute
-    return filtered.map((item) => ({
-      ...item,
-      media_type: item.type, // required by MediaGrid
-      media_url: item.url.startsWith("http")
-        ? item.url
-        : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
-      url: item.url.startsWith("http")
-        ? item.url
-        : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${item.url}`,
-    }));
+  const fetchCircleAndTagged = async (uname: string, uid: string) => {
+    const [circleRes, taggedRes] = await Promise.all([
+      supabase.functions.invoke("public-data", { body: { action: "fetchMoneyCircle", username: uname } }),
+      supabase.functions.invoke("public-data", { body: { action: "fetchTaggedPosts", username: uname, userId: uid } }),
+    ]);
+    setCircle((circleRes.data as any)?.data || []);
+    setTagged((taggedRes.data as any)?.data || []);
   };
 
+  const isDime = ["exotic", "stripper"].includes(String(profile?.user_type || "").toLowerCase());
 
+  const absUrl = (u: string) =>
+    u.startsWith("http") ? u : `https://qkcuykpndrolrewwnkwb.supabase.co/storage/v1/object/public/media/${u}`;
+
+  const getFilteredMedia = () => {
+    const tier = isDime ? activeTab : "free";
+    const wantType = view === "videos" ? "video" : null;
+    return media
+      .filter((item) => item.content_tier === tier && (!wantType || item.type === wantType))
+      .map((item) => ({ ...item, media_type: item.type, media_url: absUrl(item.url), url: absUrl(item.url) }));
+  };
+
+  // silver (Gold content) = Silver Plus & up; gold (Gold+ content) = Diamond, Diamond Plus, Elite & up
   const canAccessTier = (tier: string) => {
     if (tier === "free") return true;
-    if (tier === "silver") return ["silver_plus", "diamond_plus"].includes(userMembership);
-    if (tier === "gold") return userMembership === "diamond_plus";
+    if (tier === "silver") return memberRank >= 2;
+    if (tier === "gold") return memberRank >= 4;
     return false;
   };
 
@@ -299,173 +259,145 @@ const Profile: React.FC = () => {
     );
   }
 
+  const location = [profile.city, profile.state].filter(Boolean).join(", ");
+  const tierLabel = (t: string) => (t === "free" ? "Silver Content" : t === "silver" ? "Gold Content" : "Gold+ Content");
+  const tabs: { key: "free" | "silver" | "gold"; label: string; sub: string }[] = [
+    { key: "free", label: "Silver", sub: "Everyone" },
+    { key: "silver", label: "Gold", sub: "Silver Plus" },
+    { key: "gold", label: "Gold+", sub: "Diamond & up" },
+  ];
+  const shown = getFilteredMedia();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="w-full p-0">
-        {/* Banner Section */}
-        <Card className="mb-0 overflow-hidden border-0 shadow-none rounded-none">
-          <div className="relative h-72 sm:h-64 bg-gradient-to-r from-purple-600 to-blue-600">
-            {profile.banner_photo && (
-              <img src={profile.banner_photo} alt="Banner" className="w-full h-full object-cover" />
-            )}
-            <div className="absolute inset-0 bg-black bg-opacity-30" />
+    <div className="min-h-screen bg-background text-foreground">
+      {profile.banner_photo && (
+        <div className="h-40 sm:h-56 w-full overflow-hidden">
+          <img src={profile.banner_photo} alt="Banner" className="w-full h-full object-cover" />
+        </div>
+      )}
 
-            {/* Profile Picture & Info */}
-            <div className="absolute bottom-0 left-0 right-0 p-0">
-              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6">
-                <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg mt-6 sm:mt-0">
-                  <img
-                    src={profile.profile_photo || "/placeholder.svg"}
-                    alt={profile.username}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex-1 text-white text-center sm:text-left">
-                  <h1 className="text-xl sm:text-3xl font-bold">@{profile.username}</h1>
-                  <p className="text-sm sm:text-xl opacity-90 break-words">
-                    {profile.city && profile.state
-                      ? `${profile.city}, ${profile.state}`
-                      : profile.city
-                        ? profile.city
-                        : profile.state
-                          ? profile.state
-                          : "Location not specified"}
-                  </p>
-                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
-                    <Badge variant="secondary" className="bg-white/20 text-white text-xs">
-                      {profile.gender}
-                    </Badge>
-                    <Badge variant="secondary" className="bg-white/20 text-white text-xs">
-                      {profile.user_type}
-                    </Badge>
-                    <Button
-                      onClick={() => setMessageOpen(true)}
-                      size="sm"
-                      className="h-7 bg-[#E916D1] hover:bg-[#E916D1]/90 text-white text-xs px-3"
-                    >
-                      <MessageCircle className="w-3 h-3 mr-1" />
-                      Message Me
-                    </Button>
-                  </div>
-
-                </div>
-
-                {/* Action Buttons (hidden for male or normal female) */}
-                {!(
-                  profile.gender?.toLowerCase() === "male" ||
-                  (profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal")
-                ) && (
-                  <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-                    <Button
-                      onClick={handleTip}
-                      className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
-                      size="sm"
-                    >
-                      <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      Tip
-                    </Button>
-                    <Button
-                      onClick={handleRate}
-                      className="bg-yellow-600 hover:bg-yellow-700 flex-1 sm:flex-none text-sm sm:text-base px-3 sm:px-4 py-2"
-                      size="sm"
-                    >
-                      <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      Rate
-                    </Button>
-                  </div>
-                )}
-
-              </div>
-
-              {profile.bio && (
-                <div className="mt-3 sm:mt-4 text-white/90 text-center sm:text-left">
-                  <p className="text-sm sm:text-base">{profile.bio}</p>
-                </div>
-              )}
-            </div>
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center gap-5 sm:gap-10">
+          <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-primary/60 bg-muted">
+            <img src={profile.profile_photo || "/placeholder.svg"} alt={profile.username} className="w-full h-full object-cover" />
           </div>
-        </Card>
-
-
-
-
-        {/* Content Tiers */}
-          <Card className="border-0 shadow-none rounded-none"><CardContent className="p-0">
-            {/* Tier Tabs (hidden for male or normal female) */}
-            {!(
-              profile.gender?.toLowerCase() === "male" ||
-              (profile.gender?.toLowerCase() === "female" && profile.user_type?.toLowerCase() === "normal")
-            ) && (
-            <div className="flex flex-col gap-2 w-full">
-              <Button
-                variant={activeTab === "free" ? "default" : "outline"}
-                onClick={() => setActiveTab("free")}
-                className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
-                size="sm"
-              >
-                Free Silver Content
-              </Button>
-
-              <Button
-                variant={activeTab === "silver" ? "default" : "outline"}
-                onClick={() => setActiveTab("silver")}
-                className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
-                size="sm"
-              >
-                <Crown className="w-4 h-4" />
-                Silver Plus Content
-                {!canAccessTier("silver") && <Lock className="w-4 h-4" />}
-              </Button>
-
-              <Button
-                variant={activeTab === "gold" ? "default" : "outline"}
-                onClick={() => setActiveTab("gold")}
-                className="flex w-full items-center justify-center gap-2 rounded-none text-base py-4"
-                size="sm"
-              >
-                <Crown className="w-4 h-4 text-yellow-500" />
-                Gold or Better Content
-                {!canAccessTier("gold") && <Lock className="w-4 h-4" />}
-              </Button>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-3xl font-bold break-all">{profile.username}</h1>
+            {(profile.first_name || location) && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {[profile.first_name, location].filter(Boolean).join(" · ")}
+              </p>
+            )}
+            <div className="flex gap-5 mt-3 text-sm sm:text-base">
+              <span><b>{media.length}</b> posts</span>
+              <button onClick={() => setShowCircle((v) => !v)} className="hover:underline">
+                <b>{circle.length}</b> in money circle
+              </button>
             </div>
-            )}
+            {profile.bio && <p className="text-sm mt-3 whitespace-pre-line">{profile.bio}</p>}
+          </div>
+        </div>
 
+        {/* Actions */}
+        <div className="grid grid-cols-2 gap-2 mt-5">
+          <Button variant="secondary" className="font-semibold" onClick={() => setShowCircle((v) => !v)}>
+            <Users className="w-4 h-4 mr-2" /> My Money Circle
+          </Button>
+          <Button variant="secondary" className="font-semibold" onClick={() => setMessageOpen(true)}>
+            <MessageCircle className="w-4 h-4 mr-2" /> Message
+          </Button>
+        </div>
+        {isDime && (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <Button onClick={handleTip} className="bg-green-600 hover:bg-green-700 text-white">
+              <DollarSign className="w-4 h-4 mr-1" /> Tip
+            </Button>
+            <Button onClick={handleRate} className="bg-yellow-600 hover:bg-yellow-700 text-white">
+              <Star className="w-4 h-4 mr-1" /> Rate
+            </Button>
+          </div>
+        )}
 
-            {/* Content Display */}
-            {canAccessTier(activeTab) ? (
-              <div>
-                {getFilteredMedia().length > 0 ? (
-                  <MediaGrid media={getFilteredMedia()} currentUserId={user?.id || ""} showLikesAndComments={true} />
-                ) : (
-                    <div className="text-center py-0">
-                    <p className="text-gray-500">No {activeTab} content available yet</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-0">
-                <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
-                  {activeTab === "silver" ? "Silver" : "Gold"} Content Locked
-                </h3>
-                <p className="text-gray-500 mb-4">Upgrade your membership to access {activeTab} content</p>
-                <Button onClick={() => handleUpgrade(activeTab)}>
-                  Upgrade to {activeTab === "silver" ? "Silver Plus" : "Gold"}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Money circle row (highlights style) */}
+        {circle.length > 0 ? (
+          <div className={`mt-6 flex gap-4 ${showCircle ? "flex-wrap" : "overflow-x-auto pb-2"}`}>
+            {(showCircle ? circle : circle.slice(0, 12)).map((m) => (
+              <Link key={m.id} to={`/profile/${m.username}`} className="flex flex-col items-center w-20 flex-shrink-0">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[3px] bg-muted ring-1 ring-border">
+                  <img src={m.profile_photo || "/placeholder.svg"} alt={m.username} className="w-full h-full rounded-full object-cover" />
+                </div>
+                <span className="text-xs mt-1 w-full truncate text-center">{m.username}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          showCircle && <p className="mt-6 text-sm text-muted-foreground text-center">No one in this money circle yet.</p>
+        )}
+
+        {/* Tabs */}
+        <div className="mt-8 border-t border-border grid grid-cols-3">
+          {([
+            ["grid", Grid3x3, "Posts"],
+            ["videos", PlaySquare, "Videos"],
+            ["tagged", UserSquare2, "Tagged"],
+          ] as const).map(([key, Icon, label]) => (
+            <button
+              key={key}
+              aria-label={label}
+              onClick={() => setView(key)}
+              className={`flex justify-center py-3 border-t-2 -mt-px ${view === key ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
+            >
+              <Icon className="w-6 h-6" />
+            </button>
+          ))}
+        </div>
+
+        {/* Tier selector for dimes (grid + videos) */}
+        {isDime && view !== "tagged" && (
+          <div className="grid grid-cols-3 gap-2 my-3">
+            {tabs.map((t) => (
+              <Button key={t.key} size="sm" variant={activeTab === t.key ? "default" : "outline"} onClick={() => setActiveTab(t.key)} className="flex flex-col h-auto py-1.5">
+                <span className="flex items-center gap-1 font-semibold">
+                  {t.key !== "free" && <Crown className="w-3.5 h-3.5" />}{t.label}
+                  {!canAccessTier(t.key) && <Lock className="w-3.5 h-3.5" />}
+                </span>
+                <span className="text-[10px] opacity-80">{t.sub}</span>
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {view === "tagged" ? (
+          tagged.length > 0 ? (
+            <MediaGrid media={tagged as any} currentUserId={user?.id || ""} showLikesAndComments={false} />
+          ) : (
+            <p className="text-center text-muted-foreground py-10">No tagged posts yet</p>
+          )
+        ) : canAccessTier(isDime ? activeTab : "free") ? (
+          shown.length > 0 ? (
+            <MediaGrid media={shown} currentUserId={user?.id || ""} showLikesAndComments={true} />
+          ) : (
+            <p className="text-center text-muted-foreground py-10">
+              No {view === "videos" ? "videos" : "posts"} in {tierLabel(isDime ? activeTab : "free")} yet
+            </p>
+          )
+        ) : (
+          <div className="text-center py-10">
+            <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <h3 className="text-lg font-semibold mb-1">{tierLabel(activeTab)} Locked</h3>
+            <p className="text-muted-foreground mb-4">
+              {activeTab === "silver" ? "Available to Silver Plus members and up" : "Available to Diamond, Diamond Plus and Elite members"}
+            </p>
+            <Button onClick={() => handleUpgrade(activeTab)}>
+              Upgrade to {activeTab === "silver" ? "Silver Plus" : "Diamond"}
+            </Button>
+          </div>
+        )}
       </div>
 
-      <DirectMessageModal
-        isOpen={messageOpen}
-        onClose={() => setMessageOpen(false)}
-        recipientUsername={profile.username}
-      />
+      <DirectMessageModal isOpen={messageOpen} onClose={() => setMessageOpen(false)} recipientUsername={profile.username} />
     </div>
-
   );
 };
 

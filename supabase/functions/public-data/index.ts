@@ -350,6 +350,63 @@ serve(async (req) => {
         break;
       }
 
+      // Public money circle (direct referrals) for a username — safe fields only
+      case 'fetchMoneyCircle': {
+        const uname = String(params.username || '').trim().replace(/[%_\\]/g, '\\$&');
+        if (!uname) { result = []; break; }
+        const { data, error } = await supabaseAdmin
+          .from('users')
+          .select('id, username, profile_photo, front_page_photo, city, state, created_at')
+          .ilike('referred_by', uname)
+          .order('created_at', { ascending: false })
+          .limit(500);
+        if (error) throw error;
+        result = (data || []).map((u: any) => ({
+          id: u.id, username: u.username,
+          profile_photo: u.front_page_photo || u.profile_photo || null,
+          city: u.city, state: u.state, created_at: u.created_at,
+        }));
+        break;
+      }
+
+      // Public feed posts from OTHER users that tag @username in the caption
+      case 'fetchTaggedPosts': {
+        const uname = String(params.username || '').trim().replace(/[%_\\]/g, '\\$&');
+        const userId = String(params.userId || '');
+        if (!uname) { result = []; break; }
+        const { data: posts, error } = await supabaseAdmin
+          .from('feed_posts')
+          .select('id, user_id, caption, created_at, visibility')
+          .ilike('caption', `%@${uname}%`)
+          .neq('user_id', userId || '00000000-0000-0000-0000-000000000000')
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (error) throw error;
+        const re = new RegExp(`@${uname}(?![A-Za-z0-9_.])`, 'i');
+        const matched = (posts || []).filter((p: any) => re.test(p.caption || '') && (p.visibility ?? 'public') === 'public');
+        const ids = matched.map((p: any) => p.id);
+        if (!ids.length) { result = []; break; }
+        const { data: media } = await supabaseAdmin
+          .from('feed_post_media')
+          .select('post_id, media_type, storage_bucket, storage_path, public_url, display_order')
+          .in('post_id', ids)
+          .order('display_order', { ascending: true });
+        const out: any[] = [];
+        for (const p of matched) {
+          const m = (media || []).find((x: any) => x.post_id === p.id);
+          if (!m) continue;
+          let url = m.public_url as string | null;
+          if (m.storage_path && m.storage_bucket) {
+            const { data: s } = await supabaseAdmin.storage.from(m.storage_bucket).createSignedUrl(m.storage_path, 3600);
+            if (s?.signedUrl) url = s.signedUrl;
+          }
+          if (!url) continue;
+          out.push({ id: p.id, media_url: url, media_type: m.media_type === 'video' ? 'video' : 'photo', created_at: p.created_at });
+        }
+        result = out;
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
