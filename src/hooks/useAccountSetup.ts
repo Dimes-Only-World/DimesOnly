@@ -32,6 +32,7 @@ export function useAccountSetup(externalUser?: any) {
   const [hasTipped, setHasTipped] = useState(false);
   const [shared, setShared] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dbPhoto, setDbPhoto] = useState(false);
 
   useEffect(() => {
     if (externalUser?.id) setUserData(externalUser);
@@ -58,11 +59,13 @@ export function useAccountSetup(externalUser?: any) {
       supabase.from("user_media").select("id", { count: "exact", head: true }).eq("user_id", id),
       supabase.from("ratings").select("id", { count: "exact", head: true }).eq("rater_id", id),
       supabase.from("tips").select("id", { count: "exact", head: true }).eq("tipper_id", id),
-    ]).then(([media, rated, tipped]) => {
+      supabase.from("public_user_profiles").select("profile_photo, front_page_photo").eq("id", id).maybeSingle(),
+    ]).then(([media, rated, tipped, prof]: any[]) => {
       if (cancelled) return;
       setHasMedia((media.count || 0) > 0);
       setHasRated((rated.count || 0) > 0);
       setHasTipped((tipped.count || 0) > 0);
+      setDbPhoto(Boolean(prof?.data?.profile_photo || prof?.data?.front_page_photo));
       setLoading(false);
     });
     return () => {
@@ -87,7 +90,7 @@ export function useAccountSetup(externalUser?: any) {
       label: "Add a profile photo",
       href: "/dashboard/profile-info",
       cta: "Add photo",
-      done: Boolean(userData?.profile_photo),
+      done: Boolean(dbPhoto || userData?.profile_photo || userData?.profilePhoto || userData?.front_page_photo),
     },
     { id: "media", label: "Upload your first media", href: "/dashboard/media", cta: "Upload", done: hasMedia },
     { id: "rate", label: "Rate your first Dime", href: `/rate-girls${refQuery}`, cta: "Rate", done: hasRated },
@@ -119,5 +122,7 @@ export function useAccountSetup(externalUser?: any) {
     allDone: completed === steps.length,
     loading: loading || !userData?.id,
     hasUser: Boolean(userData?.id),
+    userId: userData?.id as string | undefined,
+    username: myUsername,
   };
 }
