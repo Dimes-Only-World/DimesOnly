@@ -65,7 +65,9 @@ const HostApplication: React.FC = () => {
   const [agree, setAgree] = useState(false);
   const [signed, setSigned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
+  const [paymentState, setPaymentState] = useState<"form" | "processing" | "pending" | "done">("form");
+  const [pendingApplicationIds, setPendingApplicationIds] = useState<string[]>([]);
+  const [paidAmount, setPaidAmount] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
 
@@ -80,9 +82,40 @@ const HostApplication: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSignedIn(!!session);
-      if (session?.user?.email) setF((p) => ({ ...p, email: p.email || session.user.email! }));
+      if (session?.user?.email) setF((p) => ({ ...p, email: p.email || session.user.email || "" }));
       setAuthChecked(true);
     });
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const result = params.get("deposit");
+    const orderId = params.get("token");
+    if (result === "cancelled") {
+      setPaymentState("pending");
+      return;
+    }
+    if (result !== "success" || !orderId) return;
+    setPaymentState("processing");
+    supabase.functions.invoke("host-deposit-payment", {
+      body: { action: "capture", orderId },
+    }).then(({ data, error }) => {
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Payment could not be confirmed");
+      setPaidAmount(Number(data.amount) || 0);
+      sessionStorage.removeItem("hostDepositApplications");
+      setPaymentState("done");
+      window.history.replaceState({}, "", window.location.pathname);
+    }).catch((error) => {
+      setPaymentState("pending");
+      toast({ title: "Payment not completed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    });
+  }, [toast]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("hostDepositApplications") || "[]");
+      if (Array.isArray(saved) && saved.every((id) => typeof id === "string")) setPendingApplicationIds(saved);
+    } catch { /* no saved application */ }
   }, []);
 
   useEffect(() => {
@@ -92,7 +125,7 @@ const HostApplication: React.FC = () => {
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.strokeStyle = "#111";
-  }, [done, vIdx]);
+  }, [paymentState, vIdx]);
 
   const setVehicleField = (n: keyof Vehicle, v: string) =>
     setVehicles((prev) => prev.map((veh, i) => (i === vIdx ? { ...veh, [n]: v } : veh)));
@@ -148,6 +181,23 @@ const HostApplication: React.FC = () => {
     window.scrollTo({ top: 0 });
   };
 
+  const startDepositPayment = async (applicationIds: string[]) => {
+    if (!applicationIds.length) throw new Error("No pending vehicle application was found");
+    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    const { data, error } = await supabase.functions.invoke("host-deposit-payment", {
+      body: {
+        action: "create",
+        applicationIds,
+        returnUrl: `${baseUrl}?deposit=success`,
+        cancelUrl: `${baseUrl}?deposit=cancelled`,
+      },
+    });
+    if (error || !data?.success || !data?.approvalUrl) {
+      throw new Error(data?.error || error?.message || "Could not start deposit payment");
+    }
+    window.location.assign(data.approvalUrl);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLastVehicle) return nextVehicle();
@@ -160,14 +210,19 @@ const HostApplication: React.FC = () => {
     setSubmitting(true);
     try {
       const ext = (file: File) => (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 5);
-      const sigBlob: Blob = await new Promise((res) => canvasRef.current!.toBlob((b) => res(b!), "image/png"));
+      const canvas = canvasRef.current;
+      if (!canvas) throw new Error("Please sign the agreement again");
+      const sigBlob: Blob = await new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not save signature")), "image/png"));
       const [dlPath, regPath, sigPath] = await Promise.all([
         upload(dl, "licenses", ext(dl), dl.type || "application/octet-stream"),
         upload(reg, "registrations", ext(reg), reg.type || "application/octet-stream"),
         upload(sigBlob, "signatures", "png", "image/png"),
       ]);
       const photoPaths = await Promise.all(
-        vehicles.map((v) => upload(v.photo!, "vehicle-photos", ext(v.photo!), v.photo!.type || "image/jpeg"))
+        vehicles.map((vehicle) => {
+          if (!vehicle.photo) throw new Error("Upload a photo for every vehicle");
+          return upload(vehicle.photo, "vehicle-photos", ext(vehicle.photo), vehicle.photo.type || "image/jpeg");
+        })
       );
       const payout_details =
         f.payout_method === "ach"
@@ -182,10 +237,13 @@ const HostApplication: React.FC = () => {
         drivers_license_path: dlPath, registration_path: regPath, signature_path: sigPath, vehicle_photo_path: photoPaths[i],
         signed_name: f.signed_name.trim(),
       }));
-      const { error } = await supabase.from("host_applications").insert(rows);
+      const { data: applications, error } = await supabase.from("host_applications").insert(rows).select("id");
       if (error) throw error;
-      setDone(true);
-      window.scrollTo({ top: 0 });
+      const applicationIds = (applications || []).map((application) => application.id);
+      if (applicationIds.length !== vehicles.length) throw new Error("Could not prepare every vehicle for payment");
+      setPendingApplicationIds(applicationIds);
+      sessionStorage.setItem("hostDepositApplications", JSON.stringify(applicationIds));
+      await startDepositPayment(applicationIds);
     } catch (err: any) {
       toast({ title: "Could not submit", description: err?.message || "Please try again.", variant: "destructive" });
     } finally {
@@ -212,12 +270,41 @@ const HostApplication: React.FC = () => {
     );
   }
 
-  if (done) {
+  if (paymentState === "processing") {
+    return (
+      <div className="rentals-showroom min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
+        <h1 className="font-barlow text-3xl font-bold uppercase">Confirming deposit</h1>
+        <p className="mx-auto mt-3 max-w-md text-rental-muted">Please wait while your payment is confirmed.</p>
+      </div>
+    );
+  }
+
+  if (paymentState === "pending") {
+    return (
+      <div className="rentals-showroom min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
+        <h1 className="font-barlow text-3xl font-bold uppercase">Deposit payment pending</h1>
+        <p className="mx-auto mt-3 max-w-md text-rental-muted">Your signed application was saved, but the refundable deposit has not been paid.</p>
+        <Button
+          disabled={submitting || pendingApplicationIds.length === 0}
+          onClick={async () => {
+            setSubmitting(true);
+            try { await startDepositPayment(pendingApplicationIds); }
+            catch (error) { toast({ title: "Could not start payment", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); setSubmitting(false); }
+          }}
+          className="mt-6 rounded-none bg-rental-primary px-8 text-rental-primary-foreground"
+        >
+          {submitting ? "Opening PayPal…" : "Pay refundable deposit"}
+        </Button>
+      </div>
+    );
+  }
+
+  if (paymentState === "done") {
     return (
       <div className="rentals-showroom min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
         <h1 className="font-barlow text-3xl font-bold uppercase">Application received</h1>
         <p className="mx-auto mt-3 max-w-md text-rental-muted">
-          Thanks, {f.full_name.split(" ")[0]}. Your signed Co-Host Agreement and {vehicles.length > 1 ? `${vehicles.length} vehicles` : "vehicle"} were sent to our team. We'll contact you at {f.email} about the {money(totalDeposit)} refundable deposit and next steps.
+          Your signed Co-Host Agreement, vehicle application and {money(paidAmount || totalDeposit)} refundable deposit were received. Our team will review your submission next.
         </p>
         <Button asChild className="mt-6 rounded-none bg-rental-primary text-rental-primary-foreground">
           <Link to="/rentals">Back to Rentals</Link>

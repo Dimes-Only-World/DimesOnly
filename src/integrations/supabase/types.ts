@@ -1464,6 +1464,9 @@ export type Database = {
           color: string | null
           created_at: string
           deposit_amount: number
+          deposit_paid_at: string | null
+          deposit_paypal_capture_id: string | null
+          deposit_paypal_order_id: string | null
           deposit_status: string
           drivers_license_no: string
           drivers_license_path: string | null
@@ -1497,6 +1500,9 @@ export type Database = {
           color?: string | null
           created_at?: string
           deposit_amount?: number
+          deposit_paid_at?: string | null
+          deposit_paypal_capture_id?: string | null
+          deposit_paypal_order_id?: string | null
           deposit_status?: string
           drivers_license_no: string
           drivers_license_path?: string | null
@@ -1530,6 +1536,9 @@ export type Database = {
           color?: string | null
           created_at?: string
           deposit_amount?: number
+          deposit_paid_at?: string | null
+          deposit_paypal_capture_id?: string | null
+          deposit_paypal_order_id?: string | null
           deposit_status?: string
           drivers_license_no?: string
           drivers_license_path?: string | null
