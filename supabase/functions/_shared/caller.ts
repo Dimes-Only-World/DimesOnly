@@ -1,6 +1,6 @@
 // Shared caller verification for edge functions.
 // Tokens are issued by authenticate-user as `${userId}.${issuedAtMs}.${hmac}`.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 export const AUTH_HEADERS =
   "authorization, x-client-info, apikey, content-type, x-admin-token, x-user-token";
