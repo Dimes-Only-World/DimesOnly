@@ -3,7 +3,8 @@
 // secret stored in public.email_hook_config (service-role only).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders as sdkCors } from "npm:@supabase/supabase-js@2/cors";
+const corsHeaders = { ...sdkCors, "Access-Control-Allow-Headers": `${sdkCors["Access-Control-Allow-Headers"]}, x-user-token, x-admin-token` };
 import { EMAIL_BRAND, sendDimesEmail } from "../_shared/dimes-emails.ts";
 
 const json = (body: unknown, status = 200) =>

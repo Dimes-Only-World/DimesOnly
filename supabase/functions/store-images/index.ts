@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders as sdkCors } from "npm:@supabase/supabase-js@2/cors";
+const corsHeaders = { ...sdkCors, "Access-Control-Allow-Headers": `${sdkCors["Access-Control-Allow-Headers"]}, x-user-token, x-admin-token` };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

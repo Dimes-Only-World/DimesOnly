@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "*",
-  "Access-Control-Allow-Headers": "*",
+  "Access-Control-Allow-Headers": "*, x-user-token, x-admin-token",
 };
 
 // --- PayPal verification helpers ---
