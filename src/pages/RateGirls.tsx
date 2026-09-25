@@ -409,7 +409,7 @@ const RateGirls: React.FC = () => {
                       placeholder="e.g., Miami, Sky, Mercedes..."
                       value={searchName}
                       onChange={(e) => setSearchName(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/20 border-2 border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-white placeholder-gray-300"
+                      className="w-full pl-12 pr-4 py-4 bg-white/20 border-2 border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-white placeholder:text-white"
                     />
                   </div>
                 </div>
@@ -429,7 +429,7 @@ const RateGirls: React.FC = () => {
                       placeholder="e.g., Phoenix, Las Vegas, Dallas..."
                       value={searchCity}
                       onChange={(e) => setSearchCity(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/20 border-2 border-white/30 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 text-white placeholder-gray-300"
+                      className="w-full pl-12 pr-4 py-4 bg-white/20 border-2 border-white/30 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 text-white placeholder:text-white"
                     />
                   </div>
                 </div>
@@ -449,7 +449,7 @@ const RateGirls: React.FC = () => {
                       placeholder="e.g., AZ, CA, TX, NV..."
                       value={searchState}
                       onChange={(e) => setSearchState(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/20 border-2 border-white/30 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 text-white placeholder-gray-300"
+                      className="w-full pl-12 pr-4 py-4 bg-white/20 border-2 border-white/30 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 text-white placeholder:text-white"
                     />
                   </div>
                 </div>
