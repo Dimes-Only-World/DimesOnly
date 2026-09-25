@@ -150,7 +150,7 @@ const UsersList: React.FC<UsersListProps> = ({
   };
 
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
+    const filtered = users.filter((user) => {
       const nameMatch =
         !searchName ||
         user.username.toLowerCase().includes(searchName.toLowerCase());
@@ -178,6 +178,16 @@ const UsersList: React.FC<UsersListProps> = ({
       }
       return true;
     });
+
+    // "Rated" tab: sort highest rated to lowest rated
+    if (rateFilter === "rated") {
+      return [...filtered].sort((a, b) =>
+        usePersonalRatings
+          ? (b.myRating ?? 0) - (a.myRating ?? 0)
+          : b.ratingCount - a.ratingCount
+      );
+    }
+    return filtered;
   }, [users, searchName, searchCity, searchState, rateFilter, usePersonalRatings]);
 
   const totalPages = pageSize
@@ -258,6 +268,13 @@ const UsersList: React.FC<UsersListProps> = ({
                 }
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+              {actionType !== "tip" && user.myRating !== null && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="select-none text-7xl font-black tracking-tight text-white/40 drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)] sm:text-8xl">
+                    {user.myRating}
+                  </span>
+                </div>
+              )}
               <div className="absolute right-2 top-2">
                 <span className="rounded-full bg-fuchsia-600/90 px-2.5 py-1 text-[11px] font-semibold capitalize text-white shadow-lg">
                   {user.user_type}
