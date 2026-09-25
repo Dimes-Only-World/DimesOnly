@@ -219,7 +219,7 @@ const Profile: React.FC = () => {
       .map((item) => ({ ...item, media_type: item.type, media_url: absUrl(item.url), url: absUrl(item.url) }));
   };
 
-  // silver (Gold content) = Silver Plus & up; gold (Gold+ content) = Diamond, Diamond Plus, Elite & up
+  // silver (Gold content) = Silver Plus & up; gold (Diamond content) = Diamond, Diamond Plus, Elite & up
   const canAccessTier = (tier: string) => {
     if (tier === "free") return true;
     if (tier === "silver") return memberRank >= 2;
@@ -260,11 +260,11 @@ const Profile: React.FC = () => {
   }
 
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
-  const tierLabel = (t: string) => (t === "free" ? "Silver Content" : t === "silver" ? "Gold Content" : "Gold+ Content");
+  const tierLabel = (t: string) => (t === "free" ? "Silver Content" : t === "silver" ? "Gold Content" : "Diamond Content");
   const tabs: { key: "free" | "silver" | "gold"; label: string; sub: string }[] = [
     { key: "free", label: "Silver", sub: "Everyone" },
     { key: "silver", label: "Gold", sub: "Silver Plus" },
-    { key: "gold", label: "Gold+", sub: "Diamond & up" },
+    { key: "gold", label: "Diamond Content", sub: "Diamond & up" },
   ];
   const shown = getFilteredMedia();
 
@@ -389,7 +389,7 @@ const Profile: React.FC = () => {
             <p className="text-muted-foreground mb-4">
               {activeTab === "silver" ? "Available to Silver Plus members and up" : "Available to Diamond, Diamond Plus and Elite members"}
             </p>
-            <Button onClick={() => handleUpgrade(activeTab)}>
+            <Button className="min-w-56" onClick={() => handleUpgrade(activeTab)}>
               Upgrade to {activeTab === "silver" ? "Silver Plus" : "Diamond"}
             </Button>
           </div>
