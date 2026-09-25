@@ -1,31 +1,19 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle } from "lucide-react";
+import { Crown, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Crown,
-  AlertCircle,
-} from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import AuthGuard from "@/components/AuthGuard";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
-import AngelLoader from "@/components/AngelLoader";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import MembershipAgreementSection from "@/components/MembershipAgreementSection";
+import AngelLoader from "@/components/AngelLoader";
 
 interface MembershipLimits {
   membership_type: string;
@@ -44,21 +32,24 @@ interface UserData {
   email: string;
 }
 
+type Plan = "full" | "monthly";
+
+const FULL_AMOUNT = 149.99;
+const MONTHLY_AMOUNT = 80;
 
 const UpgradeDiamondPage: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [membershipLimits, setMembershipLimits] = useState<MembershipLimits[]>(
-    []
-  );
+  const [membershipLimits, setMembershipLimits] = useState<MembershipLimits[]>([]);
   const [loading, setLoading] = useState(true);
   const [upgradeInProgress, setUpgradeInProgress] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [paymentOption, setPaymentOption] = useState<
-    "full" | "monthly"
-  >("full");
+  const [plan, setPlan] = useState<Plan>("full");
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const [agreementComplete, setAgreementComplete] = useState(false);
+
+  const AMOUNT = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
 
   // Calculate remaining spots (combine stripper and exotic limits)
   const diamondPlusLimits = membershipLimits.filter(
@@ -155,7 +146,7 @@ const UpgradeDiamondPage: React.FC = () => {
         return;
       }
 
-      const paymentAmount = paymentOption === "full" ? 149.99 : 80;
+      const paymentAmount = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
       const returnUrl = `${window.location.origin}/payment-return?payment=success`;
       const cancelUrl = `${window.location.origin}/payment-return?payment=cancelled`;
 
@@ -167,9 +158,9 @@ const UpgradeDiamondPage: React.FC = () => {
             amount: paymentAmount,
             phone_number: phoneNumber,
             payment_method:
-              paymentOption === "full" ? "paypal_full" : "paypal_monthly",
+              plan === "full" ? "paypal_full" : "paypal_monthly",
             cadence: "one_time",
-            billing_option: paymentOption,
+            billing_option: plan,
             return_url: returnUrl,
             cancel_url: cancelUrl,
           },
@@ -190,7 +181,7 @@ const UpgradeDiamondPage: React.FC = () => {
         "diamond_plus_upgrade",
         JSON.stringify({
           upgrade_id: orderData.upgrade_id,
-          payment_option: paymentOption,
+          payment_option: plan,
           amount: paymentAmount,
         })
       );
@@ -225,39 +216,18 @@ const UpgradeDiamondPage: React.FC = () => {
   const handlePayLater = () => initiatePayment("paylater");
   const handleCardRedirect = () => initiatePayment("card");
 
-
   if (loading) {
     return <AngelLoader variant="fullscreen" />;
   }
 
-  if (!userData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <Card className="bg-red-900/20 border-red-500">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-red-400 font-bold text-xl mb-2">
-              Access Denied
-            </h2>
-            <p className="text-red-300">
-              Please log in to access the upgrade page.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Check if user is eligible for Diamond Plus
-  const isEligible =
-    userData.user_type === "stripper" || userData.user_type === "exotic";
-  const alreadyDiamondPlus = userData.diamond_plus_active;
+  const alreadyDiamondPlus = userData?.diamond_plus_active;
 
   return (
-    <AuthGuard>
+    <AppLayout>
       <Dialog open={showRefundPolicy} onOpenChange={setShowRefundPolicy}>
-        <DialogContent className="max-w-lg bg-gray-900 border-yellow-500 text-white">
+        <DialogContent className="bg-gray-900 border-fuchsia-500 text-white max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-yellow-400">
+            <DialogTitle className="text-fuchsia-400">
               Diamond Plus Membership Agreement
             </DialogTitle>
           </DialogHeader>
@@ -276,77 +246,62 @@ const UpgradeDiamondPage: React.FC = () => {
             </p>
             <Button
               onClick={() => setShowRefundPolicy(false)}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
+              className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
             >
               I Understand
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Crown className="w-12 h-12 text-yellow-400" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                Diamond Plus Membership
-              </h1>
-              <Crown className="w-12 h-12 text-yellow-400" />
+
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-900 to-slate-900 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Button
+            variant="ghost"
+            className="text-white hover:text-fuchsia-300 hover:bg-white/10"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          </Button>
+
+          <div className="text-center mt-2">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <Crown className="w-10 h-10 text-yellow-400" />
+              <h1 className="text-4xl font-bold text-white">Diamond Plus Membership</h1>
+              <Crown className="w-10 h-10 text-yellow-400" />
             </div>
-            <p className="text-xl text-gray-300 mb-4">
-              Get Profit Sharing Position of up to $1,200,000 a year minimum for life in tier 2.
+            <p className="text-fuchsia-200 mt-2 mb-4">
+              Get Profit Sharing Position of up to $1,200,000 a year minimum for life in tier 2 — limited to 300 lifetime seats.
             </p>
-            {spotsLeft > 0 && isEligible && (
+            {alreadyDiamondPlus ? (
+              <Badge className="text-lg px-4 py-2 bg-green-600">
+                <CheckCircle className="w-4 h-4 mr-2" /> You're already Diamond Plus
+              </Badge>
+            ) : spotsLeft > 0 ? (
               <Badge variant="destructive" className="text-lg px-4 py-2">
                 Only {spotsLeft} spots remaining!
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="text-lg px-4 py-2">
+                All 300 Diamond Plus positions have been filled.
               </Badge>
             )}
           </div>
 
-          {!isEligible ? (
-            <Card className="bg-blue-900/20 border-blue-500 mb-8">
-              <CardContent className="p-8 text-center">
-                <Crown className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                <h2 className="text-blue-400 font-bold text-2xl mb-2">
-                  Diamond Plus Information
-                </h2>
-                <p className="text-blue-300 mb-4">
-                  Diamond Plus membership is exclusively available for Stripper
-                  and Exotic user types.
-                </p>
-                <div className="bg-blue-800/30 rounded-lg p-4 mb-4">
-                  <h3 className="text-white font-semibold mb-2">
-                    Program Benefits:
-                  </h3>
-                  <ul className="text-blue-200 text-sm space-y-1 text-left">
-                    <li>• $150,000/year profit sharing</li>
-                    <li>• Bi weekly pay of up to $5,769.23 max</li>
-                    <li>• Priority placement in rankings</li>
-                    <li>• Access to exclusive events</li>
-                    <li>• Direct support channel to CEO</li>
-                  </ul>
-                </div>
-                <p className="text-blue-300 text-sm">
-                  If you're a Stripper or Exotic performer, please contact
-                  support to update your account type.
-                </p>
-              </CardContent>
-            </Card>
-          ) : alreadyDiamondPlus ? (
-            <Card className="bg-green-900/20 border-green-500 mb-8">
+          {alreadyDiamondPlus ? (
+            <Card className="bg-green-900/20 border-green-500 text-white">
               <CardContent className="p-8 text-center">
                 <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
                 <h2 className="text-green-400 font-bold text-2xl mb-2">
                   You're Already Diamond Plus!
                 </h2>
                 <p className="text-green-300">
-                  You have access to the $200,000/year profit sharing program.
+                  You have access to the $1,200,000/year profit sharing program in tier 2.
                 </p>
               </CardContent>
             </Card>
           ) : spotsLeft <= 0 ? (
-            <Card className="bg-red-900/20 border-red-500 mb-8">
+            <Card className="bg-red-900/20 border-red-500 text-white">
               <CardContent className="p-8 text-center">
                 <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
                 <h2 className="text-red-400 font-bold text-2xl mb-2">
@@ -358,8 +313,7 @@ const UpgradeDiamondPage: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-6">
-              {/* Agreement + Identity Verification Section */}
+            <>
               <MembershipAgreementSection
                 tier="diamond_plus"
                 onSubmitted={() => setAgreementComplete(true)}
@@ -401,34 +355,31 @@ const UpgradeDiamondPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card
-                  onClick={() => setPaymentOption("full")}
-                  className={`cursor-pointer bg-black/70 text-white transition-all ${paymentOption === "full" ? "border-fuchsia-400 ring-2 ring-fuchsia-500" : "border-fuchsia-500/40"}`}
+                  onClick={() => setPlan("full")}
+                  className={`cursor-pointer bg-black/70 text-white transition-all ${plan === "full" ? "border-fuchsia-400 ring-2 ring-fuchsia-500" : "border-fuchsia-500/40"}`}
                 >
                   <CardHeader>
                     <CardTitle className="text-fuchsia-400">One-Time Lifetime</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-4xl font-bold text-yellow-300">$149.99</div>
-                    <p className="text-sm text-gray-300 mt-2">
-                      One-time payment → immediate activation.
-                    </p>
+                    <div className="text-4xl font-bold text-yellow-300">${FULL_AMOUNT}</div>
+                    <p className="text-sm text-gray-300 mt-2">Pay once → lifetime access immediately.</p>
                   </CardContent>
                 </Card>
 
                 <Card
-                  onClick={() => setPaymentOption("monthly")}
-                  className={`cursor-pointer bg-black/70 text-white transition-all ${paymentOption === "monthly" ? "border-fuchsia-400 ring-2 ring-fuchsia-500" : "border-fuchsia-500/40"}`}
+                  onClick={() => setPlan("monthly")}
+                  className={`cursor-pointer bg-black/70 text-white transition-all ${plan === "monthly" ? "border-fuchsia-400 ring-2 ring-fuchsia-500" : "border-fuchsia-500/40"}`}
                 >
                   <CardHeader>
                     <CardTitle className="text-fuchsia-400">12-Month Plan</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-4xl font-bold text-yellow-300">
-                      $80.00<span className="text-xl">/mo</span>
+                      ${MONTHLY_AMOUNT.toFixed(2)}<span className="text-xl">/mo</span>
                     </div>
                     <p className="text-sm text-gray-300 mt-2">
-                      12 monthly payments = $960 total.{" "}
-                      <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
+                      12 monthly payments = $960 total. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
                     </p>
                   </CardContent>
                 </Card>
@@ -437,21 +388,19 @@ const UpgradeDiamondPage: React.FC = () => {
               <Card className="bg-black/70 border-fuchsia-500 text-white">
                 <CardHeader>
                   <CardTitle className="text-fuchsia-400">
-                    Checkout — {paymentOption === "full" ? "Lifetime $149.99" : "First Payment $80.00"}
+                    Checkout — {plan === "full" ? `Lifetime $${FULL_AMOUNT}` : `First Payment $${MONTHLY_AMOUNT.toFixed(2)}`}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-white">
-                        Phone Number
-                      </Label>
+                      <Label htmlFor="phone" className="text-white">Phone Number</Label>
                       <Input
                         id="phone"
                         type="tel"
+                        placeholder="+1 (555) 123-4567"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="+1 (555) 123-4567"
                         disabled={upgradeInProgress}
                         className="bg-white/10 border-fuchsia-500/50 text-white placeholder:text-gray-400"
                         required
@@ -461,37 +410,28 @@ const UpgradeDiamondPage: React.FC = () => {
 
                     {agreementComplete ? (
                       <PaymentMethodSelector
-                        amount={paymentOption === "full" ? 149.99 : 80}
+                        amount={AMOUNT}
                         onPayPal={handlePayPal}
                         onPayLater={handlePayLater}
                         onCardRedirect={handleCardRedirect}
                         cardMode="redirect"
                         isProcessing={upgradeInProgress}
                         disabled={!phoneNumber}
-                        paypalLabel={
-                          paymentOption === "full"
-                            ? "Pay $149.99 - Upgrade Now"
-                            : "Pay $80.00 - First Monthly Payment"
-                        }
+                        paypalLabel={plan === "full" ? `Pay $${FULL_AMOUNT} Lifetime` : "Start 12-Month Plan"}
                       />
                     ) : (
                       <div className="rounded-lg border border-yellow-500 bg-yellow-500/10 p-4 text-sm text-yellow-200 text-center font-semibold">
                         Complete Diamond Plus Membership Agreement above to continue...
                       </div>
                     )}
-
-                    <p className="text-gray-400 text-xs text-center">
-                      After payment, you'll receive instructions for your notarization video call
-                    </p>
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </>
           )}
-
         </div>
       </div>
-    </AuthGuard>
+    </AppLayout>
   );
 };
 
