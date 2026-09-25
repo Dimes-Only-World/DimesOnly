@@ -270,7 +270,7 @@ const UsersList: React.FC<UsersListProps> = ({
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
               {actionType !== "tip" && user.myRating !== null && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className="select-none text-7xl font-black tracking-tight text-white/40 drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)] sm:text-8xl">
+                  <span className="select-none text-7xl font-black tracking-tight text-white/40 [text-shadow:-2px_-2px_2px_rgba(255,0,64,0.9),2px_-2px_2px_rgba(255,0,64,0.9),-2px_2px_2px_rgba(255,0,64,0.9),2px_2px_2px_rgba(255,0,64,0.9),0_2px_12px_rgba(0,0,0,0.65)] sm:text-8xl">
                     {user.myRating}
                   </span>
                 </div>
