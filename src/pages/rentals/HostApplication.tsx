@@ -67,6 +67,7 @@ const HostApplication: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [paymentState, setPaymentState] = useState<"form" | "processing" | "pending" | "done">("form");
   const [pendingApplicationIds, setPendingApplicationIds] = useState<string[]>([]);
+  const [paidAmount, setPaidAmount] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
 
@@ -100,6 +101,7 @@ const HostApplication: React.FC = () => {
       body: { action: "capture", orderId },
     }).then(({ data, error }) => {
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Payment could not be confirmed");
+      setPaidAmount(Number(data.amount) || 0);
       sessionStorage.removeItem("hostDepositApplications");
       setPaymentState("done");
       window.history.replaceState({}, "", window.location.pathname);
@@ -302,7 +304,7 @@ const HostApplication: React.FC = () => {
       <div className="rentals-showroom min-h-screen bg-rental-background px-4 py-24 text-center text-rental-foreground">
         <h1 className="font-barlow text-3xl font-bold uppercase">Application received</h1>
         <p className="mx-auto mt-3 max-w-md text-rental-muted">
-          Your signed Co-Host Agreement, vehicle application and {money(totalDeposit)} refundable deposit were received. Our team will review your submission next.
+          Your signed Co-Host Agreement, vehicle application and {money(paidAmount || totalDeposit)} refundable deposit were received. Our team will review your submission next.
         </p>
         <Button asChild className="mt-6 rounded-none bg-rental-primary text-rental-primary-foreground">
           <Link to="/rentals">Back to Rentals</Link>
