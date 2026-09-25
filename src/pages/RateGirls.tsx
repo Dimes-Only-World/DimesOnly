@@ -459,7 +459,7 @@ const RateGirls: React.FC = () => {
               <div className="max-w-md mx-auto sm:max-w-none">
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-2 shadow-inner">
                   {renderRateFilterButton("all", "All")}
-                  {renderRateFilterButton("rated", "Rated")}
+                  {renderRateFilterButton("rated", "Your Rated Dimes")}
                   {renderRateFilterButton("not-rated", "Not Rated")}
                 </div>
               </div>
