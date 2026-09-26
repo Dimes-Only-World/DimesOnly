@@ -1569,6 +1569,33 @@ export type Database = {
           },
         ]
       }
+      flyer_shares: {
+        Row: {
+          channel: string
+          flyer_id: string
+          flyer_title: string
+          id: string
+          shared_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          flyer_id: string
+          flyer_title?: string
+          id?: string
+          shared_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          flyer_id?: string
+          flyer_title?: string
+          id?: string
+          shared_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flyers: {
         Row: {
           created_at: string
