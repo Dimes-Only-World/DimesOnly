@@ -9,6 +9,10 @@ import { supabase } from "@/lib/supabase";
 import { QRCodeSVG } from "qrcode.react";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import SharedLeadsList from "@/components/SharedLeadsList";
+import BannerVideo from "@/components/BannerVideo";
+import MakeMoneyFlyers from "@/components/MakeMoneyFlyers";
+import { QRCodeCanvas } from "qrcode.react";
+import { Lock } from "lucide-react";
 
 const UserMakeMoneyTab: React.FC = () => {
   const { user } = useAppContext();
@@ -18,6 +22,53 @@ const UserMakeMoneyTab: React.FC = () => {
     "https://dimesonlyworld.s3.us-east-2.amazonaws.com/Exs+Commercial(1)+(1).webm";
   const { videoUrl: adminPromoVideo } = usePageVideo("make_money_promo");
   const promoVideoUrl = adminPromoVideo || DEFAULT_PROMO_VIDEO;
+  const { videoUrl: adminBannerVideo } = usePageVideo("make_money_banner");
+  const bannerVideoUrl = adminBannerVideo || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/0415+(1).mp4";
+  const [qrUnlocked, setQrUnlocked] = useState<boolean | null>(null);
+  const [qrBusy, setQrBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const qrPay = params.get("qr");
+    const run = async () => {
+      if (qrPay === "success" && token) {
+        const { data } = await supabase.functions.invoke("make-money", { body: { action: "qrCapture", orderId: token } });
+        const clean = new URL(window.location.href);
+        ["qr", "token", "PayerID"].forEach((k) => clean.searchParams.delete(k));
+        window.history.replaceState({}, "", clean.toString());
+        if (data?.success) toast({ title: "Payment complete!", description: "Your QR code is ready to download." });
+        else toast({ title: "Payment not completed", description: data?.error || "Please try again.", variant: "destructive" });
+      }
+      const { data } = await supabase.functions.invoke("make-money", { body: { action: "qrStatus" } });
+      setQrUnlocked(!!data?.unlocked);
+    };
+    run();
+  }, [user?.id]);
+
+  const handleBuyQr = async () => {
+    setQrBusy(true);
+    const base = `${window.location.origin}${window.location.pathname}`;
+    const { data, error } = await supabase.functions.invoke("make-money", {
+      body: { action: "qrCreate", returnUrl: `${base}?qr=success`, cancelUrl: `${base}?qr=cancelled` },
+    });
+    if (error || !data?.approvalUrl) {
+      setQrBusy(false);
+      toast({ title: "Could not start payment", description: data?.error || "Please try again.", variant: "destructive" });
+      return;
+    }
+    window.location.href = data.approvalUrl;
+  };
+
+  const handleDownloadQr = () => {
+    const canvas = document.getElementById("referral-qr-canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.download = `DimesOnly-QR-${actualUsername || "referral"}.png`;
+    a.click();
+  };
 
   const referralUsername = actualUsername;
 
@@ -182,6 +233,9 @@ const UserMakeMoneyTab: React.FC = () => {
 
   return (
     <div className="w-full max-w-none px-0 md:px-4 space-y-8">
+      <div className="w-full">
+        <BannerVideo src={bannerVideoUrl} className="aspect-[2.35/1]" />
+      </div>
       {/* Diamond Yearly subscription */}
       <div className="rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-amber-500/15 p-5 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -248,8 +302,17 @@ const UserMakeMoneyTab: React.FC = () => {
               <p className="text-sm text-muted-foreground">Copy and share your personal link anywhere.</p>
             </div>
             <div className="flex items-center gap-3 w-full">
-              <div className="shrink-0 p-2 bg-background rounded border border-border">
-                <QRCodeSVG value={shareLink} size={88} level="M" />
+              <div className="relative shrink-0 p-2 bg-background rounded border border-border">
+                {qrUnlocked ? (
+                  <QRCodeSVG value={shareLink} size={88} level="M" />
+                ) : (
+                  <div className="relative w-[88px] h-[88px] overflow-hidden">
+                    <div className="blur-md select-none pointer-events-none" aria-hidden>
+                      <QRCodeSVG value="https://dimesonly.world" size={88} level="L" />
+                    </div>
+                    <Lock className="absolute inset-0 m-auto w-7 h-7 text-foreground" />
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="p-2 bg-muted rounded border border-border text-sm font-mono break-all text-muted-foreground text-left">
@@ -265,6 +328,32 @@ const UserMakeMoneyTab: React.FC = () => {
               <Copy className="w-4 h-4 mr-2" />
               Copy Referral Link
             </Button>
+            {qrUnlocked ? (
+              <>
+                <div className="hidden"><QRCodeCanvas id="referral-qr-canvas" value={shareLink} size={1024} level="M" marginSize={4} /></div>
+                <Button onClick={handleDownloadQr} variant="outline" className="w-full">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download QR Code
+                </Button>
+              </>
+            ) : qrUnlocked === false ? (
+              <div className="w-full space-y-2 rounded-lg border border-border bg-muted p-3 text-left">
+                <p className="text-sm text-foreground">
+                  Upgrade to Silver Plus or Diamond Plus to view and download your QR code, or unlock it once for $1.99.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button onClick={handleBuyQr} disabled={qrBusy} className="flex-1">
+                    {qrBusy ? "Opening PayPal…" : "Pay $1.99 to Unlock QR"}
+                  </Button>
+                  <Button asChild variant="outline" className="flex-1">
+                    <a href="/upgrade-silver-plus">Upgrade to Silver Plus</a>
+                  </Button>
+                  <Button asChild variant="outline" className="flex-1">
+                    <a href="/upgrade-diamond">Upgrade to Diamond Plus</a>
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -290,6 +379,8 @@ const UserMakeMoneyTab: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+
+      <MakeMoneyFlyers />
 
       {/* Share Buttons */}
       <Card className="border border-border" id="referral-link-section">
