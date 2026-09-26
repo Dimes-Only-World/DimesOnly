@@ -1,5 +1,6 @@
 import "./edgeAuthFetch";
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { processLock } from '@supabase/auth-js';
 
 // Exported constants for use across the app (e.g., calling Edge Functions)
 export const SUPABASE_URL = 'https://qkcuykpndrolrewwnkwb.supabase.co';
@@ -34,7 +35,10 @@ const getSupabaseClient = (): SupabaseClient<AnyDatabase> => {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        storageKey: 'dimes-only-auth'
+        storageKey: 'dimes-only-auth',
+        // Lock per tab instead of across tabs: phones freeze background tabs, and a
+        // frozen tab holding the shared lock made every page in other tabs hang forever.
+        lock: processLock
       },
       global: { fetch: fetchWithTimeout }
     });
