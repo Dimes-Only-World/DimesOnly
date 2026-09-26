@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Gem, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
+import { publicRest } from "@/lib/publicRest";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 
 type RateFilter = "all" | "rated" | "not-rated";
@@ -91,9 +92,11 @@ const UsersList: React.FC<UsersListProps> = ({
         return;
       }
 
-      // Show the ladies right away; rating counts fill in after.
-      setUsers(mappedUsers);
-      setLoading(false);
+      // On the "All" tab, show the ladies right away; rating counts fill in after.
+      if (rateFilter === "all") {
+        setUsers(mappedUsers);
+        setLoading(false);
+      }
 
       const seasonYear = getRatingSeasonYear();
 
@@ -211,6 +214,16 @@ const UsersList: React.FC<UsersListProps> = ({
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur">
+        <h3 className="mb-2 text-xl font-bold text-white">Couldn't load the Dimes</h3>
+        <p className="mb-4 text-gray-300">Check your connection and try again.</p>
+        <Button onClick={fetchUsers}>Try again</Button>
       </div>
     );
   }
