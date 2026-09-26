@@ -46,6 +46,7 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "age_gate_explainer", label: "Home Age Gate — Explainer Video" },
   { page_key: "age_gate_warning", label: "Home Age Gate — Warning Screen Video" },
   { page_key: "make_money_promo", label: "Make Money Tab — Promo Video" },
+  { page_key: "make_money_banner", label: "Make Money Page — Top Banner Video" },
 
 ];
 

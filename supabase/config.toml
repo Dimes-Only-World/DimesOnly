@@ -114,3 +114,6 @@ verify_jwt = false
 
 [functions.host-deposit-payment]
 verify_jwt = false
+
+[functions.make-money]
+verify_jwt = false
