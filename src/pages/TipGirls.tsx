@@ -313,7 +313,9 @@ const TipGirls: React.FC = () => {
           </div>
         </section>
 
-        {tipVideoUrl && <BannerVideo src={tipVideoUrl} />}
+        {tipVideoUrl && (
+          <BannerVideo src={tipVideoUrl} className="aspect-[2.35/1]" />
+        )}
 
         <div className="relative mx-auto max-w-7xl space-y-8 px-4 py-8">
           <div className="flex justify-start">
