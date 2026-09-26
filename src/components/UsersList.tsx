@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Gem, Star } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
+import { publicRest } from "@/lib/publicRest";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 
 type RateFilter = "all" | "rated" | "not-rated";
@@ -56,6 +56,7 @@ const UsersList: React.FC<UsersListProps> = ({
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -65,15 +66,13 @@ const UsersList: React.FC<UsersListProps> = ({
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setLoadFailed(false);
 
-      // Use public_user_profiles view to bypass RLS restrictions
-      const { data: usersData, error: usersError } = await supabase
-        .from("public_user_profiles")
-        .select("id, username, profile_photo, city, state, user_type")
-        .in("user_type", ["stripper", "exotic"])
-        .order(orderBy, { ascending: orderDirection === "asc" });
-
-      if (usersError) throw usersError;
+      // Public reads go straight to the API so a stalled sign-in refresh can't freeze the grid.
+      const usersData = await publicRest<any[]>(
+        `public_user_profiles?select=id,username,profile_photo,city,state,user_type` +
+          `&user_type=in.(stripper,exotic)&order=${encodeURIComponent(orderBy)}.${orderDirection === "asc" ? "asc" : "desc"}`
+      );
 
       const mappedUsers =
         (usersData || []).map((user) => ({
@@ -92,17 +91,22 @@ const UsersList: React.FC<UsersListProps> = ({
         return;
       }
 
-      const performerIds = mappedUsers.map((user) => user.id);
+      // On the "All" tab, show the ladies right away; rating counts fill in after.
+      if (rateFilter === "all") {
+        setUsers(mappedUsers);
+        setLoading(false);
+      }
 
       const seasonYear = getRatingSeasonYear();
 
-      const { data: ratingsData, error: ratingsError } = await supabase
-        .from("ratings")
-        .select("user_id")
-        .in("user_id", performerIds)
-        .eq("year", seasonYear);
-
-      if (ratingsError) throw ratingsError;
+      const [ratingsData, myRatingsData] = await Promise.all([
+        publicRest<any[]>(`ratings?select=user_id&year=eq.${seasonYear}`).catch(() => []),
+        usePersonalRatings && currentUserId
+          ? publicRest<any[]>(
+              `ratings?select=user_id,rating&year=eq.${seasonYear}&rater_id=eq.${encodeURIComponent(currentUserId)}`
+            ).catch(() => [])
+          : Promise.resolve([] as any[]),
+      ]);
 
       const ratingCounts = (ratingsData || []).reduce<Record<string, number>>(
         (acc, rating) => {
@@ -113,37 +117,25 @@ const UsersList: React.FC<UsersListProps> = ({
         {}
       );
 
-      let personalRatings: Record<string, number> = {};
-      if (usePersonalRatings && currentUserId) {
-        const { data: myRatingsData, error: myRatingsError } = await supabase
-          .from("ratings")
-          .select("user_id, rating")
-          .eq("rater_id", currentUserId)
-          .in("user_id", performerIds)
-          .eq("year", seasonYear);
+      const personalRatings = (myRatingsData || []).reduce<Record<string, number>>(
+        (acc, row) => {
+          acc[String(row.user_id)] = Number(row.rating);
+          return acc;
+        },
+        {}
+      );
 
-        if (myRatingsError) throw myRatingsError;
-
-        personalRatings = (myRatingsData || []).reduce<Record<string, number>>(
-          (acc, row) => {
-            const key = String(row.user_id);
-            acc[key] = Number(row.rating);
-            return acc;
-          },
-          {}
-        );
-      }
-
-      const usersWithCounts = mappedUsers.map((user) => ({
-        ...user,
-        ratingCount: ratingCounts[user.id] || 0,
-        myRating: personalRatings[user.id] ?? null,
-      }));
-
-      setUsers(usersWithCounts);
+      setUsers(
+        mappedUsers.map((user) => ({
+          ...user,
+          ratingCount: ratingCounts[user.id] || 0,
+          myRating: personalRatings[user.id] ?? null,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching users:", error);
       setUsers([]);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -221,6 +213,16 @@ const UsersList: React.FC<UsersListProps> = ({
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur">
+        <h3 className="mb-2 text-xl font-bold text-white">Couldn't load the Dimes</h3>
+        <p className="mb-4 text-gray-300">Check your connection and try again.</p>
+        <Button onClick={fetchUsers}>Try again</Button>
       </div>
     );
   }
