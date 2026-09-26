@@ -73,6 +73,7 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
   const shareButtons = (f: Flyer, compact: boolean) => {
     const btns = [
       { label: "Share", Icon: Share2, cls: "border border-border bg-background", onClick: () => nativeShare(f).catch(() => {}) },
+      { label: "Contacts", Icon: null, cls: "bg-[#7c3aed] text-white", onClick: () => openUrl(`sms:?&body=${enc(shareText(f))}`) },
       { label: "Facebook", Icon: Facebook, cls: "bg-[#2563eb] text-white", onClick: () => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`) },
       { label: "Instagram", Icon: Instagram, cls: "bg-[#db2777] text-white", onClick: async () => { await copy(); openUrl("https://www.instagram.com/"); } },
       { label: "WhatsApp", Icon: null, cls: "bg-[#22c55e] text-white", onClick: () => openUrl(`https://wa.me/?text=${enc(shareText(f))}`) },
