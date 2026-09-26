@@ -1,6 +1,13 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, MoreVertical } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface BannerVideoProps {
   src: string;
@@ -9,6 +16,10 @@ interface BannerVideoProps {
   overlay?: boolean;
   /** If true, render as absolute-positioned background video (no controls) */
   background?: boolean;
+  autoPlay?: boolean;
+  muted?: boolean;
+  onEnded?: () => void;
+  videoRef?: React.RefObject<HTMLVideoElement>;
 }
 
 function formatTime(seconds: number): string {
@@ -24,13 +35,18 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   className = "",
   overlay = true,
   background = false,
+  autoPlay = false,
+  muted = false,
+  onEnded,
+  videoRef: externalVideoRef,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = externalVideoRef || internalVideoRef;
   const containerRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(muted);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
@@ -114,9 +130,18 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      el.requestFullscreen?.();
+      const video = videoRef.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else video?.webkitEnterFullscreen?.();
     }
-  }, []);
+  }, [videoRef]);
+
+  const setPlaybackRate = useCallback((rate: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = rate;
+    resetHideTimer();
+  }, [resetHideTimer, videoRef]);
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -154,7 +179,10 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         key={src}
         playsInline
         loop={loop}
+        autoPlay={autoPlay}
+        muted={muted}
         preload="metadata"
+        onEnded={onEnded}
         className="w-full h-full object-contain"
       >
         <source src={src} type={src.endsWith(".webm") ? "video/webm" : "video/mp4"} />
@@ -201,9 +229,12 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
           {/* Controls row */}
           <div className="flex items-center gap-3">
             {/* Play/Pause */}
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               onClick={togglePlayPause}
-              className="text-white hover:text-white/80 transition-colors p-1"
+              className="h-9 w-9 text-white hover:bg-white/10 hover:text-white"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
@@ -211,15 +242,18 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
               ) : (
                 <Play className="w-5 h-5 fill-white" />
               )}
-            </button>
+            </Button>
 
             {/* Volume/Mute */}
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleMute();
               }}
-              className="text-white hover:text-white/80 transition-colors p-1"
+              className="h-9 w-9 text-white hover:bg-white/10 hover:text-white"
               aria-label={isMuted ? "Unmute" : "Mute"}
             >
               {isMuted ? (
@@ -227,7 +261,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
               ) : (
                 <Volume2 className="w-5 h-5" />
               )}
-            </button>
+            </Button>
 
             {/* Time */}
             <span className="text-white text-xs font-mono select-none">
@@ -237,13 +271,37 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
             <div className="flex-1" />
 
             {/* Fullscreen */}
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               onClick={handleFullscreen}
-              className="text-white hover:text-white/80 transition-colors p-1"
+              className="h-9 w-9 text-white hover:bg-white/10 hover:text-white"
               aria-label="Fullscreen"
             >
               <Maximize className="w-5 h-5" />
-            </button>
+            </Button>
+
+            <DropdownMenu onOpenChange={(open) => open && resetHideTimer()}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-white hover:bg-white/10 hover:text-white"
+                  aria-label="Video options"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-36" onClick={(event) => event.stopPropagation()}>
+                <DropdownMenuItem onSelect={() => setPlaybackRate(0.75)}>Speed 0.75×</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setPlaybackRate(1)}>Speed 1×</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setPlaybackRate(1.25)}>Speed 1.25×</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setPlaybackRate(1.5)}>Speed 1.5×</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

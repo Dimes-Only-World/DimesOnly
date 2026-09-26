@@ -18,6 +18,7 @@ import TipAmountSelector from "@/components/TipAmountSelector";
 // CreditCardForm removed - using PayPal Hosted Checkout redirect for cards
 import PhotoLightbox from "@/components/PhotoLightbox";
 import VideoPlayerModal, { VideoThumbnail } from "@/components/VideoPlayerModal";
+import BannerVideo from "@/components/BannerVideo";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
@@ -773,14 +774,7 @@ const Tip: React.FC = () => {
         {/* Banner Video or Photo */}
         {tipVideoUrl ? (
           <div className="w-full bg-black">
-            <video
-              className="w-full h-auto"
-              controls
-              playsInline
-              preload="metadata"
-            >
-              <source src={tipVideoUrl} type="video/mp4" />
-            </video>
+            <BannerVideo src={tipVideoUrl} />
           </div>
 
         ) : userData.banner_photo ? (
