@@ -10,6 +10,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import SharedLeadsList from "@/components/SharedLeadsList";
 import BannerVideo from "@/components/BannerVideo";
+import MakeMoneyFlyers from "@/components/MakeMoneyFlyers";
 import Top20DimesCarousel from "@/components/Top20DimesCarousel";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { QRCodeCanvas } from "qrcode.react";
