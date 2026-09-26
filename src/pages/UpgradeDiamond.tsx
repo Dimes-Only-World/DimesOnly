@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Crown, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import AuthGuard from "@/components/AuthGuard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
