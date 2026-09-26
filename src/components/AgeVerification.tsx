@@ -362,8 +362,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
 
 
         {step === "warning" && (
-          <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
-            <div className="w-full sm:w-1/3 shrink-0">
+          <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
+            <div className="w-full lg:w-2/5 shrink-0">
               <BannerVideo
                 src={warningVideoUrl || FALLBACK_VIDEO}
                 background
@@ -381,11 +381,11 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 By entering this website, I acknowledge that I am 18 years old or older and agree to the Terms of
                 Service, which are available per request at the footer of the website.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button
                   onClick={() => setStep("form")}
                   type="button"
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-xs sm:text-sm"
                 >
                   ENTER - I am 18 years old or older
                 </button>
@@ -395,7 +395,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                     window.location.href = `/login${query}`;
                   }}
                   type="button"
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                  className="bg-pink-600 hover:bg-pink-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-xs sm:text-sm"
                 >
                   MEMBERS LOGIN
                 </button>
