@@ -42,7 +42,7 @@ const AdSlot: React.FC<Props> = ({ ad }) => {
   );
 
   return (
-    <div className="my-6 w-full">
+    <div className="w-full">
       {ad.link_url ? (
         <a
           href={ad.link_url}

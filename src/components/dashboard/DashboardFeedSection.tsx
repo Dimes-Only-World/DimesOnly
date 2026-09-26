@@ -317,8 +317,9 @@ const DashboardFeedSection: React.FC = () => {
         photos.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">No photos yet.</p>
         ) : (
-          photoBlocks.map((block, bi) => (
-            <div key={bi}>
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+          {photoBlocks.map((block, bi) => (
+            <div key={bi} className="flex flex-col gap-1.5 sm:gap-2">
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {block.rows.flat().map((item) => (
                   <button
@@ -345,13 +346,15 @@ const DashboardFeedSection: React.FC = () => {
               </div>
               {block.ad && <AdSlot ad={block.ad} />}
             </div>
-          ))
+          ))}
+          </div>
         )
       ) : videos.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">No videos yet.</p>
       ) : (
-        videoBlocks.map((block, bi) => (
-          <div key={bi}>
+        <div className="flex flex-col gap-4">
+        {videoBlocks.map((block, bi) => (
+          <div key={bi} className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {block.rows.flat().map((item) => (
                 <article key={item.id} className="group">
@@ -401,7 +404,8 @@ const DashboardFeedSection: React.FC = () => {
             </div>
             {block.ad && <AdSlot ad={block.ad} />}
           </div>
-        ))
+        ))}
+        </div>
       )}
 
       {active && (
