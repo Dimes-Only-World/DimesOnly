@@ -46,10 +46,11 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(autoPlay);
   const [isMuted, setIsMuted] = useState(muted);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(autoPlay);
   const [isSeeking, setIsSeeking] = useState(false);
 
   // No autoplay — video starts paused, user must click play
@@ -62,7 +63,11 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
       if (!isSeeking) setCurrentTime(video.currentTime);
     };
     const onMeta = () => setDuration(video.duration);
-    const onPlay = () => setIsPlaying(true);
+    const onPlay = () => {
+      setIsPlaying(true);
+      setHasStarted(true);
+      setShowControls(true);
+    };
     const onPause = () => setIsPlaying(false);
 
     video.addEventListener("timeupdate", onTime);
@@ -79,10 +84,11 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
 
   // Auto-hide controls after 3s
   const resetHideTimer = useCallback(() => {
+    if (!hasStarted) return;
     setShowControls(true);
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setShowControls(false), 3000);
-  }, []);
+  }, [hasStarted]);
 
   useEffect(() => {
     resetHideTimer();
@@ -207,7 +213,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
       {/* Custom control bar */}
       <div
         className={`absolute bottom-0 left-0 right-0 z-[3] transition-opacity duration-300 ${
-          showControls ? "opacity-100" : "opacity-0"
+          hasStarted && showControls ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
