@@ -39,6 +39,7 @@ export type Database = {
           id: string
           phone: string
           referral_code: string | null
+          selfie_path: string | null
           updated_at: string
           username: string | null
         }
@@ -51,6 +52,7 @@ export type Database = {
           id?: string
           phone: string
           referral_code?: string | null
+          selfie_path?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -63,6 +65,7 @@ export type Database = {
           id?: string
           phone?: string
           referral_code?: string | null
+          selfie_path?: string | null
           updated_at?: string
           username?: string | null
         }
