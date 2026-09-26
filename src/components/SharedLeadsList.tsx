@@ -166,10 +166,10 @@ const SharedLeadsList: React.FC = () => {
                       <td className="py-2 pr-4"><LeadPhotoDialog url={lead.selfie_url} name={lead.full_name} /></td>
                       <td className="py-2 pr-4">{lead.area_code}</td>
                       <td className="py-2 pr-4">
-                        <span className="flex items-center gap-2 whitespace-nowrap font-medium">
-                          <span className={`h-3 w-3 rounded-full ring-1 ring-border ${STATUS_STYLES[lead.status].className}`} />
-                          {STATUS_STYLES[lead.status].label}
-                        </span>
+                        <span
+                          title={STATUS_STYLES[lead.status].label}
+                          className={`inline-block h-3 w-3 rounded-full ring-1 ring-border ${STATUS_STYLES[lead.status].className}`}
+                        />
                       </td>
                       <td className="py-2 pr-4 whitespace-nowrap">{new Date(lead.created_at).toLocaleDateString()}</td>
                     </tr>
