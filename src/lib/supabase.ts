@@ -12,6 +12,18 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyDatabase = any;
 
+// Caps data and sign-in requests so a stalled mobile connection (e.g. a tab
+// resumed from the background mid token-refresh) can't hang every page forever.
+// Uploads and function calls are left uncapped.
+const TIMEOUT_MS = 20000;
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  if (!/\/(rest|auth)\/v1\//.test(url) || init?.signal) return fetch(input, init);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  return fetch(input, { ...(init || {}), signal: controller.signal }).finally(() => clearTimeout(timer));
+};
+
 // Global singleton to prevent multiple instances
 let globalSupabaseInstance: SupabaseClient<AnyDatabase> | null = null;
 
@@ -23,7 +35,8 @@ const getSupabaseClient = (): SupabaseClient<AnyDatabase> => {
         autoRefreshToken: true,
         detectSessionInUrl: true,
         storageKey: 'dimes-only-auth'
-      }
+      },
+      global: { fetch: fetchWithTimeout }
     });
   }
   return globalSupabaseInstance;
