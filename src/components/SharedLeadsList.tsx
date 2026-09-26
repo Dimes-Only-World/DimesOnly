@@ -20,7 +20,7 @@ interface SharedLead {
   id: string;
   full_name: string;
   area_code: string;
-  status: "complete" | "incomplete" | "more_info";
+  status: "complete" | "incomplete" | "more_info" | "deciding";
   created_at: string;
   selfie_url?: string | null;
 }
@@ -29,8 +29,9 @@ const PAGE_SIZE = 50;
 
 const STATUS_STYLES: Record<SharedLead["status"], { label: string; className: string }> = {
   complete: { label: "Complete", className: "bg-green-500" },
-  incomplete: { label: "Incomplete", className: "bg-foreground" },
   more_info: { label: "More Info", className: "bg-yellow-400" },
+  incomplete: { label: "Incomplete", className: "bg-red-500" },
+  deciding: { label: "Deciding", className: "bg-foreground" },
 };
 
 const SharedLeadsList: React.FC = () => {
@@ -69,6 +70,7 @@ const SharedLeadsList: React.FC = () => {
   const completeCount = filtered.filter((l) => l.status === "complete").length;
   const incompleteCount = filtered.filter((l) => l.status === "incomplete").length;
   const moreInfoCount = filtered.filter((l) => l.status === "more_info").length;
+  const decidingCount = filtered.filter((l) => l.status === "deciding").length;
   const pct = (n: number) => (total ? ((n / total) * 100).toFixed(1) : "0.0");
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -98,18 +100,10 @@ const SharedLeadsList: React.FC = () => {
           className="max-w-sm"
         />
 
-        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium" aria-label="Lead status key">
-          {(["complete", "more_info", "incomplete"] as const).map((status) => (
-            <span key={status} className="flex items-center gap-1.5">
-              <span className={`h-2.5 w-2.5 rounded-full ring-1 ring-border ${STATUS_STYLES[status].className}`} />
-              {STATUS_STYLES[status].label}
-            </span>
-          ))}
-        </div>
 
         {leads.length > 0 && <LeadProductionChart leads={filtered} />}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           <div className="rounded-md border p-3">
             <p className="text-xs text-muted-foreground">Total Leads</p>
             <p className="text-lg font-semibold">{total}</p>
@@ -127,6 +121,12 @@ const SharedLeadsList: React.FC = () => {
             </p>
           </div>
           <div className="rounded-md border p-3">
+            <p className="text-xs text-muted-foreground">Deciding</p>
+            <p className="text-lg font-semibold text-foreground">
+              {decidingCount} <span className="text-sm">({pct(decidingCount)}%)</span>
+            </p>
+          </div>
+          <div className="rounded-md border p-3">
             <p className="text-xs text-muted-foreground">Complete</p>
             <p className="text-lg font-semibold text-green-500">
               {completeCount} <span className="text-sm">({pct(completeCount)}%)</span>
@@ -140,6 +140,14 @@ const SharedLeadsList: React.FC = () => {
           <p className="text-sm text-muted-foreground">No leads to show yet.</p>
         ) : (
           <>
+            <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium" aria-label="Lead status key">
+              {(["deciding", "complete", "more_info", "incomplete"] as const).map((status) => (
+                <span key={status} className="flex items-center gap-1.5">
+                  <span className={`h-2.5 w-2.5 rounded-full ring-1 ring-border ${STATUS_STYLES[status].className}`} />
+                  {STATUS_STYLES[status].label}
+                </span>
+              ))}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -206,10 +214,10 @@ interface LeadProductionChartProps {
 
 const LeadProductionChart: React.FC<LeadProductionChartProps> = ({ leads }) => {
   const data = React.useMemo(() => {
-    const map = new Map<string, { total: number; complete: number; incomplete: number; more_info: number }>();
+    const map = new Map<string, { total: number; complete: number; incomplete: number; more_info: number; deciding: number }>();
     for (const lead of leads) {
       const key = new Date(lead.created_at).toISOString().slice(0, 10);
-      const bucket = map.get(key) || { total: 0, complete: 0, incomplete: 0, more_info: 0 };
+      const bucket = map.get(key) || { total: 0, complete: 0, incomplete: 0, more_info: 0, deciding: 0 };
       bucket.total += 1;
       bucket[lead.status] += 1;
       map.set(key, bucket);
@@ -223,6 +231,7 @@ const LeadProductionChart: React.FC<LeadProductionChartProps> = ({ leads }) => {
         Complete: counts.complete,
         Incomplete: counts.incomplete,
         "More Info": counts.more_info,
+        Deciding: counts.deciding,
       }));
   }, [leads]);
 
@@ -249,6 +258,7 @@ const LeadProductionChart: React.FC<LeadProductionChartProps> = ({ leads }) => {
             <Bar dataKey="Complete" stackId="a" fill="#16A34A" />
             <Bar dataKey="Incomplete" stackId="a" fill="#DC2626" />
             <Bar dataKey="More Info" stackId="a" fill="#EAB308" />
+            <Bar dataKey="Deciding" stackId="a" fill="hsl(var(--foreground))" />
           </BarChart>
         </ResponsiveContainer>
       </div>
