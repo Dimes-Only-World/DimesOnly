@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, RefreshCw } from "lucide-react";
+import LeadPhotoDialog from "@/components/LeadPhotoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppContext } from "@/contexts/AppContext";
 import {
@@ -22,14 +22,15 @@ interface SharedLead {
   area_code: string;
   status: "complete" | "incomplete" | "more_info";
   created_at: string;
+  selfie_url?: string | null;
 }
 
 const PAGE_SIZE = 50;
 
 const STATUS_STYLES: Record<SharedLead["status"], { label: string; className: string }> = {
-  complete: { label: "Complete", className: "bg-green-600 text-white hover:bg-green-600" },
-  incomplete: { label: "Incomplete", className: "bg-red-600 text-white hover:bg-red-600" },
-  more_info: { label: "More Info", className: "bg-yellow-500 text-black hover:bg-yellow-500" },
+  complete: { label: "Complete", className: "bg-green-500" },
+  incomplete: { label: "Incomplete", className: "bg-foreground" },
+  more_info: { label: "More Info", className: "bg-yellow-400" },
 };
 
 const SharedLeadsList: React.FC = () => {
@@ -75,7 +76,7 @@ const SharedLeadsList: React.FC = () => {
   const visible = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 bg-card text-card-foreground">
       <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle className="flex items-center gap-2">
           <Users className="w-5 h-5" />
@@ -96,6 +97,15 @@ const SharedLeadsList: React.FC = () => {
           }}
           className="max-w-sm"
         />
+
+        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium" aria-label="Lead status key">
+          {(["complete", "more_info", "incomplete"] as const).map((status) => (
+            <span key={status} className="flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-full ring-1 ring-border ${STATUS_STYLES[status].className}`} />
+              {STATUS_STYLES[status].label}
+            </span>
+          ))}
+        </div>
 
         {leads.length > 0 && <LeadProductionChart leads={filtered} />}
 
@@ -135,20 +145,25 @@ const SharedLeadsList: React.FC = () => {
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="py-2 pr-4 font-medium">Name</th>
+                    <th className="py-2 pr-4 font-medium">Photo</th>
                     <th className="py-2 pr-4 font-medium">Area Code</th>
                     <th className="py-2 pr-4 font-medium">Status</th>
+                    <th className="py-2 pr-4 font-medium">Date Received</th>
                   </tr>
                 </thead>
                 <tbody>
                   {visible.map((lead) => (
                     <tr key={lead.id} className="border-b last:border-0">
                       <td className="py-2 pr-4">{lead.full_name}</td>
+                      <td className="py-2 pr-4"><LeadPhotoDialog url={lead.selfie_url} name={lead.full_name} /></td>
                       <td className="py-2 pr-4">{lead.area_code}</td>
                       <td className="py-2 pr-4">
-                        <Badge className={STATUS_STYLES[lead.status].className}>
+                        <span className="flex items-center gap-2 whitespace-nowrap font-medium">
+                          <span className={`h-3 w-3 rounded-full ring-1 ring-border ${STATUS_STYLES[lead.status].className}`} />
                           {STATUS_STYLES[lead.status].label}
-                        </Badge>
+                        </span>
                       </td>
+                      <td className="py-2 pr-4 whitespace-nowrap">{new Date(lead.created_at).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
