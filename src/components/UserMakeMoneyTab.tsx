@@ -506,7 +506,7 @@ const UserMakeMoneyTab: React.FC = () => {
 
                   <div>
                     <p className="font-semibold">Quick Effective Script Example</p>
-                    <p className="italic text-white/80 border-l-2 border-primary/50 pl-3">
+                    <p className="italic text-foreground border-l-2 border-primary pl-3">
                       “I’m building with Dimes Only World — it’s a membership platform where dancers and members can
                       earn residual income through referrals and profit sharing. Early positions are limited, so the
                       people who get in now lock in the best spots before the full app launches. Want me to send you the
