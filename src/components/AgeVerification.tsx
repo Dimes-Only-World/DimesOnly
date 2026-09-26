@@ -345,9 +345,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
             <div className="w-full sm:w-1/3 shrink-0">
               <BannerVideo
                 src={warningVideoUrl || FALLBACK_VIDEO}
-                autoPlay
-                muted
-                className="rounded-lg border-2 border-orange-500"
+                background
+                className="w-full aspect-video object-cover rounded-lg border-2 border-orange-500 pointer-events-none"
               />
             </div>
 
