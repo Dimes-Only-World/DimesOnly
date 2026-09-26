@@ -536,7 +536,6 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
             >
               @{item.author?.username}
             </Link>
-            <span className="ml-auto text-[11px] text-slate-500">{timeAgo(item.created_at)}</span>
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
