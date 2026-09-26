@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface BackgroundMedia {
   id: string;
@@ -14,7 +13,11 @@ interface Props {
   /** Provide media directly (used by the admin preview). Otherwise fetched from the database. */
   media?: BackgroundMedia[];
   /** Force a device set instead of detecting it. */
-  device?: "desktop" | "mobile";
+  device?: "desktop" | "tablet" | "mobile";
+  /** Which page's media set to load. */
+  page?: "short_form" | "login";
+  /** Called with the number of items loaded from the database. */
+  onLoaded?: (count: number) => void;
   /** "fixed" pins the background to the viewport; "absolute" keeps it inside its container. */
   position?: "fixed" | "absolute";
   className?: string;
@@ -26,11 +29,20 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
   interval = 6000,
   media,
   device,
+  page = "short_form",
+  onLoaded,
   position = "absolute",
   className = "",
 }) => {
-  const isMobile = useIsMobile();
-  const resolvedDevice = device ?? (isMobile ? "mobile" : "desktop");
+  const getWidthDevice = () =>
+    typeof window === "undefined" ? "desktop" : window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop";
+  const [widthDevice, setWidthDevice] = useState<"desktop" | "tablet" | "mobile">(getWidthDevice);
+  useEffect(() => {
+    const onResize = () => setWidthDevice(getWidthDevice());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const resolvedDevice = device ?? widthDevice;
 
   const [items, setItems] = useState<BackgroundMedia[]>(media ?? []);
   const [index, setIndex] = useState(0);
@@ -49,18 +61,27 @@ const ShortFormBackgroundCarousel: React.FC<Props> = ({
     (async () => {
       const { data, error } = await supabase
         .from("short_form_backgrounds")
-        .select("id, media_type, url")
-        .eq("device", resolvedDevice)
+        .select("id, media_type, url, device")
+        .eq("page", page)
         .order("sort_order", { ascending: true });
 
-      if (cancelled || error || !data) return;
-      setItems(data as BackgroundMedia[]);
+      if (cancelled) return;
+      if (error || !data) {
+        onLoaded?.(0);
+        return;
+      }
+      // Tablets fall back to desktop media when no tablet set exists.
+      const rows = data as (BackgroundMedia & { device: string })[];
+      let picked = rows.filter((r) => r.device === resolvedDevice);
+      if (picked.length === 0 && resolvedDevice === "tablet") picked = rows.filter((r) => r.device === "desktop");
+      setItems(picked);
+      onLoaded?.(picked.length);
       setIndex(0);
     })();
     return () => {
       cancelled = true;
     };
-  }, [media, resolvedDevice]);
+  }, [media, resolvedDevice, page]);
 
   const current = items[index];
 

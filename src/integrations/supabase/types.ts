@@ -3806,6 +3806,7 @@ export type Database = {
           device: string
           id: string
           media_type: string
+          page: string
           sort_order: number
           url: string
         }
@@ -3814,6 +3815,7 @@ export type Database = {
           device: string
           id?: string
           media_type: string
+          page?: string
           sort_order?: number
           url: string
         }
@@ -3822,6 +3824,7 @@ export type Database = {
           device?: string
           id?: string
           media_type?: string
+          page?: string
           sort_order?: number
           url?: string
         }
