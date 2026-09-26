@@ -117,3 +117,6 @@ verify_jwt = false
 
 [functions.make-money]
 verify_jwt = false
+
+[functions.flyer-insights]
+verify_jwt = false

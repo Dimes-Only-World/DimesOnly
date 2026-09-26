@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, FileImage, Share2, Facebook, Instagram, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import FlyerShareHistory, { logFlyerShare } from "@/components/FlyerShareHistory";
 import firstFlyer from "@/assets/flyers/dimes-only-world-flyer.png.asset.json";
 
 const FALLBACK: Flyer[] = [{ id: "default", title: "Dimes Only World — Now Recruiting", url: firstFlyer.url }];
@@ -87,7 +88,7 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
           <button
             key={label}
             type="button"
-            onClick={onClick}
+            onClick={() => { logFlyerShare(f.id, f.title || "Flier", label === "Copy link" ? "copy" : label.toLowerCase()); onClick(); }}
             className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-semibold hover:opacity-90 ${cls}`}
           >
             {Icon && <Icon className="h-3.5 w-3.5" />}
@@ -132,6 +133,8 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
           ))}
         </CardContent>
       </Card>
+
+      <div className="mt-4"><FlyerShareHistory flyers={flyers.map((f) => ({ id: f.id, title: f.title }))} /></div>
 
       {enlarged && (
         <div
