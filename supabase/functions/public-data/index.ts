@@ -275,18 +275,6 @@ serve(async (req) => {
             memberUsername = (authRow as any)?.username || null;
           }
         }
-        // Fallback for custom (non-Supabase-Auth) sessions: verify the user id exists
-        if (!authorized && params?.userId) {
-          const { data: memberRow } = await supabaseAdmin
-            .from('users')
-            .select('id, username')
-            .eq('id', params.userId)
-            .maybeSingle();
-          if (memberRow) {
-            authorized = true;
-            memberUsername = (memberRow as any)?.username || null;
-          }
-        }
         if (!authorized) {
           return new Response(
             JSON.stringify({ error: 'Unauthorized' }),
