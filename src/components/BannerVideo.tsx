@@ -169,7 +169,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full overflow-hidden bg-black aspect-video ${className}`}
+      className={`relative w-full overflow-hidden bg-card aspect-video ${className}`}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
       onClick={togglePlayPause}
@@ -183,7 +183,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         muted={muted}
         preload="metadata"
         onEnded={onEnded}
-        className="w-full h-full object-contain"
+        className="h-full w-full object-cover"
       >
         <source src={src} type={src.endsWith(".webm") ? "video/webm" : "video/mp4"} />
       </video>

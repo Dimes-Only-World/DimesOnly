@@ -343,16 +343,12 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         {step === "warning" && (
           <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
             <div className="w-full sm:w-1/3 shrink-0">
-              <video
+              <BannerVideo
+                src={warningVideoUrl || FALLBACK_VIDEO}
                 autoPlay
                 muted
-                loop
-                playsInline
-                key={warningVideoUrl || FALLBACK_VIDEO}
-                className="w-full h-auto object-contain bg-black rounded-lg border-2 border-orange-500"
-              >
-                <source src={warningVideoUrl || FALLBACK_VIDEO} />
-              </video>
+                className="rounded-lg border-2 border-orange-500"
+              />
             </div>
 
 
