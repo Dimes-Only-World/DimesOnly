@@ -66,9 +66,6 @@ const TopMoneyCircles: React.FC = () => {
             <span className="w-full truncate text-center text-[10px] font-semibold">
               @{m.username}
             </span>
-            <span className="text-[10px] leading-tight text-muted-foreground">
-              {m.circle_size} in circle
-            </span>
           </Link>
         ))}
       </div>
