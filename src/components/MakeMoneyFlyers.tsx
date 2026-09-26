@@ -119,13 +119,13 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
               <button
                 type="button"
                 onClick={() => setEnlarged(f)}
-                className="flex h-[min(68vh,680px)] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-md border border-border bg-muted p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="block w-full cursor-zoom-in overflow-hidden rounded-lg shadow-lg ring-1 ring-border focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`Enlarge ${f.title || "flier"}`}
               >
                 <img
                   src={f.url}
                   alt={f.title || "Flier"}
-                  className="h-full w-full object-contain transition-transform duration-200 hover:scale-[1.02]"
+                  className="block h-auto max-h-[70vh] w-full object-contain transition-transform duration-200 hover:scale-[1.02]"
                   loading="eager"
                 />
               </button>

@@ -273,6 +273,8 @@ const UserMakeMoneyTab: React.FC = () => {
         </p>
       </div>
 
+      {/* From here down: wall-to-wall sections on mobile */}
+      <div className="space-y-4 md:space-y-8 max-md:relative max-md:left-1/2 max-md:right-1/2 max-md:-ml-[50vw] max-md:-mr-[50vw] max-md:w-screen max-md:[&_.rounded-lg.border]:rounded-none max-md:[&_.rounded-lg.border]:border-x-0 max-md:[&_.rounded-lg.border]:shadow-none">
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Promo Video */}
