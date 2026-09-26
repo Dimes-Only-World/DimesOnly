@@ -67,7 +67,7 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
       await (navigator as any).share({ title: f.title || "Dimes Only World", text: shareText(f) });
     } else {
       await copy();
-et   }
+    }
   };
 
   const shareButtons = (f: Flyer, compact: boolean) => {
