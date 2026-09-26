@@ -17,6 +17,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchActiveAds, DashboardAd } from "@/lib/dashboardAds";
 import { resolveMediaUrls } from "@/lib/privateMedia";
+import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 import AdSlot from "./AdSlot";
 
 interface MediaRow {
@@ -81,6 +82,19 @@ const DashboardFeedSection: React.FC = () => {
   const [tab, setTab] = useState<"grid" | "watch">("grid");
   const [active, setActive] = useState<FeedItem | null>(null);
   const [muted, setMuted] = useState(true);
+
+  // Some members' photo files are missing from storage. Try their profile photo,
+  // and if that fails too, drop the tile so the grid never shows a broken image.
+  const handlePhotoError = (item: FeedItem) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const alt = item.author?.profile_photo;
+    if (!img.dataset.fallback && alt && alt !== item.media_url) {
+      img.dataset.fallback = "1";
+      img.src = alt;
+      return;
+    }
+    setPhotos((prev) => prev.filter((p) => p.id !== item.id));
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -329,6 +343,7 @@ const DashboardFeedSection: React.FC = () => {
                       src={item.media_url}
                       alt=""
                       decoding="async"
+                      onError={handlePhotoError(item)}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <span className="absolute inset-0 hidden items-center justify-center gap-4 bg-black/45 text-sm font-bold text-white group-hover:flex">
@@ -383,7 +398,7 @@ const DashboardFeedSection: React.FC = () => {
                   <div className="mt-2 flex gap-2">
                     <Link to={`/profile/${item.author?.username || ""}`} className="shrink-0">
                       <img
-                        src={item.author?.profile_photo || "/placeholder.svg"}
+                        src={item.author?.profile_photo || defaultAvatar.url}
                         alt=""
                         className="h-9 w-9 rounded-full object-cover"
                       />
@@ -511,7 +526,7 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
         <aside className="flex w-full flex-col bg-white md:w-80">
           <div className="flex items-center gap-2 border-b p-3">
             <img
-              src={item.author?.profile_photo || "/placeholder.svg"}
+              src={item.author?.profile_photo || defaultAvatar.url}
               alt=""
               className="h-9 w-9 rounded-full object-cover"
             />
