@@ -522,7 +522,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               autoPlay
               onEnded={() => setVideoEnded(true)}
               videoRef={videoRef}
-              className="rounded-lg border-2 border-orange-500"
+              className="aspect-[2.35/1] rounded-lg border-2 border-orange-500"
             />
 
             {!videoEnded && (
