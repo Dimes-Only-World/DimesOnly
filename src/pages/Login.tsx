@@ -23,6 +23,7 @@ const backgroundImages = [
 ];
 
 const Login: React.FC = () => {
+  const [bgCount, setBgCount] = useState<number | null>(null);
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
