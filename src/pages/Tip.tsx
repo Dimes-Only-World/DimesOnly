@@ -773,8 +773,8 @@ const Tip: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Banner Video or Photo */}
         {tipVideoUrl ? (
-          <div className="w-full bg-black">
-            <BannerVideo src={tipVideoUrl} />
+          <div className="w-full">
+            <BannerVideo src={tipVideoUrl} className="aspect-[2.35/1]" />
           </div>
 
         ) : userData.banner_photo ? (
