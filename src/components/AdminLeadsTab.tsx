@@ -39,18 +39,20 @@ interface Lead {
   selfie_url?: string | null;
 }
 
-type LeadStatus = "complete" | "more_info" | "incomplete";
+type LeadStatus = "complete" | "more_info" | "incomplete" | "deciding";
 
 const STATUS_DOTS: Record<LeadStatus, { label: string; className: string }> = {
   complete: { label: "Complete", className: "bg-green-500" },
   more_info: { label: "More Info", className: "bg-yellow-400" },
-  incomplete: { label: "Incomplete", className: "bg-foreground" },
+  incomplete: { label: "Incomplete", className: "bg-red-500" },
+  deciding: { label: "Deciding", className: "bg-foreground" },
 };
 
 const leadStatus = (l: Lead): LeadStatus => {
   if (l.phone_match || l.registration_completed) return "complete";
   if (l.action_taken === "more_information") return "more_info";
-  return "incomplete";
+  if (l.action_taken === "continued_registration") return "incomplete";
+  return "deciding";
 };
 
 
@@ -71,7 +73,7 @@ const AdminLeadsTab: React.FC = () => {
   const [page, setPage] = useState(0);
   const [confirm, setConfirm] = useState<null | { type: "permanent" | "empty"; ids?: string[] }>(null);
   const [displayFilter, setDisplayFilter] = useState<
-    "all" | "incomplete" | "more_info" | "complete"
+    "all" | "incomplete" | "more_info" | "complete" | "deciding"
   >("all");
 
   const getAdminUserId = () => {
@@ -130,6 +132,7 @@ const AdminLeadsTab: React.FC = () => {
   const totalLeads = searchFiltered.length;
   const incompleteCount = searchFiltered.filter((l) => leadStatus(l) === "incomplete").length;
   const moreInfoCount = searchFiltered.filter((l) => leadStatus(l) === "more_info").length;
+  const decidingCount = searchFiltered.filter((l) => leadStatus(l) === "deciding").length;
   const completeCount = searchFiltered.filter((l) => leadStatus(l) === "complete").length;
   const pct = (count: number) => (totalLeads ? ((count / totalLeads) * 100).toFixed(1) : "0.0");
 
@@ -172,7 +175,7 @@ const AdminLeadsTab: React.FC = () => {
           </TabsList>
         </Tabs>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           <Button
             variant={displayFilter === "all" ? "default" : "outline"}
             size="sm"
@@ -199,6 +202,15 @@ const AdminLeadsTab: React.FC = () => {
           >
             <span>Need More Info</span>
             <Badge variant="secondary">{moreInfoCount} ({pct(moreInfoCount)}%)</Badge>
+          </Button>
+          <Button
+            variant={displayFilter === "deciding" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDisplayFilter(displayFilter === "deciding" ? "all" : "deciding")}
+            className="justify-between"
+          >
+            <span>Deciding</span>
+            <Badge variant="secondary">{decidingCount} ({pct(decidingCount)}%)</Badge>
           </Button>
           <Button
             variant={displayFilter === "complete" ? "default" : "outline"}
@@ -263,14 +275,6 @@ const AdminLeadsTab: React.FC = () => {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium" aria-label="Lead status key">
-          {(["complete", "more_info", "incomplete"] as LeadStatus[]).map((status) => (
-            <span key={status} className="flex items-center gap-1.5">
-              <span className={`h-2.5 w-2.5 rounded-full ring-1 ring-border ${STATUS_DOTS[status].className}`} />
-              {STATUS_DOTS[status].label}
-            </span>
-          ))}
-        </div>
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading leads...</p>
@@ -279,7 +283,16 @@ const AdminLeadsTab: React.FC = () => {
             {view === "trash" ? "Trash is empty." : "No leads yet."}
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium" aria-label="Lead status key">
+              {(["deciding", "complete", "more_info", "incomplete"] as LeadStatus[]).map((status) => (
+                <span key={status} className="flex items-center gap-1.5">
+                  <span className={`h-2.5 w-2.5 rounded-full ring-1 ring-border ${STATUS_DOTS[status].className}`} />
+                  {STATUS_DOTS[status].label}
+                </span>
+              ))}
+            </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
@@ -406,6 +419,7 @@ const AdminLeadsTab: React.FC = () => {
               </div>
             </div>
           </div>
+          </>
         )}
       </CardContent>
 
