@@ -232,19 +232,17 @@ const DashboardFeedSection: React.FC = () => {
   };
 
   /** Split a list into rows and show the ad only in the first (spot 1) block. */
-  const withAds = <T,>(list: T[], perRow: number) => {
-    const rows: T[][] = [];
-    for (let i = 0; i < list.length; i += perRow) rows.push(list.slice(i, i + perRow));
+  const withAds = <T,>(list: T[], perBlock: number) => {
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
     const firstAd = ads.find((a) => a.position === 1 || a.slot_number === 1) || ads[0];
-    for (let i = 0; i < rows.length; i += 3) {
-      blocks.push({ rows: rows.slice(i, i + 3), ad: i === 0 ? firstAd : undefined });
+    for (let i = 0; i < list.length; i += perBlock) {
+      blocks.push({ rows: [list.slice(i, i + perBlock)], ad: i === 0 ? firstAd : undefined });
     }
     return blocks;
   };
 
-  const photoBlocks = useMemo(() => withAds(photos, 3), [photos, ads]);
-  const videoBlocks = useMemo(() => withAds(videos, 3), [videos, ads]);
+  const photoBlocks = useMemo(() => withAds(photos, 9), [photos, ads]);
+  const videoBlocks = useMemo(() => withAds(videos, 12), [videos, ads]);
 
   const stories = useMemo(() => {
     const seen = new Set<string>();
@@ -330,7 +328,7 @@ const DashboardFeedSection: React.FC = () => {
                     <img
                       src={item.media_url}
                       alt=""
-                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <span className="absolute inset-0 hidden items-center justify-center gap-4 bg-black/45 text-sm font-bold text-white group-hover:flex">
@@ -374,7 +372,7 @@ const DashboardFeedSection: React.FC = () => {
                         v.currentTime = 0;
                       }}
                     >
-                      <source src={item.media_url} />
+                      <source src={`${item.media_url}${item.media_url.includes("#") ? "" : "#t=0.1"}`} />
                     </video>
                     <span className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
                       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90">
