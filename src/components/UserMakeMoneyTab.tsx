@@ -362,7 +362,7 @@ const UserMakeMoneyTab: React.FC = () => {
         </Card>
       </div>
 
-      <MakeMoneyFlyers />
+      <MakeMoneyFlyers username={actualUsername} />
 
       {/* Share Message */}
       <Card className="border border-border">
