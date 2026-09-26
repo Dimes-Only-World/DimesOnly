@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarousel";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,7 +186,8 @@ const Login: React.FC = () => {
 
   return (
     <div className="w-full min-h-screen relative">
-      <RotatingBackground images={backgroundImages} interval={3000} />
+      <ShortFormBackgroundCarousel page="login" position="fixed" className="z-0" onLoaded={setBgCount} />
+      {bgCount === 0 && <RotatingBackground images={backgroundImages} interval={3000} />}
 
       <div className="relative z-10 w-full min-h-screen flex items-center justify-center py-8">
         <div className="w-full px-4">

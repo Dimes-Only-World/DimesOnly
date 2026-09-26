@@ -870,7 +870,8 @@ serve(async (req) => {
 
       case 'addShortFormBackground': {
         const { device, mediaType, url } = params;
-        if (!['desktop', 'mobile'].includes(device) || !['image', 'video'].includes(mediaType) || !url) {
+        const bgPage = params.page === 'login' ? 'login' : 'short_form';
+        if (!['desktop', 'tablet', 'mobile'].includes(device) || !['image', 'video'].includes(mediaType) || !url) {
           return new Response(
             JSON.stringify({ error: 'device, mediaType and url are required' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -880,12 +881,13 @@ serve(async (req) => {
           .from('short_form_backgrounds')
           .select('sort_order')
           .eq('device', device)
+          .eq('page', bgPage)
           .order('sort_order', { ascending: false })
           .limit(1);
         const nextOrder = existing && existing.length ? (existing[0].sort_order ?? 0) + 1 : 0;
         const { data, error } = await supabaseAdmin
           .from('short_form_backgrounds')
-          .insert({ device, media_type: mediaType, url, sort_order: nextOrder })
+          .insert({ device, page: bgPage, media_type: mediaType, url, sort_order: nextOrder })
           .select()
           .single();
         if (error) throw error;

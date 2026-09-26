@@ -7,7 +7,8 @@ import { getAdminUserId } from "@/lib/adminAuth";
 import { ArrowDown, ArrowUp, Loader2, Trash2, Upload } from "lucide-react";
 import ShortFormBackgroundCarousel, { BackgroundMedia } from "@/components/ShortFormBackgroundCarousel";
 
-type Device = "desktop" | "mobile";
+type Device = "desktop" | "tablet" | "mobile";
+type BgPage = "short_form" | "login";
 
 interface Row extends BackgroundMedia {
   device: Device;
@@ -19,11 +20,12 @@ const FOLDER = "short-form-bg";
 
 const DeviceSection: React.FC<{
   device: Device;
+  page: BgPage;
   title: string;
   subtitle: string;
   rows: Row[];
   onChanged: () => void;
-}> = ({ device, title, subtitle, rows, onChanged }) => {
+}> = ({ device, page, title, subtitle, rows, onChanged }) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -52,7 +54,7 @@ const DeviceSection: React.FC<{
         }
 
         const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
-        const path = `${FOLDER}/${device}/${crypto.randomUUID()}.${ext}`;
+        const path = `${page === "login" ? "login-bg" : FOLDER}/${device}/${crypto.randomUUID()}.${ext}`;
 
         const { error: uploadError } = await supabase.storage
           .from(BUCKET)
@@ -62,6 +64,7 @@ const DeviceSection: React.FC<{
         const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
         await callAdmin("addShortFormBackground", {
           device,
+          page,
           mediaType: isVideo ? "video" : "image",
           url: pub.publicUrl,
         });
@@ -181,13 +184,13 @@ const DeviceSection: React.FC<{
             <p className="text-sm font-medium mb-2">Live preview</p>
             <div
               className={`relative overflow-hidden rounded-xl border border-border ${
-                device === "mobile" ? "w-full max-w-[280px] aspect-[9/16]" : "w-full aspect-video"
+                device === "mobile" ? "w-full max-w-[280px] aspect-[9/16]" : device === "tablet" ? "w-full max-w-[420px] aspect-[3/4]" : "w-full aspect-video"
               }`}
             >
               <ShortFormBackgroundCarousel device={device} media={rows} position="absolute" />
               <div className="absolute inset-0 flex items-center justify-center p-4">
                 <div className="bg-gray-900/50 border border-orange-500/60 rounded-xl px-5 py-4 text-center">
-                  <p className="text-orange-400 font-bold">Let&apos;s get you started</p>
+                  <p className="text-orange-400 font-bold">{page === "login" ? "Member Login" : "Let\u0027s get you started"}</p>
                 </div>
               </div>
             </div>
@@ -198,7 +201,7 @@ const DeviceSection: React.FC<{
   );
 };
 
-const AdminShortFormBackgroundTab: React.FC = () => {
+const AdminShortFormBackgroundTab: React.FC<{ page?: BgPage }> = ({ page = "short_form" }) => {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -206,10 +209,11 @@ const AdminShortFormBackgroundTab: React.FC = () => {
     const { data, error } = await supabase
       .from("short_form_backgrounds")
       .select("id, device, media_type, url, sort_order")
+      .eq("page", page)
       .order("sort_order", { ascending: true });
     if (!error && data) setRows(data as Row[]);
     setLoading(false);
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     load();
@@ -219,19 +223,30 @@ const AdminShortFormBackgroundTab: React.FC = () => {
     return <p className="text-muted-foreground">Loading background media...</p>;
   }
 
+  const label = page === "login" ? "the login page" : "the short form";
   return (
     <div className="space-y-6">
       <DeviceSection
         device="desktop"
-        title="Desktop / Tablet Background"
-        subtitle="Shown behind the short form on screens 768px and wider. Tablets use these settings."
+        page={page}
+        title="Desktop Background"
+        subtitle={`Shown behind ${label} on screens 1024px and wider.`}
         rows={rows.filter((r) => r.device === "desktop")}
         onChanged={load}
       />
       <DeviceSection
+        device="tablet"
+        page={page}
+        title="Tablet Background"
+        subtitle={`Shown behind ${label} on screens 768px–1023px. If empty, tablets use the desktop set.`}
+        rows={rows.filter((r) => r.device === "tablet")}
+        onChanged={load}
+      />
+      <DeviceSection
         device="mobile"
+        page={page}
         title="Mobile Background"
-        subtitle="Shown behind the short form on screens narrower than 768px."
+        subtitle={`Shown behind ${label} on screens narrower than 768px.`}
         rows={rows.filter((r) => r.device === "mobile")}
         onChanged={load}
       />
