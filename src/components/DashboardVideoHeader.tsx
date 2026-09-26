@@ -27,7 +27,7 @@ const DashboardVideoHeader: React.FC<DashboardVideoHeaderProps> = ({
 
   return (
     <div className="w-full mb-6">
-      <BannerVideo src={videoSrc} />
+      <BannerVideo src={videoSrc} className="aspect-[2.35/1]" />
     </div>
   );
 };
