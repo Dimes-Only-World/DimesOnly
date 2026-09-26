@@ -235,8 +235,12 @@ const UserMakeMoneyTab: React.FC = () => {
 
   return (
     <div className="w-full max-w-none px-0 md:px-4 space-y-8">
-      <div className="w-full">
+      {/* Full-bleed video header — wall to wall, flush to top */}
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen -mt-6">
         <BannerVideo src={bannerVideoUrl} className="aspect-[2.35/1]" />
+      </div>
+      <div className="pt-6">
+        <Top20DimesCarousel />
       </div>
       {/* Diamond Yearly subscription */}
       <div className="rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-amber-500/15 p-5 md:p-6">
