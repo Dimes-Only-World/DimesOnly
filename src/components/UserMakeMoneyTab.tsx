@@ -11,6 +11,7 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 import SharedLeadsList from "@/components/SharedLeadsList";
 import BannerVideo from "@/components/BannerVideo";
 import MakeMoneyFlyers from "@/components/MakeMoneyFlyers";
+import MakeMoneyMessages from "@/components/MakeMoneyMessages";
 import Top20DimesCarousel from "@/components/Top20DimesCarousel";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { QRCodeCanvas } from "qrcode.react";
@@ -80,17 +81,17 @@ const UserMakeMoneyTab: React.FC = () => {
     [referralUsername],
   );
 
-  const shareMessage = useMemo(() => {
-    const base =
+  const shareMessageBody = useMemo(() =>
       "Want to actually get paid for recruiting baddies that got hot photos and videos?\n\n" +
       "Watch this quick video first:\n" +
       `${promoVideoUrl}\n\n` +
       "If it hits different… click the link below and lock in your free account right now.\n" +
       "Spots are limited before the app officially launches.\n" +
       "It’s 100% free to join — zero risk, nothing to lose.\n" +
-      "Don’t sleep on this one. Can you find Dimes Only right now? If so join, it will pay serious EASY money!\n\n";
-    return `${base}${shareLink}`;
-  }, [shareLink, promoVideoUrl]);
+       "Don’t sleep on this one. Can you find Dimes Only right now? If so join, it will pay serious EASY money!",
+    [promoVideoUrl],
+  );
+  const shareMessage = useMemo(() => `${shareMessageBody}\n\n${shareLink}`, [shareMessageBody, shareLink]);
 
   const fetchActualUserData = useCallback(async () => {
     if (!user?.id) return;
@@ -364,27 +365,7 @@ const UserMakeMoneyTab: React.FC = () => {
 
       <MakeMoneyFlyers username={actualUsername} />
 
-      {/* Share Message */}
-      <Card className="border border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <MessageSquare className="w-5 h-5" />
-            Ready-to-Send Message
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground text-sm">
-            Copy this pre-written message and paste it into any app. It already includes your personal referral link.
-          </p>
-          <div className="p-4 bg-muted rounded-lg border border-border">
-            <p className="text-sm whitespace-pre-line text-foreground">{shareMessage}</p>
-          </div>
-          <Button onClick={handleCopyMessage} className="w-full sm:w-auto">
-            <Copy className="w-4 h-4 mr-2" />
-            Copy Message
-          </Button>
-        </CardContent>
-      </Card>
+      <MakeMoneyMessages username={actualUsername} fallbackBody={shareMessageBody} />
 
       {/* Share Buttons */}
       <Card className="border border-border" id="referral-link-section">
