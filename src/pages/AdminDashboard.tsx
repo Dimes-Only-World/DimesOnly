@@ -29,6 +29,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Megaphone,
+  FileImage,
 } from "lucide-react";
 import AdminEmailSettings from "@/components/AdminEmailSettings";
 import AdminAppLaunchSettings from "@/components/AdminAppLaunchSettings";
@@ -51,6 +52,7 @@ import AdminStoreTab from "@/components/AdminStoreTab";
 import AdminFlixTab from "@/components/flix-admin/AdminFlixTab";
 import AdminTipsTab from "@/components/AdminTipsTab";
 import AdminAdvertisementTab from "@/components/AdminAdvertisementTab";
+import AdminFlyersTab from "@/components/AdminFlyersTab";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -101,6 +103,7 @@ const tabs = [
   { value: "flix", label: "FlameFlix", icon: Flame },
   { value: "videos", label: "Videos", icon: Video },
   { value: "ads", label: "Ads", icon: Megaphone },
+  { value: "flyers", label: "Fliers", icon: FileImage },
   { value: "payouts", label: "Payouts", icon: CreditCard },
   { value: "settings", label: "Settings", icon: Settings },
   { value: "leads", label: "Leads", icon: Filter },
@@ -339,6 +342,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="ads">
             <AdminAdvertisementTab />
+          </TabsContent>
+
+          <TabsContent value="flyers">
+            <AdminFlyersTab />
           </TabsContent>
 
           <TabsContent value="payouts">
