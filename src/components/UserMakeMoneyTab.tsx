@@ -887,6 +887,7 @@ const UserMakeMoneyTab: React.FC = () => {
           </Accordion>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
