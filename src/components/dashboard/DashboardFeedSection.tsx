@@ -404,11 +404,11 @@ const DashboardFeedSection: React.FC = () => {
                       />
                     </Link>
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-sm font-semibold leading-snug">
-                        {prettyTitle(item)}
+                      <p className="text-sm font-semibold leading-snug">
+                        @{item.author?.username}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        @{item.author?.username} · {item.likeCount} likes · {timeAgo(item.created_at)}
+                        {item.likeCount} likes
                       </p>
                     </div>
                   </div>
