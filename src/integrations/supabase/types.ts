@@ -1457,6 +1457,36 @@ export type Database = {
           },
         ]
       }
+      flyers: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean
+          sort_order: number
+          storage_path: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          sort_order?: number
+          storage_path?: string | null
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          sort_order?: number
+          storage_path?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       host_applications: {
         Row: {
           address: string
@@ -3004,6 +3034,39 @@ export type Database = {
           platform?: string
           player_id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      qr_code_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          paid_at: string | null
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []
