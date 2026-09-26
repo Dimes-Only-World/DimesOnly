@@ -19,6 +19,7 @@ import { fetchActiveAds, DashboardAd } from "@/lib/dashboardAds";
 import { resolveMediaUrls } from "@/lib/privateMedia";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 import AdSlot from "./AdSlot";
+import TopMoneyCircles from "./TopMoneyCircles";
 
 interface MediaRow {
   id: string;
@@ -258,15 +259,11 @@ const DashboardFeedSection: React.FC = () => {
   const photoBlocks = useMemo(() => withAds(photos, 9), [photos, ads]);
   const videoBlocks = useMemo(() => withAds(videos, 12), [videos, ads]);
 
-  const stories = useMemo(() => {
-    const seen = new Set<string>();
-    return photos
-      .filter((p) => p.author?.username && !seen.has(p.user_id) && seen.add(p.user_id))
-      .slice(0, 14);
-  }, [photos]);
-
   return (
     <section className="mb-8 w-full rounded-2xl border border-border/60 bg-dimes-surface p-3 sm:p-4">
+      {/* Leaderboard avatars sit on top; the feed header and grid come below them */}
+      <TopMoneyCircles />
+
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-lg font-extrabold tracking-tight sm:text-xl">The Feed</h2>
         <div className="flex items-center gap-2">
@@ -294,30 +291,6 @@ const DashboardFeedSection: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Stories rail */}
-      {stories.length > 0 && (
-        <div className="mb-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {stories.map((s) => (
-            <Link
-              key={s.id}
-              to={`/profile/${s.author?.username}`}
-              className="flex w-16 shrink-0 flex-col items-center gap-1"
-            >
-              <span className="rounded-full bg-gradient-to-tr from-dimes-magenta to-amber-400 p-[2px]">
-                <img
-                  src={s.author?.profile_photo || s.media_url}
-                  alt={s.author?.username || ""}
-                  className="h-14 w-14 rounded-full border-2 border-white object-cover"
-                />
-              </span>
-              <span className="w-full truncate text-center text-[10px] font-semibold">
-                @{s.author?.username}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
 
       {loading ? (
         <div className="grid grid-cols-3 gap-2">

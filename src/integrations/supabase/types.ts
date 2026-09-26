@@ -279,6 +279,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "commission_payouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       content_access_payments: {
@@ -338,6 +345,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_access_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -474,6 +488,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "direct_messages_liked_by_fkey"
+            columns: ["liked_by"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "direct_messages_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
@@ -488,6 +509,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "direct_messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
@@ -500,6 +528,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -554,6 +589,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "elite_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -615,6 +657,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       event_owner_earnings: {
@@ -674,6 +723,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_owner_earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       event_transactions: {
@@ -732,6 +788,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "event_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "event_transactions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -751,6 +814,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_transactions_event_owner_id_fkey"
+            columns: ["event_owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "event_transactions_payment_id_fkey"
@@ -917,6 +987,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1117,6 +1194,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "flix_earnings_source_subscriber_id_fkey"
+            columns: ["source_subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "flix_earnings_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
@@ -1183,6 +1267,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_my_list_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1259,6 +1350,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "flix_referral_attributions_subscriber_user_id_fkey"
+            columns: ["subscriber_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       flix_subscriptions: {
@@ -1327,6 +1425,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1454,6 +1559,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flix_watch_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1694,6 +1806,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "jackpot_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       jackpot_config: {
@@ -1890,6 +2009,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jackpot_ledger_dime_id_fkey"
+            columns: ["dime_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "jackpot_ledger_referred_dime_id_fkey"
             columns: ["referred_dime_id"]
             isOneToOne: false
@@ -1904,6 +2030,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jackpot_ledger_referred_dime_id_fkey"
+            columns: ["referred_dime_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "jackpot_ledger_tipper_id_fkey"
             columns: ["tipper_id"]
             isOneToOne: false
@@ -1916,6 +2049,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_ledger_tipper_id_fkey"
+            columns: ["tipper_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2035,6 +2175,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jackpot_tickets_dime_id_fkey"
+            columns: ["dime_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "jackpot_tickets_pool_id_fkey"
             columns: ["pool_id"]
             isOneToOne: false
@@ -2070,6 +2217,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jackpot_tickets_referred_dime_id_fkey"
+            columns: ["referred_dime_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "jackpot_tickets_tipper_id_fkey"
             columns: ["tipper_id"]
             isOneToOne: false
@@ -2084,6 +2238,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jackpot_tickets_tipper_id_fkey"
+            columns: ["tipper_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "jackpot_tickets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2096,6 +2257,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2170,6 +2338,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "jackpot_winners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       media_comments: {
@@ -2218,6 +2393,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2296,6 +2478,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2456,6 +2645,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "membership_upgrades_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       messages: {
@@ -2517,6 +2713,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
@@ -2529,6 +2732,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2594,6 +2804,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2606,6 +2823,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2731,6 +2955,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       payout_requests: {
@@ -2842,6 +3073,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payout_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       paypal_webhook_events: {
@@ -2913,6 +3151,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performer_approvals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -3159,6 +3404,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quarterly_requirements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       ratings: {
@@ -3205,6 +3457,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "ratings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -3217,6 +3476,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4010,6 +4276,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       themed_packages: {
@@ -4110,6 +4383,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tickets_user_Id_fkey"
+            columns: ["user_Id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       tips: {
@@ -4163,6 +4443,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4259,6 +4546,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tips_transactions_tipped_user_id_fkey"
+            columns: ["tipped_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "tips_transactions_tipper_user_id_fkey"
             columns: ["tipper_user_id"]
             isOneToOne: false
@@ -4271,6 +4565,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_transactions_tipper_user_id_fkey"
+            columns: ["tipper_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4361,6 +4662,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       user_media: {
@@ -4433,6 +4741,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_media_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       user_roles: {
@@ -4468,6 +4783,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4703,6 +5025,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "users_liked_by_fkey"
+            columns: ["liked_by"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       vehicle_media: {
@@ -4921,6 +5250,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "weekly_earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
     }
@@ -5081,6 +5417,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "jackpot_winners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       v_jackpot_pool_stats: {
@@ -5133,6 +5476,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "jackpot_tickets_tipper_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       v_tip_allocation_audit: {
@@ -5154,6 +5504,15 @@ export type Database = {
           tipped_username: string | null
           tipper_username: string | null
           transaction_date: string | null
+        }
+        Relationships: []
+      }
+      v_top_money_circles: {
+        Row: {
+          circle_size: number | null
+          profile_photo: string | null
+          user_id: string | null
+          username: string | null
         }
         Relationships: []
       }
