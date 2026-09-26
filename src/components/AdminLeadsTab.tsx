@@ -309,13 +309,13 @@ const AdminLeadsTab: React.FC = () => {
                         aria-label={`Select ${lead.full_name}`}
                       />
                     </td>
-                    <td className="py-2 pr-4"><LeadPhotoDialog url={lead.selfie_url} name={lead.full_name} /></td>
                     <td className="py-2 pr-4">{lead.username || "—"}</td>
                     <td className="py-2 pr-4">
                       {lead.registration_completed && lead.registered_full_name
                         ? lead.registered_full_name
                         : lead.full_name}
                     </td>
+                    <td className="py-2 pr-4"><LeadPhotoDialog url={lead.selfie_url} name={lead.full_name} /></td>
                     <td
                       className={`py-2 pr-4 ${
                         lead.phone_match ? "bg-green-100 text-green-900 font-medium rounded" : ""

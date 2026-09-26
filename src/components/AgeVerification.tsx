@@ -232,17 +232,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
       });
       if (error) throw error;
       if (data?.leadId) setLeadId(data.leadId);
-    } catch (err) {
-      console.error("Age gate lead submission failed", err);
-      setErrors((current) => ({ ...current, selfie: "We couldn't save your selfie. Please try again." }));
-      setSubmitting(false);
-      return;
-    } finally {
       setSubmitting(false);
       markVerified();
       setStep("video");
-      // Try to start the video with sound while the user's Submit click still
-      // counts as a user gesture for autoplay policies.
       requestAnimationFrame(() => {
         const v = videoRef.current;
         if (!v) return;
@@ -250,6 +242,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         v.volume = 1;
         v.play().catch(() => {});
       });
+    } catch (err) {
+      console.error("Age gate lead submission failed", err);
+      setErrors((current) => ({ ...current, selfie: "We couldn't save your selfie. Please try again." }));
+      setSubmitting(false);
     }
   };
 
@@ -499,7 +495,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                     </span>
                   )}
                   <span className="min-w-0 text-sm">
-                    <span className="flex items-center gap-2 font-semibold text-foreground">
+                    <span className="flex items-center gap-2 font-semibold">
                       {selfie ? <Check className="h-4 w-4 text-green-400" /> : <Camera className="h-4 w-4" />}
                       {selfie ? "Selfie ready" : "Take or upload selfie"}
                     </span>

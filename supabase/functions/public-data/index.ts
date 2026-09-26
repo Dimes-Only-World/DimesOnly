@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCallerId } from "../_shared/caller.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -250,6 +251,18 @@ serve(async (req) => {
         const token = authHeader.replace('Bearer ', '').trim();
         let authorized = false;
         let memberUsername: string | null = null;
+        const callerId = await getCallerId(req);
+        if (callerId && (!params?.userId || params.userId === callerId)) {
+          const { data: callerRow } = await supabaseAdmin
+            .from('users')
+            .select('username')
+            .eq('id', callerId)
+            .maybeSingle();
+          if (callerRow) {
+            authorized = true;
+            memberUsername = (callerRow as any).username || null;
+          }
+        }
         if (token && token !== supabaseAnonKey) {
           const { data: userData } = await supabaseAdmin.auth.getUser(token);
           if (userData?.user) {

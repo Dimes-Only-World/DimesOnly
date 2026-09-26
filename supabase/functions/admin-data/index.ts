@@ -176,6 +176,14 @@ serve(async (req) => {
       }
 
       case 'emptyAgeGateLeadsTrash': {
+        const { data: trashedPhotos } = await supabaseAdmin
+          .from('age_gate_leads')
+          .select('selfie_path')
+          .not('deleted_at', 'is', null);
+        const trashedPhotoPaths = (trashedPhotos || []).map((row: any) => row.selfie_path).filter(Boolean);
+        if (trashedPhotoPaths.length > 0) {
+          await supabaseAdmin.storage.from('age-verification-selfies').remove(trashedPhotoPaths);
+        }
         const { error } = await supabaseAdmin
           .from('age_gate_leads')
           .delete()
