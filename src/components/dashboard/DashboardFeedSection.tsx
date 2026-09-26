@@ -404,11 +404,11 @@ const DashboardFeedSection: React.FC = () => {
                       />
                     </Link>
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-sm font-semibold leading-snug">
-                        {prettyTitle(item)}
+                      <p className="text-sm font-semibold leading-snug">
+                        @{item.author?.username}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        @{item.author?.username} · {item.likeCount} likes · {timeAgo(item.created_at)}
+                        {item.likeCount} likes
                       </p>
                     </div>
                   </div>
@@ -536,7 +536,6 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
             >
               @{item.author?.username}
             </Link>
-            <span className="ml-auto text-[11px] text-slate-500">{timeAgo(item.created_at)}</span>
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
