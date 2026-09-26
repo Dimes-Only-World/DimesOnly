@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Crown, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import AuthGuard from "@/components/AuthGuard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
@@ -75,14 +76,22 @@ const UpgradeDiamondPage: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      let userId = user?.id ?? null;
+      if (!userId) {
+        try {
+          userId = JSON.parse(sessionStorage.getItem("userData") || "null")?.id ?? null;
+        } catch {
+          userId = null;
+        }
+      }
+      if (!userId) return;
 
       const { data: profile, error } = await supabase
         .from("users")
         .select(
           "id, username, user_type, membership_tier, diamond_plus_active, phone_number, email"
         )
-        .eq("id", user.id)
+        .eq("id", userId)
         .single();
 
       if (error) throw error;
@@ -220,9 +229,37 @@ const UpgradeDiamondPage: React.FC = () => {
     return <AngelLoader variant="fullscreen" />;
   }
 
+  if (!userData) {
+    return (
+      <AuthGuard>
+        <AppLayout>
+          <div className="min-h-screen flex items-center justify-center p-6 text-center text-white">
+            <p>Please log in to upgrade to Diamond Plus.</p>
+          </div>
+        </AppLayout>
+      </AuthGuard>
+    );
+  }
+
+  const isEligible = userData.user_type === "stripper" || userData.user_type === "exotic";
+  if (!isEligible && !userData.diamond_plus_active) {
+    return (
+      <AuthGuard>
+        <AppLayout>
+          <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center text-white">
+            <h1 className="text-2xl font-bold text-fuchsia-400">Diamond Plus</h1>
+            <p>Diamond Plus is available to entertainer accounts (Exotic and Stripper) only.</p>
+            <Button onClick={() => window.history.back()}>Go back</Button>
+          </div>
+        </AppLayout>
+      </AuthGuard>
+    );
+  }
+
   const alreadyDiamondPlus = userData?.diamond_plus_active;
 
   return (
+    <AuthGuard>
     <AppLayout>
       <Dialog open={showRefundPolicy} onOpenChange={setShowRefundPolicy}>
         <DialogContent className="bg-gray-900 border-fuchsia-500 text-white max-w-lg">
@@ -432,6 +469,7 @@ const UpgradeDiamondPage: React.FC = () => {
         </div>
       </div>
     </AppLayout>
+    </AuthGuard>
   );
 };
 
