@@ -4,10 +4,12 @@ import { getAdminUserId } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Upload, Download } from "lucide-react";
+import { Trash2, Upload, Download, MessageSquare, Plus, Save } from "lucide-react";
 
 interface Flyer { id: string; title: string; url: string; sort_order: number; is_active: boolean }
+interface ShareMessage { id: string; title: string; body: string; sort_order: number; is_active: boolean }
 
 const call = async (body: Record<string, unknown>) => {
   const { data, error } = await supabase.functions.invoke("make-money", { body: { ...body, adminUserId: getAdminUserId() } });
@@ -30,12 +32,20 @@ const AdminFlyersTab: React.FC = () => {
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [messages, setMessages] = useState<ShareMessage[]>([]);
+  const [messageTitle, setMessageTitle] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [messageBusy, setMessageBusy] = useState(false);
 
   const load = async () => {
     try { setFlyers((await call({ action: "adminListFlyers" })).flyers || []); }
     catch (e) { toast({ title: "Failed to load fliers", description: (e as Error).message, variant: "destructive" }); }
   };
-  useEffect(() => { load(); }, []);
+  const loadMessages = async () => {
+    try { setMessages((await call({ action: "adminListMessages" })).messages || []); }
+    catch (e) { toast({ title: "Failed to load messages", description: (e as Error).message, variant: "destructive" }); }
+  };
+  useEffect(() => { load(); loadMessages(); }, []);
 
   const add = async () => {
     if (!file) return;
@@ -58,6 +68,33 @@ const AdminFlyersTab: React.FC = () => {
   const remove = async (id: string) => {
     if (!confirm("Delete this flier?")) return;
     try { await call({ action: "adminDeleteFlyer", id }); load(); }
+    catch (e) { toast({ title: "Delete failed", description: (e as Error).message, variant: "destructive" }); }
+  };
+
+  const addMessage = async () => {
+    if (!messageBody.trim()) return;
+    setMessageBusy(true);
+    try {
+      await call({ action: "adminAddMessage", title: messageTitle.trim(), body: messageBody.trim() });
+      setMessageTitle("");
+      setMessageBody("");
+      toast({ title: "Message added" });
+      loadMessages();
+    } catch (e) { toast({ title: "Message failed to save", description: (e as Error).message, variant: "destructive" }); }
+    finally { setMessageBusy(false); }
+  };
+
+  const updateMessage = async (id: string, patch: Partial<ShareMessage>) => {
+    try {
+      await call({ action: "adminUpdateMessage", id, ...patch });
+      toast({ title: "Message saved" });
+      loadMessages();
+    } catch (e) { toast({ title: "Message failed to save", description: (e as Error).message, variant: "destructive" }); }
+  };
+
+  const removeMessage = async (id: string) => {
+    if (!confirm("Delete this message?")) return;
+    try { await call({ action: "adminDeleteMessage", id }); loadMessages(); }
     catch (e) { toast({ title: "Delete failed", description: (e as Error).message, variant: "destructive" }); }
   };
 
@@ -87,7 +124,63 @@ const AdminFlyersTab: React.FC = () => {
           </Card>
         ))}
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><MessageSquare className="h-5 w-5" /> Add a Ready-to-Send Message</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Input placeholder="Message title" value={messageTitle} onChange={(e) => setMessageTitle(e.target.value)} maxLength={120} />
+          <Textarea
+            placeholder="Write the message here. The member's referral URL is added automatically."
+            value={messageBody}
+            onChange={(e) => setMessageBody(e.target.value)}
+            className="min-h-40"
+            maxLength={5000}
+          />
+          <p className="text-xs text-muted-foreground">Every member will automatically see their own link at the end: https://DimesOnly.World?ref=username</p>
+          <Button onClick={addMessage} disabled={!messageBody.trim() || messageBusy}>
+            <Plus className="mr-2 h-4 w-4" /> {messageBusy ? "Adding…" : "Add Message"}
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="space-y-3">
+        {messages.map((message) => (
+          <MessageEditor key={message.id} message={message} onSave={updateMessage} onDelete={removeMessage} />
+        ))}
+      </div>
     </div>
+  );
+};
+
+const MessageEditor: React.FC<{
+  message: ShareMessage;
+  onSave: (id: string, patch: Partial<ShareMessage>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}> = ({ message, onSave, onDelete }) => {
+  const [title, setTitle] = useState(message.title);
+  const [body, setBody] = useState(message.body);
+  const [sortOrder, setSortOrder] = useState(message.sort_order);
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    if (!body.trim()) return;
+    setSaving(true);
+    await onSave(message.id, { title: title.trim(), body: body.trim(), sort_order: sortOrder });
+    setSaving(false);
+  };
+  return (
+    <Card className={message.is_active ? "" : "opacity-60"}>
+      <CardContent className="space-y-3 p-4">
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Message title" maxLength={120} />
+        <Textarea value={body} onChange={(e) => setBody(e.target.value)} className="min-h-36" maxLength={5000} />
+        <p className="text-xs text-muted-foreground">The member's personal referral URL is added automatically.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input type="number" min={0} max={10000} className="w-24" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} aria-label="Message order" />
+          <Button onClick={save} disabled={saving || !body.trim()}><Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : "Save"}</Button>
+          <Button variant="outline" onClick={() => onSave(message.id, { is_active: !message.is_active })}>{message.is_active ? "Hide" : "Show"}</Button>
+          <Button variant="destructive" size="icon" onClick={() => onDelete(message.id)} aria-label="Delete message"><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

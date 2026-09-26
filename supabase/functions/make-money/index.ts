@@ -19,6 +19,7 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("qrCreate"), returnUrl: z.string().url().max(500), cancelUrl: z.string().url().max(500) }),
   z.object({ action: z.literal("qrCapture"), orderId: z.string().min(5).max(100) }),
   z.object({ action: z.literal("listFlyers") }),
+  z.object({ action: z.literal("listMessages") }),
   z.object({ action: z.literal("adminListFlyers") }),
   z.object({
     action: z.literal("adminAddFlyer"),
@@ -29,6 +30,17 @@ const Body = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("adminUpdateFlyer"), id: z.string().uuid(), title: z.string().max(200).optional(), sort_order: z.number().int().optional(), is_active: z.boolean().optional() }),
   z.object({ action: z.literal("adminDeleteFlyer"), id: z.string().uuid() }),
+  z.object({ action: z.literal("adminListMessages") }),
+  z.object({ action: z.literal("adminAddMessage"), title: z.string().max(120).default(""), body: z.string().min(1).max(5000) }),
+  z.object({
+    action: z.literal("adminUpdateMessage"),
+    id: z.string().uuid(),
+    title: z.string().max(120).optional(),
+    body: z.string().min(1).max(5000).optional(),
+    sort_order: z.number().int().min(0).max(10000).optional(),
+    is_active: z.boolean().optional(),
+  }),
+  z.object({ action: z.literal("adminDeleteMessage"), id: z.string().uuid() }),
 ]);
 
 async function paypalToken(clientId: string, secret: string, base: string) {
@@ -97,6 +109,32 @@ Deno.serve(async (req) => {
         if (error) throw error;
         return json({ ok: true });
       }
+      if (p.action === "adminListMessages") {
+        const { data, error } = await admin.from("make_money_messages").select("*").order("sort_order").order("created_at");
+        if (error) throw error;
+        return json({ messages: data || [] });
+      }
+      if (p.action === "adminAddMessage") {
+        const { data: max } = await admin.from("make_money_messages").select("sort_order").order("sort_order", { ascending: false }).limit(1);
+        const { error } = await admin.from("make_money_messages").insert({
+          title: p.title,
+          body: p.body,
+          sort_order: (max?.[0]?.sort_order ?? 0) + 1,
+        });
+        if (error) throw error;
+        return json({ ok: true });
+      }
+      if (p.action === "adminUpdateMessage") {
+        const { id, action: _action, ...changes } = p;
+        const { error } = await admin.from("make_money_messages").update(changes).eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+      if (p.action === "adminDeleteMessage") {
+        const { error } = await admin.from("make_money_messages").delete().eq("id", p.id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
     }
 
     if (p.action === "listFlyers") {
@@ -107,6 +145,17 @@ Deno.serve(async (req) => {
 
     const callerId = await getCallerId(req);
     if (!callerId) return json({ error: "Please sign in again to continue." }, 401);
+
+    if (p.action === "listMessages") {
+      const { data, error } = await admin
+        .from("make_money_messages")
+        .select("id,title,body,sort_order")
+        .eq("is_active", true)
+        .order("sort_order")
+        .order("created_at");
+      if (error) throw error;
+      return json({ messages: data || [] });
+    }
 
     if (p.action === "qrStatus") {
       const { data: u } = await admin.from("users")

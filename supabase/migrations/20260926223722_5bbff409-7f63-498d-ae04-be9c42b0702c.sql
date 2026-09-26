@@ -1,0 +1,1 @@
+REVOKE ALL ON public.make_money_messages FROM anon, authenticated;

@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileImage, Share2, Facebook, Instagram, Copy } from "lucide-react";
+import { Download, FileImage, Share2, Facebook, Instagram, Copy, MessageSquare, Send, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import FlyerShareHistory, { logFlyerShare } from "@/components/FlyerShareHistory";
 import firstFlyer from "@/assets/flyers/dimes-only-world-flyer.png.asset.json";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const FALLBACK: Flyer[] = [{ id: "default", title: "Dimes Only World — Now Recruiting", url: firstFlyer.url }];
 
@@ -73,27 +74,29 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
 
   const shareButtons = (f: Flyer, compact: boolean) => {
     const btns = [
-      { label: "Share", Icon: Share2, cls: "border border-border bg-background", onClick: () => nativeShare(f).catch(() => {}) },
-      { label: "Contacts", Icon: null, cls: "bg-[#7c3aed] text-white", onClick: () => openUrl(`sms:?&body=${enc(shareText(f))}`) },
-      { label: "Facebook", Icon: Facebook, cls: "bg-[#2563eb] text-white", onClick: () => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`) },
-      { label: "Instagram", Icon: Instagram, cls: "bg-[#db2777] text-white", onClick: async () => { await copy(); openUrl("https://www.instagram.com/"); } },
-      { label: "WhatsApp", Icon: null, cls: "bg-[#22c55e] text-white", onClick: () => openUrl(`https://wa.me/?text=${enc(shareText(f))}`) },
-      { label: "Telegram", Icon: null, cls: "bg-[#60a5fa] text-white", onClick: () => openUrl(`https://t.me/share/url?url=${enc(link)}&text=${enc(f.title || "Join me on Dimes Only World")}`) },
-      { label: "X", Icon: null, cls: "bg-[#0284c7] text-white", onClick: () => openUrl(`https://twitter.com/intent/tweet?text=${enc(shareText(f))}`) },
-      { label: "Copy link", Icon: Copy, cls: "border border-border bg-background", onClick: () => copy().catch(() => {}) },
+      { label: "Share", Icon: Share2, onClick: () => nativeShare(f).catch(() => {}) },
+      { label: "Contacts", Icon: MessageSquare, onClick: () => openUrl(`sms:?&body=${enc(shareText(f))}`) },
+      { label: "Facebook", Icon: Facebook, onClick: () => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`) },
+      { label: "Instagram", Icon: Instagram, onClick: async () => { await copy(); openUrl("https://www.instagram.com/"); } },
+      { label: "WhatsApp", Icon: MessageSquare, onClick: () => openUrl(`https://wa.me/?text=${enc(shareText(f))}`) },
+      { label: "Telegram", Icon: Send, onClick: () => openUrl(`https://t.me/share/url?url=${enc(link)}&text=${enc(f.title || "Join me on Dimes Only World")}`) },
+      { label: "X", Icon: null, onClick: () => openUrl(`https://twitter.com/intent/tweet?text=${enc(shareText(f))}`) },
+      { label: "Copy link", Icon: Copy, onClick: () => copy().catch(() => {}) },
     ];
     return (
       <div className={`grid gap-1.5 ${compact ? "grid-cols-4" : "grid-cols-4"}`}>
-        {btns.map(({ label, Icon, onClick, cls }) => (
-          <button
+        {btns.map(({ label, Icon, onClick }) => (
+          <Button
             key={label}
             type="button"
+            variant="outline"
             onClick={() => { logFlyerShare(f.id, f.title || "Flier", label === "Copy link" ? "copy" : label.toLowerCase()); onClick(); }}
-            className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-semibold hover:opacity-90 ${cls}`}
+            className="h-12 min-w-0 flex-col gap-0.5 px-1 text-[11px] font-semibold leading-none"
+            title={label}
           >
-            {Icon && <Icon className="h-3.5 w-3.5" />}
-            {label}
-          </button>
+            {Icon ? <Icon className="h-4 w-4 shrink-0" /> : <span className="text-sm font-bold leading-none">𝕏</span>}
+            <span className="max-w-full truncate">{label}</span>
+          </Button>
         ))}
       </div>
     );
@@ -107,20 +110,23 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
             <FileImage className="w-5 h-5" /> Downloadable Fliers
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {flyers.map((f) => (
-            <div key={f.id} className="flex flex-col gap-2">
+        <CardContent>
+          <Carousel opts={{ loop: true }} className="mx-auto w-full max-w-2xl">
+            <CarouselContent>
+              {flyers.map((f) => (
+                <CarouselItem key={f.id}>
+                  <div className="mx-auto flex w-full max-w-xl flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setEnlarged(f)}
-                className="block w-full rounded-lg overflow-hidden border border-border bg-muted cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-[min(68vh,680px)] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-md border border-border bg-muted p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`Enlarge ${f.title || "flier"}`}
               >
                 <img
                   src={f.url}
                   alt={f.title || "Flier"}
-                  className="w-full object-contain transition-transform duration-200 hover:scale-[1.03]"
-                  loading="lazy"
+                  className="h-full w-full object-contain transition-transform duration-200 hover:scale-[1.02]"
+                  loading="eager"
                 />
               </button>
               {f.title && <p className="text-sm font-medium text-foreground">{f.title}</p>}
@@ -129,8 +135,17 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
               </Button>
               <p className="text-xs font-semibold text-muted-foreground">Share this flier</p>
               {shareButtons(f, true)}
-            </div>
-          ))}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {flyers.length > 1 && (
+              <>
+                <CarouselPrevious className="left-2 top-[32%] bg-background/90" />
+                <CarouselNext className="right-2 top-[32%] bg-background/90" />
+              </>
+            )}
+          </Carousel>
         </CardContent>
       </Card>
 
