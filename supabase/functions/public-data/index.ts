@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCallerId } from "../_shared/caller.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -250,6 +251,18 @@ serve(async (req) => {
         const token = authHeader.replace('Bearer ', '').trim();
         let authorized = false;
         let memberUsername: string | null = null;
+        const callerId = await getCallerId(req);
+        if (callerId && (!params?.userId || params.userId === callerId)) {
+          const { data: callerRow } = await supabaseAdmin
+            .from('users')
+            .select('username')
+            .eq('id', callerId)
+            .maybeSingle();
+          if (callerRow) {
+            authorized = true;
+            memberUsername = (callerRow as any).username || null;
+          }
+        }
         if (token && token !== supabaseAnonKey) {
           const { data: userData } = await supabaseAdmin.auth.getUser(token);
           if (userData?.user) {
@@ -260,18 +273,6 @@ serve(async (req) => {
               .eq('id', userData.user.id)
               .maybeSingle();
             memberUsername = (authRow as any)?.username || null;
-          }
-        }
-        // Fallback for custom (non-Supabase-Auth) sessions: verify the user id exists
-        if (!authorized && params?.userId) {
-          const { data: memberRow } = await supabaseAdmin
-            .from('users')
-            .select('id, username')
-            .eq('id', params.userId)
-            .maybeSingle();
-          if (memberRow) {
-            authorized = true;
-            memberUsername = (memberRow as any)?.username || null;
           }
         }
         if (!authorized) {
@@ -289,7 +290,7 @@ serve(async (req) => {
         // Only leads referred by this member
         const { data: leads, error: leadsError } = await supabaseAdmin
           .from('age_gate_leads')
-          .select('id, full_name, phone, action_taken, created_at, referral_code')
+          .select('id, full_name, phone, action_taken, created_at, referral_code, selfie_path')
           .is('deleted_at', null)
           .ilike('referral_code', memberUsername)
           .order('created_at', { ascending: false })
@@ -313,7 +314,7 @@ serve(async (req) => {
           if (n.length > 3) nameSet.add(n);
         }
 
-        result = (leads || []).map((l: any) => {
+        result = await Promise.all((leads || []).map(async (l: any) => {
           const complete = phoneSet.has(digits(l.phone)) || nameSet.has(normName(l.full_name));
           const status = complete
             ? 'complete'
@@ -321,14 +322,22 @@ serve(async (req) => {
               ? 'more_info'
               : 'incomplete';
           const d = digits(l.phone);
+          let selfie_url: string | null = null;
+          if (l.selfie_path) {
+            const { data: signed } = await supabaseAdmin.storage
+              .from('age-verification-selfies')
+              .createSignedUrl(l.selfie_path, 3600);
+            selfie_url = signed?.signedUrl || null;
+          }
           return {
             id: l.id,
             full_name: l.full_name,
             area_code: d.length >= 3 ? `(${d.slice(0, 3)})` : '—',
             status,
             created_at: l.created_at,
+            selfie_url,
           };
-        });
+        }));
         break;
       }
 

@@ -110,7 +110,7 @@ serve(async (req) => {
           if (nameKey.length >= 4 && !byName.has(nameKey)) byName.set(nameKey, entry);
         }
 
-        result = (data || []).map((lead: any) => {
+        result = await Promise.all((data || []).map(async (lead: any) => {
           const phoneEntry = byPhone.get(digits(lead.phone));
           const leadDob = normDob(lead.date_of_birth);
           const nameEntry = byName.get(normName(lead.full_name));
@@ -118,8 +118,16 @@ serve(async (req) => {
           const nameDobEntry = nameEntry && nameEntry.dob && nameEntry.dob === leadDob ? nameEntry : undefined;
           const match = phoneEntry || nameDobEntry;
           const dobMatch = !!match && !!match.dob && match.dob === leadDob;
+          let selfie_url: string | null = null;
+          if (lead.selfie_path) {
+            const { data: signed } = await supabaseAdmin.storage
+              .from('age-verification-selfies')
+              .createSignedUrl(lead.selfie_path, 3600);
+            selfie_url = signed?.signedUrl || null;
+          }
           return {
             ...lead,
+            selfie_url,
             phone_match: !!phoneEntry,
             dob_match: dobMatch,
             registration_completed: !!match,
@@ -127,7 +135,7 @@ serve(async (req) => {
             registered_full_name: match?.full_name || null,
             registered_at: match?.created_at ?? null,
           };
-        });
+        }));
 
 
 
@@ -146,6 +154,14 @@ serve(async (req) => {
         }
 
         if (action === 'permanentlyDeleteAgeGateLeads') {
+          const { data: photoRows } = await supabaseAdmin
+            .from('age_gate_leads')
+            .select('selfie_path')
+            .in('id', ids);
+          const photoPaths = (photoRows || []).map((row: any) => row.selfie_path).filter(Boolean);
+          if (photoPaths.length > 0) {
+            await supabaseAdmin.storage.from('age-verification-selfies').remove(photoPaths);
+          }
           const { error } = await supabaseAdmin.from('age_gate_leads').delete().in('id', ids);
           if (error) throw error;
         } else {
@@ -160,6 +176,14 @@ serve(async (req) => {
       }
 
       case 'emptyAgeGateLeadsTrash': {
+        const { data: trashedPhotos } = await supabaseAdmin
+          .from('age_gate_leads')
+          .select('selfie_path')
+          .not('deleted_at', 'is', null);
+        const trashedPhotoPaths = (trashedPhotos || []).map((row: any) => row.selfie_path).filter(Boolean);
+        if (trashedPhotoPaths.length > 0) {
+          await supabaseAdmin.storage.from('age-verification-selfies').remove(trashedPhotoPaths);
+        }
         const { error } = await supabaseAdmin
           .from('age_gate_leads')
           .delete()

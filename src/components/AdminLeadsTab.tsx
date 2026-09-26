@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RefreshCw, CheckCircle2, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
+import LeadPhotoDialog from "@/components/LeadPhotoDialog";
 
 interface Lead {
   id: string;
@@ -35,9 +36,16 @@ interface Lead {
   registered_at?: string | null;
   phone_match?: boolean;
   dob_match?: boolean;
+  selfie_url?: string | null;
 }
 
 type LeadStatus = "complete" | "more_info" | "incomplete";
+
+const STATUS_DOTS: Record<LeadStatus, { label: string; className: string }> = {
+  complete: { label: "Complete", className: "bg-green-500" },
+  more_info: { label: "More Info", className: "bg-yellow-400" },
+  incomplete: { label: "Incomplete", className: "bg-foreground" },
+};
 
 const leadStatus = (l: Lead): LeadStatus => {
   if (l.phone_match || l.registration_completed) return "complete";
@@ -255,6 +263,15 @@ const AdminLeadsTab: React.FC = () => {
           )}
         </div>
 
+        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium" aria-label="Lead status key">
+          {(["complete", "more_info", "incomplete"] as LeadStatus[]).map((status) => (
+            <span key={status} className="flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-full ring-1 ring-border ${STATUS_DOTS[status].className}`} />
+              {STATUS_DOTS[status].label}
+            </span>
+          ))}
+        </div>
+
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading leads...</p>
         ) : filtered.length === 0 ? (
@@ -271,12 +288,13 @@ const AdminLeadsTab: React.FC = () => {
                   </th>
                   <th className="py-2 pr-4 font-medium">Username</th>
                   <th className="py-2 pr-4 font-medium">Name</th>
+                  <th className="py-2 pr-4 font-medium">Photo</th>
                   <th className="py-2 pr-4 font-medium">Phone</th>
                   <th className="py-2 pr-4 font-medium">Date of Birth</th>
                   <th className="py-2 pr-4 font-medium">Referrer</th>
                   <th className="py-2 pr-4 font-medium">Action</th>
-                  <th className="py-2 pr-4 font-medium">Registration</th>
-                  <th className="py-2 pr-4 font-medium">Submitted</th>
+                  <th className="py-2 pr-4 font-medium">Status</th>
+                  <th className="py-2 pr-4 font-medium">Date Received</th>
                   {view === "trash" && <th className="py-2 pr-4 font-medium">Deleted</th>}
                   <th className="py-2 pr-4 font-medium text-right">Manage</th>
                 </tr>
@@ -297,6 +315,7 @@ const AdminLeadsTab: React.FC = () => {
                         ? lead.registered_full_name
                         : lead.full_name}
                     </td>
+                    <td className="py-2 pr-4"><LeadPhotoDialog url={lead.selfie_url} name={lead.full_name} /></td>
                     <td
                       className={`py-2 pr-4 ${
                         lead.phone_match ? "bg-green-100 text-green-900 font-medium rounded" : ""
@@ -320,17 +339,11 @@ const AdminLeadsTab: React.FC = () => {
                       )}
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
-                      {leadStatus(lead) === "complete" ? (
-                        <Badge className="bg-green-600 text-white hover:bg-green-600">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Complete
-                          {lead.registered_username ? ` - ${lead.registered_username}` : ""}
-                        </Badge>
-                      ) : leadStatus(lead) === "more_info" ? (
-                        <Badge className="bg-yellow-500 text-black hover:bg-yellow-500">Need More Info</Badge>
-                      ) : (
-                        <Badge className="bg-red-600 text-white hover:bg-red-600">Incomplete</Badge>
-                      )}
+                      <span className="flex items-center gap-2 font-medium">
+                        <span className={`h-3 w-3 rounded-full ring-1 ring-border ${STATUS_DOTS[leadStatus(lead)].className}`} />
+                        {STATUS_DOTS[leadStatus(lead)].label}
+                        {lead.registered_username ? ` - ${lead.registered_username}` : ""}
+                      </span>
                     </td>
 
                     <td className="py-2 pr-4 whitespace-nowrap">

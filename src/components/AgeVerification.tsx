@@ -6,6 +6,7 @@ import { normalizeRefParam } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarousel";
 import BannerVideo from "@/components/BannerVideo";
+import { Camera, Check } from "lucide-react";
 
 
 interface AgeVerificationProps {
@@ -43,6 +44,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
   const [matchProfiles, setMatchProfiles] = useState<{ username: string; photo: string | null }[]>([]);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [showProfiles, setShowProfiles] = useState(false);
+  const [selfie, setSelfie] = useState<File | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
 
 
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
@@ -141,6 +144,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     };
   }, [username]);
 
+  useEffect(() => {
+    if (!selfie) {
+      setSelfiePreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(selfie);
+    setSelfiePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selfie]);
+
   const markVerified = () => {
     // Intentionally not persisted: age verification is required on every visit.
   };
@@ -189,6 +202,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
 
     if (!dob) next.dob = "Date of birth is required";
     else if ((calculateAge(dob) ?? 0) < 18) next.dob = "You must be at least 18 years old to enter";
+    if (!selfie) next.selfie = "A current selfie is required for age verification";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -198,6 +212,13 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     if (!validate()) return;
     setSubmitting(true);
     try {
+      if (!selfie) return;
+      const selfieBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+        reader.onerror = () => reject(new Error("Unable to read selfie"));
+        reader.readAsDataURL(selfie);
+      });
       const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
         body: {
           username: username.trim(),
@@ -205,19 +226,15 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
           phone: phone.trim(),
           dateOfBirth: dob,
           referralCode: refCode || null,
+          selfieBase64,
+          selfieContentType: selfie.type,
         },
       });
       if (error) throw error;
       if (data?.leadId) setLeadId(data.leadId);
-    } catch (err) {
-      // Never block the visitor if the lead could not be stored.
-      console.error("Age gate lead submission failed", err);
-    } finally {
       setSubmitting(false);
       markVerified();
       setStep("video");
-      // Try to start the video with sound while the user's Submit click still
-      // counts as a user gesture for autoplay policies.
       requestAnimationFrame(() => {
         const v = videoRef.current;
         if (!v) return;
@@ -225,6 +242,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         v.volume = 1;
         v.play().catch(() => {});
       });
+    } catch (err) {
+      console.error("Age gate lead submission failed", err);
+      setErrors((current) => ({ ...current, selfie: "We couldn't save your selfie. Please try again." }));
+      setSubmitting(false);
     }
   };
 
@@ -461,6 +482,43 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                   )}
                 </label>
                 <DateOfBirthSelect value={dob} onChange={setDob} error={errors.dob} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Age Verification Selfie</label>
+                <label className="flex min-h-24 cursor-pointer items-center gap-4 rounded-lg border border-dashed border-orange-400/70 bg-background/15 p-3 transition-colors hover:bg-background/25">
+                  {selfiePreview ? (
+                    <img src={selfiePreview} alt="Selfie preview" className="h-20 w-20 shrink-0 rounded-md object-cover" />
+                  ) : (
+                    <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md bg-background/20">
+                      <Camera className="h-8 w-8 text-orange-300" />
+                    </span>
+                  )}
+                  <span className="min-w-0 text-sm">
+                    <span className="flex items-center gap-2 font-semibold">
+                      {selfie ? <Check className="h-4 w-4 text-green-400" /> : <Camera className="h-4 w-4" />}
+                      {selfie ? "Selfie ready" : "Take or upload selfie"}
+                    </span>
+                    <span className="mt-1 block text-xs text-white/70">Clear photo of your face · JPG, PNG, or WebP · 5MB max</span>
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    capture="user"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        setSelfie(null);
+                        setErrors((current) => ({ ...current, selfie: "The selfie must be smaller than 5MB" }));
+                        return;
+                      }
+                      setSelfie(file);
+                      setErrors((current) => ({ ...current, selfie: "" }));
+                    }}
+                  />
+                </label>
+                {errors.selfie && <p className="text-red-400 text-xs mt-1">{errors.selfie}</p>}
               </div>
             </div>
 

@@ -55,7 +55,7 @@ serve(async (req) => {
 
       const { data, error } = await admin
         .from("age_gate_leads")
-        .select("id, full_name, phone")
+        .select("id, full_name, phone, selfie_path")
         .ilike("full_name", name)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -97,7 +97,7 @@ serve(async (req) => {
 
       const { data: leads } = await admin
         .from("age_gate_leads")
-        .select("id, phone, date_of_birth")
+        .select("id, phone, date_of_birth, selfie_path")
         .order("created_at", { ascending: false })
         .limit(2000);
 
@@ -137,6 +137,8 @@ serve(async (req) => {
     const referralCode = (body as any).referralCode
       ? String((body as any).referralCode).trim().slice(0, 100)
       : null;
+    const selfieBase64 = String((body as any).selfieBase64 ?? "");
+    const selfieContentType = String((body as any).selfieContentType ?? "").toLowerCase();
 
     const errors: Record<string, string> = {};
     if (fullName.length < 2 || fullName.length > 100) errors.fullName = "Name must be 2-100 characters";
@@ -144,8 +146,27 @@ serve(async (req) => {
     if (digits.length < 7 || digits.length > 15) errors.phone = "Enter a valid phone number";
     if (!isIsoDate(dateOfBirth)) errors.dateOfBirth = "Date of birth is required";
     else if (ageFrom(dateOfBirth) < 18) errors.dateOfBirth = "You must be at least 18 years old";
+    if (!selfieBase64) errors.selfie = "A selfie is required";
+    if (!/^image\/(jpeg|png|webp)$/.test(selfieContentType)) errors.selfie = "Use a JPG, PNG, or WebP image";
 
     if (Object.keys(errors).length > 0) return json({ error: errors }, 400);
+
+    let selfieBytes: Uint8Array;
+    try {
+      selfieBytes = Uint8Array.from(atob(selfieBase64), (character) => character.charCodeAt(0));
+    } catch {
+      return json({ error: { selfie: "The selfie could not be read" } }, 400);
+    }
+    if (selfieBytes.length === 0 || selfieBytes.length > 5 * 1024 * 1024) {
+      return json({ error: { selfie: "The selfie must be smaller than 5MB" } }, 400);
+    }
+
+    const extension = selfieContentType === "image/png" ? "png" : selfieContentType === "image/webp" ? "webp" : "jpg";
+    const selfiePath = `${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await admin.storage
+      .from("age-verification-selfies")
+      .upload(selfiePath, selfieBytes, { contentType: selfieContentType, upsert: false });
+    if (uploadError) throw uploadError;
 
     const { data, error } = await admin
       .from("age_gate_leads")
@@ -156,11 +177,15 @@ serve(async (req) => {
         date_of_birth: dateOfBirth,
         referral_code: referralCode,
         action_taken: "submitted",
+        selfie_path: selfiePath,
       })
       .select("id")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      await admin.storage.from("age-verification-selfies").remove([selfiePath]);
+      throw error;
+    }
 
     return json({ success: true, leadId: data.id });
   } catch (err) {
