@@ -353,8 +353,10 @@ const AdminLeadsTab: React.FC = () => {
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">
                       <span className="flex items-center gap-2 font-medium">
-                        <span className={`h-3 w-3 rounded-full ring-1 ring-border ${STATUS_DOTS[leadStatus(lead)].className}`} />
-                        {STATUS_DOTS[leadStatus(lead)].label}
+                        <span
+                          title={STATUS_DOTS[leadStatus(lead)].label}
+                          className={`inline-block h-3 w-3 rounded-full ring-1 ring-border ${STATUS_DOTS[leadStatus(lead)].className}`}
+                        />
                         {lead.registered_username ? ` - ${lead.registered_username}` : ""}
                       </span>
                     </td>
