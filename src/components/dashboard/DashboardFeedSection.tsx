@@ -407,9 +407,26 @@ const DashboardFeedSection: React.FC = () => {
                       <p className="text-sm font-semibold leading-snug">
                         @{item.author?.username}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.likeCount} likes
-                      </p>
+                      <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+                        <button
+                          type="button"
+                          onClick={() => toggleLike(item)}
+                          className="flex items-center gap-1 hover:text-foreground"
+                          aria-label="Like"
+                        >
+                          <Heart className={`h-3.5 w-3.5 ${item.liked ? "fill-primary text-primary" : ""}`} />
+                          {item.likeCount} likes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActive(item)}
+                          className="flex items-center gap-1 hover:text-foreground"
+                          aria-label="Comments"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          {item.commentCount} comments
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </article>
