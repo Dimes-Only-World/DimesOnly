@@ -19,6 +19,7 @@ import { fetchActiveAds, DashboardAd } from "@/lib/dashboardAds";
 import { resolveMediaUrls } from "@/lib/privateMedia";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 import AdSlot from "./AdSlot";
+import TopMoneyCircles from "./TopMoneyCircles";
 
 interface MediaRow {
   id: string;
@@ -258,15 +259,11 @@ const DashboardFeedSection: React.FC = () => {
   const photoBlocks = useMemo(() => withAds(photos, 9), [photos, ads]);
   const videoBlocks = useMemo(() => withAds(videos, 12), [videos, ads]);
 
-  const stories = useMemo(() => {
-    const seen = new Set<string>();
-    return photos
-      .filter((p) => p.author?.username && !seen.has(p.user_id) && seen.add(p.user_id))
-      .slice(0, 14);
-  }, [photos]);
-
   return (
     <section className="mb-8 w-full rounded-2xl border border-border/60 bg-dimes-surface p-3 sm:p-4">
+      {/* Leaderboard avatars sit on top; the feed header and grid come below them */}
+      <TopMoneyCircles />
+
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-lg font-extrabold tracking-tight sm:text-xl">The Feed</h2>
         <div className="flex items-center gap-2">
