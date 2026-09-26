@@ -169,7 +169,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full overflow-hidden bg-card aspect-video ${className}`}
+      className={`relative w-full overflow-hidden bg-card ${/\baspect-/.test(className) ? "" : "aspect-video"} ${className}`}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
       onClick={togglePlayPause}
