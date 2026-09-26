@@ -559,7 +559,7 @@ const UserDashboard: React.FC = () => {
       profilePhoto={userData.profile_photo}
       fullWidth={slug === "profile"}
     >
-      {slug !== "profile" && slug !== "earnings" && <Top20DimesCarousel />}
+      {slug !== "profile" && slug !== "earnings" && slug !== "make-money" && <Top20DimesCarousel />}
 
 
       {isBusinessOwner && !boEliteActive && (
