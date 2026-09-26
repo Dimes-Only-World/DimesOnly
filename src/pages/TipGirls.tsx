@@ -15,6 +15,7 @@ import UsersList from "@/components/UsersList";
 import TipLeaderboard from "@/components/TipLeaderboard";
 import BannerVideo from "@/components/BannerVideo";
 import { supabase } from "@/lib/supabase";
+import { publicRest } from "@/lib/publicRest";
 import { normalizeRefParam } from "@/lib/utils";
 
 type RateFilter = "all" | "rated" | "not-rated";
@@ -88,17 +89,11 @@ const TipGirls: React.FC = () => {
   const fetchUserByUsername = async (username: string) => {
     try {
       // Use public_user_profiles view to bypass RLS restrictions
-      const { data, error } = await supabase
-        .from("public_user_profiles")
-        .select("id, username, profile_photo, city, state, user_type")
-        .eq("username", username)
-        .in("user_type", ["stripper", "exotic"])
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching user:", error);
-        return;
-      }
+      const rows = await publicRest<any[]>(
+        `public_user_profiles?select=id,username,profile_photo,city,state,user_type` +
+          `&username=eq.${encodeURIComponent(username)}&user_type=in.(stripper,exotic)&limit=1`
+      );
+      const data = rows?.[0];
       if (data) {
         setSelectedUser({
           id: String(data.id),
