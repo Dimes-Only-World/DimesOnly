@@ -320,7 +320,9 @@ serve(async (req) => {
             ? 'complete'
             : l.action_taken === 'more_information'
               ? 'more_info'
-              : 'incomplete';
+              : l.action_taken === 'continued_registration'
+                ? 'incomplete'
+                : 'deciding';
           const d = digits(l.phone);
           let selfie_url: string | null = null;
           if (l.selfie_path) {

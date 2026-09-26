@@ -419,6 +419,7 @@ const AdminLeadsTab: React.FC = () => {
               </div>
             </div>
           </div>
+          </>
         )}
       </CardContent>
 
