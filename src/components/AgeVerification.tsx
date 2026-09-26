@@ -176,13 +176,6 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     };
   }, [step, explainerUrl]);
 
-  const handleVideoPlay = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = false;
-    v.volume = 1;
-  };
-
   const validate = () => {
     const next: Record<string, string> = {};
     const uname = username.trim();
