@@ -292,30 +292,6 @@ const DashboardFeedSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Stories rail */}
-      {stories.length > 0 && (
-        <div className="mb-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {stories.map((s) => (
-            <Link
-              key={s.id}
-              to={`/profile/${s.author?.username}`}
-              className="flex w-16 shrink-0 flex-col items-center gap-1"
-            >
-              <span className="rounded-full bg-gradient-to-tr from-dimes-magenta to-amber-400 p-[2px]">
-                <img
-                  src={s.author?.profile_photo || s.media_url}
-                  alt={s.author?.username || ""}
-                  className="h-14 w-14 rounded-full border-2 border-white object-cover"
-                />
-              </span>
-              <span className="w-full truncate text-center text-[10px] font-semibold">
-                @{s.author?.username}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
-
       {loading ? (
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 9 }).map((_, i) => (
