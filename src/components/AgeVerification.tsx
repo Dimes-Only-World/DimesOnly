@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { normalizeRefParam } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarousel";
+import BannerVideo from "@/components/BannerVideo";
 
 
 interface AgeVerificationProps {
@@ -174,13 +175,6 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
       v.removeEventListener("canplay", unmuteAndPlay);
     };
   }, [step, explainerUrl]);
-
-  const handleVideoPlay = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = false;
-    v.volume = 1;
-  };
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -527,21 +521,14 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               Watch this quick introduction
             </h2>
 
-            <video
-              ref={videoRef}
-              key={explainerUrl || FALLBACK_VIDEO}
+            <BannerVideo
+              src={explainerUrl || FALLBACK_VIDEO}
+              loop={false}
               autoPlay
-              playsInline
-              controls
-              controlsList="nodownload noplaybackrate"
-              muted={false}
-              onPlay={handleVideoPlay}
-              onLoadedMetadata={handleVideoPlay}
               onEnded={() => setVideoEnded(true)}
-              className="w-full h-auto rounded-lg border-2 border-orange-500 bg-black object-contain"
-            >
-              <source src={explainerUrl || FALLBACK_VIDEO} />
-            </video>
+              videoRef={videoRef}
+              className="rounded-lg border-2 border-orange-500"
+            />
 
             {!videoEnded && (
               <p className="text-white/60 text-xs sm:text-sm mt-4 text-center">

@@ -371,16 +371,7 @@ const RateGirls: React.FC = () => {
         {/* Full-width How It Works video */}
         {howItWorksVideoUrl && (
           <div className="w-full mb-12">
-            <video
-              className="w-full h-auto"
-              controls
-              playsInline
-              preload="metadata"
-              key={howItWorksVideoUrl}
-            >
-              <source src={howItWorksVideoUrl} />
-              Your browser does not support the video tag.
-            </video>
+            <BannerVideo src={howItWorksVideoUrl} loop={false} />
           </div>
         )}
 

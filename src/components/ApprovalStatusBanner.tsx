@@ -1,6 +1,7 @@
 import React from "react";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { usePageVideo } from "@/hooks/usePageVideo";
+import BannerVideo from "@/components/BannerVideo";
 
 interface ApprovalStatusBannerProps {
   status?: string | null;
@@ -68,15 +69,7 @@ const ApprovalStatusBanner: React.FC<ApprovalStatusBannerProps> = ({ status, use
 
       {config.video && (
         <div className="mt-4 overflow-hidden rounded-lg bg-black/40">
-          <video
-            key={config.video}
-            controls
-            playsInline
-            preload="metadata"
-            className="aspect-video w-full object-contain"
-          >
-            <source src={config.video} />
-          </video>
+          <BannerVideo src={config.video} loop={false} />
         </div>
       )}
     </div>
