@@ -3,6 +3,9 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, FileImage } from "lucide-react";
+import firstFlyer from "@/assets/flyers/dimes-only-world-flyer.png.asset.json";
+
+const FALLBACK: Flyer[] = [{ id: "default", title: "Dimes Only World — Now Recruiting", url: firstFlyer.url }];
 
 interface Flyer { id: string; title: string; url: string }
 
@@ -22,15 +25,18 @@ const downloadFile = async (url: string, name: string) => {
 };
 
 const MakeMoneyFlyers: React.FC = () => {
-  const [flyers, setFlyers] = useState<Flyer[]>([]);
+  const [flyers, setFlyers] = useState<Flyer[]>(FALLBACK);
   useEffect(() => {
-    supabase.functions.invoke("make-money", { body: { action: "listFlyers" } }).then(({ data }) => {
-      setFlyers(data?.flyers || []);
-    });
+    supabase.functions
+      .invoke("make-money", { body: { action: "listFlyers" } })
+      .then(({ data, error }) => {
+        if (error) console.error("Fliers failed to load", error);
+        setFlyers(data?.flyers?.length ? data.flyers : FALLBACK);
+      })
+      .catch(() => setFlyers(FALLBACK));
   }, []);
-  if (!flyers.length) return null;
   return (
-    <Card className="border border-border">
+    <Card className="border border-border" id="fliers">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <FileImage className="w-5 h-5" /> Downloadable Fliers

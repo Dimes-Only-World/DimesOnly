@@ -11,6 +11,7 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 import SharedLeadsList from "@/components/SharedLeadsList";
 import BannerVideo from "@/components/BannerVideo";
 import MakeMoneyFlyers from "@/components/MakeMoneyFlyers";
+import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { QRCodeCanvas } from "qrcode.react";
 import { Lock } from "lucide-react";
 
@@ -26,6 +27,7 @@ const UserMakeMoneyTab: React.FC = () => {
   const bannerVideoUrl = adminBannerVideo || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/0415+(1).mp4";
   const [qrUnlocked, setQrUnlocked] = useState<boolean | null>(null);
   const [qrBusy, setQrBusy] = useState(false);
+  const upgradeTarget = getPlusUpgradeTarget(user);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -339,17 +341,14 @@ const UserMakeMoneyTab: React.FC = () => {
             ) : qrUnlocked === false ? (
               <div className="w-full space-y-2 rounded-lg border border-border bg-muted p-3 text-left">
                 <p className="text-sm text-foreground">
-                  Upgrade to Silver Plus or Diamond Plus to view and download your QR code, or unlock it once for $1.99.
+                  Upgrade to {upgradeTarget.label} to view and download your QR code, or unlock it once for $1.99.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button onClick={handleBuyQr} disabled={qrBusy} className="flex-1">
                     {qrBusy ? "Opening PayPal…" : "Pay $1.99 to Unlock QR"}
                   </Button>
                   <Button asChild variant="outline" className="flex-1">
-                    <a href="/upgrade-silver-plus">Upgrade to Silver Plus</a>
-                  </Button>
-                  <Button asChild variant="outline" className="flex-1">
-                    <a href="/upgrade-diamond">Upgrade to Diamond Plus</a>
+                    <a href={upgradeTarget.href}>Upgrade to {upgradeTarget.label.replace(/^Lifetime /, "")}</a>
                   </Button>
                 </div>
               </div>
@@ -357,6 +356,8 @@ const UserMakeMoneyTab: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <MakeMoneyFlyers />
 
       {/* Share Message */}
       <Card className="border border-border">
@@ -379,8 +380,6 @@ const UserMakeMoneyTab: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
-
-      <MakeMoneyFlyers />
 
       {/* Share Buttons */}
       <Card className="border border-border" id="referral-link-section">
