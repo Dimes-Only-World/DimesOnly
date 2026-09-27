@@ -194,6 +194,10 @@
 
 
 @layer components {
+  .purchase-application label {
+    color: hsl(var(--rental-muted));
+  }
+
   .glass-effect {
     @apply backdrop-blur-md bg-white/90 border border-white/20;
   }
