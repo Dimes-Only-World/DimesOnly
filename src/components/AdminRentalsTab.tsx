@@ -75,7 +75,7 @@ const AdminRentalsTab: React.FC = () => {
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="calls">Call Requests</TabsTrigger>
           <TabsTrigger value="hosts">Host Applications</TabsTrigger>
-          <TabsTrigger value="purchases">Purchase Applications</TabsTrigger>
+          <TabsTrigger value="purchases">Credit Apps</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="packages">Themed Packages</TabsTrigger>
           <TabsTrigger value="promos">Promo Codes</TabsTrigger>
