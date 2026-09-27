@@ -56,6 +56,23 @@ function cleanEmployment(value: Record<string, unknown>) {
   };
 }
 
+function validateResidence(value: unknown, label: string) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return `${label} residential information is required.`;
+  const r = value as Record<string, unknown>;
+  if (![r.streetAddress, r.city, r.state, r.zipCode, r.housingType].every((v) => text(v))) return `Complete all required ${label.toLowerCase()} residential fields.`;
+  if (!/^[A-Z]{2}$/i.test(text(r.state, 2)) || !/^\d{5}(?:-\d{4})?$/.test(text(r.zipCode, 10)) || money(r.monthlyPayment) === null) return `${label} residential information is invalid.`;
+  return null;
+}
+
+function validateEmployment(value: unknown, label: string) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return `${label} employment information is required.`;
+  const e = value as Record<string, unknown>;
+  if (![e.employerName, e.title, e.employerPhone].every((v) => text(v)) || !phoneOk(text(e.employerPhone))) return `Complete all required ${label.toLowerCase()} employment fields.`;
+  const income = money(e.monthlyGrossIncome); const years = Number(e.yearsAtJob); const months = Number(e.monthsAtJob);
+  if (income === null || !Number.isInteger(years) || years < 0 || years > 80 || !Number.isInteger(months) || months < 0 || months > 11) return `${label} employment information is invalid.`;
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -71,13 +88,17 @@ serve(async (req) => {
       const coBuyerError = validatePerson(body.coBuyer, "Co-buyer");
       if (coBuyerError) return json({ error: coBuyerError }, 400);
       if (!text(body.coBuyer?.relationship, 60)) return json({ error: "Co-buyer relationship is required." }, 400);
+      const coResidenceError = validateResidence(body.coBuyer?.residence, "Co-buyer");
+      if (coResidenceError) return json({ error: coResidenceError }, 400);
+      const coEmploymentError = validateEmployment(body.coBuyer?.employment, "Co-buyer");
+      if (coEmploymentError) return json({ error: coEmploymentError }, 400);
     }
     const residence = body.residence || {};
-    if (![residence.streetAddress, residence.city, residence.state, residence.zipCode, residence.housingType].every((v) => text(v))) return json({ error: "Complete all required residential fields." }, 400);
-    if (money(residence.monthlyPayment) === null) return json({ error: "Enter a valid monthly housing payment." }, 400);
+    const residenceError = validateResidence(residence, "Applicant");
+    if (residenceError) return json({ error: residenceError }, 400);
     const employment = body.employment || {};
-    if (![employment.employerName, employment.title, employment.employerPhone].every((v) => text(v)) || !phoneOk(text(employment.employerPhone))) return json({ error: "Complete all required employment fields." }, 400);
-    if (money(employment.monthlyGrossIncome) === null) return json({ error: "Enter valid monthly gross income." }, 400);
+    const employmentError = validateEmployment(employment, "Applicant");
+    if (employmentError) return json({ error: employmentError }, 400);
     const interested = body.interestedVehicle || {};
     if (!vinOk(text(interested.vin, 17)) || !text(interested.year) || !text(interested.make) || !text(interested.model)) return json({ error: "Interested vehicle requires a valid 17-character VIN, year, make, and model." }, 400);
     if (body.hasTradeIn) {
