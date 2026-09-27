@@ -84,6 +84,38 @@ async function verifyFace(base64: string, mime: string): Promise<FaceResult> {
   }
 }
 
+type Control = {
+  enabled: boolean; monthly_credit_limit: number; credits_per_check: number; period_month: string;
+  checks_this_month: number; credits_this_month: number; skipped_this_month: number; alerts_reached: number[];
+};
+const currentMonth = () => new Date().toISOString().slice(0, 7);
+
+async function loadControl(admin: any): Promise<Control | null> {
+  const { data, error } = await admin.from("ai_selfie_check_control").select("*").eq("id", 1).maybeSingle();
+  if (error || !data) { console.error("selfie control load failed", error); return null; }
+  const c = data as Control;
+  if (c.period_month !== currentMonth()) {
+    // New month: reset the counters. A pause stays until an admin turns AI checks back on.
+    const reset = { period_month: currentMonth(), checks_this_month: 0, credits_this_month: 0, skipped_this_month: 0, alerts_reached: [] as number[], updated_at: new Date().toISOString() };
+    await admin.from("ai_selfie_check_control").update(reset).eq("id", 1);
+    Object.assign(c, reset);
+  }
+  return c;
+}
+
+async function recordCheck(admin: any, c: Control) {
+  const credits = Number(c.credits_this_month) + Number(c.credits_per_check);
+  const limit = Number(c.monthly_credit_limit);
+  const pct = limit > 0 ? (credits / limit) * 100 : 100;
+  const alerts = [...(c.alerts_reached ?? [])];
+  for (const t of [50, 80, 100]) if (pct >= t && !alerts.includes(t)) alerts.push(t);
+  const update: Record<string, unknown> = {
+    checks_this_month: c.checks_this_month + 1, credits_this_month: credits, alerts_reached: alerts, updated_at: new Date().toISOString(),
+  };
+  if (credits >= limit) { update.enabled = false; update.paused_at = new Date().toISOString(); }
+  await admin.from("ai_selfie_check_control").update(update).eq("id", 1);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -232,12 +264,22 @@ serve(async (req) => {
     }
 
     // AI check: the photo must show one real person's face (not objects, screenshots, cartoons).
-    const faceCheck = await verifyFace(selfieBase64, selfieContentType);
-    if (faceCheck.status === "unavailable") {
-      return json({ error: { selfie: "We couldn't check your selfie right now. Please try again in a moment." } }, 503);
-    }
-    if (faceCheck.status === "rejected") {
-      return json({ error: { selfie: faceCheck.reason || "Please upload a clear selfie showing your face." } }, 400);
+    // Uses the small preview the browser made (cheaper), falling back to the full selfie.
+    const preview = String((body as any).aiPreviewBase64 ?? "");
+    const usePreview = preview.length > 0 && preview.length < 1_500_000 && /^[A-Za-z0-9+/=]+$/.test(preview);
+    const control = await loadControl(admin);
+    if (control && !control.enabled) {
+      // Monthly AI budget reached (or checks turned off by an admin): accept the photo without an AI check.
+      await admin.from("ai_selfie_check_control").update({ skipped_this_month: control.skipped_this_month + 1 }).eq("id", 1);
+    } else {
+      const faceCheck = await verifyFace(usePreview ? preview : selfieBase64, usePreview ? "image/jpeg" : selfieContentType);
+      if (faceCheck.status === "unavailable") {
+        return json({ error: { selfie: "We couldn't check your selfie right now. Please try again in a moment." } }, 503);
+      }
+      if (control) await recordCheck(admin, control);
+      if (faceCheck.status === "rejected") {
+        return json({ error: { selfie: faceCheck.reason || "Please upload a clear selfie showing your face." } }, 400);
+      }
     }
 
     const extension = selfieContentType === "image/png" ? "png" : selfieContentType === "image/webp" ? "webp" : "jpg";

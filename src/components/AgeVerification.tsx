@@ -8,6 +8,18 @@ import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarouse
 import BannerVideo from "@/components/BannerVideo";
 import { Camera, Check } from "lucide-react";
 
+/** Resize a selfie to max 768px on its longest side as a JPEG (base64, no prefix) for the AI face check. */
+async function makeAiPreview(file: File, maxSide = 768): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close?.();
+  return canvas.toDataURL("image/jpeg", 0.82).split(",")[1] || "";
+}
+
 
 interface AgeVerificationProps {
   onVerified: () => void;
@@ -219,6 +231,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         reader.onerror = () => reject(new Error("Unable to read selfie"));
         reader.readAsDataURL(selfie);
       });
+      // Smaller copy just for the AI face check (keeps a face clearly visible, costs less).
+      const aiPreviewBase64 = await makeAiPreview(selfie).catch(() => "");
       const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
         body: {
           username: username.trim(),
@@ -228,6 +242,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
           referralCode: refCode || null,
           selfieBase64,
           selfieContentType: selfie.type,
+          aiPreviewBase64,
         },
       });
       if (error) throw error;

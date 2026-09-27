@@ -1,0 +1,2 @@
+REVOKE ALL ON public.ai_selfie_check_control FROM anon, authenticated;
+CREATE POLICY "No direct client access" ON public.ai_selfie_check_control FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);

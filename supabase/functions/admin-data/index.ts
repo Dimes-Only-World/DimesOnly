@@ -60,6 +60,30 @@ serve(async (req) => {
     let result;
 
     switch (action) {
+      case 'getSelfieCheckControl': {
+        const { data, error } = await supabaseAdmin.from('ai_selfie_check_control').select('*').eq('id', 1).maybeSingle();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+      case 'updateSelfieCheckControl': {
+        const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+        if (params.monthlyCreditLimit !== undefined) {
+          const n = Number(params.monthlyCreditLimit);
+          if (!Number.isFinite(n) || n < 1 || n > 100000) throw new Error('Monthly limit must be between 1 and 100000 credits');
+          update.monthly_credit_limit = n;
+        }
+        if (params.enabled === true) {
+          // Turning AI checks back on starts a fresh budget count for this month.
+          Object.assign(update, { enabled: true, paused_at: null, checks_this_month: 0, credits_this_month: 0, alerts_reached: [] });
+        } else if (params.enabled === false) {
+          Object.assign(update, { enabled: false, paused_at: new Date().toISOString() });
+        }
+        const { data, error } = await supabaseAdmin.from('ai_selfie_check_control').update(update).eq('id', 1).select('*').maybeSingle();
+        if (error) throw error;
+        result = data;
+        break;
+      }
       case 'fetchAgeGateLeads': {
         const trashed = params.view === 'trash';
         let query = supabaseAdmin
