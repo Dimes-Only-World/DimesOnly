@@ -14,6 +14,76 @@ const ageFrom = (iso: string) => {
   return age;
 };
 
+type FaceResult = { status: "ok" | "rejected" | "unavailable"; reason?: string };
+
+async function verifyFace(base64: string, mime: string): Promise<FaceResult> {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) return { status: "unavailable" };
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
+      body: JSON.stringify({
+        model: "openai/gpt-6-astra",
+        stream: true,
+        store: false,
+        reasoning: { effort: "low", summary: "auto" },
+        include: ["reasoning.encrypted_content"],
+        input: [{
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text:
+                'This is an age-verification selfie upload. Decide if it is a real photo of exactly one live human person with their face clearly visible (a selfie or face photo). Reject: no face, objects, animals, landscapes, cartoons/drawings/AI art, memes, screenshots, photos of screens or of printed photos, face fully covered or too blurry/dark to see. Reply ONLY with JSON: {"face": true|false, "reason": "short friendly message to the user if false"}',
+            },
+            { type: "input_image", image_url: `data:${mime};base64,${base64}` },
+          ],
+        }],
+      }),
+    });
+    if (!res.ok || !res.body) {
+      console.error("face check gateway status", res.status, await res.text().catch(() => ""));
+      return { status: "unavailable" };
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let text = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(data);
+          if (evt.type === "response.output_text.delta") text += evt.delta ?? "";
+          if (evt.type === "error" || evt.type === "response.failed") {
+            console.error("face check stream error", data);
+            return { status: "unavailable" };
+          }
+        } catch { /* ignore partial */ }
+      }
+    }
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) {
+      console.error("face check empty/unparsable output", text);
+      return { status: "unavailable" };
+    }
+    const parsed = JSON.parse(match[0]);
+    if (parsed.face === true) return { status: "ok" };
+    return { status: "rejected", reason: String(parsed.reason ?? "").slice(0, 200) };
+  } catch (e) {
+    console.error("face check failed", e);
+    return { status: "unavailable" };
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -159,6 +229,15 @@ serve(async (req) => {
     }
     if (selfieBytes.length === 0 || selfieBytes.length > 5 * 1024 * 1024) {
       return json({ error: { selfie: "The selfie must be smaller than 5MB" } }, 400);
+    }
+
+    // AI check: the photo must show one real person's face (not objects, screenshots, cartoons).
+    const faceCheck = await verifyFace(selfieBase64, selfieContentType);
+    if (faceCheck.status === "unavailable") {
+      return json({ error: { selfie: "We couldn't check your selfie right now. Please try again in a moment." } }, 503);
+    }
+    if (faceCheck.status === "rejected") {
+      return json({ error: { selfie: faceCheck.reason || "Please upload a clear selfie showing your face." } }, 400);
     }
 
     const extension = selfieContentType === "image/png" ? "png" : selfieContentType === "image/webp" ? "webp" : "jpg";
