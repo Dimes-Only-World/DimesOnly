@@ -243,12 +243,17 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         v.play().catch(() => {});
       });
     } catch (err: any) {
-      console.error("Age gate lead submission failed", err);
       let message = "We couldn't save your selfie. Please try again.";
+      let expected = false;
       try {
         const body = await err?.context?.json?.();
-        if (body?.error && typeof body.error === "object" && body.error.selfie) message = body.error.selfie;
+        if (body?.error && typeof body.error === "object" && body.error.selfie) {
+          message = body.error.selfie;
+          expected = true;
+        }
       } catch { /* keep default */ }
+      if (expected) console.warn("Selfie rejected:", message);
+      else console.error("Age gate lead submission failed", err);
       setErrors((current) => ({ ...current, selfie: message }));
       setSubmitting(false);
     }
