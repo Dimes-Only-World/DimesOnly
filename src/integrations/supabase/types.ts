@@ -71,6 +71,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_selfie_check_control: {
+        Row: {
+          alerts_reached: number[]
+          checks_this_month: number
+          credits_per_check: number
+          credits_this_month: number
+          enabled: boolean
+          id: number
+          monthly_credit_limit: number
+          paused_at: string | null
+          period_month: string
+          skipped_this_month: number
+          updated_at: string
+        }
+        Insert: {
+          alerts_reached?: number[]
+          checks_this_month?: number
+          credits_per_check?: number
+          credits_this_month?: number
+          enabled?: boolean
+          id?: number
+          monthly_credit_limit?: number
+          paused_at?: string | null
+          period_month?: string
+          skipped_this_month?: number
+          updated_at?: string
+        }
+        Update: {
+          alerts_reached?: number[]
+          checks_this_month?: number
+          credits_per_check?: number
+          credits_this_month?: number
+          enabled?: boolean
+          id?: number
+          monthly_credit_limit?: number
+          paused_at?: string | null
+          period_month?: string
+          skipped_this_month?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string
