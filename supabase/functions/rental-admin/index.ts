@@ -338,6 +338,24 @@ serve(async (req) => {
         return json({ url: data.signedUrl });
       }
 
+      case "listPurchaseApplications": {
+        const { data, error } = await admin.from("vehicle_purchase_applications")
+          .select("*, vehicles(year,make,model)")
+          .order("submitted_at", { ascending: false });
+        if (error) throw error;
+        return json({ data });
+      }
+      case "updatePurchaseApplication": {
+        const { id, payload } = params;
+        const clean: Record<string, any> = {};
+        if (typeof payload?.status === "string" && ["new", "reviewing", "contacted", "approved", "declined", "closed"].includes(payload.status)) clean.status = payload.status;
+        if (typeof payload?.admin_notes === "string") clean.admin_notes = payload.admin_notes.trim().slice(0, 2000) || null;
+        if (!Object.keys(clean).length) return json({ error: "No valid changes supplied" }, 400);
+        const { data, error } = await admin.from("vehicle_purchase_applications").update(clean).eq("id", id).select().single();
+        if (error) throw error;
+        return json({ data });
+      }
+
       default:
         return json({ error: "Unknown action" }, 400);
     }

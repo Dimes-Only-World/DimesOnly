@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, CalendarDays, Car, Check, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeDollarSign, CalendarDays, Car, Check, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
 import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
@@ -218,6 +218,7 @@ const Rentals: React.FC = () => {
               <SelectItem value="monthly">Monthly</SelectItem>
               <SelectItem value="long_term">Long-term</SelectItem>
               <SelectItem value="rent_to_own">Rent-to-Own</SelectItem>
+              <SelectItem value="purchase">Purchase</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -250,6 +251,7 @@ const Rentals: React.FC = () => {
                 rateFor("long_term") ||
                 { amount: 0, label: "" };
               const { amount: startingRate, label: rateLabel } = preferred || fallback;
+              const purchaseAvailable = v.rental_options?.includes("purchase");
               return (
                 <Card
                   key={v.id}
@@ -303,9 +305,12 @@ const Rentals: React.FC = () => {
                           <span className="ml-1 text-xs font-normal text-rental-muted">{rateLabel}</span>
                         </p>
                       </div>
-                      <Button asChild size="sm" className="rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
-                        <Link to={`/rentals/${v.id}`}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        {purchaseAvailable && <Button asChild size="sm" variant="outline" className="rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to={`/rentals/purchase/${v.id}`}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
+                        <Button asChild size="sm" className="rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
+                          <Link to={`/rentals/${v.id}`}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

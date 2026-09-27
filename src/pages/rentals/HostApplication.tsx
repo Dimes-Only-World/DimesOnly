@@ -8,7 +8,7 @@ import { HOST_AGREEMENT_SECTIONS_A, HOST_AGREEMENT_SECTIONS_B } from "@/lib/host
 import { buildAuthUrl } from "@/lib/refCapture";
 
 const COMPANY = {
-  name: "Best Holdings Enterprises, Inc.",
+  name: "Best Holdings Enterprise, Inc.",
   address: "12100 Wilshire Blvd #800",
   phone: "213-707-1661",
   email: "Talent@DimesOnly.World",

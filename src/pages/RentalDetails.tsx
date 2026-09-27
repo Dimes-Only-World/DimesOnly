@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Car, MapPin, Calendar, ArrowLeft, Upload, Expand, Star, ShieldCheck, CalendarX2, Tag, Clock } from "lucide-react";
+import { Car, MapPin, Calendar, ArrowLeft, Upload, Expand, Star, ShieldCheck, CalendarX2, Tag, Clock, BadgeDollarSign } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
@@ -130,7 +130,7 @@ const RentalDetails: React.FC = () => {
       setPickup(v.pickup_location || "");
       // Default rental type to first available option
       if (Array.isArray(v.rental_options) && v.rental_options.length) {
-        setRentalType(v.rental_options[0]);
+        setRentalType(v.rental_options.find((option: string) => option !== "purchase") || "daily");
       }
       const { data: ms } = await (supabase as any)
         .from("vehicle_media")
@@ -322,6 +322,8 @@ const RentalDetails: React.FC = () => {
 
   const photos = media.filter((m) => m.media_type === "photo");
   const videos = media.filter((m) => m.media_type === "video");
+  const rentalOptions = (vehicle.rental_options || []).filter((option: string) => option !== "purchase");
+  const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-20 pb-16 px-4">
@@ -441,7 +443,7 @@ const RentalDetails: React.FC = () => {
                   </div>
                 )}
                 <div className="pt-2 text-xs text-muted-foreground">
-                  Options: {(vehicle.rental_options || []).join(", ") || "—"}
+                   Options: {(vehicle.rental_options || []).map((option: string) => option === "purchase" ? "Purchase" : option.replace("_", " ")).join(", ") || "—"}
                 </div>
               </CardContent>
             </Card>
@@ -475,9 +477,12 @@ const RentalDetails: React.FC = () => {
             </Card>
 
             {!showBook ? (
-              <Button size="lg" className="w-full" onClick={() => { if (requireAccount()) setShowBook(true); }} disabled={vehicle.availability_status !== "available"}>
-                {vehicle.availability_status === "available" ? "Rent This Car" : "Currently Unavailable"}
-              </Button>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {rentalOptions.length > 0 && <Button size="lg" className="w-full" onClick={() => { if (requireAccount()) setShowBook(true); }} disabled={vehicle.availability_status !== "available"}>
+                  {vehicle.availability_status === "available" ? "Rent This Car" : "Currently Unavailable"}
+                </Button>}
+                {purchaseAvailable && <Button asChild size="lg" variant="outline" className="w-full border-primary"><Link to={`/rentals/purchase/${vehicle.id}`}><BadgeDollarSign className="mr-2 h-5 w-5" /> Apply to Purchase</Link></Button>}
+              </div>
             ) : (
               <Card className="bg-card/60 border-primary/40">
                 <CardContent className="p-4 space-y-3">
@@ -488,7 +493,7 @@ const RentalDetails: React.FC = () => {
                     <Select value={rentalType} onValueChange={setRentalType}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {(vehicle.rental_options || ["daily"]).map((o: string) => (
+                         {rentalOptions.map((o: string) => (
                           <SelectItem key={o} value={o}>{o.replace("_", " ")}</SelectItem>
                         ))}
                       </SelectContent>

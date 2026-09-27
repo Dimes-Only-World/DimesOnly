@@ -71,6 +71,7 @@ import FlixPricing from "@/pages/flix/FlixPricing";
 import FlixAccount from "@/pages/flix/FlixAccount";
 import FlixEarn from "@/pages/flix/FlixEarn";
 import FlixLegal from "@/pages/flix/FlixLegal";
+import VehiclePurchaseApplication from "@/pages/rentals/VehiclePurchaseApplication";
 
 import AddToHomeScreenPrompt from "./components/AddToHomeScreenPrompt";
 import { StoreCartProvider } from "./contexts/StoreCartContext";
@@ -201,6 +202,7 @@ function AppContent() {
       <Route path="/rentals/host/apply" element={<HostApplication />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
+      <Route path="/rentals/purchase/:vehicleId" element={<VehiclePurchaseApplication />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/feed" element={<Feed />} />
