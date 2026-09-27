@@ -120,3 +120,6 @@ verify_jwt = false
 
 [functions.flyer-insights]
 verify_jwt = false
+
+[functions.submit-vehicle-purchase]
+verify_jwt = false

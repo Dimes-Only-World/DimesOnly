@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HostApplicationsPanel from "@/components/rentals/HostApplicationsPanel";
+import PurchaseApplicationsPanel from "@/components/rentals/PurchaseApplicationsPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Trash2, Plus, Upload, ExternalLink } from "lucide-react";
 
-const RENTAL_OPTS = ["daily", "weekly", "monthly", "long_term", "rent_to_own"];
+const RENTAL_OPTS = ["daily", "weekly", "monthly", "long_term", "rent_to_own", "purchase"];
 
 async function callAdmin(action: string, extra: Record<string, any> = {}) {
   const adminUserId = getAdminUserId();
@@ -74,6 +75,7 @@ const AdminRentalsTab: React.FC = () => {
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="calls">Call Requests</TabsTrigger>
           <TabsTrigger value="hosts">Host Applications</TabsTrigger>
+          <TabsTrigger value="purchases">Purchase Applications</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="packages">Themed Packages</TabsTrigger>
           <TabsTrigger value="promos">Promo Codes</TabsTrigger>
@@ -133,6 +135,7 @@ const AdminRentalsTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="hosts"><HostApplicationsPanel callAdmin={callAdmin} /></TabsContent>
+        <TabsContent value="purchases"><PurchaseApplicationsPanel callAdmin={callAdmin} /></TabsContent>
 
         <TabsContent value="commissions" className="space-y-3">
           {commissions.map((c) => (
@@ -648,7 +651,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
                   if (v) cur.add(o); else cur.delete(o);
                   setF({ ...f, rental_options: Array.from(cur) });
                 }} />
-              {o.replace("_", " ")}
+               {o === "purchase" ? "Purchase" : o.replace("_", " ")}
             </label>
           ))}
         </div>
