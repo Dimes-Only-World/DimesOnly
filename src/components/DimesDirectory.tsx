@@ -352,9 +352,11 @@ const DimesDirectory: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Video Banner */}
+      {/* Full-bleed video banner — wall to wall, flush to top, same as Make Money */}
       {dimesVideoUrl && (
-        <BannerVideo src={dimesVideoUrl} className="rounded-2xl" />
+        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen -mt-8">
+          <BannerVideo src={dimesVideoUrl} className="aspect-[2.35/1] w-full" />
+        </div>
       )}
 
       <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0B0611] via-[#170A22] to-[#0B0611] px-6 py-12 md:px-12 md:py-16">
