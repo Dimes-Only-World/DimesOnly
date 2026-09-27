@@ -5177,6 +5177,101 @@ export type Database = {
           },
         ]
       }
+      vehicle_purchase_applications: {
+        Row: {
+          admin_notes: string | null
+          applicant: Json
+          co_buyer: Json | null
+          created_at: string
+          credit_authorization_consent: boolean
+          employment: Json
+          id: string
+          interested_vehicle: Json
+          marketing_sms_consent: boolean
+          privacy_policy_consent: boolean
+          referrer_username: string | null
+          residence: Json
+          service_sms_consent: boolean
+          status: string
+          submitted_at: string
+          trade_in: Json | null
+          updated_at: string
+          user_id: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          applicant: Json
+          co_buyer?: Json | null
+          created_at?: string
+          credit_authorization_consent?: boolean
+          employment: Json
+          id?: string
+          interested_vehicle: Json
+          marketing_sms_consent?: boolean
+          privacy_policy_consent?: boolean
+          referrer_username?: string | null
+          residence: Json
+          service_sms_consent?: boolean
+          status?: string
+          submitted_at?: string
+          trade_in?: Json | null
+          updated_at?: string
+          user_id?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          applicant?: Json
+          co_buyer?: Json | null
+          created_at?: string
+          credit_authorization_consent?: boolean
+          employment?: Json
+          id?: string
+          interested_vehicle?: Json
+          marketing_sms_consent?: boolean
+          privacy_policy_consent?: boolean
+          referrer_username?: string | null
+          residence?: Json
+          service_sms_consent?: boolean
+          status?: string
+          submitted_at?: string
+          trade_in?: Json | null
+          updated_at?: string
+          user_id?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_purchase_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_purchase_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_purchase_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "vehicle_purchase_applications_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_reviews: {
         Row: {
           booking_id: string
