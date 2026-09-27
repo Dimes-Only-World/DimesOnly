@@ -202,6 +202,7 @@ function AppContent() {
       <Route path="/rentals/host/apply" element={<HostApplication />} />
       <Route path="/rental" element={<Rentals />} />
       <Route path="/rentals/pay/:bookingId" element={<RentalPayment />} />
+      <Route path="/rentals/purchase" element={<VehiclePurchaseApplication />} />
       <Route path="/rentals/purchase/:vehicleId" element={<VehiclePurchaseApplication />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
       <Route path="/my-bookings" element={<MyBookings />} />

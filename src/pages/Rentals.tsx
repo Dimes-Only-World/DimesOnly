@@ -151,6 +151,9 @@ const Rentals: React.FC = () => {
               <Button asChild size="lg" variant="outline" className="rounded-none border-rental-line bg-rental-background/50 font-barlow text-rental-foreground hover:bg-rental-surface hover:text-rental-foreground">
                 <Link to="/my-bookings">My bookings</Link>
               </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-none border-rental-primary bg-rental-background/50 font-barlow text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground">
+                <Link to="/rentals/purchase"><BadgeDollarSign className="mr-2 h-4 w-4" /> Purchase / Credit App</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -181,6 +184,16 @@ const Rentals: React.FC = () => {
             <h2 className="rentals-wordmark mt-1 text-5xl text-rental-foreground sm:text-6xl">THE COLLECTION</h2>
           </div>
           <p className="max-w-md font-barlow text-sm text-rental-muted">Every vehicle is presented with transparent rates, availability, pickup details, and longer-trip savings.</p>
+        </div>
+
+        <div className="mb-6 flex flex-col justify-between gap-4 border border-rental-primary bg-rental-surface p-5 sm:flex-row sm:items-center">
+          <div>
+            <p className="font-barlow text-xs font-semibold uppercase text-rental-primary">Vehicle Purchase</p>
+            <p className="mt-1 font-barlow text-sm text-rental-muted">Apply for financing even if the vehicle you want is not listed yet.</p>
+          </div>
+          <Button asChild className="shrink-0 rounded-none bg-rental-primary font-barlow font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
+            <Link to="/rentals/purchase"><BadgeDollarSign className="mr-2 h-4 w-4" /> Start Credit Application</Link>
+          </Button>
         </div>
 
         <div id="fleet" className="mb-10 grid scroll-mt-4 grid-cols-1 gap-px border border-rental-line bg-rental-line md:grid-cols-4">
