@@ -219,6 +219,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         reader.onerror = () => reject(new Error("Unable to read selfie"));
         reader.readAsDataURL(selfie);
       });
+      // Smaller copy just for the AI face check (keeps a face clearly visible, costs less).
+      const aiPreviewBase64 = await makeAiPreview(selfie).catch(() => "");
       const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", {
         body: {
           username: username.trim(),
@@ -228,6 +230,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
           referralCode: refCode || null,
           selfieBase64,
           selfieContentType: selfie.type,
+          aiPreviewBase64,
         },
       });
       if (error) throw error;
