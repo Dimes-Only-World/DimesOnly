@@ -1,0 +1,112 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": AUTH_HEADERS,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const text = (value: unknown, max = 200) => typeof value === "string" ? value.trim().slice(0, max) : "";
+const emailOk = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const phoneOk = (value: string) => value.replace(/\D/g, "").length >= 10;
+const dateOk = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
+const vinOk = (value: string) => /^[A-HJ-NPR-Z0-9]{17}$/i.test(value);
+const money = (value: unknown) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 && n <= 100_000_000 ? n : null;
+};
+
+function validatePerson(value: unknown, label: string) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return `${label} information is required.`;
+  const p = value as Record<string, unknown>;
+  if (!text(p.firstName, 80) || !text(p.lastName, 80)) return `${label} first and last name are required.`;
+  if (!emailOk(text(p.email, 255))) return `${label} email is invalid.`;
+  if (!phoneOk(text(p.cellPhone, 30))) return `${label} cell phone is invalid.`;
+  if (!dateOk(text(p.dateOfBirth, 10))) return `${label} date of birth is required.`;
+  return null;
+}
+
+function cleanPerson(value: Record<string, unknown>) {
+  return {
+    firstName: text(value.firstName, 80), lastName: text(value.lastName, 80),
+    email: text(value.email, 255).toLowerCase(), cellPhone: text(value.cellPhone, 30),
+    homePhone: text(value.homePhone, 30) || null, dateOfBirth: text(value.dateOfBirth, 10),
+    driversLicenseNumber: text(value.driversLicenseNumber, 80) || null,
+    driversLicenseState: text(value.driversLicenseState, 2).toUpperCase() || null,
+    driversLicenseIssueDate: text(value.driversLicenseIssueDate, 10) || null,
+    driversLicenseExpiryDate: text(value.driversLicenseExpiryDate, 10) || null,
+  };
+}
+
+function cleanResidence(value: Record<string, unknown>) {
+  return {
+    streetAddress: text(value.streetAddress, 200), city: text(value.city, 100), state: text(value.state, 2).toUpperCase(),
+    zipCode: text(value.zipCode, 10), housingType: text(value.housingType, 30), monthlyPayment: money(value.monthlyPayment),
+    previousAddress: text(value.previousAddress, 300) || null,
+  };
+}
+
+function cleanEmployment(value: Record<string, unknown>) {
+  return {
+    employerName: text(value.employerName, 150), title: text(value.title, 100), employerPhone: text(value.employerPhone, 30),
+    monthlyGrossIncome: money(value.monthlyGrossIncome), yearsAtJob: Number(value.yearsAtJob) || 0,
+    monthsAtJob: Number(value.monthsAtJob) || 0, previousEmployment: text(value.previousEmployment, 400) || null,
+  };
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !key) return json({ error: "Server configuration missing." }, 500);
+    const body = await req.json().catch(() => null) as Record<string, any> | null;
+    if (!body) return json({ error: "Invalid request." }, 400);
+    const applicantError = validatePerson(body.applicant, "Applicant");
+    if (applicantError) return json({ error: applicantError }, 400);
+    if (body.hasCoBuyer) {
+      const coBuyerError = validatePerson(body.coBuyer, "Co-buyer");
+      if (coBuyerError) return json({ error: coBuyerError }, 400);
+      if (!text(body.coBuyer?.relationship, 60)) return json({ error: "Co-buyer relationship is required." }, 400);
+    }
+    const residence = body.residence || {};
+    if (![residence.streetAddress, residence.city, residence.state, residence.zipCode, residence.housingType].every((v) => text(v))) return json({ error: "Complete all required residential fields." }, 400);
+    if (money(residence.monthlyPayment) === null) return json({ error: "Enter a valid monthly housing payment." }, 400);
+    const employment = body.employment || {};
+    if (![employment.employerName, employment.title, employment.employerPhone].every((v) => text(v)) || !phoneOk(text(employment.employerPhone))) return json({ error: "Complete all required employment fields." }, 400);
+    if (money(employment.monthlyGrossIncome) === null) return json({ error: "Enter valid monthly gross income." }, 400);
+    const interested = body.interestedVehicle || {};
+    if (!vinOk(text(interested.vin, 17)) || !text(interested.year) || !text(interested.make) || !text(interested.model)) return json({ error: "Interested vehicle requires a valid 17-character VIN, year, make, and model." }, 400);
+    if (body.hasTradeIn) {
+      const trade = body.tradeIn || {};
+      if (!vinOk(text(trade.vin, 17)) || money(trade.mileage) === null || !text(trade.year) || !text(trade.make) || !text(trade.model)) return json({ error: "Trade-in requires a valid VIN, mileage, year, make, and model." }, 400);
+    }
+    if (body.creditAuthorizationConsent !== true || body.privacyPolicyConsent !== true) return json({ error: "Credit authorization and Privacy Policy acceptance are required." }, 400);
+
+    const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    const vehicleId = text(body.vehicleId, 36) || null;
+    if (vehicleId) {
+      const { data: vehicle } = await admin.from("vehicles").select("id,rental_options,is_active").eq("id", vehicleId).maybeSingle();
+      if (!vehicle?.is_active || !vehicle.rental_options?.includes("purchase")) return json({ error: "This vehicle is not currently available for purchase applications." }, 400);
+    }
+    const callerId = await getCallerId(req);
+    const { data, error } = await admin.from("vehicle_purchase_applications").insert({
+      vehicle_id: vehicleId, user_id: callerId,
+      applicant: cleanPerson(body.applicant), residence: cleanResidence(residence), employment: cleanEmployment(employment),
+      co_buyer: body.hasCoBuyer ? { relationship: text(body.coBuyer.relationship, 60), ...cleanPerson(body.coBuyer), residence: cleanResidence(body.coBuyer.residence || {}), employment: cleanEmployment(body.coBuyer.employment || {}) } : null,
+      interested_vehicle: { vin: text(interested.vin, 17).toUpperCase(), year: Number(interested.year), make: text(interested.make, 80), model: text(interested.model, 100), keyword: text(interested.keyword, 120) || null, vehiclePrice: money(interested.vehiclePrice), downPayment: money(interested.downPayment), exteriorColor: text(interested.exteriorColor, 60) || null, interiorColor: text(interested.interiorColor, 60) || null },
+      trade_in: body.hasTradeIn ? { vin: text(body.tradeIn.vin, 17).toUpperCase(), mileage: money(body.tradeIn.mileage), year: Number(body.tradeIn.year), make: text(body.tradeIn.make, 80), model: text(body.tradeIn.model, 100) } : null,
+      marketing_sms_consent: body.marketingSmsConsent === true, service_sms_consent: body.serviceSmsConsent === true,
+      credit_authorization_consent: true, privacy_policy_consent: true,
+      referrer_username: text(body.referrerUsername, 100) || null,
+    }).select("id").single();
+    if (error) throw error;
+    return json({ data: { id: data.id }, message: "Application received." });
+  } catch (error) {
+    console.error("submit-vehicle-purchase", error);
+    return new Response(JSON.stringify({ error: "We could not submit your application. Please try again." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+});
