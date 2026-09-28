@@ -18,6 +18,8 @@ export interface DashboardStats {
   clothingOverrides: number;
   flixCommissions: number;
   flixOverrides: number;
+  vehicleCommissions: number;
+  vehicleOverrides: number;
 }
 
 const EMPTY: DashboardStats = {
@@ -37,6 +39,8 @@ const EMPTY: DashboardStats = {
   clothingOverrides: 0,
   flixCommissions: 0,
   flixOverrides: 0,
+  vehicleCommissions: 0,
+  vehicleOverrides: 0,
 };
 
 
@@ -202,12 +206,29 @@ export const useDashboardStats = (
         const flixOverrides =
           sum(flixRows.filter((r) => r?.level === 2), "amount_cents") / 100;
 
+        // Vehicle sale commissions (53% direct) and overrides (5% second level), sold only
+        let vehicleCommissions = 0;
+        let vehicleOverrides = 0;
+        try {
+          const { data: saleRes } = await supabase.functions.invoke("sale-commissions", { body: {} });
+          const saleRows = ((saleRes as any)?.rows as any[]) || [];
+          const sold = saleRows.filter((r) => r?.status === "sold");
+          vehicleCommissions =
+            sum(sold.filter((r) => r?.level === "direct"), "amount") +
+            sum((saleRes as any)?.bonuses as any[], "amount");
+          vehicleOverrides = sum(sold.filter((r) => r?.level === "upline"), "amount");
+        } catch (e) {
+          console.warn("sale-commissions unavailable", e);
+        }
+
         const earned =
           rentalCommissions +
           clothingCommissions +
           clothingOverrides +
           flixCommissions +
           flixOverrides +
+          vehicleCommissions +
+          vehicleOverrides +
           eventEarnings +
           tipsEarned +
           referralCommissions +
@@ -218,7 +239,7 @@ export const useDashboardStats = (
         const weeklyTotal = sum(weekly.data as any[], "amount");
         const totalEarnings = Math.max(
           earned,
-          weeklyTotal + rentalCommissions + eventEarnings + clothingCommissions + clothingOverrides + flixCommissions + flixOverrides,
+          weeklyTotal + rentalCommissions + eventEarnings + clothingCommissions + clothingOverrides + flixCommissions + flixOverrides + vehicleCommissions + vehicleOverrides,
         );
 
         const paidOut = sum(payouts.data as any[], "amount");
@@ -256,6 +277,8 @@ export const useDashboardStats = (
           clothingOverrides,
           flixCommissions,
           flixOverrides,
+          vehicleCommissions,
+          vehicleOverrides,
           tipsEarned,
           tipOverrides,
           eventEarnings,
