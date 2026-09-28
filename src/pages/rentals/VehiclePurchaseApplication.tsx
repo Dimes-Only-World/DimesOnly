@@ -14,20 +14,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { getActiveRef } from "@/lib/refCapture";
-import { fetchVehicleModels, VEHICLE_MAKES, VEHICLE_YEARS } from "@/lib/vehicleOptions";
+import { decodeVin, fetchVehicleModels, vehicleStockPhoto, VEHICLE_MAKES, VEHICLE_YEARS } from "@/lib/vehicleOptions";
 
 type Values = Record<string, string>;
 const blankPerson: Values = { firstName: "", lastName: "", email: "", cellPhone: "", homePhone: "", dateOfBirth: "", driversLicenseNumber: "", driversLicenseState: "", driversLicenseIssueDate: "", driversLicenseExpiryDate: "" };
 const blankResidence: Values = { streetAddress: "", city: "", state: "", zipCode: "", housingType: "", monthlyPayment: "", previousAddress: "" };
 const blankEmployment: Values = { employerName: "", title: "", employerPhone: "", monthlyGrossIncome: "", yearsAtJob: "", monthsAtJob: "", previousEmployment: "" };
-const blankVehicle: Values = { keyword: "", vin: "", year: "", make: "", model: "", vehiclePrice: "", downPayment: "", exteriorColor: "", interiorColor: "" };
+const blankVehicle: Values = { hasVin: "", vin: "", year: "", make: "", model: "", trim: "", specs: "", vehiclePrice: "", downPayment: "", exteriorColor: "", interiorColor: "" };
 const states = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 
 const schema = z.object({
   applicant: z.object({ firstName: z.string().trim().min(1).max(80), lastName: z.string().trim().min(1).max(80), email: z.string().trim().email().max(255), cellPhone: z.string().regex(/\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d/), dateOfBirth: z.string().min(1) }).passthrough(),
   residence: z.object({ streetAddress: z.string().trim().min(1).max(200), city: z.string().trim().min(1).max(100), state: z.string().length(2), zipCode: z.string().regex(/^\d{5}(?:-\d{4})?$/), housingType: z.string().min(1), monthlyPayment: z.coerce.number().min(0) }).passthrough(),
   employment: z.object({ employerName: z.string().trim().min(1).max(150), title: z.string().trim().min(1).max(100), employerPhone: z.string().regex(/\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d/), monthlyGrossIncome: z.coerce.number().min(0), yearsAtJob: z.coerce.number().min(0).max(80), monthsAtJob: z.coerce.number().min(0).max(11) }).passthrough(),
-  interestedVehicle: z.object({ vin: z.string().trim().regex(/^[A-HJ-NPR-Z0-9]{17}$/i), year: z.string().min(1), make: z.string().min(1), model: z.string().min(1) }).passthrough(),
+  interestedVehicle: z.object({ vin: z.string().trim().regex(/^([A-HJ-NPR-Z0-9]{17})?$/i), year: z.string().min(1), make: z.string().min(1), model: z.string().min(1) }).passthrough(),
 });
 
 const Field = ({ label, value, onChange, required, type = "text", maxLength = 200, placeholder }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; type?: string; maxLength?: number; placeholder?: string }) => <div className="space-y-1.5"><Label>{label}{required && " *"}</Label><Input value={value} onChange={(event) => onChange(event.target.value)} required={required} type={type} maxLength={maxLength} placeholder={placeholder} className="rounded-none border-rental-line bg-rental-surface text-rental-foreground" /></div>;
@@ -55,18 +55,48 @@ const EmploymentFields = ({ values, setValues }: { values: Values; setValues: Re
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Employer Name" value={values.employerName} onChange={set("employerName")} required /><Field label="Title/Position" value={values.title} onChange={set("title")} required /><Field label="Employer Phone Number" value={values.employerPhone} onChange={set("employerPhone")} required type="tel" /><Field label="Monthly Gross Income" value={values.monthlyGrossIncome} onChange={set("monthlyGrossIncome")} required type="number" /><Field label="Years at Job" value={values.yearsAtJob} onChange={set("yearsAtJob")} required type="number" /><Field label="Additional Months" value={values.monthsAtJob} onChange={set("monthsAtJob")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Employment</Label><Textarea value={values.previousEmployment} onChange={(event) => set("previousEmployment")(event.target.value)} maxLength={400} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
 };
 
+const VehiclePreview = ({ values }: { values: Values }) => {
+  const [failed, setFailed] = useState(false);
+  const src = vehicleStockPhoto(values.make, values.model, values.year, values.exteriorColor);
+  useEffect(() => setFailed(false), [src]);
+  if (!values.year || !values.make || !values.model) return null;
+  let specs: Array<[string, string]> = []; try { specs = values.specs ? JSON.parse(values.specs) : []; } catch { specs = []; }
+  return <div className="sm:col-span-2 lg:col-span-3 grid gap-4 border border-rental-line bg-rental-surface p-4 md:grid-cols-2">
+    <div className="flex items-center justify-center bg-white">{src && !failed ? <img src={src} alt={`${values.year} ${values.make} ${values.model}`} onError={() => setFailed(true)} className="h-auto w-full max-w-md object-contain" /> : <p className="p-8 text-sm text-neutral-500">Photo not available</p>}</div>
+    <div><p className="rentals-wordmark text-2xl text-rental-foreground">{values.year} {values.make} {values.model}{values.trim ? ` ${values.trim}` : ""}</p>
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        {specs.map(([k, v]) => <div key={k}><dt className="text-xs text-rental-muted">{k}</dt><dd className="text-rental-foreground">{v}</dd></div>)}
+        {values.vehiclePrice && <div><dt className="text-xs text-rental-muted">Price</dt><dd>${Number(values.vehiclePrice).toLocaleString()}</dd></div>}
+        {values.downPayment && <div><dt className="text-xs text-rental-muted">Down</dt><dd>${Number(values.downPayment).toLocaleString()}</dd></div>}
+        {values.exteriorColor && <div><dt className="text-xs text-rental-muted">Exterior</dt><dd>{values.exteriorColor}</dd></div>}
+        {values.interiorColor && <div><dt className="text-xs text-rental-muted">Interior</dt><dd>{values.interiorColor}</dd></div>}
+      </dl>
+      <p className="mt-3 text-xs text-rental-muted">Stock photo for illustration; actual vehicle may differ.</p></div>
+  </div>;
+};
+
 const VehicleFields = ({ values, setValues, tradeIn = false }: { values: Values; setValues: React.Dispatch<React.SetStateAction<Values>>; tradeIn?: boolean }) => {
-  const [models, setModels] = useState<string[]>([]); const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState<string[]>([]); const [loading, setLoading] = useState(false); const [decoding, setDecoding] = useState(false); const [vinMsg, setVinMsg] = useState("");
   const set = (name: string) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
   useEffect(() => { let live = true; if (!values.make || !values.year) { setModels([]); return; } setLoading(true); fetchVehicleModels(values.make, values.year).then((items) => { if (live) setModels(items); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [values.make, values.year]);
+  useEffect(() => {
+    if (tradeIn || values.hasVin !== "yes" || !/^[A-HJ-NPR-Z0-9]{17}$/i.test(values.vin || "")) { setVinMsg(""); return; }
+    let live = true; setDecoding(true); setVinMsg("");
+    decodeVin(values.vin).then((d) => { if (!live) return; if (!d) { setVinMsg("We couldn't look up this VIN. Please choose the year, make and model below."); return; } setValues((c) => ({ ...c, year: d.year, make: d.make, model: d.model, trim: d.trim, specs: JSON.stringify(d.specs) })); setVinMsg("Vehicle details found."); }).finally(() => { if (live) setDecoding(false); });
+    return () => { live = false; };
+  }, [values.vin, values.hasVin, tradeIn]);
+  const showVin = tradeIn || values.hasVin === "yes";
+  const showDetails = tradeIn || values.hasVin === "no" || values.hasVin === "yes";
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {!tradeIn && <Field label="Vehicle Keyword" value={values.keyword} onChange={set("keyword")} placeholder="Optional search note" />}
-    <Field label="VIN Number" value={values.vin} onChange={(value) => set("vin")(value.toUpperCase())} required maxLength={17} placeholder="17 characters" />
+    {!tradeIn && <div className="sm:col-span-2 lg:col-span-3 space-y-2"><Label>Do you already have the VIN number? *</Label><div className="flex gap-2">{[["yes", "Yes"], ["no", "No"]].map(([v, l]) => <Button key={v} type="button" variant={values.hasVin === v ? "default" : "outline"} className="rounded-none" onClick={() => setValues((c) => ({ ...c, hasVin: v, ...(v === "no" ? { vin: "", specs: "", trim: "" } : {}) }))}>{l}</Button>)}</div></div>}
+    {showVin && <div className="space-y-1.5"><Field label="VIN Number" value={values.vin} onChange={(value) => set("vin")(value.toUpperCase())} required maxLength={17} placeholder="17 characters" />{decoding ? <p className="flex items-center gap-1 text-xs text-rental-muted"><Loader2 className="h-3 w-3 animate-spin" /> Looking up vehicle…</p> : vinMsg && <p className="text-xs text-rental-muted">{vinMsg}</p>}</div>}
     {tradeIn && <Field label="Mileage" value={values.mileage || ""} onChange={set("mileage")} required type="number" />}
-    <div className="space-y-1.5"><Label>Year *</Label><Select value={values.year} onValueChange={(year) => setValues((current) => ({ ...current, year, model: "" }))}><SelectTrigger className="rounded-none border-rental-line bg-rental-surface"><SelectValue placeholder="Year" /></SelectTrigger><SelectContent>{VEHICLE_YEARS.map((year) => <SelectItem value={year} key={year}>{year}</SelectItem>)}</SelectContent></Select></div>
+    {showDetails && <>
+    <div className="space-y-1.5"><Label>Year *</Label><Select value={values.year} onValueChange={(year) => setValues((current) => ({ ...current, year, model: "" }))}><SelectTrigger className="rounded-none border-rental-line bg-rental-surface"><SelectValue placeholder="Year" /></SelectTrigger><SelectContent>{[...new Set([values.year, ...VEHICLE_YEARS].filter(Boolean))].map((year) => <SelectItem value={year} key={year}>{year}</SelectItem>)}</SelectContent></Select></div>
     <div className="space-y-1.5"><Label>Make *</Label><Select value={values.make} onValueChange={(make) => setValues((current) => ({ ...current, make, model: "" }))}><SelectTrigger className="rounded-none border-rental-line bg-rental-surface"><SelectValue placeholder="Make" /></SelectTrigger><SelectContent>{[...new Set([values.make, ...VEHICLE_MAKES].filter(Boolean))].map((make) => <SelectItem value={make} key={make}>{make}</SelectItem>)}</SelectContent></Select></div>
     <div className="space-y-1.5"><Label>Model *</Label><Select value={values.model} onValueChange={set("model")} disabled={!values.make || !values.year || loading}><SelectTrigger className="rounded-none border-rental-line bg-rental-surface"><SelectValue placeholder={loading ? "Loading models…" : "Model"} /></SelectTrigger><SelectContent>{[...new Set([values.model, ...models].filter(Boolean))].map((model) => <SelectItem value={model} key={model}>{model}</SelectItem>)}</SelectContent></Select></div>
-    {!tradeIn && <><Field label="Vehicle Price" value={values.vehiclePrice} onChange={set("vehiclePrice")} type="number" /><Field label="Down Payment" value={values.downPayment} onChange={set("downPayment")} type="number" /><Field label="Exterior Color" value={values.exteriorColor} onChange={set("exteriorColor")} /><Field label="Interior Color" value={values.interiorColor} onChange={set("interiorColor")} /></>}
+    {!tradeIn && <><Field label="Vehicle Price" value={values.vehiclePrice} onChange={set("vehiclePrice")} type="number" /><Field label="Down Payment" value={values.downPayment} onChange={set("downPayment")} type="number" /><Field label="Exterior Color" value={values.exteriorColor} onChange={set("exteriorColor")} /><Field label="Interior Color" value={values.interiorColor} onChange={set("interiorColor")} /><VehiclePreview values={values} /></>}
+    </>}
   </div>;
 };
 
