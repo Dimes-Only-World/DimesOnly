@@ -1,0 +1,1 @@
+REVOKE ALL ON public.sale_commission_bonuses FROM anon, authenticated;
