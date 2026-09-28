@@ -1798,7 +1798,7 @@ return (
             >
               <TabsTrigger
                 value="weekly"
-                className={`${trig} col-span-2 justify-self-center !w-[calc(50%-0.25rem)]`}
+                className={`${trig} col-span-2 sm:col-span-4 justify-self-center sm:!w-[calc(50%-0.25rem)]`}
               >
                 Pay Period History
               </TabsTrigger>
