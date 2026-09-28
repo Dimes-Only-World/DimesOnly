@@ -249,6 +249,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
   const [rentalCommissionTotal, setRentalCommissionTotal] = useState(0);
+  const [rentalTotals, setRentalTotals] = useState({ direct: 0, override: 0 });
   const [clothingCommissions, setClothingCommissions] = useState<
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
@@ -794,6 +795,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       }
       setRentalCommissions(rentalRows);
       setRentalCommissionTotal(rentalTotal);
+      setRentalTotals({
+        direct: rentalRows
+          .filter((r) => !/upline|override/i.test(r.commission_type))
+          .reduce((sum, r) => sum + r.amount, 0),
+        override: rentalRows
+          .filter((r) => /upline|override/i.test(r.commission_type))
+          .reduce((sum, r) => sum + r.amount, 0),
+      });
 
       const eventRows = ((eventEarningsResult as any)?.data as any[]) || [];
       const isEventOverride = (t: any) => {
@@ -1542,7 +1551,7 @@ return (
         <Card className="border-amber-200 bg-amber-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-amber-700">
-              Rental Commissions
+              Rental Earnings
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1550,7 +1559,8 @@ return (
               {formatCurrency(rentalCommissionTotal)}
             </div>
             <p className="text-sm text-amber-600">
-              {rentalCommissions.length} car rental{rentalCommissions.length === 1 ? "" : "s"} referred
+              Direct {formatCurrency(rentalTotals.direct)} ·
+              Overrides {formatCurrency(rentalTotals.override)}
             </p>
           </CardContent>
         </Card>
@@ -1568,7 +1578,7 @@ return (
               )}
             </div>
             <p className="text-sm text-indigo-600">
-              Commissions {formatCurrency(eventEarningsBreakdown.commissions)} ·
+              Direct {formatCurrency(eventEarningsBreakdown.commissions)} ·
               Overrides {formatCurrency(eventEarningsBreakdown.overrides)}
             </p>
           </CardContent>
@@ -1579,7 +1589,7 @@ return (
         <Card className="border-pink-200 bg-pink-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-pink-700">
-              Clothing Commissions
+              Clothing Earnings
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1587,7 +1597,7 @@ return (
               {formatCurrency(clothingTotals.direct + clothingTotals.override)}
             </div>
             <p className="text-sm text-pink-600">
-              Commissions {formatCurrency(clothingTotals.direct)} ·
+              Direct {formatCurrency(clothingTotals.direct)} ·
               Overrides {formatCurrency(clothingTotals.override)}
             </p>
           </CardContent>
@@ -1596,7 +1606,7 @@ return (
         <Card className="border-emerald-200 bg-emerald-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-emerald-700">
-              Car Sales Commissions
+              Car Sales Earnings
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1604,7 +1614,7 @@ return (
               {formatCurrency(saleData?.total || 0)}
             </div>
             <p className="text-sm text-emerald-600">
-              Commissions {formatCurrency((saleData?.rows || []).filter((r) => r.status === "sold" && r.level === "direct").reduce((s, r) => s + r.amount, 0) + (saleData?.bonusTotal || 0))} ·
+              Direct {formatCurrency((saleData?.rows || []).filter((r) => r.status === "sold" && r.level === "direct").reduce((s, r) => s + r.amount, 0) + (saleData?.bonusTotal || 0))} ·
               Overrides {formatCurrency((saleData?.rows || []).filter((r) => r.status === "sold" && r.level === "upline").reduce((s, r) => s + r.amount, 0))}
             </p>
           </CardContent>
@@ -1613,7 +1623,7 @@ return (
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-orange-700">
-              FlameFlix Commissions
+              FlameFlix Earnings
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1621,7 +1631,7 @@ return (
               {formatCurrency(flixEarnings.reduce((s, r) => s + r.amount_cents, 0) / 100)}
             </div>
             <p className="text-sm text-orange-600">
-              Commissions {formatCurrency(flixEarnings.filter((r) => r.level === 1).reduce((s, r) => s + r.amount_cents, 0) / 100)} ·
+              Direct {formatCurrency(flixEarnings.filter((r) => r.level === 1).reduce((s, r) => s + r.amount_cents, 0) / 100)} ·
               Overrides {formatCurrency(flixEarnings.filter((r) => r.level !== 1).reduce((s, r) => s + r.amount_cents, 0) / 100)}
             </p>
           </CardContent>
