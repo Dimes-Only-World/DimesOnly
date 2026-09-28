@@ -177,7 +177,7 @@ const SLUG_TITLES: Record<string, string> = {
   messages: "Messages",
   media: "Media",
   jackpot: "Jackpot",
-  referrals: "Upgrade Referrals",
+  referrals: "Referrals Upgrade",
 };
 
 const UserDashboard: React.FC = () => {
