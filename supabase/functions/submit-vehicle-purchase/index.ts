@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
+import { resolveReferralChain } from "../_shared/saleCommission.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -114,6 +115,27 @@ serve(async (req) => {
       if (!vehicle?.is_active || !vehicle.rental_options?.includes("purchase")) return json({ error: "This vehicle is not currently available for purchase applications." }, 400);
     }
     const callerId = await getCallerId(req);
+
+    // Referrer: a signed-in buyer's stored referrer wins over the link ref.
+    let refName = text(body.referrerUsername, 100) || null;
+    if (callerId) {
+      const { data: me } = await admin.from("users").select("referred_by").eq("id", callerId).maybeSingle();
+      if (me?.referred_by) refName = String(me.referred_by);
+    }
+    const chain = await resolveReferralChain(admin, refName);
+
+    // Optional buyer photo
+    let avatarPath: string | null = null;
+    const av = body.buyerAvatar;
+    if (av && typeof av.base64 === "string" && ["image/jpeg", "image/png", "image/webp"].includes(av.contentType)) {
+      if (av.base64.length > 7 * 1024 * 1024) return json({ error: "Photo is too large (max 5 MB)." }, 400);
+      const ext = av.contentType === "image/png" ? "png" : av.contentType === "image/webp" ? "webp" : "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const bytes = Uint8Array.from(atob(av.base64), (c) => c.charCodeAt(0));
+      const { error: upErr } = await admin.storage.from("credit-app-avatars").upload(path, bytes, { contentType: av.contentType });
+      if (!upErr) avatarPath = path;
+    }
+
     const { data, error } = await admin.from("vehicle_purchase_applications").insert({
       vehicle_id: vehicleId, user_id: callerId,
       applicant: cleanPerson(body.applicant), residence: cleanResidence(residence), employment: cleanEmployment(employment),
@@ -122,7 +144,9 @@ serve(async (req) => {
       trade_in: body.hasTradeIn ? { vin: text(body.tradeIn.vin, 17).toUpperCase(), mileage: money(body.tradeIn.mileage), year: Number(body.tradeIn.year), make: text(body.tradeIn.make, 80), model: text(body.tradeIn.model, 100) } : null,
       marketing_sms_consent: body.marketingSmsConsent === true, service_sms_consent: body.serviceSmsConsent === true,
       credit_authorization_consent: true, privacy_policy_consent: true,
-      referrer_username: text(body.referrerUsername, 100) || null,
+      referrer_username: chain.referrerUsername,
+      referrer_user_id: chain.referrerId, upline_user_id: chain.uplineId,
+      buyer_avatar_path: avatarPath,
     }).select("id").single();
     if (error) throw error;
     return json({ data: { id: data.id }, message: "Application received." });
