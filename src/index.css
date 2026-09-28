@@ -543,3 +543,14 @@ body.paypal-overlay-open {
   .dimes-zoom-img,
   .dimes-zoom-fade { animation-duration: 0.01ms !important; }
 }
+
+/* Earnings page: containers reach wall to wall on phones */
+@media (max-width: 639px) {
+  .earnings-wall .rounded-lg,
+  .earnings-wall .rounded-xl {
+    border-radius: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+  }
+  .earnings-wall .gap-4 { gap: 0.75rem; }
+}
