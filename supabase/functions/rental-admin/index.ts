@@ -1,4 +1,5 @@
 import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+import { resolveReferralChain, computeCommissions, areaCode, signAvatar } from "../_shared/saleCommission.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -351,9 +352,83 @@ serve(async (req) => {
         if (typeof payload?.status === "string" && ["new", "reviewing", "contacted", "approved", "declined", "closed"].includes(payload.status)) clean.status = payload.status;
         if (typeof payload?.admin_notes === "string") clean.admin_notes = payload.admin_notes.trim().slice(0, 2000) || null;
         if (!Object.keys(clean).length) return json({ error: "No valid changes supplied" }, 400);
+        if (clean.status === "declined") clean.sale_status = "declined";
         const { data, error } = await admin.from("vehicle_purchase_applications").update(clean).eq("id", id).select().single();
         if (error) throw error;
         return json({ data });
+      }
+
+      case "listSaleCommissions": {
+        const { data: apps, error } = await admin.from("vehicle_purchase_applications")
+          .select("id, applicant, submitted_at, status, sale_status, sale_amount, sold_at, referrer_username, referrer_user_id, upline_user_id, referrer_commission, upline_commission, referrer_overridden, buyer_avatar_path, user_id")
+          .order("submitted_at", { ascending: false });
+        if (error) throw error;
+        const ids = new Set<string>();
+        for (const a of apps || []) { if (a.referrer_user_id) ids.add(a.referrer_user_id); if (a.upline_user_id) ids.add(a.upline_user_id); if (a.user_id) ids.add(a.user_id); }
+        const { data: bonuses } = await admin.from("sale_commission_bonuses").select("*").order("month", { ascending: false });
+        for (const b of bonuses || []) ids.add(b.user_id);
+        const users: Record<string, any> = {};
+        if (ids.size) {
+          const { data: us } = await admin.from("users").select("id, username, profile_photo, front_page_photo").in("id", [...ids]);
+          for (const u of us || []) users[u.id] = { username: u.username, avatar: u.front_page_photo || u.profile_photo || null };
+        }
+        const rows = await Promise.all((apps || []).map(async (a: any) => ({
+          id: a.id, submitted_at: a.submitted_at, app_status: a.status, sale_status: a.sale_status,
+          sale_amount: a.sale_amount, sold_at: a.sold_at,
+          buyer_first: a.applicant?.firstName || "", buyer_last: a.applicant?.lastName || "",
+          buyer_avatar: (await signAvatar(admin, a.buyer_avatar_path)) || (a.user_id ? users[a.user_id]?.avatar : null) || null,
+          area_code: areaCode(a.applicant?.cellPhone),
+          referrer_id: a.referrer_user_id, upline_id: a.upline_user_id,
+          referrer_commission: Number(a.referrer_commission || 0), upline_commission: Number(a.upline_commission || 0),
+          referrer_overridden: a.referrer_overridden,
+        })));
+        return json({ data: rows, users, bonuses: bonuses || [] });
+      }
+      case "markSaleSold": {
+        const { id, amount, soldAt } = params;
+        const amt = Number(amount);
+        if (!Number.isFinite(amt) || amt <= 0 || amt > 10_000_000) return json({ error: "Enter a valid amount received." }, 400);
+        const date = typeof soldAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(soldAt) ? soldAt : new Date().toISOString().slice(0, 10);
+        const { data: app } = await admin.from("vehicle_purchase_applications").select("referrer_user_id, upline_user_id").eq("id", id).maybeSingle();
+        if (!app) return json({ error: "Application not found" }, 404);
+        const c = computeCommissions(amt, app.referrer_user_id, app.upline_user_id);
+        const { error } = await admin.from("vehicle_purchase_applications").update({ sale_status: "sold", sale_amount: amt, sold_at: date, ...c }).eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+      case "setSaleStatus": {
+        const { id, saleStatus } = params;
+        if (!["pending", "declined"].includes(saleStatus)) return json({ error: "Invalid status" }, 400);
+        const { error } = await admin.from("vehicle_purchase_applications").update({ sale_status: saleStatus, sale_amount: null, sold_at: null, referrer_commission: 0, upline_commission: 0 }).eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+      case "changeSaleReferrer": {
+        const { id, username } = params;
+        const name = typeof username === "string" ? username.trim().slice(0, 100) : "";
+        if (name && name.toLowerCase() !== "company") {
+          const { data: exists } = await admin.from("users").select("id").ilike("username", name).maybeSingle();
+          if (!exists) return json({ error: "No member with that username." }, 400);
+        }
+        const chain = await resolveReferralChain(admin, name || "Company");
+        const { data: app } = await admin.from("vehicle_purchase_applications").select("sale_status, sale_amount").eq("id", id).maybeSingle();
+        if (!app) return json({ error: "Application not found" }, 404);
+        const c = app.sale_status === "sold" ? computeCommissions(Number(app.sale_amount || 0), chain.referrerId, chain.uplineId) : { referrer_commission: 0, upline_commission: 0 };
+        const { error } = await admin.from("vehicle_purchase_applications").update({
+          referrer_username: chain.referrerUsername, referrer_user_id: chain.referrerId, upline_user_id: chain.uplineId, referrer_overridden: true, ...c,
+        }).eq("id", id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
+      case "saveSaleBonus": {
+        const { userId, month, amount, note } = params;
+        const amt = Number(amount);
+        if (!/^[0-9a-f-]{36}$/i.test(String(userId)) || !/^\d{4}-\d{2}$/.test(String(month)) || !Number.isFinite(amt) || amt < 0 || amt > 1_000_000) return json({ error: "Invalid bonus" }, 400);
+        const { error } = await admin.from("sale_commission_bonuses").upsert({
+          user_id: userId, month: `${month}-01`, amount: amt, note: typeof note === "string" ? note.slice(0, 300) : null, created_by: adminUserId,
+        }, { onConflict: "user_id,month" });
+        if (error) throw error;
+        return json({ ok: true });
       }
 
       default:
