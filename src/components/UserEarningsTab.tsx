@@ -53,7 +53,6 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import AngelLoader from "./AngelLoader";
 import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
 import EarningsCategoryReports, { type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
-import PayPeriodHistory, { type HistoryReferral } from "@/components/earnings/PayPeriodHistory";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
@@ -256,7 +255,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [clothingTotals, setClothingTotals] = useState({ direct: 0, override: 0 });
   const [saleData, setSaleData] = useState<SaleCommissionData | null>(null);
   const [flixEarnings, setFlixEarnings] = useState<FlixEarning[]>([]);
-  const [historyReferrals, setHistoryReferrals] = useState<HistoryReferral[]>([]);
+
   const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
     commissions: 0,
     overrides: 0,
@@ -846,17 +845,6 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             .in("id", payerIds);
           (profs || []).forEach((p: any) => profMap.set(p.id, p));
         }
-        setHistoryReferrals(
-          refPayments.map((p: any) => ({
-            id: String(p.id),
-            created_at: p.created_at,
-            amount: Number(p.referrer_commission || 0),
-            payment_type: String(p.payment_type || ""),
-            username: profMap.get(p.user_id)?.username ?? null,
-            avatar: profMap.get(p.user_id)?.profile_photo ?? null,
-            status: p.payment_status,
-          })),
-        );
         const { data: flixData } = await (supabase as any)
           .from("flix_earnings")
           .select("id, amount_cents, level, status, created_at, note")

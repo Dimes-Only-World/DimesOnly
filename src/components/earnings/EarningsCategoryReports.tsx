@@ -9,7 +9,7 @@ import { buildPeriods, inPeriod, type PayPeriod } from "./payPeriods";
 export type SimpleCommission = { id: string; amount: number; commission_type: string; status: string; created_at: string };
 export type FlixEarning = { id: string; amount_cents: number; level: number; status: string; created_at: string; note: string | null };
 
-type Category = "vehicle" | "rentals" | "flix" | "clothing";
+export type Category = "vehicle" | "rentals" | "flix" | "clothing";
 
 interface Props {
   saleData: SaleCommissionData | null;
@@ -17,6 +17,7 @@ interface Props {
   clothing: SimpleCommission[];
   flix: FlixEarning[];
   onMessage: (username: string) => void;
+  category: Category;
 }
 
 const CATS: Array<{ id: Category; label: string; icon: React.ElementType }> = [
@@ -49,8 +50,8 @@ const Summary = ({ items }: { items: Array<{ label: string; value: string }> }) 
 
 const Empty = ({ text }: { text: string }) => <p className="py-10 text-center text-sm text-muted-foreground">{text}</p>;
 
-const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing, flix, onMessage }) => {
-  const [cat, setCat] = useState<Category>("vehicle");
+const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing, flix, category }) => {
+  const cat = category;
   const periods = useMemo(
     () =>
       buildPeriods([
@@ -181,13 +182,6 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
         <button type="button" onClick={() => setAllTime((v) => !v)} className="text-xs font-semibold text-primary underline-offset-2 hover:underline">
           {allTime ? "Back to pay periods" : "Show all time"}
         </button>
-        <div className="mt-1 flex flex-wrap justify-center gap-2">
-          {CATS.map(({ id, label, icon: Icon }) => (
-            <Button key={id} variant={cat === id ? "default" : "outline"} onClick={() => setCat(id)} className="gap-2">
-              <Icon className="h-4 w-4" /> {label}
-            </Button>
-          ))}
-        </div>
       </div>
       {renderReport()}
     </section>
