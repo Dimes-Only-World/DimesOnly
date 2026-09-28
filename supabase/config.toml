@@ -123,3 +123,6 @@ verify_jwt = false
 
 [functions.submit-vehicle-purchase]
 verify_jwt = false
+
+[functions.sale-commissions]
+verify_jwt = false

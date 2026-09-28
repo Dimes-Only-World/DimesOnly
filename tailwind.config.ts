@@ -34,6 +34,11 @@ export default {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))'
         },
+        sale: {
+          pending: 'hsl(var(--sale-pending))',
+          sold: 'hsl(var(--sale-sold))',
+          declined: 'hsl(var(--sale-declined))'
+        },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))'
