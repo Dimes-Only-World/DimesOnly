@@ -51,6 +51,7 @@ import EventReferralsTab from "@/components/EventReferralsTab";
 
 import { useMobileLayout } from "@/hooks/use-mobile";
 import AngelLoader from "./AngelLoader";
+import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
@@ -251,6 +252,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     Array<{ id: string; amount: number; commission_type: string; status: string; created_at: string }>
   >([]);
   const [clothingTotals, setClothingTotals] = useState({ direct: 0, override: 0 });
+  const [saleData, setSaleData] = useState<SaleCommissionData | null>(null);
   const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
     commissions: 0,
     overrides: 0,
@@ -776,6 +778,17 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .reduce((sum, r) => sum + r.amount, 0),
       });
       const clothingTotal = clothingRows.reduce((sum, r) => sum + r.amount, 0);
+
+      let vehicleSaleTotal = 0;
+      try {
+        const { data: saleRes } = await supabase.functions.invoke("sale-commissions", { body: {} });
+        if (saleRes && !(saleRes as any).error) {
+          setSaleData(saleRes as SaleCommissionData);
+          vehicleSaleTotal = Number((saleRes as any).total || 0);
+        }
+      } catch (e) {
+        console.warn("sale-commissions unavailable", e);
+      }
       setRentalCommissions(rentalRows);
       setRentalCommissionTotal(rentalTotal);
 
@@ -913,7 +926,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
       const totalEarnings =
-        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal;
+        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal + vehicleSaleTotal;
 
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
@@ -1573,6 +1586,8 @@ return (
           </CardContent>
         </Card>
       </div>
+
+      <VehicleSaleCommissionsCard data={saleData} />
 
       {rentalCommissions.length > 0 && (
         <Card>
