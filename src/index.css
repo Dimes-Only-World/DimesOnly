@@ -20,6 +20,9 @@
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+    --sale-pending: 45 96% 52%;
+    --sale-sold: 142 71% 40%;
+    --sale-declined: 0 78% 52%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
