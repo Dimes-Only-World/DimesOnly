@@ -102,6 +102,18 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
       to: "/dashboard/earnings",
     },
     {
+      label: "Vehicle Sales Commissions",
+      value: formatCurrency(stats.vehicleCommissions),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
+      label: "Vehicle Sales Overrides",
+      value: formatCurrency(stats.vehicleOverrides),
+      Icon: DollarSign,
+      to: "/dashboard/earnings",
+    },
+    {
       label: "Events Earnings",
       value: formatCurrency(stats.eventEarnings),
       Icon: DollarSign,
