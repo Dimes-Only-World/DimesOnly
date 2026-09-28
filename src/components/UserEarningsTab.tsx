@@ -1497,7 +1497,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   }
 
 return (
-    <div className="space-y-6">
+    <div className="earnings-wall space-y-6">
       {availableForWithdrawal > 0 && (
         <Card>
           <CardContent className="pt-6">
@@ -1605,6 +1605,40 @@ return (
           </CardContent>
         </Card>
 
+        <Card className="border-emerald-200 bg-emerald-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-emerald-700">
+              Car Sales Commissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-800">
+              {formatCurrency(saleData?.total || 0)}
+            </div>
+            <p className="text-sm text-emerald-600">
+              Commissions {formatCurrency((saleData?.rows || []).filter((r) => r.status === "sold" && r.level === "direct").reduce((s, r) => s + r.amount, 0) + (saleData?.bonusTotal || 0))} ·
+              Overrides {formatCurrency((saleData?.rows || []).filter((r) => r.status === "sold" && r.level === "upline").reduce((s, r) => s + r.amount, 0))}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-orange-700">
+              FlameFlix Commissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-800">
+              {formatCurrency(flixEarnings.reduce((s, r) => s + r.amount_cents, 0) / 100)}
+            </div>
+            <p className="text-sm text-orange-600">
+              Commissions {formatCurrency(flixEarnings.filter((r) => r.level === 1).reduce((s, r) => s + r.amount_cents, 0) / 100)} ·
+              Overrides {formatCurrency(flixEarnings.filter((r) => r.level !== 1).reduce((s, r) => s + r.amount_cents, 0) / 100)}
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-purple-700">
@@ -1621,6 +1655,14 @@ return (
           </CardContent>
         </Card>
       </div>
+
+      <EarningsCategoryReports
+        saleData={saleData}
+        rentals={rentalCommissions}
+        clothing={clothingCommissions}
+        flix={flixEarnings}
+        onMessage={(u) => openDm(u)}
+      />
 
       <VehicleSaleCommissionsCard data={saleData} />
 
@@ -1783,75 +1825,22 @@ return (
 
 
         <TabsContent value="weekly" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Pay Earnings History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {weeklyEarnings.length === 0 ? (
-                <div className="text-center py-8">
-                  <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No earnings history yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {weeklyEarnings.map((earning) => (
-                    <div
-                      key={earning.id}
-                      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium">
-                          Pay period{" "}
-                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
-                          {new Date(earning.week_end).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-gray-500 hidden">
-                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
-                          {new Date(earning.week_end).toLocaleDateString()}
-                        </p>
-                        <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-600">
-                          <span>
-                            Tips: {formatCurrency(earning.tip_earnings || 0)}
-                          </span>
-                          <span>
-                            Referrals:{" "}
-                            {formatCurrency(earning.referral_earnings || 0)}
-                          </span>
-                          <span>
-                            Jackpot: {formatCurrency(earning.bonus_earnings || 0)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="w-full sm:w-auto flex items-center justify-between gap-3">
-                        <Button
-                          variant="secondary"
-                          className="bg-yellow-400 text-black hover:bg-yellow-300 shrink-0 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
-                          onClick={() => {
-                            setStartDate(String(earning.week_start).slice(0, 10));
-                            setEndDate(String(earning.week_end).slice(0, 10));
-                            setTabValue("referrals");
-                            fetchReferralEarnings(1, pageSize);
-                          }}
-                        >
-                          View Referrals
-                        </Button>
-                        <div className="text-right shrink-0">
-                          <p className="text-lg font-bold">
-                            {formatCurrency(earning.amount || 0)}
-                          </p>
-                          <Badge variant="default">Total</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="px-4 sm:px-0">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+              <Calendar className="w-5 h-5" /> Pay Period History
+            </h3>
+            <p className="text-sm text-muted-foreground">Every payment in each pay period, line by line.</p>
+          </div>
+          <PayPeriodHistory
+            tips={combinedTips.map((t) => ({ id: t.id, created_at: t.created_at, amount: t.amount, role: t.role, counterparty: t.counterparty, status: t.status }))}
+            referrals={historyReferrals}
+            weekly={weeklyEarnings.map((w) => ({ id: w.id, week_start: w.week_start, bonus_earnings: Number(w.bonus_earnings || 0) }))}
+            saleData={saleData}
+            rentals={rentalCommissions}
+            clothing={clothingCommissions}
+            flix={flixEarnings}
+            onMessage={(u) => openDm(u)}
+          />
         </TabsContent>
 
         <TabsContent value="tips" className="space-y-4">

@@ -557,7 +557,7 @@ const UserDashboard: React.FC = () => {
       title={SLUG_TITLES[slug]}
       username={userData.username}
       profilePhoto={userData.profile_photo}
-      fullWidth={slug === "profile"}
+      fullWidth={slug === "profile" || slug === "earnings"}
     >
       {slug !== "profile" && slug !== "earnings" && slug !== "make-money" && <Top20DimesCarousel />}
 
