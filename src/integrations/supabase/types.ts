@@ -3842,6 +3842,39 @@ export type Database = {
           },
         ]
       }
+      sale_commission_bonuses: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          month: string
+          note: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month: string
+          note?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month?: string
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       short_form_backgrounds: {
         Row: {
           created_at: string
@@ -5181,6 +5214,7 @@ export type Database = {
         Row: {
           admin_notes: string | null
           applicant: Json
+          buyer_avatar_path: string | null
           co_buyer: Json | null
           created_at: string
           credit_authorization_consent: boolean
@@ -5189,19 +5223,28 @@ export type Database = {
           interested_vehicle: Json
           marketing_sms_consent: boolean
           privacy_policy_consent: boolean
+          referrer_commission: number
+          referrer_overridden: boolean
+          referrer_user_id: string | null
           referrer_username: string | null
           residence: Json
+          sale_amount: number | null
+          sale_status: string
           service_sms_consent: boolean
+          sold_at: string | null
           status: string
           submitted_at: string
           trade_in: Json | null
           updated_at: string
+          upline_commission: number
+          upline_user_id: string | null
           user_id: string | null
           vehicle_id: string | null
         }
         Insert: {
           admin_notes?: string | null
           applicant: Json
+          buyer_avatar_path?: string | null
           co_buyer?: Json | null
           created_at?: string
           credit_authorization_consent?: boolean
@@ -5210,19 +5253,28 @@ export type Database = {
           interested_vehicle: Json
           marketing_sms_consent?: boolean
           privacy_policy_consent?: boolean
+          referrer_commission?: number
+          referrer_overridden?: boolean
+          referrer_user_id?: string | null
           referrer_username?: string | null
           residence: Json
+          sale_amount?: number | null
+          sale_status?: string
           service_sms_consent?: boolean
+          sold_at?: string | null
           status?: string
           submitted_at?: string
           trade_in?: Json | null
           updated_at?: string
+          upline_commission?: number
+          upline_user_id?: string | null
           user_id?: string | null
           vehicle_id?: string | null
         }
         Update: {
           admin_notes?: string | null
           applicant?: Json
+          buyer_avatar_path?: string | null
           co_buyer?: Json | null
           created_at?: string
           credit_authorization_consent?: boolean
@@ -5231,13 +5283,21 @@ export type Database = {
           interested_vehicle?: Json
           marketing_sms_consent?: boolean
           privacy_policy_consent?: boolean
+          referrer_commission?: number
+          referrer_overridden?: boolean
+          referrer_user_id?: string | null
           referrer_username?: string | null
           residence?: Json
+          sale_amount?: number | null
+          sale_status?: string
           service_sms_consent?: boolean
+          sold_at?: string | null
           status?: string
           submitted_at?: string
           trade_in?: Json | null
           updated_at?: string
+          upline_commission?: number
+          upline_user_id?: string | null
           user_id?: string | null
           vehicle_id?: string | null
         }
