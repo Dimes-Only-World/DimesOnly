@@ -52,6 +52,8 @@ import EventReferralsTab from "@/components/EventReferralsTab";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import AngelLoader from "./AngelLoader";
 import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
+import EarningsCategoryReports, { type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
+import PayPeriodHistory, { type HistoryReferral } from "@/components/earnings/PayPeriodHistory";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
@@ -253,6 +255,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   >([]);
   const [clothingTotals, setClothingTotals] = useState({ direct: 0, override: 0 });
   const [saleData, setSaleData] = useState<SaleCommissionData | null>(null);
+  const [flixEarnings, setFlixEarnings] = useState<FlixEarning[]>([]);
+  const [historyReferrals, setHistoryReferrals] = useState<HistoryReferral[]>([]);
   const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
     commissions: 0,
     overrides: 0,
@@ -828,9 +832,40 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         },
       );
       setTipsReceived(rawTips);
-      setReferralCommissions(
-        (referralResult.data as unknown as ReferralCommission[]) || [],
-      );
+      const refPayments = (referralResult.data as unknown as ReferralCommission[]) || [];
+      setReferralCommissions(refPayments);
+
+      // Pay period history: resolve referred member usernames + FlameFlix earnings
+      try {
+        const payerIds = Array.from(new Set(refPayments.map((p: any) => p.user_id).filter(Boolean)));
+        const profMap = new Map<string, { username: string; profile_photo: string | null }>();
+        if (payerIds.length > 0) {
+          const { data: profs } = await supabase
+            .from("public_user_profiles")
+            .select("id, username, profile_photo")
+            .in("id", payerIds);
+          (profs || []).forEach((p: any) => profMap.set(p.id, p));
+        }
+        setHistoryReferrals(
+          refPayments.map((p: any) => ({
+            id: String(p.id),
+            created_at: p.created_at,
+            amount: Number(p.referrer_commission || 0),
+            payment_type: String(p.payment_type || ""),
+            username: profMap.get(p.user_id)?.username ?? null,
+            avatar: profMap.get(p.user_id)?.profile_photo ?? null,
+            status: p.payment_status,
+          })),
+        );
+        const { data: flixData } = await (supabase as any)
+          .from("flix_earnings")
+          .select("id, amount_cents, level, status, created_at, note")
+          .eq("earner_username", userData.username)
+          .order("created_at", { ascending: false });
+        setFlixEarnings((flixData as FlixEarning[]) || []);
+      } catch (e) {
+        console.warn("pay period history extras unavailable", e);
+      }
       const referralRows =
         (referralTipsResult.data as unknown as ReferralTipData[]) || [];
       const missingTipperIds = Array.from(
