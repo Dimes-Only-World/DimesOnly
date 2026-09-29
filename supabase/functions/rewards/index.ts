@@ -34,7 +34,9 @@ async function events(db: Db, cat: string, start: string, end: string): Promise<
       return { evs: rows.filter((r) => PAID.has(String(r.payment_status || "").toLowerCase())).map((r) => ({ u: r[col], t: ts(r.created_at), v: Number(r.tip_amount) || 0 })) };
     }
     case "highest_rated": {
-      const rows = await all(() => db.from("ratings").select("user_id, rating, created_at").gte("created_at", start).lte("created_at", end).not("user_id", "is", null));
+      // Season-wide: count all ratings in the current rating season (matches the public Rankings page)
+      const seasonYear = new Date().getUTCFullYear();
+      const rows = await all(() => db.from("ratings").select("user_id, rating, created_at, year").eq("year", seasonYear).not("user_id", "is", null));
       return { evs: rows.map((r) => ({ u: r.user_id, t: ts(r.created_at), v: Number(r.rating) || 0 })), avg: true };
     }
     case "car_sales": {
