@@ -3842,6 +3842,72 @@ export type Database = {
           },
         ]
       }
+      reward_contests: {
+        Row: {
+          audience: string[]
+          category: string
+          contest_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string
+          goal: number | null
+          id: string
+          paid_at: string | null
+          prize_amount: number
+          prize_label: string | null
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+          winner_score: number | null
+          winner_user_id: string | null
+          won_at: string | null
+        }
+        Insert: {
+          audience?: string[]
+          category: string
+          contest_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at: string
+          goal?: number | null
+          id?: string
+          paid_at?: string | null
+          prize_amount?: number
+          prize_label?: string | null
+          starts_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+          winner_score?: number | null
+          winner_user_id?: string | null
+          won_at?: string | null
+        }
+        Update: {
+          audience?: string[]
+          category?: string
+          contest_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string
+          goal?: number | null
+          id?: string
+          paid_at?: string | null
+          prize_amount?: number
+          prize_label?: string | null
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          winner_score?: number | null
+          winner_user_id?: string | null
+          won_at?: string | null
+        }
+        Relationships: []
+      }
       sale_commission_bonuses: {
         Row: {
           amount: number
