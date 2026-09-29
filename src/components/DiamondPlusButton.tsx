@@ -1,3 +1,6 @@
+import StagePriceBanner from "@/components/StagePriceBanner";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import { formatUSD } from "@/lib/membershipPricing";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -150,6 +153,7 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
       </CardHeader>
 
       <CardContent className="relative space-y-5 pt-0">
+        <StagePriceBanner type="diamond_plus" />
         <p className="text-white/80 text-sm md:text-base leading-relaxed max-w-2xl">
           You've been personally approved as a top-tier Dime. Diamond Plus unlocks priority ranking,
           exclusive earning tiers, and a permanent seat among the platform's elite. Only 300 members
@@ -159,13 +163,13 @@ const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-xl bg-white/5 border border-white/10 p-3 backdrop-blur-sm">
             <div className="text-[10px] uppercase tracking-widest text-amber-300/80">One-Time</div>
-            <div className="text-xl font-bold text-white mt-1">$149.99</div>
+            <div className="text-xl font-bold text-white mt-1">{dpStage.stage ? formatUSD(dpStage.stage.full) : "FILLED"}</div>
             <div className="text-[11px] text-white/60">Lifetime seat</div>
           </div>
           <div className="rounded-xl bg-white/5 border border-white/10 p-3 backdrop-blur-sm">
             <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Installments</div>
-            <div className="text-xl font-bold text-white mt-1">$49.99<span className="text-sm text-white/60"> down</span></div>
-            <div className="text-[11px] text-white/60">+ 2 × $50.00</div>
+            <div className="text-xl font-bold text-white mt-1">{dpStage.stage ? formatUSD(dpStage.stage.monthly) : "—"}<span className="text-sm text-white/60">/mo</span></div>
+            <div className="text-[11px] text-white/60">× 12 months</div>
           </div>
           <div className="rounded-xl bg-white/5 border border-white/10 p-3 backdrop-blur-sm">
             <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Referral Fees</div>

@@ -122,8 +122,7 @@ const packages: Package[] = [
     badge: "LIFETIME OR 12-MO PLAN",
     benefits: [
       "ALL Elite benefits — permanently.",
-      "One-time $15,000 lifetime, or 12-month installment plan.",
-      "12-Month Plan: $1,500 first payment ($1,250 + $250 setup), then $1,250/mo × 11.",
+      "First 25: $15,000 lifetime or $1,350/mo × 12. Next stages: $30,000, $45,000, $60,000.",
       "Full site access starts immediately after first payment.",
       "Priority VIP treatment at every event and reunion.",
     ],
