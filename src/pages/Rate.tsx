@@ -106,6 +106,8 @@ const RatePage: React.FC = () => {
   const [previewVideos, setPreviewVideos] = useState<string[]>([]);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [hasDiamond, setHasDiamond] = useState(false);
+  const [findingNextDime, setFindingNextDime] = useState(false);
+  const [noMoreDimes, setNoMoreDimes] = useState(false);
   const [lightbox, setLightbox] = useState<{
     type: "photo" | "video";
     index: number;
@@ -523,11 +525,6 @@ const RatePage: React.FC = () => {
 
   const handleNumberClick = (num: number) => {
     if (!currentUser) {
-      toast({
-        title: "Login Required",
-        description: "Please login to rate users.",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -660,6 +657,70 @@ const RatePage: React.FC = () => {
       return "bg-yellow-400 hover:bg-yellow-500 text-black font-bold";
     // Assigned to ANOTHER user = RED
     return "bg-red-500 hover:bg-red-600 text-white";
+  };
+
+  const authDestination = (path: "/login" | "/register") => {
+    const params = new URLSearchParams();
+    params.set("redirect", `${window.location.pathname}${window.location.search}`);
+    if (refUsername) params.set("ref", refUsername);
+    return `${path}?${params.toString()}`;
+  };
+
+  const handleNextBaddie = async () => {
+    if (!currentUser || !userData || findingNextDime) return;
+
+    setFindingNextDime(true);
+    setNoMoreDimes(false);
+    try {
+      const seasonYear = getRatingSeasonYear();
+      const [{ data: profiles, error: profilesError }, { data: ratings, error: ratingsError }] =
+        await Promise.all([
+          supabase
+            .from("public_user_profiles")
+            .select("id, username")
+            .in("user_type", ["stripper", "exotic"])
+            .order("username", { ascending: true }),
+          supabase
+            .from("ratings")
+            .select("user_id")
+            .eq("rater_id", currentUser.id)
+            .eq("year", seasonYear),
+        ]);
+
+      if (profilesError) throw profilesError;
+      if (ratingsError) throw ratingsError;
+
+      const ratedIds = new Set((ratings || []).map((rating) => String(rating.user_id)));
+      const available = (profiles || []).filter(
+        (profile) => String(profile.id) !== userData.id && !ratedIds.has(String(profile.id))
+      );
+
+      if (available.length === 0) {
+        setNoMoreDimes(true);
+        return;
+      }
+
+      const currentIndex = (profiles || []).findIndex(
+        (profile) => String(profile.id) === userData.id
+      );
+      const nextProfile =
+        available.find((profile) =>
+          (profiles || []).findIndex((candidate) => candidate.id === profile.id) > currentIndex
+        ) || available[0];
+
+      const nextParams = new URLSearchParams({ rate: String(nextProfile.username) });
+      if (refUsername) nextParams.set("ref", refUsername);
+      navigate(`/rate?${nextParams.toString()}`);
+    } catch (error) {
+      console.error("Error finding next unrated Dime:", error);
+      toast({
+        title: "Unable to load the next Dime",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setFindingNextDime(false);
+    }
   };
 
   if (loading) {
@@ -993,9 +1054,20 @@ const RatePage: React.FC = () => {
         </Card>
 
 
+        {!currentUser && (
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 px-4 sm:flex-row">
+            <Button asChild className="h-12 w-full max-w-xs bg-primary text-primary-foreground sm:w-48">
+              <Link to={authDestination("/login")}>Login</Link>
+            </Button>
+            <Button asChild variant="outline" className="h-12 w-full max-w-xs sm:w-48">
+              <Link to={authDestination("/register")}>Register</Link>
+            </Button>
+          </div>
+        )}
+
         {/* Upgrade CTA (above Home) */}
         {!hasDiamond && (
-          <div className="mt-8 flex justify-center max-w-2xl mx-auto">
+          <div className={`${currentUser ? "mt-8" : "mt-4"} flex justify-center max-w-2xl mx-auto`}>
             <Button
               onClick={() => navigate("/upgrade")}
               className="w-full sm:w-auto h-12 px-8 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-400 hover:from-pink-400 hover:via-purple-400 hover:to-yellow-300 text-white"
@@ -1015,20 +1087,39 @@ const RatePage: React.FC = () => {
           >
             Rate Another Girl
           </Button>
-          <Button
-            type="button"
-            onClick={handleHomeClick}
-            className="flex-1 min-w-[160px] h-12 text-base font-semibold bg-green-600 hover:bg-green-500 text-white border-transparent shadow-lg"
-          >
-            <Home className="w-5 h-5 mr-2" />
-            Home
-          </Button>
+          <div className="flex min-w-[160px] flex-1 flex-col gap-3">
+            <Button
+              type="button"
+              onClick={handleHomeClick}
+              className="h-12 w-full text-base font-semibold bg-green-600 hover:bg-green-500 text-white border-transparent shadow-lg"
+            >
+              <Home className="w-5 h-5 mr-2" />
+              Home
+            </Button>
+            {currentUser && (
+              <Button
+                type="button"
+                onClick={handleNextBaddie}
+                disabled={findingNextDime || noMoreDimes}
+                className="h-12 w-full bg-fuchsia-600 text-base font-semibold text-primary-foreground shadow-lg hover:bg-fuchsia-500"
+              >
+                {findingNextDime ? "Finding Next Dime…" : "Next Baddie"}
+                <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            )}
+          </div>
           <Button asChild className="relative z-10 flex-1 min-w-[160px] h-12 text-base font-semibold touch-manipulation">
             <Link to={`/profile/${encodeURIComponent(userData.username)}`}>
               View Her Full Profile
             </Link>
           </Button>
         </div>
+        {noMoreDimes && (
+          <div className="mx-auto mt-5 max-w-2xl px-4 text-center text-primary-foreground">
+            <p className="text-xl font-black">More Dimes beings added.</p>
+            <p className="mt-1 text-base font-semibold">Find more Dimes and get paid!</p>
+          </div>
+        )}
       </div>
 
       {/* Confirm Dialog */}
