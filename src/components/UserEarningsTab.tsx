@@ -1797,7 +1797,7 @@ return (
             "w-full h-11 data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg px-2 py-2 text-xs sm:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300";
           const tabs: Array<[string, string]> = [
             ["tips", "Tips Received"],
-            ["referrals", "Referrals"],
+            ["referrals", "Upgrade Referrals"],
             ["events", "Events"],
             ["jackpot", "Jackpot"],
             ["vehicle", "Vehicle Sales"],
