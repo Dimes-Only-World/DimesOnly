@@ -158,7 +158,7 @@ async function decorate(db: Db, c: any, me: string | null) {
     const f = st.users[cc.featured_user_id] || (await db.from("users").select("id, username, profile_photo, front_page_photo").eq("id", cc.featured_user_id).maybeSingle()).data;
     if (f) featuredUser = { user_id: f.id || cc.featured_user_id, username: f.username, avatar: f.front_page_photo || f.profile_photo || null };
   }
-  return { ...cc, leaders: st.ranked.slice(0, 5), participants: st.ranked.length, my: mine || null, winner, featured_user: featuredUser };
+  return { ...cc, leaders: st.ranked.slice(0, c.category === "highest_rated" ? 3 : 5), participants: st.ranked.length, my: mine || null, winner, featured_user: featuredUser };
 }
 
 function clean(p: any) {
