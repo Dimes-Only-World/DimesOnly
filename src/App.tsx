@@ -144,9 +144,7 @@ class AppErrorBoundary extends React.Component<
 function AppContent() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "/failsafe";
-  const hideNotificationBell = ["/", "/failsafe", "/login", "/register", "/adminlogin"].includes(
-    location.pathname,
-  );
+  // Notification bell (and its add-to-home-screen prompt) live on the dashboard only.
   const showNotificationBell = location.pathname.startsWith("/dashboard");
 
   const routes = (
@@ -244,7 +242,7 @@ function AppContent() {
           <NotificationBell className="pointer-events-auto" />
         </div>
       )}
-      {!hideNotificationBell && <AddToHomeScreenPrompt />}
+      {showNotificationBell && <AddToHomeScreenPrompt />}
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
       ) : (
