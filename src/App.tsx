@@ -145,7 +145,8 @@ function AppContent() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "/failsafe";
   // Notification bell (and its add-to-home-screen prompt) live on the dashboard only.
-  const showNotificationBell = location.pathname.startsWith("/dashboard");
+  // Bell + lock-screen prompt only on the main dashboard page (not sub-pages like /dashboard/messages)
+  const showNotificationBell = location.pathname.replace(/\/+$/, "") === "/dashboard";
 
   const routes = (
     <Routes>
