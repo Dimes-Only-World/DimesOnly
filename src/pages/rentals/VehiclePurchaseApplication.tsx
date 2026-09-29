@@ -113,7 +113,18 @@ const VehiclePurchaseApplication: React.FC = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null); const [avatarPreview, setAvatarPreview] = useState(""); const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null); const [username, setUsername] = useState("");
   const [idCheck, setIdCheck] = useState<{ usernameAvailable?: boolean; emailMatch?: { username: string; avatar: string | null } | null; phoneMatch?: boolean }>({});
-  useEffect(() => { supabase.auth.getSession().then(({ data }) => setLoggedIn(!!data.session)); }, []);
+  useEffect(() => { supabase.auth.getSession().then(async ({ data }) => {
+    setLoggedIn(!!data.session);
+    const uid = data.session?.user?.id; if (!uid) return;
+    const { data: u } = await supabase.from("users").select("*").eq("id", uid).maybeSingle();
+    if (!u) return;
+    const s = (v: any) => (v == null ? "" : String(v));
+    const digits = s(u.phone_number || u.mobile_number).replace(/\D/g, "").slice(-10);
+    const dob = s(u.date_of_birth || u.birth_date || u.dob).slice(0, 10);
+    const fill = <T extends Record<string, string>>(cur: T, next: Partial<T>): T => { const out: any = { ...cur }; for (const k in next) if (!out[k] && next[k]) out[k] = next[k]; return out; };
+    setApplicant((c) => fill(c, { firstName: s(u.first_name), lastName: s(u.last_name), email: s(u.email || data.session?.user?.email), cellPhone: digits, dateOfBirth: /^\d{4}-\d{2}-\d{2}$/.test(dob) ? dob : "" }));
+    setResidence((c) => fill(c, { streetAddress: s(u.address), city: s(u.city), state: s(u.state).toUpperCase().slice(0, 2), zipCode: s(u.zip || u.zip_code) }));
+  }); }, []);
   useEffect(() => {
     if (loggedIn !== false) return;
     const t = setTimeout(() => { supabase.functions.invoke("submit-vehicle-purchase", { body: { action: "check", username: username.trim(), email: applicant.email.trim(), phone: applicant.cellPhone } }).then(({ data }) => { if (data) setIdCheck(data as any); }); }, 500);
