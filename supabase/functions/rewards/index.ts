@@ -43,8 +43,21 @@ async function events(db: Db, cat: string, start: string, end: string): Promise<
     }
     case "money_circle":
     case "dimes_recruited": {
-      const rows = await all(() => db.from("users").select("referred_by, user_type, created_at").gte("created_at", start).lte("created_at", end).not("referred_by", "is", null));
-      const filtered = rows.filter((r) => cat === "money_circle" || ["exotic", "stripper"].includes(String(r.user_type || "").toLowerCase()));
+      let filtered: any[];
+      if (cat === "dimes_recruited") {
+        // All approved Dimes in the member's money circle (all time, up to now)
+        const appr = await all(() => db.from("performer_approvals").select("user_id, reviewed_at, created_at").eq("status", "approved").lte("created_at", end));
+        const when: Record<string, string> = {};
+        for (const a of appr) when[a.user_id] = a.reviewed_at || a.created_at;
+        const ids = Object.keys(when);
+        filtered = [];
+        for (let i = 0; i < ids.length; i += 200) {
+          const { data } = await db.from("users").select("id, referred_by").in("id", ids.slice(i, i + 200)).not("referred_by", "is", null);
+          for (const u of data || []) filtered.push({ referred_by: u.referred_by, created_at: when[u.id] });
+        }
+      } else {
+        filtered = await all(() => db.from("users").select("referred_by, user_type, created_at").gte("created_at", start).lte("created_at", end).not("referred_by", "is", null));
+      }
       const names = [...new Set(filtered.map((r) => String(r.referred_by).trim().toLowerCase()).filter((n) => n && n !== "company"))];
       const map: Record<string, string> = {};
       for (let i = 0; i < names.length; i += 200) {
