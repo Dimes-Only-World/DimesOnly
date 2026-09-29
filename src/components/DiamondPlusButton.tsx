@@ -23,6 +23,7 @@ interface DiamondPlusButtonProps {
 }
 
 const DiamondPlusButton: React.FC<DiamondPlusButtonProps> = ({ userData }) => {
+  const dpStage = useMembershipStage("diamond_plus");
   const { toast } = useToast();
   const [membershipLimits, setMembershipLimits] = useState<MembershipLimits[]>(
     []
