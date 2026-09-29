@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,8 +53,9 @@ import EventReferralsTab from "@/components/EventReferralsTab";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import AngelLoader from "./AngelLoader";
 import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
-import EarningsCategoryReports, { type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
+import EarningsCategoryReports, { MessageButton, type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
 import BonusBox from "@/components/BonusBox";
+import { MiniAvatar } from "@/components/rentals/saleCommissionUi";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
@@ -123,6 +125,11 @@ interface TipDisplayEntry {
   original_tip_amount?: number | null;
   tipper_username?: string | null;
   tipped_username?: string | null;
+}
+
+interface TipSenderProfile {
+  username: string;
+  profile_photo: string | null;
 }
 
 type EarningsItem = ReferralEarningsItem;
@@ -204,6 +211,7 @@ interface PayoutFormData {
 const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [weeklyEarnings, setWeeklyEarnings] = useState<WeeklyEarning[]>([]);
   const [tipsReceived, setTipsReceived] = useState<TipData[]>([]);
+  const [tipSenderProfiles, setTipSenderProfiles] = useState<Record<string, TipSenderProfile>>({});
   const [referralCommissions, setReferralCommissions] = useState<
     ReferralCommission[]
   >([]);
@@ -902,6 +910,30 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         });
       }
       setReferralTips(referralRows);
+
+      const tipperUsernames = Array.from(
+        new Set(
+          [
+            ...rawTips.map((tip) => tip.tipper_username),
+            ...referralRows.map((row) => row.tipper_user?.username),
+          ]
+            .filter((username): username is string => Boolean(username?.trim()))
+            .map((username) => username.trim()),
+        ),
+      );
+      if (tipperUsernames.length > 0) {
+        const { data: senderProfiles } = await supabase
+          .from("public_user_profiles")
+          .select("username, profile_photo")
+          .in("username", tipperUsernames);
+        const profileMap: Record<string, TipSenderProfile> = {};
+        for (const profile of senderProfiles || []) {
+          if (profile.username) profileMap[profile.username.toLowerCase()] = profile;
+        }
+        setTipSenderProfiles(profileMap);
+      } else {
+        setTipSenderProfiles({});
+      }
 
       const tickets = await loadJackpotTicketPages(userData.id);
       const winnings =
@@ -1912,21 +1944,41 @@ return (
                 </div>
               ) : (
                 <div className="space-y-3">
-                                {combinedTips.slice(0, 10).map((entry) => {
+                {combinedTips.slice(0, 10).map((entry) => {
                 const isPerformer = entry.role === "performer";
+                 const tipperName = entry.tipper_username ?? (isPerformer ? entry.counterparty : null);
+                 const tipperProfile = tipperName
+                   ? tipSenderProfiles[tipperName.toLowerCase()]
+                   : undefined;
                 return (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                     className="flex flex-col gap-3 p-3 border rounded-lg sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">
-                        {new Date(entry.created_at).toLocaleString()}
-                      </p>
+                     <div className="flex min-w-0 items-center gap-3">
+                       <MiniAvatar
+                         src={tipperProfile?.profile_photo || null}
+                         name={tipperProfile?.username || tipperName || "Anonymous"}
+                         size={44}
+                       />
+                       <div className="min-w-0 space-y-1">
+                         <p className="text-xs text-gray-500">
+                           {new Date(entry.created_at).toLocaleString()}
+                         </p>
                       {isPerformer ? (
                         <>
                           <p className="text-sm font-semibold text-gray-900">
-                            Tipper: {entry.tipper_username ?? entry.counterparty ?? "Anonymous"}
+                             Tipper:{" "}
+                             {tipperProfile ? (
+                               <Link
+                                 to={`/profile/${tipperProfile.username}`}
+                                 className="text-primary underline-offset-2 hover:underline"
+                               >
+                                 @{tipperProfile.username}
+                               </Link>
+                             ) : (
+                               tipperName || "Anonymous"
+                             )}
                           </p>
                           <p className="text-sm text-gray-500">
                             Referred By: {entry.referrer_username ?? "None"}
@@ -1942,8 +1994,13 @@ return (
                           </p>
                         </>
                       )}
+                       </div>
                     </div>
-                    <div className="text-right space-y-1">
+                     <div className="flex items-center justify-between gap-3 sm:justify-end">
+                       {tipperProfile?.profile_photo ? (
+                         <MessageButton username={tipperProfile.username} onMessage={openDm} />
+                       ) : null}
+                       <div className="text-right space-y-1">
                       <p className="text-xs uppercase tracking-wide text-gray-500">
                         {isPerformer ? "Amount Received" : "Override Amount"}
                       </p>
@@ -1958,6 +2015,7 @@ return (
                       <Badge variant="outline">
                         {isPerformer ? entry.status || "completed" : "Referral Tip"}
                       </Badge>
+                       </div>
                     </div>
                   </div>
                 );
