@@ -126,3 +126,6 @@ verify_jwt = false
 
 [functions.sale-commissions]
 verify_jwt = false
+
+[functions.earnings-payers]
+verify_jwt = false
