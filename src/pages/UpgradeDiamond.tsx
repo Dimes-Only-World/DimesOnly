@@ -308,7 +308,7 @@ const UpgradeDiamondPage: React.FC = () => {
               <Crown className="w-10 h-10 text-yellow-400" />
             </div>
             <p className="text-fuchsia-200 mt-2 mb-4">
-              Get Profit Sharing Position of up to $1,200,000 a year minimum for life in tier 2 — limited to 300 lifetime seats.
+              Get Profit Sharing Position of up to $1,170,000 a year minimum for life in tier 2 — limited to 300 lifetime seats.
             </p>
             {alreadyDiamondPlus ? (
               <Badge className="text-lg px-4 py-2 bg-green-600">
