@@ -109,17 +109,27 @@ const VehiclePurchaseApplication: React.FC = () => {
   const [interested, setInterested] = useState({ ...blankVehicle }); const [hasTradeIn, setHasTradeIn] = useState(false); const [tradeIn, setTradeIn] = useState({ vin: "", mileage: "", year: "", make: "", model: "" });
   const [marketing, setMarketing] = useState(false); const [serviceMessages, setServiceMessages] = useState(false); const [creditConsent, setCreditConsent] = useState(false); const [privacyConsent, setPrivacyConsent] = useState(false); const [submitting, setSubmitting] = useState(false); const [submittedId, setSubmittedId] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null); const [avatarPreview, setAvatarPreview] = useState(""); const navigate = useNavigate();
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null); const [username, setUsername] = useState("");
+  const [idCheck, setIdCheck] = useState<{ usernameAvailable?: boolean; emailMatch?: { username: string; avatar: string | null } | null; phoneMatch?: boolean }>({});
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => setLoggedIn(!!data.session)); }, []);
+  useEffect(() => {
+    if (loggedIn !== false) return;
+    const t = setTimeout(() => { supabase.functions.invoke("submit-vehicle-purchase", { body: { action: "check", username: username.trim(), email: applicant.email.trim(), phone: applicant.cellPhone } }).then(({ data }) => { if (data) setIdCheck(data as any); }); }, 500);
+    return () => clearTimeout(t);
+  }, [loggedIn, username, applicant.email, applicant.cellPhone]);
+  const loginHref = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
   useEffect(() => { if (!vehicleId) return; (supabase as any).from("vehicles").select("id,year,make,model,vin,down_payment,rental_options,is_active").eq("id", vehicleId).maybeSingle().then(({ data }: any) => { if (!data?.is_active || !data.rental_options?.includes("purchase")) return; setVehicle(data); setInterested((current) => ({ ...current, hasVin: data.vin ? "yes" : "no", vin: data.vin || "", year: String(data.year || ""), make: data.make || "", model: data.model || "", downPayment: String(data.down_payment || "") })); }); }, [vehicleId]);
   const vehicleName = useMemo(() => vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : "Vehicle purchase", [vehicle]);
   const submit = async (event: React.FormEvent) => { event.preventDefault(); const payload: any = { vehicleId: vehicle?.id || null, applicant, residence, employment, hasCoBuyer, coBuyer: hasCoBuyer ? { ...coBuyer, residence: coResidence, employment: coEmployment } : null, interestedVehicle: interested, hasTradeIn, tradeIn: hasTradeIn ? tradeIn : null, marketingSmsConsent: marketing, serviceSmsConsent: serviceMessages, creditAuthorizationConsent: creditConsent, privacyPolicyConsent: privacyConsent, referrerUsername: getActiveRef() || null };
     const parsed = schema.safeParse(payload); if (!parsed.success || (hasCoBuyer && !schema.pick({ applicant: true, residence: true, employment: true }).safeParse({ applicant: coBuyer, residence: coResidence, employment: coEmployment }).success)) { toast({ title: "Check required fields", description: "Complete every required field with valid information.", variant: "destructive" }); return; }
     if (hasTradeIn && (!/^[A-HJ-NPR-Z0-9]{17}$/i.test(tradeIn.vin) || !tradeIn.mileage || !tradeIn.year || !tradeIn.make || !tradeIn.model)) { toast({ title: "Complete trade-in details", description: "VIN, mileage, year, make, and model are required.", variant: "destructive" }); return; }
     if (!creditConsent || !privacyConsent) { toast({ title: "Consent required", description: "Accept the credit authorization and Privacy Policy to submit.", variant: "destructive" }); return; }
-    if (avatarFile) { payload.buyerAvatar = { contentType: avatarFile.type, base64: await fileToBase64(avatarFile) }; }
+    if (!loggedIn) { if (!/^[A-Za-z0-9_]{3,30}$/.test(username.trim()) || idCheck.usernameAvailable === false) { toast({ title: "Choose an available username", description: "3–30 letters, numbers, or underscores.", variant: "destructive" }); return; } payload.requestedUsername = username.trim(); }
+    if (!loggedIn && avatarFile) { payload.buyerAvatar = { contentType: avatarFile.type, base64: await fileToBase64(avatarFile) }; }
     setSubmitting(true); try { const { data, error } = await supabase.functions.invoke("submit-vehicle-purchase", { body: payload }); if (error) throw error; if ((data as any)?.error) throw new Error((data as any).error); setSubmittedId((data as any)?.data?.id || "received"); window.scrollTo({ top: 0, behavior: "smooth" }); } catch (error: any) { toast({ title: "Application not submitted", description: error.message || "Please try again.", variant: "destructive" }); } finally { setSubmitting(false); }
   };
   const goRegister = () => {
-    try { sessionStorage.setItem("ageGatePrefill", JSON.stringify({ fullName: `${applicant.firstName} ${applicant.lastName}`.trim(), phone: applicant.cellPhone, dateOfBirth: applicant.dateOfBirth })); } catch { /* ignore */ }
+    try { sessionStorage.setItem("ageGatePrefill", JSON.stringify({ username: username.trim() || undefined, fullName: `${applicant.firstName} ${applicant.lastName}`.trim(), phone: applicant.cellPhone, dateOfBirth: applicant.dateOfBirth })); } catch { /* ignore */ }
     const ref = getActiveRef();
     navigate(ref && ref.toLowerCase() !== "company" ? `/register?ref=${encodeURIComponent(ref)}` : "/register");
   };
@@ -127,11 +137,20 @@ const VehiclePurchaseApplication: React.FC = () => {
   return <main className="purchase-application rentals-showroom min-h-screen bg-rental-background text-rental-foreground"><header className="border-b border-rental-line bg-rental-surface"><div className="mx-auto max-w-6xl px-4 py-5 sm:px-8"><div className="flex items-center justify-between gap-3"><Link to={vehicleId ? `/rentals/${vehicleId}` : "/rentals"} className="inline-flex items-center gap-2 font-barlow text-sm text-rental-muted hover:text-rental-primary"><ArrowLeft className="h-4 w-4" /> Back to vehicle</Link><ReferrerBadge /></div><div className="mt-8 max-w-3xl pb-6"><p className="font-barlow text-xs font-semibold uppercase text-rental-primary">Best Car Rental Services</p><h1 className="rentals-wordmark mt-2 text-5xl leading-none sm:text-7xl">BUYER APPLICATION</h1><p className="mt-4 font-barlow text-rental-muted">Apply for {vehicleName}. Fields marked * are required.<br />Why buy retail when you can buy wholesale? Save thousand!</p></div></div></header>
     <form onSubmit={submit} className="mx-auto max-w-6xl px-4 pb-16 sm:px-8">
       <Section number="01" title="PERSONAL INFORMATION">
+        {loggedIn === false && <>
         <div className="mb-6 flex items-center gap-4">
           {avatarPreview ? <img src={avatarPreview} alt="Your photo" className="h-20 w-20 rounded-full border border-rental-primary object-cover" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full border border-rental-line bg-rental-surface"><Camera className="h-7 w-7 text-rental-muted" /></div>}
           <div className="space-y-1.5"><Label>Profile photo</Label><Input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { const f = e.target.files?.[0] || null; if (f && f.size > 5 * 1024 * 1024) { toast({ title: "Photo too large", description: "Max 5 MB.", variant: "destructive" }); return; } setAvatarFile(f); setAvatarPreview(f ? URL.createObjectURL(f) : ""); }} className="rounded-none border-rental-line bg-rental-surface" /><p className="text-xs text-rental-muted">Optional. JPG, PNG or WEBP, up to 5 MB.</p></div>
         </div>
+        <div className="mb-6 max-w-md space-y-1.5"><Label htmlFor="buyer-username">Username *</Label><Input id="buyer-username" value={username} onChange={(e) => setUsername(e.target.value.replace(/[^A-Za-z0-9_]/g, "").slice(0, 30))} placeholder="Choose your Dimes Only username" className="rounded-none border-rental-line bg-rental-surface" />
+          {username.trim().length >= 3 && idCheck.usernameAvailable !== undefined && <p className={`text-sm font-semibold ${idCheck.usernameAvailable ? "text-rental-success" : "text-destructive"}`}>{idCheck.usernameAvailable ? "✓ Username available" : "✗ Username not available"}</p>}
+        </div></>}
         <PersonFields values={applicant} setValues={setApplicant} prefix="buyer" />
+        {loggedIn === false && (idCheck.emailMatch || idCheck.phoneMatch) && <div role="alert" className="mt-5 flex flex-col gap-4 border border-rental-primary bg-rental-surface p-4 sm:flex-row sm:items-center">
+          {idCheck.emailMatch && (idCheck.emailMatch.avatar ? <img src={idCheck.emailMatch.avatar} alt={idCheck.emailMatch.username} className="h-14 w-14 rounded-full border border-rental-primary object-cover" /> : <div className="flex h-14 w-14 items-center justify-center rounded-full border border-rental-line"><Camera className="h-6 w-6 text-rental-muted" /></div>)}
+          <div className="flex-1"><p className="font-semibold text-rental-foreground">This information is already in our system.</p><p className="text-sm text-rental-muted">{idCheck.emailMatch ? <>This email belongs to <span className="font-semibold text-rental-foreground">@{idCheck.emailMatch.username}</span>. </> : "This phone number matches an existing account. "}Please log in to continue your application.</p></div>
+          <Button asChild className="rounded-none bg-rental-primary font-semibold text-rental-primary-foreground"><Link to={loginHref}>Log in</Link></Button>
+        </div>}
       </Section>
       <Section number="02" title="RESIDENTIAL INFORMATION"><ResidenceFields values={residence} setValues={setResidence} /></Section>
       <Section number="03" title="EMPLOYMENT INFORMATION"><EmploymentFields values={employment} setValues={setEmployment} /></Section>
