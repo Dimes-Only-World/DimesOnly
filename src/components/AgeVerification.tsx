@@ -528,8 +528,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                   </span>
                   <input
                     type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    capture="user"
+                    accept="image/*"
                     className="sr-only"
                     onChange={(event) => {
                       const file = event.target.files?.[0] || null;
