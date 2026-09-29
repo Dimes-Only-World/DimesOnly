@@ -114,6 +114,25 @@ serve(async (req) => {
       }
     }
 
+    // Staged pricing: amount is always computed server-side for Plus tiers
+    const plusType: PlusType | null =
+      tier === "silver_plus" ? "silver_plus"
+      : tier === "diamond_plus" ? "diamond_plus"
+      : (tier === "business_owner_elite" || tier === "business_owner_elite_installment") ? "business_owner_elite"
+      : null;
+    if (plusType) {
+      const sold = await countSold(supabase, plusType);
+      const stage = stageFor(plusType, sold);
+      if (!stage) {
+        return new Response(
+          JSON.stringify({ success: false, error: "POSITIONS ARE FILLED", code: "SOLD_OUT" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 }
+        );
+      }
+      const isMonthly = payment_method === "paypal_monthly" || tier === "business_owner_elite_installment";
+      amount = isMonthly ? stage.monthly : stage.full;
+    }
+
     // Update user's phone number
     const { error: phoneError } = await supabase
       .from("users")
