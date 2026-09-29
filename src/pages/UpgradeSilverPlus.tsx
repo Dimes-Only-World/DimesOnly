@@ -199,7 +199,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
             <p className="text-fuchsia-200 mt-2 mb-4">
               General Member Profit-Sharing position — limited to 300 lifetime seats.
             </p>
-            <StagePriceBanner type="silver_plus" className="max-w-md mx-auto" />{false && (<span/>) : null}
+            <StagePriceBanner type="silver_plus" className="max-w-md mx-auto" />
           </div>
 
           <MembershipAgreementSection

@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import StagePriceBanner from "@/components/StagePriceBanner";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import { formatUSD } from "@/lib/membershipPricing";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -29,10 +32,6 @@ const fetchSeatStats = async (): Promise<SeatStats> => {
 
 type Plan = "lifetime" | "installment";
 
-const PLAN_AMOUNTS: Record<Plan, number> = {
-  lifetime: 15000,
-  installment: 1500, // first installment ($1,250 + $250 fee)
-};
 
 const BusinessOwnerElite: React.FC = () => {
   const { toast } = useToast();
@@ -43,7 +42,14 @@ const BusinessOwnerElite: React.FC = () => {
   });
 
   const seatsAvailable = stats?.seats_available ?? 0;
-  const full = seatsAvailable <= 0;
+  const stageInfo = useMembershipStage("business_owner_elite");
+  const full = seatsAvailable <= 0 || (!stageInfo.loading && stageInfo.soldOut);
+  const PLAN_AMOUNTS: Record<Plan, number> = {
+    lifetime: stageInfo.stage?.full ?? 0,
+    installment: stageInfo.stage?.monthly ?? 0,
+  };
+  const L = formatUSD(PLAN_AMOUNTS.lifetime);
+  const M = formatUSD(PLAN_AMOUNTS.installment);
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [plan, setPlan] = useState<Plan>("lifetime");
@@ -143,6 +149,7 @@ const BusinessOwnerElite: React.FC = () => {
             <p className="text-fuchsia-200 mt-2">
               Business Owner Profit-Sharer position — limited to 100 lifetime seats with full site access.
             </p>
+            <StagePriceBanner type="business_owner_elite" className="max-w-md mx-auto mb-4" />
           </div>
 
           <MembershipAgreementSection
@@ -208,7 +215,7 @@ const BusinessOwnerElite: React.FC = () => {
                 <CardTitle className="text-fuchsia-400">One-Time Lifetime</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold text-yellow-300">$15,000</div>
+                <div className="text-4xl font-bold text-yellow-300">{L}</div>
                 <p className="text-sm text-gray-300 mt-2">Pay once → lifetime full access immediately.</p>
               </CardContent>
             </Card>
@@ -221,9 +228,9 @@ const BusinessOwnerElite: React.FC = () => {
                 <CardTitle className="text-fuchsia-400">12-Month Plan</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold text-yellow-300">$1,500 today</div>
+                <div className="text-4xl font-bold text-yellow-300">{M}/mo</div>
                 <p className="text-sm text-gray-300 mt-2">
-                  $1,500 first payment (includes $250 processing fee), then $1,250/mo × 11.
+                  {M} a month × 12 months ({formatUSD(PLAN_AMOUNTS.installment * 12)} total).
                   Total $15,250. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
                 </p>
               </CardContent>
@@ -233,12 +240,12 @@ const BusinessOwnerElite: React.FC = () => {
           <Card className="bg-black/70 border-fuchsia-500 text-white">
             <CardHeader>
               <CardTitle className="text-fuchsia-400">
-                Checkout — {plan === "lifetime" ? "Lifetime $15,000" : "First Payment $1,500"}
+                Checkout — {plan === "lifetime" ? `Lifetime ${L}` : `First Payment ${M}`}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {full ? (
-                <p className="text-red-400 text-center">All 100 Business Owner Elite seats are taken.</p>
+                <p className="text-red-400 text-center">POSITIONS ARE FILLED — APP RELEASE SOON</p>
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -265,7 +272,7 @@ const BusinessOwnerElite: React.FC = () => {
                     onCardRedirect={() => startPayment("card")}
                     isProcessing={loading}
                     disabled={!phoneNumber}
-                    paypalLabel={plan === "lifetime" ? "Pay $15,000 Lifetime" : "Start 12-Month Plan"}
+                    paypalLabel={plan === "lifetime" ? `Pay ${L} Lifetime` : "Start 12-Month Plan"}
                   />
                   ) : (
                     <div className="rounded-lg border border-yellow-500 bg-yellow-500/10 p-4 text-sm text-yellow-200 text-center font-semibold">
