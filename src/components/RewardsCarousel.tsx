@@ -134,7 +134,7 @@ const RewardsCarousel: React.FC = () => {
       {backgroundUrl && (videoBackground
         ? <video key={backgroundUrl} src={backgroundUrl} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
         : <img src={backgroundUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />)}
-      {backgroundUrl && <div className="absolute inset-0 bg-background/75" />}
+      {backgroundUrl && <div className={`absolute inset-0 ${videoBackground ? "bg-gradient-to-b from-black/70 via-black/75 to-black/85" : "bg-background/75"}`} />}
       <p className="relative mb-4 text-center text-xs font-black uppercase tracking-[0.35em] text-yellow-300">🏆 REWARDS & CONTEST 🏆</p>
       <div key={items[idx].id} className="relative animate-fade-in">
         <Slide c={items[idx]} now={now} />
