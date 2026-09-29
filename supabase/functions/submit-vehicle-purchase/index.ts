@@ -94,8 +94,8 @@ async function checkIdentity(admin: any, body: Record<string, any>) {
   }
   const digits = text(body.phone, 30).replace(/\D/g, "").slice(-10);
   if (digits.length === 10) {
-    const { data } = await admin.from("users").select("id, phone").ilike("phone", `%${digits.slice(-4)}%`).limit(200);
-    out.phoneMatch = !!data?.some((u: any) => String(u.phone || "").replace(/\D/g, "").slice(-10) === digits);
+    const { data } = await admin.from("users").select("id, phone_number").ilike("phone_number", `%${digits.slice(-4)}%`).limit(200);
+    out.phoneMatch = !!data?.some((u: any) => String(u.phone_number || "").replace(/\D/g, "").slice(-10) === digits);
   }
   return out;
 }
