@@ -45,6 +45,17 @@
     --dimes-gold: 45 93% 58%;
     --dimes-surface: 0 0% 100%;
     --dimes-surface-elevated: 210 40% 96%;
+
+    /* Reward carousel category themes */
+    --reward-deep: 225 38% 10%;
+    --reward-tipped: 348 72% 32%;
+    --reward-rated: 42 84% 42%;
+    --reward-cars: 164 58% 28%;
+    --reward-circle: 138 48% 26%;
+    --reward-dimes: 306 62% 34%;
+    --reward-likes: 338 68% 38%;
+    --reward-giving: 187 62% 30%;
+    --reward-highlight: 46 94% 62%;
   }
 
 
@@ -86,6 +97,17 @@
     --dimes-gold: 45 93% 62%;
     --dimes-surface: 222 47% 9%;
     --dimes-surface-elevated: 220 40% 14%;
+
+    /* Reward carousel category themes */
+    --reward-deep: 225 38% 8%;
+    --reward-tipped: 348 72% 28%;
+    --reward-rated: 42 84% 36%;
+    --reward-cars: 164 58% 23%;
+    --reward-circle: 138 48% 21%;
+    --reward-dimes: 306 62% 29%;
+    --reward-likes: 338 68% 32%;
+    --reward-giving: 187 62% 24%;
+    --reward-highlight: 46 94% 60%;
   }
 }
 
@@ -197,6 +219,48 @@
 
 
 @layer components {
+  .reward-carousel {
+    background-color: hsl(var(--reward-deep));
+    background-size: cover;
+  }
+
+  .reward-theme-default,
+  .reward-theme-dimes {
+    background-image: linear-gradient(125deg, hsl(var(--reward-deep)), hsl(var(--reward-dimes)) 58%, hsl(var(--reward-deep)));
+  }
+
+  .reward-theme-tipped {
+    background-image: linear-gradient(125deg, hsl(var(--reward-deep)), hsl(var(--reward-tipped)) 55%, hsl(var(--reward-highlight) / 0.42));
+  }
+
+  .reward-theme-rated {
+    background-image: linear-gradient(135deg, hsl(var(--reward-deep)), hsl(var(--reward-rated) / 0.78) 52%, hsl(var(--reward-deep)));
+  }
+
+  .reward-theme-cars {
+    background-image: linear-gradient(120deg, hsl(var(--reward-deep)), hsl(var(--reward-cars)) 52%, hsl(var(--reward-highlight) / 0.34));
+  }
+
+  .reward-theme-circle {
+    background-image: linear-gradient(145deg, hsl(var(--reward-deep)), hsl(var(--reward-circle)) 48%, hsl(var(--reward-highlight) / 0.34));
+  }
+
+  .reward-theme-likes {
+    background-image: linear-gradient(125deg, hsl(var(--reward-deep)), hsl(var(--reward-likes)) 52%, hsl(var(--reward-deep)));
+  }
+
+  .reward-theme-giving {
+    background-image: linear-gradient(135deg, hsl(var(--reward-deep)), hsl(var(--reward-giving)) 50%, hsl(var(--reward-highlight) / 0.38));
+  }
+
+  .reward-theme-pattern {
+    background-image:
+      linear-gradient(115deg, transparent 0 48%, hsl(var(--reward-highlight) / 0.08) 48% 49%, transparent 49%),
+      linear-gradient(25deg, transparent 0 73%, hsl(var(--foreground) / 0.05) 73% 74%, transparent 74%);
+    background-size: 52px 52px, 76px 76px;
+    mask-image: linear-gradient(to right, transparent, black 30%, black);
+  }
+
   .purchase-application label {
     color: hsl(var(--rental-muted));
   }
