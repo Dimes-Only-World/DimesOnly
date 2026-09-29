@@ -43,6 +43,7 @@ serve(async (req) => {
         sold_at: a.sold_at,
         amount: a.sale_status === "sold" ? Number(direct ? a.referrer_commission : a.upline_commission) || 0 : 0,
         via: direct ? null : users[a.referrer_user_id] || null,
+        buyer_username: a.user_id ? users[a.user_id]?.username || null : null,
       };
     }));
 

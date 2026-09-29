@@ -6,7 +6,7 @@ import { MiniAvatar, SaleStatusBadge, shortDate, usd } from "./saleCommissionUi"
 export type SaleCommissionData = {
   rows: Array<{
     id: string; level: "direct" | "upline"; rate: number; submitted_at: string; area_code: string;
-    buyer_first: string; buyer_last: string; buyer_avatar: string | null; status: string; sold_at: string | null;
+    buyer_first: string; buyer_last: string; buyer_avatar: string | null; buyer_username?: string | null; status: string; sold_at: string | null;
     amount: number; via: { username: string; avatar: string | null } | null;
   }>;
   bonuses: Array<{ month: string; amount: number; note: string | null }>;
