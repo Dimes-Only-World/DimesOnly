@@ -201,6 +201,24 @@ const MembershipAgreementBody: React.FC<Props> = ({
             no claim to Company assets beyond distributions the Company actually declares under this
             Agreement.
           </p>
+          <p>
+            4.9 Upgrade Fee and Staged Pricing. Diamond Plus is limited to three hundred (300)
+            lifetime positions sold in three stages of one hundred (100): positions 1–100 at
+            $149.99 one-time or $25.00 per month for twelve (12) months; positions 101–200 at
+            $249.99 one-time or $35.00 per month for twelve (12) months; and positions 201–300 at
+            $349.99 one-time or $45.00 per month for twelve (12) months. The price that applies is
+            the stage open when the Company accepts the Member&rsquo;s first payment and is locked
+            for that Member. When all 300 positions are filled, no further Diamond Plus positions
+            will be sold.
+          </p>
+          <p>
+            4.10 Installment Terms. If the Member chooses the twelve-month plan, full access begins
+            after the first payment is received. The Member agrees to pay the remaining eleven (11)
+            monthly payments when due. If a payment fails and is not cured within fourteen (14)
+            days, the Company may suspend Diamond Plus benefits, withhold profit-share
+            distributions, and, after thirty (30) days, release the position. Payments already
+            made are handled under the Company&rsquo;s refund policy.
+          </p>
         </section>
 
         <section>
