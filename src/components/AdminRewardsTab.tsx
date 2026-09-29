@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import { callRewards, Contest, REWARD_CATEGORIES, REWARD_AUDIENCES, fmtScore } from "@/lib/rewards";
 import { Loader2, Search, Upload, X } from "lucide-react";
 
@@ -26,7 +27,7 @@ const AdminRewardsTab: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [userTerm, setUserTerm] = useState("");
   const [userResults, setUserResults] = useState<SearchUser[]>([]);
-  const imageInput = useRef<HTMLInputElement>(null);
+  const backgroundInput = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -69,22 +70,25 @@ const AdminRewardsTab: React.FC = () => {
 
   const uploadBackground = async (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast({ title: "Choose an image", variant: "destructive" }); return; }
-    if (file.size > 10 * 1024 * 1024) { toast({ title: "Image must be under 10MB", variant: "destructive" }); return; }
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+    if (!isImage && !isVideo) { toast({ title: "Choose an image or video", variant: "destructive" }); return; }
+    const maxBytes = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxBytes) { toast({ title: `${isVideo ? "Video" : "Image"} must be under ${isVideo ? "100MB" : "10MB"}`, variant: "destructive" }); return; }
     setUploading(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-        reader.onerror = () => reject(new Error("Could not read image"));
-        reader.readAsDataURL(file);
+      const signed = await callRewards<{ path: string; token: string; url: string }>("signBackgroundUpload", {
+        fileName: file.name, contentType: file.type, fileSize: file.size,
       });
-      const data = await callRewards<{ url: string }>("uploadBackground", { base64, fileName: file.name, contentType: file.type });
-      set("background_image_url", data.url);
+      const { error } = await supabase.storage.from("promo-videos").uploadToSignedUrl(signed.path, signed.token, file, { contentType: file.type });
+      if (error) throw error;
+      set("background_image_url", signed.url);
     } catch (e) {
-      toast({ title: "Upload failed", description: e instanceof Error ? e.message : "Could not upload image", variant: "destructive" });
+      toast({ title: "Upload failed", description: e instanceof Error ? e.message : "Could not upload background", variant: "destructive" });
     } finally { setUploading(false); }
   };
+
+  const isVideoBackground = (url: string) => /\.(mp4|webm|mov|m4v)(?:$|\?)/i.test(url);
 
   return (
     <div className="space-y-6">
@@ -117,13 +121,13 @@ const AdminRewardsTab: React.FC = () => {
           <label className="space-y-1"><span className="text-sm font-medium">Expires {form.contest_type === "goal" ? "(optional)" : ""}</span>
             <Input type="datetime-local" value={form.ends_at} onChange={(e) => set("ends_at", e.target.value)} /></label>
           <div className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium">Background image (optional)</span>
-            <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => uploadBackground(e.target.files?.[0])} />
+            <span className="text-sm font-medium">Background image or video (optional)</span>
+            <input ref={backgroundInput} type="file" accept="image/*,video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => { uploadBackground(e.target.files?.[0]); e.currentTarget.value = ""; }} />
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="button" variant="outline" onClick={() => imageInput.current?.click()} disabled={uploading}>
-                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}{uploading ? "Uploading…" : "Upload image"}
+              <Button type="button" variant="outline" onClick={() => backgroundInput.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}{uploading ? "Uploading…" : "Upload image or video"}
               </Button>
-              {form.background_image_url && <><img src={form.background_image_url} alt="Contest background preview" className="h-16 w-28 rounded object-cover" /><Button type="button" size="icon" variant="ghost" aria-label="Remove background image" onClick={() => set("background_image_url", "")}><X className="h-4 w-4" /></Button></>}
+              {form.background_image_url && <>{isVideoBackground(form.background_image_url) ? <video src={form.background_image_url} muted loop playsInline autoPlay className="h-16 w-28 rounded object-cover" /> : <img src={form.background_image_url} alt="Contest background preview" className="h-16 w-28 rounded object-cover" />}<Button type="button" size="icon" variant="ghost" aria-label="Remove background" onClick={() => set("background_image_url", "")}><X className="h-4 w-4" /></Button></>}
             </div>
           </div>
           <div className="relative space-y-2 md:col-span-2">
