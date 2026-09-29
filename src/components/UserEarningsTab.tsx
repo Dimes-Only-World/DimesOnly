@@ -2121,13 +2121,13 @@ return (
                     </span>
                   </span>
                   <span className="hidden sm:flex items-center gap-1">
-                    <Badge variant="secondary">Direct</Badge>
+                    <Badge variant="secondary">Direct 20%</Badge>
                     <span className="font-medium">
                       {formatCurrency(directTotalAmount)}
                     </span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <Badge variant="secondary">Overrides</Badge>
+                    <Badge variant="secondary">Overrides 10%</Badge>
                     <span className="font-medium text-green-700">
                       {formatCurrency(overridesTotal)}
                     </span>
