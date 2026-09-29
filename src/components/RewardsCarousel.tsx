@@ -112,14 +112,18 @@ const RewardsCarousel: React.FC = () => {
   if (!items.length) return null;
   const idx = i % items.length;
   const go = (d: number) => setI((p) => (p + d + items.length) % items.length);
+  const backgroundUrl = items[idx].background_image_url;
+  const videoBackground = backgroundUrl && /\.(mp4|webm|mov|m4v)(?:$|\?)/i.test(backgroundUrl);
 
   return (
     <section
       className="relative mb-6 overflow-hidden rounded-2xl border border-dimes-gold/40 bg-dimes-surface-elevated p-5 shadow-lg md:p-7"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
     >
-      {items[idx].background_image_url && <img src={items[idx].background_image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-      {items[idx].background_image_url && <div className="absolute inset-0 bg-background/75" />}
+      {backgroundUrl && (videoBackground
+        ? <video key={backgroundUrl} src={backgroundUrl} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
+        : <img src={backgroundUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />)}
+      {backgroundUrl && <div className="absolute inset-0 bg-background/75" />}
       <p className="relative mb-4 text-center text-xs font-black uppercase tracking-[0.35em] text-yellow-300">🏆 Rewards & Bonuses 🏆</p>
       <div key={items[idx].id} className="relative animate-fade-in">
         <Slide c={items[idx]} now={now} />

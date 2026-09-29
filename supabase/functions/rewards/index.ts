@@ -195,6 +195,21 @@ Deno.serve(async (req) => {
     if (!adminId) return json({ error: "Admin session expired. Please sign in again." }, 401);
 
     switch (action) {
+      case "signBackgroundUpload": {
+        const contentType = String(body.contentType || "");
+        const isImage = contentType.startsWith("image/");
+        const isVideo = contentType.startsWith("video/");
+        if (!isImage && !isVideo) return json({ error: "Choose an image or video file" }, 400);
+        const fileSize = Number(body.fileSize || 0);
+        const maxBytes = (isVideo ? 100 : 10) * 1024 * 1024;
+        if (!fileSize || fileSize > maxBytes) return json({ error: `${isVideo ? "Video" : "Image"} must be under ${isVideo ? "100MB" : "10MB"}` }, 400);
+        const safeName = String(body.fileName || (isVideo ? "background.mp4" : "background.jpg")).replace(/[^A-Za-z0-9._-]/g, "_").slice(-80);
+        const path = `rewards/${crypto.randomUUID()}-${safeName}`;
+        const { data: signed, error } = await db.storage.from("promo-videos").createSignedUploadUrl(path);
+        if (error || !signed) throw error || new Error("Could not start upload");
+        const { data: publicData } = db.storage.from("promo-videos").getPublicUrl(path);
+        return json({ path, token: signed.token, url: publicData.publicUrl });
+      }
       case "uploadBackground": {
         const contentType = String(body.contentType || "");
         if (!contentType.startsWith("image/")) return json({ error: "Choose an image file" }, 400);
