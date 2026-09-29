@@ -18,7 +18,7 @@ const VehicleSaleCommissionsCard: React.FC<{ data: SaleCommissionData | null }> 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm"><Car className="h-4 w-4" /> Vehicle Sale Commissions</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-sm"><Car className="h-4 w-4" /> Vehicle Sale Earnings</CardTitle>
         <p className="text-xs text-muted-foreground">53% on your direct referrals' vehicle purchases, 5% on your second level. Earned {usd(data.soldTotal)}{data.bonusTotal > 0 ? ` + ${usd(data.bonusTotal)} bonuses` : ""}.</p>
       </CardHeader>
       <CardContent className="space-y-2">

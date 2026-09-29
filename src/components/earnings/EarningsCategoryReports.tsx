@@ -75,10 +75,10 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
     if (cat === "vehicle") {
       const sold = vehicleRows.filter((r) => r.status === "sold");
       const direct = sold.filter((r) => r.level === "direct").reduce((s, r) => s + r.amount, 0);
-      const upline = sold.filter((r) => r.level === "upline").reduce((s, r) => s + r.amount, 0);
+      const override = sold.filter((r) => r.level === "upline").reduce((s, r) => s + r.amount, 0);
       return (
         <>
-          <Summary items={[{ label: "Commissions 53%", value: usd(direct) }, { label: "Overrides 5%", value: usd(upline) }, { label: "Applications", value: String(vehicleRows.length) }]} />
+          <Summary items={[{ label: "Direct 53%", value: usd(direct) }, { label: "Overrides 5%", value: usd(override) }, { label: "Applications", value: String(vehicleRows.length) }]} />
           {vehicleRows.length === 0 ? <Empty text="No vehicle sales in this pay period." /> : (
             <ul className="divide-y divide-border">
               {vehicleRows.map((r) => {
@@ -92,7 +92,7 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
                         Area {r.area_code || "—"} · Applied {shortDate(r.submitted_at)}{r.sold_at ? ` · Sold ${shortDate(r.sold_at)}` : ""}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {r.level === "direct" ? "Direct commission (53%)" : "Override (5%)"}
+                        {r.level === "direct" ? "Direct (53%)" : "Override (5%)"}
                         {r.via && (
                           <> via <Link to={`/profile/${r.via.username}`} className="font-semibold text-primary underline-offset-2 hover:underline">@{r.via.username}</Link></>
                         )}
@@ -115,11 +115,11 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
       const isOverride = (t: string) => /upline|override/i.test(t);
       const direct = rows.filter((r) => !isOverride(r.commission_type)).reduce((s, r) => s + r.amount, 0);
       const over = rows.filter((r) => isOverride(r.commission_type)).reduce((s, r) => s + r.amount, 0);
-      const labels = cat === "rentals" ? ["Direct referral", "Second-level override"] : ["Direct referral (10%)", "Override (5%)"];
+      const labels = ["Direct referral (10%)", "Override (5%)"];
       return (
         <>
-          <Summary items={[{ label: "Commissions", value: usd(direct) }, { label: "Overrides", value: usd(over) }, { label: "Transactions", value: String(rows.length) }]} />
-          {rows.length === 0 ? <Empty text={`No ${cat === "rentals" ? "rental" : "clothing"} commissions in this pay period.`} /> : (
+          <Summary items={[{ label: "Direct 10%", value: usd(direct) }, { label: "Overrides 5%", value: usd(over) }, { label: "Transactions", value: String(rows.length) }]} />
+          {rows.length === 0 ? <Empty text={`No ${cat === "rentals" ? "rental" : "clothing"} earnings in this pay period.`} /> : (
             <ul className="divide-y divide-border">
               {rows.map((r) => (
                 <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
@@ -142,13 +142,13 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
     const o = flixRows.filter((r) => r.level !== 1).reduce((s, r) => s + r.amount_cents, 0) / 100;
     return (
       <>
-        <Summary items={[{ label: "Commissions", value: usd(c) }, { label: "Overrides", value: usd(o) }, { label: "Subscriptions", value: String(flixRows.length) }]} />
+        <Summary items={[{ label: "Direct 10%", value: usd(c) }, { label: "Overrides 5%", value: usd(o) }, { label: "Subscriptions", value: String(flixRows.length) }]} />
         {flixRows.length === 0 ? <Empty text="No FlameFlix earnings in this pay period." /> : (
           <ul className="divide-y divide-border">
             {flixRows.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{r.level === 1 ? "Direct subscriber commission" : "Second-level override"}</p>
+                  <p className="text-sm font-semibold text-foreground">{r.level === 1 ? "Direct subscriber (10%)" : "Override (5%)"}</p>
                   <p className="truncate text-xs text-muted-foreground">{shortDate(r.created_at)}{r.note ? ` · ${r.note}` : ""}</p>
                 </div>
                 <div className="text-right">
