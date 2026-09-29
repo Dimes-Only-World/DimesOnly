@@ -195,6 +195,18 @@ Deno.serve(async (req) => {
     if (!adminId) return json({ error: "Admin session expired. Please sign in again." }, 401);
 
     switch (action) {
+      case "uploadBackground": {
+        const contentType = String(body.contentType || "");
+        if (!contentType.startsWith("image/")) return json({ error: "Choose an image file" }, 400);
+        const bytes = Uint8Array.from(atob(String(body.base64 || "")), (ch) => ch.charCodeAt(0));
+        if (!bytes.length || bytes.length > 10 * 1024 * 1024) return json({ error: "Image must be under 10MB" }, 400);
+        const safeName = String(body.fileName || "image.jpg").replace(/[^A-Za-z0-9._-]/g, "_").slice(-80);
+        const path = `rewards/${crypto.randomUUID()}-${safeName}`;
+        const { error } = await db.storage.from("promo-videos").upload(path, bytes, { contentType, cacheControl: "31536000" });
+        if (error) throw error;
+        const { data } = db.storage.from("promo-videos").getPublicUrl(path);
+        return json({ url: data.publicUrl });
+      }
       case "searchUsers": {
         const term = String(body.term || "").trim();
         if (term.length < 2) return json({ users: [] });

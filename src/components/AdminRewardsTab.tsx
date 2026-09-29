@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { callRewards, Contest, REWARD_CATEGORIES, REWARD_AUDIENCES, fmtScore } from "@/lib/rewards";
-import { supabase } from "@/lib/supabase";
 import { Loader2, Search, Upload, X } from "lucide-react";
 
 const toLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
@@ -74,12 +73,14 @@ const AdminRewardsTab: React.FC = () => {
     if (file.size > 10 * 1024 * 1024) { toast({ title: "Image must be under 10MB", variant: "destructive" }); return; }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "jpg";
-      const path = `rewards/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("promo-videos").upload(path, file, { cacheControl: "31536000" });
-      if (error) throw error;
-      const { data } = supabase.storage.from("promo-videos").getPublicUrl(path);
-      set("background_image_url", data.publicUrl);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+        reader.onerror = () => reject(new Error("Could not read image"));
+        reader.readAsDataURL(file);
+      });
+      const data = await callRewards<{ url: string }>("uploadBackground", { base64, fileName: file.name, contentType: file.type });
+      set("background_image_url", data.url);
     } catch (e) {
       toast({ title: "Upload failed", description: e instanceof Error ? e.message : "Could not upload image", variant: "destructive" });
     } finally { setUploading(false); }
