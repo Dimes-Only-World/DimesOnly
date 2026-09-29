@@ -543,12 +543,24 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     if (!userData?.id) return;
     try {
       setEarningsLoading(true);
-      const body = await fetchReferralEarningsFromQuery({
+      const args = {
         userId: userData.id,
         filters: { startDate, endDate, q, membershipType, commissionTypes },
         page: p,
         pageSize: ps,
-      });
+      };
+      let body;
+      let lastErr: unknown;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          body = await fetchReferralEarningsFromQuery(args);
+          break;
+        } catch (err) {
+          lastErr = err;
+          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        }
+      }
+      if (!body) throw lastErr;
       const items = body.items as EarningsItem[];
       setEarningsItems(items);
       setEarningsTotal(body.total);
