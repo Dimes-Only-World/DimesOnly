@@ -90,7 +90,11 @@ async function events(db: Db, cat: string, start: string, end: string): Promise<
   return { evs: [] };
 }
 
+// Owner/staff accounts are never eligible for rewards or contests.
+const BLOCKED_USERNAMES = new Set(["thetruth"]);
+
 function inAudience(u: any, aud: string[]): boolean {
+  if (BLOCKED_USERNAMES.has(String(u.username || "").trim().toLowerCase())) return false;
   const type = String(u.user_type || "").toLowerCase();
   const gender = String(u.gender || "").toLowerCase();
   if (aud.includes("dimes") && ["exotic", "stripper"].includes(type)) return true;
