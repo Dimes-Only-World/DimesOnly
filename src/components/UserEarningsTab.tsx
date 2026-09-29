@@ -53,6 +53,7 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import AngelLoader from "./AngelLoader";
 import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
 import EarningsCategoryReports, { type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
+import BonusBox from "@/components/BonusBox";
 
 const PERFORMER_RATE = 0.2;
 const REFERRER_RATE = 0.1;
@@ -1507,45 +1508,34 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
 return (
     <div className="earnings-wall space-y-6">
-      {availableForWithdrawal > 0 && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">
-                  Minimum Payout Start at&nbsp;$250.00
-                </h3>
-                <p className="text-sm text-gray-500">
-                  You have {formatCurrency(availableForWithdrawal)} available for
-                  withdrawal
-                </p>
-              </div>
-              <Button
-                onClick={handlePayoutRequest}
-                className="bg-green-600 hover:bg-green-700"
-                disabled={availableForWithdrawal === 0}
-              >
-                Payout Method
-              </Button>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="font-medium">
+                Minimum Payout Start at&nbsp;$250.00
+              </h3>
+              <p className="text-sm text-gray-500">
+                You have {formatCurrency(availableForWithdrawal)} available for
+                withdrawal
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div className="rounded-lg border border-green-200 bg-green-50 px-6 py-3 text-center">
+              <p className="text-sm font-medium text-green-700">Available Earnings</p>
+              <p className="text-2xl font-bold text-green-800">{formatCurrency(availableForWithdrawal)}</p>
+              <p className="text-xs text-green-600">Available for withdrawal</p>
+            </div>
+            <Button
+              onClick={handlePayoutRequest}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={availableForWithdrawal === 0}
+            >
+              Payout Method
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-green-700">
-              Available Earnings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-800">
-              {formatCurrency(availableForWithdrawal)}
-            </div>
-            <p className="text-sm text-green-600">Available for withdrawal</p>
-          </CardContent>
-        </Card>
-
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-blue-700">
@@ -1557,6 +1547,20 @@ return (
               {formatCurrency(currentEarnings)}
             </div>
             <p className="text-sm text-blue-600">All time total</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-teal-200 bg-teal-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-teal-700">
+              Referral Earnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-teal-800">
+              {formatCurrency(totalReferralAmount)}
+            </div>
+            <p className="text-sm text-teal-600">Membership referrals</p>
           </CardContent>
         </Card>
 
@@ -1666,6 +1670,7 @@ return (
         </Card>
       </div>
 
+      <BonusBox />
 
       <VehicleSaleCommissionsCard data={saleData} />
 
