@@ -1670,6 +1670,7 @@ return (
         </Card>
       </div>
 
+      <BonusBox />
 
       <VehicleSaleCommissionsCard data={saleData} />
 

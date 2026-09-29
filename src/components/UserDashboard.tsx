@@ -30,6 +30,7 @@ import DiamondPlusPopup from "./DiamondPlusPopup";
 import MansionPartyPopup from "./MansionPartyPopup";
 import SubscriptionProgress from "./SubscriptionProgress";
 import DashboardCommandBar from "./DashboardCommandBar";
+import RewardsCarousel from "./RewardsCarousel";
 import DashboardChecklist from "./DashboardChecklist";
 import DashboardMembershipCard from "./DashboardMembershipCard";
 import DashboardFeedSection from "./dashboard/DashboardFeedSection";
@@ -471,6 +472,9 @@ const UserDashboard: React.FC = () => {
                 thumbnailUrl="https://dimesonly.s3.us-east-2.amazonaws.com/HOUSING-ANGELS+(1).png"
               />
             </div>
+
+            {/* Rewards & bonuses carousel */}
+            <div className="mt-6"><RewardsCarousel /></div>
 
             {/* 2. Welcome back */}
             <DashboardCommandBar userData={userData} completion={completion} section="header" />

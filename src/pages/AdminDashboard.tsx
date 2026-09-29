@@ -47,6 +47,7 @@ import AdminApprovalsTab from "@/components/AdminApprovalsTab";
 import AdminLeadsTab from "@/components/AdminLeadsTab";
 import AdminShortFormBackgroundTab from "@/components/AdminShortFormBackgroundTab";
 import AdminSelfieCheckTab from "@/components/AdminSelfieCheckTab";
+import AdminRewardsTab from "@/components/AdminRewardsTab";
 import AdminSMSTextTab from "@/components/AdminSMSTextTab";
 import AdminMembershipAgreementsTab from "@/components/AdminMembershipAgreementsTab";
 import AdminStoreTab from "@/components/AdminStoreTab";
@@ -111,6 +112,7 @@ const tabs = [
   { value: "shortform", label: "S-F-B", icon: Smartphone },
   { value: "loginbg", label: "Login BG", icon: Smartphone },
   { value: "selfieai", label: "Selfie AI", icon: Filter },
+  { value: "rewards", label: "Rewards & Bonuses", icon: Trophy },
   { value: "smstext", label: "SMS Text", icon: MessageCircle },
   { value: "sdm", label: "SDM", icon: FileText },
   { value: "sem", label: "SEM", icon: FileSignature },
@@ -369,6 +371,9 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
           <TabsContent value="loginbg">
             <AdminShortFormBackgroundTab page="login" />
+          </TabsContent>
+          <TabsContent value="rewards">
+            <AdminRewardsTab />
           </TabsContent>
           <TabsContent value="selfieai">
             <AdminSelfieCheckTab />
