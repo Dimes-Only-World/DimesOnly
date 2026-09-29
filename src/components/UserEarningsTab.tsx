@@ -1453,11 +1453,13 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         return;
       }
 
+      const cleanRecipient = dmRecipient.replace(/^@/, "").trim();
       const { data: recipientUser, error: recipientErr } = await supabase
-        .from("users")
+        .from("public_user_profiles")
         .select("id, username")
-        .ilike("username", dmRecipient)
-        .single();
+        .ilike("username", cleanRecipient)
+        .limit(1)
+        .maybeSingle();
       if (recipientErr || !recipientUser?.id) {
         toast({
           title: "User not found",
