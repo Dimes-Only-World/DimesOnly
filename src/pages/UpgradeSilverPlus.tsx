@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import StagePriceBanner from "@/components/StagePriceBanner";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import { formatUSD } from "@/lib/membershipPricing";
 import MembershipAgreementSection from "@/components/MembershipAgreementSection";
 
 interface MembershipUpdate {
@@ -27,8 +30,6 @@ interface UpgradeSilverPlusProps {
 
 type Plan = "full" | "monthly";
 
-const FULL_AMOUNT = 249.99;
-const MONTHLY_AMOUNT = 62.5;
 
 export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: UpgradeSilverPlusProps) {
   const [searchParams] = useSearchParams();
@@ -43,6 +44,9 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
   const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
   const { toast } = useToast();
 
+  const stageInfo = useMembershipStage("silver_plus");
+  const FULL_AMOUNT = stageInfo.stage?.full ?? 0;
+  const MONTHLY_AMOUNT = stageInfo.stage?.monthly ?? 0;
   const AMOUNT = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
 
   useEffect(() => {
@@ -195,15 +199,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
             <p className="text-fuchsia-200 mt-2 mb-4">
               General Member Profit-Sharing position — limited to 300 lifetime seats.
             </p>
-            {spotsLeft !== null && spotsLeft > 0 ? (
-              <Badge variant="destructive" className="text-lg px-4 py-2">
-                Only {spotsLeft} spots remaining!
-              </Badge>
-            ) : spotsLeft === 0 ? (
-              <Badge variant="destructive" className="text-lg px-4 py-2">
-                All 300 Silver Plus positions have been filled.
-              </Badge>
-            ) : null}
+            <StagePriceBanner type="silver_plus" className="max-w-md mx-auto" />{false && (<span/>) : null}
           </div>
 
           <MembershipAgreementSection
@@ -254,7 +250,7 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
                 <CardTitle className="text-fuchsia-400">One-Time Lifetime</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold text-yellow-300">${FULL_AMOUNT}</div>
+                <div className="text-4xl font-bold text-yellow-300">{formatUSD(FULL_AMOUNT)}</div>
                 <p className="text-sm text-gray-300 mt-2">Pay once → lifetime access immediately.</p>
               </CardContent>
             </Card>
@@ -268,10 +264,10 @@ export default function UpgradeSilverPlus({ userId, onMembershipUpdate }: Upgrad
               </CardHeader>
               <CardContent>
                 <div className="text-4xl font-bold text-yellow-300">
-                  ${MONTHLY_AMOUNT.toFixed(2)}<span className="text-xl">/mo</span>
+                  {formatUSD(MONTHLY_AMOUNT)}<span className="text-xl">/mo</span>
                 </div>
                 <p className="text-sm text-gray-300 mt-2">
-                  12 monthly payments = $750 total. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
+                  12 monthly payments = {formatUSD(MONTHLY_AMOUNT * 12)} total. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
                 </p>
               </CardContent>
             </Card>
