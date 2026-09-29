@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Trophy, Timer, Crown } from "lucide-react";
 import { callRewards, Contest, REWARD_CATEGORIES, REWARD_AUDIENCES, fmtScore } from "@/lib/rewards";
+import { Button } from "@/components/ui/button";
 
 function useNow(ms = 1000) {
   const [n, setN] = useState(Date.now());
@@ -41,11 +42,14 @@ const Slide: React.FC<{ c: Contest; now: number }> = ({ c, now }) => {
         <p className="inline-flex items-center gap-2 rounded-full bg-fuchsia-500/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-fuchsia-200">
           <span>{cat.icon}</span>{cat.label}
         </p>
-        <h3 className="mt-3 text-xl font-black text-white md:text-2xl">{c.title}</h3>
+        <div className="mt-3 flex items-center justify-center gap-3 md:justify-start">
+          {c.featured_user && <Avatar src={c.featured_user.avatar} name={c.featured_user.username} size="h-12 w-12" />}
+          <h3 className="text-xl font-black text-white md:text-2xl">{c.title}</h3>
+        </div>
         <p className="mt-1 bg-gradient-to-r from-yellow-200 via-yellow-400 to-amber-500 bg-clip-text text-4xl font-black text-transparent drop-shadow-[0_0_18px_rgba(250,204,21,0.45)] md:text-5xl">{prize}</p>
         {c.description && <p className="mt-2 text-sm text-fuchsia-100/80">{c.description}</p>}
         <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs md:justify-start">
-          <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 font-mono text-yellow-200"><Timer className="h-3.5 w-3.5" />{countdown(c.ends_at, now)}</span>
+          {c.contest_type === "most" && c.ends_at && <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 font-mono text-yellow-200"><Timer className="h-3.5 w-3.5" />{countdown(c.ends_at, now)}</span>}
           {c.contest_type === "goal" && <span className="rounded-full bg-black/40 px-3 py-1 text-white">First to {fmtScore(c.category, c.goal || 0)} {cat.unit}</span>}
           <span className="rounded-full bg-black/40 px-3 py-1 text-fuchsia-100">{c.audience.map((a) => REWARD_AUDIENCES[a]).join(" · ")}</span>
         </div>
@@ -111,22 +115,22 @@ const RewardsCarousel: React.FC = () => {
 
   return (
     <section
-      className="relative mb-6 overflow-hidden rounded-2xl border border-yellow-400/40 bg-gradient-to-br from-[#2a0833] via-[#4a0b4f] to-[#1a0620] p-5 shadow-[0_0_40px_-10px_rgba(233,22,209,0.6)] md:p-7"
+      className="relative mb-6 overflow-hidden rounded-2xl border border-dimes-gold/40 bg-dimes-surface-elevated p-5 shadow-lg md:p-7"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 animate-pulse rounded-full bg-fuchsia-500/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 animate-pulse rounded-full bg-yellow-400/20 blur-3xl" />
+      {items[idx].background_image_url && <img src={items[idx].background_image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+      {items[idx].background_image_url && <div className="absolute inset-0 bg-background/75" />}
       <p className="relative mb-4 text-center text-xs font-black uppercase tracking-[0.35em] text-yellow-300">🏆 Rewards & Bonuses 🏆</p>
       <div key={items[idx].id} className="relative animate-fade-in">
         <Slide c={items[idx]} now={now} />
       </div>
       {items.length > 1 && (
         <>
-          <button aria-label="Previous contest" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"><ChevronLeft className="h-5 w-5" /></button>
-          <button aria-label="Next contest" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"><ChevronRight className="h-5 w-5" /></button>
+          <Button type="button" size="icon" variant="secondary" aria-label="Previous contest" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2"><ChevronLeft className="h-5 w-5" /></Button>
+          <Button type="button" size="icon" variant="secondary" aria-label="Next contest" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2"><ChevronRight className="h-5 w-5" /></Button>
           <div className="relative mt-4 flex justify-center gap-1.5">
             {items.map((c, k) => (
-              <button key={c.id} aria-label={`Contest ${k + 1}`} onClick={() => setI(k)} className={`h-2 rounded-full transition-all ${k === idx ? "w-6 bg-yellow-400" : "w-2 bg-white/40"}`} />
+              <Button type="button" key={c.id} variant="ghost" aria-label={`Contest ${k + 1}`} onClick={() => setI(k)} className={`h-2 min-w-0 rounded-full p-0 transition-all ${k === idx ? "w-6 bg-dimes-gold" : "w-2 bg-foreground/40"}`} />
             ))}
           </div>
         </>
