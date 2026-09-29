@@ -29,7 +29,7 @@ const NEXT_TIER_BENEFITS: Record<string, string[]> = {
   ],
   elite_plus: [
     "Full access to every area of the site",
-    "$15,000 lifetime, or 12 monthly payments",
+    "Lifetime one-time fee, or 12 monthly payments",
     "Priority VIP treatment at every event",
   ],
 };
