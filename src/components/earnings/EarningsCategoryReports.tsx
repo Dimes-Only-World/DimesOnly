@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Car, CarFront, ChevronLeft, ChevronRight, Flame, Shirt, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,9 @@ import { buildPeriods, inPeriod, type PayPeriod } from "./payPeriods";
 
 export type SimpleCommission = { id: string; amount: number; commission_type: string; status: string; created_at: string };
 export type FlixEarning = { id: string; amount_cents: number; level: number; status: string; created_at: string; note: string | null };
+
+export type Payer = { name: string; username: string | null; avatar: string | null };
+type PayerMap = { rentals: Record<string, Payer>; clothing: Record<string, Payer>; flix: Record<string, Payer> };
 
 export type Category = "vehicle" | "rentals" | "flix" | "clothing";
 
@@ -50,8 +54,30 @@ const Summary = ({ items }: { items: Array<{ label: string; value: string }> }) 
 
 const Empty = ({ text }: { text: string }) => <p className="py-10 text-center text-sm text-muted-foreground">{text}</p>;
 
-const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing, flix, category }) => {
+const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing, flix, category, onMessage }) => {
   const cat = category;
+  const [payers, setPayers] = useState<PayerMap>({ rentals: {}, clothing: {}, flix: {} });
+  useEffect(() => {
+    if (cat === "vehicle") return;
+    let alive = true;
+    supabase.functions.invoke("earnings-payers", { body: {} }).then(({ data }) => {
+      if (alive && data && !(data as any).error) setPayers(data as PayerMap);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [cat, rentals.length, clothing.length, flix.length]);
+  const PayerCell = ({ payer, fallback }: { payer?: Payer | null; fallback: string }) => (
+    <div className="flex min-w-0 items-center gap-3">
+      <MiniAvatar src={payer?.avatar || null} name={payer?.name || fallback} size={40} />
+      <div className="min-w-0">
+        {payer?.username ? (
+          <Link to={`/profile/${payer.username}`} className="block truncate text-sm font-semibold text-primary underline-offset-2 hover:underline">@{payer.username}</Link>
+        ) : (
+          <p className="truncate text-sm font-semibold text-foreground">{payer?.name || fallback}</p>
+        )}
+      </div>
+    </div>
+  );
+  const canMessage = (p?: Payer | null) => !!(p?.username && p?.avatar);
   const periods = useMemo(
     () =>
       buildPeriods([
@@ -98,6 +124,7 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
                         )}
                       </p>
                     </div>
+                    {r.buyer_username && r.buyer_avatar && <MessageButton username={r.buyer_username} onMessage={onMessage} />}
                     <div className="text-right">
                       <p className="text-sm font-bold text-foreground">{r.status === "sold" ? usd(r.amount) : r.status === "declined" ? "—" : "Awaiting sale"}</p>
                       <SaleStatusBadge status={r.status} />
@@ -121,18 +148,19 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
           <Summary items={[{ label: "Direct 10%", value: usd(direct) }, { label: "Overrides 5%", value: usd(over) }, { label: "Transactions", value: String(rows.length) }]} />
           {rows.length === 0 ? <Empty text={`No ${cat === "rentals" ? "rental" : "clothing"} earnings in this pay period.`} /> : (
             <ul className="divide-y divide-border">
-              {rows.map((r) => (
+              {rows.map((r) => { const p = payers[cat === "rentals" ? "rentals" : "clothing"][r.id]; return (
                 <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{isOverride(r.commission_type) ? labels[1] : labels[0]}</p>
-                    <p className="text-xs text-muted-foreground">{shortDate(r.created_at)}</p>
+                  <div className="min-w-0 flex-1">
+                    <PayerCell payer={p} fallback={cat === "rentals" ? "Renter" : "Customer"} />
+                    <p className="mt-1 text-xs text-muted-foreground">{isOverride(r.commission_type) ? labels[1] : labels[0]} · {shortDate(r.created_at)}</p>
                   </div>
+                  {canMessage(p) && <MessageButton username={p!.username!} onMessage={onMessage} />}
                   <div className="text-right">
                     <p className="text-sm font-bold text-foreground">{usd(r.amount)}</p>
                     <StatusPill status={r.status} />
                   </div>
                 </li>
-              ))}
+              ); })}
             </ul>
           )}
         </>
@@ -145,18 +173,19 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
         <Summary items={[{ label: "Direct 10%", value: usd(c) }, { label: "Overrides 5%", value: usd(o) }, { label: "Subscriptions", value: String(flixRows.length) }]} />
         {flixRows.length === 0 ? <Empty text="No FlameFlix earnings in this pay period." /> : (
           <ul className="divide-y divide-border">
-            {flixRows.map((r) => (
+            {flixRows.map((r) => { const p = payers.flix[r.id]; return (
               <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{r.level === 1 ? "Direct subscriber (10%)" : "Override (5%)"}</p>
-                  <p className="truncate text-xs text-muted-foreground">{shortDate(r.created_at)}{r.note ? ` · ${r.note}` : ""}</p>
+                <div className="min-w-0 flex-1">
+                  <PayerCell payer={p} fallback="Subscriber" />
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{r.level === 1 ? "Direct subscriber (10%)" : "Override (5%)"} · {shortDate(r.created_at)}{r.note ? ` · ${r.note}` : ""}</p>
                 </div>
+                {canMessage(p) && <MessageButton username={p!.username!} onMessage={onMessage} />}
                 <div className="text-right">
                   <p className="text-sm font-bold text-foreground">{usd(r.amount_cents / 100)}</p>
                   <StatusPill status={r.status} />
                 </div>
               </li>
-            ))}
+            ); })}
           </ul>
         )}
       </>
