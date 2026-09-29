@@ -21,7 +21,9 @@ export interface Leader { user_id: string; username?: string; avatar?: string | 
 export interface Contest {
   id: string; title: string; description: string | null; prize_amount: number; prize_label: string | null;
   category: string; contest_type: "most" | "goal"; goal: number | null; audience: string[];
-  starts_at: string; ends_at: string; status: string; paid_at: string | null; won_at: string | null;
+  starts_at: string; ends_at: string | null; status: string; paid_at: string | null; won_at: string | null;
+  background_image_url: string | null; featured_user_id: string | null;
+  featured_user: { user_id: string; username?: string; avatar?: string | null } | null;
   leaders: Leader[]; participants: number; my: Leader | null;
   winner: { user_id: string; username?: string; avatar?: string | null; score: number } | null;
 }

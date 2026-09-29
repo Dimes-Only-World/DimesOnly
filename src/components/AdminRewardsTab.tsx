@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { callRewards, Contest, REWARD_CATEGORIES, REWARD_AUDIENCES, fmtScore } from "@/lib/rewards";
+import { Loader2, Search, Upload, X } from "lucide-react";
 
 const toLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
 const blank = () => ({
   title: "", description: "", prize_amount: "200", prize_label: "", category: "dimes_recruited", contest_type: "goal", goal: "20",
-  audience: Object.keys(REWARD_AUDIENCES), starts_at: toLocal(new Date()), ends_at: toLocal(new Date(Date.now() + 30 * 864e5)),
+  audience: Object.keys(REWARD_AUDIENCES), starts_at: toLocal(new Date()), ends_at: "", background_image_url: "", featured_user_id: "", featured_user: null,
 });
+
+type SearchUser = { id: string; username: string; avatar: string | null };
 
 const AdminRewardsTab: React.FC = () => {
   const { toast } = useToast();
@@ -20,6 +23,10 @@ const AdminRewardsTab: React.FC = () => {
   const [form, setForm] = useState<any>(blank());
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [userTerm, setUserTerm] = useState("");
+  const [userResults, setUserResults] = useState<SearchUser[]>([]);
+  const imageInput = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -28,6 +35,13 @@ const AdminRewardsTab: React.FC = () => {
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (userTerm.trim().length < 2) { setUserResults([]); return; }
+    const timer = window.setTimeout(() => {
+      callRewards<{ users: SearchUser[] }>("searchUsers", { term: userTerm }).then((d) => setUserResults(d.users || [])).catch(() => setUserResults([]));
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [userTerm]);
 
   const act = async (action: string, extra: any, msg: string) => {
     try { await callRewards(action, extra); toast({ title: msg }); load(); }
@@ -36,7 +50,7 @@ const AdminRewardsTab: React.FC = () => {
 
   const save = async () => {
     setSaving(true);
-    const payload = { ...form, prize_amount: Number(form.prize_amount), goal: Number(form.goal), starts_at: new Date(form.starts_at).toISOString(), ends_at: new Date(form.ends_at).toISOString() };
+    const payload = { ...form, featured_user: undefined, prize_amount: Number(form.prize_amount), goal: Number(form.goal), starts_at: new Date(form.starts_at).toISOString(), ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null };
     try {
       await callRewards(editId ? "update" : "create", editId ? { id: editId, payload } : { payload });
       toast({ title: editId ? "Contest updated" : "Contest created" });
@@ -47,11 +61,30 @@ const AdminRewardsTab: React.FC = () => {
 
   const edit = (c: Contest) => {
     setEditId(c.id);
-    setForm({ ...c, prize_amount: String(c.prize_amount), goal: String(c.goal || ""), prize_label: c.prize_label || "", description: c.description || "", starts_at: toLocal(new Date(c.starts_at)), ends_at: toLocal(new Date(c.ends_at)) });
+    setForm({ ...c, prize_amount: String(c.prize_amount), goal: String(c.goal || ""), prize_label: c.prize_label || "", description: c.description || "", background_image_url: c.background_image_url || "", featured_user_id: c.featured_user_id || "", featured_user: c.featured_user, starts_at: toLocal(new Date(c.starts_at)), ends_at: c.ends_at ? toLocal(new Date(c.ends_at)) : "" });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
+
+  const uploadBackground = async (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast({ title: "Choose an image", variant: "destructive" }); return; }
+    if (file.size > 10 * 1024 * 1024) { toast({ title: "Image must be under 10MB", variant: "destructive" }); return; }
+    setUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+        reader.onerror = () => reject(new Error("Could not read image"));
+        reader.readAsDataURL(file);
+      });
+      const data = await callRewards<{ url: string }>("uploadBackground", { base64, fileName: file.name, contentType: file.type });
+      set("background_image_url", data.url);
+    } catch (e) {
+      toast({ title: "Upload failed", description: e instanceof Error ? e.message : "Could not upload image", variant: "destructive" });
+    } finally { setUploading(false); }
+  };
 
   return (
     <div className="space-y-6">
@@ -81,8 +114,35 @@ const AdminRewardsTab: React.FC = () => {
             <Input value={form.prize_label} onChange={(e) => set("prize_label", e.target.value)} /></label>
           <label className="space-y-1"><span className="text-sm font-medium">Starts</span>
             <Input type="datetime-local" value={form.starts_at} onChange={(e) => set("starts_at", e.target.value)} /></label>
-          <label className="space-y-1"><span className="text-sm font-medium">Expires</span>
+          <label className="space-y-1"><span className="text-sm font-medium">Expires {form.contest_type === "goal" ? "(optional)" : ""}</span>
             <Input type="datetime-local" value={form.ends_at} onChange={(e) => set("ends_at", e.target.value)} /></label>
+          <div className="space-y-2 md:col-span-2">
+            <span className="text-sm font-medium">Background image (optional)</span>
+            <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => uploadBackground(e.target.files?.[0])} />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="button" variant="outline" onClick={() => imageInput.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}{uploading ? "Uploading…" : "Upload image"}
+              </Button>
+              {form.background_image_url && <><img src={form.background_image_url} alt="Contest background preview" className="h-16 w-28 rounded object-cover" /><Button type="button" size="icon" variant="ghost" aria-label="Remove background image" onClick={() => set("background_image_url", "")}><X className="h-4 w-4" /></Button></>}
+            </div>
+          </div>
+          <div className="relative space-y-2 md:col-span-2">
+            <span className="text-sm font-medium">Featured member in title (optional)</span>
+            {form.featured_user ? (
+              <div className="flex items-center gap-3 rounded-md border p-2">
+                {form.featured_user.avatar ? <img src={form.featured_user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" /> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted font-bold">{form.featured_user.username?.[0]?.toUpperCase()}</div>}
+                <span className="font-medium">@{form.featured_user.username}</span>
+                <Button type="button" size="icon" variant="ghost" className="ml-auto" aria-label="Remove featured member" onClick={() => { setForm((f: any) => ({ ...f, featured_user: null, featured_user_id: "" })); setUserTerm(""); }}><X className="h-4 w-4" /></Button>
+              </div>
+            ) : <>
+              <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input value={userTerm} onChange={(e) => setUserTerm(e.target.value)} placeholder="Search by username" className="pl-9" /></div>
+              {userResults.length > 0 && <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-lg">
+                {userResults.map((u) => <Button key={u.id} type="button" variant="ghost" className="h-auto w-full justify-start gap-3 p-2" onClick={() => { setForm((f: any) => ({ ...f, featured_user_id: u.id, featured_user: { user_id: u.id, username: u.username, avatar: u.avatar } })); setUserResults([]); setUserTerm(""); }}>
+                  {u.avatar ? <img src={u.avatar} alt="" className="h-9 w-9 rounded-full object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted font-bold">{u.username[0]?.toUpperCase()}</span>}<span>@{u.username}</span>
+                </Button>)}
+              </div>}
+            </>}
+          </div>
           <div className="space-y-1 md:col-span-2"><span className="text-sm font-medium">Who can win</span>
             <div className="flex flex-wrap gap-2">
               {Object.entries(REWARD_AUDIENCES).map(([k, v]) => {
@@ -111,7 +171,7 @@ const AdminRewardsTab: React.FC = () => {
                       <p className="font-semibold">{cat?.icon} {c.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {cat?.label} · {c.contest_type === "goal" ? `First to ${c.goal}` : "Most by expiration"} · ${Number(c.prize_amount).toLocaleString()} ·
-                        {" "}{new Date(c.starts_at).toLocaleString()} → {new Date(c.ends_at).toLocaleString()}
+                         {" "}{new Date(c.starts_at).toLocaleString()} → {c.ends_at ? new Date(c.ends_at).toLocaleString() : "No expiration"}
                       </p>
                       <p className="text-xs text-muted-foreground">{c.audience.map((a) => REWARD_AUDIENCES[a]).join(", ")} · {c.participants} competing</p>
                     </div>

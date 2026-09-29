@@ -88,7 +88,7 @@ function inAudience(u: any, aud: string[]): boolean {
 }
 
 async function standings(db: Db, c: any) {
-  const endIso = new Date(Math.min(Date.now(), ts(c.ends_at))).toISOString();
+  const endIso = new Date(c.ends_at ? Math.min(Date.now(), ts(c.ends_at)) : Date.now()).toISOString();
   const { evs, avg } = await events(db, c.category, c.starts_at, endIso);
   const ids = [...new Set(evs.map((e) => e.u))];
   const users: Record<string, any> = {};
@@ -116,7 +116,7 @@ async function settle(db: Db, c: any, st: Awaited<ReturnType<typeof standings>>)
   if (c.status !== "active") return c;
   let patch: any = null;
   if (st.goalHit) patch = { status: "won", winner_user_id: st.goalHit.u, winner_score: st.goalHit.v, won_at: new Date(st.goalHit.t).toISOString() };
-  else if (Date.now() > ts(c.ends_at)) {
+  else if (c.ends_at && Date.now() > ts(c.ends_at)) {
     const top = st.ranked[0];
     patch = top ? { status: "won", winner_user_id: top.user_id, winner_score: top.score, won_at: c.ends_at } : { status: "expired" };
   }
@@ -134,7 +134,12 @@ async function decorate(db: Db, c: any, me: string | null) {
     const w = st.users[cc.winner_user_id] || (await db.from("users").select("username, profile_photo, front_page_photo").eq("id", cc.winner_user_id).maybeSingle()).data;
     winner = { user_id: cc.winner_user_id, username: w?.username, avatar: w?.front_page_photo || w?.profile_photo || null, score: cc.winner_score };
   }
-  return { ...cc, leaders: st.ranked.slice(0, 5), participants: st.ranked.length, my: mine || null, winner };
+  let featuredUser = null;
+  if (cc.featured_user_id) {
+    const f = st.users[cc.featured_user_id] || (await db.from("users").select("id, username, profile_photo, front_page_photo").eq("id", cc.featured_user_id).maybeSingle()).data;
+    if (f) featuredUser = { user_id: f.id || cc.featured_user_id, username: f.username, avatar: f.front_page_photo || f.profile_photo || null };
+  }
+  return { ...cc, leaders: st.ranked.slice(0, 5), participants: st.ranked.length, my: mine || null, winner, featured_user: featuredUser };
 }
 
 function clean(p: any) {
@@ -145,8 +150,11 @@ function clean(p: any) {
   const goal = type === "goal" ? Math.floor(Number(p.goal)) : null;
   if (type === "goal" && (!goal || goal < 1)) throw new Error("Goal must be at least 1");
   if (type === "goal" && p.category === "highest_rated") throw new Error("Highest rated can't be a goal contest");
-  const starts = new Date(p.starts_at), ends = new Date(p.ends_at);
-  if (isNaN(starts.getTime()) || isNaN(ends.getTime()) || ends <= starts) throw new Error("Expiration must be after the start date");
+  const starts = new Date(p.starts_at);
+  const ends = p.ends_at ? new Date(p.ends_at) : null;
+  if (isNaN(starts.getTime())) throw new Error("Start date is required");
+  if (type === "most" && !ends) throw new Error("Expiration is required for this contest type");
+  if (ends && (isNaN(ends.getTime()) || ends <= starts)) throw new Error("Expiration must be after the start date");
   const audience = (Array.isArray(p.audience) ? p.audience : []).filter((a: string) => AUDIENCES.includes(a));
   if (!audience.length) throw new Error("Pick at least one group who can enter");
   const prize = Number(p.prize_amount);
@@ -154,7 +162,9 @@ function clean(p: any) {
   return {
     title, description: String(p.description || "").slice(0, 500) || null, prize_amount: prize,
     prize_label: String(p.prize_label || "").slice(0, 80) || null, category: p.category, contest_type: type, goal, audience,
-    starts_at: starts.toISOString(), ends_at: ends.toISOString(),
+    starts_at: starts.toISOString(), ends_at: ends?.toISOString() || null,
+    background_image_url: String(p.background_image_url || "").slice(0, 1000) || null,
+    featured_user_id: p.featured_user_id || null,
   };
 }
 
@@ -185,6 +195,25 @@ Deno.serve(async (req) => {
     if (!adminId) return json({ error: "Admin session expired. Please sign in again." }, 401);
 
     switch (action) {
+      case "uploadBackground": {
+        const contentType = String(body.contentType || "");
+        if (!contentType.startsWith("image/")) return json({ error: "Choose an image file" }, 400);
+        const bytes = Uint8Array.from(atob(String(body.base64 || "")), (ch) => ch.charCodeAt(0));
+        if (!bytes.length || bytes.length > 10 * 1024 * 1024) return json({ error: "Image must be under 10MB" }, 400);
+        const safeName = String(body.fileName || "image.jpg").replace(/[^A-Za-z0-9._-]/g, "_").slice(-80);
+        const path = `rewards/${crypto.randomUUID()}-${safeName}`;
+        const { error } = await db.storage.from("promo-videos").upload(path, bytes, { contentType, cacheControl: "31536000" });
+        if (error) throw error;
+        const { data } = db.storage.from("promo-videos").getPublicUrl(path);
+        return json({ url: data.publicUrl });
+      }
+      case "searchUsers": {
+        const term = String(body.term || "").trim();
+        if (term.length < 2) return json({ users: [] });
+        const { data, error } = await db.from("users").select("id, username, profile_photo, front_page_photo").ilike("username", `%${term.replace(/[%_]/g, "")}%`).limit(8);
+        if (error) throw error;
+        return json({ users: (data || []).map((u) => ({ id: u.id, username: u.username, avatar: u.front_page_photo || u.profile_photo || null })) });
+      }
       case "adminList": {
         const { data, error } = await db.from("reward_contests").select("*").order("created_at", { ascending: false });
         if (error) throw error;

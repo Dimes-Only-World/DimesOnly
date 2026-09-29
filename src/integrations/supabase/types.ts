@@ -3845,12 +3845,14 @@ export type Database = {
       reward_contests: {
         Row: {
           audience: string[]
+          background_image_url: string | null
           category: string
           contest_type: string
           created_at: string
           created_by: string | null
           description: string | null
-          ends_at: string
+          ends_at: string | null
+          featured_user_id: string | null
           goal: number | null
           id: string
           paid_at: string | null
@@ -3866,12 +3868,14 @@ export type Database = {
         }
         Insert: {
           audience?: string[]
+          background_image_url?: string | null
           category: string
           contest_type?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
-          ends_at: string
+          ends_at?: string | null
+          featured_user_id?: string | null
           goal?: number | null
           id?: string
           paid_at?: string | null
@@ -3887,12 +3891,14 @@ export type Database = {
         }
         Update: {
           audience?: string[]
+          background_image_url?: string | null
           category?: string
           contest_type?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
-          ends_at?: string
+          ends_at?: string | null
+          featured_user_id?: string | null
           goal?: number | null
           id?: string
           paid_at?: string | null
