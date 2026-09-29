@@ -34,10 +34,17 @@ async function events(db: Db, cat: string, start: string, end: string): Promise<
       return { evs: rows.filter((r) => PAID.has(String(r.payment_status || "").toLowerCase())).map((r) => ({ u: r[col], t: ts(r.created_at), v: Number(r.tip_amount) || 0 })) };
     }
     case "highest_rated": {
-      // Season-wide: count all ratings in the current rating season (matches the public Rankings page)
+      // Mirror the Rate Girls "Top 20 Ranked Ladies" board: performers only,
+      // ranked by total score (sum of all ratings in the current season).
       const seasonYear = new Date().getUTCFullYear();
       const rows = await all(() => db.from("ratings").select("user_id, rating, created_at, year").eq("year", seasonYear).not("user_id", "is", null));
-      return { evs: rows.map((r) => ({ u: r.user_id, t: ts(r.created_at), v: Number(r.rating) || 0 })), avg: true };
+      const ids = [...new Set(rows.map((r) => r.user_id))];
+      const performers = new Set<string>();
+      for (let i = 0; i < ids.length; i += 200) {
+        const { data } = await db.from("users").select("id, user_type").in("id", ids.slice(i, i + 200));
+        for (const u of data || []) if (["stripper", "exotic"].includes(String(u.user_type || "").toLowerCase())) performers.add(u.id);
+      }
+      return { evs: rows.filter((r) => performers.has(r.user_id)).map((r) => ({ u: r.user_id, t: ts(r.created_at), v: Number(r.rating) || 0 })) };
     }
     case "car_sales": {
       const rows = await all(() => db.from("vehicle_purchase_applications").select("referrer_user_id, sold_at").eq("sale_status", "sold").gte("sold_at", start).lte("sold_at", end).not("referrer_user_id", "is", null));
@@ -158,7 +165,7 @@ async function decorate(db: Db, c: any, me: string | null) {
     const f = st.users[cc.featured_user_id] || (await db.from("users").select("id, username, profile_photo, front_page_photo").eq("id", cc.featured_user_id).maybeSingle()).data;
     if (f) featuredUser = { user_id: f.id || cc.featured_user_id, username: f.username, avatar: f.front_page_photo || f.profile_photo || null };
   }
-  return { ...cc, leaders: st.ranked.slice(0, c.category === "highest_rated" ? 3 : 5), participants: st.ranked.length, my: mine || null, winner, featured_user: featuredUser };
+  return { ...cc, leaders: st.ranked.slice(0, 5), participants: st.ranked.length, my: mine || null, winner, featured_user: featuredUser };
 }
 
 function clean(p: any) {
