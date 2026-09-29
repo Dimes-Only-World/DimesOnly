@@ -856,25 +856,21 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const refPayments = (referralResult.data as unknown as ReferralCommission[]) || [];
       setReferralCommissions(refPayments);
 
-      // Pay period history: resolve referred member usernames + FlameFlix earnings
+      // FlameFlix earnings (also counted in totals below)
+      let flixTotal = 0;
       try {
-        const payerIds = Array.from(new Set(refPayments.map((p: any) => p.user_id).filter(Boolean)));
-        const profMap = new Map<string, { username: string; profile_photo: string | null }>();
-        if (payerIds.length > 0) {
-          const { data: profs } = await supabase
-            .from("public_user_profiles")
-            .select("id, username, profile_photo")
-            .in("id", payerIds);
-          (profs || []).forEach((p: any) => profMap.set(p.id, p));
-        }
         const { data: flixData } = await (supabase as any)
           .from("flix_earnings")
           .select("id, amount_cents, level, status, created_at, note")
           .eq("earner_username", userData.username)
           .order("created_at", { ascending: false });
-        setFlixEarnings((flixData as FlixEarning[]) || []);
+        const flixRows = (flixData as FlixEarning[]) || [];
+        setFlixEarnings(flixRows);
+        flixTotal = flixRows
+          .filter((r) => !["reversed", "cancelled", "refunded"].includes(String(r.status)))
+          .reduce((s, r) => s + (Number(r.amount_cents) || 0) / 100, 0);
       } catch (e) {
-        console.warn("pay period history extras unavailable", e);
+        console.warn("FlameFlix earnings unavailable", e);
       }
       const referralRows =
         (referralTipsResult.data as unknown as ReferralTipData[]) || [];
@@ -971,7 +967,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
       const totalEarnings =
-        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal + vehicleSaleTotal;
+        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal + vehicleSaleTotal + flixTotal;
 
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []

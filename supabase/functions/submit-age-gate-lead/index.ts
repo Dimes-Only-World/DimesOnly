@@ -274,9 +274,11 @@ serve(async (req) => {
     } else {
       const faceCheck = await verifyFace(usePreview ? preview : selfieBase64, usePreview ? "image/jpeg" : selfieContentType);
       if (faceCheck.status === "unavailable") {
-        return json({ error: { selfie: "We couldn't check your selfie right now. Please try again in a moment." } }, 503);
+        // AI check couldn't run: accept the photo rather than locking the visitor out.
+        console.warn("selfie AI check unavailable; accepting without check");
+      } else if (control) {
+        await recordCheck(admin, control);
       }
-      if (control) await recordCheck(admin, control);
       if (faceCheck.status === "rejected") {
         return json({ error: { selfie: faceCheck.reason || "Please upload a clear selfie showing your face." } }, 400);
       }
