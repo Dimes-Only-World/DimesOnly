@@ -74,6 +74,32 @@ function validateEmployment(value: unknown, label: string) {
   return null;
 }
 
+const USERNAME_RE = /^[A-Za-z0-9_]{3,30}$/;
+async function usernameAvailable(admin: any, name: string) {
+  const { data: u } = await admin.from("users").select("id").ilike("username", name.replace(/_/g, "\\_")).limit(1);
+  if (u?.length) return false;
+  const { data: apps } = await admin.from("vehicle_purchase_applications").select("id")
+    .ilike("applicant->>requestedUsername", name.replace(/_/g, "\\_")).in("status", ["new", "reviewing", "contacted"]).limit(1);
+  return !apps?.length;
+}
+async function checkIdentity(admin: any, body: Record<string, any>) {
+  const out: Record<string, unknown> = {};
+  const name = text(body.username, 30);
+  if (name) out.usernameAvailable = USERNAME_RE.test(name) ? await usernameAvailable(admin, name) : false;
+  const email = text(body.email, 255).toLowerCase();
+  if (emailOk(email)) {
+    const { data } = await admin.from("users").select("username, profile_photo, front_page_photo").ilike("email", email).limit(1);
+    const u = data?.[0];
+    out.emailMatch = u ? { username: u.username, avatar: u.front_page_photo || u.profile_photo || null } : null;
+  }
+  const digits = text(body.phone, 30).replace(/\D/g, "").slice(-10);
+  if (digits.length === 10) {
+    const { data } = await admin.from("users").select("id, phone").ilike("phone", `%${digits.slice(-4)}%`).limit(200);
+    out.phoneMatch = !!data?.some((u: any) => String(u.phone || "").replace(/\D/g, "").slice(-10) === digits);
+  }
+  return out;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -83,6 +109,8 @@ serve(async (req) => {
     if (!url || !key) return json({ error: "Server configuration missing." }, 500);
     const body = await req.json().catch(() => null) as Record<string, any> | null;
     if (!body) return json({ error: "Invalid request." }, 400);
+    const admin0 = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    if (body.action === "check") return json(await checkIdentity(admin0, body));
     const applicantError = validatePerson(body.applicant, "Applicant");
     if (applicantError) return json({ error: applicantError }, 400);
     if (body.hasCoBuyer) {
@@ -106,6 +134,13 @@ serve(async (req) => {
     if (body.hasTradeIn) {
       const trade = body.tradeIn || {};
       if (!vinOk(text(trade.vin, 17)) || money(trade.mileage) === null || !text(trade.year) || !text(trade.make) || !text(trade.model)) return json({ error: "Trade-in requires a valid VIN, mileage, year, make, and model." }, 400);
+    }
+    const callerId0 = await getCallerId(req);
+    let requestedUsername: string | null = null;
+    if (!callerId0) {
+      requestedUsername = text(body.requestedUsername, 30);
+      if (!USERNAME_RE.test(requestedUsername)) return json({ error: "Choose a username (3–30 letters, numbers, or underscores)." }, 400);
+      if (!(await usernameAvailable(admin0, requestedUsername))) return json({ error: "That username is not available." }, 400);
     }
     if (body.creditAuthorizationConsent !== true || body.privacyPolicyConsent !== true) return json({ error: "Credit authorization and Privacy Policy acceptance are required." }, 400);
 
@@ -139,7 +174,7 @@ serve(async (req) => {
 
     const { data, error } = await admin.from("vehicle_purchase_applications").insert({
       vehicle_id: vehicleId, user_id: callerId,
-      applicant: cleanPerson(body.applicant), residence: cleanResidence(residence), employment: cleanEmployment(employment),
+      applicant: { ...cleanPerson(body.applicant), requestedUsername }, residence: cleanResidence(residence), employment: cleanEmployment(employment),
       co_buyer: body.hasCoBuyer ? { relationship: text(body.coBuyer.relationship, 60), ...cleanPerson(body.coBuyer), residence: cleanResidence(body.coBuyer.residence || {}), employment: cleanEmployment(body.coBuyer.employment || {}) } : null,
       interested_vehicle: { vin: iVin.toUpperCase() || null, year: Number(interested.year), make: text(interested.make, 80), model: text(interested.model, 100), vin_provided: !!iVin, trim: text(interested.trim, 120) || null,
         specs: (() => { try { const a = JSON.parse(text(interested.specs, 3000) || "[]"); return Array.isArray(a) ? Object.fromEntries(a.slice(0, 15).filter((x: unknown) => Array.isArray(x)).map(([k, v]: any) => [String(k).slice(0, 40), String(v).slice(0, 120)])) : null; } catch { return null; } })(), vehiclePrice: money(interested.vehiclePrice), downPayment: money(interested.downPayment), exteriorColor: text(interested.exteriorColor, 60) || null, interiorColor: text(interested.interiorColor, 60) || null },

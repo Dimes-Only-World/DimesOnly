@@ -36,8 +36,9 @@ serve(async (req) => {
         rate: direct ? DIRECT_RATE : UPLINE_RATE,
         submitted_at: a.submitted_at,
         area_code: areaCode(a.applicant?.cellPhone),
-        buyer_first: a.applicant?.firstName || "",
-        buyer_last: a.applicant?.lastName || "",
+        // Privacy: members see only a Dimes Only username, otherwise first name only.
+        buyer_first: (a.user_id && users[a.user_id]?.username) ? `@${users[a.user_id].username}` : (a.applicant?.firstName || "Buyer"),
+        buyer_last: "",
         buyer_avatar: (await signAvatar(admin, a.buyer_avatar_path)) || (a.user_id ? users[a.user_id]?.avatar : null) || null,
         status: a.sale_status,
         sold_at: a.sold_at,

@@ -353,6 +353,15 @@ serve(async (req) => {
         if (typeof payload?.admin_notes === "string") clean.admin_notes = payload.admin_notes.trim().slice(0, 2000) || null;
         if (!Object.keys(clean).length) return json({ error: "No valid changes supplied" }, 400);
         if (clean.status === "declined") clean.sale_status = "declined";
+        if (clean.status === "approved" || clean.status === "declined") {
+          // Release the reserved username unless the applicant completed /register.
+          const { data: cur } = await admin.from("vehicle_purchase_applications").select("applicant").eq("id", id).maybeSingle();
+          const reserved = cur?.applicant?.requestedUsername;
+          if (reserved) {
+            const { data: reg } = await admin.from("users").select("id").ilike("username", String(reserved).replace(/_/g, "\\_")).limit(1);
+            if (!reg?.length) clean.applicant = { ...cur.applicant, requestedUsername: null, releasedUsername: reserved };
+          }
+        }
         const { data, error } = await admin.from("vehicle_purchase_applications").update(clean).eq("id", id).select().single();
         if (error) throw error;
         return json({ data });
