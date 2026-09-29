@@ -129,7 +129,7 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
             aria-hidden
           />
           <nav
-            className="fixed left-0 right-0 top-[72px] z-50 border-y border-dimes-magenta/30 bg-white shadow-2xl sm:top-[84px]"
+            className="fixed left-0 right-0 top-[72px] z-50 max-h-[calc(100dvh-72px)] overflow-y-auto overscroll-contain border-y border-dimes-magenta/30 bg-white pb-[env(safe-area-inset-bottom)] shadow-2xl sm:top-[84px] sm:max-h-[calc(100dvh-84px)]"
             aria-label="Main navigation"
           >
             {showSetup && (
