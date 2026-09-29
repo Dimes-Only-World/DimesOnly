@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStageInfo, type PlusType } from "@/lib/membershipPricing";
 
@@ -18,11 +18,23 @@ async function fetchSold(type: PlusType): Promise<number> {
   return Number(data?.seats_taken ?? 0);
 }
 
+// Plain React state (no React Query) so it works anywhere in the app tree.
 export function useMembershipStage(type: PlusType) {
-  const q = useQuery({
-    queryKey: ["membership-stage", type],
-    queryFn: () => fetchSold(type),
-    refetchInterval: 30000,
-  });
-  return { ...getStageInfo(type, q.data ?? 0), loading: q.isLoading };
+  const [sold, setSold] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () =>
+      fetchSold(type)
+        .then((n) => !cancelled && setSold(n))
+        .catch(() => !cancelled && setSold((s) => s ?? 0));
+    load();
+    const id = setInterval(load, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [type]);
+
+  return { ...getStageInfo(type, sold ?? 0), loading: sold === null };
 }
