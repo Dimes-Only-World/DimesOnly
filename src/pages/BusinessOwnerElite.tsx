@@ -231,7 +231,7 @@ const BusinessOwnerElite: React.FC = () => {
                 <div className="text-4xl font-bold text-yellow-300">{M}/mo</div>
                 <p className="text-sm text-gray-300 mt-2">
                   {M} a month × 12 months ({formatUSD(PLAN_AMOUNTS.installment * 12)} total).
-                  Total $15,250. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
+                  <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
                 </p>
               </CardContent>
             </Card>
