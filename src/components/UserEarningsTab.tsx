@@ -1575,8 +1575,8 @@ return (
               {formatCurrency(rentalCommissionTotal)}
             </div>
             <p className="text-sm text-amber-600">
-              Direct {formatCurrency(rentalTotals.direct)} ·
-              Overrides {formatCurrency(rentalTotals.override)}
+              Direct (10%) {formatCurrency(rentalTotals.direct)} ·
+              Overrides (5%) {formatCurrency(rentalTotals.override)}
             </p>
           </CardContent>
         </Card>
@@ -1613,8 +1613,8 @@ return (
               {formatCurrency(clothingTotals.direct + clothingTotals.override)}
             </div>
             <p className="text-sm text-pink-600">
-              Direct {formatCurrency(clothingTotals.direct)} ·
-              Overrides {formatCurrency(clothingTotals.override)}
+              Direct (10%) {formatCurrency(clothingTotals.direct)} ·
+              Overrides (5%) {formatCurrency(clothingTotals.override)}
             </p>
           </CardContent>
         </Card>
@@ -1647,8 +1647,8 @@ return (
               {formatCurrency(flixEarnings.reduce((s, r) => s + r.amount_cents, 0) / 100)}
             </div>
             <p className="text-sm text-orange-600">
-              Direct {formatCurrency(flixEarnings.filter((r) => r.level === 1).reduce((s, r) => s + r.amount_cents, 0) / 100)} ·
-              Overrides {formatCurrency(flixEarnings.filter((r) => r.level !== 1).reduce((s, r) => s + r.amount_cents, 0) / 100)}
+              Direct (10%) {formatCurrency(flixEarnings.filter((r) => r.level === 1).reduce((s, r) => s + r.amount_cents, 0) / 100)} ·
+              Overrides (5%) {formatCurrency(flixEarnings.filter((r) => r.level !== 1).reduce((s, r) => s + r.amount_cents, 0) / 100)}
             </p>
           </CardContent>
         </Card>
@@ -1679,7 +1679,7 @@ return (
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Car Rental Commissions
+              Car Rental Earnings
             </CardTitle>
             <p className="text-xs text-gray-500">
               Overrides pay 5% on rentals and 10% on direct referrals.
@@ -1694,7 +1694,7 @@ return (
               >
                 <div>
                   <p className="text-sm font-medium">
-                    {c.commission_type === "upline" ? "Second-level referral" : "Direct referral"}
+                    {c.commission_type === "upline" ? "Override (5%)" : "Direct referral (10%)"}
                   </p>
                   <p className="text-xs text-gray-500">
                     {c.created_at ? new Date(c.created_at).toLocaleDateString() : ""}
@@ -1715,7 +1715,7 @@ return (
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Clothing Commissions
+              Clothing Earnings
             </CardTitle>
             <p className="text-xs text-gray-500">
               Clothing pays 10% on direct referrals and a 5% override on second-level referrals.
@@ -2069,7 +2069,7 @@ return (
 
               {commissionOptions.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <div className="text-xs text-gray-600">Commission types</div>
+              <div className="text-xs text-gray-600">Earning types</div>
                   <div className="flex flex-wrap gap-2">
                     {commissionOptions.map((opt) => {
                       const active = commissionTypes.includes(opt);
@@ -2281,7 +2281,7 @@ return (
                           {formatCurrency(row.amount || 0)}
                         </div>
                         <Badge variant="outline" className="mt-1">
-                          {row.override_badge ? "Override Commission" : "Direct Commission"}
+                          {row.override_badge ? "Override" : "Direct"}
                         </Badge>
                         <div className="text-xs text-gray-500 mt-2">
                           {new Date(row.created_at).toLocaleDateString()}

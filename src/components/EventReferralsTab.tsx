@@ -95,7 +95,7 @@ const EventReferralsTab: React.FC<Props> = ({ userId, startDate, endDate }) => {
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between rounded-md border bg-yellow-50 p-3">
           <div className="text-sm text-gray-700">
-            Total event commissions (20% direct / 10% upline)
+            Total event earnings (20% direct / 10% override)
           </div>
           <div className="text-lg font-semibold">${total.toFixed(2)}</div>
         </div>
@@ -104,7 +104,7 @@ const EventReferralsTab: React.FC<Props> = ({ userId, startDate, endDate }) => {
           <div className="text-sm text-gray-500">Loading…</div>
         ) : rows.length === 0 ? (
           <div className="text-sm text-gray-500">
-            No event referral commissions in this period yet.
+            No event referral earnings in this period yet.
           </div>
         ) : (
           <div className="divide-y rounded-md border">
@@ -133,7 +133,7 @@ const EventReferralsTab: React.FC<Props> = ({ userId, startDate, endDate }) => {
                           : ""
                       }
                     >
-                      {isDirect ? "Direct 20%" : "Upline 10%"}
+                      {isDirect ? "Direct 20%" : "Override 10%"}
                     </Badge>
                     <div className="text-sm font-semibold">
                       ${r.amount.toFixed(2)}
