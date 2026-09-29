@@ -1,3 +1,6 @@
+import StagePriceBanner from "@/components/StagePriceBanner";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import { formatUSD, type PlusType } from "@/lib/membershipPricing";
 import React, { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -43,7 +46,7 @@ const buildOffer = (userData: UserData): Offer | null => {
       description: "Congratulations! You are now eligible for Diamond Plus membership. One Time Fee! Lifetime Member!",
       price: "$149.99",
       route: "/upgrade-diamond",
-      perks: ["No referral fees attached", "Full payment via PayPal", "Monthly plan More Expensive: $80 x 12 = $960"],
+      perks: ["No referral fees attached", "Full payment via PayPal", "12-month plan available"],
       totalPositions: 300,
     };
   }
@@ -58,7 +61,6 @@ const buildOffer = (userData: UserData): Offer | null => {
       route: "/business-owner-elite",
       perks: ["Full site-wide access"],
       totalPositions: 100,
-      installment: { down: "$1,500 first payment ($1,250 + $250 fees)", rest: "12 months of $1,250" },
     };
   }
 
@@ -67,15 +69,11 @@ const buildOffer = (userData: UserData): Offer | null => {
     return {
       id: "silver_plus",
       title: "Upgrade to Silver Plus",
-      description: "Step up to Silver Plus and start earning profit sharing positions. One Time Fee $249.99",
+      description: "Step up to Silver Plus and start earning profit sharing positions.",
       price: "$249.99",
       route: "/upgrade-silver-plus",
       perks: ["Profit sharing position"],
       totalPositions: 300,
-      installment: {
-        down: "$62.50 per month x 12 months",
-        rest: "Total $750.00 monthly plan",
-      },
     };
   }
 
@@ -88,6 +86,8 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
   const offer = useMemo(() => buildOffer(userData), [userData]);
 
   const [positionsLeft, setPositionsLeft] = useState<number | null>(null);
+  const stageType: PlusType = offer?.id === "diamond_plus" ? "diamond_plus" : offer?.id === "elite_plus" ? "business_owner_elite" : "silver_plus";
+  const stageInfo = useMembershipStage(stageType);
 
   const notifyCleared = () => {
     releasePopupSlot(POPUP_ID);
@@ -167,20 +167,25 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
 
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-3xl font-bold">{offer.price}</div>
+            <div>
+              <div className="text-3xl font-bold">{stageInfo.stage ? formatUSD(stageInfo.stage.full) : "FILLED"}</div>
+              {stageInfo.stage && (
+                <div className="text-xs font-semibold">or {formatUSD(stageInfo.stage.monthly)}/mo × 12</div>
+              )}
+            </div>
             <div className="rounded-lg bg-black/85 px-3 py-2 text-right">
               <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-yellow-300">
                 <Users className="h-3.5 w-3.5" />
                 Positions left
               </div>
               <div className="text-xl font-black text-white">
-                {positionsLeft === null
-                  ? "…"
-                  : `${positionsLeft} of ${offer.totalPositions}`}
+                {stageInfo.loading ? "…" : `${stageInfo.remainingOverall} of ${stageInfo.totalSeats}`}
               </div>
             </div>
           </div>
 
+
+          <StagePriceBanner type={stageType} />
 
           <div className="space-y-2 text-sm">
             {offer.perks.map((perk) => (
