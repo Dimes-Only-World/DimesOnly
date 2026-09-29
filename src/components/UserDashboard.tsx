@@ -1,3 +1,4 @@
+import StagePriceBanner from "@/components/StagePriceBanner";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -570,13 +571,14 @@ const UserDashboard: React.FC = () => {
         <div className="mb-4 rounded-lg border border-fuchsia-500/60 bg-gradient-to-r from-fuchsia-900/60 to-purple-900/60 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
             <div className="text-white font-semibold">Upgrade to Business Owner Elite</div>
-            <div className="text-fuchsia-200 text-sm">$15,000 lifetime — full access to every area of the site. Only 100 seats.</div>
+            <div className="text-fuchsia-200 text-sm mb-2">Full access to every area of the site. Only 100 seats.</div>
+            <StagePriceBanner type="business_owner_elite" />
           </div>
           <button
             onClick={() => navigate("/elite-plus")}
             className="px-5 py-2 rounded-md bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-semibold whitespace-nowrap"
           >
-            Upgrade to Elite — $15,000
+            Upgrade to Elite Plus
           </button>
         </div>
       )}

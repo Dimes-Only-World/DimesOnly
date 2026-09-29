@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { countSold, stageFor, type PlusType } from "../_shared/membershipPricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,10 +109,29 @@ serve(async (req) => {
         .single();
       if (!boStats || (boStats as any).seats_available <= 0) {
         return new Response(
-          JSON.stringify({ success: false, error: "All 100 Business Owner Elite seats are taken", code: "SOLD_OUT" }),
+          JSON.stringify({ success: false, error: "POSITIONS ARE FILLED", code: "SOLD_OUT" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 }
         );
       }
+    }
+
+    // Staged pricing: amount is always computed server-side for Plus tiers
+    const plusType: PlusType | null =
+      tier === "silver_plus" ? "silver_plus"
+      : tier === "diamond_plus" ? "diamond_plus"
+      : (tier === "business_owner_elite" || tier === "business_owner_elite_installment") ? "business_owner_elite"
+      : null;
+    if (plusType) {
+      const sold = await countSold(supabase, plusType);
+      const stage = stageFor(plusType, sold);
+      if (!stage) {
+        return new Response(
+          JSON.stringify({ success: false, error: "POSITIONS ARE FILLED", code: "SOLD_OUT" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 }
+        );
+      }
+      const isMonthly = payment_method === "paypal_monthly" || tier === "business_owner_elite_installment";
+      amount = isMonthly ? stage.monthly : stage.full;
     }
 
     // Update user's phone number
@@ -158,7 +178,7 @@ serve(async (req) => {
       gold: cadence === "yearly" ? "Gold Membership - Yearly" : "Gold Membership - Monthly",
       diamond: cadence === "yearly" ? "Diamond Membership - Yearly" : "Diamond Membership - Monthly",
       elite: "Elite Membership - Lifetime",
-      business_owner_elite: "Business Owner Elite - Lifetime ($15,000)",
+      business_owner_elite: "Elite Plus - Lifetime",
       business_owner_elite_installment: "Business Owner Elite - 12-Month Plan (First Payment)",
     };
     const description = tierDescriptions[tier] || `${tier} Membership`;

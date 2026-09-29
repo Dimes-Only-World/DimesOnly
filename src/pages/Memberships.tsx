@@ -1,3 +1,5 @@
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import { formatUSD } from "@/lib/membershipPricing";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
@@ -17,7 +19,7 @@ interface Plan {
   tag?: string;
 }
 
-const plans: Plan[] = [
+const basePlans: Plan[] = [
   { name: "Silver", price: "$4.99", ref20: "$1.00", ref10: "$0.50", href: "/upgrade-silver" },
   { name: "Gold", price: "$11.99", ref20: "$2.40", ref10: "$1.20", href: "/upgrade-gold" },
   { name: "Diamond", price: "$14.99", ref20: "$3.00", ref10: "$1.50", href: "/upgrade-diamond-monthly" },
@@ -42,6 +44,17 @@ const goldBg = "bg-[#F4C860]";
 const goldBorder = "border-[#F4C860]/40";
 
 const Memberships: React.FC = () => {
+  const spStage = useMembershipStage("silver_plus");
+  const dpStage = useMembershipStage("diamond_plus");
+  const epStage = useMembershipStage("business_owner_elite");
+  const stageByName: Record<string, ReturnType<typeof useMembershipStage>> = { "Silver Plus": spStage, "Diamond Plus": dpStage, "Elite Plus": epStage };
+  const plans = basePlans.map((p) => {
+    const st = stageByName[p.name];
+    if (!st) return p;
+    if (!st.stage) return { ...p, price: "FILLED", ref20: "—", ref10: "—" };
+    const f = st.stage.full;
+    return { ...p, price: formatUSD(f), ref20: formatUSD(Math.round(f * 20) / 100), ref10: formatUSD(Math.round(f * 10) / 100) };
+  });
   const { user } = useAppContext();
   const gender = (user?.gender || "").toLowerCase();
   const userType = (user?.userType || "").toLowerCase();

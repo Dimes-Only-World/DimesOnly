@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import StagePriceBanner from "@/components/StagePriceBanner";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import { formatUSD } from "@/lib/membershipPricing";
 import MembershipAgreementSection from "@/components/MembershipAgreementSection";
 import AngelLoader from "@/components/AngelLoader";
 
@@ -35,8 +38,6 @@ interface UserData {
 
 type Plan = "full" | "monthly";
 
-const FULL_AMOUNT = 149.99;
-const MONTHLY_AMOUNT = 80;
 
 const UpgradeDiamondPage: React.FC = () => {
   const { toast } = useToast();
@@ -50,6 +51,9 @@ const UpgradeDiamondPage: React.FC = () => {
   const [showRefundPolicy, setShowRefundPolicy] = useState(true);
   const [agreementComplete, setAgreementComplete] = useState(false);
 
+  const stageInfo = useMembershipStage("diamond_plus");
+  const FULL_AMOUNT = stageInfo.stage?.full ?? 0;
+  const MONTHLY_AMOUNT = stageInfo.stage?.monthly ?? 0;
   const AMOUNT = plan === "full" ? FULL_AMOUNT : MONTHLY_AMOUNT;
 
   // Calculate remaining spots (combine stripper and exotic limits)
@@ -63,8 +67,8 @@ const UpgradeDiamondPage: React.FC = () => {
   );
 
   // Overall cap of 300 shared between stripper and exotic
-  const overallMaxCount = 300;
-  const spotsLeft = overallMaxCount - totalCurrentCount;
+  void totalCurrentCount;
+  const spotsLeft = stageInfo.loading ? 1 : stageInfo.remainingOverall;
 
   useEffect(() => {
     fetchUserData();
@@ -314,14 +318,8 @@ const UpgradeDiamondPage: React.FC = () => {
               <Badge className="text-lg px-4 py-2 bg-green-600">
                 <CheckCircle className="w-4 h-4 mr-2" /> You're already Diamond Plus
               </Badge>
-            ) : spotsLeft > 0 ? (
-              <Badge variant="destructive" className="text-lg px-4 py-2">
-                Only {spotsLeft} spots remaining!
-              </Badge>
             ) : (
-              <Badge variant="destructive" className="text-lg px-4 py-2">
-                All 300 Diamond Plus positions have been filled.
-              </Badge>
+              <StagePriceBanner type="diamond_plus" className="max-w-md mx-auto" />
             )}
           </div>
 
@@ -342,10 +340,10 @@ const UpgradeDiamondPage: React.FC = () => {
               <CardContent className="p-8 text-center">
                 <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
                 <h2 className="text-red-400 font-bold text-2xl mb-2">
-                  All Spots Taken
+                  POSITIONS ARE FILLED
                 </h2>
                 <p className="text-red-300">
-                  All 300 Diamond Plus positions have been filled.
+                  APP RELEASE SOON
                 </p>
               </CardContent>
             </Card>
@@ -399,7 +397,7 @@ const UpgradeDiamondPage: React.FC = () => {
                     <CardTitle className="text-fuchsia-400">One-Time Lifetime</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-4xl font-bold text-yellow-300">${FULL_AMOUNT}</div>
+                    <div className="text-4xl font-bold text-yellow-300">{formatUSD(FULL_AMOUNT)}</div>
                     <p className="text-sm text-gray-300 mt-2">Pay once → lifetime access immediately.</p>
                   </CardContent>
                 </Card>
@@ -413,10 +411,10 @@ const UpgradeDiamondPage: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-4xl font-bold text-yellow-300">
-                      ${MONTHLY_AMOUNT.toFixed(2)}<span className="text-xl">/mo</span>
+                      {formatUSD(MONTHLY_AMOUNT)}<span className="text-xl">/mo</span>
                     </div>
                     <p className="text-sm text-gray-300 mt-2">
-                      12 monthly payments = $960 total. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
+                      12 monthly payments = {formatUSD(MONTHLY_AMOUNT * 12)} total. <span className="text-fuchsia-300 font-semibold">Full access starts immediately</span> after the first payment.
                     </p>
                   </CardContent>
                 </Card>
