@@ -114,12 +114,23 @@ const RewardsCarousel: React.FC = () => {
   const go = (d: number) => setI((p) => (p + d + items.length) % items.length);
   const backgroundUrl = items[idx].background_image_url;
   const videoBackground = backgroundUrl && /\.(mp4|webm|mov|m4v)(?:$|\?)/i.test(backgroundUrl);
+  const categoryTheme: Record<string, string> = {
+    most_tipped: "reward-theme-tipped",
+    highest_rated: "reward-theme-rated",
+    car_sales: "reward-theme-cars",
+    money_circle: "reward-theme-circle",
+    dimes_recruited: "reward-theme-dimes",
+    most_likes: "reward-theme-likes",
+    tips_given: "reward-theme-giving",
+  };
+  const defaultTheme = backgroundUrl ? "" : categoryTheme[items[idx].category] || "reward-theme-default";
 
   return (
     <section
-      className="relative mb-6 overflow-hidden rounded-2xl border border-dimes-gold/40 bg-dimes-surface-elevated p-5 shadow-lg md:p-7"
+      className={`reward-carousel ${defaultTheme} relative mb-6 overflow-hidden rounded-2xl border border-dimes-gold/40 bg-dimes-surface-elevated p-5 shadow-lg md:p-7`}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
     >
+      {!backgroundUrl && <div className="reward-theme-pattern absolute inset-0" aria-hidden="true" />}
       {backgroundUrl && (videoBackground
         ? <video key={backgroundUrl} src={backgroundUrl} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
         : <img src={backgroundUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />)}
