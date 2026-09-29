@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 export const REWARD_CATEGORIES: Record<string, { label: string; unit: string; money?: boolean; icon: string }> = {
   most_tipped: { label: "Top Tipped", unit: "tipped", money: true, icon: "💸" },
-  highest_rated: { label: "Highest Rated", unit: "avg rating", icon: "⭐" },
+  highest_rated: { label: "Highest Rated", unit: "total score", icon: "⭐" },
   car_sales: { label: "Most Car Sales", unit: "cars sold", icon: "🚗" },
   money_circle: { label: "Biggest Money Circle", unit: "sign-ups", icon: "💰" },
   dimes_recruited: { label: "Most Dimes Recruited", unit: "Dimes", icon: "💎" },
