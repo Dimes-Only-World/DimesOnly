@@ -264,7 +264,7 @@ const LatestDimesCarousel: React.FC<{ className?: string; theme?: "dark" | "ligh
 
       {isModalOpen && selectedPerformer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur p-4">
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/10 bg-black/70 shadow-2xl flex flex-col">
+          <div className="relative aspect-[9/16] h-[min(90vh,calc((100vw-2rem)*16/9))] w-auto max-w-full overflow-hidden rounded-3xl border border-white/10 bg-black/70 shadow-2xl flex flex-col">
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 z-10 rounded-full bg-black/50 px-3 py-1 text-3xl font-bold text-white transition hover:bg-black/80"
