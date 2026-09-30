@@ -20,6 +20,8 @@ interface BannerVideoProps {
   muted?: boolean;
   onEnded?: () => void;
   videoRef?: React.RefObject<HTMLVideoElement>;
+  /** No seek bar/controls: tap to pause/resume, replay button when finished */
+  minimal?: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -39,6 +41,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   muted = false,
   onEnded,
   videoRef: externalVideoRef,
+  minimal = false,
 }) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = externalVideoRef || internalVideoRef;
@@ -169,6 +172,61 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
       >
         <source src={src} type={src.endsWith(".webm") ? "video/webm" : "video/mp4"} />
       </video>
+    );
+  }
+
+  // Minimal mode: no seek bar or controls. Viewer can only pause/resume and replay.
+  if (minimal) {
+    const ended = duration > 0 && currentTime >= duration - 0.25 && !isPlaying;
+    const replay = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const v = videoRef.current;
+      if (!v) return;
+      v.currentTime = 0;
+      v.muted = false;
+      v.play().catch(() => {});
+    };
+    return (
+      <div
+        className={`relative w-full overflow-hidden bg-card ${/\baspect-/.test(className) ? "" : "aspect-video"} ${className}`}
+        onClick={ended ? replay : togglePlayPause}
+      >
+        <video
+          ref={videoRef}
+          key={src}
+          playsInline
+          loop={false}
+          autoPlay={autoPlay}
+          muted={muted}
+          controls={false}
+          disablePictureInPicture
+          controlsList="nodownload nofullscreen noremoteplayback"
+          preload="auto"
+          onEnded={onEnded}
+          onContextMenu={(e) => e.preventDefault()}
+          className="h-full w-full object-cover"
+        >
+          <source src={src} type={src.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+        </video>
+        <div
+          className={`absolute inset-0 z-[2] flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+            isPlaying ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="bg-black/50 rounded-full p-5">
+            <Play className="w-12 h-12 text-white fill-white" />
+          </div>
+        </div>
+        {ended && (
+          <button
+            type="button"
+            onClick={replay}
+            className="absolute bottom-3 right-3 z-[3] rounded-full bg-black/60 px-4 py-2 text-sm font-semibold text-white hover:bg-black/80"
+          >
+            ↻ Watch again
+          </button>
+        )}
+      </div>
     );
   }
 

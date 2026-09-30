@@ -44,6 +44,8 @@ const PAGE_VIDEO_CONFIG: { page_key: string; label: string }[] = [
   { page_key: "email_performer_not_approved", label: "Email — Performer Not Approved Video" },
   { page_key: "rentals_page", label: "Rentals Page Header Video" },
   { page_key: "age_gate_explainer", label: "Home Age Gate — Explainer Video" },
+  { page_key: "age_gate_explainer_male_normal", label: "Home Age Gate — Explainer Video Male and Normal Female" },
+  { page_key: "age_gate_explainer_business", label: "Home Age Gate — Explainer Video Business Owner" },
   { page_key: "age_gate_warning", label: "Home Age Gate — Warning Screen Video" },
   { page_key: "make_money_promo", label: "Make Money Tab — Promo Video" },
   { page_key: "make_money_banner", label: "Make Money Page — Top Banner Video" },
