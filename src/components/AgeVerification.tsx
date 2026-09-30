@@ -29,7 +29,15 @@ interface AgeVerificationProps {
 const FALLBACK_VIDEO =
   "https://dimesonlyworld.s3.us-east-2.amazonaws.com/opening+intro.webm";
 
-type Step = "warning" | "form" | "video";
+type Step = "warning" | "role" | "form" | "video";
+type Role = "exotic" | "stripper" | "normal_female" | "male" | "business_owner";
+const ROLE_OPTIONS: { value: Role; label: string }[] = [
+  { value: "exotic", label: "Exxxotic Female" },
+  { value: "stripper", label: "Stripper" },
+  { value: "normal_female", label: "Normal Female" },
+  { value: "male", label: "Male" },
+  { value: "business_owner", label: "Business Owner" },
+];
 
 interface Referrer {
   username: string;
@@ -60,8 +68,19 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
 
 
+  const [role, setRole] = useState<Role | null>(null);
   const { videoUrl: explainerUrl } = usePageVideo("age_gate_explainer");
+  const { videoUrl: maleNormalUrl } = usePageVideo("age_gate_explainer_male_normal");
+  const { videoUrl: businessUrl } = usePageVideo("age_gate_explainer_business");
   const { videoUrl: warningVideoUrl } = usePageVideo("age_gate_warning");
+  const roleVideoUrl =
+    (role === "male" || role === "normal_female"
+      ? maleNormalUrl
+      : role === "business_owner"
+        ? businessUrl
+        : null) ||
+    explainerUrl ||
+    FALLBACK_VIDEO;
 
   const refCode = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -408,7 +427,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button
-                  onClick={() => setStep("form")}
+                  onClick={() => setStep("role")}
                   type="button"
                   className="bg-orange-500 hover:bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-xs sm:text-sm"
                 >
@@ -426,6 +445,34 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {step === "role" && (
+          <div className="max-w-xl mx-auto text-center py-4">
+            <h2 className="text-orange-500 text-2xl sm:text-3xl font-bold mb-6">Who Are You?</h2>
+            <div className="grid gap-3">
+              {ROLE_OPTIONS.map((r) => (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => {
+                    setRole(r.value);
+                    setStep("form");
+                  }}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setStep("warning")}
+              className="mt-5 text-white/60 hover:text-white text-sm underline"
+            >
+              Back
+            </button>
           </div>
         )}
 
@@ -599,9 +646,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
             </h2>
 
             <BannerVideo
-              src={explainerUrl || FALLBACK_VIDEO}
+              src={roleVideoUrl}
               loop={false}
               autoPlay
+              minimal
               onEnded={() => setVideoEnded(true)}
               videoRef={videoRef}
               className="aspect-[2.35/1] rounded-lg border-2 border-orange-500"
