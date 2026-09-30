@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain } from "../_shared/saleCommission.ts";
+import { encryptSsn, ssnDigits, ssnValid } from "../_shared/ssnCrypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,10 +27,12 @@ function validatePerson(value: unknown, label: string) {
   if (!emailOk(text(p.email, 255))) return `${label} email is invalid.`;
   if (!phoneOk(text(p.cellPhone, 30))) return `${label} cell phone is invalid.`;
   if (!dateOk(text(p.dateOfBirth, 10))) return `${label} date of birth is required.`;
+  if (!ssnValid(ssnDigits(p.ssn))) return `${label} Social Security number is invalid.`;
   return null;
 }
 
-function cleanPerson(value: Record<string, unknown>) {
+async function cleanPerson(value: Record<string, unknown>) {
+  const ssn = ssnDigits(value.ssn);
   return {
     firstName: text(value.firstName, 80), lastName: text(value.lastName, 80),
     email: text(value.email, 255).toLowerCase(), cellPhone: text(value.cellPhone, 30),
@@ -38,6 +41,7 @@ function cleanPerson(value: Record<string, unknown>) {
     driversLicenseState: text(value.driversLicenseState, 2).toUpperCase() || null,
     driversLicenseIssueDate: text(value.driversLicenseIssueDate, 10) || null,
     driversLicenseExpiryDate: text(value.driversLicenseExpiryDate, 10) || null,
+    ssnLast4: ssn.slice(-4), ssnEncrypted: await encryptSsn(ssn),
   };
 }
 
