@@ -17,14 +17,14 @@ import { getActiveRef } from "@/lib/refCapture";
 import { decodeVin, fetchVehicleModels, vehicleStockPhoto, VEHICLE_MAKES, VEHICLE_YEARS } from "@/lib/vehicleOptions";
 
 type Values = Record<string, string>;
-const blankPerson: Values = { firstName: "", lastName: "", email: "", cellPhone: "", homePhone: "", dateOfBirth: "", driversLicenseNumber: "", driversLicenseState: "", driversLicenseIssueDate: "", driversLicenseExpiryDate: "" };
+const blankPerson: Values = { firstName: "", lastName: "", email: "", cellPhone: "", homePhone: "", dateOfBirth: "", driversLicenseNumber: "", driversLicenseState: "", driversLicenseIssueDate: "", driversLicenseExpiryDate: "", ssn: "" };
 const blankResidence: Values = { streetAddress: "", city: "", state: "", zipCode: "", housingType: "", monthlyPayment: "", previousAddress: "" };
 const blankEmployment: Values = { employerName: "", title: "", employerPhone: "", monthlyGrossIncome: "", yearsAtJob: "", monthsAtJob: "", previousEmployment: "" };
 const blankVehicle: Values = { hasVin: "", vin: "", year: "", make: "", model: "", trim: "", specs: "", vehiclePrice: "", downPayment: "", exteriorColor: "", interiorColor: "" };
 const states = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 
 const schema = z.object({
-  applicant: z.object({ firstName: z.string().trim().min(1).max(80), lastName: z.string().trim().min(1).max(80), email: z.string().trim().email().max(255), cellPhone: z.string().regex(/\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d/), dateOfBirth: z.string().min(1) }).passthrough(),
+  applicant: z.object({ firstName: z.string().trim().min(1).max(80), lastName: z.string().trim().min(1).max(80), email: z.string().trim().email().max(255), cellPhone: z.string().regex(/\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d/), dateOfBirth: z.string().min(1), ssn: z.string().regex(/^\d{3}-?\d{2}-?\d{4}$/) }).passthrough(),
   residence: z.object({ streetAddress: z.string().trim().min(1).max(200), city: z.string().trim().min(1).max(100), state: z.string().length(2), zipCode: z.string().regex(/^\d{5}(?:-\d{4})?$/), housingType: z.string().min(1), monthlyPayment: z.coerce.number().min(0) }).passthrough(),
   employment: z.object({ employerName: z.string().trim().min(1).max(150), title: z.string().trim().min(1).max(100), employerPhone: z.string().regex(/\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d.*\d/), monthlyGrossIncome: z.coerce.number().min(0), yearsAtJob: z.coerce.number().min(0).max(80), monthsAtJob: z.coerce.number().min(0).max(11) }).passthrough(),
   interestedVehicle: z.object({ vin: z.string().trim().regex(/^([A-HJ-NPR-Z0-9]{17})?$/i), year: z.string().min(1), make: z.string().min(1), model: z.string().min(1) }).passthrough(),
@@ -41,9 +41,10 @@ const PersonFields = ({ values, setValues, prefix }: { values: Values; setValues
     <Field label="First Name" value={values.firstName} onChange={set("firstName")} required /><Field label="Last Name" value={values.lastName} onChange={set("lastName")} required />
     <Field label="Email" value={values.email} onChange={set("email")} required type="email" /><Field label="Cell Phone" value={values.cellPhone} onChange={set("cellPhone")} required type="tel" />
     <Field label="Home Phone" value={values.homePhone} onChange={set("homePhone")} type="tel" /><Field label="Date of Birth" value={values.dateOfBirth} onChange={set("dateOfBirth")} required type="date" />
+    <div className="space-y-1.5"><Label>Social Security Number *</Label><Input value={values.ssn || ""} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 9); set("ssn")(d.length > 5 ? `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d); }} type="password" inputMode="numeric" autoComplete="off" placeholder="XXX-XX-XXXX" maxLength={11} className="rounded-none border-rental-line bg-rental-surface text-base text-rental-foreground" /></div>
     <Field label="Driver's License Number" value={values.driversLicenseNumber} onChange={set("driversLicenseNumber")} maxLength={80} /><StateField label="Driver's License State" value={values.driversLicenseState} onChange={set("driversLicenseState")} />
     <Field label="License Issue Date" value={values.driversLicenseIssueDate} onChange={set("driversLicenseIssueDate")} type="date" /><Field label="License Expiry Date" value={values.driversLicenseExpiryDate} onChange={set("driversLicenseExpiryDate")} type="date" />
-    {prefix === "buyer" && <div className="sm:col-span-2 lg:col-span-3 border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">For your security, Social Security numbers are not collected here. A lender may request yours later through its secure process.</div>}
+    {prefix === "buyer" && <div className="sm:col-span-2 lg:col-span-3 border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Your Social Security number is encrypted and only visible to authorized finance staff for credit review.</div>}
   </div>;
 };
 
