@@ -1,5 +1,6 @@
 import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain, computeCommissions, areaCode, signAvatar } from "../_shared/saleCommission.ts";
+import { decryptSsn } from "../_shared/ssnCrypto.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -344,7 +345,16 @@ serve(async (req) => {
           .select("*, vehicles(year,make,model)")
           .order("submitted_at", { ascending: false });
         if (error) throw error;
-        return json({ data });
+        const strip = (p: any) => { if (!p) return p; const { ssnEncrypted, ...rest } = p; return { ...rest, hasSsn: !!ssnEncrypted }; };
+        return json({ data: (data || []).map((r: any) => ({ ...r, applicant: strip(r.applicant), co_buyer: strip(r.co_buyer) })) });
+      }
+      case "revealPurchaseSsn": {
+        const { id, who } = params;
+        const { data: row } = await admin.from("vehicle_purchase_applications").select("applicant, co_buyer").eq("id", id).maybeSingle();
+        const enc = (who === "coBuyer" ? row?.co_buyer : row?.applicant)?.ssnEncrypted;
+        if (!enc) return json({ error: "No Social Security number on file" }, 404);
+        console.log("ssn_reveal", { adminUserId, id, who });
+        return json({ ssn: await decryptSsn(enc) });
       }
       case "updatePurchaseApplication": {
         const { id, payload } = params;

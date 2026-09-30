@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain } from "../_shared/saleCommission.ts";
+import { encryptSsn, ssnDigits, ssnValid } from "../_shared/ssnCrypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,10 +27,12 @@ function validatePerson(value: unknown, label: string) {
   if (!emailOk(text(p.email, 255))) return `${label} email is invalid.`;
   if (!phoneOk(text(p.cellPhone, 30))) return `${label} cell phone is invalid.`;
   if (!dateOk(text(p.dateOfBirth, 10))) return `${label} date of birth is required.`;
+  if (!ssnValid(ssnDigits(p.ssn))) return `${label} Social Security number is invalid.`;
   return null;
 }
 
-function cleanPerson(value: Record<string, unknown>) {
+async function cleanPerson(value: Record<string, unknown>) {
+  const ssn = ssnDigits(value.ssn);
   return {
     firstName: text(value.firstName, 80), lastName: text(value.lastName, 80),
     email: text(value.email, 255).toLowerCase(), cellPhone: text(value.cellPhone, 30),
@@ -38,6 +41,7 @@ function cleanPerson(value: Record<string, unknown>) {
     driversLicenseState: text(value.driversLicenseState, 2).toUpperCase() || null,
     driversLicenseIssueDate: text(value.driversLicenseIssueDate, 10) || null,
     driversLicenseExpiryDate: text(value.driversLicenseExpiryDate, 10) || null,
+    ssnLast4: ssn.slice(-4), ssnEncrypted: await encryptSsn(ssn),
   };
 }
 
@@ -174,8 +178,8 @@ serve(async (req) => {
 
     const { data, error } = await admin.from("vehicle_purchase_applications").insert({
       vehicle_id: vehicleId, user_id: callerId,
-      applicant: { ...cleanPerson(body.applicant), requestedUsername }, residence: cleanResidence(residence), employment: cleanEmployment(employment),
-      co_buyer: body.hasCoBuyer ? { relationship: text(body.coBuyer.relationship, 60), ...cleanPerson(body.coBuyer), residence: cleanResidence(body.coBuyer.residence || {}), employment: cleanEmployment(body.coBuyer.employment || {}) } : null,
+      applicant: { ...(await cleanPerson(body.applicant)), requestedUsername }, residence: cleanResidence(residence), employment: cleanEmployment(employment),
+      co_buyer: body.hasCoBuyer ? { relationship: text(body.coBuyer.relationship, 60), ...(await cleanPerson(body.coBuyer)), residence: cleanResidence(body.coBuyer.residence || {}), employment: cleanEmployment(body.coBuyer.employment || {}) } : null,
       interested_vehicle: { vin: iVin.toUpperCase() || null, year: Number(interested.year), make: text(interested.make, 80), model: text(interested.model, 100), vin_provided: !!iVin, trim: text(interested.trim, 120) || null,
         specs: (() => { try { const a = JSON.parse(text(interested.specs, 3000) || "[]"); return Array.isArray(a) ? Object.fromEntries(a.slice(0, 15).filter((x: unknown) => Array.isArray(x)).map(([k, v]: any) => [String(k).slice(0, 40), String(v).slice(0, 120)])) : null; } catch { return null; } })(), vehiclePrice: money(interested.vehiclePrice), downPayment: money(interested.downPayment), exteriorColor: text(interested.exteriorColor, 60) || null, interiorColor: text(interested.interiorColor, 60) || null },
       trade_in: body.hasTradeIn ? { vin: text(body.tradeIn.vin, 17).toUpperCase(), mileage: money(body.tradeIn.mileage), year: Number(body.tradeIn.year), make: text(body.tradeIn.make, 80), model: text(body.tradeIn.model, 100) } : null,
