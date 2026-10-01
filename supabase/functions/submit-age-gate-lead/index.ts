@@ -232,6 +232,8 @@ serve(async (req) => {
     }
 
     // First call: create the lead.
+    const vt = String((body as any).visitorType ?? "");
+    const visitorType = ["exotic","stripper","normal_female","male","business_owner"].includes(vt) ? vt : null;
     const usernameRaw = String((body as any).username ?? "").trim().toLowerCase();
     const fullName = usernameRaw || String((body as any).fullName ?? "").trim();
     const phone = String((body as any).phone ?? "").trim();
@@ -301,6 +303,7 @@ serve(async (req) => {
         referral_code: referralCode,
         action_taken: "submitted",
         selfie_path: selfiePath,
+        visitor_type: visitorType,
       })
       .select("id")
       .single();

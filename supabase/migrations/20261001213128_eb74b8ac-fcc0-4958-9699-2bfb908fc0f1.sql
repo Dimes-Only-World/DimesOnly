@@ -1,0 +1,1 @@
+ALTER TABLE public.age_gate_leads ADD COLUMN IF NOT EXISTS visitor_type text CHECK (visitor_type IN ('exotic','stripper','normal_female','male','business_owner'));

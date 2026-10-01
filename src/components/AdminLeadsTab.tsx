@@ -27,6 +27,7 @@ interface Lead {
   phone: string;
   date_of_birth: string;
   referral_code: string | null;
+  visitor_type?: string | null;
   action_taken: string;
   created_at: string;
   deleted_at?: string | null;
@@ -304,6 +305,7 @@ const AdminLeadsTab: React.FC = () => {
                   <th className="py-2 pr-4 font-medium">Photo</th>
                   <th className="py-2 pr-4 font-medium">Phone</th>
                   <th className="py-2 pr-4 font-medium">Date of Birth</th>
+                  <th className="py-2 pr-4 font-medium" title="E = Exotic, S = Stripper, NF = Normal Female, M = Male, BO = Business Owner">Type</th>
                   <th className="py-2 pr-4 font-medium">Referrer</th>
                   <th className="py-2 pr-4 font-medium">Action</th>
                   <th className="py-2 pr-4 font-medium">Status</th>
@@ -338,6 +340,7 @@ const AdminLeadsTab: React.FC = () => {
                       {lead.phone}
                     </td>
                     <td className="py-2 pr-4">{lead.date_of_birth}</td>
+                    <td className="py-2 pr-4 font-semibold">{({ exotic: "E", stripper: "S", normal_female: "NF", male: "M", business_owner: "BO" } as Record<string, string>)[lead.visitor_type || ""] || "—"}</td>
                     <td className="py-2 pr-4">{lead.referral_code || "—"}</td>
                     <td className="py-2 pr-4">
                       {lead.registration_completed ? (
