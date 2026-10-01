@@ -42,6 +42,7 @@ export type Database = {
           selfie_path: string | null
           updated_at: string
           username: string | null
+          visitor_type: string | null
         }
         Insert: {
           action_taken?: string
@@ -55,6 +56,7 @@ export type Database = {
           selfie_path?: string | null
           updated_at?: string
           username?: string | null
+          visitor_type?: string | null
         }
         Update: {
           action_taken?: string
@@ -68,6 +70,7 @@ export type Database = {
           selfie_path?: string | null
           updated_at?: string
           username?: string | null
+          visitor_type?: string | null
         }
         Relationships: []
       }
