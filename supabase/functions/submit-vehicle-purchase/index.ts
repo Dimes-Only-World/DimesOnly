@@ -27,6 +27,7 @@ function validatePerson(value: unknown, label: string) {
   if (!emailOk(text(p.email, 255))) return `${label} email is invalid.`;
   if (!phoneOk(text(p.cellPhone, 30))) return `${label} cell phone is invalid.`;
   if (!dateOk(text(p.dateOfBirth, 10))) return `${label} date of birth is required.`;
+  if (!text(p.driversLicenseNumber, 80) || !/^[A-Z]{2}$/i.test(text(p.driversLicenseState, 2)) || !dateOk(text(p.driversLicenseIssueDate, 10)) || !dateOk(text(p.driversLicenseExpiryDate, 10))) return `${label} driver's license number, state, issue date, and expiry date are required.`;
   if (!ssnValid(ssnDigits(p.ssn))) return `${label} Social Security number is invalid.`;
   return null;
 }
