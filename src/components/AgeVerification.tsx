@@ -259,6 +259,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
           phone: phone.trim(),
           dateOfBirth: dob,
           referralCode: refCode || null,
+          visitorType: role,
           selfieBase64,
           selfieContentType: selfie.type,
           aiPreviewBase64,
