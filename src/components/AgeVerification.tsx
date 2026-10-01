@@ -32,7 +32,7 @@ const FALLBACK_VIDEO =
 type Step = "warning" | "role" | "form" | "video";
 type Role = "exotic" | "stripper" | "normal_female" | "male" | "business_owner";
 const ROLE_OPTIONS: { value: Role; label: string }[] = [
-  { value: "exotic", label: "Exxxotic Female" },
+  { value: "exotic", label: "Exotic Female" },
   { value: "stripper", label: "Stripper" },
   { value: "normal_female", label: "Normal Female" },
   { value: "male", label: "Male" },
