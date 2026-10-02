@@ -86,6 +86,56 @@ serve(async (req) => {
       }
       case 'fetchAgeGateLeads': {
         const trashed = params.view === 'trash';
+
+        // Backfill: members who registered directly (skipping the intro form) get a lead row.
+        try {
+          const { data: allLeads } = await supabaseAdmin
+            .from('age_gate_leads')
+            .select('phone, username, created_at')
+            .order('created_at', { ascending: true })
+            .limit(5000);
+          const firstLeadAt = allLeads?.[0]?.created_at;
+          if (firstLeadAt) {
+            const d10 = (v: any) => String(v || '').replace(/\D/g, '').slice(-10);
+            const phones = new Set((allLeads || []).map((l: any) => d10(l.phone)).filter((p) => p.length === 10));
+            const unames = new Set((allLeads || []).map((l: any) => String(l.username || '').toLowerCase()).filter(Boolean));
+            const { data: newUsers } = await supabaseAdmin
+              .from('users')
+              .select('username, first_name, last_name, phone_number, mobile_number, date_of_birth, referred_by, user_type, gender, created_at')
+              .gte('created_at', firstLeadAt)
+              .limit(2000);
+            const typeOf = (u: any) => {
+              const t = String(u.user_type || '').toLowerCase();
+              if (t === 'exotic') return 'exotic';
+              if (t === 'stripper') return 'stripper';
+              if (t.includes('business')) return 'business_owner';
+              return String(u.gender || '').toLowerCase() === 'female' ? 'normal_female' : 'male';
+            };
+            const rows = (newUsers || [])
+              .filter((u: any) => {
+                const p = d10(u.phone_number) || d10(u.mobile_number);
+                const un = String(u.username || '').toLowerCase();
+                return !!u.date_of_birth && !(p.length === 10 && phones.has(p)) && !(un && unames.has(un));
+              })
+              .map((u: any) => ({
+                full_name: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username,
+                username: u.username,
+                phone: u.phone_number || u.mobile_number || '',
+                date_of_birth: u.date_of_birth ? String(u.date_of_birth).slice(0, 10) : null,
+                referral_code: u.referred_by || 'company',
+                visitor_type: typeOf(u),
+                action_taken: 'continued_registration',
+                created_at: u.created_at,
+              }));
+            if (rows.length) {
+              const { error: bfErr } = await supabaseAdmin.from('age_gate_leads').insert(rows);
+              if (bfErr) console.error('lead backfill error', bfErr);
+            }
+          }
+        } catch (e) {
+          console.error('lead backfill failed', e);
+        }
+
         let query = supabaseAdmin
           .from('age_gate_leads')
           .select('*')
