@@ -18,6 +18,9 @@ export interface EventTicketingValues {
   females_price?: number;
   plus_ticket_mode?: string;
   plus_discount_percent?: number;
+  early_bird_percent?: number;
+  early_bird_limit?: number;
+  plus_extra_percent?: number;
   price?: number;
 }
 
@@ -208,6 +211,34 @@ const EventTicketingFields: React.FC<Props> = ({ values, onChange }) => {
             </div>
           </>
         )}
+      </div>
+
+      <h3 className="text-lg font-medium pt-2">Early Tickets &amp; Discounts</h3>
+      <p className="text-sm text-muted-foreground -mt-2">
+        Works for TBA events too. Discounts apply to every ticket price (General, VIP, VIP Section).
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <NumberField
+          label="Early ticket discount (%)"
+          hint="e.g. 50"
+          step="1"
+          value={v("early_bird_percent")}
+          onChange={(n) => onChange({ early_bird_percent: Math.min(100, Math.max(0, n)) })}
+        />
+        <NumberField
+          label="Early discount for first # people"
+          hint="e.g. 100"
+          step="1"
+          value={v("early_bird_limit")}
+          onChange={(n) => onChange({ early_bird_limit: Math.max(0, Math.floor(n)) })}
+        />
+        <NumberField
+          label="Extra % off for Plus members"
+          hint="e.g. 10 — stacks on top"
+          step="1"
+          value={v("plus_extra_percent")}
+          onChange={(n) => onChange({ plus_extra_percent: Math.min(100, Math.max(0, n)) })}
+        />
       </div>
     </div>
   );

@@ -93,8 +93,11 @@ serve(async (req) => {
       const qty = Math.min(Math.max(Number(ticket_quantity) || 1, 1), 50);
       const prices = ["price","general_admission_price","males_price","females_price","vip_price","vip_section_price","group_discount_price"]
         .map((k) => Number((ev as any)[k])).filter((n) => Number.isFinite(n) && n > 0);
-      const minUnit = prices.length ? Math.min(...prices) : 0;
-      if (parsedAmount + 0.001 < minUnit * qty * 0.5) {
+      const discountFloor = (1 - Math.min(100, Math.max(0, Number((ev as any).early_bird_percent) || 0)) / 100)
+        * (1 - Math.min(100, Math.max(0, Number((ev as any).plus_extra_percent) || 0)) / 100)
+        * (1 - Math.min(100, Math.max(0, Number((ev as any).plus_discount_percent) || 0)) / 100);
+      const minUnit = (prices.length ? Math.min(...prices) : 0) * discountFloor;
+      if (parsedAmount + 0.001 < minUnit * qty) {
         return new Response(JSON.stringify({ success: false, error: "Invalid amount." }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
       }
     }
