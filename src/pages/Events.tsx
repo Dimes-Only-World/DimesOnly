@@ -90,18 +90,12 @@ const Events: React.FC = () => {
   const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
 
   useEffect(() => {
-    if (username) {
-      fetchUserProfile();
-    } else {
-      setLoading(false);
-    }
+    if (username) fetchUserProfile();
   }, [username]);
 
-  // Fetch events when userProfile is loaded (so we know the performer's ID)
+  // Always load events; performer attendance is marked when a profile is known
   useEffect(() => {
-    if (userProfile?.id) {
-      fetchEvents();
-    }
+    fetchEvents();
   }, [userProfile?.id]);
 
   // Fetch latest free video for THIS specific user (not global)
@@ -206,8 +200,6 @@ const Events: React.FC = () => {
   }, [username]);
 
   const fetchEvents = useCallback(async () => {
-    if (!userProfile?.id) return;
-    
     try {
       // Get ALL events in the system
       const { data: allEvents, error: eventsError } = await supabase
@@ -218,13 +210,10 @@ const Events: React.FC = () => {
 
       if (eventsError) throw eventsError;
 
-      // Get PERFORMER's event attendance to mark which events they're attending
-      // This is the key fix: we query the performer's (userProfile) attendance, not the viewer's
       let performerAttendingEventIds: string[] = [];
-      const { data: performerEvents, error: performerEventsError } = await supabase
-        .from("user_events")
-        .select("event_id")
-        .eq("user_id", userProfile.id);
+      const { data: performerEvents, error: performerEventsError } = userProfile?.id
+        ? await supabase.from("user_events").select("event_id").eq("user_id", userProfile.id)
+        : { data: [] as { event_id: string }[], error: null };
 
       if (!performerEventsError && performerEvents) {
         performerAttendingEventIds = performerEvents.map((ue) => ue.event_id);
