@@ -10,8 +10,11 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useMobileLayout, useIsMobile } from "@/hooks/use-mobile";
 import { formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
 import { resolveFreeAllocation, getFreeBadgeLabel, listConfiguredFreeAllocations } from "@/lib/eventTickets";
+import { usePageVideo } from "@/hooks/usePageVideo";
+import BannerVideo from "@/components/BannerVideo";
 import {
   Calendar,
+  Music,
   MapPin,
   Clock,
   Check,
@@ -305,9 +308,27 @@ const Events: React.FC = () => {
         attendanceFilter === "all" ||
         (attendanceFilter === "going" && event.is_attending) ||
         (attendanceFilter === "not_going" && !event.is_attending);
-      return matchesLocation && matchesDate && matchesAttendance;
+      return matchesLocation && matchesDate && matchesGenre && matchesAttendance;
     });
   }, [events, filters, attendanceFilter]);
+
+  const monthOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    events.forEach((e) => {
+      if (e.date_tba || !e.date) return;
+      const v = e.date.slice(0, 7);
+      if (!seen.has(v)) {
+        const [y, m] = v.split("-").map(Number);
+        seen.set(v, new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" }));
+      }
+    });
+    return [...seen].sort().map(([value, label]) => ({ value, label }));
+  }, [events]);
+
+  const genreOptions = useMemo(
+    () => [...new Set(events.map((e) => (e.genre || "").trim()).filter(Boolean))].sort(),
+    [events]
+  );
 
   const getAvailableSpots = useCallback((event: Event | null) => {
     if (!event) return 0;
@@ -401,6 +422,9 @@ const Events: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white overflow-x-hidden">
       {/* Mobile-first full width design */}
       <div className={getContainerClasses("w-full")}>
+        {!userProfile && eventsPageVideo && (
+          <BannerVideo src={eventsPageVideo} className="aspect-[2.35/1] mb-6" />
+        )}
         {/* User Profile Header with Banner */}
         {userProfile && (
           <div className="relative mb-6">
