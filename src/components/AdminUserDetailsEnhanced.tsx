@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
@@ -87,14 +88,34 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
   const [tierUpdatingId, setTierUpdatingId] = useState<string | null>(null);
   const [membershipValue, setMembershipValue] = useState<string>('free');
   const [membershipSaving, setMembershipSaving] = useState(false);
+  const [editingRef, setEditingRef] = useState(false);
+  const [refValue, setRefValue] = useState('');
+  const [refSaving, setRefSaving] = useState(false);
+  const [currentRef, setCurrentRef] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     if (user && isOpen) {
       fetchUserMedia();
       setMembershipValue(resolveMembership(user).key);
+      setCurrentRef(user.referred_by || '');
+      setEditingRef(false);
     }
   }, [user, isOpen]);
+
+  const handleSaveReferredBy = async () => {
+    if (!user) return;
+    setRefSaving(true);
+    try {
+      const data = await callAdminData('updateReferredBy', { userId: user.id, referredBy: refValue });
+      setCurrentRef(data?.referred_by || '');
+      setEditingRef(false);
+      toast({ title: 'Referrer updated', description: `Now referred by @${data?.referred_by}` });
+      onUserUpdated?.();
+    } catch (e: any) {
+      toast({ title: 'Could not update referrer', description: e.message, variant: 'destructive' });
+    } finally { setRefSaving(false); }
+  };
 
   const fetchUserMedia = async () => {
     if (!user) return;
@@ -395,9 +416,21 @@ const AdminUserDetailsEnhanced: React.FC<AdminUserDetailsEnhancedProps> = ({
                       </Badge>
                     </p>
                   )}
-                  {user.referred_by && (
-                    <p><strong>Referred by:</strong> <span className="ml-2 font-medium text-primary">@{user.referred_by}</span></p>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <strong>Referred by:</strong>
+                    {editingRef ? (
+                      <>
+                        <Input value={refValue} onChange={(e) => setRefValue(e.target.value)} placeholder="username or Company" className="h-8 w-48" maxLength={60} />
+                        <Button size="sm" disabled={refSaving} onClick={handleSaveReferredBy}>{refSaving ? 'Saving...' : 'Save'}</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingRef(false)}>Cancel</Button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-medium text-primary">@{currentRef || 'company'}</span>
+                        <Button size="sm" variant="outline" className="h-7" onClick={() => { setRefValue(currentRef || ''); setEditingRef(true); }}>Change</Button>
+                      </>
+                    )}
+                  </div>
                   <p><strong>Status:</strong>{' '}
                     <Badge variant={isDeactivated ? 'destructive' : 'default'} className="ml-2">
                       {isDeactivated ? 'Deactivated' : 'Active'}

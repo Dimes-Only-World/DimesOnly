@@ -1206,6 +1206,31 @@ serve(async (req) => {
         break;
       }
 
+      case 'updateReferredBy': {
+        const { userId, referredBy } = params as { userId?: string; referredBy?: string };
+        const raw = String(referredBy ?? '').trim().replace(/^@/, '');
+        const json400 = (msg: string) => new Response(JSON.stringify({ error: msg }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        if (!userId || !raw || raw.length > 60 || !/^[A-Za-z0-9_.-]+$/.test(raw)) {
+          return json400('A valid username (or "Company") is required');
+        }
+        let canonical = 'Company';
+        if (raw.toLowerCase() !== 'company') {
+          const { data: ref, error: refErr } = await supabaseAdmin
+            .from('users').select('id, username').ilike('username', raw).maybeSingle();
+          if (refErr) throw refErr;
+          if (!ref) return json400(`No member found with username @${raw}`);
+          if (ref.id === userId) return json400('A member cannot refer themselves');
+          canonical = ref.username;
+        }
+        const { data, error } = await supabaseAdmin
+          .from('users').update({ referred_by: canonical, updated_at: new Date().toISOString() })
+          .eq('id', userId).select('id, username, referred_by').single();
+        if (error) throw error;
+        result = data;
+        break;
+      }
+
       case 'fetchTipLeaderboard': {
         const year = Number(params.year) || new Date().getFullYear();
         const [dimesRes, tippersRes] = await Promise.all([
