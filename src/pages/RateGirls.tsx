@@ -239,10 +239,10 @@ const RateGirls: React.FC = () => {
           <h1 className="rate-hero-title font-black uppercase tracking-normal text-white">
             RATE 100 LADIES'{" "}
             <span className="text-yellow-400">
-              <span className="block">PROFILES</span>
-              <span className="block">HOW IT WORKS</span>
+              PROFILES
+              <br />
+              HOW IT WORKS?
             </span>
-            ?
           </h1>
           <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
         </div>
