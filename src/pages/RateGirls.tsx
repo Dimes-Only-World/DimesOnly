@@ -55,7 +55,6 @@ interface RankedUser {
 const RateGirls: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { videoUrl: rateVideoUrl } = usePageVideo("rate_page");
   const { videoUrl: howItWorksVideoUrl } = usePageVideo("rate_how_it_works");
   const rateUsername = searchParams.get("rate");
   const refUsername = searchParams.get("ref") || "";
@@ -246,8 +245,12 @@ HOW IT WORKS</span>
         </div>
 
         {/* Video Banner */}
-        {rateVideoUrl && (
-          <BannerVideo src={rateVideoUrl} className="aspect-[2.35/1]" />
+        {howItWorksVideoUrl && (
+          <BannerVideo
+            src={howItWorksVideoUrl}
+            loop={false}
+            className="aspect-[2.35/1]"
+          />
         )}
 
         <div className="max-w-7xl mx-auto p-4">
@@ -369,16 +372,6 @@ HOW IT WORKS</span>
           </div>
         </div>
 
-        {/* Full-width How It Works video */}
-        {howItWorksVideoUrl && (
-          <div className="w-full mb-12">
-            <BannerVideo
-              src={howItWorksVideoUrl}
-              loop={false}
-              className="aspect-[2.35/1]"
-            />
-          </div>
-        )}
 
         <div className="max-w-7xl mx-auto p-4">
 
