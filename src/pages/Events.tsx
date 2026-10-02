@@ -86,7 +86,9 @@ const Events: React.FC = () => {
   const [filters, setFilters] = useState({
     location: "",
     date: "",
+    genre: "",
   });
+  const { videoUrl: eventsPageVideo } = usePageVideo("events_page_banner");
   const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
 
   useEffect(() => {
@@ -293,17 +295,12 @@ const Events: React.FC = () => {
     return events.filter((event) => {
       const matchesLocation =
         !filters.location ||
-        (event.city &&
-          event.city.toLowerCase().includes(filters.location.toLowerCase())) ||
-        (event.state &&
-          event.state.toLowerCase().includes(filters.location.toLowerCase())) ||
-        (event.address &&
-          event.address
-            .toLowerCase()
-            .includes(filters.location.toLowerCase())) ||
-        (event.name &&
-          event.name.toLowerCase().includes(filters.location.toLowerCase()));
-      const matchesDate = !filters.date || (event.date_tba ? false : event.date.includes(filters.date));
+        [event.city, event.state, event.address, (event as any).location]
+          .some((v) => v && String(v).toLowerCase().includes(filters.location.toLowerCase()));
+      const matchesDate =
+        !filters.date ||
+        (filters.date === "tba" ? !!event.date_tba : !event.date_tba && event.date.slice(0, 7) === filters.date);
+      const matchesGenre = !filters.genre || (event.genre || "").toLowerCase() === filters.genre.toLowerCase();
       const matchesAttendance =
         attendanceFilter === "all" ||
         (attendanceFilter === "going" && event.is_attending) ||
@@ -408,7 +405,7 @@ const Events: React.FC = () => {
         {userProfile && (
           <div className="relative mb-6">
             {/* Banner - Video or Photo - Full width, larger height, object-cover for stretch */}
-            <div className="w-full bg-black">
+            <div className="w-full bg-black aspect-[2.35/1] overflow-hidden">
               {latestFreeVideo ? (
                 <video
                   autoPlay
@@ -416,7 +413,7 @@ const Events: React.FC = () => {
                   loop
                   playsInline
                   poster={userProfile.banner_photo || "/placeholder.svg"}
-                  className="w-full h-auto"
+                  className="h-full w-full object-cover"
                   onError={(e) => {
                     const video = e.currentTarget;
                     video.style.display = "none";
@@ -433,7 +430,7 @@ const Events: React.FC = () => {
                 <img
                   src={userProfile.banner_photo || "/placeholder.svg"}
                   alt={`${userProfile.username} banner`}
-                  className="w-full h-auto object-top"
+                  className="h-full w-full object-cover object-top"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";
@@ -575,31 +572,42 @@ const Events: React.FC = () => {
               <h3 className="text-lg md:text-xl font-bold text-yellow-400 mb-4">
                 Filter Events
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Filter by event name or location"
+                    placeholder="Filter by city, state or location"
                     value={filters.location}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setFilters((prev) => ({ ...prev, location: e.target.value }))}
                     className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400"
                   />
                 </div>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="date"
+                  <select
                     value={filters.date}
-                    onChange={(e) =>
-                      setFilters((prev) => ({ ...prev, date: e.target.value }))
-                    }
-                    className="pl-10 bg-white/10 border-white/20 text-white"
-                  />
+                    onChange={(e) => setFilters((prev) => ({ ...prev, date: e.target.value }))}
+                    className="h-10 w-full rounded-md border border-white/20 bg-white/10 pl-10 pr-3 text-white [&>option]:text-black"
+                  >
+                    <option value="">All months</option>
+                    <option value="tba">To Be Announced</option>
+                    {monthOptions.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="relative">
+                  <Music className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <select
+                    value={filters.genre}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, genre: e.target.value }))}
+                    className="h-10 w-full rounded-md border border-white/20 bg-white/10 pl-10 pr-3 text-white [&>option]:text-black"
+                  >
+                    <option value="">All genres</option>
+                    {genreOptions.map((g) => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </CardContent>
