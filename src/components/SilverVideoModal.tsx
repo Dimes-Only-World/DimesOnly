@@ -17,15 +17,29 @@ const SilverVideoModal: React.FC<Props> = ({ userId, username, fallbackPhoto, on
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    supabase
-      .from("user_media")
-      .select("media_url")
-      .eq("user_id", userId)
-      .eq("content_tier", "silver")
-      .eq("media_type", "video")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .then(({ data }) => setUrl(data?.[0]?.media_url || null));
+    (async () => {
+      const { data } = await supabase
+        .from("user_media")
+        .select("media_url, storage_path")
+        .eq("user_id", userId)
+        .eq("content_tier", "silver")
+        .eq("media_type", "video")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const row = data?.[0];
+      const raw = String(row?.media_url || "");
+      if (!raw) return setUrl(null);
+      const path = row?.storage_path || (raw.includes("/private-media/") ? decodeURIComponent(raw.split("/private-media/")[1]) : "");
+      if (!path) return setUrl(raw);
+      try {
+        const { data: res } = await supabase.functions.invoke("public-data", {
+          body: { action: "createSignedUrl", storagePath: path, expiresIn: 3600 },
+        });
+        setUrl(res?.data?.signedUrl || raw);
+      } catch {
+        setUrl(raw);
+      }
+    })();
   }, [userId]);
 
   useEffect(() => {
