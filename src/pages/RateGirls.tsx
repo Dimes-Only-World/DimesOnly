@@ -373,16 +373,6 @@ HOW IT WORKS</span>
           </div>
         </div>
 
-        {/* Full-width How It Works video */}
-        {howItWorksVideoUrl && (
-          <div className="w-full mb-12">
-            <BannerVideo
-              src={howItWorksVideoUrl}
-              loop={false}
-              className="aspect-[2.35/1]"
-            />
-          </div>
-        )}
 
         <div className="max-w-7xl mx-auto p-4">
 
