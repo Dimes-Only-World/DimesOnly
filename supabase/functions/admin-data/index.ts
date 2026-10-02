@@ -115,7 +115,7 @@ serve(async (req) => {
               .filter((u: any) => {
                 const p = d10(u.phone_number) || d10(u.mobile_number);
                 const un = String(u.username || '').toLowerCase();
-                return !(p.length === 10 && phones.has(p)) && !(un && unames.has(un));
+                return !!u.date_of_birth && !(p.length === 10 && phones.has(p)) && !(un && unames.has(un));
               })
               .map((u: any) => ({
                 full_name: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username,
