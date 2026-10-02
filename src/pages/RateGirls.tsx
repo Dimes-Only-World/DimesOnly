@@ -320,7 +320,13 @@ const RateGirls: React.FC = () => {
                       : "CONTEST ENDS WHEN DATE ADDED TO MALIBU MANSION PARTY"}
                   </span>
                   <br />
-                  <span className="font-bold text-white">MUST ATTEND EVENT TO COLLECT PRIZE!</span>
+                  <span className="font-bold text-white">
+                    MUST ATTEND MALIBU EVENT TO COLLECT PRIZE!
+                    <br />
+                    <Link to="/events" className="text-yellow-300 underline">~CLICK HERE TO GET EARLY BIRD TICKETS~</Link>
+                    <br />
+                    THIS WILL BE STAR STUDDED!
+                  </span>
                 </p>
               </div>
 

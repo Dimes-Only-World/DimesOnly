@@ -18,14 +18,18 @@ const SilverVideoModal: React.FC<Props> = ({ userId, username, fallbackPhoto, on
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("user_media")
-        .select("media_url, storage_path")
-        .eq("user_id", userId)
-        .eq("content_tier", "silver")
-        .eq("media_type", "video")
-        .order("created_at", { ascending: false })
-        .limit(1);
+      const latest = (tier?: string) => {
+        let q = supabase
+          .from("user_media")
+          .select("media_url, storage_path")
+          .eq("user_id", userId)
+          .eq("media_type", "video");
+        if (tier) q = q.eq("content_tier", tier);
+        return q.order("created_at", { ascending: false }).limit(1);
+      };
+      // Prefer the latest Silver video; fall back to her latest video of any tier.
+      let { data } = await latest("silver");
+      if (!data?.length) ({ data } = await latest());
       const row = data?.[0];
       const raw = String(row?.media_url || "");
       if (!raw) return setUrl(null);
