@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { ArrowDown, ArrowUp, Eraser, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AdSpotPerformanceReport from "@/components/AdSpotPerformanceReport";
 
 interface ClickRow {
   id: string;
@@ -222,6 +223,8 @@ const AdminAdvertisementTab: React.FC = () => {
           dashboard feed after every 3 rows, in the order shown below. Use the arrows to move a spot up
           or down.
         </p>
+
+        <AdSpotPerformanceReport call={call} />
 
         {/* Click report for advertisers */}
         <div className="rounded-lg border bg-muted/30 p-4">

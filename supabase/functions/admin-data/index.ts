@@ -1392,6 +1392,38 @@ serve(async (req) => {
         break;
       }
 
+      case 'adSpotPerformance': {
+        const { fromDate, toDate } = params as { fromDate?: string; toDate?: string };
+        const from = fromDate ? new Date(fromDate).toISOString() : null;
+        let to: string | null = null;
+        if (toDate) { const e = new Date(toDate); e.setHours(23, 59, 59, 999); to = e.toISOString(); }
+        const fetchAll = async (table: string, col: string, cols: string) => {
+          const out: any[] = [];
+          for (let off = 0; off < 200000; off += 1000) {
+            let q = supabaseAdmin.from(table).select(cols).range(off, off + 999);
+            if (from) q = q.gte(col, from);
+            if (to) q = q.lte(col, to);
+            const { data, error } = await q;
+            if (error) throw error;
+            out.push(...(data || []));
+            if (!data || data.length < 1000) break;
+          }
+          return out;
+        };
+        const [{ data: adsRows, error: adsErr }, imps, clicks] = await Promise.all([
+          supabaseAdmin.from('dashboard_ads').select('id, slot_number, position, title, is_active, media_url').order('position'),
+          fetchAll('dashboard_ad_impressions', 'viewed_at', 'ad_id'),
+          fetchAll('dashboard_ad_clicks', 'clicked_at', 'ad_id'),
+        ]);
+        if (adsErr) throw adsErr;
+        const ic = new Map<string, number>(); imps.forEach((r) => ic.set(r.ad_id, (ic.get(r.ad_id) || 0) + 1));
+        const cc = new Map<string, number>(); clicks.forEach((r) => cc.set(r.ad_id, (cc.get(r.ad_id) || 0) + 1));
+        result = (adsRows || [])
+          .map((a: any) => ({ ...a, impressions: ic.get(a.id) || 0, clicks: cc.get(a.id) || 0 }))
+          .filter((a: any) => a.media_url || a.impressions || a.clicks);
+        break;
+      }
+
       case 'listDashboardAdClicks': {
         const { adId, fromDate, toDate } = params as {
           adId?: string;
