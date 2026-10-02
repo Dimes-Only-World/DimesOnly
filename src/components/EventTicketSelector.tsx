@@ -349,6 +349,22 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
 
   return (
     <div className="space-y-4">
+      {(discounts.earlyActive || (discounts.plusExtraPercent > 0)) && (
+        <div className="rounded-lg border border-yellow-400/50 bg-yellow-400/10 p-3 text-center">
+          {discounts.earlyActive && (
+            <p className="font-bold text-yellow-300">
+              🔥 Early Tickets {discounts.earlyPercent}% OFF — only {discounts.earlyLeft} left!
+            </p>
+          )}
+          {discounts.plusExtraPercent > 0 && (
+            <p className="text-sm text-gray-200">
+              {isPlusViewer
+                ? `✨ Extra ${discounts.plusExtraPercent}% off applied for Plus members`
+                : `Plus members get an extra ${discounts.plusExtraPercent}% off`}
+            </p>
+          )}
+        </div>
+      )}
       {/* Ticket Type Selection */}
       <div className="space-y-2">
         <p className="text-sm font-medium text-gray-300">Select Ticket Type</p>
