@@ -169,9 +169,30 @@ const DashboardFeedSection: React.FC = () => {
         .order("created_at", { ascending: false })
         .limit(200);
 
-      const fallbacks: FeedItem[] = (profileRows || [])
-        .filter((p: any) => !covered.has(p.id) && (p.front_page_photo || p.profile_photo))
-        .map((p: any) => ({
+      const fbRows = (profileRows || []).filter(
+        (p: any) => !covered.has(p.id) && (p.front_page_photo || p.profile_photo),
+      );
+      const fbIds = fbRows.map((p: any) => p.id);
+      const [{ data: pLikes }, { data: pComments }] = await Promise.all([
+        fbIds.length
+          ? supabase.from("profile_photo_likes").select("profile_user_id, user_id").in("profile_user_id", fbIds)
+          : Promise.resolve({ data: [] as any[] }),
+        fbIds.length
+          ? supabase.from("profile_photo_comments").select("profile_user_id").in("profile_user_id", fbIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const pLikeCount = new Map<string, number>();
+      const pLikedByMe = new Set<string>();
+      (pLikes || []).forEach((l: any) => {
+        pLikeCount.set(l.profile_user_id, (pLikeCount.get(l.profile_user_id) || 0) + 1);
+        if (user?.id && l.user_id === user.id) pLikedByMe.add(l.profile_user_id);
+      });
+      const pCommentCount = new Map<string, number>();
+      (pComments || []).forEach((c: any) =>
+        pCommentCount.set(c.profile_user_id, (pCommentCount.get(c.profile_user_id) || 0) + 1),
+      );
+
+      const fallbacks: FeedItem[] = fbRows.map((p: any) => ({
           id: `profile:${p.id}`,
           user_id: p.id,
           media_url: p.front_page_photo || p.profile_photo,
@@ -179,9 +200,9 @@ const DashboardFeedSection: React.FC = () => {
           filename: null,
           created_at: p.created_at || new Date().toISOString(),
           author: { id: p.id, username: p.username, profile_photo: p.profile_photo, user_type: p.user_type },
-          likeCount: 0,
-          commentCount: 0,
-          liked: false,
+          likeCount: pLikeCount.get(p.id) || 0,
+          commentCount: pCommentCount.get(p.id) || 0,
+          liked: pLikedByMe.has(p.id),
         }));
 
       // Random order, stable for this sign-in session (new order on each login).
@@ -220,32 +241,32 @@ const DashboardFeedSection: React.FC = () => {
       toast({ title: "Sign in required", description: "Log in to like content." });
       return;
     }
-    if (item.id.startsWith("profile:")) {
-      toast({ title: "Profile photo", description: "Likes are available on uploaded posts." });
-      return;
-    }
+    const isProfile = item.id.startsWith("profile:");
     const setter = item.media_type === "photo" ? setPhotos : setVideos;
     const nextLiked = !item.liked;
-    setter((prev) =>
-      prev.map((p) =>
-        p.id === item.id
-          ? { ...p, liked: nextLiked, likeCount: Math.max(0, p.likeCount + (nextLiked ? 1 : -1)) }
-          : p,
-      ),
-    );
-    setActive((a) =>
-      a && a.id === item.id
-        ? { ...a, liked: nextLiked, likeCount: Math.max(0, a.likeCount + (nextLiked ? 1 : -1)) }
-        : a,
-    );
-    try {
-      if (nextLiked) {
-        await supabase.from("media_likes").insert({ media_id: item.id, user_id: user.id });
-      } else {
-        await supabase.from("media_likes").delete().eq("media_id", item.id).eq("user_id", user.id);
-      }
-    } catch (e) {
-      console.warn("like failed", e);
+    const apply = (liked: boolean) => {
+      const upd = (p: FeedItem) =>
+        p.id === item.id && p.liked !== liked
+          ? { ...p, liked, likeCount: Math.max(0, p.likeCount + (liked ? 1 : -1)) }
+          : p;
+      setter((prev) => prev.map(upd));
+      setActive((a) => (a ? upd(a) : a));
+    };
+    apply(nextLiked);
+    let error: any = null;
+    if (isProfile) {
+      const pid = item.id.slice(8);
+      ({ error } = nextLiked
+        ? await supabase.from("profile_photo_likes").insert({ profile_user_id: pid, user_id: user.id })
+        : await supabase.from("profile_photo_likes").delete().eq("profile_user_id", pid).eq("user_id", user.id));
+    } else {
+      ({ error } = nextLiked
+        ? await supabase.from("media_likes").insert({ media_id: item.id, user_id: user.id })
+        : await supabase.from("media_likes").delete().eq("media_id", item.id).eq("user_id", user.id));
+    }
+    if (error && error.code !== "23505") {
+      apply(!nextLiked);
+      toast({ title: "Like failed", description: "Please sign in again and retry.", variant: "destructive" });
     }
   };
 
@@ -469,17 +490,23 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
   const [comments, setComments] = useState<{ id: string; comment_text: string; username?: string }[]>([]);
   const [text, setText] = useState("");
 
+  const isProfile = item.id.startsWith("profile:");
+  const profileUserId = isProfile ? item.id.slice(8) : "";
+
   const loadComments = useCallback(async () => {
-    if (item.id.startsWith("profile:")) {
-      setComments([]);
-      return;
-    }
-    const { data } = await supabase
-      .from("media_comments")
-      .select("id, user_id, comment_text, created_at")
-      .eq("media_id", item.id)
-      .order("created_at", { ascending: true })
-      .limit(100);
+    const { data } = isProfile
+      ? await supabase
+          .from("profile_photo_comments")
+          .select("id, user_id, comment_text, created_at")
+          .eq("profile_user_id", profileUserId)
+          .order("created_at", { ascending: true })
+          .limit(100)
+      : await supabase
+          .from("media_comments")
+          .select("id, user_id, comment_text, created_at")
+          .eq("media_id", item.id)
+          .order("created_at", { ascending: true })
+          .limit(100);
     const rows = data || [];
     const ids = Array.from(new Set(rows.map((r: any) => r.user_id)));
     const { data: profs } = ids.length
@@ -487,17 +514,28 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
       : { data: [] as any[] };
     const nameMap = new Map((profs || []).map((p: any) => [p.id, p.username]));
     setComments(rows.map((r: any) => ({ ...r, username: nameMap.get(r.user_id) })));
-  }, [item.id]);
+  }, [item.id, isProfile, profileUserId]);
 
   useEffect(() => {
     loadComments();
   }, [loadComments]);
 
   const submit = async () => {
-    if (!user?.id || !text.trim()) return;
+    if (!user?.id) {
+      toast({ title: "Sign in required", description: "Log in to comment." });
+      return;
+    }
+    if (!text.trim()) return;
     const comment_text = text.trim();
     setText("");
-    await supabase.from("media_comments").insert({ media_id: item.id, user_id: user.id, comment_text });
+    const { error } = isProfile
+      ? await supabase.from("profile_photo_comments").insert({ profile_user_id: profileUserId, user_id: user.id, comment_text })
+      : await supabase.from("media_comments").insert({ media_id: item.id, user_id: user.id, comment_text });
+    if (error) {
+      setText(comment_text);
+      toast({ title: "Comment failed", description: "Please sign in again and retry.", variant: "destructive" });
+      return;
+    }
     loadComments();
   };
 
