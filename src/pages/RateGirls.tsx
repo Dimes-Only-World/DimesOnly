@@ -246,8 +246,12 @@ HOW IT WORKS</span>
         </div>
 
         {/* Video Banner */}
-        {rateVideoUrl && (
-          <BannerVideo src={rateVideoUrl} className="aspect-[2.35/1]" />
+        {howItWorksVideoUrl && (
+          <BannerVideo
+            src={howItWorksVideoUrl}
+            loop={false}
+            className="aspect-[2.35/1]"
+          />
         )}
 
         <div className="max-w-7xl mx-auto p-4">
