@@ -14,6 +14,8 @@ import { Ticket, Users, Crown, Star, Minus, Plus, CreditCard, Loader2 } from "lu
 import {
   resolveFreeAllocation,
   getPlusPricing,
+  getTicketDiscounts,
+  applyDiscount,
   getGeneralAdmissionPrice,
   isPlusMember,
 } from "@/lib/eventTickets";
@@ -113,8 +115,17 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const isPlusViewer = isPlusMember({ ...(currentUser as any), user_type: userType });
   const plusPricing = getPlusPricing(event as any, userGender);
   const baseAdmissionPrice = getGeneralAdmissionPrice(event as any, userGender);
-  const generalAdmissionPrice =
+  const discounts = getTicketDiscounts(event as any, event.current_attendees || 0, isPlusViewer);
+  const preDiscountGeneral =
     isPlusViewer && plusPricing.mode === "discount" ? plusPricing.price : baseAdmissionPrice;
+  const generalAdmissionPrice = applyDiscount(preDiscountGeneral, discounts.factor);
+  const vipPrice = applyDiscount(event.vip_price, discounts.factor);
+  const vipSectionPrice = applyDiscount(event.vip_section_price, discounts.factor);
+  const originalPrices: Record<string, number> = {
+    general: baseAdmissionPrice,
+    vip: Number(event.vip_price) || 0,
+    vip_section: Number(event.vip_section_price) || 0,
+  };
 
   // Show General option whenever there's capacity and a valid price (alongside any free option)
   const showGeneralOption = remainingCapacity > 0 && generalAdmissionPrice > 0;
@@ -132,9 +143,9 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       case "general":
         return generalAdmissionPrice * quantity;
       case "vip":
-        return event.vip_price * quantity;
+        return vipPrice * quantity;
       case "vip_section":
-        return event.vip_section_price * quantity;
+        return vipSectionPrice * quantity;
       default:
         return 0;
     }
@@ -313,7 +324,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       type: "vip" as TicketType,
       label: "VIP Ticket",
       icon: Star,
-      price: event.vip_price,
+      price: vipPrice,
       available: showVipOption,
       description: `${event.vip_tickets} VIP tickets available`,
     },
@@ -321,7 +332,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
       type: "vip_section" as TicketType,
       label: "VIP Section",
       icon: Crown,
-      price: event.vip_section_price,
+      price: vipSectionPrice,
       available: showVipSectionOption,
       description: `${event.vip_sections} sections (${event.vip_section_attendees} people each)`,
     },
@@ -389,7 +400,12 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                   option.price === 0 ? "text-green-400" : "text-yellow-400"
                 }`}
               >
-                {option.price === 0 ? "FREE" : `$${option.price}`}
+                {option.price > 0 && originalPrices[option.type] > option.price + 0.001 && (
+                  <span className="mr-2 text-sm text-muted-foreground line-through">
+                    ${originalPrices[option.type].toFixed(2)}
+                  </span>
+                )}
+                {option.price === 0 ? "FREE" : `$${option.price.toFixed(2)}`}
               </span>
             </button>
           ))}
