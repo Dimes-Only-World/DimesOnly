@@ -238,7 +238,9 @@ const RateGirls: React.FC = () => {
             Dimes Only Rankings
           </p>
           <h1 className="rate-hero-title font-black uppercase leading-[0.95] tracking-normal text-white">
-            Rate 100 Ladies' <span className="text-yellow-400">Profiles</span>
+            Rate 100 Ladies' <span className="text-yellow-400">PROFILES
+
+HOW IT WORKS</span>
           </h1>
           <div className="mx-auto mt-4 h-[3px] w-28 rounded-full bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
         </div>
@@ -361,9 +363,8 @@ const RateGirls: React.FC = () => {
 
           <div className="text-center mb-8">
             <h2 className="mb-6 text-3xl font-black uppercase leading-none tracking-normal text-white md:text-5xl">
-              <span className="text-red-500">Rate Girls Page</span>
+              <span className="text-red-500">RATE BADDIES BELOW</span>
               <br />
-              How It Works
             </h2>
           </div>
         </div>
