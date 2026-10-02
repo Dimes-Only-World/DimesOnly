@@ -268,7 +268,8 @@ const DashboardFeedSection: React.FC = () => {
   const withAds = <T,>(list: T[], perBlock: number) => {
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
     for (let i = 0, b = 0; i < list.length; i += perBlock, b++) {
-      blocks.push({ rows: [list.slice(i, i + perBlock)], ad: ads.length ? ads[b % ads.length] : undefined });
+      // Spot 1 after the first 3 rows, spot 2 after the next, etc. No repeats; blank once ads run out.
+      blocks.push({ rows: [list.slice(i, i + perBlock)], ad: ads[b] });
     }
     return blocks;
   };
