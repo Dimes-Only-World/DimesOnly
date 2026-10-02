@@ -460,21 +460,15 @@ body.paypal-overlay-open {
   }
 }
 
-/* Very narrow foldable cover screens (Galaxy Z Fold cover, ~280-360px) */
 .rate-hero-title {
-  font-size: 1.75rem;
-  line-height: 1.1;
+  font-size: clamp(1.6rem, 8vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 @media (min-width: 640px) {
   .rate-hero-title {
-    font-size: 3rem;
-    line-height: 1.1;
-  }
-}
-@media (min-width: 768px) {
-  .rate-hero-title {
-    font-size: 3.75rem;
-    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 }
 
