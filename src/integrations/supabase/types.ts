@@ -6019,6 +6019,14 @@ export type Database = {
         Args: { p_user_id: string; p_week_start: string }
         Returns: string
       }
+      get_public_referrers: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          referrer_photo: string
+          referrer_username: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

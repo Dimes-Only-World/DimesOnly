@@ -18,6 +18,12 @@ import HomeProfileButton from "@/components/HomeProfileButton";
 import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import BannerVideo from "@/components/BannerVideo";
+import SilverVideoModal from "@/components/SilverVideoModal";
+
+const getPrizeForRank = (rank: number) =>
+  rank === 1 ? 10000 : rank === 2 ? 3000 : rank === 3 ? 1750 : rank <= 10 ? 200 : rank <= 20 ? 150 : 0;
+/** Referrer prize per rank — set once the owner confirms amounts (null = hidden). */
+const getReferrerPrizeForRank = (_rank: number): number | null => null;
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
 import {
@@ -66,6 +72,8 @@ const RateGirls: React.FC = () => {
     email?: string;
   } | null>(null);
   const [topRanked, setTopRanked] = useState<RankedUser[]>([]);
+  const [referrers, setReferrers] = useState<Record<string, { username: string; photo: string | null }>>({});
+  const [videoUser, setVideoUser] = useState<RankedUser | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{
     url: string;
@@ -173,6 +181,14 @@ const RateGirls: React.FC = () => {
           .map((u, i) => ({ ...u, rank: i + 1 }));
 
         setTopRanked(rankedUsers);
+        const { data: refs } = await supabase.rpc("get_public_referrers" as any, {
+          p_user_ids: rankedUsers.map((u) => u.id),
+        });
+        const map: Record<string, { username: string; photo: string | null }> = {};
+        ((refs as any[]) || []).forEach((r) => {
+          map[String(r.user_id)] = { username: r.referrer_username, photo: r.referrer_photo };
+        });
+        setReferrers(map);
       }
     } catch (error) {
       console.error("Error fetching top ranked:", error);
@@ -231,6 +247,14 @@ const RateGirls: React.FC = () => {
 
   return (
     <>
+      {videoUser && (
+        <SilverVideoModal
+          userId={videoUser.id}
+          username={videoUser.username}
+          fallbackPhoto={videoUser.profile_photo}
+          onClose={() => setVideoUser(null)}
+        />
+      )}
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <div className="px-4 pb-7 pt-9 text-center sm:pb-9 sm:pt-12">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">
@@ -282,7 +306,7 @@ const RateGirls: React.FC = () => {
                     {topRanked.map((user) => (
                       <CarouselItem
                         key={user.id}
-                        className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+                        className="basis-[85%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
                       >
                         <Card
                           className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 backdrop-blur border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 group cursor-pointer overflow-hidden"
@@ -293,14 +317,11 @@ const RateGirls: React.FC = () => {
                               <img
                                 src={user.profile_photo || "/placeholder.svg"}
                                 alt={user.username}
-                                className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                                onClick={(e) =>
-                                  handleImageClick(
-                                    user.profile_photo || "/placeholder.svg",
-                                    user.username,
-                                    e
-                                  )
-                                }
+                                className="w-full aspect-[3/4] object-cover object-top rounded-lg group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setVideoUser(user);
+                                }}
                               />
                               <div className="absolute top-2 left-2">
                                 <div className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
@@ -314,6 +335,9 @@ const RateGirls: React.FC = () => {
                               </div>
                             </div>
 
+                            <div className="-mt-1 mb-2 rounded-md bg-green-600 py-1 text-center text-sm font-black text-white sm:text-base">
+                              Wins ${getPrizeForRank(user.rank).toLocaleString()}
+                            </div>
                             <div className="space-y-2">
                               <h3 className="text-violet-600 font-bold text-sm sm:text-base md:text-lg truncate">
                                 @{user.username}
@@ -336,6 +360,26 @@ const RateGirls: React.FC = () => {
                                   Total Score
                                 </div>
                               </div>
+                              {referrers[user.id] && (
+                                <div className="flex items-center gap-2 border-t border-black/10 pt-2">
+                                  <img
+                                    src={referrers[user.id].photo || "/placeholder.svg"}
+                                    alt={referrers[user.id].username}
+                                    className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+                                  />
+                                  <div className="min-w-0 text-left">
+                                    <p className="text-[10px] uppercase text-gray-700">Referred by</p>
+                                    <p className="truncate text-xs font-bold text-violet-700">
+                                      {referrers[user.id].username === "Company" ? "Company" : `@${referrers[user.id].username}`}
+                                    </p>
+                                    {getReferrerPrizeForRank(user.rank) !== null && referrers[user.id].username !== "Company" && (
+                                      <p className="text-xs font-bold text-green-700">
+                                        Wins ${getReferrerPrizeForRank(user.rank)!.toLocaleString()}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
