@@ -488,7 +488,7 @@ interface ViewerProps {
 const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose, onLike, onShare }) => {
   const { user } = useAppContext();
   const { toast } = useToast();
-  const [comments, setComments] = useState<{ id: string; comment_text: string; username?: string }[]>([]);
+  const [comments, setComments] = useState<{ id: string; comment_text: string; username?: string; photo?: string | null }[]>([]);
   const [text, setText] = useState("");
 
   const isProfile = item.id.startsWith("profile:");
@@ -511,10 +511,10 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
     const rows = data || [];
     const ids = Array.from(new Set(rows.map((r: any) => r.user_id)));
     const { data: profs } = ids.length
-      ? await supabase.from("public_user_profiles").select("id, username").in("id", ids)
+      ? await supabase.from("public_user_profiles").select("id, username, profile_photo").in("id", ids)
       : { data: [] as any[] };
-    const nameMap = new Map((profs || []).map((p: any) => [p.id, p.username]));
-    setComments(rows.map((r: any) => ({ ...r, username: nameMap.get(r.user_id) })));
+    const profMap = new Map((profs || []).map((p: any) => [p.id, { username: p.username, photo: p.profile_photo }]));
+    setComments(rows.map((r: any) => ({ ...r, username: profMap.get(r.user_id)?.username, photo: profMap.get(r.user_id)?.photo })));
   }, [item.id, isProfile, profileUserId]);
 
   useEffect(() => {
@@ -598,10 +598,24 @@ const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose
           <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
             {comments.length === 0 && <p className="text-slate-500">No comments yet.</p>}
             {comments.map((c) => (
-              <p key={c.id} className="text-slate-800">
-                <span className="mr-1 font-semibold">@{c.username || "user"}</span>
-                {c.comment_text}
-              </p>
+              <div key={c.id} className="flex items-start gap-2">
+                <Link to={`/profile/${c.username || ""}`} className="shrink-0" aria-label={c.username ? `View @${c.username}'s profile` : undefined}>
+                  <img
+                    src={c.photo || defaultAvatar.url}
+                    alt=""
+                    className="h-7 w-7 rounded-full border border-slate-200 object-cover"
+                  />
+                </Link>
+                <p className="text-slate-800">
+                  <Link
+                    to={`/profile/${c.username || ""}`}
+                    className="mr-1 font-semibold hover:underline"
+                  >
+                    @{c.username || "user"}
+                  </Link>
+                  {c.comment_text}
+                </p>
+              </div>
             ))}
           </div>
 
