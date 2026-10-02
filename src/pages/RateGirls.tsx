@@ -72,6 +72,19 @@ const RateGirls: React.FC = () => {
   const rateUsername = searchParams.get("rate");
   const refUsername = searchParams.get("ref") || "";
   const [searchName, setSearchName] = useState("");
+  const [partyDate, setPartyDate] = useState<string | null>(null);
+  useEffect(() => {
+    supabase
+      .from("events")
+      .select("date, date_tba")
+      .or("name.ilike.%malibu%,name.ilike.%mansion%")
+      .order("date", { ascending: true })
+      .limit(1)
+      .then(({ data }) => {
+        const ev = data?.[0];
+        setPartyDate(ev && !ev.date_tba && ev.date ? ev.date : null);
+      });
+  }, []);
   const [searchCity, setSearchCity] = useState("");
   const [searchState, setSearchState] = useState("");
   const [currentUser, setCurrentUser] = useState<{
