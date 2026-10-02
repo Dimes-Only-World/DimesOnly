@@ -23,7 +23,12 @@ import SilverVideoModal from "@/components/SilverVideoModal";
 const getPrizeForRank = (rank: number) =>
   rank === 1 ? 10000 : rank === 2 ? 3000 : rank === 3 ? 1750 : rank <= 10 ? 200 : rank <= 20 ? 150 : 0;
 /** Referrer prize per rank — set once the owner confirms amounts (null = hidden). */
-const getReferrerPrizeForRank = (_rank: number): number | null => null;
+const getReferrerPrizeForRank = (rank: number): number | null => {
+  if (rank >= 1 && rank <= 3) return 1000;
+  if (rank >= 4 && rank <= 10) return 400;
+  if (rank >= 11 && rank <= 20) return 170;
+  return null;
+};
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
 import {
