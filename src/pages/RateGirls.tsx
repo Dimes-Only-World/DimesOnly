@@ -19,6 +19,7 @@ import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import BannerVideo from "@/components/BannerVideo";
 import SilverVideoModal from "@/components/SilverVideoModal";
+import { Link } from "react-router-dom";
 
 const getPrizeForRank = (rank: number) =>
   rank === 1 ? 10000 : rank === 2 ? 3000 : rank === 3 ? 1750 : rank <= 10 ? 200 : rank <= 20 ? 150 : 0;
@@ -320,7 +321,13 @@ const RateGirls: React.FC = () => {
                       : "CONTEST ENDS WHEN DATE ADDED TO MALIBU MANSION PARTY"}
                   </span>
                   <br />
-                  <span className="font-bold text-white">MUST ATTEND EVENT TO COLLECT PRIZE!</span>
+                  <span className="font-bold text-white">
+                    MUST ATTEND MALIBU EVENT TO COLLECT PRIZE!
+                    <br />
+                    <Link to="/events" className="text-yellow-300 underline">~CLICK HERE TO GET EARLY BIRD TICKETS~</Link>
+                    <br />
+                    THIS WILL BE STAR STUDDED!
+                  </span>
                 </p>
               </div>
 
