@@ -19,6 +19,7 @@ import { fetchActiveAds, DashboardAd } from "@/lib/dashboardAds";
 import { resolveMediaUrls } from "@/lib/privateMedia";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 import AdSlot from "./AdSlot";
+import { Button } from "@/components/ui/button";
 import TopMoneyCircles from "./TopMoneyCircles";
 
 interface MediaRow {
