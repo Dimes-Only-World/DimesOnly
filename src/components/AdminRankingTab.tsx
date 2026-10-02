@@ -7,6 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRatingSeasonYear } from '@/lib/timeUtils';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useMembershipStage } from '@/hooks/useMembershipStage';
+import { useRankingsFinal } from '@/hooks/useRankingsFinal';
+import { callRewards } from '@/lib/rewards';
 
 interface RankedUser {
   id: string;
@@ -26,6 +30,25 @@ const AdminRankingTab: React.FC = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
   const { toast } = useToast();
+  const diamond = useMembershipStage('diamond_plus');
+  const { final, setFinal } = useRankingsFinal();
+  const [savingFinal, setSavingFinal] = useState(false);
+  const diamondSold = Math.min(300, (diamond as any).sold ?? 0);
+  const soldOut = diamondSold >= 300;
+
+  const toggleFinal = async (closed: boolean) => {
+    if (closed && !window.confirm('Close the rankings and lock in the final Top 20 winners?')) return;
+    setSavingFinal(true);
+    try {
+      const res = await callRewards<{ value: any }>('setRankingsFinal', { closed });
+      setFinal(res.value);
+      toast({ title: closed ? 'Rankings closed' : 'Rankings reopened', description: closed ? 'Final winners are now shown on the rankings page.' : undefined });
+    } catch (e: any) {
+      toast({ title: 'Could not update', description: e.message, variant: 'destructive' });
+    } finally {
+      setSavingFinal(false);
+    }
+  };
 
   useEffect(() => {
     fetchRankings();
@@ -181,6 +204,27 @@ const AdminRankingTab: React.FC = () => {
           </Button>
         </div>
         
+        <div className="rounded-lg border p-3 space-y-2">
+          <p className="text-sm"><span className="font-semibold">Payout type:</span> At app release party</p>
+          <p className="text-sm text-muted-foreground">
+            Diamond Plus spots filled: <span className="font-semibold text-foreground">{diamondSold} / 300</span>
+          </p>
+          <label className={`flex items-center gap-2 text-sm font-medium ${!soldOut && !final.closed ? 'opacity-50' : ''}`}>
+            <Checkbox
+              checked={!!final.closed}
+              disabled={savingFinal || (!soldOut && !final.closed)}
+              onCheckedChange={(v) => toggleFinal(!!v)}
+            />
+            Close rankings &amp; show final winners
+          </label>
+          {!soldOut && !final.closed && (
+            <p className="text-xs text-muted-foreground">Unlocks when all 300 Diamond Plus spots are gone.</p>
+          )}
+          {final.closed && final.closed_at && (
+            <p className="text-xs text-muted-foreground">Closed {new Date(final.closed_at).toLocaleString()} — {final.winners?.length || 0} winners locked in.</p>
+          )}
+        </div>
+
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">

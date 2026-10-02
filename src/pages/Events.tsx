@@ -755,6 +755,19 @@ const Events: React.FC = () => {
                           {event.address}, {event.city}, {event.state}
                         </span>
                       </div>
+                      {(() => {
+                        const ev: any = event;
+                        const pct = Number(ev.early_bird_percent) || 0;
+                        const left = Math.max(0, (Number(ev.early_bird_limit) || 0) - (ev.current_attendees || 0));
+                        const plusPct = Number(ev.plus_extra_percent) || 0;
+                        if (!(pct > 0 && left > 0) && !plusPct) return null;
+                        return (
+                          <div className="rounded-md border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 text-xs font-semibold text-yellow-300">
+                            {pct > 0 && left > 0 && <div>🔥 Get tickets early: {pct}% OFF — {left} left</div>}
+                            {plusPct > 0 && <div className="text-gray-200">+ Extra {plusPct}% off for Plus members</div>}
+                          </div>
+                        );
+                      })()}
                       {/* Pricing info */}
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                         {((event as any).general_admission_price ?? 0) > 0 ? (

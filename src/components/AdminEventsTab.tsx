@@ -75,6 +75,9 @@ interface Event {
   general_admission_price?: number;
   plus_ticket_mode?: string;
   plus_discount_percent?: number;
+  early_bird_percent?: number;
+  early_bird_limit?: number;
+  plus_extra_percent?: number;
   vip_price: number;
   vip_tickets: number;
   vip_section_price: number;
@@ -153,6 +156,9 @@ const AdminEventsTab: React.FC = () => {
     general_admission_price: 0,
     plus_ticket_mode: "free",
     plus_discount_percent: 0,
+    early_bird_percent: 0,
+    early_bird_limit: 0,
+    plus_extra_percent: 0,
     vip_price: 0,
     vip_tickets: 0,
     vip_section_price: 0,
@@ -549,6 +555,9 @@ const AdminEventsTab: React.FC = () => {
         general_admission_price: newEvent.general_admission_price || 0,
         plus_ticket_mode: newEvent.plus_ticket_mode || "free",
         plus_discount_percent: newEvent.plus_discount_percent || 0,
+        early_bird_percent: newEvent.early_bird_percent || 0,
+        early_bird_limit: newEvent.early_bird_limit || 0,
+        plus_extra_percent: newEvent.plus_extra_percent || 0,
         vip_price: newEvent.vip_price || 0,
         vip_tickets: newEvent.vip_tickets || 0,
         vip_section_price: newEvent.vip_section_price || 0,
@@ -634,6 +643,9 @@ const AdminEventsTab: React.FC = () => {
         general_admission_price: 0,
         plus_ticket_mode: "free",
         plus_discount_percent: 0,
+        early_bird_percent: 0,
+        early_bird_limit: 0,
+        plus_extra_percent: 0,
         vip_price: 0,
         vip_tickets: 0,
         vip_section_price: 0,
@@ -763,6 +775,9 @@ const updateData = {
         general_admission_price: editingEvent.general_admission_price || 0,
         plus_ticket_mode: editingEvent.plus_ticket_mode || "free",
         plus_discount_percent: editingEvent.plus_discount_percent || 0,
+        early_bird_percent: editingEvent.early_bird_percent || 0,
+        early_bird_limit: editingEvent.early_bird_limit || 0,
+        plus_extra_percent: editingEvent.plus_extra_percent || 0,
 
         vip_price: editingEvent.vip_price,
         vip_tickets: editingEvent.vip_tickets,

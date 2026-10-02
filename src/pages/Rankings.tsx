@@ -19,6 +19,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
+import { useRankingsFinal } from "@/hooks/useRankingsFinal";
 
 interface RatingData {
   user_id: string;
@@ -49,9 +50,9 @@ interface RankedUser {
 const PAGE_SIZE = 20;
 
 const getPrizeForRank = (rank: number): number | null => {
-  if (rank === 1) return 3000;
-  if (rank === 2) return 1500;
-  if (rank === 3) return 750;
+  if (rank === 1) return 10000;
+  if (rank === 2) return 3000;
+  if (rank === 3) return 1750;
   if (rank >= 4 && rank <= 10) return 200;
   if (rank >= 11 && rank <= 20) return 150;
   return null;
@@ -64,6 +65,7 @@ const Rankings: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
+  const { final } = useRankingsFinal();
   const { isMobile, getContainerClasses, getPaddingClasses } =
     useMobileLayout();
 
@@ -213,15 +215,31 @@ const Rankings: React.FC = () => {
           </h1>
           <p className="text-gray-300 text-lg whitespace-pre-line">
             Top performers ranked by total rating scores
-            {"\n"}Money will be disbursed at the Malibu Mansion Party
+            {"\n"}Money will be disbursed at the App Release Party
           </p>
+
+          {final.closed && (final.winners?.length ?? 0) > 0 && (
+            <div className="mt-8 mx-auto max-w-3xl rounded-2xl border border-yellow-400/60 bg-yellow-400/10 p-4 text-left">
+              <h2 className="text-center text-2xl font-extrabold text-yellow-300 mb-3">🏁 Rankings Closed — Final Winners</h2>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {final.winners!.map((w) => (
+                  <button key={w.user_id} onClick={() => navigate(`/profile/${w.username}`)} className="flex items-center gap-3 rounded-lg bg-black/30 p-2 text-left hover:bg-black/50">
+                    <span className="w-8 text-center font-bold text-yellow-300">#{w.rank}</span>
+                    <img src={w.avatar || "/placeholder.svg"} alt={w.username} className="h-9 w-9 rounded-full object-cover" />
+                    <span className="flex-1 truncate font-semibold text-white">@{w.username}</span>
+                    <span className="font-bold text-green-400">${w.prize.toLocaleString()}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Prize structure banner */}
           <div className="mt-8 mx-auto max-w-3xl grid grid-cols-2 sm:grid-cols-5 gap-3 px-2">
             {[
-              { label: "#1", prize: 3000, highlight: true },
-              { label: "#2", prize: 1500, highlight: true },
-              { label: "#3", prize: 750, highlight: true },
+              { label: "#1", prize: 10000, highlight: true },
+              { label: "#2", prize: 3000, highlight: true },
+              { label: "#3", prize: 1750, highlight: true },
               { label: "#4–#10", prize: 200, highlight: false },
               { label: "#11–#20", prize: 150, highlight: false },
             ].map((p) => (

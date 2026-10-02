@@ -921,6 +921,8 @@ export type Database = {
           date: string
           date_tba: boolean
           description: string | null
+          early_bird_limit: number
+          early_bird_percent: number
           end_date: string | null
           end_time: string | null
           females_price: number | null
@@ -948,6 +950,7 @@ export type Database = {
           name: string
           photo_url: string | null
           plus_discount_percent: number
+          plus_extra_percent: number
           plus_ticket_mode: string
           price: number | null
           start_time: string | null
@@ -968,6 +971,8 @@ export type Database = {
           date: string
           date_tba?: boolean
           description?: string | null
+          early_bird_limit?: number
+          early_bird_percent?: number
           end_date?: string | null
           end_time?: string | null
           females_price?: number | null
@@ -995,6 +1000,7 @@ export type Database = {
           name: string
           photo_url?: string | null
           plus_discount_percent?: number
+          plus_extra_percent?: number
           plus_ticket_mode?: string
           price?: number | null
           start_time?: string | null
@@ -1015,6 +1021,8 @@ export type Database = {
           date?: string
           date_tba?: boolean
           description?: string | null
+          early_bird_limit?: number
+          early_bird_percent?: number
           end_date?: string | null
           end_time?: string | null
           females_price?: number | null
@@ -1042,6 +1050,7 @@ export type Database = {
           name?: string
           photo_url?: string | null
           plus_discount_percent?: number
+          plus_extra_percent?: number
           plus_ticket_mode?: string
           price?: number | null
           start_time?: string | null

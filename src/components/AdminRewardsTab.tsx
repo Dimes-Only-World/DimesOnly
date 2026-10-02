@@ -106,6 +106,7 @@ const AdminRewardsTab: React.FC = () => {
           <label className="space-y-1"><span className="text-sm font-medium">Type</span>
             <select className="h-10 w-full rounded-md border bg-background px-3" value={form.contest_type} onChange={(e) => set("contest_type", e.target.value)}>
               <option value="most">Most by expiration date</option>
+              <option value="release">At app release party</option>
               <option value="goal" disabled={form.category === "highest_rated"}>First to reach a goal</option>
             </select></label>
           {form.contest_type === "goal" && (
@@ -118,7 +119,7 @@ const AdminRewardsTab: React.FC = () => {
             <Input value={form.prize_label} onChange={(e) => set("prize_label", e.target.value)} /></label>
           <label className="space-y-1"><span className="text-sm font-medium">Starts</span>
             <Input type="datetime-local" value={form.starts_at} onChange={(e) => set("starts_at", e.target.value)} /></label>
-          <label className="space-y-1"><span className="text-sm font-medium">Expires {form.contest_type === "goal" ? "(optional)" : ""}</span>
+          <label className="space-y-1"><span className="text-sm font-medium">Expires {form.contest_type !== "most" ? "(optional)" : ""}</span>
             <Input type="datetime-local" value={form.ends_at} onChange={(e) => set("ends_at", e.target.value)} /></label>
           <div className="space-y-2 md:col-span-2">
             <span className="text-sm font-medium">Background image or video (optional)</span>
@@ -174,7 +175,7 @@ const AdminRewardsTab: React.FC = () => {
                     <div>
                       <p className="font-semibold">{cat?.icon} {c.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {cat?.label} · {c.contest_type === "goal" ? `First to ${c.goal}` : "Most by expiration"} · ${Number(c.prize_amount).toLocaleString()} ·
+                        {cat?.label} · {c.contest_type === "goal" ? `First to ${c.goal}` : c.contest_type === "release" ? "At app release party" : "Most by expiration"} · ${Number(c.prize_amount).toLocaleString()} ·
                          {" "}{new Date(c.starts_at).toLocaleString()} → {c.ends_at ? new Date(c.ends_at).toLocaleString() : "No expiration"}
                       </p>
                       <p className="text-xs text-muted-foreground">{c.audience.map((a) => REWARD_AUDIENCES[a]).join(", ")} · {c.participants} competing</p>

@@ -829,9 +829,9 @@ const RatePage: React.FC = () => {
                 {(() => {
                   const rank = currentStanding.rank;
                   if (!rank) return "Current Rank";
-                  if (rank === 1) return "Current Rank = $3,000";
-                  if (rank === 2) return "Current Rank = $1,500";
-                  if (rank === 3) return "Current Rank = $750";
+                  if (rank === 1) return "Current Rank = $10,000";
+                  if (rank === 2) return "Current Rank = $3,000";
+                  if (rank === 3) return "Current Rank = $1,750";
                   if (rank >= 4 && rank <= 10) return "Current Rank = $200";
                   if (rank >= 11 && rank <= 20) return "Current Rank = $150";
                   return "Get to #20 for Cash Prize";

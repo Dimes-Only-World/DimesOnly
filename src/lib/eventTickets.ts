@@ -29,6 +29,9 @@ export interface EventTicketConfig {
   free_spots_plus?: number | null;
   plus_ticket_mode?: string | null;
   plus_discount_percent?: number | null;
+  early_bird_percent?: number | null;
+  early_bird_limit?: number | null;
+  plus_extra_percent?: number | null;
 }
 
 export interface UsedFreeSpots {
@@ -291,3 +294,32 @@ export const getPlusPricing = (
       : 0;
   return { mode, percent, price, basePrice };
 };
+
+export interface TicketDiscounts {
+  earlyActive: boolean;
+  earlyPercent: number;
+  earlyLeft: number;
+  plusExtraPercent: number;
+  /** multiplier applied to every ticket price for this viewer */
+  factor: number;
+}
+
+/** Early-bird (first N tickets) and extra Plus-member discount, applied to every ticket price. */
+export const getTicketDiscounts = (
+  event: EventTicketConfig | null | undefined,
+  ticketsTaken: number,
+  isPlus: boolean,
+): TicketDiscounts => {
+  const earlyPercent = Math.min(100, Math.max(0, num(event?.early_bird_percent)));
+  const limit = Math.max(0, num(event?.early_bird_limit));
+  const earlyLeft = Math.max(0, limit - Math.max(0, ticketsTaken));
+  const earlyActive = earlyPercent > 0 && earlyLeft > 0;
+  const plusExtraPercent = Math.min(100, Math.max(0, num(event?.plus_extra_percent)));
+  let factor = 1;
+  if (earlyActive) factor *= 1 - earlyPercent / 100;
+  if (isPlus && plusExtraPercent > 0) factor *= 1 - plusExtraPercent / 100;
+  return { earlyActive, earlyPercent, earlyLeft, plusExtraPercent, factor };
+};
+
+export const applyDiscount = (price: number, factor: number) =>
+  Math.max(0, Math.round(num(price) * factor * 100) / 100);
