@@ -3287,6 +3287,51 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_photo_comments: {
+        Row: {
+          comment_text: string
+          created_at: string
+          id: string
+          profile_user_id: string
+          user_id: string
+        }
+        Insert: {
+          comment_text: string
+          created_at?: string
+          id?: string
+          profile_user_id: string
+          user_id?: string
+        }
+        Update: {
+          comment_text?: string
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_photo_likes: {
+        Row: {
+          created_at: string
+          id: string
+          profile_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_user_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       promo_code_redemptions: {
         Row: {
           booking_id: string | null
