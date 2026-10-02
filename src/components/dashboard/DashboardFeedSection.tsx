@@ -183,8 +183,25 @@ const DashboardFeedSection: React.FC = () => {
           liked: false,
         }));
 
-      setPhotos([...photoItems, ...fallbacks]);
-      setVideos(items.filter((i) => i.media_type === "video"));
+      // Random order, stable for this sign-in session (new order on each login).
+      const seedKey = `feed-seed:${user?.id || "anon"}`;
+      let seed = Number(sessionStorage.getItem(seedKey));
+      if (!seed) {
+        seed = Math.floor(Math.random() * 2 ** 31) + 1;
+        sessionStorage.setItem(seedKey, String(seed));
+      }
+      const shuffle = <T,>(arr: T[]) => {
+        let s = seed;
+        const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(rand() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      };
+      setPhotos(shuffle([...photoItems, ...fallbacks]));
+      setVideos(shuffle(items.filter((i) => i.media_type === "video")));
       setAds(adRows);
     } catch (e) {
       console.warn("dashboard feed load failed", e);
@@ -246,18 +263,25 @@ const DashboardFeedSection: React.FC = () => {
     }
   };
 
-  /** Split a list into rows and show the ad only in the first (spot 1) block. */
+  /** Split a list into 3-row blocks with an ad after each block (ads rotate). */
   const withAds = <T,>(list: T[], perBlock: number) => {
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
-    const firstAd = ads.find((a) => a.position === 1 || a.slot_number === 1) || ads[0];
-    for (let i = 0; i < list.length; i += perBlock) {
-      blocks.push({ rows: [list.slice(i, i + perBlock)], ad: i === 0 ? firstAd : undefined });
+    for (let i = 0, b = 0; i < list.length; i += perBlock, b++) {
+      blocks.push({ rows: [list.slice(i, i + perBlock)], ad: ads.length ? ads[b % ads.length] : undefined });
     }
     return blocks;
   };
 
-  const photoBlocks = useMemo(() => withAds(photos, 9), [photos, ads]);
-  const videoBlocks = useMemo(() => withAds(videos, 12), [videos, ads]);
+  const PAGE = 12;
+  const [photoLimit, setPhotoLimit] = useState(PAGE);
+  const [videoLimit, setVideoLimit] = useState(PAGE);
+  const photoBlocks = useMemo(() => withAds(photos.slice(0, photoLimit), 9), [photos, ads, photoLimit]);
+  const videoBlocks = useMemo(() => withAds(videos.slice(0, videoLimit), 9), [videos, ads, videoLimit]);
+  const ShowMore = ({ onClick }: { onClick: () => void }) => (
+    <div className="flex justify-center pt-2">
+      <Button variant="outline" onClick={onClick}>Show more</Button>
+    </div>
+  );
 
   return (
     <section className="mb-8 w-full rounded-2xl border border-border/60 bg-dimes-surface p-3 sm:p-4">
@@ -333,6 +357,7 @@ const DashboardFeedSection: React.FC = () => {
               {block.ad && <AdSlot ad={block.ad} />}
             </div>
           ))}
+          {photos.length > photoLimit && <ShowMore onClick={() => setPhotoLimit((n) => n + PAGE)} />}
           </div>
         )
       ) : videos.length === 0 ? (
@@ -408,6 +433,7 @@ const DashboardFeedSection: React.FC = () => {
             {block.ad && <AdSlot ad={block.ad} />}
           </div>
         ))}
+        {videos.length > videoLimit && <ShowMore onClick={() => setVideoLimit((n) => n + PAGE)} />}
         </div>
       )}
 
