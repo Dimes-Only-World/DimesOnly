@@ -438,6 +438,38 @@ export type Database = {
           },
         ]
       }
+      dashboard_ad_impressions: {
+        Row: {
+          ad_id: string
+          id: string
+          slot_number: number | null
+          user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          ad_id: string
+          id?: string
+          slot_number?: number | null
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          ad_id?: string
+          id?: string
+          slot_number?: number | null
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_ad_impressions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dashboard_ads: {
         Row: {
           created_at: string
