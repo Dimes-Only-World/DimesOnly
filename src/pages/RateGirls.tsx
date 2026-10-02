@@ -299,9 +299,15 @@ const RateGirls: React.FC = () => {
                   Top 20 <span className="text-yellow-400">Ranked Ladies</span>
                 </h2>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 sm:text-sm">
-                  LEADING PERFORMERS IN THE 2026 RANKINGS
+                  LEADING PERFORMERS IN THE {getRatingSeasonYear()} RANKINGS
                   <br />
-                  CONTEST ENDS WHEN DATE ADDED TO MALIBU MASION PARTY
+                  <span className="inline-block animate-pulse font-black text-yellow-400">
+                    {partyDate
+                      ? `CONTEST ENDS ${new Date(partyDate).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", day: "numeric", year: "numeric" })} AT THE MALIBU MANSION PARTY`
+                      : "CONTEST ENDS WHEN DATE ADDED TO MALIBU MANSION PARTY"}
+                  </span>
+                  <br />
+                  <span className="font-bold text-white">MUST ATTEND EVENT TO COLLECT PRIZE!</span>
                 </p>
               </div>
 
