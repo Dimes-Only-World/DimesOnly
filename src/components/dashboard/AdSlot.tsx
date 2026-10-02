@@ -1,5 +1,5 @@
-import React from "react";
-import { DashboardAd, recordAdClick } from "@/lib/dashboardAds";
+import React, { useEffect, useRef } from "react";
+import { DashboardAd, recordAdClick, recordAdImpression } from "@/lib/dashboardAds";
 import { useAppContext } from "@/contexts/AppContext";
 
 interface Props {
@@ -9,6 +9,28 @@ interface Props {
 /** A single sponsored placement rendered inside the dashboard feed. */
 const AdSlot: React.FC<Props> = ({ ad }) => {
   const { user } = useAppContext();
+  const ref = useRef<HTMLDivElement>(null);
+  const userId = (user as any)?.id || null;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !ad.media_url) return;
+    const key = `ad-imp:${ad.id}`;
+    if (sessionStorage.getItem(key)) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          sessionStorage.setItem(key, "1");
+          recordAdImpression(ad, userId);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [ad, userId]);
+
   if (!ad.media_url) return null;
 
   const body =
@@ -42,7 +64,7 @@ const AdSlot: React.FC<Props> = ({ ad }) => {
   );
 
   return (
-    <div className="w-full">
+    <div ref={ref} className="w-full">
       {ad.link_url ? (
         <a
           href={ad.link_url}

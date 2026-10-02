@@ -48,7 +48,7 @@ const AdSpotPerformanceReport: React.FC<{ call: (a: string, e?: Record<string, u
   const sorted = [...rows].sort((a, b) =>
     sort === "position" ? a.position - b.position
       : sort === "ctr" ? ctr(b) - ctr(a)
-      : b[sort] - a[sort],
+      : (b[sort] as number) - (a[sort] as number),
   );
   const totalI = rows.reduce((s, r) => s + r.impressions, 0);
   const totalC = rows.reduce((s, r) => s + r.clicks, 0);
@@ -122,7 +122,8 @@ const AdSpotPerformanceReport: React.FC<{ call: (a: string, e?: Record<string, u
                 return (
                   <tr key={r.id} className="border-b border-border/50">
                     <td className="px-3 py-2 font-semibold">
-                      #{r.position}
+                      Spot {r.slot_number}
+                      <span className="ml-1 text-xs text-muted-foreground">· feed #{r.position}</span>
                       {!r.is_active && <span className="ml-1 text-xs text-muted-foreground">(off)</span>}
                     </td>
                     <td className="max-w-[220px] truncate px-3 py-2">{r.title || "—"}</td>

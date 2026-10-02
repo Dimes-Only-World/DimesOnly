@@ -43,3 +43,16 @@ export async function recordAdClick(
     console.warn("recordAdClick failed", e);
   }
 }
+
+/** Log that an ad was seen (once per session per ad). Never blocks rendering. */
+export async function recordAdImpression(ad: DashboardAd, userId?: string | null): Promise<void> {
+  try {
+    await (supabase as any).from("dashboard_ad_impressions").insert({
+      ad_id: ad.id,
+      slot_number: ad.slot_number,
+      user_id: userId || null,
+    });
+  } catch (e) {
+    console.warn("recordAdImpression failed", e);
+  }
+}
