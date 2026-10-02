@@ -487,6 +487,7 @@ interface ViewerProps {
 
 const MediaViewer: React.FC<ViewerProps> = ({ item, muted, onToggleMute, onClose, onLike, onShare }) => {
   const { user } = useAppContext();
+  const { toast } = useToast();
   const [comments, setComments] = useState<{ id: string; comment_text: string; username?: string }[]>([]);
   const [text, setText] = useState("");
 
