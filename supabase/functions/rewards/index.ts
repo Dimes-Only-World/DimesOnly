@@ -172,7 +172,7 @@ function clean(p: any) {
   const title = String(p.title || "").trim().slice(0, 120);
   if (!title) throw new Error("Title is required");
   if (!CATEGORIES.includes(p.category)) throw new Error("Invalid category");
-  const type = p.contest_type === "goal" ? "goal" : "most";
+  const type = p.contest_type === "goal" ? "goal" : p.contest_type === "release" ? "release" : "most";
   const goal = type === "goal" ? Math.floor(Number(p.goal)) : null;
   if (type === "goal" && (!goal || goal < 1)) throw new Error("Goal must be at least 1");
   if (type === "goal" && p.category === "highest_rated") throw new Error("Highest rated can't be a goal contest");
@@ -221,6 +221,34 @@ Deno.serve(async (req) => {
     if (!adminId) return json({ error: "Admin session expired. Please sign in again." }, 401);
 
     switch (action) {
+      case "setRankingsFinal": {
+        const close = !!body.closed;
+        let value: any = { closed: false };
+        if (close) {
+          const { count } = await db.rpc("get_diamond_plus_count").then((r: any) => ({ count: Number(r.data ?? 0) }));
+          if (count < 300 && !body.force) return json({ error: "Rankings can close once all 300 Diamond Plus spots are filled." }, 400);
+          const year = new Date().getUTCFullYear();
+          const { data: perf } = await db.from("users").select("id, username, profile_photo, front_page_photo, user_type").in("user_type", ["stripper", "exotic"]);
+          const ids = new Set((perf || []).map((u: any) => u.id));
+          const sums: Record<string, number> = {};
+          let from = 0;
+          while (true) {
+            const { data: rows } = await db.from("ratings").select("user_id, rating").eq("year", year).range(from, from + 999);
+            for (const r of rows || []) if (ids.has(r.user_id)) sums[r.user_id] = (sums[r.user_id] || 0) + Number(r.rating || 0);
+            if (!rows || rows.length < 1000) break;
+            from += 1000;
+          }
+          const byId = Object.fromEntries((perf || []).map((u: any) => [u.id, u]));
+          const prize = (r: number) => r === 1 ? 10000 : r === 2 ? 3000 : r === 3 ? 1750 : r <= 10 ? 200 : 150;
+          const winners = Object.entries(sums).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([id, score], i) => ({
+            rank: i + 1, user_id: id, username: byId[id]?.username, avatar: byId[id]?.front_page_photo || byId[id]?.profile_photo || null, score, prize: prize(i + 1),
+          }));
+          value = { closed: true, closed_at: new Date().toISOString(), season: year, winners };
+        }
+        const { error } = await db.from("app_settings").upsert({ key: "rankings_final", value, updated_at: new Date().toISOString() });
+        if (error) throw error;
+        return json({ ok: true, value });
+      }
       case "signBackgroundUpload": {
         const contentType = String(body.contentType || "");
         const isImage = contentType.startsWith("image/");

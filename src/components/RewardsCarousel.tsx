@@ -50,6 +50,7 @@ const Slide: React.FC<{ c: Contest; now: number }> = ({ c, now }) => {
         {c.description && <p className="mt-2 text-sm text-fuchsia-100/80">{c.description}</p>}
         <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs md:justify-start">
           {c.contest_type === "most" && c.ends_at && <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 font-mono text-yellow-200"><Timer className="h-3.5 w-3.5" />{countdown(c.ends_at, now)}</span>}
+          {c.contest_type === "release" && <span className="rounded-full bg-black/40 px-3 py-1 font-bold text-yellow-200">🎉 Winners at the App Release Party</span>}
           {c.contest_type === "goal" && <span className="rounded-full bg-black/40 px-3 py-1 text-white">First to {fmtScore(c.category, c.goal || 0)} {c.category === "dimes_recruited" && <span className="font-black text-yellow-300 animate-pulse">APPROVED</span> } {cat.unit}</span>}
           <span className="rounded-full bg-black/40 px-3 py-1 text-fuchsia-100">{c.audience.map((a) => REWARD_AUDIENCES[a]).join(" · ")}</span>
         </div>
