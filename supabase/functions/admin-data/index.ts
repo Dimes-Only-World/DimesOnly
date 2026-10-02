@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 
-const EVENT_FIELDS = new Set("name,date,location,start_time,end_time,address,city,state,photo_url,video_urls,additional_photos,genre,price,free_spots_strippers,free_spots_exotics,description,max_attendees,host_user_id,free_males_females,vip_price,vip_section_price,vip_section_attendees,males_price,females_price,vip_sections,vip_tickets,group_discount_price,group_capacity,free_normal,free_spots_males,free_spots_females,banner_video_url,free_spots_dimes,free_spots_normals,free_spots_silver_plus,free_spots_diamond_plus,free_spots_elite_plus,free_spots_plus,general_admission_price,plus_ticket_mode,plus_discount_percent,date_tba,end_date".split(","));
+const EVENT_FIELDS = new Set("name,date,location,start_time,end_time,address,city,state,photo_url,video_urls,additional_photos,genre,price,free_spots_strippers,free_spots_exotics,description,max_attendees,host_user_id,free_males_females,vip_price,vip_section_price,vip_section_attendees,males_price,females_price,vip_sections,vip_tickets,group_discount_price,group_capacity,free_normal,free_spots_males,free_spots_females,banner_video_url,free_spots_dimes,free_spots_normals,free_spots_silver_plus,free_spots_diamond_plus,free_spots_elite_plus,free_spots_plus,general_admission_price,plus_ticket_mode,early_bird_percent,early_bird_limit,plus_extra_percent,plus_discount_percent,date_tba,end_date".split(","));
 const pickEventFields = (o: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(o || {}).filter(([k]) => EVENT_FIELDS.has(k)));
 
