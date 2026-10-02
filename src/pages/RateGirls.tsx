@@ -29,6 +29,8 @@ const getReferrerPrizeForRank = (rank: number): number | null => {
   if (rank >= 11 && rank <= 20) return 170;
   return null;
 };
+import companyLogo from "@/assets/dimes-only-world-logo.jpg.asset.json";
+import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
 import {
@@ -370,7 +372,7 @@ const RateGirls: React.FC = () => {
                               {referrers[user.id] && (
                                 <div className="flex items-center gap-2 border-t border-black/10 pt-2">
                                   <img
-                                    src={referrers[user.id].photo || "/placeholder.svg"}
+                                    src={referrers[user.id].username === "Company" ? companyLogo.url : referrers[user.id].photo || defaultAvatar.url}
                                     alt={referrers[user.id].username}
                                     className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
                                   />
