@@ -72,6 +72,19 @@ const RateGirls: React.FC = () => {
   const rateUsername = searchParams.get("rate");
   const refUsername = searchParams.get("ref") || "";
   const [searchName, setSearchName] = useState("");
+  const [partyDate, setPartyDate] = useState<string | null>(null);
+  useEffect(() => {
+    supabase
+      .from("events")
+      .select("date, date_tba")
+      .or("name.ilike.%malibu%,name.ilike.%mansion%")
+      .order("date", { ascending: true })
+      .limit(1)
+      .then(({ data }) => {
+        const ev = data?.[0];
+        setPartyDate(ev && !ev.date_tba && ev.date ? ev.date : null);
+      });
+  }, []);
   const [searchCity, setSearchCity] = useState("");
   const [searchState, setSearchState] = useState("");
   const [currentUser, setCurrentUser] = useState<{
@@ -299,9 +312,15 @@ const RateGirls: React.FC = () => {
                   Top 20 <span className="text-yellow-400">Ranked Ladies</span>
                 </h2>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 sm:text-sm">
-                  LEADING PERFORMERS IN THE 2026 RANKINGS
+                  LEADING PERFORMERS IN THE {getRatingSeasonYear()} RANKINGS
                   <br />
-                  CONTEST ENDS WHEN DATE ADDED TO MALIBU MASION PARTY
+                  <span className="inline-block animate-pulse font-black text-yellow-400">
+                    {partyDate
+                      ? `CONTEST ENDS ${new Date(partyDate).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", day: "numeric", year: "numeric" })} AT THE MALIBU MANSION PARTY`
+                      : "CONTEST ENDS WHEN DATE ADDED TO MALIBU MANSION PARTY"}
+                  </span>
+                  <br />
+                  <span className="font-bold text-white">MUST ATTEND EVENT TO COLLECT PRIZE!</span>
                 </p>
               </div>
 
