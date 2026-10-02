@@ -55,7 +55,6 @@ interface RankedUser {
 const RateGirls: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { videoUrl: rateVideoUrl } = usePageVideo("rate_page");
   const { videoUrl: howItWorksVideoUrl } = usePageVideo("rate_how_it_works");
   const rateUsername = searchParams.get("rate");
   const refUsername = searchParams.get("ref") || "";
