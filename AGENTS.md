@@ -8,3 +8,4 @@
 - Store optional reward-carousel image and video backgrounds in the existing public `promo-videos/rewards` folder and save only their URLs on contests; this keeps admin-managed campaign media centralized.
 - Finalize rental extensions only after server-verified PayPal capture, then store each permissive-use statement privately and authorize short-lived downloads through the rental extension edge function; this prevents unpaid date changes and document exposure.
 - Validate rental pickup windows, long-term minimums, rent-to-own terms, and booking prices again inside `rental-booking`; browser totals and dates are display inputs, not authoritative payment data.
+- Generate manual rental payment receipts only when an authorized admin marks cash or Cash App funds received, store them privately, and authorize short-lived downloads for the renter or admin.

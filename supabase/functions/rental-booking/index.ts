@@ -29,12 +29,13 @@ const BookingPayloadSchema = z.object({
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt"]),
   userId: z.string().uuid(),
   bookingId: z.string().uuid().optional(),
   returnUrl: z.string().url().optional(),
   cancelUrl: z.string().url().optional(),
   paypalOrderId: z.string().max(120).optional(),
+  method: z.enum(["cash", "cashapp"]).optional(),
   promoCode: z.string().max(60).nullable().optional(),
   subtotal: z.coerce.number().nonnegative().optional(),
   booking: BookingPayloadSchema.optional(),
@@ -625,13 +626,26 @@ serve(async (req) => {
         return json({ data: { status: "paid", capture_id: capture?.id || null }, requestId });
       }
       case "chooseManualPayment": {
-        const method = String(body?.method || "");
+        const method = String(parsed.data.method || "");
         if (!bookingId || !["cash", "cashapp"].includes(method)) return json({ error: "Choose Cash or Cash App", requestId }, 400);
         const { data: bk } = await admin.from("rental_bookings").select("id, renter_user_id, status").eq("id", bookingId).maybeSingle();
         if (!bk || bk.renter_user_id !== userId) return json({ error: "Booking not found", requestId }, 404);
         if (["paid", "active", "completed", "returned"].includes(String(bk.status))) return json({ error: "This booking is already paid", requestId }, 400);
         await admin.from("rental_bookings").update({ payment_method: method }).eq("id", bk.id);
         return json({ data: { payment_method: method }, requestId });
+      }
+      case "downloadReceipt": {
+        if (!bookingId) return json({ error: "Booking is required", requestId }, 400);
+        const { data: bk } = await admin.from("rental_bookings")
+          .select("renter_user_id, status, payment_method, payment_receipt_path")
+          .eq("id", bookingId).maybeSingle();
+        if (!bk || bk.renter_user_id !== userId) return json({ error: "Receipt not found", requestId }, 404);
+        if (!["cash", "cashapp"].includes(String(bk.payment_method)) || !bk.payment_receipt_path || !["paid", "active", "completed", "returned"].includes(String(bk.status))) {
+          return json({ error: "Receipt not found", requestId }, 404);
+        }
+        const { data, error } = await admin.storage.from("rental-documents").createSignedUrl(bk.payment_receipt_path, 300);
+        if (error || !data?.signedUrl) return json({ error: "Could not prepare receipt", requestId }, 500);
+        return json({ data: { url: data.signedUrl }, requestId });
       }
       default:
         return json({ error: "Unknown action", requestId }, 400);

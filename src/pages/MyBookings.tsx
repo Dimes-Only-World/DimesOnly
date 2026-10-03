@@ -44,6 +44,8 @@ type Booking = {
   security_deposit?: number | null;
   status: string;
   created_at: string;
+  payment_method?: string | null;
+  payment_receipt_path?: string | null;
   vehicles?: {
     id: string;
     year: number | null;
@@ -152,7 +154,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -348,6 +350,18 @@ const MyBookings: React.FC = () => {
     }
   };
 
+  const downloadReceipt = async (bookingId: string) => {
+    if (!userId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("rental-booking", { body: { action: "downloadReceipt", userId, bookingId } });
+      if (error) throw error;
+      if (!data?.data?.url) throw new Error(data?.error || "Receipt is unavailable");
+      window.open(data.data.url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast({ title: "Download failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    }
+  };
+
   const confirmCancel = async () => {
     if (!cancelTarget) return;
     setSubmitting(true);
@@ -535,6 +549,11 @@ const MyBookings: React.FC = () => {
                     onClick={() => setCancelTarget(b)}
                   >
                     <XCircle className="w-4 h-4 mr-1" /> Cancel
+                  </Button>
+                )}
+                {b.payment_receipt_path && ["cash", "cashapp"].includes(String(b.payment_method)) && (
+                  <Button size="sm" variant="outline" onClick={() => downloadReceipt(b.id)}>
+                    <Download className="mr-1 h-4 w-4" /> Download receipt
                   </Button>
                 )}
               </div>
