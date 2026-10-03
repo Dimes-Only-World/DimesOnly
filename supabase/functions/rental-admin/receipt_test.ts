@@ -15,3 +15,7 @@ Deno.test("manual payment receipt is a downloadable PDF", async () => {
   const bytes = await buildManualPaymentReceiptPdf({ bookingId: "abc12345-0000", amount: 538.5, method: "cash", reference: "Joseph Weaver", paidAt: "2026-10-03T20:51:00Z", vehicleLabel: "2024 Mercedes S500" });
   assertEquals(new TextDecoder().decode(bytes.slice(0, 4)), "%PDF");
 });
+Deno.test("receipt text strips characters the PDF font cannot draw", async () => {
+  const { winAnsiSafe } = await import("./receipt.ts");
+  if (winAnsiSafe("2:05\u202FPM") !== "2:05 PM") throw new Error("narrow space not replaced");
+});
