@@ -4,14 +4,15 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { getCallerId } from "../_shared/caller.ts";
-import { extensionAmounts, mileageIsValid } from "./rules.ts";
+import { extensionCharge, mileageIsValid, MAX_EXTENSION_DAYS } from "./rules.ts";
 
 const RequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("list") }),
   z.object({
     action: z.literal("createPayment"),
     bookingId: z.string().uuid(),
-    extraDays: z.coerce.number().int().min(1).max(365),
+    extraDays: z.coerce.number().int().min(1).max(MAX_EXTENSION_DAYS),
+    useDeposit: z.boolean().optional().default(true),
     reportedMileage: z.coerce.number().int().min(1).max(10_000_000),
     returnUrl: z.string().url(),
     cancelUrl: z.string().url(),
@@ -171,7 +172,7 @@ serve(async (req) => {
 
     if (body.action === "list") {
       const { data, error } = await admin.from("rental_extensions")
-        .select("id, booking_id, previous_end_date, new_end_date, extra_days, reported_mileage, extension_price, transaction_fee, total_charged, status, paid_at, statement_path")
+        .select("id, booking_id, previous_end_date, new_end_date, extra_days, reported_mileage, extension_price, transaction_fee, total_charged, status, paid_at, statement_path, deposit_applied, late_fee, late_fee_waived")
         .eq("renter_user_id", callerId).eq("status", "paid").order("paid_at", { ascending: false });
       if (error) throw error;
       return json({ data: data || [] });
@@ -188,7 +189,7 @@ serve(async (req) => {
 
     if (body.action === "createPayment") {
       const { data: booking } = await admin.from("rental_bookings")
-        .select("id, renter_user_id, status, end_date, pickup_mileage, latest_reported_mileage, vehicle_id, vehicles(day_rate, mileage)")
+        .select("id, renter_user_id, status, end_date, security_deposit, pickup_mileage, latest_reported_mileage, vehicle_id, vehicles(day_rate, mileage)")
         .eq("id", body.bookingId).maybeSingle();
       if (!booking || booking.renter_user_id !== callerId) return json({ error: "Rental not found" }, 404);
       const status = String(booking.status || "").toLowerCase();
@@ -203,13 +204,19 @@ serve(async (req) => {
       if (!mileageIsValid(body.reportedMileage, previousMileage)) {
         return json({ error: `Mileage must be a whole number greater than ${previousMileage.toLocaleString("en-US")}` }, 400);
       }
-      const amounts = extensionAmounts(body.extraDays, dailyRate);
+      const { data: prior } = await admin.from("rental_extensions").select("deposit_applied").eq("booking_id", booking.id).eq("status", "paid");
+      const depositUsed = (prior || []).reduce((t: number, e: any) => t + Number(e.deposit_applied || 0), 0);
+      const amounts = extensionCharge({
+        days: body.extraDays, dailyRate, dueMs: endMs, nowMs: Date.now(),
+        depositAvailable: Math.max(0, Number(booking.security_deposit || 0) - depositUsed), useDeposit: body.useDeposit,
+      });
       const newEndDate = new Date(endMs + body.extraDays * 86_400_000).toISOString();
       const { data: extension, error: insertError } = await admin.from("rental_extensions").insert({
         booking_id: booking.id, renter_user_id: callerId, previous_end_date: booking.end_date,
         new_end_date: newEndDate, extra_days: body.extraDays, reported_mileage: body.reportedMileage,
         extension_price: amounts.extensionPrice, transaction_fee: amounts.transactionFee,
         total_charged: amounts.totalCharged, status: "pending",
+        late_fee: amounts.lateFeeOwed, late_fee_waived: amounts.isLate && amounts.waived, deposit_applied: amounts.depositApplied,
       }).select("id").single();
       if (insertError || !extension) throw insertError || new Error("Could not start extension");
       const token = await paypalToken();

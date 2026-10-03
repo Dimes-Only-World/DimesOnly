@@ -784,6 +784,12 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
         )}
         {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (shows rented)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
+        {["paid", "active"].includes(b.status) && <Button size="sm" variant="secondary" onClick={async () => {
+          if (!confirm("Mark this vehicle as returned? The rental moves to past and the car becomes available.")) return;
+          try { const r = await callAdmin("markReturned", { id: b.id }); if (r?.error) throw new Error(r.error); toast({ title: "Vehicle returned", description: "Rental moved to past; vehicle is available again." }); onChange(); }
+          catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
+        }}>Mark Returned</Button>}
+        {b.returned_at && <span className="text-xs text-muted-foreground self-center">Returned {new Date(b.returned_at).toLocaleString()}</span>}
         {["pending", "approved", "paid", "active"].includes(b.status) && <Button size="sm" variant="ghost" onClick={() => setStatus("cancelled")}>Cancel</Button>}
       </div>
     </CardContent></Card>

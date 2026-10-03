@@ -3699,6 +3699,7 @@ export type Database = {
           referrer_username: string | null
           rental_type: string
           renter_user_id: string
+          returned_at: string | null
           security_deposit: number
           signature_text: string | null
           signed_at: string | null
@@ -3730,6 +3731,7 @@ export type Database = {
           referrer_username?: string | null
           rental_type: string
           renter_user_id: string
+          returned_at?: string | null
           security_deposit?: number
           signature_text?: string | null
           signed_at?: string | null
@@ -3761,6 +3763,7 @@ export type Database = {
           referrer_username?: string | null
           rental_type?: string
           renter_user_id?: string
+          returned_at?: string | null
           security_deposit?: number
           signature_text?: string | null
           signed_at?: string | null
@@ -3941,9 +3944,12 @@ export type Database = {
         Row: {
           booking_id: string
           created_at: string
+          deposit_applied: number
           extension_price: number
           extra_days: number
           id: string
+          late_fee: number
+          late_fee_waived: boolean
           new_end_date: string
           paid_at: string | null
           paypal_capture_id: string | null
@@ -3960,9 +3966,12 @@ export type Database = {
         Insert: {
           booking_id: string
           created_at?: string
+          deposit_applied?: number
           extension_price: number
           extra_days: number
           id?: string
+          late_fee?: number
+          late_fee_waived?: boolean
           new_end_date: string
           paid_at?: string | null
           paypal_capture_id?: string | null
@@ -3979,9 +3988,12 @@ export type Database = {
         Update: {
           booking_id?: string
           created_at?: string
+          deposit_applied?: number
           extension_price?: number
           extra_days?: number
           id?: string
+          late_fee?: number
+          late_fee_waived?: boolean
           new_end_date?: string
           paid_at?: string | null
           paypal_capture_id?: string | null
