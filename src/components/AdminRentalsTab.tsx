@@ -779,7 +779,12 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
     try {
       const r = await callAdmin("markPaidManual", { id: b.id, method, reference, amount: Number(amount) });
       if (r?.error) throw new Error(r.error);
-      toast({ title: "Marked paid", description: `Recorded ${label} payment. The receipt is ready to download.` });
+      toast({
+        title: "Marked paid",
+        description: r?.emailed
+          ? `Recorded ${label} payment. The receipt was emailed to the renter.`
+          : `Recorded ${label} payment. ${r?.emailError || "Receipt email not sent"} — download and send it manually.`,
+      });
       if (r?.receiptUrl) window.open(r.receiptUrl, "_blank", "noopener,noreferrer");
       onChange();
     } catch (e: any) {
