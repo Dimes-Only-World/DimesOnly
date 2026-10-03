@@ -149,7 +149,7 @@ const Rentals: React.FC = () => {
                 <a href="#fleet">Explore the fleet <ArrowRight className="ml-2 h-4 w-4" /></a>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-none border-rental-line bg-rental-background/50 font-barlow text-rental-foreground hover:bg-rental-surface hover:text-rental-foreground">
-                <Link to="/my-bookings">My bookings</Link>
+                <Link to="/account/my-rentals">My Rentals</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-none border-rental-primary bg-rental-background/50 font-barlow text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground">
                 <Link to="/rentals/purchase"><BadgeDollarSign className="mr-2 h-4 w-4" /> Purchase / Credit App</Link>

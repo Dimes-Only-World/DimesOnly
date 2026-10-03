@@ -207,6 +207,7 @@ function AppContent() {
       <Route path="/rentals/purchase/:vehicleId" element={<VehiclePurchaseApplication />} />
       <Route path="/rentals/:id" element={<RentalDetails />} />
       <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/account/my-rentals" element={<MyBookings />} />
       <Route path="/feed" element={<Feed />} />
       <Route path="/feed/create" element={<FeedCreate />} />
       <Route path="/clothes" element={<StoreHome />} />
