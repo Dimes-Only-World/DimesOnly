@@ -20,8 +20,10 @@ const money = (value: unknown) => `$${Number(value || 0).toLocaleString(undefine
 
 const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startDate, endDate, memberName, memberAddress, onAccept }: Props) => {
   const isRentToOwn = rentalType === "rent_to_own";
+  const isLongAgreement = rentalType === "long_term" || isRentToOwn;
   const monthlyPayment = isRentToOwn ? rentToOwnMonthlyPayment(vehicle?.monthly_rate) : Number(vehicle?.monthly_rate || 0);
-  const term = isRentToOwn ? `${RENT_TO_OWN_MONTHS} months` : `${LONG_TERM_MIN_MONTHS} months minimum`;
+  const term = isRentToOwn ? `${RENT_TO_OWN_MONTHS} months` : rentalType === "long_term" ? `${LONG_TERM_MIN_MONTHS} months minimum` : rentalType.replace("_", " ");
+  const securityDeposit = Number(vehicle?.security_deposit || 0);
 
   const fields = [
     ["Vehicle", `${vehicle?.year || ""} ${vehicle?.make || ""} ${vehicle?.model || ""}`.trim()],
@@ -30,7 +32,7 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
     ["Plate expiration", vehicle?.plate_expiration], ["Body style", vehicle?.body_style], ["Color", vehicle?.color],
   ];
   const missingVehicleFields = fields.slice(1).filter(([, value]) => value === null || value === undefined || value === "").map(([label]) => label);
-  const agreementIncomplete = missingVehicleFields.length > 0 || !memberName.trim() || !memberAddress?.trim() || !startDate || !endDate;
+  const agreementIncomplete = !memberName.trim() || !startDate || !endDate || (isLongAgreement && (missingVehicleFields.length > 0 || !memberAddress?.trim()));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -39,7 +41,7 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
           <DialogHeader>
             <p className="text-xs font-semibold uppercase text-rental-primary">Best Holdings Enterprises, Inc.</p>
             <DialogTitle className="rentals-wordmark text-4xl text-rental-foreground">BEST RENTAL CAR SERVICE</DialogTitle>
-            <p className="text-sm uppercase text-rental-muted">Permissive Member Use Agreement</p>
+            <p className="text-sm uppercase text-rental-muted">{isLongAgreement ? "Permissive Member Use Agreement" : "Vehicle Rental Agreement"}</p>
           </DialogHeader>
         </div>
         <div className="space-y-6 px-5 pb-6 sm:px-8">
@@ -61,7 +63,12 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
             {isRentToOwn && <p className="text-sm text-rental-muted"><b className="text-rental-foreground">48-month contract total:</b> {money(rentToOwnContractTotal(vehicle?.monthly_rate, vehicle?.down_payment))}, calculated as the down payment plus 48 months × the listed monthly rate, less $75.</p>}
           </section>
 
-          <section className="space-y-5 border-y border-rental-line py-5 text-sm leading-relaxed text-rental-muted">
+          <section className="border-l-2 border-rental-primary bg-rental-surface p-4 text-sm leading-relaxed text-rental-muted">
+            <h3 className="mb-1 font-semibold text-rental-foreground">Security deposit and return</h3>
+            <p>A {money(securityDeposit)} security deposit will be authorized before pickup. After the vehicle is returned, Best Rental Car Service will inspect it. The deposit is refundable when the vehicle is returned on time in the condition received, subject to deductions for damage, missing fuel, excess mileage, tolls, tickets, late charges, cleaning beyond normal use, or other unpaid amounts under this agreement. Any remaining refundable balance will be returned after the final inspection and all trip charges are settled.</p>
+          </section>
+
+          {isLongAgreement ? <section className="space-y-5 border-y border-rental-line py-5 text-sm leading-relaxed text-rental-muted">
             <div><h3 className="mb-1 font-semibold text-rental-foreground">1. Payment and insurance</h3><p>The member will make every use payment when due and maintain insurance throughout the use term with at least $15,000/$30,000 bodily injury liability, $10,000 property damage liability, and collision and comprehensive coverage with deductibles no greater than $500. The owner must be named as an additional insured or interest and the mortgagor as loss payee. Written proof and notice of changes must be supplied when requested.</p></div>
             <div><h3 className="mb-1 font-semibold text-rental-foreground">2. Mileage and purchase option</h3><p>Unless waived in writing, mileage is limited to an average of 15,000 miles per year, with excess mileage charged at $0.75 per mile. A purchase option, when offered, is “as is, where is,” is available only while the agreement is in good standing, and requires payment of the current payoff plus completion of title, bill-of-sale, and odometer documents. No ownership transfers before completion.</p></div>
             <div><h3 className="mb-1 font-semibold text-rental-foreground">3. Fees, tickets, and maintenance</h3><p>The member is responsible for emissions testing, licensing, registration, transfer fees, taxes, parking tickets, and a $15 administrative charge for an unpaid ticket. The member must follow manufacturer maintenance recommendations, check fluids, keep receipts, permit reasonable inspections, and make no value-reducing alterations or equipment removals without written permission.</p></div>
@@ -70,13 +77,18 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
             <div><h3 className="mb-1 font-semibold text-rental-foreground">6. Security, indemnity, and default</h3><p>This agreement grants the owner a continuing security interest in the vehicle. The member must keep it free of liens and indemnify the owner and mortgagor against claims arising from possession, operation, or return. False application information, missed payments, loss of insurance, or breach is a default and may result in termination, lawful repossession, and liability for insurance, recovery, collection, court, and reasonable attorney costs.</p></div>
             <div><h3 className="mb-1 font-semibold text-rental-foreground">7. Addendum and notices</h3><p>Late payments may carry a 15% charge. The member must notify Best Rental Car Service of address or phone changes within 10 days, obtain written permission before moving the vehicle out of state, report mileage monthly, and repair damage exceeding $500 within 30 days. Removal or concealment of the vehicle without consent is prohibited. California law governs this agreement.</p></div>
             <div className="border-l-2 border-rental-primary pl-3"><h3 className="mb-1 font-semibold text-rental-foreground">Notice to permissive member</h3><p>Do not accept this agreement until you have read it and every required blank is complete. Default may permit repossession without advance notice and may create liability for unpaid indebtedness and reasonable attorney fees. By signing, you certify that you read, received, understood, and agree to all terms and conditions.</p></div>
-          </section>
+          </section> : <section className="space-y-5 border-y border-rental-line py-5 text-sm leading-relaxed text-rental-muted">
+            <div><h3 className="mb-1 font-semibold text-rental-foreground">1. Authorized use</h3><p>Only the approved member and authorized drivers may operate the vehicle. The vehicle may not be used unlawfully, for hire, by an unlicensed or uninsured driver, or outside the approved trip area without written permission.</p></div>
+            <div><h3 className="mb-1 font-semibold text-rental-foreground">2. Return condition</h3><p>The member will return the vehicle at the agreed date, time, and location, with the same fuel level and in the condition received except for normal wear. The member is responsible for loss, theft, damage, tolls, tickets, excess mileage, late return charges, and extraordinary cleaning.</p></div>
+            <div><h3 className="mb-1 font-semibold text-rental-foreground">3. Insurance and incidents</h3><p>Required insurance must remain active throughout the rental. Any collision, damage, theft, warning light, or police contact involving the vehicle must be reported promptly to Best Rental Car Service.</p></div>
+            <div><h3 className="mb-1 font-semibold text-rental-foreground">4. Acceptance</h3><p>By signing, the member confirms the vehicle and trip details are accurate, the agreement and deposit terms have been read, and the member accepts responsibility for the vehicle during the rental period.</p></div>
+          </section>}
 
           <div className="flex items-start gap-3 bg-rental-surface p-4">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-rental-success" />
             <p className="text-sm">By accepting, <b>{valueOrAdmin(memberName)}</b> confirms the agreement is complete, has been read, and will be signed electronically with the name entered on the booking.</p>
           </div>
-          {agreementIncomplete && <p className="border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">This agreement cannot be accepted until the member information, dates, and these vehicle details are complete: {missingVehicleFields.join(", ") || "member name and address"}.</p>}
+          {agreementIncomplete && <p className="border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">This agreement cannot be accepted until the member information and dates are complete{isLongAgreement && missingVehicleFields.length ? `, along with these vehicle details: ${missingVehicleFields.join(", ")}` : ""}.</p>}
           <Button type="button" disabled={agreementIncomplete} className="w-full rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90" onClick={() => { onAccept(); onOpenChange(false); }}>
             Agree, Sign &amp; Submit Agreement
           </Button>

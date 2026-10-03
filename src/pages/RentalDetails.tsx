@@ -592,20 +592,18 @@ const RentalDetails: React.FC = () => {
                     />
                   </div>
 
-                  {isLongAgreement && (
-                    <div className="space-y-2">
-                      <Button type="button" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary" onClick={() => setShowAgreement(true)}>
-                        <FileText className="mr-2 h-4 w-4" /> Review Member Agreement
-                      </Button>
-                      {missingAgreementFields.length > 0 && <p className="border border-destructive/50 bg-destructive/10 p-3 text-xs text-destructive">Best Rental Car Service must complete these vehicle details before booking: {missingAgreementFields.join(", ")}.</p>}
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Button type="button" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary" onClick={() => setShowAgreement(true)}>
+                      <FileText className="mr-2 h-4 w-4" /> Review Rental Agreement
+                    </Button>
+                    {isLongAgreement && missingAgreementFields.length > 0 && <p className="border border-destructive/50 bg-destructive/10 p-3 text-xs text-destructive">Best Rental Car Service must complete these vehicle details before booking: {missingAgreementFields.join(", ")}.</p>}
+                  </div>
 
                   <div className="flex items-start gap-2">
-                    <Checkbox checked={agree} onCheckedChange={(v) => !isLongAgreement && setAgree(!!v)} id="agree" disabled={isLongAgreement} />
-                    <Label htmlFor="agree" className="text-xs leading-snug">
-                      {isLongAgreement ? "I reviewed and accept the Member Agreement and confirm the uploaded documents are authentic." : "I agree to the rental terms and confirm the uploaded documents are authentic."}
-                    </Label>
+                    <Checkbox checked={agree} onCheckedChange={() => setShowAgreement(true)} id="agree" />
+                    <button type="button" onClick={() => setShowAgreement(true)} className="text-left text-xs leading-snug underline underline-offset-2">
+                      I reviewed and accept the Rental Agreement and confirm the uploaded documents are authentic.
+                    </button>
                   </div>
 
 
