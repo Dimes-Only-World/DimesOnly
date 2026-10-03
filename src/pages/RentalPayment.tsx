@@ -75,6 +75,28 @@ const RentalPayment: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId, paypalToken]);
 
+  const CASH_APP_URL = "https://cash.app/$BestCarRentals";
+  const chooseManual = async (method: "cash" | "cashapp") => {
+    if (!userId || !bookingId) return;
+    setWorking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("rental-booking", {
+        body: { action: "chooseManualPayment", userId, bookingId, method },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setBooking((b: any) => ({ ...b, payment_method: method }));
+      if (method === "cashapp") {
+        const amt = Number(booking.total_price).toFixed(2);
+        window.open(`${CASH_APP_URL}/${amt}`, "_blank", "noopener");
+      }
+    } catch (e: any) {
+      toast({ title: "Could not save choice", description: e.message || "Try again.", variant: "destructive" });
+    } finally {
+      setWorking(false);
+    }
+  };
+
   const startPayment = async () => {
     if (!userId || !bookingId) return;
     setWorking(true);
@@ -172,8 +194,27 @@ const RentalPayment: React.FC = () => {
                   <CreditCard className="w-4 h-4 mr-2" />
                   {working ? "Connecting to PayPal..." : `Pay $${Number(booking.total_price).toLocaleString()} with PayPal`}
                 </Button>
+                <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cashapp")}>
+                  Pay ${Number(booking.total_price).toLocaleString()} with Cash App ($BestCarRentals)
+                </Button>
+                <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cash")}>
+                  Pay cash at pickup
+                </Button>
+                {booking.payment_method === "cashapp" && (
+                  <div className="border border-rental-line p-3 text-sm space-y-1">
+                    <p className="font-semibold">Cash App instructions</p>
+                    <p>Send ${Number(booking.total_price).toFixed(2)} to <a className="underline text-rental-primary" href={CASH_APP_URL} target="_blank" rel="noopener noreferrer">$BestCarRentals</a>.</p>
+                    <p>Put booking code <b>{String(bookingId).slice(0, 8).toUpperCase()}</b> in the note. Admin confirms the payment, then your car is marked rented.</p>
+                  </div>
+                )}
+                {booking.payment_method === "cash" && (
+                  <div className="border border-rental-line p-3 text-sm space-y-1">
+                    <p className="font-semibold">Cash at pickup</p>
+                    <p>Bring ${Number(booking.total_price).toFixed(2)} in cash to pickup. Your booking code is <b>{String(bookingId).slice(0, 8).toUpperCase()}</b>. You'll get the keys once admin records the payment.</p>
+                  </div>
+                )}
                 <p className="text-center text-xs text-rental-muted">
-                  You can pay with PayPal or a debit/credit card. Your booking is held until payment is completed.
+                  Pay with PayPal/card, Cash App, or cash at pickup. The car is held for you and marked rented once payment is confirmed.
                 </p>
               </>
             )}

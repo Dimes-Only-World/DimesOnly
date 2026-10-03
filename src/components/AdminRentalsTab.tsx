@@ -186,6 +186,29 @@ const CallRequestRow: React.FC<{ r: any; onChange: () => void }> = ({ r, onChang
     ? new Date(`${r.scheduled_date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
     : "";
 
+  const markManual = async (method: "cash" | "cashapp") => {
+    const label = method === "cash" ? "cash" : "Cash App";
+    const amount = prompt(`Amount of ${label} received (total due $${Number(b.total_price).toFixed(2)}):`, Number(b.total_price).toFixed(2));
+    if (amount === null) return;
+    let reference = "";
+    if (method === "cashapp") {
+      const r = prompt("Cash App payment ID or sender $cashtag (check $BestCarRentals activity, note should include booking code " + String(b.id).slice(0, 8).toUpperCase() + "):");
+      if (r === null) return;
+      reference = r;
+    } else {
+      reference = prompt("Who collected the cash? (optional)") || "";
+    }
+    if (!confirm(`Confirm $${amount} received by ${label}? The car will show as rented and commissions will be created.`)) return;
+    try {
+      const r = await callAdmin("markPaidManual", { id: b.id, method, reference, amount: Number(amount) });
+      if (r?.error) throw new Error(r.error);
+      toast({ title: "Marked paid", description: `Recorded ${label} payment. Vehicle now shows rented.` });
+      onChange();
+    } catch (e: any) {
+      toast({ title: "Not marked paid", description: e.message, variant: "destructive" });
+    }
+  };
+
   const setStatus = async (status: string) => {
     setSaving(true);
     try {
@@ -770,7 +793,9 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
             Email: {b.renter_email ? <a className="underline" href={`mailto:${b.renter_email}`}>{b.renter_email}</a> : "—"} · Phone:{" "}
             {b.renter_phone ? <a className="underline" href={`tel:${b.renter_phone}`}>{b.renter_phone}</a> : "—"}
           </p>
-          <p className="text-xs">Total ${Number(b.total_price).toLocaleString()} · Status: <b>{b.status}</b></p>
+          <p className="text-xs">Total ${Number(b.total_price).toLocaleString()} · Status: <b>{b.status}</b>{b.payment_method ? <> · Method: <b>{b.payment_method === "cashapp" ? "Cash App" : b.payment_method === "cash" ? "Cash" : "PayPal"}</b>{["pending", "approved"].includes(b.status) ? " (renter's choice)" : ""}</> : null}</p>
+          {b.payment_reference && <p className="text-xs text-muted-foreground">Ref: {b.payment_reference}{b.amount_received ? ` · Received $${Number(b.amount_received).toLocaleString()}` : ""}</p>}
+          <p className="text-xs text-muted-foreground">Booking code: {String(b.id).slice(0, 8).toUpperCase()}</p>
           {b.referrer_username && <p className="text-xs text-muted-foreground">Ref: {b.referrer_username} · Upline: {b.upline_referrer_username || "—"}</p>}
           <p className="text-xs italic">"{b.signature_text}"</p>
         </div>
@@ -789,7 +814,9 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
             {verifying ? "Verifying PayPal..." : "Mark Paid (verify PayPal payment)"}
           </Button>
         )}
-        {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (shows rented)</Button>}
+        {["pending", "approved"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => markManual("cash")}>Mark Paid – Cash</Button>}
+        {["pending", "approved"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => markManual("cashapp")}>Mark Paid – Cash App</Button>}
+        {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (picked up)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
         {["paid", "active"].includes(b.status) && <Button size="sm" variant="secondary" onClick={async () => {
           if (!confirm("Mark this vehicle as returned? The rental moves to past and the car becomes available.")) return;
