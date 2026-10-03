@@ -186,29 +186,6 @@ const CallRequestRow: React.FC<{ r: any; onChange: () => void }> = ({ r, onChang
     ? new Date(`${r.scheduled_date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
     : "";
 
-  const markManual = async (method: "cash" | "cashapp") => {
-    const label = method === "cash" ? "cash" : "Cash App";
-    const amount = prompt(`Amount of ${label} received (total due $${Number(b.total_price).toFixed(2)}):`, Number(b.total_price).toFixed(2));
-    if (amount === null) return;
-    let reference = "";
-    if (method === "cashapp") {
-      const r = prompt("Cash App payment ID or sender $cashtag (check $BestCarRentals activity, note should include booking code " + String(b.id).slice(0, 8).toUpperCase() + "):");
-      if (r === null) return;
-      reference = r;
-    } else {
-      reference = prompt("Who collected the cash? (optional)") || "";
-    }
-    if (!confirm(`Confirm $${amount} received by ${label}? The car will show as rented and commissions will be created.`)) return;
-    try {
-      const r = await callAdmin("markPaidManual", { id: b.id, method, reference, amount: Number(amount) });
-      if (r?.error) throw new Error(r.error);
-      toast({ title: "Marked paid", description: `Recorded ${label} payment. Vehicle now shows rented.` });
-      onChange();
-    } catch (e: any) {
-      toast({ title: "Not marked paid", description: e.message, variant: "destructive" });
-    }
-  };
-
   const setStatus = async (status: string) => {
     setSaving(true);
     try {
@@ -766,6 +743,29 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
       toast({ title: "Not verified", description: e.message, variant: "destructive" });
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const markManual = async (method: "cash" | "cashapp") => {
+    const label = method === "cash" ? "cash" : "Cash App";
+    const amount = prompt(`Amount of ${label} received (total due $${Number(b.total_price).toFixed(2)}):`, Number(b.total_price).toFixed(2));
+    if (amount === null) return;
+    let reference = "";
+    if (method === "cashapp") {
+      const r = prompt("Cash App payment ID or sender $cashtag (check $BestCarRentals activity, note should include booking code " + String(b.id).slice(0, 8).toUpperCase() + "):");
+      if (r === null) return;
+      reference = r;
+    } else {
+      reference = prompt("Who collected the cash? (optional)") || "";
+    }
+    if (!confirm(`Confirm $${amount} received by ${label}? The car will show as rented and commissions will be created.`)) return;
+    try {
+      const r = await callAdmin("markPaidManual", { id: b.id, method, reference, amount: Number(amount) });
+      if (r?.error) throw new Error(r.error);
+      toast({ title: "Marked paid", description: `Recorded ${label} payment. Vehicle now shows rented.` });
+      onChange();
+    } catch (e: any) {
+      toast({ title: "Not marked paid", description: e.message, variant: "destructive" });
     }
   };
 
