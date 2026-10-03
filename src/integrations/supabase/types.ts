@@ -3680,6 +3680,7 @@ export type Database = {
       rental_bookings: {
         Row: {
           admin_notes: string | null
+          amount_received: number | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -3691,6 +3692,9 @@ export type Database = {
           latest_reported_mileage: number | null
           license_path: string | null
           paid_at: string | null
+          payment_method: string | null
+          payment_note: string | null
+          payment_reference: string | null
           paypal_capture_id: string | null
           paypal_order_id: string | null
           pickup_location: string | null
@@ -3712,6 +3716,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          amount_received?: number | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -3723,6 +3728,9 @@ export type Database = {
           latest_reported_mileage?: number | null
           license_path?: string | null
           paid_at?: string | null
+          payment_method?: string | null
+          payment_note?: string | null
+          payment_reference?: string | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
@@ -3744,6 +3752,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          amount_received?: number | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -3755,6 +3764,9 @@ export type Database = {
           latest_reported_mileage?: number | null
           license_path?: string | null
           paid_at?: string | null
+          payment_method?: string | null
+          payment_note?: string | null
+          payment_reference?: string | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
