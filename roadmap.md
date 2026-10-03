@@ -12,4 +12,4 @@
 - [x] Apply the 48-month rent-to-own pricing formula
 - [x] Add the professional vehicle-filled long-term agreement
 - [x] Verify booking rules, mobile layout, and payment totals
-- [ ] Add admin rental payment history with combined booking and extension filters, totals, CSV, and receipts
+- [x] Add admin rental payment history with combined booking and extension filters, totals, CSV, and receipts

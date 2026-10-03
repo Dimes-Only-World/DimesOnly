@@ -2,6 +2,7 @@ import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain, computeCommissions, areaCode, signAvatar } from "../_shared/saleCommission.ts";
 import { decryptSsn } from "../_shared/ssnCrypto.ts";
 import { buildManualPaymentReceiptPdf } from "./receipt.ts";
+import { summarizePayments, validPaymentDate, validPaymentMethod, type PaymentHistoryRow } from "./paymentHistory.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -113,6 +114,61 @@ serve(async (req) => {
           };
         });
         return json({ data: rows });
+      }
+      case "listPaymentHistory": {
+        const method = params.method === "all" || params.method == null ? null : params.method;
+        const dateFrom = params.dateFrom || null;
+        const dateTo = params.dateTo || null;
+        if (method && !validPaymentMethod(method)) return json({ error: "Invalid payment method" }, 400);
+        if (dateFrom && !validPaymentDate(dateFrom)) return json({ error: "Invalid start date" }, 400);
+        if (dateTo && !validPaymentDate(dateTo)) return json({ error: "Invalid end date" }, 400);
+        if (dateFrom && dateTo && dateFrom > dateTo) return json({ error: "Start date must be before end date" }, 400);
+
+        let bookingQuery = admin.from("rental_bookings")
+          .select("id, renter_user_id, total_price, amount_received, paid_at, payment_method, payment_reference, payment_receipt_path, status, vehicles(year,make,model)")
+          .not("paid_at", "is", null)
+          .in("status", ["paid", "active", "completed", "returned"]);
+        let extensionQuery = admin.from("rental_extensions")
+          .select("id, booking_id, renter_user_id, paid_at, total_charged, paypal_capture_id, status, rental_bookings!inner(vehicles(year,make,model))")
+          .eq("status", "paid").not("paid_at", "is", null);
+        if (dateFrom) { bookingQuery = bookingQuery.gte("paid_at", `${dateFrom}T00:00:00.000Z`); extensionQuery = extensionQuery.gte("paid_at", `${dateFrom}T00:00:00.000Z`); }
+        if (dateTo) { bookingQuery = bookingQuery.lt("paid_at", `${dateTo}T00:00:00.000Z`).or(`paid_at.gte.${dateTo}T00:00:00.000Z,paid_at.lt.${new Date(`${dateTo}T00:00:00.000Z`).getTime() + 86_400_000}`); }
+        if (method === "cash" || method === "cashapp") bookingQuery = bookingQuery.eq("payment_method", method);
+        if (method === "paypal") bookingQuery = bookingQuery.or("payment_method.eq.paypal,payment_method.is.null");
+
+        const [{ data: bookings, error: bookingError }, extensionResult] = await Promise.all([
+          bookingQuery.order("paid_at", { ascending: false }),
+          method && method !== "paypal" ? Promise.resolve({ data: [], error: null }) : extensionQuery.order("paid_at", { ascending: false }),
+        ]);
+        if (bookingError) throw bookingError;
+        if (extensionResult.error) throw extensionResult.error;
+        const renterIds = [...new Set([...(bookings || []), ...(extensionResult.data || [])].map((row: any) => row.renter_user_id).filter(Boolean))];
+        const usernames = new Map<string, string>();
+        if (renterIds.length) {
+          const { data: users, error: usersError } = await admin.from("users").select("id,username").in("id", renterIds);
+          if (usersError) throw usersError;
+          for (const user of users || []) usernames.set(user.id, user.username);
+        }
+        const vehicleLabel = (source: any) => {
+          const vehicle = Array.isArray(source) ? source[0] : source;
+          return [vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ");
+        };
+        const rows: PaymentHistoryRow[] = [
+          ...(bookings || []).map((row: any) => ({
+            id: row.id, booking_id: row.id, payment_type: "booking" as const, paid_at: row.paid_at,
+            payment_method: row.payment_method === "cash" || row.payment_method === "cashapp" ? row.payment_method : "paypal",
+            amount: Number(row.payment_method === "cash" || row.payment_method === "cashapp" ? row.amount_received ?? row.total_price : row.total_price),
+            payment_reference: row.payment_reference || null, receipt_path: row.payment_receipt_path || null,
+            renter_username: usernames.get(row.renter_user_id) || null, vehicle_label: vehicleLabel(row.vehicles),
+          })),
+          ...(extensionResult.data || []).map((row: any) => ({
+            id: row.id, booking_id: row.booking_id, payment_type: "extension" as const, paid_at: row.paid_at,
+            payment_method: "paypal" as const, amount: Number(row.total_charged), payment_reference: row.paypal_capture_id || null,
+            receipt_path: null, renter_username: usernames.get(row.renter_user_id) || null,
+            vehicle_label: vehicleLabel(Array.isArray(row.rental_bookings) ? row.rental_bookings[0]?.vehicles : row.rental_bookings?.vehicles),
+          })),
+        ].sort((a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime());
+        return json({ data: rows, totals: summarizePayments(rows) });
       }
       case "updateBookingStatus": {
         const { id, status } = params;

@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HostApplicationsPanel from "@/components/rentals/HostApplicationsPanel";
 import PurchaseApplicationsPanel from "@/components/rentals/PurchaseApplicationsPanel";
 import SaleCommissionsPanel from "@/components/rentals/SaleCommissionsPanel";
+import PaymentHistoryPanel from "@/components/rentals/PaymentHistoryPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -81,6 +82,7 @@ const AdminRentalsTab: React.FC = () => {
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="payments">Payment History</TabsTrigger>
           <TabsTrigger value="calls">Call Requests</TabsTrigger>
           <TabsTrigger value="hosts">Host Applications</TabsTrigger>
           <TabsTrigger value="purchases">Credit Apps</TabsTrigger>
@@ -134,6 +136,10 @@ const AdminRentalsTab: React.FC = () => {
             <BookingRow key={b.id} b={b} onChange={loadAll} />
           ))}
           {bookings.length === 0 && <p className="text-muted-foreground">No bookings yet.</p>}
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <PaymentHistoryPanel callAdmin={callAdmin} />
         </TabsContent>
 
         <TabsContent value="calls" className="space-y-3">
