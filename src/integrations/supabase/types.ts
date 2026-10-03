@@ -6104,6 +6104,15 @@ export type Database = {
           username: string
         }[]
       }
+      finalize_rental_extension: {
+        Args: {
+          p_capture_id: string
+          p_extension_id: string
+          p_paid_at: string
+          p_statement_path: string
+        }
+        Returns: boolean
+      }
       flix_get_video_url: { Args: { p_title_id: string }; Returns: string }
       get_diamond_plus_count: { Args: never; Returns: number }
       get_elite_plus_count: { Args: never; Returns: number }
