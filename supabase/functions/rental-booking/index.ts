@@ -3,7 +3,7 @@ const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { allowedPickupDate, minimumEndDate, monthlyRentalEndIsValid } from "./rules.ts";
+import { allowedPickupDate, minimumEndDate, monthlyRentalEndIsValid, monthlyRentalPrice } from "./rules.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -129,7 +129,7 @@ const calculateBaseRentalTotal = (vehicle: any, rentalType: string, start: strin
   const threeDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
   const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
   const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
-  if (rentalType === "monthly") return Math.round(monthlyRate * 100) / 100;
+  if (rentalType === "monthly") return monthlyRentalPrice(monthlyRate);
   const minimumDays = rentalType === "weekly" ? 7 : 1;
   let remaining = Math.max(days, minimumDays);
   let total = 0;

@@ -11,4 +11,4 @@
 - [x] Add calendar pickup rules and rental term rules
 - [x] Apply the 48-month rent-to-own pricing formula
 - [x] Add the professional vehicle-filled long-term agreement
-- [ ] Verify booking rules, mobile layout, and payment totals
+- [x] Verify booking rules, mobile layout, and payment totals
