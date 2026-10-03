@@ -20,7 +20,7 @@ import { calculateRentalPricing } from "@/lib/rentalPricing";
 import { buildAuthUrl } from "@/lib/refCapture";
 import RentalDatePicker from "@/components/rentals/RentalDatePicker";
 import RentalMemberAgreement from "@/components/rentals/RentalMemberAgreement";
-import { addMonths, lastPickupDay, LONG_TERM_MIN_MONTHS, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment, startOfToday, toLocalDateTimeValue } from "@/lib/rentalTerms";
+import { addDays, addMonths, lastPickupDay, LONG_TERM_MIN_MONTHS, MONTHLY_RENTAL_MAX_DAYS, monthlyRentalEndIsValid, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment, startOfToday, toLocalDateTimeValue } from "@/lib/rentalTerms";
 
 type Review = {
   id: string;
@@ -181,6 +181,13 @@ const RentalDetails: React.FC = () => {
     rentalType === "long_term" || rentalType === "rent_to_own"
       ? Number(vehicle?.down_payment || 0) + addonTotal
       : 0;
+  const agreementVehicleFields = [
+    ["VIN", vehicle?.vin], ["odometer", vehicle?.mileage], ["registration state", vehicle?.registration_state],
+    ["license plate", vehicle?.license_plate], ["plate expiration", vehicle?.plate_expiration],
+    ["body style", vehicle?.body_style], ["color", vehicle?.color], ["monthly rate", vehicle?.monthly_rate],
+    ["down payment", vehicle?.down_payment],
+  ] as const;
+  const missingAgreementFields = agreementVehicleFields.filter(([, value]) => value === null || value === undefined || value === "").map(([label]) => label);
 
   const requireAccount = () => {
     if (user) return true;
@@ -259,6 +266,14 @@ const RentalDetails: React.FC = () => {
     }
     if (new Date(endDate).getTime() <= new Date(startDate).getTime()) {
       toast({ title: "Check your dates", description: "The return date must be after the pickup date.", variant: "destructive" });
+      return;
+    }
+    if (rentalType === "monthly" && !monthlyRentalEndIsValid(startDate, endDate)) {
+      toast({ title: "Check your dates", description: "A monthly rental can run no more than 28 days after pickup.", variant: "destructive" });
+      return;
+    }
+    if (isLongAgreement && missingAgreementFields.length) {
+      toast({ title: "Vehicle details needed", description: `Best Rental Car Service must complete: ${missingAgreementFields.join(", ")}.`, variant: "destructive" });
       return;
     }
     setSubmitting(true);
@@ -532,9 +547,10 @@ const RentalDetails: React.FC = () => {
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <RentalDatePicker label="Pickup date/time" value={startDate} onChange={updateStartDate} fromDate={startOfToday()} toDate={lastPickupDay()} />
-                    <RentalDatePicker label="Return date/time" value={endDate} onChange={setEndDate} fromDate={startDate ? new Date(startDate) : startOfToday()} disabled={!startDate || isLongAgreement} />
+                    <RentalDatePicker label="Return date/time" value={endDate} onChange={setEndDate} fromDate={startDate ? new Date(startDate) : startOfToday()} toDate={rentalType === "monthly" && startDate ? addDays(new Date(startDate), MONTHLY_RENTAL_MAX_DAYS) : undefined} disabled={!startDate || isLongAgreement} />
                   </div>
                   <p className="text-xs text-rental-muted">Pickup can be scheduled from today through the next 28 days.</p>
+                  {rentalType === "monthly" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Choose a return date no more than 28 days after pickup. The listed monthly rate applies.</p>}
                   {rentalType === "long_term" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Long-term rentals have a six-month minimum. Your minimum end date is filled automatically.</p>}
                   {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the down payment, with $75 deducted from the contract total.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
 
@@ -577,13 +593,16 @@ const RentalDetails: React.FC = () => {
                   </div>
 
                   {isLongAgreement && (
-                    <Button type="button" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary" onClick={() => setShowAgreement(true)}>
-                      <FileText className="mr-2 h-4 w-4" /> Review Member Agreement
-                    </Button>
+                    <div className="space-y-2">
+                      <Button type="button" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary" onClick={() => setShowAgreement(true)}>
+                        <FileText className="mr-2 h-4 w-4" /> Review Member Agreement
+                      </Button>
+                      {missingAgreementFields.length > 0 && <p className="border border-destructive/50 bg-destructive/10 p-3 text-xs text-destructive">Best Rental Car Service must complete these vehicle details before booking: {missingAgreementFields.join(", ")}.</p>}
+                    </div>
                   )}
 
                   <div className="flex items-start gap-2">
-                    <Checkbox checked={agree} onCheckedChange={(v) => setAgree(!!v)} id="agree" />
+                    <Checkbox checked={agree} onCheckedChange={(v) => !isLongAgreement && setAgree(!!v)} id="agree" disabled={isLongAgreement} />
                     <Label htmlFor="agree" className="text-xs leading-snug">
                       {isLongAgreement ? "I reviewed and accept the Member Agreement and confirm the uploaded documents are authentic." : "I agree to the rental terms and confirm the uploaded documents are authentic."}
                     </Label>

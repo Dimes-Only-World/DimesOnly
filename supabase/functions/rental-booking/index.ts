@@ -3,7 +3,7 @@ const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { allowedPickupDate, minimumEndDate } from "./rules.ts";
+import { allowedPickupDate, minimumEndDate, monthlyRentalEndIsValid } from "./rules.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -129,7 +129,8 @@ const calculateBaseRentalTotal = (vehicle: any, rentalType: string, start: strin
   const threeDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
   const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
   const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
-  const minimumDays = rentalType === "monthly" ? 30 : rentalType === "weekly" ? 7 : 1;
+  if (rentalType === "monthly") return Math.round(monthlyRate * 100) / 100;
+  const minimumDays = rentalType === "weekly" ? 7 : 1;
   let remaining = Math.max(days, minimumDays);
   let total = 0;
 
@@ -344,6 +345,9 @@ serve(async (req) => {
           return json({ error: "Pickup must be scheduled from today through the next 28 days", requestId }, 400);
         }
         if (!booking.end_date) return json({ error: "A return or contract end date is required", requestId }, 400);
+        if (booking.rental_type === "monthly" && !monthlyRentalEndIsValid(booking.start_date, booking.end_date)) {
+          return json({ error: "Monthly rentals may run no more than 28 days after pickup", requestId }, 400);
+        }
         if (!booking.signature_text?.trim() || !booking.signed_at) {
           return json({ error: "Review and sign the rental agreement before continuing", requestId }, 400);
         }

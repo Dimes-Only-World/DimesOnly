@@ -52,7 +52,17 @@ export const calculateRentalPricing = (
   const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
   const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
   const discountedDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
-  const minimumDays = rentalType === "monthly" ? 30 : rentalType === "weekly" ? 7 : 1;
+  if (rentalType === "monthly") {
+    return {
+      days,
+      lines: [{ label: "Monthly rental", quantity: 1, unitRate: monthlyRate, total: monthlyRate }],
+      total: monthlyRate,
+      standardDailyTotal: dayRate > 0 ? days * dayRate : monthlyRate,
+      savings: Math.max(0, (dayRate > 0 ? days * dayRate : monthlyRate) - monthlyRate),
+    };
+  }
+
+  const minimumDays = rentalType === "weekly" ? 7 : 1;
   let remaining = Math.max(days, minimumDays);
   const lines: RentalPriceLine[] = [];
 

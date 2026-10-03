@@ -1,4 +1,5 @@
 export const RENTAL_PICKUP_WINDOW_DAYS = 28;
+export const MONTHLY_RENTAL_MAX_DAYS = 28;
 export const LONG_TERM_MIN_MONTHS = 6;
 export const RENT_TO_OWN_MONTHS = 48;
 export const RENT_TO_OWN_MONTHLY_DISCOUNT = 75;
@@ -23,4 +24,10 @@ export const minimumEndDate = (start: string, rentalType: string) => {
   if (!Number.isFinite(result.getTime())) return null;
   result.setMonth(result.getMonth() + (rentalType === "rent_to_own" ? RENT_TO_OWN_MONTHS : LONG_TERM_MIN_MONTHS));
   return result;
+};
+
+export const monthlyRentalEndIsValid = (start: string, end: string) => {
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  return Number.isFinite(startTime) && Number.isFinite(endTime) && endTime > startTime && endTime <= startTime + MONTHLY_RENTAL_MAX_DAYS * 86_400_000;
 };
