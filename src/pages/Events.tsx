@@ -266,6 +266,7 @@ const Events: React.FC = () => {
           return {
             ...event,
             current_attendees: totalAttendees,
+            paid_tickets: Number((countsData as any)?.paid_tickets || 0),
             is_attending: performerAttendingEventIds.includes(event.id),
             registrations: transformedRegistrations,
           };
@@ -779,7 +780,7 @@ const Events: React.FC = () => {
                       {(() => {
                         const ev: any = event;
                         const pct = Number(ev.early_bird_percent) || 0;
-                        const left = Math.max(0, (Number(ev.early_bird_limit) || 0) - (ev.current_attendees || 0));
+                        const left = Math.max(0, (Number(ev.early_bird_limit) || 0) - (Number((ev as any).paid_tickets) || 0));
                         const plusPct = Number(ev.plus_extra_percent) || 0;
                         if (!(pct > 0 && left > 0) && !plusPct) return null;
                         return (
