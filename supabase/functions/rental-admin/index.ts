@@ -2,6 +2,7 @@ import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain, computeCommissions, areaCode, signAvatar } from "../_shared/saleCommission.ts";
 import { decryptSsn } from "../_shared/ssnCrypto.ts";
 import { buildManualPaymentReceiptPdf } from "./receipt.ts";
+import { sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
 import { summarizePayments, validPaymentDate, validPaymentMethod, type PaymentHistoryRow } from "./paymentHistory.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -225,7 +226,36 @@ serve(async (req) => {
         await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", b.vehicle_id);
         await createCommissions(admin, updated);
         const { data: signedReceipt } = await admin.storage.from("rental-documents").createSignedUrl(receiptPath, 300);
-        return json({ data: updated, receiptUrl: signedReceipt?.signedUrl || null });
+        let emailed = false;
+        let emailError: string | null = null;
+        try {
+          const { data: renter } = await admin.from("users").select("email, username, first_name, last_name").eq("id", b.renter_user_id).maybeSingle();
+          if (renter?.email) {
+            const code = String(b.id).slice(0, 8).toUpperCase();
+            const label = method === "cash" ? "Cash" : "Cash App";
+            const vehicleLabel = [vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ");
+            const name = [renter.first_name, renter.last_name].filter(Boolean).join(" ") || renter.username || "";
+            const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+            const lines = [`Booking code: ${code}`, `Amount received: $${amt.toFixed(2)}`, `Payment method: ${label}`, `${method === "cash" ? "Collected by" : "Transaction reference"}: ${ref}`, `Vehicle: ${vehicleLabel}`, `Date received: ${paidDate}`];
+            const result = await sendEmailWithAttachment(
+              { email: renter.email, name },
+              {
+                subject: `Payment receipt - booking ${code}`,
+                fromName: "Best Rental Car Service",
+                category: "rental_payment_receipt",
+                text: `Hi ${name},\n\nWe received your payment. Your receipt is attached.\n\n${lines.join("\n")}\n\nBest Rental Car Service`,
+                html: `<div style="font-family:Arial,sans-serif;color:#111;max-width:560px"><h2 style="color:#0b1f3a">Payment received</h2><p>Hi ${esc(name)},</p><p>We received your payment. Your PDF receipt is attached.</p><ul>${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul><p>Best Rental Car Service</p></div>`,
+              },
+              [{ filename: `payment-receipt-${b.id}-${paidDate}.pdf`, content: pdf, type: "application/pdf" }],
+            );
+            emailed = result.ok;
+            if (!result.ok) emailError = "Receipt email could not be sent";
+          } else emailError = "Renter has no email on file";
+        } catch (e) {
+          console.error("receipt email failed", e);
+          emailError = "Receipt email could not be sent";
+        }
+        return json({ data: updated, receiptUrl: signedReceipt?.signedUrl || null, emailed, emailError });
       }
       case "markReturned": {
         const { id } = params;

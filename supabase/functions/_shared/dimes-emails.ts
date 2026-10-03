@@ -293,3 +293,36 @@ export async function sendDimesEmail(
   }
   return { ok: true, status: res.status };
 }
+
+export interface EmailAttachment { filename: string; content: Uint8Array; type: string }
+
+function toBase64(bytes: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+export async function sendEmailWithAttachment(
+  to: { email: string; name?: string },
+  msg: { subject: string; html: string; text: string; category: string; fromName?: string },
+  attachments: EmailAttachment[],
+): Promise<SendResult> {
+  const token = Deno.env.get("MAILTRAP_API_TOKEN");
+  if (!token) return { ok: false, error: "missing_mailtrap_token" };
+  const res = await fetch(MAILTRAP_ENDPOINT, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: { email: EMAIL_BRAND.fromEmail, name: msg.fromName || EMAIL_BRAND.fromName },
+      to: [{ email: to.email, name: to.name }],
+      subject: msg.subject, text: msg.text, html: msg.html, category: msg.category,
+      attachments: attachments.map((a) => ({ filename: a.filename, content: toBase64(a.content), type: a.type, disposition: "attachment" })),
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("Mailtrap send failed", res.status, body);
+    return { ok: false, status: res.status, error: body };
+  }
+  return { ok: true, status: res.status };
+}
