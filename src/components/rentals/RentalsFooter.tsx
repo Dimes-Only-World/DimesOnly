@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { normalizeRefParam } from "@/lib/utils";
 import { CancellationPolicyDialog } from "@/components/rentals/RentalPolicyDialogs";
+import { useAppContext } from "@/contexts/AppContext";
+import { supabase } from "@/lib/supabase";
 
 const APPLY_FORM_URL =
   "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
@@ -9,6 +11,17 @@ const APPLY_FORM_URL =
 const RentalsFooter: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const { user, setUser } = useAppContext();
+
+  const logout = async () => {
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("userData");
+    sessionStorage.removeItem("currentUser");
+    sessionStorage.removeItem("dimesPushAuthToken");
+    setUser(null);
+    await supabase.auth.signOut().catch(() => {});
+    window.location.assign("/rentals");
+  };
 
   const withRef = (path: string) => {
     const ref = normalizeRefParam(new URLSearchParams(window.location.search).get("ref"));
@@ -29,8 +42,13 @@ const RentalsFooter: React.FC = () => {
     {
       heading: "Account",
       links: [
-        { label: "Log in", to: withRef("/login") },
-        { label: "Sign up", to: withRef("/?signup=1") },
+        { label: "My Rentals", to: "/account/my-rentals" },
+        ...(user
+          ? [{ label: "Log out", onClick: logout }]
+          : [
+              { label: "Log in", to: withRef("/login") },
+              { label: "Sign up", to: withRef("/?signup=1") },
+            ]),
       ],
     },
     {
