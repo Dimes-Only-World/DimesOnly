@@ -24,7 +24,7 @@ const csvSafe = (value: unknown) => {
   return `"${safe.replace(/"/g, '""')}"`;
 };
 
-const PaymentHistoryPanel: React.FC<{ callAdmin: (action: string, extra?: Record<string, unknown>) => Promise<any> }> = ({ callAdmin }) => {
+const PaymentHistoryPanel: React.FC<{ callAdmin: (action: string, extra?: Record<string, any>) => Promise<any> }> = ({ callAdmin }) => {
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [totals, setTotals] = useState<Totals>({ count: 0, total: 0, paypal: 0, cash: 0, cashapp: 0 });
   const [method, setMethod] = useState<Method>("all");

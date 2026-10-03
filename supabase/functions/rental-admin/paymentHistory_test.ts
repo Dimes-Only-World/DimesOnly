@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { paymentMethodLabel, summarizePayments, validPaymentDate, validPaymentMethod, type PaymentHistoryRow } from "./paymentHistory.ts";
+import { paymentHistoryCsv, paymentMethodLabel, summarizePayments, validPaymentDate, validPaymentMethod, type PaymentHistoryRow } from "./paymentHistory.ts";
 
 const row = (method: PaymentHistoryRow["payment_method"], amount: number): PaymentHistoryRow => ({
   id: crypto.randomUUID(), booking_id: crypto.randomUUID(), payment_type: "booking", paid_at: "2026-10-03T12:00:00Z",
@@ -18,4 +18,11 @@ Deno.test("payment history uses the requested method labels", () => {
 
 Deno.test("payment history accepts only supported filters", () => {
   assertEquals([validPaymentDate("2026-10-03"), validPaymentDate("10/03/2026"), validPaymentMethod("cashapp"), validPaymentMethod("card")], [true, false, true, false]);
+});
+
+Deno.test("payment history CSV includes booking and protects spreadsheet formulas", () => {
+  const payment = { ...row("cashapp", 25), booking_id: "12345678-0000-0000-0000-000000000000", payment_reference: "=unsafe" };
+  const csv = paymentHistoryCsv([payment]);
+  assertEquals(csv.includes('"12345678"'), true);
+  assertEquals(csv.includes('"\'=unsafe"'), true);
 });

@@ -25,3 +25,15 @@ export const summarizePayments = (rows: PaymentHistoryRow[]) => rows.reduce((tot
 export const validPaymentDate = (value: unknown) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
 export const validPaymentMethod = (value: unknown): value is PaymentMethod => ["paypal", "cash", "cashapp"].includes(String(value));
+
+const csvCell = (value: unknown) => {
+  const raw = String(value ?? "");
+  const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+
+export const paymentHistoryCsv = (rows: PaymentHistoryRow[]) => {
+  const headers = ["Paid date", "Booking code", "Renter", "Vehicle", "Payment type", "Method", "Amount", "Reference"];
+  const body = rows.map((row) => [row.paid_at, row.booking_id.slice(0, 8).toUpperCase(), row.renter_username || "", row.vehicle_label, row.payment_type, paymentMethodLabel(row.payment_method), row.amount.toFixed(2), row.payment_reference || ""]);
+  return [headers, ...body].map((line) => line.map(csvCell).join(",")).join("\n");
+};

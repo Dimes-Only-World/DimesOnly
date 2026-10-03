@@ -132,7 +132,11 @@ serve(async (req) => {
           .select("id, booking_id, renter_user_id, paid_at, total_charged, paypal_capture_id, status, rental_bookings!inner(vehicles(year,make,model))")
           .eq("status", "paid").not("paid_at", "is", null);
         if (dateFrom) { bookingQuery = bookingQuery.gte("paid_at", `${dateFrom}T00:00:00.000Z`); extensionQuery = extensionQuery.gte("paid_at", `${dateFrom}T00:00:00.000Z`); }
-        if (dateTo) { bookingQuery = bookingQuery.lt("paid_at", `${dateTo}T00:00:00.000Z`).or(`paid_at.gte.${dateTo}T00:00:00.000Z,paid_at.lt.${new Date(`${dateTo}T00:00:00.000Z`).getTime() + 86_400_000}`); }
+        if (dateTo) {
+          const exclusiveEnd = new Date(new Date(`${dateTo}T00:00:00.000Z`).getTime() + 86_400_000).toISOString();
+          bookingQuery = bookingQuery.lt("paid_at", exclusiveEnd);
+          extensionQuery = extensionQuery.lt("paid_at", exclusiveEnd);
+        }
         if (method === "cash" || method === "cashapp") bookingQuery = bookingQuery.eq("payment_method", method);
         if (method === "paypal") bookingQuery = bookingQuery.or("payment_method.eq.paypal,payment_method.is.null");
 
