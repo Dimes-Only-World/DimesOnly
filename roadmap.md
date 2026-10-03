@@ -10,5 +10,5 @@
 - [x] Make rental pages wall-to-wall on phones
 - [x] Add calendar pickup rules and rental term rules
 - [x] Apply the 48-month rent-to-own pricing formula
-- [ ] Add the professional vehicle-filled long-term agreement
+- [x] Add the professional vehicle-filled long-term agreement
 - [ ] Verify booking rules, mobile layout, and payment totals
