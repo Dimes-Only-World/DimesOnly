@@ -370,7 +370,7 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="rentals-showroom min-h-screen pb-16 pt-20 sm:px-4">
+    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 pt-20 sm:px-4">
       <div className="mx-auto max-w-6xl">
         <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 px-4 text-sm text-rental-muted hover:text-rental-primary sm:px-0">
           <ArrowLeft className="w-4 h-4" /> Back to rentals
