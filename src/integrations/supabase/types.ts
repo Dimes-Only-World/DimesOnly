@@ -3688,11 +3688,13 @@ export type Database = {
           end_date: string | null
           id: string
           insurance_path: string | null
+          latest_reported_mileage: number | null
           license_path: string | null
           paid_at: string | null
           paypal_capture_id: string | null
           paypal_order_id: string | null
           pickup_location: string | null
+          pickup_mileage: number | null
           promo_code: string | null
           referrer_username: string | null
           rental_type: string
@@ -3717,11 +3719,13 @@ export type Database = {
           end_date?: string | null
           id?: string
           insurance_path?: string | null
+          latest_reported_mileage?: number | null
           license_path?: string | null
           paid_at?: string | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
+          pickup_mileage?: number | null
           promo_code?: string | null
           referrer_username?: string | null
           rental_type: string
@@ -3746,11 +3750,13 @@ export type Database = {
           end_date?: string | null
           id?: string
           insurance_path?: string | null
+          latest_reported_mileage?: number | null
           license_path?: string | null
           paid_at?: string | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
           pickup_location?: string | null
+          pickup_mileage?: number | null
           promo_code?: string | null
           referrer_username?: string | null
           rental_type?: string
@@ -3928,6 +3934,95 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "rental_bookings"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_extensions: {
+        Row: {
+          booking_id: string
+          created_at: string
+          extension_price: number
+          extra_days: number
+          id: string
+          new_end_date: string
+          paid_at: string | null
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
+          previous_end_date: string
+          renter_user_id: string
+          reported_mileage: number
+          statement_path: string | null
+          status: string
+          total_charged: number
+          transaction_fee: number
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          extension_price: number
+          extra_days: number
+          id?: string
+          new_end_date: string
+          paid_at?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          previous_end_date: string
+          renter_user_id: string
+          reported_mileage: number
+          statement_path?: string | null
+          status?: string
+          total_charged: number
+          transaction_fee: number
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          extension_price?: number
+          extra_days?: number
+          id?: string
+          new_end_date?: string
+          paid_at?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          previous_end_date?: string
+          renter_user_id?: string
+          reported_mileage?: number
+          statement_path?: string | null
+          status?: string
+          total_charged?: number
+          transaction_fee?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_extensions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "rental_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_extensions_renter_user_id_fkey"
+            columns: ["renter_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_extensions_renter_user_id_fkey"
+            columns: ["renter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_extensions_renter_user_id_fkey"
+            columns: ["renter_user_id"]
+            isOneToOne: false
+            referencedRelation: "v_top_money_circles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -5544,6 +5639,8 @@ export type Database = {
       vehicles: {
         Row: {
           availability_status: string
+          body_style: string | null
+          color: string | null
           created_at: string
           created_by: string | null
           day_rate: number | null
@@ -5558,6 +5655,8 @@ export type Database = {
           model: string
           monthly_rate: number | null
           pickup_location: string | null
+          plate_expiration: string | null
+          registration_state: string | null
           rental_options: string[]
           security_deposit: number
           three_day_rate: number | null
@@ -5569,6 +5668,8 @@ export type Database = {
         }
         Insert: {
           availability_status?: string
+          body_style?: string | null
+          color?: string | null
           created_at?: string
           created_by?: string | null
           day_rate?: number | null
@@ -5583,6 +5684,8 @@ export type Database = {
           model: string
           monthly_rate?: number | null
           pickup_location?: string | null
+          plate_expiration?: string | null
+          registration_state?: string | null
           rental_options?: string[]
           security_deposit?: number
           three_day_rate?: number | null
@@ -5594,6 +5697,8 @@ export type Database = {
         }
         Update: {
           availability_status?: string
+          body_style?: string | null
+          color?: string | null
           created_at?: string
           created_by?: string | null
           day_rate?: number | null
@@ -5608,6 +5713,8 @@ export type Database = {
           model?: string
           monthly_rate?: number | null
           pickup_location?: string | null
+          plate_expiration?: string | null
+          registration_state?: string | null
           rental_options?: string[]
           security_deposit?: number
           three_day_rate?: number | null
