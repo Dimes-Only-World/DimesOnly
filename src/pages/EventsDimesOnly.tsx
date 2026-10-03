@@ -795,7 +795,7 @@ const EventsDimesOnly: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
         {/* Video Banner */}
         {eventsDimesVideoUrl && (
-          <BannerVideo src={eventsDimesVideoUrl} />
+          <BannerVideo src={eventsDimesVideoUrl} className="aspect-[2.35/1]" />
         )}
 
         {/* Mobile-first full width design */}
