@@ -13,3 +13,4 @@
 - [x] Add the professional vehicle-filled long-term agreement
 - [x] Verify booking rules, mobile layout, and payment totals
 - [x] Add admin rental payment history with combined booking and extension filters, totals, CSV, and receipts
+- [x] Fix rental calendar opacity and add clickable agreements and payment instruction popups

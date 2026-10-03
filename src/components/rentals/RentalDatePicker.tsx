@@ -35,7 +35,7 @@ const RentalDatePicker = ({ label, value, onChange, fromDate, toDate, disabled }
             {selected ? format(selected, "MMM d, yyyy") : "Pick a date"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] border-rental-line bg-rental-surface p-0 shadow-xl" align="start" collisionPadding={16}>
+        <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] border-border bg-popover p-0 text-popover-foreground shadow-xl" align="start" collisionPadding={16}>
           <Calendar
             mode="single"
             selected={selected}
