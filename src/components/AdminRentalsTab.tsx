@@ -13,7 +13,7 @@ import SaleCommissionsPanel from "@/components/rentals/SaleCommissionsPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, Plus, Upload, ExternalLink } from "lucide-react";
+import { Trash2, Plus, Upload, ExternalLink, Download } from "lucide-react";
 
 const RENTAL_OPTS = ["daily", "weekly", "monthly", "long_term", "rent_to_own", "purchase"];
 
@@ -771,7 +771,8 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
     try {
       const r = await callAdmin("markPaidManual", { id: b.id, method, reference, amount: Number(amount) });
       if (r?.error) throw new Error(r.error);
-      toast({ title: "Marked paid", description: `Recorded ${label} payment. Vehicle now shows rented.` });
+      toast({ title: "Marked paid", description: `Recorded ${label} payment. The receipt is ready to download.` });
+      if (r?.receiptUrl) window.open(r.receiptUrl, "_blank", "noopener,noreferrer");
       onChange();
     } catch (e: any) {
       toast({ title: "Not marked paid", description: e.message, variant: "destructive" });
@@ -811,6 +812,7 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
         <div className="flex flex-col gap-1">
           {b.license_path && <Button size="sm" variant="outline" onClick={() => openDoc(b.license_path)}><ExternalLink className="w-3 h-3 mr-1" />License</Button>}
           {b.insurance_path && <Button size="sm" variant="outline" onClick={() => openDoc(b.insurance_path)}><ExternalLink className="w-3 h-3 mr-1" />Insurance</Button>}
+          {b.payment_receipt_path && <Button size="sm" variant="outline" onClick={() => openDoc(b.payment_receipt_path)}><Download className="w-3 h-3 mr-1" />Receipt</Button>}
         </div>
       </div>
       <div className="flex flex-wrap gap-2">

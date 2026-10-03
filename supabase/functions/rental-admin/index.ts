@@ -1,6 +1,7 @@
 import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain, computeCommissions, areaCode, signAvatar } from "../_shared/saleCommission.ts";
 import { decryptSsn } from "../_shared/ssnCrypto.ts";
+import { buildManualPaymentReceiptPdf } from "./receipt.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -131,24 +132,40 @@ serve(async (req) => {
         if (!["cash", "cashapp"].includes(method)) return json({ error: "Choose Cash or Cash App" }, 400);
         const ref = String(reference || "").trim().slice(0, 120);
         if (method === "cashapp" && !ref) return json({ error: "Enter the Cash App payment ID or sender $cashtag" }, 400);
+        if (method === "cash" && !ref) return json({ error: "Enter the name of the person who collected the cash" }, 400);
         const amt = Number(amount);
         if (!Number.isFinite(amt) || amt <= 0) return json({ error: "Enter the amount received" }, 400);
-        const { data: b, error: bErr } = await admin.from("rental_bookings").select("*").eq("id", id).single();
+        const { data: b, error: bErr } = await admin.from("rental_bookings").select("*, vehicles(year, make, model)").eq("id", id).single();
         if (bErr) throw bErr;
         if (["paid", "active", "completed", "returned"].includes(String(b.status))) return json({ error: "This booking is already paid" }, 400);
         if (["cancelled", "rejected"].includes(String(b.status))) return json({ error: "This booking was cancelled" }, 400);
         if (amt + 0.005 < Number(b.total_price || 0)) {
           return json({ error: `Amount received ($${amt.toFixed(2)}) is less than the total due ($${Number(b.total_price).toFixed(2)})` }, 400);
         }
+        const paidAt = new Date().toISOString();
+        const vehicle = Array.isArray(b.vehicles) ? b.vehicles[0] : b.vehicles;
+        const pdf = await buildManualPaymentReceiptPdf({
+          bookingId: b.id, amount: amt, method, reference: ref, paidAt,
+          vehicleLabel: [vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" "),
+        });
+        const paidDate = paidAt.slice(0, 10);
+        const receiptPath = `${b.renter_user_id}/${b.id}/receipts/payment-receipt-${b.id}-${paidDate}.pdf`;
+        const { error: receiptError } = await admin.storage.from("rental-documents").upload(receiptPath, pdf, { contentType: "application/pdf", upsert: false });
+        if (receiptError) throw new Error(`Receipt generation failed: ${receiptError.message}`);
         const { data: updated, error: upErr } = await admin.from("rental_bookings").update({
-          status: "paid", paid_at: new Date().toISOString(), payment_method: method,
+          status: "paid", paid_at: paidAt, payment_method: method,
           payment_reference: ref || null, amount_received: amt,
           payment_note: String(note || "").slice(0, 500) || null,
+          payment_receipt_path: receiptPath,
         }).eq("id", id).select().single();
-        if (upErr) throw upErr;
+        if (upErr) {
+          await admin.storage.from("rental-documents").remove([receiptPath]);
+          throw upErr;
+        }
         await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", b.vehicle_id);
         await createCommissions(admin, updated);
-        return json({ data: updated });
+        const { data: signedReceipt } = await admin.storage.from("rental-documents").createSignedUrl(receiptPath, 300);
+        return json({ data: updated, receiptUrl: signedReceipt?.signedUrl || null });
       }
       case "markReturned": {
         const { id } = params;
