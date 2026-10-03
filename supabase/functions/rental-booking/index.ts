@@ -564,7 +564,7 @@ serve(async (req) => {
 
         const { data: bk } = await admin
           .from("rental_bookings")
-          .select("id, renter_user_id, status, paypal_order_id")
+          .select("id, renter_user_id, status, paypal_order_id, vehicle_id")
           .eq("id", bookingId)
           .maybeSingle();
 
@@ -596,10 +596,21 @@ serve(async (req) => {
             status: "paid",
             paypal_capture_id: capture?.id || null,
             paid_at: new Date().toISOString(),
+            payment_method: "paypal",
           })
           .eq("id", bk.id);
+        if (bk.vehicle_id) await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", bk.vehicle_id);
 
         return json({ data: { status: "paid", capture_id: capture?.id || null }, requestId });
+      }
+      case "chooseManualPayment": {
+        const method = String(body?.method || "");
+        if (!bookingId || !["cash", "cashapp"].includes(method)) return json({ error: "Choose Cash or Cash App", requestId }, 400);
+        const { data: bk } = await admin.from("rental_bookings").select("id, renter_user_id, status").eq("id", bookingId).maybeSingle();
+        if (!bk || bk.renter_user_id !== userId) return json({ error: "Booking not found", requestId }, 404);
+        if (["paid", "active", "completed", "returned"].includes(String(bk.status))) return json({ error: "This booking is already paid", requestId }, 400);
+        await admin.from("rental_bookings").update({ payment_method: method }).eq("id", bk.id);
+        return json({ data: { payment_method: method }, requestId });
       }
       default:
         return json({ error: "Unknown action", requestId }, 400);
