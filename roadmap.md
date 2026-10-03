@@ -5,5 +5,5 @@
 - [x] Implement verified PayPal extension payment and PDF generation
 - [x] Add immediate and historical statement downloads to My Rentals
 - [x] Add Account route and navigation link
-- [ ] Test payment rules, document authorization, and PDF rendering
-- [ ] Provide a visually inspected sample PDF
+- [x] Test payment rules, document authorization, and PDF rendering
+- [x] Provide a visually inspected sample PDF
