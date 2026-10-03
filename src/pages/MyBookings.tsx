@@ -584,24 +584,25 @@ const MyBookings: React.FC = () => {
 
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Loading your bookings…</div>
-        ) : bookings.length === 0 ? (
-          <Card className="bg-card/60 border-border/60 py-16 text-center">
-            <CardContent>
-              <Car className="w-14 h-14 mx-auto text-muted-foreground/50 mb-3" />
-              <h3 className="text-xl font-semibold mb-1">No bookings yet</h3>
-              <p className="text-muted-foreground mb-4">
-                When you rent a vehicle it will show up here.
-              </p>
-              <Button asChild>
-                <Link to="/rentals">Browse Rentals</Link>
-              </Button>
-            </CardContent>
-          </Card>
         ) : (
           <div className="space-y-8">
+            {grouped.active.length === 0 && grouped.upcoming.length === 0 && (
+              <Card className="bg-card/60 border-border/60 py-12 text-center">
+                <CardContent>
+                  <Car className="w-14 h-14 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-lg font-semibold">
+                    You do not have any active rental.{" "}
+                    <Link to="/rentals" className="text-primary underline underline-offset-4 hover:opacity-80">
+                      CLICK here
+                    </Link>{" "}
+                    to rent your vehicle today
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             <Section title="Active" items={grouped.active} />
             <Section title="Upcoming" items={grouped.upcoming} />
-            <Section title="Past" items={grouped.past} />
+            <Section title="Past Rentals" items={grouped.past} />
           </div>
         )}
       </div>
