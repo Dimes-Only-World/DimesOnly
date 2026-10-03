@@ -791,7 +791,7 @@ const EventDetails: React.FC = () => {
 
         </div>
 
-        <div className={getContentClasses()}>
+        <div className="px-0 sm:px-6 lg:px-8">
           <div className="space-y-6">
             {/* Event Details Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
