@@ -1142,7 +1142,16 @@ const RatePage: React.FC = () => {
       </Dialog>
 
       {/* Reassign Dialog */}
-      <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
+      <Dialog
+        open={showReassignDialog}
+        onOpenChange={(open) => {
+          setShowReassignDialog(open);
+          if (!open) {
+            setReassignFromUser(null);
+            setSelectedNumber(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center">Override Rating #{selectedNumber}?</DialogTitle>
@@ -1195,7 +1204,11 @@ const RatePage: React.FC = () => {
           <DialogFooter className="flex gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => setShowReassignDialog(false)}
+              onClick={() => {
+                setShowReassignDialog(false);
+                setReassignFromUser(null);
+                setSelectedNumber(null);
+              }}
               className="flex-1"
             >
               Decline
