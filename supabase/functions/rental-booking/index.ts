@@ -3,6 +3,7 @@ const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { allowedPickupDate, minimumEndDate, rentToOwnMonthlyPayment } from "./rules.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -330,7 +331,7 @@ serve(async (req) => {
 
         const { data: vehicle, error: vehicleErr } = await admin
           .from("vehicles")
-          .select("id, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment, security_deposit, rental_options, is_active")
+          .select("id, vin, mileage, registration_state, license_plate, plate_expiration, body_style, color, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment, security_deposit, rental_options, is_active")
           .eq("id", booking.vehicle_id)
           .maybeSingle();
         if (vehicleErr || !vehicle || !vehicle.is_active) {
@@ -338,6 +339,22 @@ serve(async (req) => {
         }
         if (!Array.isArray(vehicle.rental_options) || !vehicle.rental_options.includes(booking.rental_type)) {
           return json({ error: "That rental option is not available for this vehicle", requestId }, 400);
+        }
+        if (!allowedPickupDate(booking.start_date)) {
+          return json({ error: "Pickup must be scheduled from today through the next 28 days", requestId }, 400);
+        }
+        if (!booking.end_date) return json({ error: "A return or contract end date is required", requestId }, 400);
+        if (!booking.signature_text?.trim() || !booking.signed_at) {
+          return json({ error: "Review and sign the rental agreement before continuing", requestId }, 400);
+        }
+        if (booking.rental_type === "long_term" || booking.rental_type === "rent_to_own") {
+          const requiredEnd = minimumEndDate(booking.start_date, booking.rental_type);
+          if (!requiredEnd || new Date(booking.end_date).getTime() < requiredEnd.getTime()) {
+            return json({ error: booking.rental_type === "rent_to_own" ? "Rent-to-own requires a 48-month term" : "Long-term rentals require at least six months", requestId }, 400);
+          }
+          const requiredVehicleFields = ["vin", "mileage", "registration_state", "license_plate", "plate_expiration", "body_style", "color", "monthly_rate", "down_payment"];
+          const missing = requiredVehicleFields.filter((field) => !vehicle[field]);
+          if (missing.length) return json({ error: `Best Rental Car Service must complete the vehicle agreement details: ${missing.join(", ")}`, requestId }, 400);
         }
 
         const baseRentalTotal = calculateBaseRentalTotal(

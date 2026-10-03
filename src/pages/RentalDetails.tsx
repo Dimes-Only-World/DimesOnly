@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Car, MapPin, Calendar, ArrowLeft, Upload, Expand, Star, ShieldCheck, CalendarX2, Tag, Clock, BadgeDollarSign } from "lucide-react";
+import { Car, MapPin, ArrowLeft, Upload, Expand, Star, ShieldCheck, CalendarX2, Tag, BadgeDollarSign, FileText } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ThemedPackageSelector from "@/components/rentals/ThemedPackageSelector";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
@@ -18,6 +18,9 @@ import AngelLoader from "@/components/AngelLoader";
 import { CancellationPolicyDialog, PaymentDetailsDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { calculateRentalPricing } from "@/lib/rentalPricing";
 import { buildAuthUrl } from "@/lib/refCapture";
+import RentalDatePicker from "@/components/rentals/RentalDatePicker";
+import RentalMemberAgreement from "@/components/rentals/RentalMemberAgreement";
+import { addMonths, lastPickupDay, LONG_TERM_MIN_MONTHS, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment, startOfToday, toLocalDateTimeValue } from "@/lib/rentalTerms";
 
 type Review = {
   id: string;
@@ -83,6 +86,8 @@ const RentalDetails: React.FC = () => {
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState<{ code: string; discount: number } | null>(null);
   const [promoChecking, setPromoChecking] = useState(false);
+  const [showAgreement, setShowAgreement] = useState(false);
+  const [memberProfile, setMemberProfile] = useState({ fullName: "", address: "" });
 
   useEffect(() => {
     // Resolve current user from custom sessionStorage first, then fall back to Supabase Auth
@@ -110,12 +115,16 @@ const RentalDetails: React.FC = () => {
       if (currentId) {
         const { data: u } = await (supabase as any)
           .from("users")
-          .select("email, mobile_number, phone_number")
+          .select("email, mobile_number, phone_number, first_name, last_name, address, city, state, zip")
           .eq("id", currentId)
           .maybeSingle();
         if (u) {
           setEmail((prev) => prev || u.email || "");
           setPhone((prev) => prev || u.mobile_number || u.phone_number || "");
+          const fullName = [u.first_name, u.last_name].filter(Boolean).join(" ");
+          const address = [u.address, u.city, u.state, u.zip].filter(Boolean).join(", ");
+          setMemberProfile({ fullName, address });
+          if (fullName) setSignature((prev) => prev || fullName);
         }
       }
     })();
@@ -165,6 +174,9 @@ const RentalDetails: React.FC = () => {
   const promoDiscount = Math.min(promo?.discount || 0, subtotal);
   const total = Math.max(0, subtotal - promoDiscount);
   const securityDeposit = Number(vehicle?.security_deposit || 0);
+  const isLongAgreement = rentalType === "long_term" || rentalType === "rent_to_own";
+  const rentToOwnPayment = rentToOwnMonthlyPayment(vehicle?.monthly_rate);
+  const rentToOwnTotal = rentToOwnContractTotal(vehicle?.monthly_rate, vehicle?.down_payment);
   const downPayment =
     rentalType === "long_term" || rentalType === "rent_to_own"
       ? Number(vehicle?.down_payment || 0) + addonTotal
@@ -178,6 +190,24 @@ const RentalDetails: React.FC = () => {
     });
     navigate(buildAuthUrl("/register", `/rentals/${id}`));
     return false;
+  };
+
+  const updateRentalType = (nextType: string) => {
+    setRentalType(nextType);
+    setAgree(false);
+    if (!startDate) return;
+    const start = new Date(startDate);
+    if (nextType === "long_term") setEndDate(toLocalDateTimeValue(addMonths(start, LONG_TERM_MIN_MONTHS), startDate.slice(11, 16)));
+    else if (nextType === "rent_to_own") setEndDate(toLocalDateTimeValue(addMonths(start, RENT_TO_OWN_MONTHS), startDate.slice(11, 16)));
+    else setEndDate("");
+  };
+
+  const updateStartDate = (value: string) => {
+    setStartDate(value);
+    const start = new Date(value);
+    if (rentalType === "long_term") setEndDate(toLocalDateTimeValue(addMonths(start, LONG_TERM_MIN_MONTHS), value.slice(11, 16)));
+    else if (rentalType === "rent_to_own") setEndDate(toLocalDateTimeValue(addMonths(start, RENT_TO_OWN_MONTHS), value.slice(11, 16)));
+    else if (endDate && new Date(endDate) <= start) setEndDate("");
   };
 
   const applyPromo = async () => {
@@ -223,12 +253,11 @@ const RentalDetails: React.FC = () => {
       toast({ title: "Missing info", description: "Fill all fields, upload ID + insurance, sign and agree.", variant: "destructive" });
       return;
     }
-    const needsReturnDate = rentalType !== "long_term" && rentalType !== "rent_to_own";
-    if (needsReturnDate && !endDate) {
+    if (!endDate) {
       toast({ title: "Return date required", description: "Choose the date you'll return the vehicle.", variant: "destructive" });
       return;
     }
-    if (needsReturnDate && new Date(endDate).getTime() <= new Date(startDate).getTime()) {
+    if (new Date(endDate).getTime() <= new Date(startDate).getTime()) {
       toast({ title: "Check your dates", description: "The return date must be after the pickup date.", variant: "destructive" });
       return;
     }
@@ -326,16 +355,16 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-20 pb-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <Link to="/rentals" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-4">
+    <div className="rentals-showroom min-h-screen pb-16 pt-20 sm:px-4">
+      <div className="mx-auto max-w-6xl">
+        <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 px-4 text-sm text-rental-muted hover:text-rental-primary sm:px-0">
           <ArrowLeft className="w-4 h-4" /> Back to rentals
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="space-y-3">
             <div
-              className="group relative aspect-video rounded-lg overflow-hidden bg-muted cursor-zoom-in ring-1 ring-border/50 hover:ring-primary/60 transition-all"
+              className="group relative aspect-video overflow-hidden bg-rental-elevated cursor-zoom-in ring-1 ring-rental-line hover:ring-rental-primary transition-all sm:rounded-lg"
               onClick={() => photos.length && (setLightboxIndex(0), setLightboxOpen(true))}
             >
               {photos[0]?.signedUrl ? (
@@ -387,7 +416,7 @@ const RentalDetails: React.FC = () => {
             )}
           </div>
 
-          <div>
+          <div className="px-4 sm:px-0">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
@@ -423,7 +452,7 @@ const RentalDetails: React.FC = () => {
               )}
             </div>
 
-            <Card className="bg-card/60 border-border/50 mb-6">
+            <Card className="-mx-4 mb-6 rounded-none border-x-0 border-rental-line bg-rental-surface sm:mx-0 sm:border-x">
               <CardContent className="p-4 space-y-2 text-sm">
                 <h3 className="font-semibold mb-2 text-center uppercase tracking-widest text-xs text-muted-foreground">Rates</h3>
                 {vehicle.day_rate && <div className="flex justify-between"><span>Daily</span><span>${Number(vehicle.day_rate).toLocaleString()}</span></div>}
@@ -435,7 +464,8 @@ const RentalDetails: React.FC = () => {
                 )}
                 {vehicle.weekly_rate && <div className="flex justify-between"><span>Weekly</span><span>${Number(vehicle.weekly_rate).toLocaleString()}</span></div>}
                 {vehicle.monthly_rate && <div className="flex justify-between"><span>Monthly</span><span>${Number(vehicle.monthly_rate).toLocaleString()}</span></div>}
-                {vehicle.down_payment && <div className="flex justify-between"><span>Down (long-term / rent-to-own)</span><span>${Number(vehicle.down_payment).toLocaleString()}</span></div>}
+                {vehicle.down_payment && <div className="flex justify-between"><span>Initial down payment</span><span>${Number(vehicle.down_payment).toLocaleString()}</span></div>}
+                {vehicle.monthly_rate && vehicle.rental_options?.includes("rent_to_own") && <div className="flex justify-between text-rental-success"><span>Rent-to-own (48 months)</span><span>${rentToOwnPayment.toLocaleString()}/month</span></div>}
                 {securityDeposit > 0 && (
                   <div className="flex justify-between border-t border-border/50 pt-2">
                     <span>Security deposit</span>
@@ -453,7 +483,7 @@ const RentalDetails: React.FC = () => {
               tabIndex={0}
               onClick={() => setShowCancelPolicy(true)}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowCancelPolicy(true); } }}
-              className="bg-emerald-500/10 border-emerald-500/30 mb-6 cursor-pointer hover:border-emerald-400/60 transition-colors"
+              className="-mx-4 mb-6 cursor-pointer rounded-none border-x-0 border-emerald-500/30 bg-emerald-500/10 transition-colors hover:border-emerald-400/60 sm:mx-0 sm:border-x"
             >
               <CardContent className="p-4 flex items-start gap-3">
                 <CalendarX2 className="w-5 h-5 text-emerald-400 mt-0.5" />
@@ -464,7 +494,7 @@ const RentalDetails: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/60 border-border/50 mb-6">
+            <Card className="-mx-4 mb-6 rounded-none border-x-0 border-rental-line bg-rental-surface sm:mx-0 sm:border-x">
               <CardContent className="p-4 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-primary mt-0.5" />
                 <div>
@@ -484,13 +514,13 @@ const RentalDetails: React.FC = () => {
                 {purchaseAvailable && <Button asChild size="lg" variant="outline" className="w-full border-primary"><Link to={`/rentals/purchase/${vehicle.id}`}><BadgeDollarSign className="mr-2 h-5 w-5" /> Apply to Purchase</Link></Button>}
               </div>
             ) : (
-              <Card className="bg-card/60 border-primary/40">
+              <Card className="-mx-4 rounded-none border-x-0 border-rental-primary/40 bg-rental-surface sm:mx-0 sm:border-x">
                 <CardContent className="p-4 space-y-3">
                   <h3 className="text-lg font-semibold">Booking Request</h3>
 
                   <div>
                     <Label>Rental type</Label>
-                    <Select value={rentalType} onValueChange={setRentalType}>
+                    <Select value={rentalType} onValueChange={updateRentalType}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                          {rentalOptions.map((o: string) => (
@@ -500,16 +530,13 @@ const RentalDetails: React.FC = () => {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Pickup date/time</Label>
-                      <Input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                    </div>
-                    <div>
-                      <Label>Return date/time</Label>
-                      <Input type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                    </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <RentalDatePicker label="Pickup date/time" value={startDate} onChange={updateStartDate} fromDate={startOfToday()} toDate={lastPickupDay()} />
+                    <RentalDatePicker label="Return date/time" value={endDate} onChange={setEndDate} fromDate={startDate ? new Date(startDate) : startOfToday()} disabled={!startDate || isLongAgreement} />
                   </div>
+                  <p className="text-xs text-rental-muted">Pickup can be scheduled from today through the next 28 days.</p>
+                  {rentalType === "long_term" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Long-term rentals have a six-month minimum. Your minimum end date is filled automatically.</p>}
+                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the down payment.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
 
                   <div>
                     <Label>Pickup location</Label>
@@ -549,10 +576,16 @@ const RentalDetails: React.FC = () => {
                     />
                   </div>
 
+                  {isLongAgreement && (
+                    <Button type="button" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary" onClick={() => setShowAgreement(true)}>
+                      <FileText className="mr-2 h-4 w-4" /> Review Member Agreement
+                    </Button>
+                  )}
+
                   <div className="flex items-start gap-2">
                     <Checkbox checked={agree} onCheckedChange={(v) => setAgree(!!v)} id="agree" />
                     <Label htmlFor="agree" className="text-xs leading-snug">
-                      I agree to the rental terms and confirm the uploaded documents are authentic.
+                      {isLongAgreement ? "I reviewed and accept the Member Agreement and confirm the uploaded documents are authentic." : "I agree to the rental terms and confirm the uploaded documents are authentic."}
                     </Label>
                   </div>
 
@@ -582,13 +615,14 @@ const RentalDetails: React.FC = () => {
                   <div className="border-t pt-3 space-y-1 text-sm">
                     <div className="flex items-center justify-between mb-1">
                       <p className="uppercase tracking-widest text-[11px] text-muted-foreground">Price details</p>
-                      <button
+                      <Button
                         type="button"
+                        variant="link"
                         onClick={() => setShowPaymentDetails(true)}
-                        className="text-[11px] font-semibold text-primary underline underline-offset-4"
+                        className="h-auto p-0 text-[11px] font-semibold text-rental-primary underline underline-offset-4"
                       >
                         Payment details
-                      </button>
+                      </Button>
                     </div>
                     {breakdown.lines.map((line) => (
                       <div key={`${line.label}-${line.quantity}`} className="flex justify-between text-muted-foreground">
@@ -619,9 +653,9 @@ const RentalDetails: React.FC = () => {
                       <span className="font-bold">${total.toLocaleString()}</span>
                     </div>
                     {securityDeposit > 0 && (
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Security deposit (authorized before pickup)</span>
-                        <span>${securityDeposit.toLocaleString()}</span>
+                      <div className="text-muted-foreground sm:flex sm:justify-between">
+                        <span className="block">Security deposit (authorized before pickup)</span>
+                        <span className="mt-1 block font-semibold text-rental-foreground sm:mt-0">${securityDeposit.toLocaleString()}</span>
                       </div>
                     )}
                     {downPayment > 0 && (
@@ -688,6 +722,17 @@ const RentalDetails: React.FC = () => {
 
       <CancellationPolicyDialog open={showCancelPolicy} onOpenChange={setShowCancelPolicy} />
       <PaymentDetailsDialog open={showPaymentDetails} onOpenChange={setShowPaymentDetails} />
+      <RentalMemberAgreement
+        open={showAgreement}
+        onOpenChange={setShowAgreement}
+        vehicle={vehicle}
+        rentalType={rentalType}
+        startDate={startDate}
+        endDate={endDate}
+        memberName={signature || memberProfile.fullName}
+        memberAddress={memberProfile.address}
+        onAccept={() => setAgree(true)}
+      />
 
       <PhotoLightbox
         photos={photos.map((p) => p.signedUrl || "").filter(Boolean)}
