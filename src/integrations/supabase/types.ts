@@ -3694,6 +3694,7 @@ export type Database = {
           paid_at: string | null
           payment_method: string | null
           payment_note: string | null
+          payment_receipt_path: string | null
           payment_reference: string | null
           paypal_capture_id: string | null
           paypal_order_id: string | null
@@ -3730,6 +3731,7 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           payment_note?: string | null
+          payment_receipt_path?: string | null
           payment_reference?: string | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
@@ -3766,6 +3768,7 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           payment_note?: string | null
+          payment_receipt_path?: string | null
           payment_reference?: string | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
