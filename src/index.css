@@ -496,17 +496,17 @@ body.paypal-overlay-open {
   letter-spacing: 0.02em;
 }
 
-/* Dimes Only Rentals — white editorial showroom */
+/* Dimes Only Rentals — carbon editorial showroom */
 .rentals-showroom {
-  --rental-background: 0 0% 100%;
-  --rental-surface: 220 14% 97%;
-  --rental-elevated: 220 14% 93%;
-  --rental-foreground: 220 12% 10%;
-  --rental-muted: 220 8% 40%;
-  --rental-line: 220 8% 85%;
+  --rental-background: 220 10% 4%;
+  --rental-surface: 220 9% 10%;
+  --rental-elevated: 220 9% 15%;
+  --rental-foreground: 0 0% 96%;
+  --rental-muted: 216 8% 65%;
+  --rental-line: 216 8% 22%;
   --rental-primary: 358 82% 47%;
   --rental-primary-foreground: 0 0% 100%;
-  --rental-success: 151 55% 34%;
+  --rental-success: 151 55% 54%;
   background: hsl(var(--rental-background));
   color: hsl(var(--rental-foreground));
   font-family: "Barlow", sans-serif;
@@ -617,4 +617,19 @@ body.paypal-overlay-open {
 img {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: high-quality;
+}
+
+/* Vehicle details page uses the white showroom */
+.rentals-showroom.rentals-showroom-light {
+  --rental-background: 0 0% 100%;
+  --rental-surface: 220 14% 97%;
+  --rental-elevated: 220 14% 93%;
+  --rental-foreground: 220 12% 10%;
+  --rental-muted: 220 8% 40%;
+  --rental-line: 220 8% 85%;
+  --rental-primary: 358 82% 47%;
+  --rental-primary-foreground: 0 0% 100%;
+  --rental-success: 151 55% 34%;
+  background: hsl(var(--rental-background));
+  color: hsl(var(--rental-foreground));
 }
