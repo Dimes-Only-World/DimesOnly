@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
 
     const callerId = await getCallerId(req);
     const adminId = callerId ? null : await getVerifiedAdminId(req);
-    if (!callerId && !adminId) return reply({ error: "Please sign in to view this media." }, 401);
+    // Not signed in (or session expired): respond softly so the page keeps working.
+    if (!callerId && !adminId) return reply({ url: null, locked: true, signInRequired: true });
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
