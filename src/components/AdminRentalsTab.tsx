@@ -551,6 +551,9 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
   const [currentId, setCurrentId] = useState<string | null>(initial?.id || null);
   const [saving, setSaving] = useState(false);
   const [media, setMedia] = useState<any[]>([]);
+  const agreementFieldsMissing = (f.rental_options || []).some((option: string) => option === "long_term" || option === "rent_to_own")
+    ? ["vin", "mileage", "registration_state", "license_plate", "plate_expiration", "body_style", "color", "monthly_rate", "down_payment"].filter((field) => !f[field])
+    : [];
 
   const loadMedia = async (vehicleId: string) => {
     try {
@@ -655,8 +658,14 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
 
         <div><Label>Weekly Rate ($)</Label><Input type="number" value={f.weekly_rate || 0} onChange={(e) => setF({ ...f, weekly_rate: e.target.value })} /></div>
         <div><Label>Monthly Rate ($)</Label><Input type="number" value={f.monthly_rate || 0} onChange={(e) => setF({ ...f, monthly_rate: e.target.value })} /></div>
-        <div><Label>Down Payment ($)</Label><Input type="number" value={f.down_payment || 0} onChange={(e) => setF({ ...f, down_payment: e.target.value })} /></div>
+        <div><Label>Initial Down Payment ($)</Label><Input type="number" value={f.down_payment || 0} onChange={(e) => setF({ ...f, down_payment: e.target.value })} /></div>
       </div>
+      {agreementFieldsMissing.length > 0 && (
+        <div className="border border-destructive/50 bg-destructive/10 p-3 text-sm">
+          <p className="font-semibold">Complete these agreement details before approving a long-term booking:</p>
+          <p className="mt-1 text-muted-foreground">{agreementFieldsMissing.map((field) => field.replace(/_/g, " ")).join(", ")}</p>
+        </div>
+      )}
       <div>
         <Label>Rental Options</Label>
         <div className="flex flex-wrap gap-3 mt-1">

@@ -177,8 +177,8 @@ const Rentals: React.FC = () => {
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 pt-14 sm:px-8 lg:px-12">
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <main className="mx-auto max-w-7xl pt-14 sm:px-8 lg:px-12">
+        <div className="mb-8 flex flex-col justify-between gap-4 px-4 sm:flex-row sm:items-end sm:px-0">
           <div>
             <p className="font-barlow text-xs font-semibold uppercase text-rental-primary">Choose your drive</p>
             <h2 className="rentals-wordmark mt-1 text-5xl text-rental-foreground sm:text-6xl">THE COLLECTION</h2>
@@ -186,7 +186,7 @@ const Rentals: React.FC = () => {
           <p className="max-w-md font-barlow text-sm text-rental-muted">Every vehicle is presented with transparent rates, availability, pickup details, and longer-trip savings.</p>
         </div>
 
-        <div className="mb-6 flex flex-col justify-between gap-4 border border-rental-primary bg-rental-surface p-5 sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col justify-between gap-4 border-y border-rental-primary bg-rental-surface p-5 sm:flex-row sm:items-center sm:border-x">
           <div>
             <p className="font-barlow text-xs font-semibold uppercase text-rental-primary">Vehicle Purchase</p>
             <p className="mt-1 font-barlow text-sm text-rental-muted">Apply for financing even if the vehicle you want is not listed yet.</p>
@@ -196,7 +196,7 @@ const Rentals: React.FC = () => {
           </Button>
         </div>
 
-        <div id="fleet" className="mb-10 grid scroll-mt-4 grid-cols-1 gap-px border border-rental-line bg-rental-line md:grid-cols-4">
+        <div id="fleet" className="mb-10 grid scroll-mt-4 grid-cols-1 gap-px border-y border-rental-line bg-rental-line sm:border-x md:grid-cols-4">
           <div className="relative md:col-span-2">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-rental-muted" />
             <Input
@@ -245,7 +245,7 @@ const Rentals: React.FC = () => {
             <Button variant="link" onClick={clearFilters} className="mt-2 text-rental-primary">Clear filters</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {filtered.map((v) => {
               const rateFor = (opt: string): { amount: number; label: string } | null => {
                 if (opt === "daily" && v.day_rate) return { amount: v.day_rate, label: "/day" };
@@ -268,7 +268,7 @@ const Rentals: React.FC = () => {
               return (
                 <Card
                   key={v.id}
-                  className="group overflow-hidden rounded-none border-rental-line bg-rental-surface transition-colors hover:border-rental-primary"
+                  className="group overflow-hidden rounded-none border-x-0 border-rental-line bg-rental-surface transition-colors hover:border-rental-primary sm:border-x"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-rental-elevated">
                     {v.hero_url ? (

@@ -7,3 +7,4 @@
 - Contests computed server-side in `rewards` edge function from existing activity tables; `reward_contests` is service-role-only so standings can't be tampered with.
 - Store optional reward-carousel image and video backgrounds in the existing public `promo-videos/rewards` folder and save only their URLs on contests; this keeps admin-managed campaign media centralized.
 - Finalize rental extensions only after server-verified PayPal capture, then store each permissive-use statement privately and authorize short-lived downloads through the rental extension edge function; this prevents unpaid date changes and document exposure.
+- Validate rental pickup windows, long-term minimums, rent-to-own terms, and booking prices again inside `rental-booking`; browser totals and dates are display inputs, not authoritative payment data.

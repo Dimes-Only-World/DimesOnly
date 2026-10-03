@@ -135,13 +135,13 @@ const RentalPayment: React.FC = () => {
   const v = booking.vehicles;
 
   return (
-    <div className="rentals-showroom min-h-screen px-4 pb-16 pt-24">
+    <div className="rentals-showroom min-h-screen pb-16 pt-24 sm:px-4">
       <div className="max-w-xl mx-auto">
-        <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 text-sm text-rental-muted hover:text-rental-primary">
+        <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 px-4 text-sm text-rental-muted hover:text-rental-primary sm:px-0">
           <ArrowLeft className="w-4 h-4" /> Back to rentals
         </Link>
 
-        <Card className="rounded-none border-rental-line bg-rental-surface text-rental-foreground">
+        <Card className="rounded-none border-x-0 border-rental-line bg-rental-surface text-rental-foreground sm:border-x">
           <CardContent className="space-y-6 p-6 sm:p-8">
             <div>
               <p className="mb-1 text-xs font-semibold uppercase text-rental-primary">Secure checkout</p>
@@ -171,9 +171,9 @@ const RentalPayment: React.FC = () => {
                 <span>${Number(booking.total_price).toLocaleString()}</span>
               </div>
               {Number(booking.security_deposit) > 0 && (
-                <div className="flex justify-between text-rental-muted">
-                  <span>Security deposit (authorized before pickup)</span>
-                  <span>${Number(booking.security_deposit).toLocaleString()}</span>
+                <div className="text-rental-muted sm:flex sm:justify-between">
+                  <span className="block">Security deposit (authorized before pickup)</span>
+                  <span className="mt-1 block font-semibold text-rental-foreground sm:mt-0">${Number(booking.security_deposit).toLocaleString()}</span>
                 </div>
               )}
             </div>
