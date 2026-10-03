@@ -536,7 +536,7 @@ const RentalDetails: React.FC = () => {
                   </div>
                   <p className="text-xs text-rental-muted">Pickup can be scheduled from today through the next 28 days.</p>
                   {rentalType === "long_term" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Long-term rentals have a six-month minimum. Your minimum end date is filled automatically.</p>}
-                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the down payment.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
+                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the down payment, with $75 deducted from the contract total.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
 
                   <div>
                     <Label>Pickup location</Label>

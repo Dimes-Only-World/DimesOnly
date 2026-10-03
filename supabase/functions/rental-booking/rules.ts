@@ -4,7 +4,10 @@ export const RENT_TO_OWN_MONTHS = 48;
 export const RENT_TO_OWN_MONTHLY_DISCOUNT = 75;
 
 export const rentToOwnMonthlyPayment = (monthlyRate: number) =>
-  Math.round(Math.max(0, monthlyRate - RENT_TO_OWN_MONTHLY_DISCOUNT) * 100) / 100;
+  Math.round(Math.max(0, monthlyRate) * 100) / 100;
+
+export const rentToOwnContractTotal = (monthlyRate: number, downPayment: number) =>
+  Math.round((Math.max(0, downPayment) + Math.max(0, RENT_TO_OWN_MONTHS * rentToOwnMonthlyPayment(monthlyRate) - RENT_TO_OWN_MONTHLY_DISCOUNT)) * 100) / 100;
 
 export const allowedPickupDate = (start: string, now = new Date()) => {
   const pickup = new Date(start);

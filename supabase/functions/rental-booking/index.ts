@@ -3,7 +3,7 @@ const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { allowedPickupDate, minimumEndDate, rentToOwnMonthlyPayment } from "./rules.ts";
+import { allowedPickupDate, minimumEndDate } from "./rules.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -29,7 +29,7 @@ const BookingPayloadSchema = z.object({
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment"]),
   userId: z.string().uuid(),
   bookingId: z.string().uuid().optional(),
   returnUrl: z.string().url().optional(),

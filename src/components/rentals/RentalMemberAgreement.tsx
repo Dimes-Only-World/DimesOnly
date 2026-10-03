@@ -56,7 +56,7 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
             <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Address:</b> {valueOrAdmin(memberAddress)}</p>
             <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Use term:</b> {startDate ? new Date(startDate).toLocaleString() : "Choose a pickup date"} through {endDate ? new Date(endDate).toLocaleString() : "—"} ({term})</p>
             <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Down payment:</b> {money(vehicle?.down_payment)} · <b className="text-rental-foreground">Monthly use payment:</b> {money(monthlyPayment)}</p>
-            {isRentToOwn && <p className="text-sm text-rental-muted"><b className="text-rental-foreground">48-month contract total:</b> {money(rentToOwnContractTotal(vehicle?.monthly_rate, vehicle?.down_payment))}, calculated as the down payment plus 48 monthly payments at the listed monthly rate less $75 per month.</p>}
+            {isRentToOwn && <p className="text-sm text-rental-muted"><b className="text-rental-foreground">48-month contract total:</b> {money(rentToOwnContractTotal(vehicle?.monthly_rate, vehicle?.down_payment))}, calculated as the down payment plus 48 months × the listed monthly rate, less $75.</p>}
           </section>
 
           <section className="space-y-3 border-y border-rental-line py-5 text-sm leading-relaxed text-rental-muted">

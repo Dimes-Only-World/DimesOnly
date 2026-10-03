@@ -6,10 +6,10 @@ export const RENT_TO_OWN_MONTHLY_DISCOUNT = 75;
 const roundMoney = (value: number) => Math.round(value * 100) / 100;
 
 export const rentToOwnMonthlyPayment = (monthlyRate?: number | null) =>
-  roundMoney(Math.max(0, Number(monthlyRate || 0) - RENT_TO_OWN_MONTHLY_DISCOUNT));
+  roundMoney(Math.max(0, Number(monthlyRate || 0)));
 
 export const rentToOwnContractTotal = (monthlyRate?: number | null, downPayment?: number | null) =>
-  roundMoney(Math.max(0, Number(downPayment || 0)) + RENT_TO_OWN_MONTHS * rentToOwnMonthlyPayment(monthlyRate));
+  roundMoney(Math.max(0, Number(downPayment || 0)) + Math.max(0, RENT_TO_OWN_MONTHS * rentToOwnMonthlyPayment(monthlyRate) - RENT_TO_OWN_MONTHLY_DISCOUNT));
 
 export const addMonths = (date: Date, months: number) => {
   const result = new Date(date);
