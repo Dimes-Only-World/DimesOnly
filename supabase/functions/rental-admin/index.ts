@@ -120,6 +120,15 @@ serve(async (req) => {
         if (status === "paid" && b) await createCommissions(admin, b);
         return json({ data: b });
       }
+      case "markReturned": {
+        const { id } = params;
+        const returnedAt = new Date().toISOString();
+        const { data: b, error: bErr } = await admin.from("rental_bookings").update({ status: "returned", returned_at: returnedAt }).eq("id", id).select().single();
+        if (bErr) throw bErr;
+        const { error: vErr } = await admin.from("vehicles").update({ availability_status: "available" }).eq("id", b.vehicle_id);
+        if (vErr) throw vErr;
+        return json({ data: b });
+      }
       case "verifyPaypalPayment": {
         const { id } = params;
         const { data: b, error: bErr } = await admin.from("rental_bookings").select("*").eq("id", id).single();
