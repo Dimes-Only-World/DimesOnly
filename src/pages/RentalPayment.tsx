@@ -205,12 +205,14 @@ const RentalPayment: React.FC = () => {
                     <p className="font-semibold">Cash App instructions</p>
                     <p>Send ${Number(booking.total_price).toFixed(2)} to <a className="underline text-rental-primary" href={CASH_APP_URL} target="_blank" rel="noopener noreferrer">$BestCarRentals</a>.</p>
                     <p>Put booking code <b>{String(bookingId).slice(0, 8).toUpperCase()}</b> in the note. Admin confirms the payment, then your car is marked rented.</p>
+                    <p>We will contact you via text with pickup location within 1 hour. Business hours are 9 to 7pm M - F and 10 to 4pm Sat Sun we are closed</p>
                   </div>
                 )}
                 {booking.payment_method === "cash" && (
                   <div className="border border-rental-line p-3 text-sm space-y-1">
                     <p className="font-semibold">Cash at pickup</p>
                     <p>Bring ${Number(booking.total_price).toFixed(2)} in cash to pickup. Your booking code is <b>{String(bookingId).slice(0, 8).toUpperCase()}</b>. You'll get the keys once admin records the payment.</p>
+                    <p>Admin collect payment at location, then your car is marked rented. We will contact you via text with pickup location within 1 hour. Business hours are 9 to 7pm M - F and 10 to 4pm Sat Sun we are closed</p>
                   </div>
                 )}
                 <p className="text-center text-xs text-rental-muted">
