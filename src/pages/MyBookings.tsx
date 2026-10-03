@@ -30,7 +30,6 @@ import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
-import { calculateRentalPricing } from "@/lib/rentalPricing";
 
 type Booking = {
   id: string;
