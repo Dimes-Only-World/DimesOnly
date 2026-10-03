@@ -118,7 +118,37 @@ serve(async (req) => {
         const { data: b, error: bErr } = await admin.from("rental_bookings").update({ status }).eq("id", id).select().single();
         if (bErr) throw bErr;
         if (status === "paid" && b) await createCommissions(admin, b);
+        if (["paid", "active"].includes(status) && b?.vehicle_id) {
+          await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", b.vehicle_id);
+        }
+        if (["cancelled", "completed", "rejected"].includes(status) && b?.vehicle_id) {
+          await admin.from("vehicles").update({ availability_status: "available" }).eq("id", b.vehicle_id);
+        }
         return json({ data: b });
+      }
+      case "markPaidManual": {
+        const { id, method, reference, amount, note } = params;
+        if (!["cash", "cashapp"].includes(method)) return json({ error: "Choose Cash or Cash App" }, 400);
+        const ref = String(reference || "").trim().slice(0, 120);
+        if (method === "cashapp" && !ref) return json({ error: "Enter the Cash App payment ID or sender $cashtag" }, 400);
+        const amt = Number(amount);
+        if (!Number.isFinite(amt) || amt <= 0) return json({ error: "Enter the amount received" }, 400);
+        const { data: b, error: bErr } = await admin.from("rental_bookings").select("*").eq("id", id).single();
+        if (bErr) throw bErr;
+        if (["paid", "active", "completed", "returned"].includes(String(b.status))) return json({ error: "This booking is already paid" }, 400);
+        if (["cancelled", "rejected"].includes(String(b.status))) return json({ error: "This booking was cancelled" }, 400);
+        if (amt + 0.005 < Number(b.total_price || 0)) {
+          return json({ error: `Amount received ($${amt.toFixed(2)}) is less than the total due ($${Number(b.total_price).toFixed(2)})` }, 400);
+        }
+        const { data: updated, error: upErr } = await admin.from("rental_bookings").update({
+          status: "paid", paid_at: new Date().toISOString(), payment_method: method,
+          payment_reference: ref || null, amount_received: amt,
+          payment_note: String(note || "").slice(0, 500) || null,
+        }).eq("id", id).select().single();
+        if (upErr) throw upErr;
+        await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", b.vehicle_id);
+        await createCommissions(admin, updated);
+        return json({ data: updated });
       }
       case "markReturned": {
         const { id } = params;
