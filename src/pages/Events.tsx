@@ -452,15 +452,24 @@ const Events: React.FC = () => {
                   <source src={latestFreeVideo} type="video/mp4" />
                 </video>
               ) : (
-                <img
-                  src={userProfile.banner_photo || "/placeholder.svg"}
-                  alt={`${userProfile.username} banner`}
-                  className="h-full w-full object-cover object-top"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder.svg";
-                  }}
-                />
+                <div className="relative h-full w-full">
+                  <img
+                    src={userProfile.banner_photo || "/placeholder.svg"}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-60"
+                  />
+                  <img
+                    src={userProfile.banner_photo || "/placeholder.svg"}
+                    alt={`${userProfile.username} banner`}
+                    decoding="async"
+                    className="relative h-full w-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/placeholder.svg";
+                    }}
+                  />
+                </div>
               )}
             </div>
 

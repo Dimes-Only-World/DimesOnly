@@ -612,3 +612,9 @@ body.paypal-overlay-open {
   }
   .earnings-wall .gap-4 { gap: 0.75rem; }
 }
+
+/* Sharper scaled photos on all screens */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+}
