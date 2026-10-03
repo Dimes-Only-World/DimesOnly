@@ -765,7 +765,9 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
       if (r === null) return;
       reference = r;
     } else {
-      reference = prompt("Who collected the cash? (optional)") || "";
+      const r = prompt("Who collected the cash?");
+      if (r === null) return;
+      reference = r;
     }
     if (!confirm(`Confirm $${amount} received by ${label}? The car will show as rented and commissions will be created.`)) return;
     try {
