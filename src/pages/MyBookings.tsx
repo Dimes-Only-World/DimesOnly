@@ -296,8 +296,11 @@ const MyBookings: React.FC = () => {
   const lateFor = (b: Booking) => b.end_date && statusMeta(b.status).label === "Active"
     ? lateFeeStatus(new Date(b.end_date).getTime(), Date.now(), Number(b.vehicles?.day_rate || 0))
     : null;
-  const proposedEndDate = extendTarget?.end_date
-    ? new Date(new Date(extendTarget.end_date).getTime() + extendDays * 86_400_000).toISOString()
+  const extensionStartDate = extendTarget?.end_date
+    ? new Date(Math.max(new Date(extendTarget.end_date).getTime(), Date.now())).toISOString()
+    : null;
+  const proposedEndDate = extensionStartDate
+    ? new Date(new Date(extensionStartDate).getTime() + extendDays * 86_400_000).toISOString()
     : null;
 
   const confirmExtend = async () => {
@@ -685,7 +688,7 @@ const MyBookings: React.FC = () => {
               )}
               <div className="grid grid-cols-[auto_1fr] gap-x-3 text-muted-foreground">
                 <span>Extension dates</span>
-                <span className="text-right">{formatDate(extendTarget?.end_date)}</span>
+                <span className="text-right">{formatDate(extensionStartDate)}</span>
                 <span />
                 <span className="text-right">→ {formatDate(proposedEndDate)}</span>
               </div>
