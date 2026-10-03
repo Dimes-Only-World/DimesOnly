@@ -383,6 +383,7 @@ const EventDetails: React.FC = () => {
       setEvent({
         ...eventData,
         current_attendees: totalAttendees,
+        paid_tickets: Number(counts.paid_tickets || 0),
       } as Event);
 
       if (counts.used) {

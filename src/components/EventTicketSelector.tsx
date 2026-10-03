@@ -115,7 +115,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
   const isPlusViewer = isPlusMember({ ...(currentUser as any), user_type: userType });
   const plusPricing = getPlusPricing(event as any, userGender);
   const baseAdmissionPrice = getGeneralAdmissionPrice(event as any, userGender);
-  const discounts = getTicketDiscounts(event as any, event.current_attendees || 0, isPlusViewer);
+  const discounts = getTicketDiscounts(event as any, Number((event as any).paid_tickets) || 0, isPlusViewer);
   const preDiscountGeneral =
     isPlusViewer && plusPricing.mode === "discount" ? plusPricing.price : baseAdmissionPrice;
   const generalAdmissionPrice = applyDiscount(preDiscountGeneral, discounts.factor);
