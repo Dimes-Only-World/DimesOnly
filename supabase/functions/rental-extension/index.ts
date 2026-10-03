@@ -210,7 +210,9 @@ serve(async (req) => {
         days: body.extraDays, dailyRate, dueMs: endMs, nowMs: Date.now(),
         depositAvailable: Math.max(0, Number(booking.security_deposit || 0) - depositUsed), useDeposit: body.useDeposit,
       });
-      const newEndDate = new Date(endMs + body.extraDays * 86_400_000).toISOString();
+      // If the rental is already past due, the extension starts today (late hours are covered by the late fee).
+      const startMs = Math.max(endMs, Date.now());
+      const newEndDate = new Date(startMs + body.extraDays * 86_400_000).toISOString();
       const { data: extension, error: insertError } = await admin.from("rental_extensions").insert({
         booking_id: booking.id, renter_user_id: callerId, previous_end_date: booking.end_date,
         new_end_date: newEndDate, extra_days: body.extraDays, reported_mileage: body.reportedMileage,
@@ -261,7 +263,8 @@ serve(async (req) => {
     const vehicle = Array.isArray(booking?.vehicles) ? booking.vehicles[0] : booking?.vehicles;
     const memberName = [member?.first_name, member?.last_name].filter(Boolean).join(" ") || safeText(member?.username);
     const pdf = await buildStatementPdf({
-      extensionId: extension.id, memberName, previousEndDate: extension.previous_end_date,
+      extensionId: extension.id, memberName,
+      previousEndDate: new Date(Math.max(new Date(extension.previous_end_date).getTime(), new Date(extension.new_end_date).getTime() - Number(extension.extra_days || 0) * 86_400_000)).toISOString(),
       newEndDate: extension.new_end_date, paidAt, odometer: extension.reported_mileage,
       year: vehicle?.year, make: vehicle?.make, model: vehicle?.model, vin: vehicle?.vin,
       registrationState: vehicle?.registration_state, licensePlate: vehicle?.license_plate,
