@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
 
     const ttl = Math.min(Math.max(Number(expiresIn) || 3600, 60), 3600);
     const { data, error } = await admin.storage.from(bucket).createSignedUrl(path, ttl);
-    if (error) return reply({ error: "Media not found" }, 404);
+    // Missing file (deleted/moved): respond softly so the page keeps working and shows a blank tile.
+    if (error) return reply({ url: null, missing: true });
     return reply({ url: data.signedUrl });
   } catch {
     return reply({ error: "Could not load media" }, 400);
