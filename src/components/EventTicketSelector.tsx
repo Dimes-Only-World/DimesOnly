@@ -377,13 +377,13 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                 setQuantity(1);
                 setPaymentError(null);
               }}
-              className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+              className={`grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 rounded-lg border text-left transition-all ${
                 selectedType === option.type
                   ? "border-yellow-400 bg-yellow-400/10"
                   : "border-white/20 bg-white/5 hover:bg-white/10"
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <option.icon
                   className={`h-5 w-5 ${
                     selectedType === option.type
@@ -391,10 +391,10 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                       : "text-gray-400"
                   }`}
                 />
-                <div className="text-left">
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 text-left">
+                  <div className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
                     <span
-                      className={`font-medium ${
+                      className={`min-w-0 break-words font-medium leading-tight ${
                         selectedType === option.type
                           ? "text-yellow-400"
                           : "text-white"
@@ -403,7 +403,7 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                       {option.label}
                     </span>
                     {option.badge && (
-                      <Badge className="bg-purple-500/50 text-white text-xs">
+                      <Badge className="max-w-full shrink-0 whitespace-normal bg-purple-500/50 text-white text-xs leading-tight">
                         {option.badge}
                       </Badge>
                     )}
@@ -412,12 +412,12 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                 </div>
               </div>
               <span
-                className={`font-bold ${
+                className={`flex shrink-0 flex-col items-end whitespace-nowrap text-right font-bold leading-tight ${
                   option.price === 0 ? "text-green-400" : "text-yellow-400"
                 }`}
               >
                 {option.price > 0 && originalPrices[option.type] > option.price + 0.001 && (
-                  <span className="mr-2 text-sm text-muted-foreground line-through">
+                  <span className="text-xs text-muted-foreground line-through sm:text-sm">
                     ${originalPrices[option.type].toFixed(2)}
                   </span>
                 )}
