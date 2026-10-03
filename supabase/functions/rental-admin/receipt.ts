@@ -52,7 +52,7 @@ export const buildManualPaymentReceiptPdf = async (input: ManualPaymentReceipt) 
   rows.forEach(([label, value], index) => {
     const y = 616 - index * 32;
     page.drawText(label, { x: 60, y, size: 8, font: bold, color: muted });
-    page.drawText(value, { x: 230, y: y - 1, size: 11, font: index === 1 ? bold : regular, color: navy });
+    page.drawText(winAnsiSafe(value), { x: 230, y: y - 1, size: 11, font: index === 1 ? bold : regular, color: navy });
   });
 
   page.drawText("Payment received", { x: 44, y: 390, size: 10, font: bold, color: muted });
@@ -62,6 +62,13 @@ export const buildManualPaymentReceiptPdf = async (input: ManualPaymentReceipt) 
 
   page.drawLine({ start: { x: 44, y: 70 }, end: { x: 568, y: 70 }, thickness: 0.7, color: border });
   page.drawText("Keep this receipt for your records.", { x: 44, y: 50, size: 8, font: regular, color: muted });
-  page.drawText(`Receipt ${details.bookingCode}`, { x: 470, y: 50, size: 8, font: bold, color: navy });
+  page.drawText(winAnsiSafe(`Receipt ${details.bookingCode}`), { x: 470, y: 50, size: 8, font: bold, color: navy });
   return await document.save();
 };
+export function winAnsiSafe(text: string): string {
+  return String(text ?? "")
+    .replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g, " ")
+    .replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/[^\x20-\x7E\u00A1-\u00FF]/g, "");
+}
