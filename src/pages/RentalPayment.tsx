@@ -195,7 +195,7 @@ const RentalPayment: React.FC = () => {
                   {working ? "Connecting to PayPal..." : `Pay $${Number(booking.total_price).toLocaleString()} with PayPal`}
                 </Button>
                 <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cashapp")}>
-                  Pay ${Number(booking.total_price).toLocaleString()} with Cash App ($BestCarRentals)
+                  Pay ${Number(booking.total_price).toLocaleString()} with Cash App
                 </Button>
                 <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cash")}>
                   Pay cash at pickup
