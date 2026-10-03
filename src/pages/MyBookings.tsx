@@ -28,6 +28,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
 
@@ -40,6 +41,7 @@ type Booking = {
   pickup_location: string | null;
   total_price: number;
   down_payment_amount: number | null;
+  security_deposit?: number | null;
   status: string;
   created_at: string;
   vehicles?: {
@@ -70,6 +72,7 @@ type RentalExtension = {
   status: "paid";
   paid_at: string;
   statement_path: string;
+  deposit_applied?: number | null;
 };
 
 const resolveUserId = async (): Promise<string | null> => {
@@ -120,6 +123,7 @@ const MyBookings: React.FC = () => {
   const [extendTarget, setExtendTarget] = useState<Booking | null>(null);
   const [extendDays, setExtendDays] = useState(1);
   const [reportedMileage, setReportedMileage] = useState("");
+  const [useDeposit, setUseDeposit] = useState(true);
   const [extensions, setExtensions] = useState<RentalExtension[]>([]);
   const [successfulExtensionId, setSuccessfulExtensionId] = useState<string | null>(null);
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
@@ -148,7 +152,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, status, created_at, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -271,16 +275,27 @@ const MyBookings: React.FC = () => {
     return (label === "Upcoming" || label === "Active") && !!b.end_date;
   };
 
-  const extendCost = useMemo(
-    () => {
-      const dayRate = Number(extendTarget?.vehicles?.day_rate || 0);
-      return Math.round(Math.max(0, extendDays * dayRate) * 100) / 100;
-    },
-    [extendTarget, extendDays]
-  );
-
-  const extensionFee = Math.round((extendCost * 0.045 + (extendCost > 0 ? 1.27 : 0)) * 100) / 100;
-  const extensionTotal = Math.round((extendCost + extensionFee) * 100) / 100;
+  const depositAvailable = (b: Booking | null) => {
+    if (!b) return 0;
+    const used = extensions.filter((e) => e.booking_id === b.id).reduce((t, e) => t + Number(e.deposit_applied || 0), 0);
+    return Math.max(0, Number(b.security_deposit || 0) - used);
+  };
+  const daysTooMany = extendDays > MAX_EXTENSION_DAYS;
+  const charge = useMemo(() => extensionCharge({
+    days: Math.max(1, Math.min(MAX_EXTENSION_DAYS, extendDays)),
+    dailyRate: Number(extendTarget?.vehicles?.day_rate || 0),
+    dueMs: extendTarget?.end_date ? new Date(extendTarget.end_date).getTime() : Date.now(),
+    nowMs: Date.now(),
+    depositAvailable: depositAvailable(extendTarget),
+    useDeposit,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [extendTarget, extendDays, useDeposit, extensions]);
+  const extendCost = charge.extensionPrice;
+  const extensionFee = charge.transactionFee;
+  const extensionTotal = charge.totalCharged;
+  const lateFor = (b: Booking) => b.end_date && statusMeta(b.status).label === "Active"
+    ? lateFeeStatus(new Date(b.end_date).getTime(), Date.now(), Number(b.vehicles?.day_rate || 0))
+    : null;
   const proposedEndDate = extendTarget?.end_date
     ? new Date(new Date(extendTarget.end_date).getTime() + extendDays * 86_400_000).toISOString()
     : null;
@@ -304,6 +319,7 @@ const MyBookings: React.FC = () => {
         bookingId: extendTarget.id,
         extraDays: extendDays,
         reportedMileage: mileage,
+        useDeposit,
         returnUrl,
         cancelUrl: returnUrl,
       });
@@ -490,6 +506,11 @@ const MyBookings: React.FC = () => {
                     vehicleTitle={v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim() : undefined}
                   />
                 )}
+                {(() => { const l = lateFor(b); return l?.isLate ? (
+                  <div className="w-full rounded-md border border-destructive/50 bg-destructive/10 p-2 text-sm">
+                    <span className="font-bold text-destructive">Vehicle is late</span>{" "}
+                    {l.waived ? "— extend today to waive the late fee." : `— late fee due $${l.lateFee.toFixed(2)}`}
+                  </div>) : null; })()}
                 {canExtend(b) && (
                   <Button
                     size="sm"
@@ -498,6 +519,7 @@ const MyBookings: React.FC = () => {
                       setExtendTarget(b);
                       setExtendDays(1);
                       setReportedMileage("");
+                      setUseDeposit(true);
                     }}
                   >
                     <CalendarPlus className="w-4 h-4 mr-1" /> Extend
@@ -634,21 +656,38 @@ const MyBookings: React.FC = () => {
               type="number"
               inputMode="numeric"
               min={1}
-              max={365}
+              max={MAX_EXTENSION_DAYS}
               value={extendDays}
               onChange={(e) => setExtendDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))}
             />
+            {daysTooMany && <p className="text-xs text-destructive">Extensions can be at most {MAX_EXTENSION_DAYS} days. Enter 28 or fewer to continue.</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="reported-mileage">Current odometer mileage</Label>
-              <Input id="reported-mileage" type="number" inputMode="numeric" min={1} step={1} value={reportedMileage} onChange={(e) => setReportedMileage(e.target.value)} placeholder="Enter the mileage shown in the vehicle" />
+              <Input id="reported-mileage" type="text" inputMode="numeric" value={reportedMileage ? Number(reportedMileage).toLocaleString("en-US") : ""} onChange={(e) => setReportedMileage(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="Enter the mileage shown in the vehicle" />
             </div>
             <div className="rounded-lg border border-border/60 bg-card/60 p-3 text-sm space-y-1">
-              <div className="flex justify-between text-muted-foreground">
-                <span>
-                  Extension dates
-                </span>
-                <span>{formatDate(extendTarget?.end_date)} → {formatDate(proposedEndDate)}</span>
+              {charge.isLate && (
+                <div className="rounded-md border border-destructive/50 bg-destructive/10 p-2 space-y-1 mb-2">
+                  <p className="font-bold text-destructive">Vehicle is late</p>
+                  {charge.waived ? (
+                    <p className="text-xs">Late fee of ${charge.lateFee.toFixed(2)} waived — you're extending the same day and within 12 hours of the due time.</p>
+                  ) : (<>
+                    <div className="flex justify-between"><span>Late fee ($100 + {charge.hoursLate} hr × ${charge.hourlyRate.toFixed(2)})</span><span>${charge.lateFeeOwed.toFixed(2)}</span></div>
+                    {depositAvailable(extendTarget) > 0 && (
+                      <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={useDeposit} onChange={(e) => setUseDeposit(e.target.checked)} /> Pay from security deposit (${depositAvailable(extendTarget).toFixed(2)} available)</label>
+                    )}
+                    {charge.depositApplied > 0 && <div className="flex justify-between text-muted-foreground"><span>Deposit applied</span><span>−${charge.depositApplied.toFixed(2)}</span></div>}
+                    <div className="flex justify-between font-semibold"><span>Late fee still due</span><span>${charge.lateFeeRemainder.toFixed(2)}</span></div>
+                    <p className="text-xs text-muted-foreground">The late fee must be paid before the extension is authorized.</p>
+                  </>)}
+                </div>
+              )}
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 text-muted-foreground">
+                <span>Extension dates</span>
+                <span className="text-right">{formatDate(extendTarget?.end_date)}</span>
+                <span />
+                <span className="text-right">→ {formatDate(proposedEndDate)}</span>
               </div>
               <div className="flex justify-between font-semibold">
                 <span>Extension price</span>
@@ -676,7 +715,7 @@ const MyBookings: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button onClick={confirmExtend} disabled={submitting || extendCost <= 0 || !reportedMileage}>
+            <Button onClick={confirmExtend} disabled={submitting || extendCost <= 0 || !reportedMileage || daysTooMany}>
               {submitting ? "Connecting to PayPal…" : `Pay $${extensionTotal.toFixed(2)} with PayPal`}
             </Button>
           </DialogFooter>
