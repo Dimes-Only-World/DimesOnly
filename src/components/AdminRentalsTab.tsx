@@ -535,6 +535,7 @@ const PromoCodesPanel: React.FC = () => {
 const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved: (v: any) => void }> = ({ initial, onClose, onSaved }) => {
   const [f, setF] = useState<any>(initial || {
     year: new Date().getFullYear(), make: "", model: "", vin: "", license_plate: "",
+    registration_state: "", plate_expiration: "", body_style: "", color: "", mileage: "",
     description: "", vehicle_type: "", pickup_location: "",
     day_rate: 0, three_day_rate: 0, weekly_rate: 0, monthly_rate: 0, down_payment: 0,
     security_deposit: 0,
@@ -565,6 +566,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         weekly_rate: Number(f.weekly_rate) || null,
         monthly_rate: Number(f.monthly_rate) || null,
         down_payment: Number(f.down_payment) || null,
+        mileage: Number(f.mileage) || null,
       };
       delete payload.id; delete payload.created_at; delete payload.updated_at; delete payload.created_by;
       let saved;
@@ -623,6 +625,11 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         <div><Label>Model</Label><Input value={f.model} onChange={(e) => setF({ ...f, model: e.target.value })} /></div>
         <div><Label>VIN</Label><Input value={f.vin || ""} onChange={(e) => setF({ ...f, vin: e.target.value })} /></div>
         <div><Label>License Plate</Label><Input value={f.license_plate || ""} onChange={(e) => setF({ ...f, license_plate: e.target.value })} /></div>
+        <div><Label>Registration State</Label><Input value={f.registration_state || ""} onChange={(e) => setF({ ...f, registration_state: e.target.value.toUpperCase() })} maxLength={2} placeholder="AZ" /></div>
+        <div><Label>Plate Expiration</Label><Input type="date" value={f.plate_expiration ? String(f.plate_expiration).slice(0, 10) : ""} onChange={(e) => setF({ ...f, plate_expiration: e.target.value })} /></div>
+        <div><Label>Body Style</Label><Input value={f.body_style || ""} onChange={(e) => setF({ ...f, body_style: e.target.value })} placeholder="4-door Sedan" /></div>
+        <div><Label>Color</Label><Input value={f.color || ""} onChange={(e) => setF({ ...f, color: e.target.value })} /></div>
+        <div><Label>Current Mileage</Label><Input type="number" inputMode="numeric" value={f.mileage || ""} onChange={(e) => setF({ ...f, mileage: e.target.value })} /></div>
         <div><Label>Security Deposit ($)</Label><Input type="number" value={f.security_deposit || 0} onChange={(e) => setF({ ...f, security_deposit: e.target.value })} /></div>
         <div><Label>Vehicle Type</Label><Input value={f.vehicle_type || ""} onChange={(e) => setF({ ...f, vehicle_type: e.target.value })} placeholder="Exotic, SUV, ..." /></div>
         <div><Label>Pickup Location</Label><Input value={f.pickup_location || ""} onChange={(e) => setF({ ...f, pickup_location: e.target.value })} /></div>
