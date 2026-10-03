@@ -23,7 +23,14 @@ async function callAdmin(action: string, extra: Record<string, any> = {}) {
   const { data, error } = await supabase.functions.invoke("rental-admin", {
     body: { action, adminUserId, ...extra },
   });
-  if (error) throw error;
+  if (error) {
+    let message = error.message;
+    try {
+      const body = await (error as any).context?.json?.();
+      if (body?.error) message = body.error;
+    } catch { /* keep generic message */ }
+    throw new Error(message);
+  }
   if (data?.error) throw new Error(data.error);
   return data;
 }
