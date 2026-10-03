@@ -242,7 +242,7 @@ function AppContent() {
 
       {showNotificationBell && (
 
-        <div className="pointer-events-none fixed inset-x-0 top-3 z-[60] flex justify-center">
+        <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center">
           <NotificationBell className="pointer-events-auto" />
         </div>
       )}
