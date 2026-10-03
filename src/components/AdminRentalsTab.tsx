@@ -663,7 +663,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
       {agreementFieldsMissing.length > 0 && (
         <div className="border border-destructive/50 bg-destructive/10 p-3 text-sm">
           <p className="font-semibold">Complete these agreement details before approving a long-term booking:</p>
-          <p className="mt-1 text-muted-foreground">{agreementFieldsMissing.map((field) => field.replaceAll("_", " ")).join(", ")}</p>
+          <p className="mt-1 text-muted-foreground">{agreementFieldsMissing.map((field) => field.replace(/_/g, " ")).join(", ")}</p>
         </div>
       )}
       <div>
