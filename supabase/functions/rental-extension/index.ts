@@ -4,15 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { getCallerId } from "../_shared/caller.ts";
-
-export const extensionAmounts = (days: number, dailyRate: number) => {
-  const extensionPrice = Math.round(days * dailyRate * 100) / 100;
-  const transactionFee = Math.round((extensionPrice * 0.045 + 1.27) * 100) / 100;
-  return { extensionPrice, transactionFee, totalCharged: Math.round((extensionPrice + transactionFee) * 100) / 100 };
-};
-
-export const mileageIsValid = (reported: number, previous: number) =>
-  Number.isInteger(reported) && reported > previous;
+import { extensionAmounts, mileageIsValid } from "./rules.ts";
 
 const RequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("list") }),

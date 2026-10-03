@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { extensionAmounts, mileageIsValid } from "./index.ts";
+import { extensionAmounts, mileageIsValid } from "./rules.ts";
 
 Deno.test("extension fee is 4.5 percent plus 1.27", () => {
   assertEquals(extensionAmounts(2, 100), { extensionPrice: 200, transactionFee: 10.27, totalCharged: 210.27 });

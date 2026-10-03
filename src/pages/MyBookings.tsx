@@ -26,11 +26,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus } from "lucide-react";
+import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
-import { calculateRentalPricing } from "@/lib/rentalPricing";
 
 type Booking = {
   id: string;
@@ -56,6 +55,21 @@ type Booking = {
   } | null;
   heroPhoto?: string | null;
   review?: { id: string; rating: number; review_text: string | null } | null;
+};
+
+type RentalExtension = {
+  id: string;
+  booking_id: string;
+  previous_end_date: string;
+  new_end_date: string;
+  extra_days: number;
+  reported_mileage: number;
+  extension_price: number;
+  transaction_fee: number;
+  total_charged: number;
+  status: "paid";
+  paid_at: string;
+  statement_path: string;
 };
 
 const resolveUserId = async (): Promise<string | null> => {
@@ -104,7 +118,10 @@ const MyBookings: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
   const [extendTarget, setExtendTarget] = useState<Booking | null>(null);
-  const [extendDate, setExtendDate] = useState("");
+  const [extendDays, setExtendDays] = useState(1);
+  const [reportedMileage, setReportedMileage] = useState("");
+  const [extensions, setExtensions] = useState<RentalExtension[]>([]);
+  const [successfulExtensionId, setSuccessfulExtensionId] = useState<string | null>(null);
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
@@ -119,7 +136,8 @@ const MyBookings: React.FC = () => {
         return;
       }
       setUserId(uid);
-      await loadBookings(uid);
+      await Promise.all([loadBookings(uid), loadExtensions()]);
+      await captureReturnedExtension(uid);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -176,6 +194,57 @@ const MyBookings: React.FC = () => {
     }
   };
 
+  const invokeExtension = async (body: Record<string, unknown>) => {
+    const { data, error } = await supabase.functions.invoke("rental-extension", { body });
+    if (error) {
+      let message = error.message;
+      try {
+        const context = (error as { context?: Response }).context;
+        if (context) {
+          const payload = await context.json();
+          message = payload?.error || message;
+        }
+      } catch {
+        // Keep the function error when its response is not JSON.
+      }
+      throw new Error(message);
+    }
+    if (data?.error) throw new Error(data.error);
+    return data?.data;
+  };
+
+  const loadExtensions = async () => {
+    try {
+      const data = await invokeExtension({ action: "list" });
+      setExtensions((data || []) as RentalExtension[]);
+    } catch (error) {
+      console.error("Could not load rental extensions", error);
+    }
+  };
+
+  const captureReturnedExtension = async (uid: string) => {
+    const params = new URLSearchParams(window.location.search);
+    const extensionId = params.get("extension");
+    const paypalOrderId = params.get("token");
+    if (!extensionId || !paypalOrderId) return;
+    setSubmitting(true);
+    try {
+      const data = await invokeExtension({ action: "capturePayment", extensionId, paypalOrderId });
+      setSuccessfulExtensionId(data.extensionId);
+      toast({ title: "Extension payment complete", description: "Your roadside statement is ready to download." });
+      await Promise.all([loadBookings(uid), loadExtensions()]);
+    } catch (error) {
+      toast({
+        title: "Extension payment not completed",
+        description: error instanceof Error ? error.message : "Your rental was not changed.",
+        variant: "destructive",
+      });
+    } finally {
+      window.history.replaceState({}, "", window.location.pathname);
+      setSubmitting(false);
+    }
+  };
+
   const grouped = useMemo(() => {
     const upcoming: Booking[] = [];
     const active: Booking[] = [];
@@ -197,76 +266,66 @@ const MyBookings: React.FC = () => {
     return label === "Active" || label === "Completed";
   };
 
-  // Converts an ISO/UTC timestamp into a local wall-clock string for
-  // <input type="datetime-local">, which interprets its value as local time.
-  const toLocalInputValue = (iso?: string | null) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return "";
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-      d.getHours()
-    )}:${pad(d.getMinutes())}`;
-  };
-
   const canExtend = (b: Booking) => {
     const label = statusMeta(b.status).label;
     return (label === "Upcoming" || label === "Active") && !!b.end_date;
   };
 
-  const extraDays = (b: Booking | null, newEnd: string) => {
-    if (!b?.end_date || !newEnd) return 0;
-    const diff = new Date(newEnd).getTime() - new Date(b.end_date).getTime();
-    return diff <= 0 ? 0 : Math.ceil(diff / 86400000);
-  };
-
   const extendCost = useMemo(
     () => {
-      if (!extendTarget?.vehicles || !extendTarget.end_date || !extendDate) return 0;
-      const current = calculateRentalPricing(extendTarget.vehicles, extendTarget.rental_type, extendTarget.start_date, extendTarget.end_date);
-      const extended = calculateRentalPricing(extendTarget.vehicles, extendTarget.rental_type, extendTarget.start_date, extendDate);
-      return Math.max(0, extended.total - current.total);
+      const dayRate = Number(extendTarget?.vehicles?.day_rate || 0);
+      return Math.round(Math.max(0, extendDays * dayRate) * 100) / 100;
     },
-    [extendTarget, extendDate]
+    [extendTarget, extendDays]
   );
+
+  const extensionFee = Math.round((extendCost * 0.045 + (extendCost > 0 ? 1.27 : 0)) * 100) / 100;
+  const extensionTotal = Math.round((extendCost + extensionFee) * 100) / 100;
+  const proposedEndDate = extendTarget?.end_date
+    ? new Date(new Date(extendTarget.end_date).getTime() + extendDays * 86_400_000).toISOString()
+    : null;
 
   const confirmExtend = async () => {
     if (!extendTarget) return;
-    const days = extraDays(extendTarget, extendDate);
-    if (days <= 0) {
+    const mileage = Number(reportedMileage);
+    if (!Number.isInteger(mileage) || mileage <= 0) {
       toast({
-        title: "Pick a later date",
-        description: "The new return date must be after your current one.",
+        title: "Enter current mileage",
+        description: "Mileage must be a whole number greater than the last reported mileage.",
         variant: "destructive",
       });
       return;
     }
     setSubmitting(true);
     try {
-      const { error } = await (supabase as any)
-        .from("rental_bookings")
-        .update({
-          end_date: new Date(extendDate).toISOString(),
-          total_price: Number(extendTarget.total_price || 0) + extendCost,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", extendTarget.id);
-      if (error) throw error;
-      toast({
-        title: "Rental extended",
-        description: `Added ${days} day${days > 1 ? "s" : ""} for $${extendCost.toLocaleString()}.`,
+      const returnUrl = `${window.location.origin}/account/my-rentals`;
+      const data = await invokeExtension({
+        action: "createPayment",
+        bookingId: extendTarget.id,
+        extraDays: extendDays,
+        reportedMileage: mileage,
+        returnUrl,
+        cancelUrl: returnUrl,
       });
-      setExtendTarget(null);
-      setExtendDate("");
-      if (userId) await loadBookings(userId);
-    } catch (e: any) {
+      if (!data?.approveUrl) throw new Error("PayPal checkout is unavailable");
+      window.location.assign(data.approveUrl);
+    } catch (error) {
       toast({
-        title: "Extension failed",
-        description: e.message || "Please try again.",
+        title: "Could not start extension payment",
+        description: error instanceof Error ? error.message : "Your rental was not changed.",
         variant: "destructive",
       });
-    } finally {
       setSubmitting(false);
+    }
+  };
+
+  const downloadStatement = async (extensionId: string) => {
+    try {
+      const data = await invokeExtension({ action: "downloadStatement", extensionId });
+      if (!data?.url) throw new Error("Statement is unavailable");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast({ title: "Download failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
     }
   };
 
@@ -325,6 +384,7 @@ const MyBookings: React.FC = () => {
     const meta = statusMeta(b.status);
     const v = b.vehicles;
     const title = v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim() : "Vehicle";
+    const paidExtensions = extensions.filter((extension) => extension.booking_id === b.id);
     return (
       <Card
         key={b.id}
@@ -401,7 +461,7 @@ const MyBookings: React.FC = () => {
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < b.review!.rating
+                          i < (b.review?.rating || 0)
                             ? "fill-primary text-primary"
                             : "text-muted-foreground/40"
                         }`}
@@ -436,7 +496,8 @@ const MyBookings: React.FC = () => {
                     variant="outline"
                     onClick={() => {
                       setExtendTarget(b);
-                      setExtendDate(toLocalInputValue(b.end_date));
+                      setExtendDays(1);
+                      setReportedMileage("");
                     }}
                   >
                     <CalendarPlus className="w-4 h-4 mr-1" /> Extend
@@ -453,6 +514,22 @@ const MyBookings: React.FC = () => {
                 )}
               </div>
             </div>
+            {paidExtensions.length > 0 && (
+              <div className="border-t border-border/50 pt-3 space-y-2">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Paid extensions</p>
+                {paidExtensions.map((extension) => (
+                  <div key={extension.id} className="flex items-center justify-between gap-3 rounded-md border border-border/60 p-3 text-sm">
+                    <div>
+                      <p className="font-medium">{formatDate(extension.previous_end_date)} → {formatDate(extension.new_end_date)}</p>
+                      <p className="text-xs text-muted-foreground">Paid {formatDate(extension.paid_at)} · Odometer {Number(extension.reported_mileage).toLocaleString()} miles</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => downloadStatement(extension.id)}>
+                      <Download className="mr-1 h-4 w-4" /> Download statement
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </div>
       </Card>
@@ -483,7 +560,7 @@ const MyBookings: React.FC = () => {
             >
               <ArrowLeft className="w-4 h-4" /> Browse rentals
             </Link>
-            <h1 className="text-3xl md:text-4xl font-bold">My Bookings</h1>
+            <h1 className="text-3xl md:text-4xl font-bold">My Rentals</h1>
             <p className="text-muted-foreground text-sm">
               Manage your upcoming, active, and completed rentals.
             </p>
@@ -494,6 +571,16 @@ const MyBookings: React.FC = () => {
             </Link>
           </Button>
         </div>
+
+        {successfulExtensionId && (
+          <div className="mb-6 flex flex-col gap-3 border border-primary/40 bg-primary/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-6 w-6 text-primary" />
+              <div><p className="font-semibold">Payment complete</p><p className="text-sm text-muted-foreground">Your permissive member statement is ready.</p></div>
+            </div>
+            <Button onClick={() => downloadStatement(successfulExtensionId)}><Download className="mr-2 h-4 w-4" /> Download statement</Button>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Loading your bookings…</div>
@@ -525,7 +612,8 @@ const MyBookings: React.FC = () => {
         onOpenChange={(o) => {
           if (!o) {
             setExtendTarget(null);
-            setExtendDate("");
+            setExtendDays(1);
+            setReportedMileage("");
           }
         }}
       >
@@ -533,39 +621,44 @@ const MyBookings: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Extend your rental</DialogTitle>
             <DialogDescription>
-              Current return: {formatDate(extendTarget?.end_date)}. Choose a new return date and
-              time.
+              Current return: {formatDate(extendTarget?.end_date)}. Add days and report the vehicle's current mileage.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2">
-            <Label>New return date/time</Label>
+          <div className="space-y-4">
+            <div className="space-y-2">
+            <Label htmlFor="extension-days">Number of additional days</Label>
             <Input
-              type="datetime-local"
-              value={extendDate}
-              min={
-                extendTarget?.end_date
-                  ? toLocalInputValue(extendTarget.end_date)
-                  : undefined
-              }
-              onChange={(e) => setExtendDate(e.target.value)}
+              id="extension-days"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={365}
+              value={extendDays}
+              onChange={(e) => setExtendDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))}
             />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reported-mileage">Current odometer mileage</Label>
+              <Input id="reported-mileage" type="number" inputMode="numeric" min={1} step={1} value={reportedMileage} onChange={(e) => setReportedMileage(e.target.value)} placeholder="Enter the mileage shown in the vehicle" />
+            </div>
             <div className="rounded-lg border border-border/60 bg-card/60 p-3 text-sm space-y-1">
               <div className="flex justify-between text-muted-foreground">
                 <span>
-                  Added rental time
+                  Extension dates
                 </span>
-                <span>{extraDays(extendTarget, extendDate)}</span>
+                <span>{formatDate(extendTarget?.end_date)} → {formatDate(proposedEndDate)}</span>
               </div>
               <div className="flex justify-between font-semibold">
-                <span>Additional cost</span>
-                <span>${extendCost.toLocaleString()}</span>
+                <span>Extension price</span>
+                <span>${extendCost.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
-                <span>New total</span>
-                <span>
-                  ${(Number(extendTarget?.total_price || 0) + extendCost).toLocaleString()}
-                </span>
+                <span>Transaction fee (4.5% + $1.27)</span>
+                <span>${extensionFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between border-t border-border/60 pt-2 text-base font-bold">
+                <span>Total due</span><span>${extensionTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -575,14 +668,15 @@ const MyBookings: React.FC = () => {
               variant="ghost"
               onClick={() => {
                 setExtendTarget(null);
-                setExtendDate("");
+                setExtendDays(1);
+                setReportedMileage("");
               }}
               disabled={submitting}
             >
               Cancel
             </Button>
-            <Button onClick={confirmExtend} disabled={submitting || extendCost <= 0}>
-              {submitting ? "Extending…" : "Confirm Extension"}
+            <Button onClick={confirmExtend} disabled={submitting || extendCost <= 0 || !reportedMileage}>
+              {submitting ? "Connecting to PayPal…" : `Pay $${extensionTotal.toFixed(2)} with PayPal`}
             </Button>
           </DialogFooter>
         </DialogContent>
