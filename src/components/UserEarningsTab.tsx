@@ -1,3 +1,4 @@
+import MemberPayoutHistory from "@/components/payouts/MemberPayoutHistory";
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -265,6 +266,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const [clothingTotals, setClothingTotals] = useState({ direct: 0, override: 0 });
   const [saleData, setSaleData] = useState<SaleCommissionData | null>(null);
   const [flixEarnings, setFlixEarnings] = useState<FlixEarning[]>([]);
+  const [earningsBreakdown, setEarningsBreakdown] = useState<Record<string, number | string> | null>(null);
+  const [myPayoutRequests, setMyPayoutRequests] = useState<any[]>([]);
 
   const [eventEarningsBreakdown, setEventEarningsBreakdown] = useState({
     commissions: 0,
@@ -1000,6 +1003,22 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
       const totalEarnings =
         Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal + vehicleSaleTotal + flixTotal;
+      const r2 = (n: number) => Math.round(n * 100) / 100;
+      setEarningsBreakdown({
+        tips: r2(tipsTotal),
+        referrals: r2(referralTotal),
+        rentals: r2(rentalTotal),
+        clothing: r2(clothingTotal),
+        vehicle_sales: r2(vehicleSaleTotal),
+        flameflix: r2(flixTotal),
+        as_of: new Date().toISOString(),
+      });
+      const { data: myPayouts } = await supabase
+        .from("payout_requests")
+        .select("id, amount, payout_method, request_status, request_date, approved_at, paid_at, paid_reference, refunded_at, refund_reason, earnings_breakdown, notes, created_at")
+        .eq("user_id", userData.id)
+        .order("created_at", { ascending: false });
+      setMyPayoutRequests((myPayouts as any[]) || []);
 
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
@@ -1112,6 +1131,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         .insert({
           user_id: userData.id,
           amount: availableForWithdrawal,
+          earnings_breakdown: earningsBreakdown,
           payout_method: payoutFormData.payoutMethod,
           scheduled_payout_date: nextPayoutResult,
           paypal_email:
@@ -1565,6 +1585,7 @@ return (
           </div>
         </CardContent>
       </Card>
+      {myPayoutRequests.length > 0 && <MemberPayoutHistory payouts={myPayoutRequests} />}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
