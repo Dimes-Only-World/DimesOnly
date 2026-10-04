@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { DollarSign, Clock, CheckCircle, XCircle, Search, Eye, CheckCheck } from "lucide-react";
+import { DollarSign, Clock, CheckCircle, Search, Eye, CheckCheck, Download, Undo2, Wallet } from "lucide-react";
+import { PAYOUT_METHODS, PAYROLL_THRESHOLD, breakdownEntries, fmtDate, payrollBand, sumAmounts, toCsv } from "@/lib/payouts";
 
 interface PayoutRequest {
   id: string;
@@ -41,6 +42,12 @@ interface PayoutRequest {
   cashapp_email: string | null;
   cashapp_phone: string | null;
   created_at: string | null;
+  approved_at?: string | null;
+  paid_at?: string | null;
+  paid_reference?: string | null;
+  refunded_at?: string | null;
+  refund_reason?: string | null;
+  earnings_breakdown?: Record<string, unknown> | null;
 }
 
 const AdminPayoutTab: React.FC = () => {
@@ -54,6 +61,13 @@ const AdminPayoutTab: React.FC = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [approveAllLoading, setApproveAllLoading] = useState(false);
+  const [methodFilter, setMethodFilter] = useState("all");
+  const [band, setBand] = useState<"all" | "under" | "over">("all");
+  const [paidDialogOpen, setPaidDialogOpen] = useState(false);
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const [paidRef, setPaidRef] = useState("");
+  const [paidDate, setPaidDate] = useState(new Date().toISOString().slice(0, 10));
+  const [refundReason, setRefundReason] = useState("");
 
   const getAdminUserId = () => {
     const data = sessionStorage.getItem("adminUser");
@@ -93,11 +107,17 @@ const AdminPayoutTab: React.FC = () => {
       setActionLoading(null);
       setRejectDialogOpen(false);
       setRejectReason("");
+      setPaidDialogOpen(false);
+      setRefundDialogOpen(false);
+      setPaidRef("");
+      setRefundReason("");
     }
   };
 
   const filtered = payouts.filter((p) => {
     if (statusFilter !== "all" && p.request_status !== statusFilter) return false;
+    if (methodFilter !== "all" && p.payout_method !== methodFilter) return false;
+    if (!payrollBand(Number(p.amount), band)) return false;
     if (search && !p.username.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -125,6 +145,49 @@ const AdminPayoutTab: React.FC = () => {
     }
   };
 
+  const filteredApproved = filtered.filter((p) => p.request_status === "processing");
+  const filteredTotal = sumAmounts(filtered);
+
+  const downloadCsv = (method: string) => {
+    const rows = filteredApproved.filter((p) => p.payout_method === method);
+    if (!rows.length) return toast.info(`No approved ${methodLabel(method)} payouts to export`);
+    const base = ["Username", "Email", "Amount", "Requested", "Approved"];
+    const extra: Record<string, [string[], (p: PayoutRequest) => unknown[]]> = {
+      paypal: [["PayPal Email"], (p) => [p.paypal_email]],
+      venmo: [["Venmo"], (p) => [methodSummary(p)]],
+      wire: [["Account Holder", "Bank", "Routing #", "Account #", "Type", "SWIFT", "Bank Address"], (p) => [p.wire_account_holder_name, p.wire_bank_name, p.wire_routing_number, p.wire_account_number, p.wire_account_type, p.wire_swift_code, p.wire_bank_address]],
+      direct_deposit: [["Account Holder", "Bank", "Routing #", "Account #", "Type"], (p) => [p.wire_account_holder_name, p.wire_bank_name, p.wire_routing_number, p.wire_account_number, p.wire_account_type]],
+      check: [["Pay To", "Address 1", "Address 2", "City", "State", "ZIP", "Country"], (p) => [p.check_full_name, p.check_address_line1, p.check_address_line2, p.check_city, p.check_state, p.check_zip_code, p.check_country]],
+    };
+    const [h, f] = extra[method] || [[], () => []];
+    const csv = toCsv([...base, ...h], [
+      ...rows.map((p) => [p.username, p.email, Number(p.amount).toFixed(2), fmtDate(p.request_date), fmtDate(p.approved_at || p.processed_date), ...f(p)]),
+      ["TOTAL", "", sumAmounts(rows).toFixed(2)],
+    ]);
+    const tag = band === "under" ? "-under-250" : band === "over" ? "-250-plus" : "";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `payroll-${method}${tag}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const approvedMethods = Array.from(new Set(filteredApproved.map((p) => p.payout_method)));
+
+  const handleMarkAllPaid = async () => {
+    if (!filteredApproved.length || !confirm(`Mark ${filteredApproved.length} approved payout(s) totaling $${sumAmounts(filteredApproved).toFixed(2)} as paid?`)) return;
+    setApproveAllLoading(true);
+    try {
+      await Promise.all(filteredApproved.map((p) => supabase.functions.invoke("admin-data", { body: { action: "markPayoutPaid", adminUserId: getAdminUserId(), requestId: p.id, paidAt: paidDate } })));
+      toast.success(`Marked ${filteredApproved.length} payout(s) paid`);
+      fetchPayouts();
+    } catch (err: any) {
+      toast.error("Bulk mark paid failed: " + (err.message || "Unknown error"));
+    } finally {
+      setApproveAllLoading(false);
+    }
+  };
+
   const summary = (status: string) => {
     const items = payouts.filter((p) => p.request_status === status);
     return { count: items.length, total: items.reduce((s, p) => s + p.amount, 0) };
@@ -142,16 +205,16 @@ const AdminPayoutTab: React.FC = () => {
       failed: "bg-red-100 text-red-800",
       completed: "bg-green-100 text-green-800",
       cancelled: "bg-muted text-muted-foreground",
+      refunded: "bg-purple-100 text-purple-800",
     };
     const labels: Record<string, string> = {
-      pending: "Pending", processing: "Approved", completed: "Paid", failed: "Rejected", cancelled: "Cancelled",
+      pending: "Pending", processing: "Approved", completed: "Paid", failed: "Rejected", cancelled: "Cancelled", refunded: "Refunded",
     };
     return <Badge className={variants[s] || "bg-muted text-muted-foreground"}>{labels[s] || s}</Badge>;
   };
 
   const methodLabel = (m: string) => {
-    const map: Record<string, string> = { paypal: "PayPal", venmo: "Venmo", wire: "Wire Transfer", direct_deposit: "ACH/Direct Deposit", check: "Check" };
-    return map[m] || m;
+    return PAYOUT_METHODS[m] || m;
   };
 
   const methodSummary = (p: PayoutRequest) => {
@@ -217,8 +280,13 @@ const AdminPayoutTab: React.FC = () => {
         </>
       )}
       {p.request_status === "processing" && (
-        <Button size="sm" variant="outline" disabled={actionLoading === p.id} onClick={() => handleAction("markPayoutPaid", p.id)}>
-          Mark Paid
+        <Button size="sm" className="bg-green-600 hover:bg-green-700" disabled={actionLoading === p.id} onClick={() => { setSelectedPayout(p); setPaidDialogOpen(true); }}>
+          Paid
+        </Button>
+      )}
+      {["pending", "processing", "completed"].includes(p.request_status || "") && (
+        <Button size="sm" variant="outline" disabled={actionLoading === p.id} onClick={() => { setSelectedPayout(p); setRefundDialogOpen(true); }}>
+          <Undo2 className="h-3 w-3 mr-1" /> Refund
         </Button>
       )}
     </div>
@@ -302,9 +370,46 @@ const AdminPayoutTab: React.FC = () => {
             <SelectItem value="failed">Rejected</SelectItem>
             <SelectItem value="completed">Paid</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="refunded">Refunded</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={methodFilter} onValueChange={setMethodFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Method" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Methods</SelectItem>
+            {Object.entries(PAYOUT_METHODS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
+
+      {/* Payroll bands */}
+      <div className="flex flex-wrap gap-2">
+        {([["all", "All Amounts"], ["under", `Payroll Under $${PAYROLL_THRESHOLD}`], ["over", `Payroll $${PAYROLL_THRESHOLD}+`]] as const).map(([k, label]) => (
+          <Button key={k} size="sm" variant={band === k ? "default" : "outline"} onClick={() => setBand(k)} className="gap-1">
+            <Wallet className="h-3 w-3" /> {label}
+          </Button>
+        ))}
+        <span className="ml-auto self-center text-sm text-muted-foreground">
+          {filtered.length} shown · Total <strong className="text-foreground">${filteredTotal.toFixed(2)}</strong>
+        </span>
+      </div>
+
+      {/* Approved payroll exports */}
+      {filteredApproved.length > 0 && (
+        <Card>
+          <CardContent className="p-4 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium mr-2">Approved payroll ({filteredApproved.length} · ${sumAmounts(filteredApproved).toFixed(2)}):</span>
+            {approvedMethods.map((m) => (
+              <Button key={m} size="sm" variant="outline" className="gap-1" onClick={() => downloadCsv(m)}>
+                <Download className="h-3 w-3" /> {methodLabel(m)} CSV
+              </Button>
+            ))}
+            <Button size="sm" className="ml-auto gap-1 bg-green-600 hover:bg-green-700" disabled={approveAllLoading} onClick={handleMarkAllPaid}>
+              <CheckCheck className="h-3 w-3" /> Mark All Paid ({filteredApproved.length})
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Approve All */}
       {filteredPending.length > 0 && (
@@ -334,7 +439,7 @@ const AdminPayoutTab: React.FC = () => {
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left p-3 font-medium">User</th>
-                  <th className="text-left p-3 font-medium">Amount</th>
+                  <th className="text-left p-3 font-medium">Amount<div className="text-xs font-semibold text-green-700">Total ${filteredTotal.toFixed(2)}</div></th>
                   <th className="text-left p-3 font-medium">Method</th>
                   <th className="text-left p-3 font-medium hidden lg:table-cell">Details</th>
                   <th className="text-left p-3 font-medium hidden lg:table-cell">Requested</th>
@@ -384,6 +489,39 @@ const AdminPayoutTab: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Paid Dialog */}
+      <Dialog open={paidDialogOpen} onOpenChange={setPaidDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Mark Payout Paid</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {selectedPayout?.username} — ${selectedPayout?.amount.toFixed(2)} via {selectedPayout && methodLabel(selectedPayout.payout_method)}
+          </p>
+          <label className="text-sm font-medium">Date paid</label>
+          <Input type="date" value={paidDate} onChange={(e) => setPaidDate(e.target.value)} />
+          <label className="text-sm font-medium">Transaction / check # (optional)</label>
+          <Input value={paidRef} onChange={(e) => setPaidRef(e.target.value)} placeholder="e.g. PayPal transaction ID" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaidDialogOpen(false)}>Cancel</Button>
+            <Button className="bg-green-600 hover:bg-green-700" onClick={() => selectedPayout && handleAction("markPayoutPaid", selectedPayout.id, { paidReference: paidRef, paidAt: paidDate })}>Confirm Paid</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Refund Payout</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Refund <strong>${selectedPayout?.amount.toFixed(2)}</strong> for <strong>{selectedPayout?.username}</strong>. The request moves to Refunded and the member sees the reason in their earnings.
+          </p>
+          <Textarea placeholder="Reason for refund..." value={refundReason} onChange={(e) => setRefundReason(e.target.value)} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRefundDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" disabled={!refundReason.trim()} onClick={() => selectedPayout && handleAction("refundPayoutRequest", selectedPayout.id, { reason: refundReason })}>Refund</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Detail Dialog */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent>
@@ -397,9 +535,22 @@ const AdminPayoutTab: React.FC = () => {
                 <div><strong>Email:</strong> {selectedPayout.email}</div>
                 <div><strong>Amount:</strong> ${selectedPayout.amount.toFixed(2)}</div>
                 <div><strong>Method:</strong> {methodLabel(selectedPayout.payout_method)}</div>
-                <div><strong>Status:</strong> {selectedPayout.request_status}</div>
-                <div><strong>Requested:</strong> {selectedPayout.request_date ? new Date(selectedPayout.request_date).toLocaleDateString() : "—"}</div>
+                <div><strong>Status:</strong> {statusBadge(selectedPayout.request_status)}</div>
+                <div><strong>Requested:</strong> {fmtDate(selectedPayout.request_date)}</div>
+                <div><strong>Approved:</strong> {fmtDate(selectedPayout.approved_at)}</div>
+                <div><strong>Paid to user:</strong> {fmtDate(selectedPayout.paid_at)}</div>
+                {selectedPayout.paid_reference && <div className="col-span-2"><strong>Payment reference:</strong> {selectedPayout.paid_reference}</div>}
+                {selectedPayout.refunded_at && <div className="col-span-2"><strong>Refunded {fmtDate(selectedPayout.refunded_at)}:</strong> {selectedPayout.refund_reason}</div>}
               </div>
+              <hr />
+              <h4 className="font-medium text-sm">What this payout covers</h4>
+              {breakdownEntries(selectedPayout.earnings_breakdown).length ? (
+                <ul className="text-sm">
+                  {breakdownEntries(selectedPayout.earnings_breakdown).map(([l, v]) => (
+                    <li key={l} className="flex justify-between border-b py-1 last:border-0"><span>{l}</span><span>${v.toFixed(2)}</span></li>
+                  ))}
+                </ul>
+              ) : <p className="text-sm text-muted-foreground">Earnings balance (breakdown not recorded for older requests).</p>}
               <hr />
               <h4 className="font-medium text-sm">Payment Method Details</h4>
               {renderMethodDetails(selectedPayout)}
