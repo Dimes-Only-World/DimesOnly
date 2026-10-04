@@ -263,7 +263,7 @@ serve(async (req) => {
         const discountFloor = (1 - Math.min(100, Math.max(0, Number(event.early_bird_percent) || 0)) / 100)
           * (1 - Math.min(100, Math.max(0, Number(event.plus_extra_percent) || 0)) / 100)
           * (1 - Math.min(100, Math.max(0, Number(event.plus_discount_percent) || 0)) / 100);
-        const minPrice = (prices.length ? Math.min(...prices) : 0) * discountFloor - 0.01;
+        const minPrice = (prices.length ? Math.min(...prices) : 0) * discountFloor - 0.02;
         const requested = Number(amount);
         finalAmount = Number.isFinite(requested) && requested > 0 ? requested : Number(event.price);
         if (!Number.isFinite(finalAmount) || finalAmount <= 0 || finalAmount < minPrice) throw new Error("Invalid ticket amount");

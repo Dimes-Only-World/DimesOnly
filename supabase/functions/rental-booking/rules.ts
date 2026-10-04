@@ -13,13 +13,16 @@ export const rentToOwnContractTotal = (monthlyRate: number, downPayment: number)
 export const monthlyRentalPrice = (monthlyRate: number) =>
   Math.round(Math.max(0, monthlyRate) * 100) / 100;
 
+const laDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+
+// Pickup strings are naive local (business = Los Angeles) date-times; compare calendar days only.
 export const allowedPickupDate = (start: string, now = new Date()) => {
-  const pickup = new Date(start);
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const last = new Date(today);
-  last.setDate(last.getDate() + RENTAL_PICKUP_WINDOW_DAYS);
-  return Number.isFinite(pickup.getTime()) && pickup >= today && pickup <= new Date(last.getTime() + 86_399_999);
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(start ?? "");
+  if (!m) return false;
+  const pickupDay = Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  const [y, mo, d] = laDay(now).split("-").map(Number);
+  const today = Date.UTC(y, mo - 1, d);
+  return pickupDay >= today && pickupDay <= today + RENTAL_PICKUP_WINDOW_DAYS * 86_400_000;
 };
 
 export const minimumEndDate = (start: string, rentalType: string) => {

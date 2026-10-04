@@ -28,3 +28,8 @@ Deno.test("rent-to-own is down payment plus 48 monthly payments less 75 dollars"
   assertEquals(rentToOwnMonthlyPayment(810.63), 810.63);
   assertEquals(rentToOwnContractTotal(810.63, 2800.31), 41635.55);
 });
+Deno.test("same-day pickup allowed in LA evening after UTC rollover", () => {
+  const now = new Date("2026-10-04T02:30:00Z"); // Oct 3, 7:30 PM in LA
+  assertEquals(allowedPickupDate("2026-10-03T20:00", now), true);
+  assertEquals(allowedPickupDate("2026-10-02T20:00", now), false);
+});
