@@ -350,6 +350,16 @@ const MyBookings: React.FC = () => {
     }
   };
 
+  const downloadBookingStatement = async (bookingId: string) => {
+    try {
+      const data = await invokeExtension({ action: "downloadBookingStatement", bookingId });
+      if (!data?.url) throw new Error("Statement is unavailable");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast({ title: "Download failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    }
+  };
+
   const downloadReceipt = async (bookingId: string) => {
     if (!userId) return;
     try {
@@ -554,6 +564,11 @@ const MyBookings: React.FC = () => {
                 {b.payment_receipt_path && ["cash", "cashapp"].includes(String(b.payment_method)) && (
                   <Button size="sm" variant="outline" onClick={() => downloadReceipt(b.id)}>
                     <Download className="mr-1 h-4 w-4" /> Download receipt
+                  </Button>
+                )}
+                {["paid", "active", "completed", "returned"].includes(String(b.status).toLowerCase()) && (
+                  <Button size="sm" variant="outline" onClick={() => downloadBookingStatement(b.id)}>
+                    <Download className="mr-1 h-4 w-4" /> Download statement
                   </Button>
                 )}
               </div>

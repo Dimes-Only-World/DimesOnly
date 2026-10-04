@@ -23,6 +23,7 @@ const RequestSchema = z.discriminatedUnion("action", [
     paypalOrderId: z.string().min(1).max(120),
   }),
   z.object({ action: z.literal("downloadStatement"), extensionId: z.string().uuid() }),
+  z.object({ action: z.literal("downloadBookingStatement"), bookingId: z.string().uuid() }),
 ]);
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -183,6 +184,35 @@ serve(async (req) => {
         .select("statement_path, status").eq("id", body.extensionId).eq("renter_user_id", callerId).maybeSingle();
       if (!extension || extension.status !== "paid" || !extension.statement_path) return json({ error: "Statement not found" }, 404);
       const { data, error } = await admin.storage.from("rental-documents").createSignedUrl(extension.statement_path, 300);
+      if (error || !data?.signedUrl) return json({ error: "Could not prepare statement" }, 500);
+      return json({ data: { url: data.signedUrl } });
+    }
+
+    if (body.action === "downloadBookingStatement") {
+      const { data: booking } = await admin.from("rental_bookings")
+        .select("id, renter_user_id, status, start_date, end_date, paid_at, pickup_mileage, vehicles(year, make, model, vin, mileage, registration_state, license_plate, plate_expiration, body_style, color)")
+        .eq("id", body.bookingId).maybeSingle();
+      if (!booking || booking.renter_user_id !== callerId) return json({ error: "Rental not found" }, 404);
+      if (!["paid", "active", "completed", "returned"].includes(String(booking.status || "").toLowerCase())) {
+        return json({ error: "The statement is available once the rental is paid" }, 400);
+      }
+      const { data: member } = await admin.from("users").select("first_name, last_name, username").eq("id", callerId).maybeSingle();
+      const vehicle: any = Array.isArray(booking.vehicles) ? booking.vehicles[0] : booking.vehicles;
+      const paidAt = booking.paid_at || booking.start_date;
+      const pdf = await buildStatementPdf({
+        extensionId: booking.id,
+        memberName: [member?.first_name, member?.last_name].filter(Boolean).join(" ") || safeText(member?.username),
+        previousEndDate: booking.start_date, newEndDate: booking.end_date, paidAt,
+        odometer: Number(booking.pickup_mileage ?? vehicle?.mileage ?? 0),
+        year: vehicle?.year, make: vehicle?.make, model: vehicle?.model, vin: vehicle?.vin,
+        registrationState: vehicle?.registration_state, licensePlate: vehicle?.license_plate,
+        plateExpiration: vehicle?.plate_expiration, bodyStyle: vehicle?.body_style, color: vehicle?.color,
+      });
+      const filename = `permissive-member-${booking.id}-${String(paidAt).slice(0, 10)}.pdf`;
+      const path = `${callerId}/${booking.id}/rental/${filename}`;
+      const { error: uploadError } = await admin.storage.from("rental-documents").upload(path, pdf, { contentType: "application/pdf", upsert: true });
+      if (uploadError) throw new Error(`Statement generation failed: ${uploadError.message}`);
+      const { data, error } = await admin.storage.from("rental-documents").createSignedUrl(path, 300, { download: filename });
       if (error || !data?.signedUrl) return json({ error: "Could not prepare statement" }, 500);
       return json({ data: { url: data.signedUrl } });
     }
