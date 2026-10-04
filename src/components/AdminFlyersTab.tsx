@@ -137,7 +137,7 @@ const AdminFlyersTab: React.FC = () => {
             className="min-h-40"
             maxLength={5000}
           />
-          <p className="text-xs text-muted-foreground">Every member will automatically see their own link at the end: https://DimesOnly.World?ref=username</p>
+          <p className="text-xs text-muted-foreground">Every member will automatically see their own link at the end: www.DimesOnly.World?ref=username</p>
           <Button onClick={addMessage} disabled={!messageBody.trim() || messageBusy}>
             <Plus className="mr-2 h-4 w-4" /> {messageBusy ? "Adding…" : "Add Message"}
           </Button>

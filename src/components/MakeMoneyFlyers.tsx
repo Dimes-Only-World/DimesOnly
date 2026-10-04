@@ -42,7 +42,8 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
       .catch(() => setFlyers(FALLBACK));
   }, []);
 
-  const link = `https://DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
+  const link = `www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
+  const absoluteLink = `https://www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
   const shareText = (f: Flyer) =>
     `${f.title || "Dimes Only World"} — Join me on Dimes Only World ${link}`;
   const enc = encodeURIComponent;
@@ -76,10 +77,10 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
     const btns = [
       { label: "Share", Icon: Share2, onClick: () => nativeShare(f).catch(() => {}) },
       { label: "Contacts", Icon: MessageSquare, onClick: () => openUrl(`sms:?&body=${enc(shareText(f))}`) },
-      { label: "Facebook", Icon: Facebook, onClick: () => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`) },
+      { label: "Facebook", Icon: Facebook, onClick: () => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(absoluteLink)}`) },
       { label: "Instagram", Icon: Instagram, onClick: async () => { await copy(); openUrl("https://www.instagram.com/"); } },
       { label: "WhatsApp", Icon: MessageSquare, onClick: () => openUrl(`https://wa.me/?text=${enc(shareText(f))}`) },
-      { label: "Telegram", Icon: Send, onClick: () => openUrl(`https://t.me/share/url?url=${enc(link)}&text=${enc(f.title || "Join me on Dimes Only World")}`) },
+      { label: "Telegram", Icon: Send, onClick: () => openUrl(`https://t.me/share/url?url=${enc(absoluteLink)}&text=${enc(f.title || "Join me on Dimes Only World")}`) },
       { label: "X", Icon: null, onClick: () => openUrl(`https://twitter.com/intent/tweet?text=${enc(shareText(f))}`) },
       { label: "Copy link", Icon: Copy, onClick: () => copy().catch(() => {}) },
     ];

@@ -77,7 +77,11 @@ const UserMakeMoneyTab: React.FC = () => {
   const referralUsername = actualUsername;
 
   const shareLink = useMemo(
-    () => `https://DimesOnly.World?ref=${encodeURIComponent(referralUsername || "")}`,
+    () => `www.DimesOnly.World?ref=${encodeURIComponent(referralUsername || "")}`,
+    [referralUsername],
+  );
+  const absoluteShareLink = useMemo(
+    () => `https://www.DimesOnly.World?ref=${encodeURIComponent(referralUsername || "")}`,
     [referralUsername],
   );
 
@@ -154,7 +158,7 @@ const UserMakeMoneyTab: React.FC = () => {
   const handleTelegramShare = useCallback(async () => {
     await copyToClipboard(shareMessage);
     window.open(
-      `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`,
+      `https://t.me/share/url?url=${encodeURIComponent(absoluteShareLink)}&text=${encodeURIComponent(shareMessage)}`,
       "_blank",
     );
   }, [shareMessage, shareLink, copyToClipboard]);
@@ -184,7 +188,7 @@ const UserMakeMoneyTab: React.FC = () => {
 
   const handleFacebookShare = useCallback(async () => {
     await copyToClipboard(shareMessage);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`, "_blank");
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(absoluteShareLink)}`, "_blank");
   }, [shareMessage, shareLink, copyToClipboard]);
 
   const handleInstagramShare = useCallback(async () => {
@@ -193,7 +197,7 @@ const UserMakeMoneyTab: React.FC = () => {
         await navigator.share({
           title: "Check out DimesOnly",
           text: shareMessage,
-          url: shareLink,
+          url: absoluteShareLink,
         });
       } catch (err) {
         await copyToClipboard(shareMessage);
@@ -211,7 +215,7 @@ const UserMakeMoneyTab: React.FC = () => {
         await navigator.share({
           title: "Check out DimesOnly",
           text: shareMessage,
-          url: shareLink,
+          url: absoluteShareLink,
         });
       } catch (err) {
         await copyToClipboard(shareMessage);
@@ -314,7 +318,7 @@ const UserMakeMoneyTab: React.FC = () => {
             <div className="flex items-center gap-3 w-full">
               <div className="relative shrink-0 p-2 bg-background rounded border border-border">
                 {qrUnlocked ? (
-                  <QRCodeSVG value={shareLink} size={88} level="M" />
+                  <QRCodeSVG value={absoluteShareLink} size={88} level="M" />
                 ) : (
                   <div className="relative w-[88px] h-[88px] overflow-hidden">
                     <div className="blur-md select-none pointer-events-none" aria-hidden>
@@ -340,7 +344,7 @@ const UserMakeMoneyTab: React.FC = () => {
             </Button>
             {qrUnlocked ? (
               <>
-                <div className="hidden"><QRCodeCanvas id="referral-qr-canvas" value={shareLink} size={1024} level="M" marginSize={4} /></div>
+                <div className="hidden"><QRCodeCanvas id="referral-qr-canvas" value={absoluteShareLink} size={1024} level="M" marginSize={4} /></div>
                 <Button onClick={handleDownloadQr} variant="outline" className="w-full">
                   <Download className="w-4 h-4 mr-2" />
                   Download QR Code

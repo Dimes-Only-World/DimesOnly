@@ -18,7 +18,8 @@ export const markLinkShared = (userId?: string) => {
 
 const ShareLinkDialog: React.FC<Props> = ({ open, onOpenChange, userId, username }) => {
   const { toast } = useToast();
-  const link = `https://DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
+  const link = `www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
+  const absoluteLink = `https://www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
   const text = `Join me on Dimes Only World ${link}`;
 
   const act = (fn: () => void | Promise<void>) => async () => {
@@ -48,7 +49,7 @@ const ShareLinkDialog: React.FC<Props> = ({ open, onOpenChange, userId, username
         else await copy();
       }),
     },
-    { label: "Facebook", Icon: Facebook, cls: "bg-[#2563eb] text-white", onClick: act(() => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`)) },
+    { label: "Facebook", Icon: Facebook, cls: "bg-[#2563eb] text-white", onClick: act(() => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${enc(absoluteLink)}`)) },
     {
       label: "Instagram",
       Icon: Instagram,
