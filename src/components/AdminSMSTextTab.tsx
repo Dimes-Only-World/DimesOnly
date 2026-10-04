@@ -21,7 +21,7 @@ const DEFAULT_SECTIONS: Section[] = [
   },
   {
     title: "More Info",
-    text: "Dimes Only World is a social + events platform where members earn from referrals, tips, events, and quarterly profit sharing. You get your own share link, and everyone who joins under you is tracked to your Money Circle. Register free here: https://DimesOnly.World",
+    text: "Dimes Only World is a social + events platform where members earn from referrals, tips, events, and quarterly profit sharing. You get your own share link, and everyone who joins under you is tracked to your Money Circle. Register free here: www.DimesOnly.World",
   },
   {
     title: "How does it work?",
@@ -77,11 +77,11 @@ const DEFAULT_SECTIONS: Section[] = [
   },
   {
     title: "Greeting Stripper and Exxxotics",
-    text: "Hey! Dimes Only World is signing performers before app launch. You get a FREE 3-year Diamond membership, your own tip page, event bookings, rankings, and the weekly jackpot. Register free: https://DimesOnly.World",
+    text: "Hey! Dimes Only World is signing performers before app launch. You get a FREE 3-year Diamond membership, your own tip page, event bookings, rankings, and the weekly jackpot. Register free: www.DimesOnly.World",
   },
   {
     title: "Did not complete registration?",
-    text: "Hi! I saw you started signing up for Dimes Only World but didn't finish. It only takes a minute and your free 3-year membership is still available. Finish here: https://DimesOnly.World",
+    text: "Hi! I saw you started signing up for Dimes Only World but didn't finish. It only takes a minute and your free 3-year membership is still available. Finish here: www.DimesOnly.World",
   },
 ];
 

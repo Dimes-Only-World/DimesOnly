@@ -33,7 +33,7 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
   }, []);
 
   const referralLink = useMemo(
-    () => `https://DimesOnly.World?ref=${encodeURIComponent(username)}`,
+    () => `www.DimesOnly.World?ref=${encodeURIComponent(username)}`,
     [username],
   );
   const available = messages.length > 0

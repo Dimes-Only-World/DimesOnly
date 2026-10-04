@@ -65,7 +65,7 @@ const DashboardCommandBar: React.FC<DashboardCommandBarProps> = ({
   // (e.g. a Diamond Plus member should not see "Upgrade to Silver Plus").
   const showPlusUpgrade = !isMaxTier && membership.rank < upgradeTargetRank;
 
-  const shareLink = `https://DimesOnly.World?ref=${userData?.username || ""}`;
+  const shareLink = `www.DimesOnly.World?ref=${userData?.username || ""}`;
 
   const handleShare = async () => {
     try {
