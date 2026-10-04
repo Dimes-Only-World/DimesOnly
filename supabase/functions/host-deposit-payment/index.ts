@@ -48,12 +48,12 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const clientId = (Deno.env.get("RENTAL_PAYPAL_CLIENT_ID") || Deno.env.get("PAYPAL_CLIENT_ID"));
-    const clientSecret = (Deno.env.get("RENTAL_PAYPAL_CLIENT_SECRET") || Deno.env.get("PAYPAL_CLIENT_SECRET"));
+    const clientId = (Deno.env.get("PAYPAL_CLIENT_ID"));
+    const clientSecret = (Deno.env.get("PAYPAL_CLIENT_SECRET"));
     if (!supabaseUrl || !serviceRoleKey || !clientId || !clientSecret) {
       return json({ error: "Payment service is not configured" }, 500);
     }
-    const environment = (Deno.env.get("RENTAL_PAYPAL_ENVIRONMENT") || Deno.env.get("PAYPAL_ENVIRONMENT")) || "sandbox";
+    const environment = (Deno.env.get("PAYPAL_ENVIRONMENT")) || "sandbox";
     const baseUrl = environment === "live" || environment === "production"
       ? "https://api-m.paypal.com"
       : "https://api-m.sandbox.paypal.com";
