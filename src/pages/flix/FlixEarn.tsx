@@ -71,7 +71,7 @@ const FlixEarn: React.FC = () => {
     return Object.values(months).slice(-8);
   }, [earnings]);
 
-  const referralLink = user?.username ? `${window.location.origin}/register?ref=${user.username}` : "";
+  const referralLink = user?.username ? `www.DimesOnly.World?ref=${user.username}` : "";
 
   const copyLink = async () => {
     try {
