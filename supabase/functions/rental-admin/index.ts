@@ -272,10 +272,10 @@ serve(async (req) => {
         if (bErr) throw bErr;
         if (!b.paypal_order_id) return json({ error: "No PayPal payment has been started for this booking" }, 400);
 
-        const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
-        const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+        const clientId = (Deno.env.get("RENTAL_PAYPAL_CLIENT_ID") || Deno.env.get("PAYPAL_CLIENT_ID"));
+        const clientSecret = (Deno.env.get("RENTAL_PAYPAL_CLIENT_SECRET") || Deno.env.get("PAYPAL_CLIENT_SECRET"));
         if (!clientId || !clientSecret) return json({ error: "PayPal credentials missing" }, 400);
-        const base = (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox") === "live"
+        const base = ((Deno.env.get("RENTAL_PAYPAL_ENVIRONMENT") || Deno.env.get("PAYPAL_ENVIRONMENT")) || "sandbox") === "live"
           ? "https://api-m.paypal.com"
           : "https://api-m.sandbox.paypal.com";
 

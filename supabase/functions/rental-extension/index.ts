@@ -31,13 +31,13 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
   headers: { ...corsHeaders, "Content-Type": "application/json" },
 });
 
-const paypalBase = () => (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox") === "live"
+const paypalBase = () => ((Deno.env.get("RENTAL_PAYPAL_ENVIRONMENT") || Deno.env.get("PAYPAL_ENVIRONMENT")) || "sandbox") === "live"
   ? "https://api-m.paypal.com"
   : "https://api-m.sandbox.paypal.com";
 
 const paypalToken = async () => {
-  const id = Deno.env.get("PAYPAL_CLIENT_ID");
-  const secret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+  const id = (Deno.env.get("RENTAL_PAYPAL_CLIENT_ID") || Deno.env.get("PAYPAL_CLIENT_ID"));
+  const secret = (Deno.env.get("RENTAL_PAYPAL_CLIENT_SECRET") || Deno.env.get("PAYPAL_CLIENT_SECRET"));
   if (!id || !secret) throw new Error("PayPal credentials missing");
   const response = await fetch(`${paypalBase()}/v1/oauth2/token`, {
     method: "POST",

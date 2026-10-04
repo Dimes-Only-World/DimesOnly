@@ -85,13 +85,13 @@ const decodeBase64 = (value: string) => {
 };
 
 const paypalBase = () =>
-  (Deno.env.get("PAYPAL_ENVIRONMENT") || "sandbox") === "live"
+  ((Deno.env.get("RENTAL_PAYPAL_ENVIRONMENT") || Deno.env.get("PAYPAL_ENVIRONMENT")) || "sandbox") === "live"
     ? "https://api-m.paypal.com"
     : "https://api-m.sandbox.paypal.com";
 
 const paypalToken = async (requestId: string) => {
-  const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
-  const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+  const clientId = (Deno.env.get("RENTAL_PAYPAL_CLIENT_ID") || Deno.env.get("PAYPAL_CLIENT_ID"));
+  const clientSecret = (Deno.env.get("RENTAL_PAYPAL_CLIENT_SECRET") || Deno.env.get("PAYPAL_CLIENT_SECRET"));
   if (!clientId || !clientSecret) throw new Error("PayPal credentials missing");
 
   const res = await fetch(`${paypalBase()}/v1/oauth2/token`, {
