@@ -573,7 +573,10 @@ serve(async (req) => {
         const orderJson = await res.json();
         if (!res.ok) {
           logError(requestId, "paypal order create failed", orderJson, { bookingId });
-          return json({ error: "Could not start PayPal checkout", requestId }, 400);
+          const restricted = JSON.stringify(orderJson || {}).includes("PAYEE_ACCOUNT_RESTRICTED");
+          return json({ error: restricted
+            ? "PayPal checkout is temporarily unavailable. Please pay with Cash App or cash at pickup."
+            : "Could not start PayPal checkout", requestId }, 400);
         }
 
         await admin.from("rental_bookings").update({ paypal_order_id: orderJson.id }).eq("id", bk.id);
