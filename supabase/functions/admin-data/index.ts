@@ -681,14 +681,17 @@ serve(async (req) => {
 
       case 'approvePayoutRequest': {
         const { requestId, adminNotes } = params;
+        const now = new Date().toISOString();
         const { error } = await supabaseAdmin
           .from('payout_requests')
           .update({
             request_status: 'processing',
-            processed_date: new Date().toISOString(),
+            processed_date: now,
+            approved_at: now,
             notes: adminNotes || 'Approved by admin',
           })
-          .eq('id', requestId);
+          .eq('id', requestId)
+          .eq('request_status', 'pending');
         if (error) throw error;
         result = { success: true };
         break;
@@ -710,15 +713,37 @@ serve(async (req) => {
       }
 
       case 'markPayoutPaid': {
-        const { requestId, adminNotes } = params;
+        const { requestId, adminNotes, paidReference, paidAt } = params;
+        const paidDate = typeof paidAt === 'string' && /^\d{4}-\d{2}-\d{2}/.test(paidAt)
+          ? new Date(paidAt).toISOString() : new Date().toISOString();
         const { error } = await supabaseAdmin
           .from('payout_requests')
           .update({
             request_status: 'completed',
-            processed_date: new Date().toISOString(),
+            processed_date: paidDate,
+            paid_at: paidDate,
+            paid_reference: typeof paidReference === 'string' ? paidReference.slice(0, 200) || null : null,
             notes: adminNotes || 'Marked as paid by admin',
           })
-          .eq('id', requestId);
+          .eq('id', requestId)
+          .in('request_status', ['pending', 'processing']);
+        if (error) throw error;
+        result = { success: true };
+        break;
+      }
+
+      case 'refundPayoutRequest': {
+        const { requestId, reason } = params;
+        if (typeof reason !== 'string' || !reason.trim()) throw new Error('Refund reason is required');
+        const { error } = await supabaseAdmin
+          .from('payout_requests')
+          .update({
+            request_status: 'refunded',
+            refunded_at: new Date().toISOString(),
+            refund_reason: reason.trim().slice(0, 500),
+          })
+          .eq('id', requestId)
+          .in('request_status', ['pending', 'processing', 'completed']);
         if (error) throw error;
         result = { success: true };
         break;
