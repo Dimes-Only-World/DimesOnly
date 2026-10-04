@@ -1,3 +1,4 @@
+import MemberPayoutHistory from "@/components/payouts/MemberPayoutHistory";
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1130,6 +1131,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         .insert({
           user_id: userData.id,
           amount: availableForWithdrawal,
+          earnings_breakdown: earningsBreakdown,
           payout_method: payoutFormData.payoutMethod,
           scheduled_payout_date: nextPayoutResult,
           paypal_email:
@@ -1583,6 +1585,7 @@ return (
           </div>
         </CardContent>
       </Card>
+      {myPayoutRequests.length > 0 && <MemberPayoutHistory payouts={myPayoutRequests} />}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
