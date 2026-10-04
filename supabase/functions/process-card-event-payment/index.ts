@@ -97,7 +97,7 @@ serve(async (req) => {
         * (1 - Math.min(100, Math.max(0, Number((ev as any).plus_extra_percent) || 0)) / 100)
         * (1 - Math.min(100, Math.max(0, Number((ev as any).plus_discount_percent) || 0)) / 100);
       const minUnit = (prices.length ? Math.min(...prices) : 0) * discountFloor;
-      if (parsedAmount + 0.001 < minUnit * qty) {
+      if (parsedAmount + 0.02 * qty < minUnit * qty) {
         return new Response(JSON.stringify({ success: false, error: "Invalid amount." }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
       }
     }
