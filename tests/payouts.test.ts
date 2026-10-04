@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { payrollBand, sumAmounts, toCsv } from "./payouts";
+import { payrollBand, sumAmounts, toCsv } from "../src/lib/payouts";
 
 describe("payout rules", () => {
   it("under $250 payroll excludes exactly $250", () => {
