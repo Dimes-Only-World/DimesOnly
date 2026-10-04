@@ -192,22 +192,17 @@ const UserMakeMoneyTab: React.FC = () => {
   }, [shareMessage, shareLink, copyToClipboard]);
 
   const handleInstagramShare = useCallback(async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Check out DimesOnly",
-          text: shareMessage,
-          url: absoluteShareLink,
-        });
-      } catch (err) {
-        await copyToClipboard(shareMessage);
-        window.open("https://www.instagram.com", "_blank");
-      }
+    // Instagram has no web share URL: copy the message, then open Instagram
+    // (the app on phones, the website on desktop) so the user can paste it.
+    await copyToClipboard(shareMessage);
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = "instagram://app";
+      setTimeout(() => { if (!document.hidden) window.open("https://www.instagram.com/", "_blank"); }, 1200);
     } else {
-      await copyToClipboard(shareMessage);
-      window.open("https://www.instagram.com", "_blank");
+      window.open("https://www.instagram.com/", "_blank");
     }
-  }, [shareMessage, shareLink, copyToClipboard]);
+  }, [shareMessage, copyToClipboard]);
 
   const handleNativeShare = useCallback(async () => {
     if (navigator.share) {
