@@ -3113,6 +3113,7 @@ export type Database = {
       payout_requests: {
         Row: {
           amount: number
+          approved_at: string | null
           cashapp_cashtag: string | null
           cashapp_email: string | null
           cashapp_phone: string | null
@@ -3124,11 +3125,16 @@ export type Database = {
           check_state: string | null
           check_zip_code: string | null
           created_at: string | null
+          earnings_breakdown: Json | null
           id: string
           notes: string | null
+          paid_at: string | null
+          paid_reference: string | null
           payout_method: string
           paypal_email: string | null
           processed_date: string | null
+          refund_reason: string | null
+          refunded_at: string | null
           request_date: string | null
           request_status: string | null
           scheduled_payout_date: string | null
@@ -3144,6 +3150,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          approved_at?: string | null
           cashapp_cashtag?: string | null
           cashapp_email?: string | null
           cashapp_phone?: string | null
@@ -3155,11 +3162,16 @@ export type Database = {
           check_state?: string | null
           check_zip_code?: string | null
           created_at?: string | null
+          earnings_breakdown?: Json | null
           id?: string
           notes?: string | null
+          paid_at?: string | null
+          paid_reference?: string | null
           payout_method: string
           paypal_email?: string | null
           processed_date?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           request_date?: string | null
           request_status?: string | null
           scheduled_payout_date?: string | null
@@ -3175,6 +3187,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          approved_at?: string | null
           cashapp_cashtag?: string | null
           cashapp_email?: string | null
           cashapp_phone?: string | null
@@ -3186,11 +3199,16 @@ export type Database = {
           check_state?: string | null
           check_zip_code?: string | null
           created_at?: string | null
+          earnings_breakdown?: Json | null
           id?: string
           notes?: string | null
+          paid_at?: string | null
+          paid_reference?: string | null
           payout_method?: string
           paypal_email?: string | null
           processed_date?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           request_date?: string | null
           request_status?: string | null
           scheduled_payout_date?: string | null
