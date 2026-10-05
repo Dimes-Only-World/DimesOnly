@@ -34,11 +34,10 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const navigate = useNavigate();
   const goToLogin = () => {
+    // Already on the login page (e.g. a page redirected first) — don't re-wrap.
+    if (window.location.pathname.startsWith('/login')) return;
     const returnTo = `${window.location.pathname}${window.location.search}`;
-    const suffix =
-      returnTo && returnTo !== '/login'
-        ? `?redirect=${encodeURIComponent(returnTo)}`
-        : '';
+    const suffix = returnTo ? `?redirect=${encodeURIComponent(returnTo)}` : '';
     navigate(`/login${suffix}`);
   };
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
