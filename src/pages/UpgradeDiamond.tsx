@@ -89,7 +89,13 @@ const UpgradeDiamondPage: React.FC = () => {
           userId = null;
         }
       }
-      if (!userId) return;
+      const goLogin = () => {
+        ["userData", "currentUser", "dimesPushAuthToken"].forEach((k) =>
+          sessionStorage.removeItem(k)
+        );
+        navigate("/login?redirect=/upgrade-diamond", { replace: true });
+      };
+      if (!userId) return goLogin();
 
       const { data: profile, error } = await supabase
         .from("users")
@@ -97,9 +103,10 @@ const UpgradeDiamondPage: React.FC = () => {
           "id, username, user_type, membership_tier, diamond_plus_active, phone_number, email"
         )
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!profile) return goLogin();
       setUserData(profile as UserData);
       setPhoneNumber((profile as UserData).phone_number || "");
     } catch (error) {
