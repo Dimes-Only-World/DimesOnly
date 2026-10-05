@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.guard_payout_request_insert() FROM PUBLIC, anon, authenticated;
