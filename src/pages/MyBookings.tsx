@@ -28,7 +28,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS } from "@/lib/rentalExtensionRules";
+import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
 
@@ -272,10 +272,7 @@ const MyBookings: React.FC = () => {
     return label === "Active" || label === "Completed";
   };
 
-  const canExtend = (b: Booking) => {
-    const label = statusMeta(b.status).label;
-    return (label === "Upcoming" || label === "Active") && !!b.end_date;
-  };
+  const canExtend = (b: Booking) => rentalIsActiveForExtension(b.status) && !!b.end_date;
 
   const depositAvailable = (b: Booking | null) => {
     if (!b) return 0;

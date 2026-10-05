@@ -4,7 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { getCallerId } from "../_shared/caller.ts";
-import { extensionCharge, mileageIsValid, MAX_EXTENSION_DAYS } from "./rules.ts";
+import { extensionCharge, mileageIsValid, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "./rules.ts";
 
 const RequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("list") }),
@@ -224,8 +224,8 @@ serve(async (req) => {
       if (!booking || booking.renter_user_id !== callerId) return json({ error: "Rental not found" }, 404);
       const status = String(booking.status || "").toLowerCase();
       const endMs = booking.end_date ? new Date(booking.end_date).getTime() : 0;
-      if (!booking.end_date || ["completed", "returned", "cancelled", "canceled", "rejected"].includes(status) || (endMs <= Date.now() && status !== "active")) {
-        return json({ error: "Past rentals cannot be extended" }, 400);
+      if (!booking.end_date || !rentalIsActiveForExtension(status)) {
+        return json({ error: "Only an active, collected rental can be extended" }, 400);
       }
       const vehicle = Array.isArray(booking.vehicles) ? booking.vehicles[0] : booking.vehicles;
       const dailyRate = Number(vehicle?.day_rate || 0);

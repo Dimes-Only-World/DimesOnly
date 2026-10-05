@@ -3,6 +3,9 @@ const round = (n: number) => Math.round(n * 100) / 100;
 
 export const MAX_EXTENSION_DAYS = 28;
 
+export const rentalIsActiveForExtension = (status: string | null | undefined) =>
+  ["active", "in_progress", "picked_up"].includes(String(status || "").toLowerCase());
+
 export const mileageIsValid = (reported: number, previous: number) =>
   Number.isInteger(reported) && reported > previous;
 
