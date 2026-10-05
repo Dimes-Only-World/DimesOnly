@@ -56,6 +56,10 @@ import AngelLoader from "./AngelLoader";
 import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
 import EarningsCategoryReports, { MessageButton, type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
 import BonusBox from "@/components/BonusBox";
+import EarningsLedgerCards from "@/components/earnings/EarningsLedgerCards";
+import EarningsActivityFeed, { type ActivityEntry } from "@/components/earnings/EarningsActivityFeed";
+import PayPeriodSummary from "@/components/earnings/PayPeriodSummary";
+import { computeLedger, canRequestPayout, MIN_PAYOUT } from "@/lib/earningsLedger";
 import { MiniAvatar } from "@/components/rentals/saleCommissionUi";
 
 const PERFORMER_RATE = 0.2;
@@ -275,7 +279,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     count: 0,
   });
 
-  const [tabValue, setTabValue] = useState("weekly");
+  const [tabValue, setTabValue] = useState("tips");
+  const [section, setSection] = useState("overview");
+  const [legacyPaid, setLegacyPaid] = useState(0);
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -1023,10 +1029,11 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
       ).reduce((sum, payout) => sum + (Number(payout.amount) || 0), 0);
-      const available = Math.max(0, totalEarnings - paidOut);
+      const ledgerNow = computeLedger(totalEarnings, (myPayouts as any[]) || [], paidOut);
 
+      setLegacyPaid(paidOut);
       setCurrentEarnings(totalEarnings);
-      setAvailableForWithdrawal(available);
+      setAvailableForWithdrawal(ledgerNow.available);
 
       const currentYear = new Date().getFullYear();
       const yearlyAmount = (
@@ -1073,10 +1080,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   };
 
   const handlePayoutRequest = async () => {
-    if (availableForWithdrawal === 0) {
+    if (!canRequestPayout(availableForWithdrawal, myPayoutRequests)) {
       toast({
-        title: "No Earnings",
-        description: "You have no earnings available for withdrawal",
+        title: "Payout not available yet",
+        description: myPayoutRequests.some((r) => ["pending", "processing"].includes(r.request_status))
+          ? "You already have a payout request in processing."
+          : `You need at least $${MIN_PAYOUT} available to request a payout.`,
         variant: "destructive",
       });
       return;
@@ -1444,6 +1453,38 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   const directTotalAmount = earningsItems
     .filter((i) => !i.override_badge)
     .reduce((sum, i) => sum + (i.amount || 0), 0);
+
+  const ledger = computeLedger(currentEarnings, myPayoutRequests, legacyPaid);
+
+  const activityEntries: ActivityEntry[] = [
+    ...combinedTips.map((t) => ({
+      id: `tip-${t.id}`, date: t.created_at,
+      type: t.role === "performer" ? "Tip received" : "Tip override",
+      payer: t.role === "performer" ? t.tipper_username ?? null : t.tipped_username ?? null,
+      avatar: t.tipper_username ? tipSenderProfiles[t.tipper_username]?.avatar_url ?? null : null,
+      gross: t.original_tip_amount ?? null, commission: t.amount, status: t.status ?? null,
+    })),
+    ...referralCommissions.map((r) => ({
+      id: `ref-${r.id}`, date: r.created_at, type: "Upgrade referral",
+      payer: null, gross: Number(r.amount) || null, commission: Number(r.referrer_commission) || 0,
+    })),
+    ...rentalCommissions.map((c) => ({
+      id: `rent-${c.id}`, date: c.created_at, type: c.commission_type === "upline" ? "Rental override (5%)" : "Rental direct (10%)",
+      payer: null, gross: null, commission: Number(c.amount) || 0, status: c.status,
+    })),
+    ...clothingCommissions.map((c) => ({
+      id: `cloth-${c.id}`, date: c.created_at, type: c.commission_type === "clothing_upline" ? "Clothing override (5%)" : "Clothing direct (10%)",
+      payer: null, gross: null, commission: Number(c.amount) || 0, status: c.status,
+    })),
+    ...(saleData?.rows || []).filter((r) => r.status === "sold").map((r) => ({
+      id: `sale-${r.id}`, date: r.sold_at || r.submitted_at, type: r.level === "direct" ? "Car sale direct (53%)" : "Car sale override (5%)",
+      payer: r.buyer_username ?? null, avatar: r.buyer_avatar, gross: null, commission: Number(r.amount) || 0, status: r.status,
+    })),
+    ...flixEarnings.map((f) => ({
+      id: `flix-${f.id}`, date: f.created_at, type: f.level === 1 ? "FlameFlix direct (10%)" : "FlameFlix override (5%)",
+      payer: null, gross: null, commission: f.amount_cents / 100, status: f.status,
+    })),
+  ];
 
   const [dmOpen, setDmOpen] = useState(false);
   const [dmRecipient, setDmRecipient] = useState<string>("");
@@ -2403,9 +2444,9 @@ return (
             <Button
               onClick={handlePayoutRequest}
               className="bg-green-600 hover:bg-green-700"
-              disabled={availableForWithdrawal === 0}
+              disabled={!canRequestPayout(availableForWithdrawal, myPayoutRequests)}
             >
-              Payout Method
+              Request Payout
             </Button>
           </div>
         </CardContent>
