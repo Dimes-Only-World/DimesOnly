@@ -111,7 +111,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
   };
 
   return (
-    <div className="space-y-4">
+    <div className="relative left-1/2 w-screen -translate-x-1/2 space-y-4 sm:static sm:w-full sm:translate-x-0">
       <Card className="border-2 border-primary/40">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-base">Company Profit & Revenue</CardTitle>
@@ -141,7 +141,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
                   ))}
                 </tbody>
               </table>
-              <p className="mt-2 text-xs text-muted-foreground">Company keeps 10% of tips and 70% of tickets. When the company is the direct referrer it keeps 100% (except tips); when it is the upline, the override is added. "Company keeps" shows the blended rate. Payment processor fees aren't subtracted.</p>
+              <p className="mt-2 text-xs text-muted-foreground">Car rentals split 85% to the direct referrer, 10% to the upline, and 5% to the company. Company keeps 10% of tips and 70% of tickets. When the company is the direct referrer it keeps 100% (except tips); when it is the upline, its override is included. "Company keeps" shows the blended rate. Payment processor fees aren't subtracted.</p>
             </div>
           )}
         </CardContent>

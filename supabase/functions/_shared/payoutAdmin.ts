@@ -53,10 +53,12 @@ async function all(db: any, table: string, cols: string, apply: (q: any) => any)
 
 const sum = (rows: any[], f: (r: any) => number) => Math.round(rows.reduce((s, r) => s + (Number(f(r)) || 0), 0) * 100) / 100;
 
+export const RENTAL_SPLIT = { referrer: 0.85, upline: 0.10, company: 0.05 } as const;
+
 /** Base company keep ratios (when a member is the direct referrer). */
-export const KEEP = { tips: 0.10, car_sales: 0.42, rentals: 0.85, clothing: 0.85, memberships: 0.7, tickets: 0.7, flameflix: 0.85 };
+export const KEEP = { tips: 0.10, car_sales: 0.42, rentals: RENTAL_SPLIT.company, clothing: 0.85, memberships: 0.7, tickets: 0.7, flameflix: 0.85 };
 /** Upline override share the company also keeps when it is the direct referrer's upline. */
-export const OVERRIDE = { car_sales: 0.05, rentals: 0.10, clothing: 0.10, memberships: 0.10, tickets: 0.10, flameflix: 0.10 } as Record<string, number>;
+export const OVERRIDE = { car_sales: 0.05, rentals: RENTAL_SPLIT.upline, clothing: 0.10, memberships: 0.10, tickets: 0.10, flameflix: 0.10 } as Record<string, number>;
 
 const isCompany = (r: unknown) => {
   const s = String(r ?? "").trim().replace(/^@/, "").toLowerCase();
@@ -68,7 +70,7 @@ export function keepRateFor(stream: string, direct: unknown, upline: unknown): n
   const base = (KEEP as any)[stream] ?? 1;
   if (stream === "tips") return base;
   if (isCompany(direct)) return 1;
-  return isCompany(upline) ? Math.min(1, base + (OVERRIDE[stream] ?? 0)) : base;
+  return isCompany(upline) ? Math.min(1, Math.round((base + (OVERRIDE[stream] ?? 0)) * 100) / 100) : base;
 }
 
 export async function companyFinancials(db: any) {
