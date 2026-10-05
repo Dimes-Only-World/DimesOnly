@@ -15,7 +15,7 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const Body = z.discriminatedUnion("action", [
+const Body = z.union([
   z.object({ action: z.literal("create"), kind: z.literal("tip"),
     tipped_username: z.string().min(1).max(100), amount: z.number().min(5).max(1000),
     message: z.string().max(1000).optional(), referrer_username: z.string().max(100).nullish() }),
