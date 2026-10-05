@@ -11,3 +11,5 @@
 - Generate manual rental payment receipts only when an authorized admin marks cash or Cash App funds received, store them privately, and authorize short-lived downloads for the renter or admin.
 - Reconcile rental booking and extension payments through the admin-only rental function, using recorded paid amounts and server-calculated method totals; this keeps financial reporting authoritative.
 - Rental PayPal calls currently use the main PAYPAL_* secrets; RENTAL_PAYPAL_* routing is paused until the Best Rental Cars PayPal account is approved.
+- Compute member Available balance only via `computeLedger` (total earned minus pending, approved, and paid payout requests) and keep the payout_requests insert guard (minimum and one open request); this prevents double withdrawals.
+- Run PayPal batch payouts only from the admin-data edge function with a deterministic sender_batch_id; PayPal rejects repeats, so a selection can never be paid twice.
