@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useEffect } from "react";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import { useNavigate } from "react-router-dom";
@@ -994,6 +995,20 @@ const Tip: React.FC = () => {
                               <>Pay ${tipAmount} Later with PayPal</>
                             )}
                           </Button>
+                          <div className="mt-3">
+                            <CashAppCheckoutButton
+                              kind="tip"
+                              displayAmount={tipAmount}
+                              disabled={isProcessingPayment || !currentUser || tipAmount < 5}
+                              className="w-full py-4 font-bold text-lg rounded-xl"
+                              payload={{
+                                tipped_username: userData?.username,
+                                amount: Number(tipAmount),
+                                message: (message || "").slice(0, 60),
+                                referrer_username: refUsername || null,
+                              }}
+                            />
+                          </div>
                         </>
                       )}
 
