@@ -156,6 +156,8 @@ function AppContent() {
       <Route path="/failsafe" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/adminlogin" element={<AdminLogin />} />
+      <Route path="/admin-login" element={<Navigate to="/adminlogin" replace />} />
+      <Route path="/store" element={<Navigate to="/clothes" replace />} />
       <Route path="/test-login" element={<TestLogin />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/profile" replace />} />

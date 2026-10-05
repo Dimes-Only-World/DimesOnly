@@ -12,7 +12,7 @@ export function usePageVideo(pageKey: string) {
           .from("page_videos")
           .select("video_url")
           .eq("page_key", pageKey)
-          .single();
+          .maybeSingle();
 
         if (!error && data?.video_url) {
           setVideoUrl(data.video_url);
