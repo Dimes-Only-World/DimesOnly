@@ -112,11 +112,11 @@ const JackpotBreakdown: React.FC = () => {
             <PlaceHeader
               icon={<Trophy className="w-5 h-5 text-amber-500" />}
               place="1st Place Winner"
-              winners="3 Winners"
+              winners="1 Winner"
               accent="gold"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <StatTile row={{ amount: 'Max $1,973,400', label: 'Tipper', accent: 'gold' }} />
+              <StatTile row={{ amount: '$1,000 - $1,973,400 Max', label: 'Tipper', accent: 'gold' }} />
               <StatTile row={{ amount: '$234.33 – $148,005.17', label: 'Dime Tipped', accent: 'gold' }} />
               <StatTile row={{ amount: '$117.17 – $74,002.50', label: 'Dime Referred By', accent: 'gold' }} />
             </div>
