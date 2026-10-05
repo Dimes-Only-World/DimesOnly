@@ -159,6 +159,7 @@ const AdminPayoutTab: React.FC = () => {
       wire: [["Account Holder", "Bank", "Routing #", "Account #", "Type", "SWIFT", "Bank Address"], (p) => [p.wire_account_holder_name, p.wire_bank_name, p.wire_routing_number, p.wire_account_number, p.wire_account_type, p.wire_swift_code, p.wire_bank_address]],
       direct_deposit: [["Account Holder", "Bank", "Routing #", "Account #", "Type"], (p) => [p.wire_account_holder_name, p.wire_bank_name, p.wire_routing_number, p.wire_account_number, p.wire_account_type]],
       check: [["Pay To", "Address 1", "Address 2", "City", "State", "ZIP", "Country"], (p) => [p.check_full_name, p.check_address_line1, p.check_address_line2, p.check_city, p.check_state, p.check_zip_code, p.check_country]],
+      cashapp: [["$Cashtag", "Phone", "Email"], (p) => [p.cashapp_cashtag, p.cashapp_phone, p.cashapp_email]],
     };
     const [h, f] = extra[method] || [[], () => []];
     const csv = toCsv([...base, ...h], [
@@ -225,6 +226,7 @@ const AdminPayoutTab: React.FC = () => {
       case "wire":
       case "direct_deposit": return p.wire_bank_name || "—";
       case "check": return `${p.check_full_name || ""}, ${p.check_city || ""}`;
+      case "cashapp": return p.cashapp_cashtag || p.cashapp_phone || p.cashapp_email || "—";
       default: return "—";
     }
   };
@@ -253,6 +255,14 @@ const AdminPayoutTab: React.FC = () => {
             <div><strong>Address:</strong> {p.check_address_line1}{p.check_address_line2 ? `, ${p.check_address_line2}` : ""}</div>
             <div>{p.check_city}, {p.check_state} {p.check_zip_code}</div>
             {p.check_country && <div>{p.check_country}</div>}
+          </div>
+        );
+      case "cashapp":
+        return (
+          <div className="space-y-1 text-sm">
+            <div><strong>$Cashtag:</strong> {p.cashapp_cashtag || "—"}</div>
+            {p.cashapp_phone && <div><strong>Phone:</strong> {p.cashapp_phone}</div>}
+            {p.cashapp_email && <div><strong>Email:</strong> {p.cashapp_email}</div>}
           </div>
         );
       case "venmo":
