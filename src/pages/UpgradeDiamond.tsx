@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -452,6 +453,7 @@ const UpgradeDiamondPage: React.FC = () => {
                         cardMode="redirect"
                         isProcessing={upgradeInProgress}
                         disabled={!phoneNumber}
+                        extraOption={plan === "full" && (<CashAppCheckoutButton kind="membership" displayAmount={AMOUNT} disabled={!phoneNumber || upgradeInProgress} className="w-full py-6 text-lg" payload={{ tier: "diamond_plus", amount: AMOUNT, phone_number: phoneNumber }} />)}
                         paypalLabel={plan === "full" ? `Pay $${FULL_AMOUNT} Lifetime` : "Start 12-Month Plan"}
                       />
                     ) : (
