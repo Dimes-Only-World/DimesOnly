@@ -1461,7 +1461,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       id: `tip-${t.id}`, date: t.created_at,
       type: t.role === "performer" ? "Tip received" : "Tip override",
       payer: t.role === "performer" ? t.tipper_username ?? null : t.tipped_username ?? null,
-      avatar: t.tipper_username ? tipSenderProfiles[t.tipper_username]?.profile_photo ?? null : null,
+      avatar: t.tipper_username ? tipSenderProfiles[t.tipper_username.toLowerCase()]?.profile_photo ?? null : null,
       gross: t.original_tip_amount ?? null, commission: t.amount, status: t.status ?? null,
     })),
     ...referralCommissions.map((r) => ({
