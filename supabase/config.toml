@@ -132,3 +132,6 @@ verify_jwt = false
 
 [functions.earnings-payers]
 verify_jwt = false
+
+[functions.cashapp-checkout]
+verify_jwt = false
