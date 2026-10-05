@@ -70,7 +70,7 @@ export function keepRateFor(stream: string, direct: unknown, upline: unknown): n
   const base = (KEEP as any)[stream] ?? 1;
   if (stream === "tips") return base;
   if (isCompany(direct)) return 1;
-  return isCompany(upline) ? Math.min(1, base + (OVERRIDE[stream] ?? 0)) : base;
+  return isCompany(upline) ? Math.min(1, Math.round((base + (OVERRIDE[stream] ?? 0)) * 100) / 100) : base;
 }
 
 export async function companyFinancials(db: any) {
