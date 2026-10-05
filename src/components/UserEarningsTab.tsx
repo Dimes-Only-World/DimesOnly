@@ -278,6 +278,8 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     overrides: 0,
     count: 0,
   });
+  const [eventRowsList, setEventRowsList] = useState<any[]>([]);
+  const [payoutAmount, setPayoutAmount] = useState("");
 
   const [tabValue, setTabValue] = useState("tips");
   const [section, setSection] = useState("overview");
@@ -848,6 +850,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
           .reduce((sum, r) => sum + Number(r?.amount || 0), 0),
         count: eventRows.length,
       });
+      setEventRowsList(eventRows);
 
 
       setWeeklyEarnings(
@@ -1007,8 +1010,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const weeklyTotal = (
         (weeklyResult.data as unknown as WeeklyEarning[]) || []
       ).reduce((sum, earning) => sum + (earning.amount || 0), 0);
+      const eventTotal = eventRows.reduce((s, r) => s + Number(r?.amount || 0), 0);
       const totalEarnings =
-        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal + vehicleSaleTotal + flixTotal;
+        Math.max(tipsTotal + referralTotal, weeklyTotal) + rentalTotal + clothingTotal + vehicleSaleTotal + flixTotal + eventTotal;
       const r2 = (n: number) => Math.round(n * 100) / 100;
       setEarningsBreakdown({
         tips: r2(tipsTotal),
@@ -1017,6 +1021,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         clothing: r2(clothingTotal),
         vehicle_sales: r2(vehicleSaleTotal),
         flameflix: r2(flixTotal),
+        events: r2(eventTotal),
         as_of: new Date().toISOString(),
       });
       const { data: myPayouts } = await supabase
@@ -1090,6 +1095,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       });
       return;
     }
+    setPayoutAmount(availableForWithdrawal.toFixed(2));
     setShowPayoutForm(true);
   };
 
@@ -1105,6 +1111,16 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
     const isValid = validatePayoutForm();
     if (!isValid) return;
+
+    const requestAmount = Math.round((Number(payoutAmount) || 0) * 100) / 100;
+    if (requestAmount < MIN_PAYOUT || requestAmount > availableForWithdrawal) {
+      toast({
+        title: "Invalid amount",
+        description: `Enter an amount between $${MIN_PAYOUT} and ${formatCurrency(availableForWithdrawal)}.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSubmittingPayout(true);
 
@@ -1139,7 +1155,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         .from("payout_requests")
         .insert({
           user_id: userData.id,
-          amount: availableForWithdrawal,
+          amount: requestAmount,
           earnings_breakdown: earningsBreakdown,
           payout_method: payoutFormData.payoutMethod,
           scheduled_payout_date: nextPayoutResult,
@@ -1227,7 +1243,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
                   account_number: achAccount,
                   payee_id: payoutFormData.achPayeeId || null,
                   payee_name: achPayeeName || null,
-                  amount_cents: Math.round(availableForWithdrawal * 100),
+                  amount_cents: Math.round(requestAmount * 100),
                   trace_id: traceId,
                 })
               : null,
@@ -1248,7 +1264,7 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       toast({
         title: "Payout Request Submitted",
         description: `Your payout request for ${formatCurrency(
-          availableForWithdrawal,
+          requestAmount,
         )} has been submitted and will be processed on ${new Date(
           nextPayoutResult as string,
         ).toLocaleDateString()}.`,
@@ -1483,6 +1499,11 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     ...flixEarnings.map((f) => ({
       id: `flix-${f.id}`, date: f.created_at, type: f.level === 1 ? "FlameFlix direct (10%)" : "FlameFlix override (5%)",
       payer: null, gross: null, commission: f.amount_cents / 100, status: f.status,
+    })),
+    ...eventRowsList.map((e) => ({
+      id: `event-${e.id}`, date: e.created_at,
+      type: /override|upline/i.test(String(e.earnings_type || "")) ? "Event override" : "Event earnings",
+      payer: null, gross: null, commission: Number(e.amount) || 0,
     })),
   ];
 
@@ -2567,7 +2588,7 @@ return (
           <DialogHeader>
             <DialogTitle className="text-gray-900 flex items-center gap-2">
               <DollarSign className="w-5 h-5" />
-              Request Payout - {formatCurrency(availableForWithdrawal)}
+              Request Payout - {formatCurrency(Number(payoutAmount) || 0)}
             </DialogTitle>
             <DialogDescription className="text-gray-600">
               Choose your payout method. Payouts are processed on the 1st and
@@ -2576,6 +2597,21 @@ return (
           </DialogHeader>
 
           <div className="overflow-y-auto max-h-[60vh] space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="payoutAmount" className="text-sm font-medium text-gray-700">
+                Amount to cash out (${MIN_PAYOUT} – {formatCurrency(availableForWithdrawal)})
+              </Label>
+              <Input
+                id="payoutAmount"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min={MIN_PAYOUT}
+                max={availableForWithdrawal}
+                value={payoutAmount}
+                onChange={(e) => setPayoutAmount(e.target.value)}
+              />
+            </div>
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-700">
                 Select Payout Method *
