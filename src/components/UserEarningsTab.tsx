@@ -56,6 +56,10 @@ import AngelLoader from "./AngelLoader";
 import VehicleSaleCommissionsCard, { type SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";
 import EarningsCategoryReports, { MessageButton, type FlixEarning } from "@/components/earnings/EarningsCategoryReports";
 import BonusBox from "@/components/BonusBox";
+import EarningsLedgerCards from "@/components/earnings/EarningsLedgerCards";
+import EarningsActivityFeed, { type ActivityEntry } from "@/components/earnings/EarningsActivityFeed";
+import PayPeriodSummary from "@/components/earnings/PayPeriodSummary";
+import { computeLedger, canRequestPayout, MIN_PAYOUT } from "@/lib/earningsLedger";
 import { MiniAvatar } from "@/components/rentals/saleCommissionUi";
 
 const PERFORMER_RATE = 0.2;
@@ -275,7 +279,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     count: 0,
   });
 
-  const [tabValue, setTabValue] = useState("weekly");
+  const [tabValue, setTabValue] = useState("tips");
+  const [section, setSection] = useState("overview");
+  const [legacyPaid, setLegacyPaid] = useState(0);
   const [totalYearlyEarnings, setTotalYearlyEarnings] = useState(0);
   const [availableForWithdrawal, setAvailableForWithdrawal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -1023,10 +1029,11 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       const paidOut = (
         (payoutsResult.data as unknown as CommissionPayout[]) || []
       ).reduce((sum, payout) => sum + (Number(payout.amount) || 0), 0);
-      const available = Math.max(0, totalEarnings - paidOut);
+      const ledgerNow = computeLedger(totalEarnings, (myPayouts as any[]) || [], paidOut);
 
+      setLegacyPaid(paidOut);
       setCurrentEarnings(totalEarnings);
-      setAvailableForWithdrawal(available);
+      setAvailableForWithdrawal(ledgerNow.available);
 
       const currentYear = new Date().getFullYear();
       const yearlyAmount = (
@@ -1073,10 +1080,12 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
   };
 
   const handlePayoutRequest = async () => {
-    if (availableForWithdrawal === 0) {
+    if (!canRequestPayout(availableForWithdrawal, myPayoutRequests)) {
       toast({
-        title: "No Earnings",
-        description: "You have no earnings available for withdrawal",
+        title: "Payout not available yet",
+        description: myPayoutRequests.some((r) => ["pending", "processing"].includes(r.request_status))
+          ? "You already have a payout request in processing."
+          : `You need at least $${MIN_PAYOUT} available to request a payout.`,
         variant: "destructive",
       });
       return;
@@ -1445,6 +1454,38 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     .filter((i) => !i.override_badge)
     .reduce((sum, i) => sum + (i.amount || 0), 0);
 
+  const ledger = computeLedger(currentEarnings, myPayoutRequests, legacyPaid);
+
+  const activityEntries: ActivityEntry[] = [
+    ...combinedTips.map((t) => ({
+      id: `tip-${t.id}`, date: t.created_at,
+      type: t.role === "performer" ? "Tip received" : "Tip override",
+      payer: t.role === "performer" ? t.tipper_username ?? null : t.tipped_username ?? null,
+      avatar: t.tipper_username ? tipSenderProfiles[t.tipper_username.toLowerCase()]?.profile_photo ?? null : null,
+      gross: t.original_tip_amount ?? null, commission: t.amount, status: t.status ?? null,
+    })),
+    ...referralCommissions.map((r) => ({
+      id: `ref-${r.id}`, date: r.created_at, type: "Upgrade referral",
+      payer: null, gross: Number(r.amount) || null, commission: Number(r.referrer_commission) || 0,
+    })),
+    ...rentalCommissions.map((c) => ({
+      id: `rent-${c.id}`, date: c.created_at, type: c.commission_type === "upline" ? "Rental override (5%)" : "Rental direct (10%)",
+      payer: null, gross: null, commission: Number(c.amount) || 0, status: c.status,
+    })),
+    ...clothingCommissions.map((c) => ({
+      id: `cloth-${c.id}`, date: c.created_at, type: c.commission_type === "clothing_upline" ? "Clothing override (5%)" : "Clothing direct (10%)",
+      payer: null, gross: null, commission: Number(c.amount) || 0, status: c.status,
+    })),
+    ...(saleData?.rows || []).filter((r) => r.status === "sold").map((r) => ({
+      id: `sale-${r.id}`, date: r.sold_at || r.submitted_at, type: r.level === "direct" ? "Car sale direct (53%)" : "Car sale override (5%)",
+      payer: r.buyer_username ?? null, avatar: r.buyer_avatar, gross: null, commission: Number(r.amount) || 0, status: r.status,
+    })),
+    ...flixEarnings.map((f) => ({
+      id: `flix-${f.id}`, date: f.created_at, type: f.level === 1 ? "FlameFlix direct (10%)" : "FlameFlix override (5%)",
+      payer: null, gross: null, commission: f.amount_cents / 100, status: f.status,
+    })),
+  ];
+
   const [dmOpen, setDmOpen] = useState(false);
   const [dmRecipient, setDmRecipient] = useState<string>("");
   const [dmBody, setDmBody] = useState<string>("");
@@ -1558,34 +1599,64 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
 
 return (
     <div className="earnings-wall space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h3 className="font-medium">
-                Minimum Payout Start at&nbsp;$250.00
-              </h3>
-              <p className="text-sm text-gray-500">
-                You have {formatCurrency(availableForWithdrawal)} available for
-                withdrawal
-              </p>
+      <EarningsLedgerCards available={ledger.available} inProcessing={ledger.inProcessing} paid={ledger.paid} totalEarned={ledger.totalEarned} />
+      <Tabs value={section} onValueChange={setSection} className="w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full gap-2 h-auto bg-gray-50 border border-gray-200 p-2 rounded-lg">
+          <TabsTrigger value="overview" className="w-full h-11 data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium">Overview</TabsTrigger>
+          <TabsTrigger value="categories" className="w-full h-11 data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium">Categories</TabsTrigger>
+          <TabsTrigger value="payouts" className="w-full h-11 data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium">Payouts & Cash Out</TabsTrigger>
+          <TabsTrigger value="periods" className="w-full h-11 data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-800 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium">Pay Periods</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Last 7 Days
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">
+              {formatCurrency(recentEarnings)}
             </div>
-            <div className="rounded-lg border border-green-200 bg-green-50 px-6 py-3 text-center">
-              <p className="text-sm font-medium text-green-700">Available Earnings</p>
-              <p className="text-2xl font-bold text-green-800">{formatCurrency(availableForWithdrawal)}</p>
-              <p className="text-xs text-green-600">Available for withdrawal</p>
+            <p className="text-xs text-gray-500">Recent earnings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              Jackpot Tickets
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">
+              {jackpotData.currentTickets}
             </div>
-            <Button
-              onClick={handlePayoutRequest}
-              className="bg-green-600 hover:bg-green-700"
-              disabled={availableForWithdrawal === 0}
-            >
-              Payout Method
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      {myPayoutRequests.length > 0 && <MemberPayoutHistory payouts={myPayoutRequests} />}
+            <p className="text-xs text-gray-500">Active tickets</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Referrals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">
+              {totalReferrals}
+            </div>
+            <p className="text-xs text-gray-500">Total referrals</p>
+          </CardContent>
+        </Card>
+      </div>
+          <EarningsActivityFeed entries={activityEntries} />
+        </TabsContent>
+        <TabsContent value="categories" className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
@@ -1720,7 +1791,6 @@ return (
           </CardContent>
         </Card>
       </div>
-
       <BonusBox />
 
       <VehicleSaleCommissionsCard data={saleData} />
@@ -1798,54 +1868,6 @@ return (
           </CardContent>
         </Card>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Last 7 Days
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">
-              {formatCurrency(recentEarnings)}
-            </div>
-            <p className="text-xs text-gray-500">Recent earnings</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              Jackpot Tickets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">
-              {jackpotData.currentTickets}
-            </div>
-            <p className="text-xs text-gray-500">Active tickets</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Referrals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">
-              {totalReferrals}
-            </div>
-            <p className="text-xs text-gray-500">Total referrals</p>
-          </CardContent>
-        </Card>
-      </div>
-
       <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
         {(() => {
           const trig =
@@ -1864,12 +1886,6 @@ return (
             <TabsList
               className={`grid grid-cols-2 sm:grid-cols-4 w-full gap-2 h-auto bg-gray-50 border border-gray-200 p-2 rounded-lg ${getContentClasses()}`}
             >
-              <TabsTrigger
-                value="weekly"
-                className={`${trig} col-span-2 sm:col-span-4 justify-self-center sm:!w-[calc(50%-0.25rem)]`}
-              >
-                Pay Period History
-              </TabsTrigger>
               {tabs.map(([v, label]) => (
                 <TabsTrigger key={v} value={v} className={trig}>
                   {label}
@@ -1878,7 +1894,6 @@ return (
             </TabsList>
           );
         })()}
-
         {(["vehicle", "rentals", "flix", "clothing"] as const).map((c) => (
           <TabsContent key={c} value={c} className="space-y-4">
             <EarningsCategoryReports
@@ -1891,66 +1906,6 @@ return (
             />
           </TabsContent>
         ))}
-
-        <TabsContent value="weekly" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Pay Earnings History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {weeklyEarnings.length === 0 ? (
-                <div className="text-center py-8">
-                  <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No earnings history yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {weeklyEarnings.map((earning) => (
-                    <div
-                      key={earning.id}
-                      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium">
-                          Pay period{" "}
-                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
-                          {new Date(earning.week_end).toLocaleDateString()}
-                        </p>
-                        <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-600">
-                          <span>Tips: {formatCurrency(earning.tip_earnings || 0)}</span>
-                          <span>Referrals: {formatCurrency(earning.referral_earnings || 0)}</span>
-                          <span>Jackpot: {formatCurrency(earning.bonus_earnings || 0)}</span>
-                        </div>
-                      </div>
-                      <div className="w-full sm:w-auto flex items-center justify-between gap-3">
-                        <Button
-                          variant="secondary"
-                          className="bg-yellow-400 text-black hover:bg-yellow-300 shrink-0 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
-                          onClick={() => {
-                            setStartDate(String(earning.week_start).slice(0, 10));
-                            setEndDate(String(earning.week_end).slice(0, 10));
-                            setTabValue("referrals");
-                            fetchReferralEarnings(1, pageSize);
-                          }}
-                        >
-                          View Referrals
-                        </Button>
-                        <div className="text-right shrink-0">
-                          <p className="text-lg font-bold">{formatCurrency(earning.amount || 0)}</p>
-                          <Badge variant="default">Total</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="tips" className="space-y-4">
           <Card>
             <CardHeader>
@@ -2465,6 +2420,103 @@ return (
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+      </Tabs>
+        </TabsContent>
+        <TabsContent value="payouts" className="space-y-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="font-medium">
+                Minimum Payout Start at&nbsp;$250.00
+              </h3>
+              <p className="text-sm text-gray-500">
+                You have {formatCurrency(availableForWithdrawal)} available for
+                withdrawal
+              </p>
+            </div>
+            <div className="rounded-lg border border-green-200 bg-green-50 px-6 py-3 text-center">
+              <p className="text-sm font-medium text-green-700">Available Earnings</p>
+              <p className="text-2xl font-bold text-green-800">{formatCurrency(availableForWithdrawal)}</p>
+              <p className="text-xs text-green-600">Available for withdrawal</p>
+            </div>
+            <Button
+              onClick={handlePayoutRequest}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={!canRequestPayout(availableForWithdrawal, myPayoutRequests)}
+            >
+              Request Payout
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      {myPayoutRequests.length > 0 ? <MemberPayoutHistory payouts={myPayoutRequests} /> : <p className="text-center text-sm text-muted-foreground">No payout requests yet.</p>}
+        </TabsContent>
+        <TabsContent value="periods" className="space-y-4">
+          <PayPeriodSummary entries={activityEntries} />
+          <Tabs value="weekly">
+        <TabsContent value="weekly" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Pay Earnings History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {weeklyEarnings.length === 0 ? (
+                <div className="text-center py-8">
+                  <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No earnings history yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {weeklyEarnings.map((earning) => (
+                    <div
+                      key={earning.id}
+                      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium">
+                          Pay period{" "}
+                          {new Date(earning.week_start).toLocaleDateString()} -{" "}
+                          {new Date(earning.week_end).toLocaleDateString()}
+                        </p>
+                        <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-600">
+                          <span>Tips: {formatCurrency(earning.tip_earnings || 0)}</span>
+                          <span>Referrals: {formatCurrency(earning.referral_earnings || 0)}</span>
+                          <span>Jackpot: {formatCurrency(earning.bonus_earnings || 0)}</span>
+                        </div>
+                      </div>
+                      <div className="w-full sm:w-auto flex items-center justify-between gap-3">
+                        <Button
+                          variant="secondary"
+                          className="bg-yellow-400 text-black hover:bg-yellow-300 shrink-0 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
+                          onClick={() => {
+                            setStartDate(String(earning.week_start).slice(0, 10));
+                            setEndDate(String(earning.week_end).slice(0, 10));
+                            setSection("categories");
+                            setTabValue("referrals");
+                            fetchReferralEarnings(1, pageSize);
+                          }}
+                        >
+                          View Referrals
+                        </Button>
+                        <div className="text-right shrink-0">
+                          <p className="text-lg font-bold">{formatCurrency(earning.amount || 0)}</p>
+                          <Badge variant="default">Total</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+          </Tabs>
         </TabsContent>
       </Tabs>
 
