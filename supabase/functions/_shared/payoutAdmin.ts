@@ -53,34 +53,78 @@ async function all(db: any, table: string, cols: string, apply: (q: any) => any)
 
 const sum = (rows: any[], f: (r: any) => number) => Math.round(rows.reduce((s, r) => s + (Number(f(r)) || 0), 0) * 100) / 100;
 
-/** Company keep ratios used for the profit estimate. */
-export const KEEP = { tips: 0.45, car_sales: 0.42, rentals: 0.85, clothing: 0.85, memberships: 0.7, tickets: 1, flameflix: 0.85 };
+/** Base company keep ratios (when a member is the direct referrer). */
+export const KEEP = { tips: 0.10, car_sales: 0.42, rentals: 0.85, clothing: 0.85, memberships: 0.7, tickets: 0.7, flameflix: 0.85 };
+/** Upline override share the company also keeps when it is the direct referrer's upline. */
+export const OVERRIDE = { car_sales: 0.05, rentals: 0.10, clothing: 0.10, memberships: 0.10, tickets: 0.10, flameflix: 0.10 } as Record<string, number>;
+
+const isCompany = (r: unknown) => {
+  const s = String(r ?? "").trim().replace(/^@/, "").toLowerCase();
+  return !s || s === "company";
+};
+
+/** Company keep rate for one sale given its direct referrer (tips are always the flat rate). */
+export function keepRateFor(stream: string, direct: unknown, upline: unknown): number {
+  const base = (KEEP as any)[stream] ?? 1;
+  if (stream === "tips") return base;
+  if (isCompany(direct)) return 1;
+  return isCompany(upline) ? Math.min(1, base + (OVERRIDE[stream] ?? 0)) : base;
+}
 
 export async function companyFinancials(db: any) {
-  const [tips, rentals, ext, store, sales, payments, tickets, flix, payouts] = await Promise.all([
+  const [tips, rentals, ext, store, sales, payments, tickets, flix, payouts, users] = await Promise.all([
     all(db, "tips_transactions", "tip_amount", (q) => q.eq("payment_status", "completed")),
-    all(db, "rental_bookings", "total_price, amount_received, security_deposit, paid_at", (q) => q.not("paid_at", "is", null)),
-    all(db, "rental_extensions", "total_charged", (q) => q.eq("status", "paid")),
-    all(db, "store_orders", "total_cents, status", (q) => q.in("status", ["paid", "completed", "shipped", "delivered", "fulfilled"])),
-    all(db, "vehicle_purchase_applications", "sale_amount", (q) => q.eq("sale_status", "sold")),
-    all(db, "payments", "amount, event_id", (q) => q.in("payment_status", ["completed", "paid"])),
-    all(db, "user_events", "amount_paid", (q) => q.in("payment_status", ["paid", "completed"])),
-    all(db, "flix_subscriptions", "amount_cents", (q) => q.not("paid_at", "is", null)),
+    all(db, "rental_bookings", "id, total_price, amount_received, security_deposit, paid_at, referrer_username, upline_referrer_username, renter_user_id", (q) => q.not("paid_at", "is", null)),
+    all(db, "rental_extensions", "total_charged, booking_id, renter_user_id", (q) => q.eq("status", "paid")),
+    all(db, "store_orders", "total_cents, status, user_id", (q) => q.in("status", ["paid", "completed", "shipped", "delivered", "fulfilled"])),
+    all(db, "vehicle_purchase_applications", "sale_amount, referrer_user_id, referrer_username, upline_user_id", (q) => q.eq("sale_status", "sold")),
+    all(db, "payments", "amount, event_id, referred_by, user_id", (q) => q.in("payment_status", ["completed", "paid"])),
+    all(db, "user_events", "amount_paid, referred_by, user_id", (q) => q.in("payment_status", ["paid", "completed"])),
+    all(db, "flix_subscriptions", "amount_cents, user_id", (q) => q.not("paid_at", "is", null)),
     all(db, "payout_requests", "amount, request_status", (q) => q),
+    all(db, "users", "id, username, referred_by", (q) => q),
   ]);
-  const gross = {
-    tips: sum(tips, (r) => r.tip_amount),
-    rentals: sum(rentals, (r) => r.amount_received ?? (Number(r.total_price) || 0)) + sum(ext, (r) => r.total_charged),
-    car_sales: sum(sales, (r) => r.sale_amount),
-    clothing: sum(store, (r) => r.total_cents / 100),
-    memberships: sum(payments.filter((p) => !p.event_id), (r) => r.amount),
-    tickets: sum(tickets, (r) => r.amount_paid),
-    flameflix: sum(flix, (r) => r.amount_cents / 100),
+  const byId = new Map<string, any>(users.map((u: any) => [u.id, u]));
+  const byName = new Map<string, any>(users.map((u: any) => [String(u.username || "").toLowerCase(), u]));
+  const refOfUser = (id: unknown) => byId.get(String(id))?.referred_by ?? null;
+  const uplineOfName = (name: unknown) => isCompany(name) ? null : byName.get(String(name).replace(/^@/, "").toLowerCase())?.referred_by ?? null;
+  const bookingById = new Map<string, any>(rentals.map((b: any) => [b.id, b]));
+
+  const acc: Record<string, { gross: number; profit: number }> = {};
+  const add = (stream: string, amount: unknown, direct: unknown, upline?: unknown) => {
+    const a = Number(amount) || 0;
+    const up = upline !== undefined ? upline : uplineOfName(direct);
+    const e = (acc[stream] ||= { gross: 0, profit: 0 });
+    e.gross += a; e.profit += a * keepRateFor(stream, direct, up);
   };
-  const streams = Object.entries(gross).map(([k, v]) => ({
-    stream: k, gross: Math.round(v * 100) / 100, keepRate: (KEEP as any)[k] ?? 1,
-    companyProfit: Math.round(v * ((KEEP as any)[k] ?? 1) * 100) / 100,
-  }));
+  for (const r of tips) add("tips", r.tip_amount, null);
+  for (const r of rentals) {
+    const direct = r.referrer_username ?? refOfUser(r.renter_user_id);
+    add("rentals", r.amount_received ?? (Number(r.total_price) || 0), direct, r.referrer_username ? (r.upline_referrer_username ?? uplineOfName(direct)) : undefined);
+  }
+  for (const r of ext) {
+    const b = bookingById.get(r.booking_id);
+    const direct = b?.referrer_username ?? refOfUser(r.renter_user_id);
+    add("rentals", r.total_charged, direct, b?.referrer_username ? (b.upline_referrer_username ?? uplineOfName(direct)) : undefined);
+  }
+  for (const r of sales) {
+    const directUser = r.referrer_user_id ? byId.get(r.referrer_user_id) : null;
+    const direct = directUser?.username ?? r.referrer_username;
+    const upline = r.upline_user_id ? byId.get(r.upline_user_id)?.username ?? null : uplineOfName(direct);
+    add("car_sales", r.sale_amount, direct, upline);
+  }
+  for (const r of store) add("clothing", (Number(r.total_cents) || 0) / 100, refOfUser(r.user_id));
+  for (const r of payments.filter((p: any) => !p.event_id)) add("memberships", r.amount, r.referred_by ?? refOfUser(r.user_id));
+  for (const r of tickets) add("tickets", r.amount_paid, r.referred_by ?? refOfUser(r.user_id));
+  for (const r of flix) add("flameflix", (Number(r.amount_cents) || 0) / 100, refOfUser(r.user_id));
+
+  const order = ["tips", "rentals", "car_sales", "clothing", "memberships", "tickets", "flameflix"];
+  const streams = order.map((k) => {
+    const e = acc[k] || { gross: 0, profit: 0 };
+    const gross = Math.round(e.gross * 100) / 100;
+    const companyProfit = Math.round(e.profit * 100) / 100;
+    return { stream: k, gross, keepRate: gross > 0 ? companyProfit / gross : (KEEP as any)[k], companyProfit };
+  });
   const totalVolume = sum(streams, (s) => s.gross);
   const owed = sum(payouts.filter((p) => ["pending", "processing"].includes(p.request_status)), (r) => r.amount);
   const paid = sum(payouts.filter((p) => p.request_status === "completed"), (r) => r.amount);
