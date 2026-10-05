@@ -1,4 +1,5 @@
 import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+import { priceStoreOrder } from "../_shared/storeFulfill.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -43,63 +44,9 @@ serve(async (req) => {
     if (!email) return json({ success: false, error: "Email is required" }, 400);
     if (!returnUrl || !cancelUrl) return json({ success: false, error: "Missing return urls" }, 400);
 
-    // Server-side pricing
-    const variantIds = items.map((i) => i.variant_id);
-    const { data: variants, error: vErr } = await supabase
-      .from("store_variants")
-      .select("id, size, color, stock, product_id, store_products(id,name,price_cents,image_paths,published,archived)")
-      .in("id", variantIds);
-    if (vErr) throw vErr;
-
-    let subtotal = 0;
-    const orderItems: Record<string, unknown>[] = [];
-    for (const item of items) {
-      const qty = Math.max(1, Math.min(20, Number(item.qty) || 1));
-      const v = (variants || []).find((x: any) => x.id === item.variant_id) as any;
-      if (!v) return json({ success: false, error: "Item no longer available" }, 400);
-      const p = v.store_products;
-      if (!p || !p.published || p.archived) return json({ success: false, error: `${p?.name || "Item"} is unavailable` }, 400);
-      if (v.stock < qty) return json({ success: false, error: `${p.name} (${v.size}/${v.color}) is out of stock` }, 400);
-      subtotal += p.price_cents * qty;
-      orderItems.push({
-        product_id: p.id,
-        variant_id: v.id,
-        name: p.name,
-        size: v.size,
-        color: v.color,
-        image_path: (p.image_paths || [])[0] || null,
-        unit_price_cents: p.price_cents,
-        qty,
-      });
-    }
-
-    // Shipping
-    const { data: shipSetting } = await supabase.from("store_settings").select("value").eq("key", "shipping").maybeSingle();
-    const ship = (shipSetting?.value as any) || { standard_cents: 799, express_cents: 1499, free_threshold_cents: 15000 };
-    let shippingCents = shippingMethod === "express" ? ship.express_cents : ship.standard_cents;
-    if (shippingMethod === "standard" && subtotal >= ship.free_threshold_cents) shippingCents = 0;
-
-    // Discount
-    let discountCents = 0;
-    let appliedCode: string | null = null;
-    if (discountCode) {
-      const { data: d } = await supabase.from("store_discounts").select("*").eq("code", discountCode).maybeSingle();
-      const now = new Date();
-      const valid =
-        d && d.active &&
-        subtotal >= (d.min_subtotal_cents || 0) &&
-        (!d.starts_at || new Date(d.starts_at) <= now) &&
-        (!d.ends_at || new Date(d.ends_at) >= now) &&
-        (!d.max_uses || d.uses < d.max_uses);
-      if (!valid) return json({ success: false, error: "Promo code is not valid for this order" }, 400);
-      discountCents = d.type === "percent"
-        ? Math.round(subtotal * (Number(d.value) / 100))
-        : Math.round(Number(d.value) * 100);
-      discountCents = Math.min(discountCents, subtotal);
-      appliedCode = d.code;
-    }
-
-    const totalCents = Math.max(0, subtotal - discountCents) + shippingCents;
+    const priced = await priceStoreOrder(supabase, { items, shipping_method: shippingMethod, discount_code: discountCode });
+    if ("error" in priced) return json({ success: false, error: priced.error }, 400);
+    const { subtotal, shippingCents, discountCents, totalCents, appliedCode, orderItems } = priced;
 
     // PayPal token
     const authRes = await fetch(`${base}/v1/oauth2/token`, {
