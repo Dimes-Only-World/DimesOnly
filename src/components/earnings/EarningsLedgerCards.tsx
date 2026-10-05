@@ -24,7 +24,7 @@ export const EARNINGS_RULES: Array<[string, string[]]> = [
   ["Vehicle Sales", ["53% direct ($530 on a $1,000 broker fee)", "5% upline override ($50)"]],
   ["Rentals & Clothing", ["10% direct", "5% upline override"]],
   ["FlameFlix", ["10% direct", "5% upline override"]],
-  ["Payouts", ["$250 minimum", "Paid on the 1st and 15th", "Available = Total Earned − (Pending + Approved + Paid)", "Rejected or refunded requests return to Available"]],
+  ["Payouts", ["$250 minimum", "Paid on the 1st and 15th", "Available = Total Earned − (Pending + Approved + Paid)", "Rejected or refunded requests return to Available\nMORE MONEY COMING SOON!"]],
 ];
 
 export const EarningsRulesDrawer: React.FC = () => (
