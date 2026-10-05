@@ -6,6 +6,7 @@ export const PAYOUT_METHODS: Record<string, string> = {
   wire: "Wire Transfer",
   direct_deposit: "ACH/Direct Deposit",
   check: "Check",
+  cashapp: "Cash App",
 };
 
 export const payoutMethodLabel = (m: string) => PAYOUT_METHODS[m] || m;

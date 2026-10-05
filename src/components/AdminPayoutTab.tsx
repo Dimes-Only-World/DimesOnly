@@ -225,6 +225,7 @@ const AdminPayoutTab: React.FC = () => {
       case "wire":
       case "direct_deposit": return p.wire_bank_name || "—";
       case "check": return `${p.check_full_name || ""}, ${p.check_city || ""}`;
+      case "cashapp": return p.cashapp_cashtag || p.cashapp_phone || p.cashapp_email || "—";
       default: return "—";
     }
   };
