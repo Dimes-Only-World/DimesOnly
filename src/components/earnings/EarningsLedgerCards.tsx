@@ -22,7 +22,7 @@ const cards = [
 export const EARNINGS_RULES: Array<[string, string[]]> = [
   ["Tips", ["60% to the performer", "5% referrer override", "Payment fees and remainder to the company"]],
   ["Vehicle Sales", ["53% direct ($530 on a $1,000 broker fee)", "5% upline override ($50)"]],
-  ["Car Rentals", ["85% direct referrer", "10% upline override"]],
+  ["Car Rentals", ["85% direct referrer", "10% upline override", "5% to the company"]],
   ["Clothing", ["10% direct", "5% upline override"]],
   ["FlameFlix", ["10% direct", "5% upline override"]],
   ["Payouts", ["$250 minimum", "Paid on the 1st and 15th", "Available = Total Earned − (Pending + Approved + Paid)", "Rejected or refunded requests return to Available\nMORE MONEY COMING SOON!"]],
