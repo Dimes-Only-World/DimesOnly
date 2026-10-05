@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -242,6 +243,7 @@ const Elite: React.FC = () => {
                       onCardRedirect={() => startPayment("card")}
                       isProcessing={loading}
                       disabled={!phoneNumber}
+                    extraOption={<CashAppCheckoutButton kind="membership" displayAmount={AMOUNT} disabled={!phoneNumber || loading} className="w-full py-6 text-lg" payload={{ tier: "elite", amount: AMOUNT, phone_number: phoneNumber }} />}
                       paypalLabel={paypalLabel}
                     />
                   </div>

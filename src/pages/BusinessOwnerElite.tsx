@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useEffect, useState } from "react";
 import StagePriceBanner from "@/components/StagePriceBanner";
 import { useMembershipStage } from "@/hooks/useMembershipStage";
@@ -272,6 +273,7 @@ const BusinessOwnerElite: React.FC = () => {
                     onCardRedirect={() => startPayment("card")}
                     isProcessing={loading}
                     disabled={!phoneNumber}
+                    extraOption={plan === "lifetime" && (<CashAppCheckoutButton kind="membership" displayAmount={AMOUNT} disabled={!phoneNumber || loading} className="w-full py-6 text-lg" payload={{ tier: "business_owner_elite", amount: AMOUNT, phone_number: phoneNumber }} />)}
                     paypalLabel={plan === "lifetime" ? `Pay ${L} Lifetime` : "Start 12-Month Plan"}
                   />
                   ) : (

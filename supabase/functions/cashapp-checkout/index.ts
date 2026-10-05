@@ -163,6 +163,7 @@ Deno.serve(async (req) => {
         amount = stage.full;
       }
       if (b.tier === "elite") amount = 10000;
+      if (b.tier === "silver") amount = 49.99;
       if (b.phone_number) await db.from("users").update({ phone_number: b.phone_number }).eq("id", userId);
       const { data: up, error: uErr } = await db.from("membership_upgrades").insert({
         user_id: userId, upgrade_type: b.tier, payment_amount: amount, payment_method: "cashapp",

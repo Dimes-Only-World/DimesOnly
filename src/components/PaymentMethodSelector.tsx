@@ -13,6 +13,8 @@ interface PaymentMethodSelectorProps {
   disabled?: boolean;
   paypalLabel?: string;
   cardMode?: "form" | "redirect";
+  /** Optional extra payment option (e.g. Cash App) rendered under the card button. */
+  extraOption?: React.ReactNode;
 }
 
 export interface CardData {
@@ -33,6 +35,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   disabled = false,
   paypalLabel = "Pay with PayPal",
   cardMode = "form",
+  extraOption,
 }) => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
@@ -139,6 +142,8 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         <CreditCard className="mr-2 h-5 w-5" />
         Pay with Card
       </Button>
+
+      {extraOption}
 
       <p className="text-xs text-center text-muted-foreground mt-2">
         Secure payment processed by PayPal
