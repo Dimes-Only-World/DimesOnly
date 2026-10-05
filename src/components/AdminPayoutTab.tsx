@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DollarSign, Clock, CheckCircle, Search, Eye, CheckCheck, Download, Undo2, Wallet } from "lucide-react";
+import AdminPayoutTools from "@/components/payouts/AdminPayoutTools";
 import { PAYOUT_METHODS, PAYROLL_THRESHOLD, breakdownEntries, fmtDate, payrollBand, sumAmounts, toCsv } from "@/lib/payouts";
 
 interface PayoutRequest {
@@ -319,6 +320,7 @@ const AdminPayoutTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AdminPayoutTools approved={filteredApproved} adminUserId={getAdminUserId} onDone={fetchPayouts} />
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
