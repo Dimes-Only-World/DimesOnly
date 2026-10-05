@@ -190,11 +190,14 @@ interface UserEarningsTabProps {
 }
 
 interface PayoutFormData {
-  payoutMethod: "paypal" | "venmo" | "wire" | "direct_deposit" | "check" | "";
+  payoutMethod: "paypal" | "venmo" | "cashapp" | "wire" | "direct_deposit" | "check" | "";
   paypalEmail: string;
   venmoUsername: string;
   venmoPhone: string;
   venmoEmail: string;
+  cashappCashtag: string;
+  cashappPhone: string;
+  cashappEmail: string;
   wireBankName: string;
   wireRoutingNumber: string;
   wireAccountNumber: string;
@@ -293,6 +296,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
     payoutMethod: "",
     paypalEmail: "",
     venmoUsername: "",
+    cashappCashtag: "",
+    cashappPhone: "",
+    cashappEmail: "",
     venmoPhone: "",
     venmoEmail: "",
     wireBankName: "",
@@ -1163,9 +1169,14 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
             payoutFormData.payoutMethod === "paypal"
               ? payoutFormData.paypalEmail
               : null,
-          cashapp_cashtag: null,
-          cashapp_phone: null,
-          cashapp_email: null,
+          cashapp_cashtag:
+            payoutFormData.payoutMethod === "cashapp"
+              ? "$" + payoutFormData.cashappCashtag.trim().replace(/^\$+/, "")
+              : null,
+          cashapp_phone:
+            payoutFormData.payoutMethod === "cashapp" ? payoutFormData.cashappPhone.trim() || null : null,
+          cashapp_email:
+            payoutFormData.payoutMethod === "cashapp" ? payoutFormData.cashappEmail.trim() || null : null,
           wire_bank_name:
             payoutFormData.payoutMethod === "wire" ||
             payoutFormData.payoutMethod === "direct_deposit"
@@ -1297,6 +1308,15 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
         });
         return false;
       }
+    } else if (payoutMethod === "cashapp") {
+      if (!payoutFormData.cashappCashtag.trim()) {
+        toast({
+          title: "Missing Information",
+          description: "Cash App $Cashtag is required",
+          variant: "destructive",
+        });
+        return false;
+      }
     } else if (payoutMethod === "venmo") {
       if (!payoutFormData.venmoUsername) {
         toast({
@@ -1398,6 +1418,9 @@ const UserEarningsTab: React.FC<UserEarningsTabProps> = ({ userData }) => {
       payoutMethod: "",
       paypalEmail: "",
       venmoUsername: "",
+      cashappCashtag: "",
+      cashappPhone: "",
+      cashappEmail: "",
       venmoPhone: "",
       venmoEmail: "",
       wireBankName: "",
@@ -2619,7 +2642,7 @@ return (
               <Select
                 value={payoutFormData.payoutMethod}
                 onValueChange={(
-                  value: "paypal" | "venmo" | "wire" | "direct_deposit" | "check",
+                  value: "paypal" | "venmo" | "cashapp" | "wire" | "direct_deposit" | "check",
                 ) => updatePayoutFormData("payoutMethod", value)}
               >
                 <SelectTrigger className="w-full">
@@ -2630,6 +2653,12 @@ return (
                     <div className="flex items-center gap-2">
                       <Smartphone className="w-4 h-4" />
                       Venmo (Instant)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="cashapp">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-4 h-4" />
+                      Cash App
                     </div>
                   </SelectItem>
                   <SelectItem value="paypal">
@@ -2689,6 +2718,33 @@ return (
                     <p className="text-xs text-gray-500 mt-1">
                       Enter the email address associated with your PayPal account
                     </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {payoutFormData.payoutMethod === "cashapp" && (
+              <Card className="border-green-200 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="text-lg text-green-700 flex items-center gap-2">
+                    <Smartphone className="w-5 h-5" /> Cash App Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="cashappCashtag" className="text-sm font-medium text-gray-700">$Cashtag *</Label>
+                    <Input id="cashappCashtag" value={payoutFormData.cashappCashtag}
+                      onChange={(e) => updatePayoutFormData("cashappCashtag", e.target.value)} placeholder="$yourcashtag" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cashappPhone" className="text-sm font-medium text-gray-700">Phone (optional)</Label>
+                    <Input id="cashappPhone" value={payoutFormData.cashappPhone}
+                      onChange={(e) => updatePayoutFormData("cashappPhone", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cashappEmail" className="text-sm font-medium text-gray-700">Email (optional)</Label>
+                    <Input id="cashappEmail" type="email" value={payoutFormData.cashappEmail}
+                      onChange={(e) => updatePayoutFormData("cashappEmail", e.target.value)} />
                   </div>
                 </CardContent>
               </Card>
