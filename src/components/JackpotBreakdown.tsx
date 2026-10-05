@@ -112,7 +112,7 @@ const JackpotBreakdown: React.FC = () => {
             <PlaceHeader
               icon={<Trophy className="w-5 h-5 text-amber-500" />}
               place="1st Place Winner"
-              winners="1 Winner"
+              winners="3 Winners"
               accent="gold"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -142,7 +142,7 @@ const JackpotBreakdown: React.FC = () => {
             <PlaceHeader
               icon={<Award className="w-5 h-5 text-orange-500" />}
               place="3rd Place Drawing"
-              winners="3 Winners"
+              winners="1 Winner"
               accent="bronze"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
