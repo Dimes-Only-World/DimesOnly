@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { parseSupabaseFunctionError } from "@/lib/parseSupabaseFunctionError";
 
 export const CASH_APP_TAG = "$BestCarRentals";
 const CASH_APP_URL = "https://cash.app/$BestCarRentals";
@@ -36,7 +35,11 @@ const CashAppCheckoutButton: React.FC<Props> = ({ kind, payload, displayAmount, 
         body: { action: "create", kind, ...payload },
       });
       if (error || !data?.success) {
-        throw new Error(data?.error || (error ? await parseSupabaseFunctionError(error) : "Could not start Cash App payment"));
+        let msg = data?.error as string | undefined;
+        if (!msg && error && (error as any).context?.json) {
+          try { msg = (await (error as any).context.json())?.error; } catch { /* ignore */ }
+        }
+        throw new Error(msg || "Could not start Cash App payment");
       }
       setPayment(data.payment);
       onCreated?.(data.payment);
