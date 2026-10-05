@@ -20,7 +20,7 @@ const cards = [
 ] as const;
 
 export const EARNINGS_RULES: Array<[string, string[]]> = [
-  ["Tips", ["60% to the performer", "5% referrer override", "25% to the jackpot pool", "Payment fees and remainder to the company"]],
+  ["Tips", ["60% to the performer", "5% referrer override", "Payment fees and remainder to the company"]],
   ["Vehicle Sales", ["53% direct ($530 on a $1,000 broker fee)", "5% upline override ($50)"]],
   ["Rentals & Clothing", ["10% direct", "5% upline override"]],
   ["FlameFlix", ["10% direct", "5% upline override"]],
