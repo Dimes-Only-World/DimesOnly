@@ -141,7 +141,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
                   ))}
                 </tbody>
               </table>
-              <p className="mt-2 text-xs text-muted-foreground">Estimate using each stream's company share. Payment processor fees aren't tracked per sale, so they're not subtracted.</p>
+              <p className="mt-2 text-xs text-muted-foreground">Company keeps 10% of tips and 70% of tickets. When the company is the direct referrer it keeps 100% (except tips); when it is the upline, the override is added. "Company keeps" shows the blended rate. Payment processor fees aren't subtracted.</p>
             </div>
           )}
         </CardContent>
