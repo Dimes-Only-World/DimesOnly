@@ -268,6 +268,66 @@ export type Database = {
           },
         ]
       }
+      cashapp_payments: {
+        Row: {
+          amount: number
+          cashapp_reference: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          description: string | null
+          details: Json
+          fulfillment_error: string | null
+          id: string
+          kind: string
+          payment_code: string
+          reference_id: string | null
+          rejected_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          amount: number
+          cashapp_reference?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          description?: string | null
+          details?: Json
+          fulfillment_error?: string | null
+          id?: string
+          kind: string
+          payment_code: string
+          reference_id?: string | null
+          rejected_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          amount?: number
+          cashapp_reference?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          description?: string | null
+          details?: Json
+          fulfillment_error?: string | null
+          id?: string
+          kind?: string
+          payment_code?: string
+          reference_id?: string | null
+          rejected_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       commission_payouts: {
         Row: {
           amount: number
