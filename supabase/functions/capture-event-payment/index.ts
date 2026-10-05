@@ -1,4 +1,5 @@
 import { getCallerId, getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
+import { fulfillEventPayment } from "../_shared/eventFulfill.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -7,12 +8,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": AUTH_HEADERS,
 };
 
-// PayPal fee calculation (2.75% + $0.50)
-const PAYPAL_PERCENT_FEE = 0.0275;
-const PAYPAL_FIXED_FEE = 0.50;
-
-// Commission rates
-const EVENT_OWNER_RATE = 0.70; // 70% to event owner after fees
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -144,166 +139,21 @@ serve(async (req) => {
     console.log("Captured amount:", capturedAmount);
     console.log("Transaction ID:", transactionId);
 
-    // Check for duplicate transactions
-    const { data: existingTx } = await supabase
-      .from("event_transactions")
-      .select("id")
-      .eq("paypal_transaction_id", transactionId)
-      .single();
-
-    if (existingTx) {
-      console.log("Duplicate transaction detected:", transactionId);
+    const supabaseFul = supabase;
+    const result = await fulfillEventPayment(supabaseFul, {
+      orderId: order_id, transactionId, grossAmount: capturedAmount, event_id, event_owner_id,
+      buyer_id, buyer_username, ticket_type, ticket_quantity,
+    });
+    if (result.duplicate) {
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "Payment already processed",
-          transaction_id: transactionId,
-          payment_id: existingTx.id 
-        }),
+        JSON.stringify({ success: true, message: "Payment already processed", transaction_id: transactionId, payment_id: result.payment_id }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Calculate fees and allocations
     const grossAmount = capturedAmount;
-    const paypalFee = (grossAmount * PAYPAL_PERCENT_FEE) + PAYPAL_FIXED_FEE;
-    const netAmount = grossAmount - paypalFee;
-    const ownerEarnings = netAmount * EVENT_OWNER_RATE;
-    const platformFee = netAmount - ownerEarnings;
-
-    console.log("Fee breakdown:", {
-      gross: grossAmount,
-      paypalFee,
-      net: netAmount,
-      ownerEarnings,
-      platformFee,
-    });
-
-    // Update payment record
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .update({
-        payment_status: "completed",
-        paypal_payment_id: transactionId,
-        paypal_transaction_id: transactionId,
-        platform_fee: platformFee,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("paypal_order_id", order_id)
-      .select()
-      .single();
-
-    if (paymentError) {
-      console.error("Failed to update payment record:", paymentError);
-      // Continue processing even if this fails
-    }
-
-    // Get event owner ID if not provided
-    let finalEventOwnerId = event_owner_id;
-    if (!finalEventOwnerId) {
-      const { data: eventData } = await supabase
-        .from("events")
-        .select("host_user_id")
-        .eq("id", event_id)
-        .single();
-      finalEventOwnerId = eventData?.host_user_id;
-    }
-
-    // Create event transaction record
-    const { data: eventTx, error: txError } = await supabase
-      .from("event_transactions")
-      .insert({
-        event_id,
-        event_owner_id: finalEventOwnerId,
-        buyer_id,
-        payment_id: payment?.id,
-        paypal_transaction_id: transactionId,
-        amount: grossAmount,
-        currency: "USD",
-        payment_status: "completed",
-      })
-      .select()
-      .single();
-
-    if (txError) {
-      console.error("Failed to create event transaction:", txError);
-    } else {
-      console.log("Event transaction created:", eventTx.id);
-    }
-
-    // Add user to event (user_events table)
-    const { error: userEventError } = await supabase
-      .from("user_events")
-      .upsert(
-        {
-          user_id: buyer_id,
-          event_id,
-          username: buyer_username || "guest",
-          payment_status: "paid",
-          payment_id: payment?.id,
-          ticket_type: ticket_type || "general",
-          ticket_quantity: ticket_quantity || 1,
-        },
-        { onConflict: "user_id,event_id" }
-      );
-
-    if (userEventError) {
-      console.error("Failed to add user to event:", userEventError);
-    } else {
-      console.log("User added to event successfully");
-    }
-
-    // Allocate earnings to event owner
-    if (finalEventOwnerId && ownerEarnings > 0) {
-      // Create earnings record
-      const { error: earningsError } = await supabase
-        .from("event_owner_earnings")
-        .insert({
-          user_id: finalEventOwnerId,
-          event_id,
-          transaction_id: eventTx?.id,
-          amount: ownerEarnings,
-          earnings_type: "ticket_sale",
-        });
-
-      if (earningsError) {
-        console.error("Failed to create earnings record:", earningsError);
-      }
-
-      // Update user's event earnings via direct SQL update
-      const { data: currentUser } = await supabase
-        .from("users")
-        .select("event_total_earnings, event_available_balance")
-        .eq("id", finalEventOwnerId)
-        .single();
-
-      const currentTotal = currentUser?.event_total_earnings || 0;
-      const currentBalance = currentUser?.event_available_balance || 0;
-
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({
-          event_total_earnings: currentTotal + ownerEarnings,
-          event_available_balance: currentBalance + ownerEarnings,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", finalEventOwnerId);
-
-      if (updateError) {
-        console.error("Failed to update owner earnings:", updateError);
-      } else {
-        console.log("Event owner earnings allocated:", ownerEarnings);
-      }
-    }
-
-    // Award 20% direct + 10% upline referral commissions on the ticket purchase
-    await awardEventReferralCommissions(
-      supabase,
-      buyer_id,
-      grossAmount,
-      event_id,
-      eventTx?.id ?? null,
-    );
+    const ownerEarnings = result.ownerEarnings;
+    const payment = { id: result.payment_id };
+    const eventTx = null as any;
 
     console.log("=== CAPTURE EVENT PAYMENT COMPLETED ===");
 
@@ -330,144 +180,4 @@ serve(async (req) => {
     );
   }
 });
-
-// 20% direct + 10% upline commission for event ticket purchases.
-// Base = gross - ($0.50 + 2.75%). Idempotent per (referrer, payment_type, transaction_id).
-async function awardEventReferralCommissions(
-  supabase: any,
-  buyerId: string | null | undefined,
-  grossAmount: number,
-  eventId: string,
-  transactionId: string | null,
-) {
-  try {
-    if (!buyerId || !grossAmount || grossAmount <= 0) return;
-    const idempKey = transactionId || `${eventId}:${buyerId}`;
-
-    const { data: buyer } = await supabase
-      .from("users")
-      .select("id, referred_by")
-      .eq("id", buyerId)
-      .single();
-    if (!buyer?.referred_by) return;
-    const referrerUsername = String(buyer.referred_by).trim();
-    if (!referrerUsername || referrerUsername.toLowerCase() === "company") return;
-
-    const { data: referrer } = await supabase
-      .from("users")
-      .select("id, username, referred_by")
-      .ilike("username", referrerUsername)
-      .maybeSingle();
-    if (!referrer) return;
-
-    const net = Math.max(0, Number(grossAmount) - (0.5 + Number(grossAmount) * 0.0275));
-    const directAmt = Number((net * 0.20).toFixed(2));
-    const uplineAmt = Number((net * 0.10).toFixed(2));
-
-    // Current week (Mon-Sun)
-    const now = new Date();
-    const dow = now.getDay();
-    const daysToMonday = dow === 0 ? 6 : dow - 1;
-    const wkStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysToMonday);
-    const wkEnd = new Date(wkStart);
-    wkEnd.setDate(wkStart.getDate() + 6);
-    const ymd = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const wkStartStr = ymd(wkStart);
-    const wkEndStr = ymd(wkEnd);
-
-    const upsertWeekly = async (uid: string, amount: number) => {
-      const { data: existing } = await supabase
-        .from("weekly_earnings")
-        .select("id, referral_earnings, amount")
-        .eq("user_id", uid)
-        .eq("week_start", wkStartStr)
-        .maybeSingle();
-      if (existing) {
-        await supabase
-          .from("weekly_earnings")
-          .update({
-            referral_earnings: Number(existing.referral_earnings || 0) + amount,
-            amount: Number(existing.amount || 0) + amount,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existing.id);
-      } else {
-        await supabase.from("weekly_earnings").insert({
-          user_id: uid,
-          week_start: wkStartStr,
-          week_end: wkEndStr,
-          amount,
-          tip_earnings: 0,
-          referral_earnings: amount,
-          bonus_earnings: 0,
-        });
-      }
-    };
-
-    // Direct 20%
-    if (directAmt > 0) {
-      const { data: existingDirect } = await supabase
-        .from("payments")
-        .select("id")
-        .eq("user_id", referrer.id)
-        .eq("payment_type", "event_referral_commission")
-        .eq("paypal_transaction_id", idempKey)
-        .maybeSingle();
-      if (!existingDirect) {
-        const { error } = await supabase.from("payments").insert({
-          user_id: referrer.id,
-          event_id: eventId,
-          amount: directAmt,
-          payment_type: "event_referral_commission",
-          payment_status: "completed",
-          paypal_transaction_id: idempKey,
-          referred_by: referrer.username,
-          referrer_commission: directAmt,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-        if (!error) await upsertWeekly(referrer.id, directAmt);
-        else console.error("event_referral_commission insert failed", error);
-      }
-    }
-
-    // Upline 10%
-    const uplineUsername = String(referrer.referred_by || "").trim();
-    if (uplineUsername && uplineUsername.toLowerCase() !== "company" && uplineAmt > 0) {
-      const { data: upline } = await supabase
-        .from("users")
-        .select("id, username")
-        .ilike("username", uplineUsername)
-        .maybeSingle();
-      if (upline?.id) {
-        const { data: existingUpline } = await supabase
-          .from("payments")
-          .select("id")
-          .eq("user_id", upline.id)
-          .eq("payment_type", "event_upline_referral_commission")
-          .eq("paypal_transaction_id", idempKey)
-          .maybeSingle();
-        if (!existingUpline) {
-          const { error } = await supabase.from("payments").insert({
-            user_id: upline.id,
-            event_id: eventId,
-            amount: uplineAmt,
-            payment_type: "event_upline_referral_commission",
-            payment_status: "completed",
-            paypal_transaction_id: idempKey,
-            referred_by: upline.username,
-            referrer_commission: uplineAmt,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-          if (!error) await upsertWeekly(upline.id, uplineAmt);
-          else console.error("event_upline_referral_commission insert failed", error);
-        }
-      }
-    }
-  } catch (e) {
-    console.error("awardEventReferralCommissions error", e);
-  }
-}
 

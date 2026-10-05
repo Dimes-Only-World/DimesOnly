@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -558,6 +559,16 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                         "Pay Later"
                       )}
                     </Button>
+
+                    <div className="mt-3">
+                      <CashAppCheckoutButton
+                        kind="event"
+                        displayAmount={totalPrice}
+                        disabled={isProcessingPayment}
+                        className="w-full py-4 font-bold text-lg rounded-xl"
+                        payload={{ event_id: event.id, amount: Number(totalPrice.toFixed(2)), ticket_type: selectedType || "general", ticket_quantity: quantity }}
+                      />
+                    </div>
                   </>
                 )}
               </div>

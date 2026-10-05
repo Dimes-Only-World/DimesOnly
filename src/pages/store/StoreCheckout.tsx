@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StoreLayout from "@/components/store/StoreLayout";
@@ -159,6 +160,24 @@ const StoreCheckout: React.FC = () => {
           >
             {submitting ? "Redirecting…" : "Pay with PayPal"}
           </button>
+          {userId && (
+            <div className="mt-3">
+              <CashAppCheckoutButton
+                kind="store"
+                displayAmount={total / 100}
+                disabled={submitting || (["email", "full_name", "line1", "city", "state", "zip"] as const).some((k) => !form[k].trim())}
+                className="w-full rounded-none py-4 text-xs font-semibold uppercase tracking-[0.25em]"
+                payload={{
+                  items: lines.map((l) => ({ variant_id: l.variant_id, qty: l.qty })),
+                  email: form.email,
+                  shipping_method: method,
+                  discount_code: promo || null,
+                  shipping_address: form,
+                }}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">Fill in your shipping details first. Your order ships once an admin confirms the Cash App payment.</p>
+            </div>
+          )}
         </aside>
       </div>
     </StoreLayout>

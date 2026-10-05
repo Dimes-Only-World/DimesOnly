@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -295,6 +296,16 @@ const HostApplication: React.FC = () => {
         >
           {submitting ? "Opening PayPal…" : "Pay refundable deposit"}
         </Button>
+        {pendingApplicationIds.length > 0 && (
+          <div className="mx-auto mt-3 max-w-xs">
+            <CashAppCheckoutButton
+              kind="host_deposit"
+              displayAmount={pendingApplicationIds.length * DEPOSIT}
+              className="w-full rounded-none"
+              payload={{ applicationIds: pendingApplicationIds }}
+            />
+          </div>
+        )}
       </div>
     );
   }

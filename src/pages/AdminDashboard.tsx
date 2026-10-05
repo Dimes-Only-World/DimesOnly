@@ -1,3 +1,4 @@
+import AdminCashAppPayments from "@/components/admin/AdminCashAppPayments";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
@@ -354,6 +355,7 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="payouts">
+            <AdminCashAppPayments />
             <AdminPayoutTab />
           </TabsContent>
 

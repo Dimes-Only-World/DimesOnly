@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useEffect } from "react";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -1182,6 +1183,13 @@ const EventsDimesOnly: React.FC = () => {
                 </>
               )}
             </Button>
+            {selectedEvent && user && getFreeSpots(selectedEvent) <= 0 && Number(selectedEvent.price) > 0 && (
+              <CashAppCheckoutButton
+                kind="event"
+                displayAmount={Number(selectedEvent.price)}
+                payload={{ event_id: selectedEvent.id, amount: Number(Number(selectedEvent.price).toFixed(2)), ticket_type: "general", ticket_quantity: 1 }}
+              />
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

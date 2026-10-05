@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { usePageVideo } from "@/hooks/usePageVideo";
@@ -253,6 +254,12 @@ const TipGirls: React.FC = () => {
                         onSuccess={handleTipSuccess}
                         onError={handleTipError}
                         disabled={tipAmount < 5}
+                      />
+                      <CashAppCheckoutButton
+                        kind="tip"
+                        displayAmount={tipAmount}
+                        disabled={tipAmount < 5}
+                        payload={{ tipped_username: selectedUser.username, amount: Number(tipAmount), message: (message || "").slice(0, 60), referrer_username: refUsername || null }}
                       />
                     </div>
                   ) : (

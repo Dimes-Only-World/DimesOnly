@@ -1,3 +1,4 @@
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -234,6 +235,7 @@ export default function UpgradeSilver({ userId }: UpgradeSilverProps) {
                     cardMode="redirect"
                     isProcessing={loading}
                     disabled={!phoneNumber}
+                    extraOption={<CashAppCheckoutButton kind="membership" displayAmount={AMOUNT} disabled={!phoneNumber || loading} className="w-full py-6 text-lg" payload={{ tier: "silver", amount: AMOUNT, phone_number: phoneNumber }} />}
                   />
                 </div>
               </div>
