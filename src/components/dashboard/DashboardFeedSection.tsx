@@ -73,6 +73,21 @@ const prettyTitle = (item: FeedItem) => {
   return `${item.author?.username || "Dime"} — exclusive clip`;
 };
 
+// Keep this component stable while feed images finish loading or fail.
+// Recreating its type during a touch can remove the pressed DOM button.
+const ShowMore = ({ onClick }: { onClick: () => void }) => (
+  <div className="flex justify-center pt-2">
+    <Button
+      type="button"
+      variant="outline"
+      className="min-h-12 min-w-32 touch-manipulation px-5"
+      onClick={onClick}
+    >
+      Show more
+    </Button>
+  </div>
+);
+
 const DashboardFeedSection: React.FC = () => {
   const { user } = useAppContext();
   const { toast } = useToast();
@@ -300,11 +315,6 @@ const DashboardFeedSection: React.FC = () => {
   const [videoLimit, setVideoLimit] = useState(PAGE);
   const photoBlocks = useMemo(() => withAds(photos.slice(0, photoLimit), 9), [photos, ads, photoLimit]);
   const videoBlocks = useMemo(() => withAds(videos.slice(0, videoLimit), 9), [videos, ads, videoLimit]);
-  const ShowMore = ({ onClick }: { onClick: () => void }) => (
-    <div className="flex justify-center pt-2">
-      <Button variant="outline" onClick={onClick}>Show more</Button>
-    </div>
-  );
 
   return (
     <section className="mb-8 w-full rounded-2xl border border-border/60 bg-dimes-surface p-3 sm:p-4">

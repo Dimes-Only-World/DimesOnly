@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Keep feed Show more taps reliable across the entire button and verify photo/video expansion
+
 - [x] Apply shared rem sizing to remaining fixed-size mobile text, charts, and promotional copy site-wide
 - [x] Verify 17 main public pages on mobile, unfolded-phone, and desktop widths; signed-in member pages unavailable for testing
 
