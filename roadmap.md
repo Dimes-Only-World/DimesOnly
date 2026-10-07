@@ -1,7 +1,7 @@
 # Roadmap
 
-- [ ] Convert remaining fixed-size text to scalable typography site-wide
-- [ ] Verify main public pages on mobile and desktop
+- [x] Apply shared rem sizing to remaining fixed-size mobile text, charts, and promotional copy site-wide
+- [x] Verify 17 main public pages on mobile, unfolded-phone, and desktop widths; signed-in member pages unavailable for testing
 
 - [x] Correct small mobile dashboard text and verify menu labels at phone and wide-mobile sizes (signed-in dashboard unavailable for testing)
 
