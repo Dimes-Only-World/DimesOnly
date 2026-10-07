@@ -1,5 +1,7 @@
 # Project Architecture Rules
 
+- Define feed pagination controls at module scope so asynchronous media updates preserve the pressed button and touch interaction.
+
 - Control site-wide typography through the root font-size token in global CSS; keep new UI text rem-based and map legacy pixel text utilities to shared rem tokens on mobile so labels, charts, forms, and navigation all scale consistently.
 
 - Route all viewer-facing videos sourced from `page_videos` through `BannerVideo`; this keeps playback controls consistent while background videos explicitly use background mode.
