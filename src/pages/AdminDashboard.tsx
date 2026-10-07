@@ -92,7 +92,10 @@ const AdminTabsTrigger = React.forwardRef<
 AdminTabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
 const tabs = [
+  { value: "leads", label: "Leads", icon: Filter },
   { value: "users", label: "Users", icon: Users },
+  { value: "payouts", label: "Payouts", icon: CreditCard },
+  { value: "rentals", label: "Rentals", icon: Car },
   { value: "approvals", label: "Approvals", icon: UserCheck },
   { value: "jackpot", label: "Jackpot", icon: Trophy },
   { value: "tips", label: "Tips", icon: DollarSign },
@@ -101,15 +104,12 @@ const tabs = [
   { value: "notifications", label: "Notifications", icon: Bell },
   { value: "messages", label: "Messages", icon: MessageSquare },
   { value: "events", label: "Events", icon: Calendar },
-  { value: "rentals", label: "Rentals", icon: Car },
   { value: "clothes", label: "Clothes", icon: Shirt },
   { value: "flix", label: "FlameFlix", icon: Flame },
   { value: "videos", label: "Videos", icon: Video },
   { value: "ads", label: "Ads", icon: Megaphone },
   { value: "flyers", label: "Fliers", icon: FileImage },
-  { value: "payouts", label: "Payouts", icon: CreditCard },
   { value: "settings", label: "Settings", icon: Settings },
-  { value: "leads", label: "Leads", icon: Filter },
   { value: "shortform", label: "S-F-B", icon: Smartphone },
   { value: "loginbg", label: "Login BG", icon: Smartphone },
   { value: "selfieai", label: "Selfie AI", icon: Filter },
@@ -124,7 +124,7 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("users");
+  const [activeTab, setActiveTab] = useState("leads");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);

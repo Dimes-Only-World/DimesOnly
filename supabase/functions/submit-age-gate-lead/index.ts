@@ -220,12 +220,18 @@ serve(async (req) => {
     // Second call: record which button the visitor pressed after the video.
     if (leadId) {
       if (!/^[0-9a-f-]{36}$/i.test(leadId)) return json({ error: "Invalid lead id" }, 400);
-      const allowed = ["continued_registration", "more_information"];
+      const allowed = ["continued_registration", "more_information", "set_type"];
       if (!allowed.includes(String(action))) return json({ error: "Invalid action" }, 400);
+      const vtRaw = String((body as any).visitorType ?? "");
+      const vtOk = ["exotic","stripper","normal_female","male","business_owner"].includes(vtRaw) ? vtRaw : null;
+      const update: Record<string, unknown> = {};
+      if (action !== "set_type") update.action_taken = action;
+      if (vtOk) update.visitor_type = vtOk;
+      if (Object.keys(update).length === 0) return json({ success: true });
 
       const { error } = await admin
         .from("age_gate_leads")
-        .update({ action_taken: action })
+        .update(update)
         .eq("id", leadId);
       if (error) throw error;
       return json({ success: true });

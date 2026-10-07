@@ -54,7 +54,7 @@ const AgeVerificationWrapper: React.FC<AgeVerificationWrapperProps> = ({ childre
   return (
     <>
       {showAgeVerification ? (
-        <AgeVerification onVerified={handleAgeVerified} initialStep={forceFormStep ? 'form' : undefined} />
+        <AgeVerification onVerified={handleAgeVerified} initialStep={forceFormStep ? 'role' : undefined} />
       ) : (
         children
       )}
