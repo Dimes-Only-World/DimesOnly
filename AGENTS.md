@@ -1,6 +1,6 @@
 # Project Architecture Rules
 
-- Control site-wide typography through the root font-size token in global CSS, including a mobile baseline, and keep form text and dashboard navigation labels rem-based; this scales text and its surrounding spacing together without fixed-size mobile labels.
+- Control site-wide typography through the root font-size token in global CSS; keep new UI text rem-based and map legacy pixel text utilities to shared rem tokens on mobile so labels, charts, forms, and navigation all scale consistently.
 
 - Route all viewer-facing videos sourced from `page_videos` through `BannerVideo`; this keeps playback controls consistent while background videos explicitly use background mode.
 - Keep Make Money message bodies referral-agnostic in storage and append the signed-in member's canonical referral URL when rendering; this prevents stale or mismatched referral credit.

@@ -162,17 +162,17 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             text-shadow: 0 2px 20px rgba(0,0,0,0.25);
           }
           @media screen and (max-width: 430px) {
-            .taglines .tagline-line { font-size: clamp(1.5rem, 9vw, 2.4rem); line-height: 1.04; }
-            .taglines .tagline-stylish { font-size: clamp(1.8rem, 10vw, 2.8rem); }
+            .taglines .tagline-line { font-size: 2rem; line-height: 1.04; }
+            .taglines .tagline-stylish { font-size: 2.25rem; }
           }
           @media screen and (min-width: 431px) {
-            .taglines .tagline-line { font-size: clamp(2rem, 4.6vw, 4.25rem); line-height: 1.04; }
-            .taglines .tagline-stylish { font-size: clamp(2.4rem, 5vw, 4.75rem); }
+            .taglines .tagline-line { font-size: 3rem; line-height: 1.04; }
+            .taglines .tagline-stylish { font-size: 3.25rem; }
           }
           /* Landscape tighten for taglines */
           @media screen and (orientation: landscape) and (max-height: 500px) {
-            .taglines .tagline-line { font-size: clamp(1.2rem, 3vw, 2rem) !important; }
-            .taglines .tagline-stylish { font-size: clamp(1.3rem, 3.2vw, 2.2rem) !important; }
+            .taglines .tagline-line { font-size: 1.75rem !important; }
+            .taglines .tagline-stylish { font-size: 1.875rem !important; }
           }
 
           /* Extra vertical space for taglines on wider screens (desktop/tablet) */
@@ -199,9 +199,9 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             /* Stack kicker + secondary CTA vertically on phones */
             .kicker-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.5rem !important; }
             /* Make Pick/Tip/Win larger with Pick the largest */
-            .taglines .tagline-line:nth-child(1) { font-size: clamp(2.2rem, 12.5vw, 3.2rem) !important; }
-            .taglines .tagline-line:nth-child(2) { font-size: clamp(1.9rem, 11vw, 2.8rem) !important; }
-            .taglines .tagline-line:nth-child(3), .taglines .tagline-stylish:nth-child(3) { font-size: clamp(1.8rem, 10.5vw, 2.6rem) !important; }
+            .taglines .tagline-line:nth-child(1) { font-size: 2.8rem !important; }
+            .taglines .tagline-line:nth-child(2) { font-size: 2.45rem !important; }
+            .taglines .tagline-line:nth-child(3), .taglines .tagline-stylish:nth-child(3) { font-size: 2.3rem !important; }
           }
           
           /* Small screens like A14 (360px) */
@@ -263,8 +263,8 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             /* Start copy near the top so taglines are visible; keep a small bottom padding */
             .landscape-copy { top: calc(8vh + env(safe-area-inset-top)) !important; padding-top: 0.25rem !important; padding-bottom: 28vh !important; transform: translateY(0) !important; }
             /* compact typography and controls */
-            .headline { font-size: clamp(1.25rem, 3.7vw, 2.35rem) !important; line-height: 1.15 !important; }
-            .subcopy { font-size: clamp(0.8rem, 1.6vw, 1rem) !important; }
+            .headline { font-size: 1.875rem !important; line-height: 1.15 !important; }
+            .subcopy { font-size: 1rem !important; }
             .pills { display: grid !important; grid-template-columns: auto auto; column-gap: 0.5rem; row-gap: 0.5rem; align-items: start; }
             .pills > span { padding: 0.25rem 0.6rem !important; font-size: 0.75rem !important; }
             .pills > span:nth-child(1) { grid-column: 1; grid-row: 1; }
@@ -273,9 +273,9 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             .cta-primary { padding: 0.5rem 0.9rem !important; font-size: 0.9rem !important; }
             .cta-secondary { padding: 0.5rem 0.9rem !important; font-size: 0.85rem !important; }
             /* Make Pick/Tip/Win sizing relative with Pick largest on compact landscape */
-            .taglines .tagline-line:nth-child(1) { font-size: clamp(1.5rem, 4.8vw, 2.5rem) !important; }
-            .taglines .tagline-line:nth-child(2) { font-size: clamp(1.35rem, 4.4vw, 2.2rem) !important; }
-            .taglines .tagline-line:nth-child(3), .taglines .tagline-stylish:nth-child(3) { font-size: clamp(1.25rem, 4.1vw, 2.05rem) !important; }
+            .taglines .tagline-line:nth-child(1) { font-size: 2.25rem !important; }
+            .taglines .tagline-line:nth-child(2) { font-size: 2rem !important; }
+            .taglines .tagline-line:nth-child(3), .taglines .tagline-stylish:nth-child(3) { font-size: 1.875rem !important; }
           }
 
           /* iPad PORTRAIT: Mini/Air/Pro widths (744–1024) */
@@ -308,7 +308,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             /* Hide dimelot image on iPad Mini/Air portrait */
             .desk-dimelot { display: none !important; }
             .landscape-copy { top: 16vh !important; padding-bottom: 10vh !important; transform: translateY(0) !important; }
-            .headline { font-size: clamp(2rem, 4.4vw, 3.4rem) !important; }
+            .headline { font-size: 2.75rem !important; }
           }
 
           /* iPad Mini/Air landscape exact range (1024–1112) */
