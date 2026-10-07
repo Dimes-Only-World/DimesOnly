@@ -136,7 +136,7 @@ const Rentals: React.FC = () => {
             <p className="mb-3 flex items-center gap-2 font-barlow text-xs font-semibold uppercase text-rental-primary">
               <span className="h-px w-8 bg-rental-primary" /> Dimes Only Rentals
             </p>
-            <h1 className="rentals-wordmark text-6xl leading-[0.88] text-rental-foreground sm:text-8xl lg:text-9xl">
+            <h1 className="rentals-wordmark text-5xl leading-[0.88] text-rental-foreground sm:text-8xl lg:text-9xl">
               DRIVE THE
               <span className="block text-rental-primary">EXTRAORDINARY.</span>
             </h1>

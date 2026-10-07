@@ -7,6 +7,11 @@
     /* One readable step above the site's original 16px typography baseline.
        Rem-based text and its surrounding spacing grow together. */
     --site-font-size: 18px;
+    --site-caption-size: 0.625rem;
+    --site-label-size: 0.6875rem;
+    --site-compact-size: 0.8125rem;
+    --site-message-size: 0.9375rem;
+    --site-popup-heading-size: 1.625rem;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -473,7 +478,7 @@ body.paypal-overlay-open {
 }
 
 .rate-hero-title {
-  font-size: clamp(1.6rem, 8vw, 3.75rem);
+  font-size: 2.5rem;
   line-height: 1.05;
   letter-spacing: -0.01em;
   text-wrap: balance;
@@ -644,4 +649,24 @@ img {
   --rental-success: 151 55% 34%;
   background: hsl(var(--rental-background));
   color: hsl(var(--rental-foreground));
+}
+
+/* Legacy pixel utilities must participate in the mobile root text scale.
+   Keep this after utilities so labels cannot silently bypass the baseline. */
+@media (max-width: 900px) {
+  .text-\[9px\],
+  .text-\[10px\] { font-size: var(--site-caption-size) !important; }
+  .text-\[11px\] { font-size: var(--site-label-size) !important; }
+  .text-\[13px\] { font-size: var(--site-compact-size) !important; }
+  .text-\[15px\] { font-size: var(--site-message-size) !important; }
+  .text-\[26px\] { font-size: var(--site-popup-heading-size) !important; }
+  .recharts-cartesian-axis-tick-value { font-size: var(--site-caption-size); }
+  .recharts-legend-wrapper { font-size: 0.75rem !important; }
+}
+@media (min-width: 640px) and (max-width: 900px) {
+  .sm\:text-\[10px\] { font-size: var(--site-caption-size) !important; }
+}
+@media (min-width: 768px) and (max-width: 900px) {
+  .text-\[10px\].md\:text-xs { font-size: 0.75rem !important; }
+  .text-\[10px\].md\:text-sm { font-size: 0.875rem !important; }
 }
