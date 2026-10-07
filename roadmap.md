@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Correct small mobile dashboard text and verify menu labels at phone and wide-mobile sizes (signed-in dashboard unavailable for testing)
+
 - [x] Review uploaded requirements and reference statement
 - [x] Add secure rental extension and vehicle statement fields
 - [x] Implement verified PayPal extension payment and PDF generation
