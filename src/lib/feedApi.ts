@@ -1,23 +1,59 @@
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 
-export async function getSignedFeedUrl(bucket: string, path: string, expiresIn = 3600): Promise<string | null> {
-  try {
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/feed-signed-url`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ bucket, path, expiresIn }),
-    });
-    const json = await resp.json();
-    return json.url || null;
-  } catch (e) {
-    console.error("getSignedFeedUrl error", e);
-    return null;
+// Feed grids request many tiles at once; a burst of ~50 parallel calls makes the
+// media function fail to boot (503). Cache, de-duplicate, cap concurrency, retry.
+const urlCache = new Map<string, { url: string | null; at: number }>();
+const inflight = new Map<string, Promise<string | null>>();
+const MAX_CONCURRENT = 4;
+let active = 0;
+const queue: (() => void)[] = [];
+const acquire = () =>
+  new Promise<void>((res) => {
+    if (active < MAX_CONCURRENT) { active++; res(); } else queue.push(() => { active++; res(); });
+  });
+const release = () => { active--; queue.shift()?.(); };
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function requestSignedUrl(bucket: string, path: string, expiresIn: number): Promise<string | null> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await acquire();
+    try {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/feed-signed-url`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ bucket, path, expiresIn }),
+      });
+      if (resp.status >= 500) throw new Error(`status ${resp.status}`);
+      const json = await resp.json().catch(() => ({}));
+      return json?.url || null;
+    } catch (e) {
+      if (attempt === 2) { console.warn("getSignedFeedUrl failed", path, e); return null; }
+    } finally {
+      release();
+    }
+    await wait(400 * (attempt + 1));
   }
+  return null;
+}
+
+export async function getSignedFeedUrl(bucket: string, path: string, expiresIn = 3600): Promise<string | null> {
+  const key = `${bucket}/${path}`;
+  const cached = urlCache.get(key);
+  if (cached && Date.now() - cached.at < 50 * 60 * 1000) return cached.url;
+  const pending = inflight.get(key);
+  if (pending) return pending;
+  const p = requestSignedUrl(bucket, path, expiresIn).then((url) => {
+    if (url) urlCache.set(key, { url, at: Date.now() });
+    inflight.delete(key);
+    return url;
+  });
+  inflight.set(key, p);
+  return p;
 }
 
 export type FeedVisibility = "public" | "money_circle";
