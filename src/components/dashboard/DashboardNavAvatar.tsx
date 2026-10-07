@@ -140,9 +140,9 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
                   className="w-full rounded-xl border border-dimes-magenta/40 bg-dimes-magenta/10 px-4 py-3 text-left"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <Rocket className="h-5 w-5 text-dimes-magenta" />
-                      <div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Rocket className="h-5 w-5 shrink-0 text-dimes-magenta" />
+                      <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900">Finish setting up your account</p>
                         <p className="text-xs text-slate-600">
                           {setup.completed} of {setup.total} steps complete
@@ -186,17 +186,17 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
               </div>
             )}
 
-            <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 p-3 sm:grid-cols-5 lg:grid-cols-7">
+            <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 p-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
               {DASHBOARD_NAV_LINKS.map(({ label, to, Icon }) => (
                 <button
                   key={label + to}
                   onClick={() => go(to)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-center transition-all hover:-translate-y-0.5 hover:border-dimes-magenta hover:bg-white hover:shadow"
+                  className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-center transition-all hover:-translate-y-0.5 hover:border-dimes-magenta hover:bg-white hover:shadow"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-dimes-magenta/10 text-dimes-magenta group-hover:bg-dimes-magenta group-hover:text-white">
                     <Icon className="h-4 w-4" />
                   </span>
-                  <span className="text-[10px] font-bold leading-tight tracking-wide text-slate-800 sm:text-[11px]">
+                  <span className="w-full whitespace-normal break-normal text-xs font-bold leading-snug tracking-normal text-slate-800 [overflow-wrap:normal]">
                     {label}
                   </span>
                 </button>
