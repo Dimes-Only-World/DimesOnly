@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Convert remaining fixed-size text to scalable typography site-wide
+- [ ] Verify main public pages on mobile and desktop
+
 - [x] Correct small mobile dashboard text and verify menu labels at phone and wide-mobile sizes (signed-in dashboard unavailable for testing)
 
 - [x] Review uploaded requirements and reference statement
