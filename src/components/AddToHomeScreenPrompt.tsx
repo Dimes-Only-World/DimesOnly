@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell, Download, Share, X } from "lucide-react";
 import { useHomeScreenStatus } from "@/hooks/useHomeScreenStatus";
-import { acquirePopupSlot, releasePopupSlot } from "@/lib/popupQueue";
+import { acquirePopupSlot, releasePopupSlot, isPopupQueueClear, hasOpenDialogInDom } from "@/lib/popupQueue";
 
 const DISMISS_KEY = "dimes-a2hs-dismissed";
 const POPUP_ID = "add-to-home-screen";
@@ -19,15 +19,24 @@ const AddToHomeScreenPrompt: React.FC<Props> = ({ forceOpen, onClose }) => {
     return sessionStorage.getItem(DISMISS_KEY) === "1";
   });
 
-  // Auto-show banner once per session on mobile browser (not installed).
+  // Auto-show once per session on mobile browser (not installed) — always LAST:
+  // wait until every other popup/dialog has been closed for a few seconds.
   const [autoOpen, setAutoOpen] = useState(false);
   useEffect(() => {
     if (forceOpen) return;
     if (!isMobile || isStandalone || dismissed) return;
-    // Reserve the popup slot immediately so later popups wait for this one.
-    acquirePopupSlot(POPUP_ID);
-    const t = setTimeout(() => setAutoOpen(true), 1500);
-    return () => clearTimeout(t);
+    let clearSince = 0;
+    const start = Date.now();
+    const t = setInterval(() => {
+      const clear = isPopupQueueClear() && !hasOpenDialogInDom();
+      if (!clear || Date.now() - start < 4000) { clearSince = clear ? clearSince || Date.now() : 0; return; }
+      if (!clearSince) clearSince = Date.now();
+      if (Date.now() - clearSince >= 2500) {
+        clearInterval(t);
+        setAutoOpen(true);
+      }
+    }, 500);
+    return () => clearInterval(t);
   }, [forceOpen, isMobile, isStandalone, dismissed]);
 
   const open = forceOpen || autoOpen;
