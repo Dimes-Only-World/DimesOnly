@@ -186,12 +186,12 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
               </div>
             )}
 
-            <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 p-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+            <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 p-3 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
               {DASHBOARD_NAV_LINKS.map(({ label, to, Icon }) => (
                 <button
                   key={label + to}
                   onClick={() => go(to)}
-                  className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-center transition-all hover:-translate-y-0.5 hover:border-dimes-magenta hover:bg-white hover:shadow"
+                  className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-2.5 text-center transition-all hover:-translate-y-0.5 hover:border-dimes-magenta hover:bg-white hover:shadow"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-dimes-magenta/10 text-dimes-magenta group-hover:bg-dimes-magenta group-hover:text-white">
                     <Icon className="h-4 w-4" />
