@@ -297,7 +297,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
   const recordAction = async (action: "continued_registration" | "more_information") => {
     if (!leadId) return;
     try {
-      await supabase.functions.invoke("submit-age-gate-lead", { body: { leadId, action } });
+      await supabase.functions.invoke("submit-age-gate-lead", { body: { leadId, action, visitorType: role } });
     } catch (err) {
       console.error("Unable to record age gate action", err);
     }
@@ -321,6 +321,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
   // Returning visitor: verify their name + phone already exist in the database.
   const handleAlreadySubmitted = async () => {
     if (alreadySubmitted && leadId) {
+      if (role) supabase.functions.invoke("submit-age-gate-lead", { body: { leadId, action: "set_type", visitorType: role } }).catch(() => {});
       markVerified();
       setShowReturning(true);
       return;
@@ -343,6 +344,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
 
       if (data?.found) {
         if (data.leadId) setLeadId(data.leadId);
+        if (data.leadId && role) supabase.functions.invoke("submit-age-gate-lead", { body: { leadId: data.leadId, action: "set_type", visitorType: role } }).catch(() => {});
         markVerified();
         setShowReturning(true);
       } else {
