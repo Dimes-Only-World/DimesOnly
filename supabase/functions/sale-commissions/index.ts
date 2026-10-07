@@ -11,7 +11,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const me = await getCallerId(req);
-    if (!me) return json({ error: "Please sign in." }, 401);
+    // Signed-out or expired sessions get an empty result (no data) instead of a 401,
+    // so dashboard/earnings totals load quietly without a runtime error.
+    if (!me) return json({ rows: [], bonuses: [], soldTotal: 0, bonusTotal: 0, total: 0, signedIn: false });
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: apps, error } = await admin.from("vehicle_purchase_applications")
