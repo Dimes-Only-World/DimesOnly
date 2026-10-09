@@ -8,6 +8,7 @@ const PAGES = [
   { path: "flix", label: "FlameFlix" },
   { path: "rentals", label: "Rentals" },
   { path: "clothes", label: "Clothes" },
+  { path: "rate", label: "Rate" },
 ];
 
 // Free for every member: QR codes + links for main pages, carrying their referral.
@@ -20,9 +21,9 @@ export default function SitePageQrLinks({ username }: { username?: string | null
       <CardContent className="p-6 space-y-4">
         <div className="text-center">
           <h3 className="font-semibold text-primary">Share Pages</h3>
-          <p className="text-sm text-muted-foreground">QR codes and links for FlameFlix, Rentals and Clothes.</p>
+          <p className="text-sm text-muted-foreground">QR codes and links for FlameFlix, Rentals, Clothes and Rate.</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PAGES.map((p) => {
             const display = `www.DimesOnly.World/${p.path}${ref}`;
             const full = `https://${display}`;
