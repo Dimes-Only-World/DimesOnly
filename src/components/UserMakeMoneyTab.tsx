@@ -365,7 +365,14 @@ const UserMakeMoneyTab: React.FC = () => {
         </Card>
       </div>
 
-      <SitePageQrLinks username={actualUsername} dime={user?.gender?.toLowerCase() === "female"} />
+      {/* Rate is a Dime-only page: only Exotic/Stripper members get its QR + link.
+          Males, Normal Females and Business Owners see FlameFlix, Rentals and Clothes. */}
+      <SitePageQrLinks
+        username={actualUsername}
+        dime={["exotic", "stripper"].includes(
+          String(user?.userType || (user as any)?.user_type || "").toLowerCase()
+        )}
+      />
 
       <MakeMoneyFlyers username={actualUsername} />
 
