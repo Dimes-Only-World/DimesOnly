@@ -32,7 +32,7 @@ export default function SitePageQrLinks({ username, dime }: { username?: string 
 
   return (
     <Card className="border border-border">
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="min-w-0 p-3 sm:p-6 space-y-4">
         <div className="text-center">
           <h3 className="font-semibold text-primary">Share Pages</h3>
           <p className="text-sm text-muted-foreground">
@@ -41,7 +41,7 @@ export default function SitePageQrLinks({ username, dime }: { username?: string 
               : "QR codes and links for FlameFlix, Rentals and Clothes."}
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {pages.map((p) => {
             const display = `www.DimesOnly.World/${p.link}`;
             const full = `https://${display}`;
@@ -59,21 +59,21 @@ export default function SitePageQrLinks({ username, dime }: { username?: string 
               catch { toast({ title: "Could not copy", variant: "destructive" }); }
             };
             return (
-              <div key={p.path} className="relative overflow-hidden rounded-xl border border-primary/40 shadow-lg">
+              <div key={p.path} className="relative min-w-0 overflow-hidden rounded-xl border border-primary/40 shadow-lg">
                 <img src={p.bg} alt="" loading="lazy" width={816} height={816} className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background/95" />
-                <div className="relative flex flex-col items-center gap-2 p-4">
+                <div className="relative flex min-w-0 flex-col items-center gap-2 p-4">
                 <p className="font-bold uppercase tracking-widest text-foreground drop-shadow">{p.label}</p>
                 <div className="p-2 bg-card rounded-lg border border-primary/50 shadow-md">
                   <QRCodeSVG value={full} size={120} level="M" />
                 </div>
                 <div className="hidden"><QRCodeCanvas id={canvasId} value={full} size={1024} level="M" marginSize={4} /></div>
-                <p className="text-xs font-mono break-all text-foreground/90 text-center">{display}</p>
-                <div className="flex w-full gap-2">
-                  <Button type="button" variant="outline" size="sm" className="flex-1" onClick={copy}>
+                <p className="w-full text-xs font-mono break-all text-foreground/90 text-center">{display}</p>
+                <div className="grid w-full min-w-0 grid-cols-2 gap-2">
+                  <Button type="button" variant="outline" size="sm" className="min-w-0" onClick={copy}>
                     <Copy className="w-4 h-4 mr-1" /> Copy
                   </Button>
-                  <Button type="button" variant="outline" size="sm" className="flex-1" onClick={download}>
+                  <Button type="button" variant="outline" size="sm" className="min-w-0" onClick={download}>
                     <Download className="w-4 h-4 mr-1" /> QR
                   </Button>
                 </div>

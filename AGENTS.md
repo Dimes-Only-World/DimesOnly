@@ -1,5 +1,7 @@
 # Project Architecture Rules
 
+- Apply viewport bounds, shrinkable grid tracks, and vertical scrolling through shared dialog primitives; large-text pop-ups must keep all actions reachable on small screens.
+
 - Define feed pagination controls at module scope so asynchronous media updates preserve the pressed button and touch interaction.
 
 - Control site-wide typography through the root font-size token in global CSS; keep new UI text rem-based and map legacy pixel text utilities to shared rem tokens on mobile so labels, charts, forms, and navigation all scale consistently.

@@ -229,16 +229,15 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        hideClose
         className="max-w-[94vw] sm:max-w-lg overflow-hidden border border-[hsl(45_70%_60%/0.45)] bg-[#0B0B0F] p-0 text-white shadow-[0_30px_80px_-20px_rgba(212,175,55,0.45)]"
       >
         {/* luxury backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(212,175,55,0.28),transparent_65%),radial-gradient(90%_60%_at_50%_100%,rgba(255,243,209,0.10),transparent_70%)]" />
         <CelebrationCanvas />
 
-        <div className="relative z-10 flex min-h-[320px] flex-col items-center justify-center px-5 py-10 text-center sm:px-10">
-          <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-[hsl(45_70%_60%/0.5)] bg-black/50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#EBD79A]">
-            <Sparkles className="h-3.5 w-3.5" />
+        <div className="relative z-10 flex min-w-0 min-h-[320px] flex-col items-center justify-center px-4 py-10 text-center sm:px-10">
+          <div className="mx-auto mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-[hsl(45_70%_60%/0.5)] bg-black/50 px-4 py-1.5 text-[11px] font-semibold uppercase text-[#EBD79A]">
+            <Sparkles className="h-3.5 w-3.5 shrink-0" />
             Exclusive Invitation
           </div>
 
@@ -249,7 +248,7 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
             <span className="mt-2 block bg-gradient-to-b from-[#FFF7DC] via-[#F3DFA6] to-[#D4AF37] bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(212,175,55,0.35)]">
               Malibu Mansion App Launch Party
             </span>
-            <span className="mt-3 block text-[clamp(2.5rem,14vw,3.75rem)] font-black tracking-[0.06em] text-[#FFF3D1] drop-shadow-[0_0_28px_rgba(212,175,55,0.7)] sm:text-6xl sm:tracking-[0.18em]">
+            <span className="mt-3 block text-5xl font-black text-[#FFF3D1] drop-shadow-[0_0_28px_rgba(212,175,55,0.7)] sm:text-6xl">
               FREE
             </span>
           </h2>
@@ -265,7 +264,7 @@ const MansionPartyPopup: React.FC<MansionPartyPopupProps> = ({ userData }) => {
           <div className="mt-7 flex w-full max-w-xs flex-col gap-3 sm:max-w-sm">
             <Button
               onClick={() => setOpen(false)}
-              className="h-12 w-full rounded-xl bg-gradient-to-r from-[#C9A227] via-[#EBD79A] to-[#C9A227] text-base font-bold text-black hover:opacity-90"
+              className="min-h-12 w-full rounded-xl bg-gradient-to-r from-[#C9A227] via-[#EBD79A] to-[#C9A227] py-3 text-base font-bold text-black hover:opacity-90"
             >
               Tickets in Events - Let&apos;s Celebrate
             </Button>

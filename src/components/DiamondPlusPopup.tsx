@@ -156,8 +156,8 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
     >
       <DialogContent className="sm:max-w-md bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-400 text-black border-none">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-black">
-            <Crown className="w-7 h-7" />
+          <DialogTitle className="flex items-center gap-2 pr-5 text-2xl font-bold text-black">
+            <Crown className="w-7 h-7 shrink-0" />
             {offer.title}
           </DialogTitle>
           <DialogDescription className="text-black/80 text-base">
@@ -166,14 +166,14 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between gap-3">
-            <div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
               <div className="text-3xl font-bold">{stageInfo.stage ? formatUSD(stageInfo.stage.full) : "FILLED"}</div>
               {stageInfo.stage && (
                 <div className="text-xs font-semibold">or {formatUSD(stageInfo.stage.monthly)}/mo × 12</div>
               )}
             </div>
-            <div className="rounded-lg bg-black/85 px-3 py-2 text-right">
+            <div className="min-w-0 max-w-full rounded-lg bg-black/85 px-3 py-2 text-right">
               <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-yellow-300">
                 <Users className="h-3.5 w-3.5" />
                 Positions left
@@ -190,12 +190,12 @@ const DiamondPlusPopup: React.FC<DiamondPlusPopupProps> = ({ userData }) => {
           <div className="space-y-2 text-sm">
             {offer.perks.map((perk) => (
               <div key={perk} className="flex items-center gap-2">
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 shrink-0" />
                 <span>{perk}</span>
               </div>
             ))}
             <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
+              <DollarSign className="w-4 h-4 shrink-0" />
               <span>Secure checkout via PayPal</span>
             </div>
 

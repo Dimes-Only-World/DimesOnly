@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Fix invitation, upgrade, and sharing layouts on narrow phones; verify S22 Ultra-sized and other viewports without reducing text size
+
 - [x] Keep feed Show more taps reliable across the entire button; verified edge taps and photo/video expansion in an isolated live-feed check (signed-in dashboard unavailable)
 
 - [x] Apply shared rem sizing to remaining fixed-size mobile text, charts, and promotional copy site-wide
