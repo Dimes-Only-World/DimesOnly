@@ -15,6 +15,7 @@ import MakeMoneyMessages from "@/components/MakeMoneyMessages";
 import Top20DimesCarousel from "@/components/Top20DimesCarousel";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { QRCodeCanvas } from "qrcode.react";
+import SitePageQrLinks from "@/components/SitePageQrLinks";
 import { Lock } from "lucide-react";
 
 const UserMakeMoneyTab: React.FC = () => {
@@ -363,6 +364,8 @@ const UserMakeMoneyTab: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <SitePageQrLinks username={actualUsername} />
 
       <MakeMoneyFlyers username={actualUsername} />
 

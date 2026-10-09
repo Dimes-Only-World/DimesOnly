@@ -28,6 +28,7 @@ import Rankings from "@/pages/Rankings";
 import MoneyCircle from "@/pages/MoneyCircle";
 import Tip from "@/pages/Tip";
 import TipGirls from "@/pages/TipGirls";
+import TipsRedirect from "@/pages/TipsRedirect";
 import Upgrade from "@/pages/Upgrade";
 import AdminDashboard from "@/pages/AdminDashboard";
 import TestLogin from "@/pages/TestLogin";
@@ -178,6 +179,8 @@ function AppContent() {
       <Route path="/rankings" element={<Rankings />} />
       <Route path="/money-circle" element={<MoneyCircle />} />
       <Route path="/tip" element={<Tip />} />
+      <Route path="/tips" element={<TipsRedirect />} />
+      <Route path="/tips/:username" element={<TipsRedirect />} />
       <Route path="/tip-girls" element={<TipGirls />} />
       <Route path="/dimes" element={<DimesPage />} />
       <Route path="/upgrade" element={<Upgrade />} />

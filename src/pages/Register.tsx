@@ -641,7 +641,8 @@ export const Register: React.FC = () => {
           description: "Please sign in with your new credentials.",
         });
         {
-          const rd = new URLSearchParams(window.location.search).get("redirect");
+          let rd = new URLSearchParams(window.location.search).get("redirect");
+          try { rd = rd || sessionStorage.getItem("authRedirect"); } catch { /* ignore */ }
           navigate(rd ? `/login?redirect=${encodeURIComponent(rd)}` : "/login");
         }
         return;
@@ -675,7 +676,12 @@ export const Register: React.FC = () => {
         description: "Welcome to Dimes Only!",
       });
 
-      navigate(new URLSearchParams(window.location.search).get("redirect") || "/dashboard/profile");
+      {
+        let saved: string | null = null;
+        try { saved = sessionStorage.getItem("authRedirect"); sessionStorage.removeItem("authRedirect"); } catch { /* ignore */ }
+        const rd = new URLSearchParams(window.location.search).get("redirect") || (saved && saved.startsWith("/") ? saved : null);
+        navigate(rd || "/dashboard/profile");
+      }
     } catch (error) {
       console.error("Registration error:", error);
       const errorMessage =

@@ -1,23 +1,18 @@
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 
-// Feed grids request many tiles at once; a burst of ~50 parallel calls makes the
-// media function fail to boot (503). Cache, de-duplicate, cap concurrency, retry.
+// Feed grids request many tiles at once. Tiles asking within a short window are
+// collected and signed in a single batched request (up to 50 items), with retry.
 const urlCache = new Map<string, { url: string | null; at: number }>();
 const inflight = new Map<string, Promise<string | null>>();
-const MAX_CONCURRENT = 4;
-let active = 0;
-const queue: (() => void)[] = [];
-const acquire = () =>
-  new Promise<void>((res) => {
-    if (active < MAX_CONCURRENT) { active++; res(); } else queue.push(() => { active++; res(); });
-  });
-const release = () => { active--; queue.shift()?.(); };
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+type Pending = { bucket: string; path: string; resolve: (u: string | null) => void };
+let pendingBatch: Pending[] = [];
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+const BATCH_SIZE = 50;
 
-async function requestSignedUrl(bucket: string, path: string, expiresIn: number): Promise<string | null> {
+async function signBatch(items: Pending[]) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    await acquire();
     try {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/feed-signed-url`, {
         method: "POST",
@@ -26,28 +21,38 @@ async function requestSignedUrl(bucket: string, path: string, expiresIn: number)
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           apikey: SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ bucket, path, expiresIn }),
+        body: JSON.stringify({ items: items.map(({ bucket, path }) => ({ bucket, path })), expiresIn: 3600 }),
       });
       if (resp.status >= 500) throw new Error(`status ${resp.status}`);
       const json = await resp.json().catch(() => ({}));
-      return json?.url || null;
+      const urls: Record<string, string> = json?.urls || {};
+      items.forEach((i) => i.resolve(urls[`${i.bucket}/${i.path}`] || null));
+      return;
     } catch (e) {
-      if (attempt === 2) { console.warn("getSignedFeedUrl failed", path, e); return null; }
-    } finally {
-      release();
+      if (attempt === 2) { console.warn("feed batch sign failed", e); items.forEach((i) => i.resolve(null)); return; }
+      await wait(400 * (attempt + 1));
     }
-    await wait(400 * (attempt + 1));
   }
-  return null;
 }
 
-export async function getSignedFeedUrl(bucket: string, path: string, expiresIn = 3600): Promise<string | null> {
+function flush() {
+  flushTimer = null;
+  const all = pendingBatch;
+  pendingBatch = [];
+  for (let i = 0; i < all.length; i += BATCH_SIZE) signBatch(all.slice(i, i + BATCH_SIZE));
+}
+
+export async function getSignedFeedUrl(bucket: string, path: string, _expiresIn = 3600): Promise<string | null> {
   const key = `${bucket}/${path}`;
   const cached = urlCache.get(key);
   if (cached && Date.now() - cached.at < 50 * 60 * 1000) return cached.url;
-  const pending = inflight.get(key);
-  if (pending) return pending;
-  const p = requestSignedUrl(bucket, path, expiresIn).then((url) => {
+  const existing = inflight.get(key);
+  if (existing) return existing;
+  const p = new Promise<string | null>((resolve) => {
+    pendingBatch.push({ bucket, path, resolve });
+    if (pendingBatch.length >= BATCH_SIZE) { if (flushTimer) clearTimeout(flushTimer); flush(); }
+    else if (!flushTimer) flushTimer = setTimeout(flush, 15);
+  }).then((url) => {
     if (url) urlCache.set(key, { url, at: Date.now() });
     inflight.delete(key);
     return url;
