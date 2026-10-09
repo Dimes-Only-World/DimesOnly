@@ -16,6 +16,7 @@ import Top20DimesCarousel from "@/components/Top20DimesCarousel";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { QRCodeCanvas } from "qrcode.react";
 import SitePageQrLinks from "@/components/SitePageQrLinks";
+import { isDime } from "@/lib/membership";
 import { Lock } from "lucide-react";
 
 const UserMakeMoneyTab: React.FC = () => {
@@ -365,7 +366,9 @@ const UserMakeMoneyTab: React.FC = () => {
         </Card>
       </div>
 
-      <SitePageQrLinks username={actualUsername} dime={user?.gender?.toLowerCase() === "female"} />
+      {/* Rate is a Dime-only page: only Exotic/Stripper members get its QR + link.
+          Males, Normal Females and Business Owners see FlameFlix, Rentals and Clothes. */}
+      <SitePageQrLinks username={actualUsername} dime={isDime(user)} />
 
       <MakeMoneyFlyers username={actualUsername} />
 
