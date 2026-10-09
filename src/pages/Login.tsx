@@ -36,6 +36,11 @@ const Login: React.FC = () => {
   const { setUser } = useAppContext();
   const { toast } = useToast();
   const currentRef = searchParams.get('ref');
+  // Remember where to return so new signups (via the age gate) come back too.
+  const pendingRedirect = searchParams.get('redirect');
+  if (pendingRedirect && pendingRedirect.startsWith('/')) {
+    try { sessionStorage.setItem('authRedirect', pendingRedirect); } catch { /* ignore */ }
+  }
   const shortFormUrl = currentRef
     ? `/?signup=1&ref=${encodeURIComponent(currentRef)}`
     : "/?signup=1";
