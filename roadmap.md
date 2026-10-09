@@ -21,3 +21,5 @@
 - [x] Verify booking rules, mobile layout, and payment totals
 - [x] Add admin rental payment history with combined booking and extension filters, totals, CSV, and receipts
 - [x] Fix rental calendar opacity and add clickable agreements and payment instruction popups
+
+- [x] Share Pages card: Rate QR/link for Exotic/Stripper Dimes only; Males, Normal Females and Business Owners see FlameFlix, Rentals, Clothes (rule covered by tests/dime.test.ts)
