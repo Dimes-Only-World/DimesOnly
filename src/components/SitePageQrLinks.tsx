@@ -11,19 +11,25 @@ const PAGES = [
 ];
 
 // Free for every member: QR codes + links for main pages, carrying their referral.
-export default function SitePageQrLinks({ username }: { username?: string | null }) {
+// Rate is Dimes-only: it appears only when `dime` is true (female members).
+export default function SitePageQrLinks({ username, dime }: { username?: string | null; dime?: boolean }) {
   const { toast } = useToast();
   const ref = username ? `?ref=${encodeURIComponent(username)}` : "";
+  const pages = dime ? [...PAGES, { path: "rate", label: "Rate" }] : PAGES;
 
   return (
     <Card className="border border-border">
       <CardContent className="p-6 space-y-4">
         <div className="text-center">
           <h3 className="font-semibold text-primary">Share Pages</h3>
-          <p className="text-sm text-muted-foreground">QR codes and links for FlameFlix, Rentals and Clothes.</p>
+          <p className="text-sm text-muted-foreground">
+            {dime
+              ? "QR codes and links for FlameFlix, Rentals, Clothes and Rate."
+              : "QR codes and links for FlameFlix, Rentals and Clothes."}
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PAGES.map((p) => {
+          {pages.map((p) => {
             const display = `www.DimesOnly.World/${p.path}${ref}`;
             const full = `https://${display}`;
             const canvasId = `page-qr-${p.path}`;

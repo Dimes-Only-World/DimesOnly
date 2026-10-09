@@ -365,7 +365,7 @@ const UserMakeMoneyTab: React.FC = () => {
         </Card>
       </div>
 
-      <SitePageQrLinks username={actualUsername} />
+      <SitePageQrLinks username={actualUsername} dime={user?.gender?.toLowerCase() === "female"} />
 
       <MakeMoneyFlyers username={actualUsername} />
 
