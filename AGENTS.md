@@ -4,7 +4,7 @@
 
 - Define feed pagination controls at module scope so asynchronous media updates preserve the pressed button and touch interaction.
 
-- Control site-wide typography through the root font-size token in global CSS; keep new UI text rem-based and map legacy pixel text utilities to shared rem tokens on mobile so labels, charts, forms, and navigation all scale consistently.
+- Control site-wide typography through the root font-size token in global CSS, scaled by viewport width on phones; keep new UI text rem-based and map legacy pixel text utilities to shared rem tokens on mobile so every phone, including zoomed or narrow ones, gets the same proportions.
 
 - Route all viewer-facing videos sourced from `page_videos` through `BannerVideo`; this keeps playback controls consistent while background videos explicitly use background mode.
 - Keep Make Money message bodies referral-agnostic in storage and append the signed-in member's canonical referral URL when rendering; this prevents stale or mismatched referral credit.
