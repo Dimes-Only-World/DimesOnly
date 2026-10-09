@@ -92,3 +92,13 @@ export const resolveMembership = (user: any): MembershipInfo => {
 };
 
 export const getMembershipLabel = (user: any) => resolveMembership(user).label;
+
+/**
+ * A "Dime" is an Exotic or Stripper member — the only people whose Rate page
+ * (and its share QR/link) is meant to be shared. Normal Females, Males and
+ * Business Owners are not Dimes, so this reads user_type, never gender.
+ */
+export const isDime = (user: any): boolean => {
+  const userType = normalize(user?.user_type ?? user?.userType);
+  return userType === 'exotic' || userType === 'stripper';
+};
