@@ -179,7 +179,7 @@ function AppContent() {
       />
       <Route path="/rankings" element={<Rankings />} />
       <Route path="/money-circle" element={<MoneyCircle />} />
-      <Route path="/tip" element={<Tip />} />
+      <Route path="/tip" element={<AuthGuard><Tip /></AuthGuard>} />
       <Route path="/tips" element={<TipsRedirect />} />
       <Route path="/tips/:username" element={<TipsRedirect />} />
       <Route path="/rates" element={<RateRedirect />} />
