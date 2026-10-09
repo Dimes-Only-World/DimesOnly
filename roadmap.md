@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Fix invitation, upgrade, and sharing layouts on narrow phones; verify S22 Ultra-sized and other viewports without reducing text size
+- [x] Fix invitation, upgrade, and sharing layouts without reducing text size; isolated browser checks passed at 360, 384, 412, 740 landscape, and 1280 desktop widths. Full signed-in dashboard testing unavailable on external auth.
 
 - [x] Keep feed Show more taps reliable across the entire button; verified edge taps and photo/video expansion in an isolated live-feed check (signed-in dashboard unavailable)
 
