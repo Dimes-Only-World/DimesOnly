@@ -229,6 +229,37 @@
 }
 
 /* Safari needs an explicit safe-area allowance for bottom-fixed UI */
+.viewport-dialog {
+  min-width: 0;
+  max-width: calc(100vw - 1rem) !important;
+  grid-template-columns: minmax(0, 1fr);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+
+.viewport-dialog > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.viewport-dialog button {
+  white-space: normal;
+  height: auto;
+  min-height: 2.5rem;
+}
+
+.viewport-dialog button > svg {
+  flex-shrink: 0;
+}
+
+.viewport-dialog > button:last-child {
+  z-index: 20;
+}
+
 .fixed.bottom-0 {
   padding-bottom: env(safe-area-inset-bottom);
 }

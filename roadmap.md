@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Fix invitation, upgrade, and sharing layouts without reducing text size; isolated browser checks passed at 360, 384, 412, 740 landscape, and 1280 desktop widths. Full signed-in dashboard testing unavailable on external auth.
+
 - [x] Keep feed Show more taps reliable across the entire button; verified edge taps and photo/video expansion in an isolated live-feed check (signed-in dashboard unavailable)
 
 - [x] Apply shared rem sizing to remaining fixed-size mobile text, charts, and promotional copy site-wide
