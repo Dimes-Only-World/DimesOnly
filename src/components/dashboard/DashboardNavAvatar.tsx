@@ -69,15 +69,15 @@ interface Props {
   onLogout?: () => void;
 }
 
-/** Menu tiles that show an unread badge, and which notifications count toward each. */
-const BADGE_RULES: Record<string, (type: string, link: string) => boolean> = {
-  "MAKE MONEY": (t, l) => l.includes("make-money") || t === "admin",
+/** Menu tiles that show an unread badge; categories come from the shared notification rules. */
+const BADGE_RULES: Record<string, (type: string, link: string, cat: NotificationCategory) => boolean> = {
+  "MAKE MONEY": (t, l) => l.includes("make-money"),
   NOTIFICATIONS: () => true,
-  EARNINGS: (t, l) => l.includes("earnings") || /commission|direct|upline|payout|booking|extension|ticket_sale|event_host/.test(t),
-  MESSAGES: (t, l) => l.includes("messages") || t === "message",
-  MEDIA: (t, l) => l.includes("media") || t === "photo" || t === "video",
+  EARNINGS: (_t, _l, c) => c === "earnings",
+  MESSAGES: (_t, _l, c) => c === "messages",
+  MEDIA: (_t, _l, c) => c === "media",
   JACKPOT: (t, l) => l.includes("jackpot") || /jackpot|tip/.test(t),
-  REFERRALS: (t, l) => l.includes("referrals") || /referr|upline/.test(t),
+  REFERRALS: (_t, _l, c) => c === "referrals",
   "MONEY CIRCLE": (t, l) => l.includes("money-circle") || t.includes("money_circle"),
 };
 
@@ -91,17 +91,18 @@ const useUnreadBadges = () => {
     const load = async () => {
       const { data } = await supabase
         .from("notifications")
-        .select("type, link")
+        .select("type, link, data")
         .eq("recipient_id", userId)
         .eq("is_read", false)
         .limit(200);
       if (cancelled) return;
       const next: Record<string, number> = {};
-      for (const n of (data || []) as { type: string | null; link: string | null }[]) {
+      for (const n of (data || []) as { type: string | null; link: string | null; data: unknown }[]) {
         const t = (n.type || "").toLowerCase();
         const l = (n.link || "").toLowerCase();
+        const c = categorizeNotification(n.type, n.link, n.data);
         for (const [label, match] of Object.entries(BADGE_RULES)) {
-          if (match(t, l)) next[label] = (next[label] || 0) + 1;
+          if (match(t, l, c)) next[label] = (next[label] || 0) + 1;
         }
       }
       setCounts(next);
