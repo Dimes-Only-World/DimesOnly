@@ -104,11 +104,20 @@ const SECTIONS: { heading: string; lines: string[] }[] = [
   {
     heading: "10. Fans and Dimes",
     lines: [
-      "Tips, ratings, paid media, and messages are agreements between the fan and the Dime. The fan agrees to pay the price shown, and the Dime agrees to provide the content or interaction offered.",
-      "Fans receive a personal, non-transferable right to view purchased content on Dimes Only only. Downloading, recording, sharing, or reselling it is not allowed.",
-      "Dimes confirm they own or have permission for everything they upload, and that every person shown is 18 or older and has consented.",
+      "To open a fan account you must be at least 18, legally allowed to view adult content where you live, and give a valid email, username, and password. We may ask for more information or decline any application.",
+      "Some content on Dimes Only is adult material. By entering, you agree to see it and you are responsible for where and how you view it.",
+      "Tips, ratings, paid media, and messages are agreements between the fan and the Dime. The Company runs the platform and may moderate content, but is not a party to those agreements.",
+      "When a fan's payment is confirmed, the Dime must deliver what was offered.",
+      "Fans agree to pay the price shown plus any applicable sales tax. Payments are processed in US dollars by our approved payment providers (PayPal and Cash App). Your bank may add its own fees.",
+      "Memberships and subscriptions renew automatically at the current price until you cancel before the next billing date, your payment is declined, or you close your account. Price increases are shown before you are charged.",
+      "Do not make unjustified refund or chargeback requests on tips or purchases. Bad-faith refunds or chargebacks may lead to account suspension or closure.",
+      "Fans receive a personal, non-transferable right to view purchased content on Dimes Only only. Downloading, screen-recording, sharing, or reselling it is not allowed.",
+      "You are responsible for keeping your login secure. We are not responsible for losses from a lost, shared, or compromised account.",
+      "Dimes confirm they own or have permission for everything they upload, and that every person shown is 18 or older and has given written consent.",
+      "We may suspend or close an account, pause payments, or refund purchases while we review suspected fraud, unlawful activity, or breaches of these terms. We will notify you and give the reason.",
     ],
   },
+
   {
     heading: "11. Referral program",
     lines: [
