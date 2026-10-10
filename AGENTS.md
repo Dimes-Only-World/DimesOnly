@@ -21,3 +21,4 @@
 - Compute member Available balance only via `computeLedger` (total earned minus pending, approved, and paid payout requests) and keep the payout_requests insert guard (minimum and one open request); this prevents double withdrawals.
 - Run PayPal batch payouts only from the admin-data edge function with a deterministic sender_batch_id; PayPal rejects repeats, so a selection can never be paid twice.
 - Shared notification categories (src/lib/notificationCategories.ts) drive the user center, menu badges and admin sender; one rule keeps user and admin communication consistent.
+- Store the company's per-car monthly payment in service-role-only `vehicle_costs`, read and written only through `rental-admin`; car costs must never reach renters through the public vehicles table.
