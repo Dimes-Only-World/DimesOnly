@@ -22,6 +22,7 @@ interface BannerVideoProps {
   videoRef?: React.RefObject<HTMLVideoElement>;
   /** No seek bar/controls: tap to pause/resume, replay button when finished */
   minimal?: boolean;
+  poster?: string;
 }
 
 function formatTime(seconds: number): string {
@@ -42,6 +43,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   onEnded,
   videoRef: externalVideoRef,
   minimal = false,
+  poster,
 }) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = externalVideoRef || internalVideoRef;
@@ -56,7 +58,13 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   const [showControls, setShowControls] = useState(autoPlay);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  // No autoplay — video starts paused, user must click play
+  // Explicit autoplay requests start immediately; default banners remain paused.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !autoPlay || minimal || background) return;
+    video.muted = muted;
+    void video.play().catch(() => undefined);
+  }, [src, autoPlay, muted, minimal, background, videoRef]);
 
   // Time updates
   useEffect(() => {
@@ -281,6 +289,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         autoPlay={autoPlay}
         muted={muted}
         preload="metadata"
+        poster={poster}
         onEnded={onEnded}
         className="h-full w-full object-cover"
       >
