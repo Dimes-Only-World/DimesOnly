@@ -567,7 +567,7 @@ const Events: React.FC = () => {
           </div>
         )}
 
-        <div className="px-0 sm:px-4 lg:px-6">
+        <div className="w-full min-w-0 px-0">
           {/* Events attending badge */}
           <div className="flex justify-center mb-4">
             {userProfile && (
@@ -690,22 +690,35 @@ const Events: React.FC = () => {
               </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 w-full">
-              {filteredEvents.map((event) => (
+            <div className={`mx-auto grid w-full min-w-0 grid-cols-1 gap-4 ${filteredEvents.length > 2 ? "md:grid-cols-2" : ""} ${filteredEvents.length > 3 ? "lg:grid-cols-3" : ""}`}>
+              {filteredEvents.map((event, index) => (
                 <Card
                   key={event.id}
-                  className={`bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden ${getCardClasses()}`}
+                  data-event-id={event.id}
+                  data-featured-event={index === 0 ? "true" : "false"}
+                  className={`min-w-0 w-full bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden ${index === 0 ? "col-span-full" : ""} ${getCardClasses()}`}
                 >
                   <div className="relative">
+                    {index === 0 && eventBannerVideo(event) ? (
+                      <BannerVideo
+                        key={`${event.id}-${eventBannerVideo(event)}`}
+                        src={eventBannerVideo(event) || ""}
+                        autoPlay
+                        muted
+                        overlay={false}
+                        className="aspect-video [&_video]:object-contain"
+                      />
+                    ) : (
                     <img
                       src={event.photo_url || "/placeholder.svg"}
                       alt={event.name}
-                      className="w-full h-32 md:h-40 object-cover"
+                      className={index === 0 ? "w-full aspect-video object-contain bg-card" : "w-full aspect-video object-cover"}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/placeholder.svg";
                       }}
                     />
+                    )}
 
                     {/* Sold out overlay */}
                     {getAvailableSpots(event) === 0 && (
@@ -733,7 +746,7 @@ const Events: React.FC = () => {
                     </div>
                   </div>
 
-                  <CardContent className={getContentClasses()}>
+                  <CardContent className={`${getContentClasses()} py-5 min-w-0`}>
                     {/* Free spots + attendance status (below banner, above title) */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       {getAvailableSpots(event) === 0 ? (
@@ -769,8 +782,8 @@ const Events: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-bold text-yellow-400 line-clamp-2">
+                    <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+                      <h3 className={`${index === 0 ? "text-2xl md:text-3xl" : "text-lg"} min-w-0 break-words font-bold text-yellow-400`}>
                         {event.name}
                       </h3>
                       <div className="text-right text-sm text-gray-300 ml-2">
@@ -784,19 +797,19 @@ const Events: React.FC = () => {
                     </div>
 
                     <div className="space-y-2 text-sm text-gray-300 mb-4">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-yellow-400" />
+                       <div className="flex items-start gap-2">
+                         <Calendar className="h-4 w-4 shrink-0 text-yellow-400" />
                         <span>{event.date_tba ? "To Be Announced" : formatDateForDisplay(event.date)}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-yellow-400" />
+                       <div className="flex items-start gap-2">
+                         <Clock className="h-4 w-4 shrink-0 text-yellow-400" />
                         <span>
                           {event.date_tba ? "To Be Announced" : formatTimeRange(event.start_time, event.end_time)}
                         </span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <MapPin className="h-4 w-4 text-yellow-400 mt-0.5" />
-                        <span className="line-clamp-2">
+                         <MapPin className="h-4 w-4 shrink-0 text-yellow-400 mt-0.5" />
+                         <span className="min-w-0 break-words">
                           {event.address}, {event.city}, {event.state}
                         </span>
                       </div>
