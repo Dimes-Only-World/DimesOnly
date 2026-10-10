@@ -58,7 +58,13 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   const [showControls, setShowControls] = useState(autoPlay);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  // No autoplay — video starts paused, user must click play
+  // Explicit autoplay requests start immediately; default banners remain paused.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !autoPlay || minimal || background) return;
+    video.muted = muted;
+    void video.play().catch(() => undefined);
+  }, [src, autoPlay, muted, minimal, background, videoRef]);
 
   // Time updates
   useEffect(() => {
