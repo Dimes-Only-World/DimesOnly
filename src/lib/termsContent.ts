@@ -340,13 +340,13 @@ export const TERMS_SECTIONS: { heading: string; lines: string[] }[] = [
     "heading": "32. Limitation of liability",
     "lines": [
       "What we never limit. Nothing in these terms limits or excludes any liability that cannot be limited or excluded by law, including liability for fraud, gross negligence, or intentional misconduct, or for death or personal injury caused by our negligence where the law does not allow it.",
-      "If you are a Consumer. To the extent allowed by law, the Company is not liable to you for lost profits, lost data, loss of opportunity, or any indirect, incidental, special, or consequential losses. Our total liability to you for any claim related to the Platform is limited to [USD $___] per claim, or the amount you paid us in the 12 months before the claim, if higher.",
+      "If you are a Consumer. To the extent allowed by law, the Company is not liable to you for lost profits, lost data, loss of opportunity, or any indirect, incidental, special, or consequential losses. Our total liability to you for any claim related to the Platform is limited to USD $50.00 per claim, or the amount you paid us in the 12 months before the claim, if higher.",
       "If you are a Business User (for example, a Dime, referrer, or vehicle host). To the extent allowed by law:",
       "• the Platform is provided “as is” and “as available,” and the Company disclaims all implied warranties, including merchantability, fitness for a particular purpose, and non-infringement;",
       "• the Company is not liable for lost profits, lost earnings, lost business, loss of reputation or goodwill, or any indirect, incidental, special, or consequential losses;",
       "• the Company is not liable for losses from Content being copied, recorded, or shared outside the Platform, or from third parties discovering or publishing your identity or personal information (doxing), except to the extent caused by our own breach of law or of our Privacy Policy; and",
       "• the Company is not liable for delays or failures caused by events beyond our reasonable control, such as outages of internet or payment providers, natural disasters, government action, or labor disputes.",
-      "Our total liability to a Business User for all claims related to the Platform is limited to the greater of (a) the Platform Fees and other amounts you paid to the Company in the 12 months before the claim, or (b) [USD $___]."
+      "Our total liability to a Business User for all claims related to the Platform is limited to the greater of (a) the Platform Fees and other amounts you paid to the Company in the 12 months before the claim, or (b) USD $50.00."
     ]
   },
   {
