@@ -12,6 +12,7 @@ import { formatTimeRange, formatDateForDisplay } from "@/lib/timeUtils";
 import { resolveFreeAllocation, getFreeBadgeLabel, listConfiguredFreeAllocations } from "@/lib/eventTickets";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import BannerVideo from "@/components/BannerVideo";
+import { upcomingEvents, eventBannerVideo } from "@/lib/eventSchedule";
 import {
   Calendar,
   Music,
@@ -57,6 +58,7 @@ interface Event {
   is_attending: boolean;
   description?: string;
   video_urls?: string[];
+  banner_video_url?: string;
   additional_photos?: string[];
   registrations?: EventRegistration[];
 }
@@ -83,6 +85,7 @@ const Events: React.FC = () => {
   const username = searchParams.get("events") || "";
 
   const [events, setEvents] = useState<Event[]>([]);
+  const [scheduleNow, setScheduleNow] = useState(() => Date.now());
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [latestFreeVideo, setLatestFreeVideo] = useState<string | null>(null);
@@ -93,6 +96,11 @@ const Events: React.FC = () => {
   });
   const { videoUrl: eventsPageVideo } = usePageVideo("events_page_banner");
   const [attendanceFilter, setAttendanceFilter] = useState<"all" | "going" | "not_going">("all");
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setScheduleNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (username) fetchUserProfile();
@@ -210,7 +218,6 @@ const Events: React.FC = () => {
       const { data: allEvents, error: eventsError } = await supabase
         .from("events")
         .select("*")
-        .gte("date", new Date().toISOString().split("T")[0])
         .order("date");
 
       if (eventsError) throw eventsError;
@@ -286,6 +293,13 @@ const Events: React.FC = () => {
     }
   }, [userProfile?.id, toast]);
 
+  useEffect(() => {
+    const channel = supabase.channel("upcoming-event-layout")
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchEvents())
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [fetchEvents]);
+
   const handleViewDetails = useCallback(
     (event: Event) => {
       if (!event?.id) return;
@@ -296,7 +310,7 @@ const Events: React.FC = () => {
 
   // Memoized filtered events with proper null checks
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
+    return upcomingEvents(events, scheduleNow).filter((event) => {
       const matchesLocation =
         !filters.location ||
         [event.city, event.state, event.address, (event as any).location]
@@ -311,7 +325,7 @@ const Events: React.FC = () => {
         (attendanceFilter === "not_going" && !event.is_attending);
       return matchesLocation && matchesDate && matchesGenre && matchesAttendance;
     });
-  }, [events, filters, attendanceFilter]);
+   }, [events, filters, attendanceFilter, scheduleNow]);
 
   const monthOptions = useMemo(() => {
     const seen = new Map<string, string>();
