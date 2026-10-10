@@ -126,38 +126,8 @@ const calculateBaseRentalTotal = (vehicle: any, rentalType: string, start: strin
   }
 
   const days = rentalDaysBetween(start, end);
-  const dayRate = Math.max(0, Number(vehicle.day_rate || 0));
-  const threeDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
-  const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
-  const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
-  if (rentalType === "monthly") return monthlyRentalPrice(monthlyRate);
   const minimumDays = rentalType === "weekly" ? 7 : 1;
-  let remaining = Math.max(days, minimumDays);
-  let total = 0;
-
-  if (monthlyRate > 0 && remaining >= 30) {
-    const months = Math.floor(remaining / 30);
-    total += months * monthlyRate;
-    remaining %= 30;
-  }
-  if (weeklyRate > 0 && remaining >= 7) {
-    const weeks = Math.floor(remaining / 7);
-    total += weeks * weeklyRate;
-    remaining %= 7;
-  }
-  if (remaining > 0) {
-    const remainderRate = remaining >= 3 && threeDayRate > 0 && (dayRate === 0 || threeDayRate < dayRate)
-      ? threeDayRate
-      : dayRate;
-    if (remainderRate > 0) {
-      total += remaining * remainderRate;
-    } else if (weeklyRate > 0) {
-      total += weeklyRate;
-    } else if (monthlyRate > 0) {
-      total += monthlyRate;
-    }
-  }
-  return Math.round(total * 100) / 100;
+  return shortTermTotal(vehicle, Math.max(days, minimumDays));
 };
 
 const createServiceClient = (requestId: string) => {
@@ -346,8 +316,8 @@ serve(async (req) => {
           return json({ error: "Pickup must be scheduled from today through the next 28 days", requestId }, 400);
         }
         if (!booking.end_date) return json({ error: "A return or contract end date is required", requestId }, 400);
-        if (booking.rental_type === "monthly" && !monthlyRentalEndIsValid(booking.start_date, booking.end_date)) {
-          return json({ error: "Monthly rentals may run no more than 28 days after pickup", requestId }, 400);
+        if (booking.rental_type !== "long_term" && booking.rental_type !== "rent_to_own" && !monthlyRentalEndIsValid(booking.start_date, booking.end_date)) {
+          return json({ error: "Bookings may run no more than 30 days. Choose 6 months or lease to own for longer.", requestId }, 400);
         }
         if (!booking.signature_text?.trim() || !booking.signed_at) {
           return json({ error: "Review and sign the rental agreement before continuing", requestId }, 400);
