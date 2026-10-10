@@ -1,3 +1,4 @@
+import { ratesFromMonthlyPayment } from "@/lib/vehicleCostPricing";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminUserId } from "@/lib/adminAuth";
@@ -583,6 +584,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         monthly_rate: Number(f.monthly_rate) || null,
         down_payment: Number(f.down_payment) || null,
         mileage: Number(f.mileage) || null,
+        our_monthly_payment: f.our_monthly_payment === "" || f.our_monthly_payment == null ? undefined : Number(f.our_monthly_payment),
       };
       delete payload.id; delete payload.created_at; delete payload.updated_at; delete payload.created_by;
       let saved;
@@ -658,6 +660,15 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
               <SelectItem value="maintenance">Maintenance</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+        <div className="sm:col-span-2 border border-primary/40 bg-primary/5 p-3">
+          <Label>Our Monthly Payment on This Car ($)</Label>
+          <Input type="number" min={0} value={f.our_monthly_payment ?? ""} placeholder="e.g. 500"
+            onChange={(e) => {
+              const v = e.target.value;
+              setF(v === "" ? { ...f, our_monthly_payment: "" } : { ...f, our_monthly_payment: v, ...ratesFromMonthlyPayment(Number(v)) });
+            }} />
+          <p className="mt-1 text-xs text-muted-foreground">Private — never shown to renters. Fills in Monthly (+$752), Weekly (= payment), Day (payment ÷ 30 + $35) and 3+ Day (20% off daily). You can still edit them.</p>
         </div>
         <div><Label>Day Rate ($)</Label><Input type="number" value={f.day_rate || 0} onChange={(e) => setF({ ...f, day_rate: e.target.value })} /></div>
         <div><Label>3+ Day Rate ($ / day)</Label><Input type="number" value={f.three_day_rate || 0} onChange={(e) => setF({ ...f, three_day_rate: e.target.value })} placeholder="Discounted daily rate for 3+ days" /></div>
