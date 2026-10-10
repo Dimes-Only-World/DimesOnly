@@ -71,6 +71,13 @@ export const TERMS_SECTIONS: { heading: string; lines: string[] }[] = [
       "Newly registered members start as Silver Members. Silver is the base membership.",
       "Silver Plus, Diamond Plus, and Elite Plus are limited positions. They are not automatic: each must be separately elected, paid (unless expressly gifted in writing), accepted by the Company, and available at the time of upgrade.",
       "The initial class is capped at 300 Silver Plus, 300 Diamond Plus, and 100 Elite Plus positions. When a stage is sold out, the price for the next stage applies.",
+      "What a membership is for. Each membership level is purchased for its membership benefits and perks, such as access to Platform features and content, member discounts, member status, and other features shown for that level. The price of a membership pays only for those benefits and perks. A membership is not an investment.",
+      "Profit sharing is a discretionary bonus. The Company may, at its sole discretion, offer a profit-sharing bonus to some or all members. If offered, profit sharing:",
+      "• is a voluntary bonus that the Company may offer, change, suspend, or stop at any time, with or without notice;",
+      "• is not guaranteed and is not part of what members pay for;",
+      "• is not a return on, or repayment of, the price paid for any membership; and",
+      "• depends on decisions made by the Company, including whether any bonus is paid at all, how much, to whom, and when.",
+      "No ownership or investment. By purchasing or accepting a membership, you acknowledge that you are not buying an ownership interest, equity, membership interest in Housing Angels, LLC, profit interest, security, or investment of any kind, and that you are not relying on the efforts of the Company or anyone else to earn a profit from your membership.",
       "Early access, complimentary membership, or promotional grants do not guarantee an upgrade, profit sharing, or any particular income."
     ]
   },
