@@ -17,6 +17,7 @@ import CapturesGallery from "@/components/rentals/CapturesGallery";
 import AngelLoader from "@/components/AngelLoader";
 import { CancellationPolicyDialog, PaymentDetailsDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { calculateRentalPricing } from "@/lib/rentalPricing";
+import { shortTermTotal, sixMonthLeaseTotal } from "@/lib/rentalShortTerm";
 import { buildAuthUrl } from "@/lib/refCapture";
 import RentalDatePicker from "@/components/rentals/RentalDatePicker";
 import RentalMemberAgreement from "@/components/rentals/RentalMemberAgreement";
@@ -175,6 +176,7 @@ const RentalDetails: React.FC = () => {
   const total = Math.max(0, subtotal - promoDiscount);
   const securityDeposit = Number(vehicle?.security_deposit || 0);
   const isLongAgreement = rentalType === "long_term" || rentalType === "rent_to_own";
+  const overMax = !isLongAgreement && !!startDate && !!endDate && new Date(endDate).getTime() > new Date(startDate).getTime() + MONTHLY_RENTAL_MAX_DAYS * 86_400_000;
   const rentToOwnPayment = rentToOwnMonthlyPayment(vehicle?.monthly_rate);
   const rentToOwnTotal = rentToOwnContractTotal(vehicle?.monthly_rate, vehicle?.down_payment);
   const downPayment =
@@ -268,8 +270,8 @@ const RentalDetails: React.FC = () => {
       toast({ title: "Check your dates", description: "The return date must be after the pickup date.", variant: "destructive" });
       return;
     }
-    if (rentalType === "monthly" && !monthlyRentalEndIsValid(startDate, endDate)) {
-      toast({ title: "Check your dates", description: "A monthly rental can run no more than 28 days after pickup.", variant: "destructive" });
+    if (!isLongAgreement && !monthlyRentalEndIsValid(startDate, endDate)) {
+      toast({ title: "Over 30 days", description: "Choose 28 days with 2 days free, 6 months, or lease to own.", variant: "destructive" });
       return;
     }
     if (isLongAgreement && missingAgreementFields.length) {
@@ -547,12 +549,29 @@ const RentalDetails: React.FC = () => {
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <RentalDatePicker label="Pickup date/time" value={startDate} onChange={updateStartDate} fromDate={startOfToday()} toDate={lastPickupDay()} />
-                    <RentalDatePicker label="Return date/time" value={endDate} onChange={setEndDate} fromDate={startDate ? new Date(startDate) : startOfToday()} toDate={rentalType === "monthly" && startDate ? addDays(new Date(startDate), MONTHLY_RENTAL_MAX_DAYS) : undefined} disabled={!startDate || isLongAgreement} />
+                    <RentalDatePicker label="Return date/time" value={endDate} onChange={setEndDate} fromDate={startDate ? new Date(startDate) : startOfToday()} toDate={startDate ? addDays(new Date(startDate), 200) : undefined} disabled={!startDate || isLongAgreement} />
                   </div>
-                  <p className="text-xs text-rental-muted">Pickup can be scheduled from today through the next 28 days.</p>
-                  {rentalType === "monthly" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Choose a return date no more than 28 days after pickup. The listed monthly rate applies.</p>}
-                  {rentalType === "long_term" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Long-term rentals have a six-month minimum. Your minimum end date is filled automatically.</p>}
-                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the down payment, with $75 deducted from the contract total.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
+                  <p className="text-xs text-rental-muted">Pickup can be scheduled from today through the next 28 days. Bookings run up to 30 days; 28–30 days are charged as 28 days with up to 2 days free.</p>
+                  {overMax && vehicle && (
+                    <div className="space-y-2 border border-rental-primary/60 bg-rental-primary/10 p-3">
+                      <p className="font-semibold">You chose over 30 days. Select one:</p>
+                      <Button type="button" variant="outline" className="h-auto w-full justify-between whitespace-normal text-left" onClick={() => { setEndDate(toLocalDateTimeValue(addDays(new Date(startDate), MONTHLY_RENTAL_MAX_DAYS), startDate.slice(11, 16))); if (isLongAgreement) setRentalType(rentalOptions.find((o: string) => !["long_term", "rent_to_own", "purchase"].includes(o)) || "daily"); }}>
+                        <span>Only 28 days with 2 days free</span><b>${shortTermTotal(vehicle, 30).toLocaleString()}</b>
+                      </Button>
+                      {rentalOptions.includes("long_term") && (
+                        <Button type="button" variant="outline" className="h-auto w-full justify-between whitespace-normal text-left" onClick={() => updateRentalType("long_term")}>
+                          <span>6 Months (28 days × 6, 2 days free each month)</span><b>${sixMonthLeaseTotal(vehicle).toLocaleString()}</b>
+                        </Button>
+                      )}
+                      {rentalOptions.includes("rent_to_own") && (
+                        <Button type="button" variant="outline" className="h-auto w-full justify-between whitespace-normal text-left" onClick={() => updateRentalType("rent_to_own")}>
+                          <span>Lease to own — deposit</span><b>${Number(vehicle.down_payment || 0).toLocaleString()}</b>
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {rentalType === "long_term" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">6-month lease: 28 days × 6 months with 2 free days each month, at the daily rate (156 days × ${Number(vehicle?.day_rate || 0).toLocaleString()}) = <b className="text-rental-foreground">${vehicle ? sixMonthLeaseTotal(vehicle).toLocaleString() : 0}</b>. Your end date is filled automatically.</p>}
+                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>Deposit to be collected: <b className="text-rental-foreground">${Number(vehicle?.down_payment || 0).toLocaleString()}</b>. Wire instructions are shown at checkout.</p><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the deposit, with $75 deducted from the contract total.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
 
                   <div>
                     <Label>Pickup location</Label>

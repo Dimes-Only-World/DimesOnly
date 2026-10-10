@@ -14,9 +14,9 @@ Deno.test("long-term is six months and rent-to-own is 48 months", () => {
   assertEquals(minimumEndDate("2026-10-03T10:00:00", "rent_to_own")?.toISOString(), "2030-10-03T10:00:00.000Z");
 });
 
-Deno.test("monthly rentals end no more than 28 days after pickup", () => {
-  assertEquals(monthlyRentalEndIsValid("2026-10-03T10:00:00", "2026-10-31T10:00:00"), true);
-  assertEquals(monthlyRentalEndIsValid("2026-10-03T10:00:00", "2026-10-31T10:01:00"), false);
+Deno.test("short bookings end no more than 30 days after pickup", () => {
+  assertEquals(monthlyRentalEndIsValid("2026-10-03T10:00:00", "2026-11-02T10:00:00"), true);
+  assertEquals(monthlyRentalEndIsValid("2026-10-03T10:00:00", "2026-11-02T10:01:00"), false);
   assertEquals(monthlyRentalEndIsValid("2026-10-03T10:00:00", "2026-10-03T10:00:00"), false);
 });
 

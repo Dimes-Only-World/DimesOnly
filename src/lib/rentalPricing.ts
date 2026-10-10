@@ -1,3 +1,5 @@
+import { shortTermLines } from "./rentalShortTerm";
+
 export type RentalRateSource = {
   day_rate?: number | null;
   three_day_rate?: number | null;
@@ -49,51 +51,8 @@ export const calculateRentalPricing = (
     };
   }
 
-  const monthlyRate = Math.max(0, Number(vehicle.monthly_rate || 0));
-  const weeklyRate = Math.max(0, Number(vehicle.weekly_rate || 0));
-  const discountedDayRate = Math.max(0, Number(vehicle.three_day_rate || 0));
-  if (rentalType === "monthly") {
-    return {
-      days,
-      lines: [{ label: "Monthly rental", quantity: 1, unitRate: monthlyRate, total: monthlyRate }],
-      total: monthlyRate,
-      standardDailyTotal: dayRate > 0 ? days * dayRate : monthlyRate,
-      savings: Math.max(0, (dayRate > 0 ? days * dayRate : monthlyRate) - monthlyRate),
-    };
-  }
-
   const minimumDays = rentalType === "weekly" ? 7 : 1;
-  let remaining = Math.max(days, minimumDays);
-  const lines: RentalPriceLine[] = [];
-
-  if (monthlyRate > 0 && remaining >= 30) {
-    const quantity = Math.floor(remaining / 30);
-    lines.push({ label: quantity === 1 ? "Month" : "Months", quantity, unitRate: monthlyRate, total: quantity * monthlyRate });
-    remaining %= 30;
-  }
-
-  if (weeklyRate > 0 && remaining >= 7) {
-    const quantity = Math.floor(remaining / 7);
-    lines.push({ label: quantity === 1 ? "Week" : "Weeks", quantity, unitRate: weeklyRate, total: quantity * weeklyRate });
-    remaining %= 7;
-  }
-
-  if (remaining > 0) {
-    const useThreeDayRate = remaining >= 3 && discountedDayRate > 0 && (dayRate === 0 || discountedDayRate < dayRate);
-    const unitRate = useThreeDayRate ? discountedDayRate : dayRate;
-    if (unitRate > 0) {
-      lines.push({
-        label: useThreeDayRate ? "Discounted days" : remaining === 1 ? "Day" : "Days",
-        quantity: remaining,
-        unitRate,
-        total: remaining * unitRate,
-      });
-    } else if (weeklyRate > 0) {
-      lines.push({ label: "Week", quantity: 1, unitRate: weeklyRate, total: weeklyRate });
-    } else if (monthlyRate > 0) {
-      lines.push({ label: "Month", quantity: 1, unitRate: monthlyRate, total: monthlyRate });
-    }
-  }
+  const lines: RentalPriceLine[] = shortTermLines(vehicle, Math.max(days, minimumDays));
 
   const total = lines.reduce((sum, line) => sum + line.total, 0);
   const standardDailyTotal = dayRate > 0 ? days * dayRate : total;

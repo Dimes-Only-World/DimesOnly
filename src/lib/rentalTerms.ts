@@ -1,5 +1,5 @@
 export const RENTAL_PICKUP_WINDOW_DAYS = 28;
-export const MONTHLY_RENTAL_MAX_DAYS = 28;
+export const MONTHLY_RENTAL_MAX_DAYS = 30;
 export const LONG_TERM_MIN_MONTHS = 6;
 export const RENT_TO_OWN_MONTHS = 48;
 export const RENT_TO_OWN_MONTHLY_DISCOUNT = 75;
