@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User as UserIcon } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
 import DashboardNavAvatar from "./dashboard/DashboardNavAvatar";
@@ -47,10 +47,9 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="bg-white shadow-sm border-b sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* pr-* keeps the logout button clear of the fixed notification bell */}
             <div className="flex items-center justify-between py-3 gap-3">
 
-              <DashboardNavAvatar profilePhoto={profilePhoto} username={username} />
+              <DashboardNavAvatar profilePhoto={profilePhoto} username={username} onLogout={handleLogout} />
 
               <div className="flex flex-1 items-center justify-center">
                 {title?.toLowerCase() !== "profile" && (
@@ -60,14 +59,7 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
                 )}
               </div>
 
-              <button
-                onClick={handleLogout}
-                aria-label="Log out"
-                title="Log out"
-                className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-pink-400 hover:ring-pink-500 shadow-md bg-slate-200 transition-all"
-              >
-                <LogOut className="h-6 w-6 text-slate-600" />
-              </button>
+              <NotificationBell className="shrink-0" />
             </div>
           </div>
         </div>

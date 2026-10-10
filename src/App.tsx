@@ -63,7 +63,6 @@ import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
 import GlobalVideoDownloadBlocker from "./components/GlobalVideoDownloadBlocker";
 import DashboardBackButtonGuard from "./components/DashboardBackButtonGuard";
-import NotificationBell from "./components/NotificationBell";
 import FlixLanding from "@/pages/flix/FlixLanding";
 import FlixBrowse from "@/pages/flix/FlixBrowse";
 import FlixTitlePage from "@/pages/flix/FlixTitle";
@@ -248,12 +247,7 @@ function AppContent() {
       <GlobalVideoDownloadBlocker />
       <DashboardBackButtonGuard />
 
-      {showNotificationBell && (
-
-        <div className="pointer-events-none fixed inset-x-0 top-3 z-[45] flex justify-center">
-          <NotificationBell className="pointer-events-auto" />
-        </div>
-      )}
+      {/* The bell itself lives in the dashboard header (DashboardSectionLayout). */}
       {showNotificationBell && <AddToHomeScreenPrompt />}
       {isHomePage ? (
         <AgeVerificationWrapper>{routes}</AgeVerificationWrapper>
