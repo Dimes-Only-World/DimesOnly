@@ -59,6 +59,7 @@ interface Event {
   description?: string;
   video_urls?: string[];
   banner_video_url?: string;
+  end_date?: string;
   additional_photos?: string[];
   registrations?: EventRegistration[];
 }
@@ -329,7 +330,7 @@ const Events: React.FC = () => {
 
   const monthOptions = useMemo(() => {
     const seen = new Map<string, string>();
-    events.forEach((e) => {
+    upcomingEvents(events, scheduleNow).forEach((e) => {
       if (e.date_tba || !e.date) return;
       const v = e.date.slice(0, 7);
       if (!seen.has(v)) {
@@ -338,7 +339,7 @@ const Events: React.FC = () => {
       }
     });
     return [...seen].sort().map(([value, label]) => ({ value, label }));
-  }, [events]);
+  }, [events, scheduleNow]);
 
   const genreOptions = useMemo(
     () => [...new Set(events.map((e) => (e.genre || "").trim()).filter(Boolean))].sort(),

@@ -22,6 +22,7 @@ interface BannerVideoProps {
   videoRef?: React.RefObject<HTMLVideoElement>;
   /** No seek bar/controls: tap to pause/resume, replay button when finished */
   minimal?: boolean;
+  poster?: string;
 }
 
 function formatTime(seconds: number): string {
@@ -42,6 +43,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   onEnded,
   videoRef: externalVideoRef,
   minimal = false,
+  poster,
 }) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = externalVideoRef || internalVideoRef;
@@ -281,6 +283,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         autoPlay={autoPlay}
         muted={muted}
         preload="metadata"
+        poster={poster}
         onEnded={onEnded}
         className="h-full w-full object-cover"
       >

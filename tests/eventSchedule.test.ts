@@ -26,6 +26,11 @@ describe("upcoming event feature", () => {
     expect(upcomingEvents([{ ...event("2026-01-01"), date_tba: true }, event("2026-10-15")], now).map((e) => e.date))
       .toEqual(["2026-10-15", "2026-01-01"]);
   });
+  it("keeps a multi-day event until its stored end date and time", () => {
+    const multipleDays = { ...event("2026-10-15"), end_date: "2026-10-17", end_time: "02:00" };
+    expect(upcomingEvents([multipleDays], Date.parse("2026-10-16T12:00:00Z"))).toHaveLength(1);
+    expect(upcomingEvents([multipleDays], Date.parse("2026-10-17T02:00:00Z"))).toHaveLength(0);
+  });
   it("uses the selected banner video then the first uploaded video", () => {
     expect(eventBannerVideo({ ...event("2026-10-15"), banner_video_url: "selected.mp4", video_urls: ["first.mp4"] })).toBe("selected.mp4");
     expect(eventBannerVideo({ ...event("2026-10-15"), video_urls: ["first.mp4"] })).toBe("first.mp4");
