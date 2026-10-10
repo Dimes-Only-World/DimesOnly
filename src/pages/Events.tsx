@@ -707,6 +707,7 @@ const Events: React.FC = () => {
                         autoPlay
                         muted
                         overlay={false}
+                        poster={event.photo_url || undefined}
                         className="aspect-video [&_video]:object-contain"
                       />
                     ) : (
@@ -730,7 +731,7 @@ const Events: React.FC = () => {
 
 
                     {/* Media Indicators */}
-                    <div className="absolute bottom-3 left-3 flex gap-2">
+                    <div className={`absolute ${index === 0 && eventBannerVideo(event) ? "top-3 right-3" : "bottom-3 left-3"} flex gap-2`}>
                       {event.video_urls && event.video_urls.length > 0 && (
                         <div className="bg-black/60 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
                           <Play className="h-3 w-3" />
