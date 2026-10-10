@@ -1,4 +1,4 @@
-import { ratesFromMonthlyPayment } from "@/lib/vehicleCostPricing";
+import { ratesFromMonthlyPayment, DEFAULT_MARKUPS, type Markups } from "@/lib/vehicleCostPricing";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminUserId } from "@/lib/adminAuth";
