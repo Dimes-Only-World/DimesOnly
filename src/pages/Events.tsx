@@ -697,10 +697,10 @@ const Events: React.FC = () => {
                   key={event.id}
                   data-event-id={event.id}
                   data-featured-event={index === 0 ? "true" : "false"}
-                  className={`min-w-0 w-full bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden ${index === 0 ? "col-span-full" : ""} ${getCardClasses()}`}
+                  className={`min-w-0 w-full bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300 overflow-hidden ${index === 0 || event.date_tba ? "col-span-full" : ""} ${getCardClasses()}`}
                 >
                   <div className="relative">
-                    {index === 0 && eventBannerVideo(event) ? (
+                    {(index === 0 || event.date_tba) && eventBannerVideo(event) ? (
                       <BannerVideo
                         key={`${event.id}-${eventBannerVideo(event)}`}
                         src={eventBannerVideo(event) || ""}
@@ -714,7 +714,7 @@ const Events: React.FC = () => {
                     <img
                       src={event.photo_url || "/placeholder.svg"}
                       alt={event.name}
-                      className={index === 0 ? "w-full aspect-video object-contain bg-card" : "w-full aspect-video object-cover"}
+                      className={index === 0 || event.date_tba ? "w-full aspect-video object-contain bg-card" : "w-full aspect-video object-cover"}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/placeholder.svg";
@@ -731,7 +731,7 @@ const Events: React.FC = () => {
 
 
                     {/* Media Indicators */}
-                    <div className={`absolute ${index === 0 && eventBannerVideo(event) ? "top-3 right-3" : "bottom-3 left-3"} flex gap-2`}>
+                    <div className={`absolute ${(index === 0 || event.date_tba) && eventBannerVideo(event) ? "top-3 right-3" : "bottom-3 left-3"} flex gap-2`}>
                       {event.video_urls && event.video_urls.length > 0 && (
                         <div className="bg-black/60 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
                           <Play className="h-3 w-3" />
