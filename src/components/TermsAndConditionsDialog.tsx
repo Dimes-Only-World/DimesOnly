@@ -144,7 +144,7 @@ const TermsAndConditionsDialog: React.FC<Props> = ({ userData }) => {
           Terms &amp; Conditions
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="terms-dialog max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-foreground">Terms &amp; Conditions</DialogTitle>
           <DialogDescription>
