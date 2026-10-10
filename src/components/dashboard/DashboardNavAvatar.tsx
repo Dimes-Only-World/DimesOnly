@@ -23,7 +23,10 @@ import {
   Rocket,
   ChevronDown,
   ChevronUp,
+  LogOut,
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useAppContext } from "@/contexts/AppContext";
 import { useAccountSetup } from "@/hooks/useAccountSetup";
 import ShareLinkDialog from "./ShareLinkDialog";
 
@@ -63,13 +66,65 @@ export const PROFILE_INFO_LINK: NavLink = {
 interface Props {
   profilePhoto?: string | null;
   username?: string | null;
+  onLogout?: () => void;
 }
+
+/** Menu tiles that show an unread badge, and which notifications count toward each. */
+const BADGE_RULES: Record<string, (type: string, link: string) => boolean> = {
+  "MAKE MONEY": (t, l) => l.includes("make-money") || t === "admin",
+  NOTIFICATIONS: () => true,
+  EARNINGS: (t, l) => l.includes("earnings") || /commission|direct|upline|payout|booking|extension|ticket_sale|event_host/.test(t),
+  MESSAGES: (t, l) => l.includes("messages") || t === "message",
+  MEDIA: (t, l) => l.includes("media") || t === "photo" || t === "video",
+  JACKPOT: (t, l) => l.includes("jackpot") || /jackpot|tip/.test(t),
+  REFERRALS: (t, l) => l.includes("referrals") || /referr|upline/.test(t),
+  "MONEY CIRCLE": (t, l) => l.includes("money-circle") || t.includes("money_circle"),
+};
+
+const useUnreadBadges = () => {
+  const { user } = useAppContext();
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("notifications")
+        .select("type, link")
+        .eq("recipient_id", userId)
+        .eq("is_read", false)
+        .limit(200);
+      if (cancelled) return;
+      const next: Record<string, number> = {};
+      for (const n of (data || []) as { type: string | null; link: string | null }[]) {
+        const t = (n.type || "").toLowerCase();
+        const l = (n.link || "").toLowerCase();
+        for (const [label, match] of Object.entries(BADGE_RULES)) {
+          if (match(t, l)) next[label] = (next[label] || 0) + 1;
+        }
+      }
+      setCounts(next);
+    };
+    void load();
+    const channel = supabase
+      .channel(`nav-badges-${userId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `recipient_id=eq.${userId}` }, () => void load())
+      .subscribe();
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+  return counts;
+};
 
 /**
  * Upper-left avatar that flips every 2 seconds between the member's photo and a
  * menu icon. Tapping it opens the full navigation bar with every link + icon.
  */
-const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
+const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username, onLogout }) => {
+  const badges = useUnreadBadges();
   const [showMenuFace, setShowMenuFace] = useState(false);
   const [open, setOpen] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
@@ -193,14 +248,37 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username }) => {
                   onClick={() => go(to)}
                   className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-2.5 text-center transition-all hover:-translate-y-0.5 hover:border-dimes-magenta hover:bg-white hover:shadow"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-dimes-magenta/10 text-dimes-magenta group-hover:bg-dimes-magenta group-hover:text-white">
+                  <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-dimes-magenta/10 text-dimes-magenta group-hover:bg-dimes-magenta group-hover:text-white">
                     <Icon className="h-4 w-4" />
+                    {badges[label] > 0 && (
+                      <span
+                        aria-label={`${badges[label]} unread`}
+                        className="absolute -right-2 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[0.6875rem] font-bold leading-none text-white ring-2 ring-white"
+                      >
+                        {badges[label] > 9 ? "9+" : badges[label]}
+                      </span>
+                    )}
                   </span>
                   <span className="w-full whitespace-normal break-normal text-xs font-bold leading-snug tracking-normal text-slate-800 [overflow-wrap:normal]">
                     {label}
                   </span>
                 </button>
               ))}
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onLogout();
+                  }}
+                  className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-2.5 text-center transition-all hover:-translate-y-0.5 hover:border-red-500 hover:bg-white hover:shadow"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/10 text-red-600 group-hover:bg-red-600 group-hover:text-white">
+                    <LogOut className="h-4 w-4" />
+                  </span>
+                  <span className="w-full text-xs font-bold leading-snug text-slate-800">LOG OUT</span>
+                </button>
+              )}
             </div>
 
             {showSetup && (
