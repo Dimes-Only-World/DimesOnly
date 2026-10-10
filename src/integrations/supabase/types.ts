@@ -5533,6 +5533,32 @@ export type Database = {
           },
         ]
       }
+      vehicle_costs: {
+        Row: {
+          monthly_payment: number
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          monthly_payment?: number
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          monthly_payment?: number
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_costs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: true
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_media: {
         Row: {
           created_at: string
