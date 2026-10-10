@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Add a Terms & Conditions button next to the preferences line on Profile Info; dialog verified in isolation at 360/412/1280 (signed-in page unavailable on external auth).
 - [x] Keep TBA events full-width below dated upcoming events until their dates are entered; eight schedule tests and 360/384/412/1280 layout checks passed.
 - [x] Feature the nearest upcoming event full-width with autoplay requested; seven scheduling tests passed and sample layouts fit at 360/384/412/1280. Uploaded-video playback remains unverified (media did not become ready in browser checks).
 
