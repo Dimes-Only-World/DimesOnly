@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +30,8 @@ const AdminNotificationTab: React.FC = () => {
   const [category, setCategory] = useState<NotificationCategory>("messages");
   const [audience, setAudience] = useState("all");
   const [username, setUsername] = useState("");
+  const [userSuggestions, setUserSuggestions] = useState<{ id: string; username: string; user_type?: string }[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
   const [mediaType, setMediaType] = useState<"photo" | "video" | "none">(
     "none"
   );
@@ -38,6 +40,39 @@ const AdminNotificationTab: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const normalizedUsername = username.trim().replace(/^@/, "");
+  const exactMatch = userSuggestions.find(
+    (u) => u.username.toLowerCase() === normalizedUsername.toLowerCase()
+  );
+
+  useEffect(() => {
+    if (audience !== "username" || normalizedUsername.length < 2) {
+      setUserSuggestions([]);
+      setSearchingUsers(false);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      setSearchingUsers(true);
+      try {
+        const { data, error } = await supabase
+          .from("public_user_profiles")
+          .select("id, username, user_type")
+          .ilike("username", `%${normalizedUsername}%`)
+          .limit(8);
+        if (error) throw error;
+        setUserSuggestions(
+          (data as { id: string; username: string; user_type?: string }[]) || []
+        );
+      } catch (e) {
+        console.error("Username autocomplete failed:", e);
+        setUserSuggestions([]);
+      } finally {
+        setSearchingUsers(false);
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [normalizedUsername, audience]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -272,7 +307,48 @@ const AdminNotificationTab: React.FC = () => {
           {audience === "username" && (
             <div className="sm:col-span-2">
               <Label htmlFor="n-username">Username</Label>
-              <Input id="n-username" className="mt-1" placeholder="@username" value={username} onChange={(e) => setUsername(e.target.value)} />
+              <div className="relative">
+                <Input
+                  id="n-username"
+                  className="mt-1"
+                  placeholder="@username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="off"
+                />
+                {searchingUsers && (
+                  <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2">
+                    <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  </div>
+                )}
+              </div>
+              {userSuggestions.length > 0 && normalizedUsername.length >= 2 && (
+                <div className="mt-1 max-h-56 overflow-y-auto rounded-md border bg-background">
+                  {userSuggestions.map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+                      onClick={() => {
+                        setUsername(u.username);
+                        setUserSuggestions([]);
+                      }}
+                    >
+                      <span className="font-medium">@{u.username}</span>
+                      {u.user_type && (
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {u.user_type}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {exactMatch && (
+                <p className="mt-1 text-xs text-green-600">
+                  ✓ Recognized: @{exactMatch.username}
+                </p>
+              )}
             </div>
           )}
           <div className="sm:col-span-2">
