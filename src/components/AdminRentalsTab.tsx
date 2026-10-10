@@ -547,6 +547,7 @@ const PromoCodesPanel: React.FC = () => {
 };
 
 const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved: (v: any) => void }> = ({ initial, onClose, onSaved }) => {
+  const [markups, setMarkups] = useState<Markups>(DEFAULT_MARKUPS);
   const [f, setF] = useState<any>(initial || {
     year: new Date().getFullYear(), make: "", model: "", vin: "", license_plate: "",
     registration_state: "", plate_expiration: "", body_style: "", color: "", mileage: "",
@@ -666,9 +667,27 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
           <Input type="number" min={0} value={f.our_monthly_payment ?? ""} placeholder="e.g. 500"
             onChange={(e) => {
               const v = e.target.value;
-              setF(v === "" ? { ...f, our_monthly_payment: "" } : { ...f, our_monthly_payment: v, ...ratesFromMonthlyPayment(Number(v)) });
+              setF(v === "" ? { ...f, our_monthly_payment: "" } : { ...f, our_monthly_payment: v, ...ratesFromMonthlyPayment(Number(v), markups) });
             }} />
-          <p className="mt-1 text-xs text-muted-foreground">Private — never shown to renters. Fills in Monthly (+$752), Weekly (= payment), Day (payment ÷ 30 + $35) and 3+ Day (20% off daily). You can still edit them.</p>
+          <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {([
+              ["monthlyPct", "Monthly markup %"],
+              ["weeklyPct", "Weekly markup %"],
+              ["dailyPct", "Daily markup %"],
+              ["threeDayDiscountPct", "3+ Day discount %"],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="min-w-0">
+                <Label className="text-xs">{label}</Label>
+                <Input type="number" step="0.01" value={markups[key]}
+                  onChange={(e) => {
+                    const next = { ...markups, [key]: Number(e.target.value) };
+                    setMarkups(next);
+                    if (f.our_monthly_payment !== "" && f.our_monthly_payment != null) setF({ ...f, ...ratesFromMonthlyPayment(Number(f.our_monthly_payment), next) });
+                  }} />
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Private — never shown to renters. Rates fill in as percentages of your payment: Monthly = payment + monthly %, Weekly = payment + weekly %, Day = (payment ÷ 30) + daily %, 3+ Day = daily rate minus the discount %. You can still edit them.</p>
         </div>
         <div><Label>Day Rate ($)</Label><Input type="number" value={f.day_rate || 0} onChange={(e) => setF({ ...f, day_rate: e.target.value })} /></div>
         <div><Label>3+ Day Rate ($ / day)</Label><Input type="number" value={f.three_day_rate || 0} onChange={(e) => setF({ ...f, three_day_rate: e.target.value })} placeholder="Discounted daily rate for 3+ days" /></div>
