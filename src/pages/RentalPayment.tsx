@@ -149,6 +149,16 @@ const RentalPayment: React.FC = () => {
                 {v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}` : "Vehicle rental"} · {booking.rental_type}
               </p>
             </div>
+            {booking.rental_type === "rent_to_own" && (
+              <div className="space-y-1 border border-rental-success/60 p-4 text-sm">
+                <p className="font-semibold">Lease to own — wire your deposit{v?.down_payment ? ` of $${Number(v.down_payment).toLocaleString()}` : ""}</p>
+                <p>Bank: {WIRE_INSTRUCTIONS.bank}</p>
+                <p>Account name: {WIRE_INSTRUCTIONS.accountName}</p>
+                <p>Domestic routing number: {WIRE_INSTRUCTIONS.routing}</p>
+                <p>Account number: {WIRE_INSTRUCTIONS.account}</p>
+                <p className="text-rental-muted">Put your name and vehicle in the wire memo.</p>
+              </div>
+            )}
 
             <div className="space-y-2 border-t border-rental-line pt-5 text-sm">
               <div className="flex justify-between">
