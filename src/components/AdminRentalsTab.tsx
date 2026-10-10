@@ -1,3 +1,4 @@
+import { ratesFromMonthlyPayment } from "@/lib/vehicleCostPricing";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminUserId } from "@/lib/adminAuth";
@@ -583,6 +584,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         monthly_rate: Number(f.monthly_rate) || null,
         down_payment: Number(f.down_payment) || null,
         mileage: Number(f.mileage) || null,
+        our_monthly_payment: f.our_monthly_payment === "" || f.our_monthly_payment == null ? undefined : Number(f.our_monthly_payment),
       };
       delete payload.id; delete payload.created_at; delete payload.updated_at; delete payload.created_by;
       let saved;
