@@ -28,7 +28,7 @@ function patchVideo(video: HTMLVideoElement) {
   video.playsInline = true;
 
   const wantsAutoplay = video.autoplay || video.hasAttribute("autoplay");
-  if (wantsAutoplay) {
+  if (wantsAutoplay && video.dataset.playThrough !== "true") {
     // iOS only autoplays muted video.
     video.muted = true;
     video.setAttribute("muted", "");
@@ -39,6 +39,7 @@ function patchVideo(video: HTMLVideoElement) {
 function resumeAutoplayVideos() {
   document.querySelectorAll<HTMLVideoElement>("video[autoplay]").forEach((video) => {
     if (!video.paused || video.ended) return;
+    if (video.dataset.playThrough === "true") return; // keep its sound
     video.muted = true;
     const attempt = video.play();
     if (attempt && typeof attempt.catch === "function") attempt.catch(() => undefined);
