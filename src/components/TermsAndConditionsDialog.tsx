@@ -102,15 +102,59 @@ const SECTIONS: { heading: string; lines: string[] }[] = [
     ],
   },
   {
-    heading: "10. Changes and contact",
+    heading: "10. Fans and Dimes",
+    lines: [
+      "Tips, ratings, paid media, and messages are agreements between the fan and the Dime. The fan agrees to pay the price shown, and the Dime agrees to provide the content or interaction offered.",
+      "Fans receive a personal, non-transferable right to view purchased content on Dimes Only only. Downloading, recording, sharing, or reselling it is not allowed.",
+      "Dimes confirm they own or have permission for everything they upload, and that every person shown is 18 or older and has consented.",
+    ],
+  },
+  {
+    heading: "11. Referral program",
+    lines: [
+      "Referral earnings are paid only on real purchases by people who join with your link, at the rates shown on your Earnings page. You never pay to join the referral program.",
+      "Earnings are not guaranteed. Do not promise anyone income for signing up others. Self-referrals, fake accounts, and spam are not allowed and may lead to withheld earnings or account closure.",
+      "Suspended, terminated, or deleted accounts are not eligible for referral payments.",
+    ],
+  },
+  {
+    heading: "12. Complaints",
+    lines: [
+      "To report content, a member, or a problem with our service, email Talent@DimesOnly.World with your username, a description, and any links. We aim to review complaints within 7 business days.",
+      "Content reported as illegal or non-consensual is removed while we investigate.",
+    ],
+  },
+  {
+    heading: "13. Appeals",
+    lines: [
+      "If we remove your content or restrict, suspend, or close your account, you may appeal within 30 days by emailing Talent@DimesOnly.World with your username and why you believe the decision was wrong.",
+      "A different team member reviews each appeal, and we notify you of the outcome.",
+    ],
+  },
+  {
+    heading: "14. Law enforcement and safety",
+    lines: [
+      "We do not allow content involving minors, non-consent, trafficking, or other illegal activity. We report it to the proper authorities.",
+      "We respond to valid legal requests from law enforcement and may keep account records as the law requires.",
+    ],
+  },
+  {
+    heading: "15. Disputes",
+    lines: [
+      "If you have a dispute with us, contact us first so we can try to resolve it. If we can't, both sides agree to try mediation before any legal claim.",
+      "These terms are governed by the laws of the State of California.",
+    ],
+  },
+  {
+    heading: "16. Changes and contact",
     lines: [
       "We may update these terms. The effective date at the top of this page shows when they were last changed.",
       "Address: 12100 Wilshire Blvd #800, Los Angeles, CA 90025.",
       "Phone: 707.640.1661. Email: Talent@DimesOnly.World.",
-
     ],
   },
 ];
+
 
 const TermsAndConditionsDialog: React.FC<Props> = ({ userData }) => {
   const [open, setOpen] = useState(false);
