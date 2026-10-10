@@ -95,9 +95,9 @@ export const TERMS_SECTIONS: { heading: string; lines: string[] }[] = [
   {
     "heading": "8. Dime earnings and payouts",
     "lines": [
-      "Platform Fee. For each Fan Payment, the Company keeps a Platform Fee of [X]% of the Fan Payment (excluding any sales tax), and the remainder is credited to the Dime as Dime Earnings. The Platform Fee covers operating the Platform, payment processing, hosting, and support.",
+      "Platform Fee. For each Fan Payment, the Company keeps a Platform Fee of 10% of the Fan Payment (excluding any sales tax), and the remainder is credited to the Dime as Dime Earnings. The Platform Fee covers operating the Platform, payment processing, hosting, and support.",
       "When earnings are available. Dime Earnings are only available for payout once they appear as available in your account. Earnings may first show as pending for a period while payments clear and fraud checks are completed.",
-      "Minimum payout. You can request a payout once your available balance reaches the minimum shown in your account (currently [USD $___]). Only one payout request can be open at a time.",
+      "Minimum payout. You can request a payout once your available balance reaches the minimum shown in your account (currently $250). Only one payout request can be open at a time.",
       "Payout methods. Payouts are sent by PayPal, bank transfer (ACH), Venmo, or Cash App, using the details saved on your payout request. You are responsible for making sure those details are correct. We are not responsible for payouts sent to incorrect details you provided.",
       "Fees we do not cover. Currency conversion charges, bank fees, and payout-provider fees charged by your bank or provider are your responsibility.",
       "Refunds and chargebacks. If a Fan Payment is refunded, reversed, or charged back, we may deduct the related Dime Earnings from your balance or from future earnings.",
@@ -246,7 +246,7 @@ export const TERMS_SECTIONS: { heading: string; lines: string[] }[] = [
     "heading": "23. Copyright and takedowns",
     "lines": [
       "If you believe Content on the Platform infringes your copyright, send a notice to our designated copyright agent as described in our Copyright and DMCA Policy:",
-      "Copyright Agent: [NAME] Address: 12100 Wilshire Blvd #800, Los Angeles, CA 90025 Email: [DMCA EMAIL]",
+      "Copyright Agent: Dimes Only World Copyright Agent, Address: 12100 Wilshire Blvd #800, Los Angeles, CA 90025 Email: Talent@DimesOnly.World",
       "We may remove Content that is the subject of a valid notice and may close the accounts of repeat infringers.",
       "Help for Dimes. If a Dime’s Content is posted elsewhere without permission, the Company may, at its option, send takedown or infringement notices on the Dime’s behalf. Each Dime authorizes the Company to do so. The Company has no duty to find or remove copies of Content outside the Platform, and does not guarantee results."
     ]
@@ -348,7 +348,7 @@ export const TERMS_SECTIONS: { heading: string; lines: string[] }[] = [
       "If you have a dispute with us, contact us first so we can try to resolve it. If we can’t, both sides agree to try mediation before any legal claim.",
       "Notice before suing. Before starting mediation or any legal claim, the party with the dispute must send the other a written notice describing the dispute and the remedy sought, and allow at least 30 days to resolve it informally. Notices to the Company go to Talent@DimesOnly.World and to the address in Section 35.",
       "These terms are governed by the laws of the State of California.",
-      "Venue. If a dispute is not resolved through mediation, it will be decided in the state or federal courts located in [county], California, unless the law where you live gives you the right to bring a claim in your local courts.",
+      "Venue. If a dispute is not resolved through mediation, it will be decided in the state or federal courts located in Los Angeles County, California, unless the law where you live gives you the right to bring a claim in your local courts.",
       "Time limit. To the extent allowed by law, any claim related to these terms or the Platform must be started within one year after it arises, or it is permanently barred.",
       "Your consumer rights. If you are a Consumer, nothing in these terms takes away protections you have under the mandatory consumer laws of the place where you live.",
       "under its rules, and you and the Company each waive the right to a jury trial and to take part in a class or representative action.” Drafting note: Arbitration and class waivers have specific enforceability and fee requirements, especially under California law, and need careful drafting.]"
