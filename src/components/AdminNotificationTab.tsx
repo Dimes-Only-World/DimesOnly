@@ -10,9 +10,26 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { getAdminUserId } from "@/lib/adminAuth";
 import { Upload, FileImage, FileVideo, X } from "lucide-react";
+import { NOTIFICATION_CATEGORIES, NotificationCategory } from "@/lib/notificationCategories";
+
+const AUDIENCES = [
+  { value: "all", label: "Everyone" },
+  { value: "dimes", label: "Dimes (Exotic & Stripper)" },
+  { value: "exotic", label: "Exotic only" },
+  { value: "stripper", label: "Stripper only" },
+  { value: "normal", label: "Normal Female" },
+  { value: "male", label: "Male" },
+  { value: "business_owner", label: "Business Owner" },
+  { value: "username", label: "One member (by username)" },
+];
+const selectCls = "mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 
 const AdminNotificationTab: React.FC = () => {
   const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<NotificationCategory>("messages");
+  const [audience, setAudience] = useState("all");
+  const [username, setUsername] = useState("");
   const [mediaType, setMediaType] = useState<"photo" | "video" | "none">(
     "none"
   );
@@ -162,6 +179,11 @@ const AdminNotificationTab: React.FC = () => {
         body: {
           adminUserId,
           message: message.trim(),
+          title: title.trim(),
+          category,
+          link: NOTIFICATION_CATEGORIES.find((c) => c.key === category)?.link,
+          audience: audience === "all" ? "all" : audience === "username" ? "username" : "user_type",
+          audienceValue: audience === "username" ? username.trim() : audience,
           mediaUrl,
           mediaType: mediaType === "none" ? null : mediaType,
         },
@@ -180,6 +202,7 @@ const AdminNotificationTab: React.FC = () => {
 
       // Reset form
       setMessage("");
+      setTitle("");
       setMediaType("none");
       setMediaFile(null);
       setPreviewUrl(null);
@@ -221,7 +244,7 @@ const AdminNotificationTab: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
-          Send Notification to All Users
+          Send Notification
         </CardTitle>
         <p className="text-sm text-muted-foreground">
           Send notifications with optional media attachments. Files are stored
@@ -229,6 +252,35 @@ const AdminNotificationTab: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="n-category">Category *</Label>
+            <select id="n-category" className={selectCls} value={category} onChange={(e) => setCategory(e.target.value as NotificationCategory)}>
+              {NOTIFICATION_CATEGORIES.map((c) => (
+                <option key={c.key} value={c.key}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label htmlFor="n-audience">Send to *</Label>
+            <select id="n-audience" className={selectCls} value={audience} onChange={(e) => setAudience(e.target.value)}>
+              {AUDIENCES.map((a) => (
+                <option key={a.value} value={a.value}>{a.label}</option>
+              ))}
+            </select>
+          </div>
+          {audience === "username" && (
+            <div className="sm:col-span-2">
+              <Label htmlFor="n-username">Username</Label>
+              <Input id="n-username" className="mt-1" placeholder="@username" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </div>
+          )}
+          <div className="sm:col-span-2">
+            <Label htmlFor="n-title">Title</Label>
+            <Input id="n-title" className="mt-1" maxLength={120} placeholder="Admin Notification" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="message">Notification Message *</Label>
           <Textarea
@@ -346,7 +398,7 @@ const AdminNotificationTab: React.FC = () => {
           <Button
             onClick={handleSendNotification}
             disabled={
-              loading || !message.trim() || (mediaType !== "none" && !mediaFile)
+              loading || !message.trim() || (audience === "username" && !username.trim()) || (mediaType !== "none" && !mediaFile)
             }
             className="w-full sm:w-auto sm:min-w-[120px]"
           >
