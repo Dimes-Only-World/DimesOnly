@@ -175,9 +175,19 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
     );
   }
 
-  // Minimal mode: no seek bar or controls. Viewer can only pause/resume and replay.
+  // Minimal mode: plays through to the end. Taps never pause; they only start
+  // playback (if the browser blocked autoplay) and restore sound.
   if (minimal) {
     const ended = duration > 0 && currentTime >= duration - 0.25 && !isPlaying;
+    const startWithSound = (e?: React.SyntheticEvent) => {
+      e?.stopPropagation();
+      const v = videoRef.current;
+      if (!v) return;
+      v.muted = false;
+      v.volume = 1;
+      setIsMuted(false);
+      if (v.paused && !v.ended) v.play().catch(() => {});
+    };
     const replay = (e: React.MouseEvent) => {
       e.stopPropagation();
       const v = videoRef.current;
@@ -188,40 +198,65 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
     };
     return (
       <div
+        ref={containerRef}
         className={`relative w-full overflow-hidden bg-card ${/\baspect-/.test(className) ? "" : "aspect-video"} ${className}`}
-        onClick={ended ? replay : togglePlayPause}
+        onClick={ended ? replay : startWithSound}
       >
         <video
           ref={videoRef}
           key={src}
+          data-play-through="true"
           playsInline
           loop={false}
           autoPlay={autoPlay}
           muted={muted}
           controls={false}
           disablePictureInPicture
-          controlsList="nodownload nofullscreen noremoteplayback"
+          controlsList="nodownload noremoteplayback"
           preload="auto"
           onEnded={onEnded}
+          onPause={(e) => {
+            const v = e.currentTarget;
+            if (!v.ended && hasStarted) v.play().catch(() => {});
+          }}
+          onVolumeChange={(e) => setIsMuted(e.currentTarget.muted)}
           onContextMenu={(e) => e.preventDefault()}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover pointer-events-none"
         >
           <source src={src} type={src.endsWith(".webm") ? "video/webm" : "video/mp4"} />
         </video>
-        <div
-          className={`absolute inset-0 z-[2] flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
-            isPlaying ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          <div className="bg-black/50 rounded-full p-5">
-            <Play className="w-12 h-12 text-white fill-white" />
+        {!isPlaying && !ended && (
+          <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none">
+            <div className="bg-black/50 rounded-full p-5">
+              <Play className="w-12 h-12 text-white fill-white" />
+            </div>
           </div>
+        )}
+        <div className="absolute bottom-2 right-2 z-[3] flex gap-2">
+          {isMuted && isPlaying && (
+            <button
+              type="button"
+              onClick={startWithSound}
+              aria-label="Turn sound on"
+              className="rounded-full bg-black/60 p-2.5 text-white"
+            >
+              <VolumeX className="w-5 h-5" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleFullscreen}
+            aria-label="Full screen"
+            className="rounded-full bg-black/60 p-2.5 text-white"
+          >
+            <Maximize className="w-5 h-5" />
+          </button>
         </div>
         {ended && (
           <button
             type="button"
             onClick={replay}
-            className="absolute bottom-3 right-3 z-[3] rounded-full bg-black/60 px-4 py-2 text-sm font-semibold text-white hover:bg-black/80"
+            className="absolute bottom-3 left-3 z-[3] rounded-full bg-black/60 px-4 py-2 text-sm font-semibold text-white hover:bg-black/80"
           >
             ↻ Watch again
           </button>
