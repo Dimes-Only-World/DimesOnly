@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/types";
 import { useMobileLayout } from "@/hooks/use-mobile";
+import TermsAndConditionsDialog from "@/components/TermsAndConditionsDialog";
 
 type UserData = Tables<"users">;
 
@@ -217,7 +218,8 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <TermsAndConditionsDialog userData={userData} />
             {userData.user_type && (
               <Badge variant="secondary" className="capitalize">
                 {userData.user_type}
