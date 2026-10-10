@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Keep TBA events full-width below dated upcoming events until their dates are entered.
+- [x] Keep TBA events full-width below dated upcoming events until their dates are entered; eight schedule tests and 360/384/412/1280 layout checks passed.
 - [x] Feature the nearest upcoming event full-width with autoplay requested; seven scheduling tests passed and sample layouts fit at 360/384/412/1280. Uploaded-video playback remains unverified (media did not become ready in browser checks).
 
 - [x] Fix invitation, upgrade, and sharing layouts without reducing text size; isolated browser checks passed at 360, 384, 412, 740 landscape, and 1280 desktop widths. Full signed-in dashboard testing unavailable on external auth.
