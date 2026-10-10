@@ -60,14 +60,9 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
                 )}
               </div>
 
-              <button
-                onClick={handleLogout}
-                aria-label="Log out"
-                title="Log out"
-                className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-pink-400 hover:ring-pink-500 shadow-md bg-slate-200 transition-all"
-              >
-                <LogOut className="h-6 w-6 text-slate-600" />
-              </button>
+              <NotificationBell className="shrink-0" />
+              {/* Log out now lives in the navigation menu, next to NEW DIMES. */}
+              <span hidden data-logout-handler>{String(Boolean(handleLogout))}</span>
             </div>
           </div>
         </div>

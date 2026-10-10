@@ -278,9 +278,11 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/40 bg-slate-900/90 text-amber-300 shadow-lg shadow-black/40 backdrop-blur transition-colors hover:border-amber-300 hover:text-amber-200 active:scale-95"
+        className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full border border-amber-400/40 bg-slate-900/90 text-amber-300 shadow-lg shadow-black/40 backdrop-blur transition-colors hover:border-amber-300 hover:text-amber-200 active:scale-95"
       >
-        {unread > 0 ? <BellRing className="h-6 w-6" /> : <Bell className="h-6 w-6" />}
+        <span className={cn("flex origin-top", unread > 0 && "animate-bell-wiggle motion-reduce:animate-none")}>
+          {unread > 0 ? <BellRing className="h-6 w-6" /> : <Bell className="h-6 w-6" />}
+        </span>
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold leading-none text-white ring-2 ring-slate-900">
             {unread > 9 ? "9+" : unread}

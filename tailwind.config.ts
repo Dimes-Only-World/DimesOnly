@@ -125,8 +125,15 @@ export default {
           from: { transform: 'translateY(10px)', opacity: '0' },
           to: { transform: 'translateY(0)', opacity: '1' },
         },
+        'bell-wiggle': {
+          '0%, 55%, 100%': { transform: 'rotate(0deg)' },
+          '5%, 25%': { transform: 'rotate(-16deg)' },
+          '15%, 35%': { transform: 'rotate(16deg)' },
+          '45%': { transform: 'rotate(-6deg)' },
+        },
       },
       animation: {
+        'bell-wiggle': 'bell-wiggle 1.6s ease-in-out infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
