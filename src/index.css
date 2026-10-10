@@ -270,6 +270,12 @@
   z-index: 20;
 }
 
+/* Wide-text pop-ups (terms, agreements): keep a comfortable reading column on
+   large screens while staying inside the shared viewport bounds on phones. */
+.terms-dialog {
+  max-width: min(46rem, calc(100vw - 1rem)) !important;
+}
+
 .fixed.bottom-0 {
   padding-bottom: env(safe-area-inset-bottom);
 }
