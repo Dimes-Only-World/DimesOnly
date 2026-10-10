@@ -20,3 +20,4 @@
 - Rental PayPal calls currently use the main PAYPAL_* secrets; RENTAL_PAYPAL_* routing is paused until the Best Rental Cars PayPal account is approved.
 - Compute member Available balance only via `computeLedger` (total earned minus pending, approved, and paid payout requests) and keep the payout_requests insert guard (minimum and one open request); this prevents double withdrawals.
 - Run PayPal batch payouts only from the admin-data edge function with a deterministic sender_batch_id; PayPal rejects repeats, so a selection can never be paid twice.
+- Shared notification categories (src/lib/notificationCategories.ts) drive the user center, menu badges and admin sender; one rule keeps user and admin communication consistent.
