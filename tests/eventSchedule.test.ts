@@ -26,6 +26,13 @@ describe("upcoming event feature", () => {
     expect(upcomingEvents([{ ...event("2026-01-01"), date_tba: true }, event("2026-10-15")], now).map((e) => e.date))
       .toEqual(["2026-10-15", "2026-01-01"]);
   });
+  it("moves a TBA event into date order once its date is entered", () => {
+    const tba = { ...event("2026-10-14"), date_tba: true };
+    expect(upcomingEvents([tba, event("2026-10-15")], now).map((e) => e.date))
+      .toEqual(["2026-10-15", "2026-10-14"]);
+    expect(upcomingEvents([{ ...tba, date_tba: false }, event("2026-10-15")], now).map((e) => e.date))
+      .toEqual(["2026-10-14", "2026-10-15"]);
+  });
   it("keeps a multi-day event until its stored end date and time", () => {
     const multipleDays = { ...event("2026-10-15"), end_date: "2026-10-17", end_time: "02:00" };
     expect(upcomingEvents([multipleDays], Date.parse("2026-10-16T12:00:00Z"))).toHaveLength(1);
