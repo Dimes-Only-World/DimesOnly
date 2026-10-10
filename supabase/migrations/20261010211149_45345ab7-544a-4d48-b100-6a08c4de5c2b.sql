@@ -1,0 +1,1 @@
+REVOKE ALL ON public.vehicle_costs FROM anon, authenticated;
