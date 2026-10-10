@@ -32,19 +32,25 @@ serve(async (req) => {
       case "listVehicles": {
         const { data, error } = await admin.from("vehicles").select("*").order("created_at", { ascending: false });
         if (error) throw error;
-        return json({ data });
+        const { data: costs } = await admin.from("vehicle_costs").select("vehicle_id, monthly_payment");
+        const costMap = new Map((costs || []).map((c: any) => [c.vehicle_id, Number(c.monthly_payment)]));
+        return json({ data: (data || []).map((v: any) => ({ ...v, our_monthly_payment: costMap.get(v.id) ?? null })) });
       }
-      case "createVehicle": {
-        const { payload } = params;
-        const { data, error } = await admin.from("vehicles").insert({ ...payload, created_by: adminUserId }).select().single();
-        if (error) throw error;
-        return json({ data });
-      }
+      case "createVehicle":
       case "updateVehicle": {
-        const { id, payload } = params;
-        const { data, error } = await admin.from("vehicles").update(payload).eq("id", id).select().single();
+        const { id, payload: raw } = params;
+        const { our_monthly_payment, ...payload } = raw || {};
+        const q = action === "createVehicle"
+          ? admin.from("vehicles").insert({ ...payload, created_by: adminUserId })
+          : admin.from("vehicles").update(payload).eq("id", id);
+        const { data, error } = await q.select().single();
         if (error) throw error;
-        return json({ data });
+        const pay = Number(our_monthly_payment);
+        if (our_monthly_payment !== undefined && our_monthly_payment !== null && our_monthly_payment !== "" && Number.isFinite(pay) && pay >= 0) {
+          const { error: cErr } = await admin.from("vehicle_costs").upsert({ vehicle_id: data.id, monthly_payment: pay, updated_at: new Date().toISOString() });
+          if (cErr) throw cErr;
+        }
+        return json({ data: { ...data, our_monthly_payment: Number.isFinite(pay) ? pay : null } });
       }
       case "deleteVehicle": {
         const { id } = params;
