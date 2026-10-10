@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Feature the nearest upcoming event full-width with autoplay video; order later events in up to three columns and verify rollover and phone layouts.
+- [x] Feature the nearest upcoming event full-width with autoplay requested; seven scheduling tests passed and sample layouts fit at 360/384/412/1280. Uploaded-video playback remains unverified (media did not become ready in browser checks).
 
 - [x] Fix invitation, upgrade, and sharing layouts without reducing text size; isolated browser checks passed at 360, 384, 412, 740 landscape, and 1280 desktop widths. Full signed-in dashboard testing unavailable on external auth.
 
