@@ -31,6 +31,13 @@ Deno.serve(async (req) => {
     const message = String(body.message ?? "").trim();
     const mediaUrl = body.mediaUrl ? String(body.mediaUrl).trim() : null;
     const mediaType = body.mediaType ? String(body.mediaType).trim() : null;
+    const CATEGORIES = ["earnings", "messages", "media", "referrals", "account"];
+    const category = CATEGORIES.includes(String(body.category)) ? String(body.category) : "messages";
+    const title = String(body.title ?? "").trim().slice(0, 120) || "Admin Notification";
+    const rawLink = String(body.link ?? "").trim();
+    const link = rawLink.startsWith("/") && !rawLink.startsWith("//") ? rawLink.slice(0, 200) : "/dashboard/notifications";
+    const audience = String(body.audience ?? "all");
+    const audienceValue = String(body.audienceValue ?? "").trim();
 
     if (!adminUserId) return json({ error: "Admin user ID required" }, 401);
     { const _vid = await getVerifiedAdminId(req); if (!_vid || _vid !== adminUserId) return json({ error: "Admin session expired. Please sign in again." }, 401); }
@@ -40,11 +47,14 @@ Deno.serve(async (req) => {
     const { data: isAdmin, error: adminError } = await admin.rpc("check_admin_by_user_id", { _user_id: adminUserId });
     if (adminError || !isAdmin) return json({ error: "Admin access required" }, 403);
 
-    const { data: users, error: usersError } = await admin
-      .from("users")
-      .select("id")
-      .eq("is_active", true)
-      .limit(10000);
+    let q = admin.from("users").select("id").eq("is_active", true);
+    if (audience === "user_type" && audienceValue) {
+      if (audienceValue === "dimes") q = q.in("user_type", ["exotic", "stripper"]);
+      else q = q.eq("user_type", audienceValue);
+    } else if (audience === "username" && audienceValue) {
+      q = q.ilike("username", audienceValue.replace(/^@/, "").replace(/[%_]/g, ""));
+    }
+    const { data: users, error: usersError } = await q.limit(10000);
 
     if (usersError) return json({ error: usersError.message }, 500);
     const userIds = (users ?? []).map((user: { id: string }) => user.id).filter(Boolean);
