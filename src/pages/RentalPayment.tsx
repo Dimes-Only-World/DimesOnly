@@ -1,3 +1,4 @@
+import { WIRE_INSTRUCTIONS } from "@/lib/rentalShortTerm";
 import React, { useEffect, useState } from "react";
 import { buildAuthUrl } from "@/lib/refCapture";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
