@@ -91,6 +91,7 @@ const SECTIONS: { heading: string; lines: string[] }[] = [
       "You may not copy, scrape, redistribute, or sell member photos, videos, or messages, or use another member's media without their permission.",
       "You may not impersonate another member, submit false identity information, or use the platform for unlawful activity.",
       "The Company may remove content, restrict features, or suspend or deactivate an account that violates these terms or brand standards.",
+      "Marketing use of your media: once you join the network, all photos and videos you upload may be used at the Company's discretion for marketing and promotion purposes, without further consent from you.",
     ],
   },
   {
@@ -104,7 +105,9 @@ const SECTIONS: { heading: string; lines: string[] }[] = [
     heading: "10. Changes and contact",
     lines: [
       "We may update these terms. The effective date at the top of this page shows when they were last changed.",
-      "Questions about these terms: Talent@DimesOnly.World or (929) 336-7634.",
+      "Address: 12100 Wilshire Blvd #800, Los Angeles, CA 90025.",
+      "Phone: 707.640.1661. Email: Talent@DimesOnly.World.",
+
     ],
   },
 ];
