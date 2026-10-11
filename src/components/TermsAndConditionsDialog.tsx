@@ -19,6 +19,7 @@ import { P2B_EFFECTIVE_DATE, P2B_SECTIONS } from "@/lib/dimeBusinessTerms";
 import { REF_EFFECTIVE_DATE, REF_SECTIONS } from "@/lib/referralTerms";
 import { CMP_EFFECTIVE_DATE, CMP_SECTIONS } from "@/lib/complaintsPolicy";
 import { APL_EFFECTIVE_DATE, APL_SECTIONS } from "@/lib/appealsPolicy";
+import { CG_EFFECTIVE_DATE, CG_SECTIONS } from "@/lib/communityGuidelines";
 
 type UserData = Tables<"users">;
 type Section = { heading: string; lines: string[] };
@@ -36,7 +37,7 @@ const POLICIES: { id: string; title: string; effective?: string; sections?: Sect
   { id: "referral", title: "Referral Program Terms", effective: REF_EFFECTIVE_DATE, sections: REF_SECTIONS },
   { id: "complaints", title: "Complaints Policy", effective: CMP_EFFECTIVE_DATE, sections: CMP_SECTIONS },
   { id: "appeals", title: "Appeals Policy", effective: APL_EFFECTIVE_DATE, sections: APL_SECTIONS },
-  { id: "community", title: "Community Guidelines" },
+  { id: "community", title: "Community Guidelines", effective: CG_EFFECTIVE_DATE, sections: CG_SECTIONS },
 ];
 
 const TermsAndConditionsDialog: React.FC<Props> = ({ userData }) => {
