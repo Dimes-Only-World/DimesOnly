@@ -244,7 +244,7 @@ const LatestDimesCarousel: React.FC<{ className?: string; theme?: "dark" | "ligh
                   onError={(e) => {
                     const img = e.currentTarget;
                     if (img.src !== fallbackImages[0]) {
-                      img.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                      img.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)] ?? "";
                     }
                   }}
                 />

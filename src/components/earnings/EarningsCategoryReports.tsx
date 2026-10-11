@@ -151,7 +151,7 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
               {rows.map((r) => { const p = payers[cat === "rentals" ? "rentals" : "clothing"][r.id]; return (
                 <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <PayerCell payer={p} fallback={cat === "rentals" ? "Renter" : "Customer"} />
+                    <PayerCell {...(p ? { payer: p } : {})} fallback={cat === "rentals" ? "Renter" : "Customer"} />
                     <p className="mt-1 text-xs text-muted-foreground">{isOverride(r.commission_type) ? labels[1] : labels[0]} · {shortDate(r.created_at)}</p>
                   </div>
                   {canMessage(p) && <MessageButton username={p!.username!} onMessage={onMessage} />}
@@ -176,7 +176,7 @@ const EarningsCategoryReports: React.FC<Props> = ({ saleData, rentals, clothing,
             {flixRows.map((r) => { const p = payers.flix[r.id]; return (
               <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <PayerCell payer={p} fallback="Subscriber" />
+                  <PayerCell {...(p ? { payer: p } : {})} fallback="Subscriber" />
                   <p className="mt-1 truncate text-xs text-muted-foreground">{r.level === 1 ? "Direct subscriber (10%)" : "Override (5%)"} · {shortDate(r.created_at)}{r.note ? ` · ${r.note}` : ""}</p>
                 </div>
                 {canMessage(p) && <MessageButton username={p!.username!} onMessage={onMessage} />}

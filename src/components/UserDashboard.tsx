@@ -198,8 +198,8 @@ const UserDashboard: React.FC = () => {
 
   const userType = (userData?.user_type || "").toLowerCase();
   const isDimeUser = ["stripper", "exotic"].includes(userType);
-  const isBusinessOwner = userType === "business_owner" || (userData as any)?.is_business_owner === true;
-  const boEliteActive = (userData as any)?.business_owner_elite_active === true;
+  const isBusinessOwner = userType === "business_owner" || (userData)?.is_business_owner === true;
+  const boEliteActive = (userData)?.business_owner_elite_active === true;
   const heroKey = isBusinessOwner ? "dashboard_business_owner" : (isDimeUser ? "dashboard_dimes" : "dashboard_male");
   const { videoUrl: heroVideoUrl } = usePageVideo(heroKey);
 
@@ -519,7 +519,7 @@ const UserDashboard: React.FC = () => {
           <div className="space-y-6" id="profile-info">
             <Card className="overflow-hidden">
               <DashboardBanner
-                bannerPhoto={(userData as any).banner_photo}
+                bannerPhoto={(userData).banner_photo}
                 userData={userData}
                 onImageUpload={(file) => handleImageUpload(file, "banner")}
               />
@@ -559,7 +559,7 @@ const UserDashboard: React.FC = () => {
 
   return (
     <DashboardSectionLayout
-      title={SLUG_TITLES[slug]}
+      title={SLUG_TITLES[slug as keyof typeof SLUG_TITLES] ?? ""}
       username={userData.username}
       profilePhoto={userData.profile_photo}
       fullWidth={slug === "profile" || slug === "earnings"}
@@ -584,7 +584,7 @@ const UserDashboard: React.FC = () => {
       )}
       {isBusinessOwner && boEliteActive && (
         <div className="mb-4 rounded-lg border border-yellow-400/60 bg-black/40 px-4 py-2 text-yellow-300 text-sm font-semibold">
-          Business Owner Elite Member · Seat #{(userData as any)?.business_owner_elite_seat_number ?? "—"}
+          Business Owner Elite Member · Seat #{(userData)?.business_owner_elite_seat_number ?? "—"}
         </div>
       )}
       {renderSection()}

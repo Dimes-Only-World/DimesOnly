@@ -59,7 +59,7 @@ export default function AdminCashAppPayments() {
         <div className="flex gap-2">
           {["pending", "confirmed", "rejected", "all"].map((s) => (
             <Button key={s} size="sm" variant={status === s ? "default" : "outline"} onClick={() => setStatus(s)}>
-              {s[0].toUpperCase() + s.slice(1)}
+              {s.charAt(0).toUpperCase() + s.slice(1)}
             </Button>
           ))}
         </div>

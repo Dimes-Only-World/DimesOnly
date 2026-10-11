@@ -24,7 +24,7 @@ interface Comment {
 interface Props {
   post: FeedPostRow;
   media: FeedMediaRow;
-  author?: Author;
+  author?: Author | undefined;
   onOpen: (url: string, mediaType: "photo" | "video") => void;
 }
 

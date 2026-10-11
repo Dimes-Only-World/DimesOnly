@@ -93,7 +93,7 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
     const tick = (t: number) => {
       if (paused) {
         startedRef.current = t;
-        rafRef.current = requestAnimationFrame(tick);
+        rafRef.current = window.requestAnimationFrame(tick);
         return;
       }
       elapsedRef.current += t - startedRef.current;

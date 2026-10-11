@@ -33,13 +33,13 @@ interface UserData {
   id: string;
   username: string;
   profile_photo: string;
-  banner_photo?: string;
+  banner_photo?: string | undefined;
   city: string;
   state: string;
-  bio?: string;
+  bio?: string | undefined;
   user_type: string;
   created_at: string;
-  video_urls?: string[];
+  video_urls?: string[] | undefined;
 }
 
 interface MediaFile {
@@ -875,8 +875,8 @@ const Tip: React.FC = () => {
                     <div className="mb-4">
                       <div className="w-full">
                         <VideoThumbnail
-                          key={recentVideos[0].id}
-                          videoUrl={recentVideos[0].media_url}
+                          key={recentVideos[0]?.id}
+                          videoUrl={recentVideos[0]!.media_url}
                           className="aspect-video w-full"
                           onClick={() => {
                             setSelectedVideo(recentVideos[0]!);

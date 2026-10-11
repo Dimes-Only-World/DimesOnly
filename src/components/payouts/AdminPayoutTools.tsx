@@ -102,7 +102,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
       if (!validRouting(routing) || !account) { skipped.push(p.username); continue; }
       entries.push({ name: p.wire_account_holder_name || p.username, routing, account, type: p.wire_account_type === "savings" ? "savings" : "checking", amount: Number(p.amount), id: p.id.replace(/-/g, "").slice(0, 15) });
     }
-    if (!entries.length) return toast.error("No approved direct deposit payouts with valid bank details");
+    if (!entries.length) { toast.error("No approved direct deposit payouts with valid bank details"); return; }
     const eff = new Date(); eff.setDate(eff.getDate() + 1);
     const { text, totalCents } = buildNacha(cfg, entries, eff);
     download(`ach-payroll-${today()}.txt`, text, "text/plain");

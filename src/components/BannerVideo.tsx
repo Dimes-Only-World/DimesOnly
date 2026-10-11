@@ -11,18 +11,18 @@ import {
 
 interface BannerVideoProps {
   src: string;
-  loop?: boolean;
+  loop?: boolean | undefined;
   className?: string;
-  overlay?: boolean;
+  overlay?: boolean | undefined;
   /** If true, render as absolute-positioned background video (no controls) */
-  background?: boolean;
-  autoPlay?: boolean;
-  muted?: boolean;
-  onEnded?: () => void;
-  videoRef?: React.RefObject<HTMLVideoElement>;
+  background?: boolean | undefined;
+  autoPlay?: boolean | undefined;
+  muted?: boolean | undefined;
+  onEnded?: (() => void) | undefined;
+  videoRef?: React.RefObject<HTMLVideoElement> | undefined;
   /** No seek bar/controls: tap to pause/resume, replay button when finished */
-  minimal?: boolean;
-  poster?: string;
+  minimal?: boolean | undefined;
+  poster?: string | undefined;
 }
 
 function formatTime(seconds: number): string {

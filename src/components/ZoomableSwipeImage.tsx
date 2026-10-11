@@ -42,8 +42,8 @@ const ZoomableSwipeImage: React.FC<ZoomableSwipeImageProps> = ({
   const distance = () => {
     const pts = Array.from(pointers.current.values());
     if (pts.length < 2) return 0;
-    const dx = pts[0]?.x - pts[1]?.x;
-    const dy = pts[0]?.y - pts[1]?.y;
+    const dx = (pts[0]?.x ?? 0) - (pts[1]?.x ?? 0);
+    const dy = (pts[0]?.y ?? 0) - (pts[1]?.y ?? 0);
     return Math.hypot(dx, dy);
   };
 

@@ -211,7 +211,7 @@ const JackpotWinnersBanner: React.FC = () => {
         }
 
         // 4) Enrich winners with username/photo (prefer ACTUAL profile from users table over stored winner data)
-        const enriched: WinnerRow[] = (all as any[]).map((w) => {
+        const enriched: any[] = (all as any[]).map((w) => {
           const rawId = w.user_id ? String(w.user_id) : null;
           const p = rawId ? profiles[rawId] : undefined;
           return {
@@ -257,13 +257,13 @@ const JackpotWinnersBanner: React.FC = () => {
 
   const executedAtLocal = useMemo(() => {
     if (!winners.length) return null;
-    const d = new Date(winners[0].executed_at);
+    const d = new Date(winners[0] ?? { executed_at: new Date().toISOString() }.executed_at);
     return d.toLocaleString("en-US", { timeZone: "America/New_York" });
   }, [winners]);
 
   const drawnCode = useMemo(() => {
     if (!winners.length) return null;
-    return winners[0].drawn_code || null;
+    return winners[0] ?? {}.drawn_code || null;
   }, [winners]);
 
   const grandPrize = useMemo(

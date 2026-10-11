@@ -58,7 +58,7 @@ interface EventTicketSelectorProps {
     username: string;
     [key: string]: any;
   };
-  userType?: string;
+  userType?: string | undefined;
   usedFreeSpots?: {
     strippers?: number;
     exotics?: number;
@@ -73,7 +73,7 @@ interface EventTicketSelectorProps {
   onSuccess: (transactionId?: string) => void;
   onError: (error: string) => void;
   onFreeRegister: (guestName?: string) => Promise<void>;
-  userGender?: string;
+  userGender?: string | undefined;
 }
 
 const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
@@ -417,9 +417,9 @@ const EventTicketSelector: React.FC<EventTicketSelectorProps> = ({
                   option.price === 0 ? "text-green-400" : "text-yellow-400"
                 }`}
               >
-                {option.price > 0 && originalPrices[option.type] > option.price + 0.001 && (
+                {option.price > 0 && (originalPrices[option.type] ?? 0) > option.price + 0.001 && (
                   <span className="text-xs text-muted-foreground line-through sm:text-sm">
-                    ${originalPrices[option.type].toFixed(2)}
+                    ${originalPrices[option.type] ?? (0).toFixed(2)}
                   </span>
                 )}
                 {option.price === 0 ? "FREE" : `$${option.price.toFixed(2)}`}

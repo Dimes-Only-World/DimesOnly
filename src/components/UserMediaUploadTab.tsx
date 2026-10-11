@@ -33,7 +33,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
     elite_plus: { icon: <Award className="w-5 h-5 text-yellow-100" />, color: 'from-fuchsia-500 to-yellow-400' },
   };
 
-  const visual = visuals[membership.key as keyof typeof visuals] || visuals.free;
+  const visual = visuals[membership.key as keyof typeof visuals] || visuals["free"];
   const isTopTier = membership.key === 'elite_plus';
 
   const upgradePath =

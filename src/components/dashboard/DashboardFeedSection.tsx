@@ -165,14 +165,18 @@ const DashboardFeedSection: React.FC = () => {
       // Stored URLs point at a private bucket, so they need signed links to render.
       const urlMap = await resolveMediaUrls(rows.map((r) => r.media_url));
 
-      const items: FeedItem[] = rows.map((r) => ({
-        ...r,
-        media_url: urlMap[r.media_url] || r.media_url,
-        author: authorMap.get(r.user_id) ?? undefined,
-        likeCount: likeCounts.get(r.id) || 0,
-        commentCount: commentCounts.get(r.id) || 0,
-        liked: likedByMe.has(r.id),
-      }));
+      const items: FeedItem[] = rows.map((r) => {
+        const item: FeedItem = {
+          ...r,
+          media_url: urlMap[r.media_url] || r.media_url,
+          likeCount: likeCounts.get(r.id) || 0,
+          commentCount: commentCounts.get(r.id) || 0,
+          liked: likedByMe.has(r.id),
+        };
+        const author = authorMap.get(r.user_id);
+        if (author) item.author = author;
+        return item;
+      });
 
       const photoItems = items.filter((i) => i.media_type === "photo");
 
@@ -233,7 +237,7 @@ const DashboardFeedSection: React.FC = () => {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
           const j = Math.floor(rand() * (i + 1));
-          [a[i], a[j]] = [a[j], a[i]];
+          const t = a[i]; a[i] = a[j]!; a[j] = t!;;
         }
         return a;
       };

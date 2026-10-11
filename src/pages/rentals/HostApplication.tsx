@@ -194,37 +194,24 @@ const HostApplication: React.FC = () => {
     return null;
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isLastVehicle) {
-      nextVehicle();
-      return;
-    }
-    const currentVehicle = vehicles[vIdx];
-    if (!currentVehicle) return;
-    const vErr = validateVehicle(currentVehicle);
+  const nextVehicle = () => {
+    const current = vehicles[vIdx];
+    if (!current) return;
+    const vErr = validateVehicle(current);
     if (vErr) {
       toast({ title: vErr, variant: "destructive" });
       return;
     }
-    if (!f.earnings_plan) {
-      toast({ title: "Choose Earn 50% or 60%", variant: "destructive" });
-      return;
-    }
-    if (!dl || !reg) {
-      toast({ title: "Upload your drivers license and registration", variant: "destructive" });
-      return;
-    }
-    if (!agree || !signed || !f.signed_name.trim()) {
-      toast({ title: "Sign the agreement to finish", variant: "destructive" });
-      return;
-    }
-    if (!applicationIds.length) throw new Error("No pending vehicle application was found");
+    setVIdx((prev) => prev + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const startDepositPayment = async (ids: string[]) => {
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     const { data, error } = await supabase.functions.invoke("host-deposit-payment", {
       body: {
         action: "create",
-        applicationIds,
+        applicationIds: ids,
         returnUrl: `${baseUrl}?deposit=success`,
         cancelUrl: `${baseUrl}?deposit=cancelled`,
       },
@@ -238,7 +225,9 @@ const HostApplication: React.FC = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLastVehicle) return nextVehicle();
-    const vErr = validateVehicle(vehicles[vIdx]);
+    const vCurrent = vehicles[vIdx];
+    if (!vCurrent) return;
+    const vErr = validateVehicle(vCurrent);
     if (vErr) return toast({ title: vErr, variant: "destructive" });
     if (!f.earnings_plan) return toast({ title: "Choose Earn 50% or 60%", variant: "destructive" });
     if (!dl || !reg) return toast({ title: "Upload your driver's license and registration", variant: "destructive" });
@@ -400,7 +389,7 @@ const HostApplication: React.FC = () => {
     );
   }
 
-  const v = vehicles[vIdx];
+  const v = vehicles[vIdx] || emptyVehicle();
 
   return (
     <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">

@@ -109,6 +109,7 @@ const UserDirectMessagesTab: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
+    if (!user?.id) 
     if (user?.id) {
       // Load current user's profile for avatar in thread bubbles
       (async () => {

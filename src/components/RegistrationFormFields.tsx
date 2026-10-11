@@ -30,15 +30,15 @@ interface FormData {
   gender: string;
   userType: string;
   referredBy: string;
-  profilePhoto?: string;
+  profilePhoto?: string | undefined;
   bannerPhoto?: string;
-  frontPagePhoto?: string;
+  frontPagePhoto?: string | undefined;
   dateOfBirth: string;
 }
 
 interface RegistrationFormFieldsProps {
   formData: FormData;
-  errors: Partial<Record<keyof FormData, string>>;
+  errors: Partial<Record<keyof FormData, string | undefined>>;
   showUserType: boolean;
   showVideoUploads: boolean;
   handleInputChange: (field: keyof FormData) => (value: string) => void;
@@ -47,8 +47,8 @@ interface RegistrationFormFieldsProps {
   videoUrls: string[];
   videoErrors: string[];
   handleVideoUpload: (slot: number) => (file: File | null) => void;
-  currentStep?: number;
-  usernameStatus?: 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+  currentStep?: number | undefined;
+  usernameStatus?: "idle" | "checking" | "available" | "taken" | "invalid" | undefined;
 
 }
 

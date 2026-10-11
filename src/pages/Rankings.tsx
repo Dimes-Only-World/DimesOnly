@@ -131,8 +131,8 @@ const Rankings: React.FC = () => {
 
         (ratingsData as RatingData[]).forEach((rating) => {
           if (userScores[rating.user_id]) {
-            userScores[rating.user_id].total_score += rating.rating;
-            userScores[rating.user_id].rating_count += 1;
+            userScores[rating.user_id]!.total_score += rating.rating;
+            userScores[rating.user_id]!.rating_count += 1;
           }
         });
 

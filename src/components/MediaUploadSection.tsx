@@ -412,11 +412,12 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               }`}
               onClick={() => {
                 if (!isPerformer) {
-                  return toast({
+                  toast({
                     title: "Dimes Only",
                     description: "Only Strippers and Exotics can upload Silver content.",
                   });
                 }
+                
                 setSelectedContentTier("silver");
               }}
             >
@@ -448,6 +449,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                     title: "Dimes Only",
                     description: "Only Strippers and Exotics can upload Gold content.",
                   });
+                
                 }
                 setSelectedContentTier("gold");
               }}
