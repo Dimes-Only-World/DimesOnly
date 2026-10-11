@@ -1,4 +1,4 @@
-import "./lib/edgeAuthFetch";
+import "../lib/edgeAuthFetch";
 import "@fontsource/bebas-neue/400.css";
 import "@fontsource/barlow/400.css";
 import "@fontsource/barlow/500.css";
