@@ -361,11 +361,11 @@
   }
 
   /* Mobile URL bar hiding and full viewport */
+  /* No fixed html height: a locked-height root makes pop-up menus (which pause
+     page scrolling while open) snap the page back to the top. */
   html {
     font-size: var(--site-font-size);
-    height: 100%;
-    height: 100vh;
-    height: -webkit-fill-available;
+    min-height: 100%;
   }
 
   /* Phone and unfolded-phone screens need a readable baseline too. */

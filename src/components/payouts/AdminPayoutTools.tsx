@@ -51,7 +51,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
     setFinLoading(true);
     const { data, error } = await supabase.functions.invoke("admin-data", { body: { action: "companyFinancials", adminUserId: adminUserId() } });
     setFinLoading(false);
-    if (error || !data?.data) toast.error("Could not load company financials"); return;
+    if (error || !data?.data) { toast.error("Could not load company financials"); return; }
     setFin(data.data);
   };
   useEffect(() => { loadFin(); }, []);
@@ -62,7 +62,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
   const ach = approved.filter((p) => p.payout_method === "direct_deposit");
 
   const runPaypalBatch = async () => {
-    if (!paypal.length) toast.info("No approved PayPal payouts with a PayPal email"); return;
+    if (!paypal.length) { toast.info("No approved PayPal payouts with a PayPal email"); return; }
     if (!confirm(`Send ${paypal.length} PayPal payout(s) totaling ${usd(sumAmounts(paypal))} now? Money leaves your PayPal balance immediately.`)) return;
     setSending(true);
     const { data, error } = await supabase.functions.invoke("admin-data", {
@@ -77,13 +77,13 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
   };
 
   const venmoCsv = () => {
-    if (!venmo.length) toast.info("No approved Venmo payouts"); return;
+    if (!venmo.length) { toast.info("No approved Venmo payouts"); return; }
     const rows = venmo.map((p) => { const n = parseNotes(p.notes); return [n.username || n.venmo_username || "", n.phone || n.venmo_phone || "", n.email || n.venmo_email || "", Number(p.amount).toFixed(2), `Dimes Only payout @${p.username}`]; });
     download(`venmo-batch-${today()}.csv`, toCsv(["Username", "Phone", "Email", "Amount", "Note"], rows));
   };
 
   const cashappCsv = () => {
-    if (!cashapp.length) toast.info("No approved Cash App payouts"); return;
+    if (!cashapp.length) { toast.info("No approved Cash App payouts"); return; }
     const rows = cashapp.map((p) => [p.cashapp_cashtag || "", p.cashapp_phone || "", p.cashapp_email || "", Number(p.amount).toFixed(2), `Dimes Only payout @${p.username}`]);
     download(`cashapp-batch-${today()}.csv`, toCsv(["$Cashtag", "Phone", "Email", "Amount", "Note"], rows));
   };
