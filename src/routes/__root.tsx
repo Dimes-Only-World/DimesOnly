@@ -196,17 +196,17 @@ function PayPalRootProvider({ children }: { children: React.ReactNode }) {
 }
 
 class AppErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
-  state = { hasError: false };
+  override state = { hasError: false };
 
-  static getDerivedStateFromError() {
+  static override getDerivedStateFromError() {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  override componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("React app error:", error, info);
     if (typeof window !== "undefined") {
       (window as any).__REACT_APP_ERROR__ = {
-        message: error?.message || "Unknown error",
+        message: (error as Error | undefined)?.message || "Unknown error", stack: (error as Error | undefined)?.stack || "No stack trace",
         stack: error?.stack || "No stack trace",
         timestamp: new Date().toISOString(),
       };
