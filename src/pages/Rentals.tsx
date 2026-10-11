@@ -161,11 +161,11 @@ const Rentals: React.FC = () => {
 
       <section className="border-y border-rental-line bg-rental-surface">
         <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-rental-line px-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-8 lg:px-12">
-          {[
+          {([
             [ShieldCheck, "Protected trips", "Coverage included"],
             [CalendarDays, "Flexible terms", "Daily to rent-to-own"],
             [Sparkles, "Curated fleet", "Economic, luxury, exotic"],
-          ].map(([IconComponent, title, copy]: [React.ComponentType<{ className?: string }>, string, string]) => (
+          ] as [React.ComponentType<{ className?: string }>, string, string][]).map(([IconComponent, title, copy]: [React.ComponentType<{ className?: string }>, string, string]) => (
             <div key={String(title)} className="flex items-center gap-3 py-5 sm:px-6 first:sm:pl-0">
               {<IconComponent className="h-5 w-5 shrink-0 text-rental-primary" />}
               <div className="font-barlow">
