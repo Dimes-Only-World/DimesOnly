@@ -17,6 +17,7 @@ import { AUP_EFFECTIVE_DATE, AUP_SECTIONS } from "@/lib/acceptableUsePolicy";
 import { FAN_DIME_EFFECTIVE_DATE, FAN_DIME_SECTIONS } from "@/lib/fanDimeAgreement";
 import { P2B_EFFECTIVE_DATE, P2B_SECTIONS } from "@/lib/dimeBusinessTerms";
 import { REF_EFFECTIVE_DATE, REF_SECTIONS } from "@/lib/referralTerms";
+import { CMP_EFFECTIVE_DATE, CMP_SECTIONS } from "@/lib/complaintsPolicy";
 
 type UserData = Tables<"users">;
 type Section = { heading: string; lines: string[] };
@@ -33,7 +34,7 @@ const POLICIES: { id: string; title: string; effective?: string; sections?: Sect
   { id: "fan-dime", title: "Contract between Fan and Dimes", effective: FAN_DIME_EFFECTIVE_DATE, sections: FAN_DIME_SECTIONS },
   { id: "p2b", title: "Platform to Business Regulation Terms", effective: P2B_EFFECTIVE_DATE, sections: P2B_SECTIONS },
   { id: "referral", title: "Referral Program Terms", effective: REF_EFFECTIVE_DATE, sections: REF_SECTIONS },
-  { id: "complaints", title: "Complaints Policy" },
+  { id: "complaints", title: "Complaints Policy", effective: CMP_EFFECTIVE_DATE, sections: CMP_SECTIONS },
   { id: "appeals", title: "Appeals Policy" },
   { id: "community", title: "Community Guidelines" },
 ];
