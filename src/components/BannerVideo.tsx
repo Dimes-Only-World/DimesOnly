@@ -39,7 +39,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   overlay = true,
   background = false,
   autoPlay = false,
-  muted = true,
+  muted,
   onEnded,
   videoRef: externalVideoRef,
   minimal = false,
