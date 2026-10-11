@@ -101,10 +101,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         type: "text/javascript",
-        children: `(function(){var h=window.pageYOffset;window.onscroll=function(){var s=window.pageYOffset;document.body.style.transform=s<10?"translateY(0)":"translateY("+(10-s)+"px)";};})()`,
-      },
-      {
-        type: "text/javascript",
         children: `(function(){function v(){var vh=window.innerHeight*0.01;document.documentElement.style.setProperty("--vh",vh+"px");}v();window.addEventListener("resize",v);})()`,
       },
     ],

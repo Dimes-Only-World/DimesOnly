@@ -110,7 +110,7 @@ const Rentals: React.FC = () => {
   });
 
   return (
-    <div className="rentals-showroom min-h-screen pb-16">
+    <div className="rentals-showroom min-h-screen">
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 py-4 sm:px-8 lg:px-12">
         <div>
           <Link to="/" className="rentals-wordmark block text-2xl leading-none text-rental-foreground sm:text-3xl">
