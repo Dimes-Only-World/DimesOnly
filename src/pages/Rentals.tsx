@@ -1,7 +1,6 @@
 import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,27 +111,6 @@ const Rentals: React.FC = () => {
 
   return (
     <div className="rentals-showroom min-h-screen pb-16">
-      <Helmet>
-        <title>Dimes Only Rentals</title>
-        <meta
-          name="description"
-          content="Car at rates that not only puts cash in your pocket, but works on prices against the competition."
-        />
-        <link rel="canonical" href="https://dimesonly.world/rentals" />
-        <meta property="og:title" content="Dimes Only Rentals" />
-        <meta
-          property="og:description"
-          content="Car at rates that not only puts cash in your pocket, but works on prices against the competition."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://dimesonly.world/rentals" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Dimes Only Rentals" />
-        <meta
-          name="twitter:description"
-          content="Car at rates that not only puts cash in your pocket, but works on prices against the competition."
-        />
-      </Helmet>
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 py-4 sm:px-8 lg:px-12">
         <div>
           <Link to="/" className="rentals-wordmark block text-2xl leading-none text-rental-foreground sm:text-3xl">
