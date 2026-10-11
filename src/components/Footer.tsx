@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { normalizeRefParam } from '@/lib/utils';
+import CookieSettingsDialog from '@/components/CookieSettingsDialog';
 
 const Footer: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -34,11 +35,19 @@ const Footer: React.FC = () => {
               ✅ Contact Us
             </a>
           </div>
-          <div 
-            className="text-blue-400 underline cursor-pointer hover:text-blue-300"
-            onClick={openModal}
-          >
-            Privacy Policy
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+            <div 
+              className="text-blue-400 underline cursor-pointer hover:text-blue-300"
+              onClick={openModal}
+            >
+              Privacy Policy
+            </div>
+            <CookieSettingsDialog variant="link" label="Cookie Settings" show="settings+policy" />
+            <CookieSettingsDialog
+              variant="link"
+              label="Do Not Sell or Share My Personal Information"
+              show="settings"
+            />
           </div>
           <p className="text-sm">© 2025 Housing Angels, LLC</p>
         </div>

@@ -61,6 +61,7 @@ import MyBookings from "./pages/MyBookings";
 import Feed from "./pages/Feed";
 import FeedCreate from "./pages/FeedCreate";
 import GARefTracker from "./components/GARefTracker";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 import GlobalVideoDownloadBlocker from "./components/GlobalVideoDownloadBlocker";
 import DashboardBackButtonGuard from "./components/DashboardBackButtonGuard";
 import FlixLanding from "@/pages/flix/FlixLanding";
@@ -246,6 +247,7 @@ function AppContent() {
       <GARefTracker />
       <GlobalVideoDownloadBlocker />
       <DashboardBackButtonGuard />
+      <CookieConsentBanner />
 
       {/* The bell itself lives in the dashboard header (DashboardSectionLayout). */}
       {showNotificationBell && <AddToHomeScreenPrompt />}

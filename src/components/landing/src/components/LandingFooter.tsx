@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import CookieSettingsDialog from "@/components/CookieSettingsDialog";
 
 const navLinks = [
   { label: "Mens Clothing", href: "#" },
@@ -31,6 +32,12 @@ const LandingFooter = () => {
           >
             Privacy Policy
           </button>
+          <CookieSettingsDialog variant="link" label="Cookie Settings" show="settings+policy" />
+          <CookieSettingsDialog
+            variant="link"
+            label="Do Not Sell or Share My Personal Information"
+            show="settings"
+          />
         </nav>
         <p className="text-center text-muted-foreground text-xs">
           © 2025 Dimes Only Network. All rights reserved.
