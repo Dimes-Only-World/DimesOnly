@@ -74,6 +74,7 @@ import { Route as FlixPricingRouteImport } from './routes/flix/pricing'
 import { Route as FlixSearchRouteImport } from './routes/flix/search'
 import { Route as ProfileUsernameRouteImport } from './routes/profile/$username'
 import { Route as RatesUsernameRouteImport } from './routes/rates/$username'
+import { Route as RentalsIndexRouteImport } from './routes/rentals/index'
 import { Route as RentalsIdRouteImport } from './routes/rentals/$id'
 import { Route as RentalsHostRouteImport } from './routes/rentals/host'
 import { Route as RentalsListRouteImport } from './routes/rentals/list'
@@ -85,8 +86,10 @@ import { Route as ClothesShopCategoryRouteImport } from './routes/clothes/shop/$
 import { Route as FlixLegalDocRouteImport } from './routes/flix/legal/$doc'
 import { Route as FlixTitleIdRouteImport } from './routes/flix/title/$id'
 import { Route as FlixWatchIdRouteImport } from './routes/flix/watch/$id'
+import { Route as RentalsHostIndexRouteImport } from './routes/rentals/host/index'
 import { Route as RentalsHostApplyRouteImport } from './routes/rentals/host/apply'
 import { Route as RentalsPayBookingIdRouteImport } from './routes/rentals/pay/$bookingId'
+import { Route as RentalsPurchaseIndexRouteImport } from './routes/rentals/purchase/index'
 import { Route as RentalsPurchaseVehicleIdRouteImport } from './routes/rentals/purchase/$vehicleId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -414,6 +417,11 @@ const RatesUsernameRoute = RatesUsernameRouteImport.update({
   path: '/$username',
   getParentRoute: () => RatesRoute,
 } as any)
+const RentalsIndexRoute = RentalsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RentalsRoute,
+} as any)
 const RentalsIdRoute = RentalsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -469,6 +477,11 @@ const FlixWatchIdRoute = FlixWatchIdRouteImport.update({
   path: '/watch/$id',
   getParentRoute: () => FlixRoute,
 } as any)
+const RentalsHostIndexRoute = RentalsHostIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RentalsHostRoute,
+} as any)
 const RentalsHostApplyRoute = RentalsHostApplyRouteImport.update({
   id: '/apply',
   path: '/apply',
@@ -478,6 +491,11 @@ const RentalsPayBookingIdRoute = RentalsPayBookingIdRouteImport.update({
   id: '/pay/$bookingId',
   path: '/pay/$bookingId',
   getParentRoute: () => RentalsRoute,
+} as any)
+const RentalsPurchaseIndexRoute = RentalsPurchaseIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RentalsPurchaseRoute,
 } as any)
 const RentalsPurchaseVehicleIdRoute =
   RentalsPurchaseVehicleIdRouteImport.update({
@@ -558,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/tips/$username': typeof TipsUsernameRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/flix/': typeof FlixIndexRoute
+  '/rentals/': typeof RentalsIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -566,6 +585,8 @@ export interface FileRoutesByFullPath {
   '/rentals/host/apply': typeof RentalsHostApplyRoute
   '/rentals/pay/$bookingId': typeof RentalsPayBookingIdRoute
   '/rentals/purchase/$vehicleId': typeof RentalsPurchaseVehicleIdRoute
+  '/rentals/host/': typeof RentalsHostIndexRoute
+  '/rentals/purchase/': typeof RentalsPurchaseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -597,7 +618,6 @@ export interface FileRoutesByTo {
   '/rates': typeof RatesRouteWithChildren
   '/register': typeof RegisterRoute
   '/rental': typeof RentalRoute
-  '/rentals': typeof RentalsRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/store': typeof StoreRoute
   '/test-login': typeof TestLoginRoute
@@ -630,13 +650,12 @@ export interface FileRoutesByTo {
   '/profile/$username': typeof ProfileUsernameRoute
   '/rates/$username': typeof RatesUsernameRoute
   '/rentals/$id': typeof RentalsIdRoute
-  '/rentals/host': typeof RentalsHostRouteWithChildren
   '/rentals/list': typeof RentalsListRoute
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
-  '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
   '/dashboard': typeof DashboardIndexRoute
   '/flix': typeof FlixIndexRoute
+  '/rentals': typeof RentalsIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -645,6 +664,8 @@ export interface FileRoutesByTo {
   '/rentals/host/apply': typeof RentalsHostApplyRoute
   '/rentals/pay/$bookingId': typeof RentalsPayBookingIdRoute
   '/rentals/purchase/$vehicleId': typeof RentalsPurchaseVehicleIdRoute
+  '/rentals/host': typeof RentalsHostIndexRoute
+  '/rentals/purchase': typeof RentalsPurchaseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -719,6 +740,7 @@ export interface FileRoutesById {
   '/tips/$username': typeof TipsUsernameRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/flix/': typeof FlixIndexRoute
+  '/rentals/': typeof RentalsIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -727,6 +749,8 @@ export interface FileRoutesById {
   '/rentals/host/apply': typeof RentalsHostApplyRoute
   '/rentals/pay/$bookingId': typeof RentalsPayBookingIdRoute
   '/rentals/purchase/$vehicleId': typeof RentalsPurchaseVehicleIdRoute
+  '/rentals/host/': typeof RentalsHostIndexRoute
+  '/rentals/purchase/': typeof RentalsPurchaseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -802,6 +826,7 @@ export interface FileRouteTypes {
     | '/tips/$username'
     | '/dashboard/'
     | '/flix/'
+    | '/rentals/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -810,6 +835,8 @@ export interface FileRouteTypes {
     | '/rentals/host/apply'
     | '/rentals/pay/$bookingId'
     | '/rentals/purchase/$vehicleId'
+    | '/rentals/host/'
+    | '/rentals/purchase/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -841,7 +868,6 @@ export interface FileRouteTypes {
     | '/rates'
     | '/register'
     | '/rental'
-    | '/rentals'
     | '/reset-password'
     | '/store'
     | '/test-login'
@@ -874,13 +900,12 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/rates/$username'
     | '/rentals/$id'
-    | '/rentals/host'
     | '/rentals/list'
     | '/rentals/my-fleet'
-    | '/rentals/purchase'
     | '/tips/$username'
     | '/dashboard'
     | '/flix'
+    | '/rentals'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -889,6 +914,8 @@ export interface FileRouteTypes {
     | '/rentals/host/apply'
     | '/rentals/pay/$bookingId'
     | '/rentals/purchase/$vehicleId'
+    | '/rentals/host'
+    | '/rentals/purchase'
   id:
     | '__root__'
     | '/'
@@ -962,6 +989,7 @@ export interface FileRouteTypes {
     | '/tips/$username'
     | '/dashboard/'
     | '/flix/'
+    | '/rentals/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -970,6 +998,8 @@ export interface FileRouteTypes {
     | '/rentals/host/apply'
     | '/rentals/pay/$bookingId'
     | '/rentals/purchase/$vehicleId'
+    | '/rentals/host/'
+    | '/rentals/purchase/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1480,6 +1510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RatesUsernameRouteImport
       parentRoute: typeof RatesRoute
     }
+    '/rentals/': {
+      id: '/rentals/'
+      path: '/'
+      fullPath: '/rentals/'
+      preLoaderRoute: typeof RentalsIndexRouteImport
+      parentRoute: typeof RentalsRoute
+    }
     '/rentals/$id': {
       id: '/rentals/$id'
       path: '/$id'
@@ -1557,6 +1594,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FlixWatchIdRouteImport
       parentRoute: typeof FlixRoute
     }
+    '/rentals/host/': {
+      id: '/rentals/host/'
+      path: '/'
+      fullPath: '/rentals/host/'
+      preLoaderRoute: typeof RentalsHostIndexRouteImport
+      parentRoute: typeof RentalsHostRoute
+    }
     '/rentals/host/apply': {
       id: '/rentals/host/apply'
       path: '/apply'
@@ -1570,6 +1614,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/rentals/pay/$bookingId'
       preLoaderRoute: typeof RentalsPayBookingIdRouteImport
       parentRoute: typeof RentalsRoute
+    }
+    '/rentals/purchase/': {
+      id: '/rentals/purchase/'
+      path: '/'
+      fullPath: '/rentals/purchase/'
+      preLoaderRoute: typeof RentalsPurchaseIndexRouteImport
+      parentRoute: typeof RentalsPurchaseRoute
     }
     '/rentals/purchase/$vehicleId': {
       id: '/rentals/purchase/$vehicleId'
@@ -1680,10 +1731,12 @@ const RatesRouteWithChildren = RatesRoute._addFileChildren(RatesRouteChildren)
 
 interface RentalsHostRouteChildren {
   RentalsHostApplyRoute: typeof RentalsHostApplyRoute
+  RentalsHostIndexRoute: typeof RentalsHostIndexRoute
 }
 
 const RentalsHostRouteChildren: RentalsHostRouteChildren = {
   RentalsHostApplyRoute: RentalsHostApplyRoute,
+  RentalsHostIndexRoute: RentalsHostIndexRoute,
 }
 
 const RentalsHostRouteWithChildren = RentalsHostRoute._addFileChildren(
@@ -1692,10 +1745,12 @@ const RentalsHostRouteWithChildren = RentalsHostRoute._addFileChildren(
 
 interface RentalsPurchaseRouteChildren {
   RentalsPurchaseVehicleIdRoute: typeof RentalsPurchaseVehicleIdRoute
+  RentalsPurchaseIndexRoute: typeof RentalsPurchaseIndexRoute
 }
 
 const RentalsPurchaseRouteChildren: RentalsPurchaseRouteChildren = {
   RentalsPurchaseVehicleIdRoute: RentalsPurchaseVehicleIdRoute,
+  RentalsPurchaseIndexRoute: RentalsPurchaseIndexRoute,
 }
 
 const RentalsPurchaseRouteWithChildren = RentalsPurchaseRoute._addFileChildren(
@@ -1708,6 +1763,7 @@ interface RentalsRouteChildren {
   RentalsListRoute: typeof RentalsListRoute
   RentalsMyFleetRoute: typeof RentalsMyFleetRoute
   RentalsPurchaseRoute: typeof RentalsPurchaseRouteWithChildren
+  RentalsIndexRoute: typeof RentalsIndexRoute
   RentalsPayBookingIdRoute: typeof RentalsPayBookingIdRoute
 }
 
@@ -1717,6 +1773,7 @@ const RentalsRouteChildren: RentalsRouteChildren = {
   RentalsListRoute: RentalsListRoute,
   RentalsMyFleetRoute: RentalsMyFleetRoute,
   RentalsPurchaseRoute: RentalsPurchaseRouteWithChildren,
+  RentalsIndexRoute: RentalsIndexRoute,
   RentalsPayBookingIdRoute: RentalsPayBookingIdRoute,
 }
 

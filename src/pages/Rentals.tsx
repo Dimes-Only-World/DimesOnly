@@ -1,6 +1,6 @@
 import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useState, useMemo } from "react";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -319,9 +319,9 @@ const Rentals: React.FC = () => {
                         </p>
                       </div>
                       <div className="flex flex-col gap-2">
-                        {purchaseAvailable && <Button asChild size="sm" variant="outline" className="rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to={`/rentals/purchase/${v.id}`}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
+                        {purchaseAvailable && <Button asChild size="sm" variant="outline" className="rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
                         <Button asChild size="sm" className="rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
-                          <Link to={`/rentals/${v.id}`}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                          <Link to="/rentals/$id" params={{ id: v.id }}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
                         </Button>
                       </div>
                     </div>

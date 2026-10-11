@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "@/lib/router-compat";
+import { Link, useNavigate, useParams, useLocation } from "@/lib/router-compat";
 import { z } from "zod";
 import { ArrowLeft, BadgeDollarSign, Camera, CheckCircle2, Loader2 } from "lucide-react";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";
@@ -131,7 +131,8 @@ const VehiclePurchaseApplication: React.FC = () => {
     const t = setTimeout(() => { supabase.functions.invoke("submit-vehicle-purchase", { body: { action: "check", username: username.trim(), email: (applicant["email"] || "").trim(), phone: applicant["cellPhone"] } }).then(({ data }) => { if (data) setIdCheck(data as any); }); }, 500);
     return () => clearTimeout(t);
   }, [loggedIn, username, (applicant["email"] || ""), applicant["cellPhone"]]);
-  const loginHref = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+  const location = useLocation();
+  const loginHref = `/login?redirect=${encodeURIComponent(location.pathname)}`;
   useEffect(() => { if (!vehicleId) return; (supabase as any).from("vehicles").select("id,year,make,model,vin,down_payment,rental_options,is_active").eq("id", vehicleId).maybeSingle().then(({ data }: any) => { if (!data?.is_active || !data.rental_options?.includes("purchase")) return; setVehicle(data); setInterested((current) => ({ ...current, hasVin: data.vin ? "yes" : "no", vin: data.vin || "", year: String(data.year || ""), make: data.make || "", model: data.model || "", downPayment: String(data.down_payment || "") })); }); }, [vehicleId]);
   const vehicleName = useMemo(() => vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : "Vehicle purchase", [vehicle]);
   const submit = async (event: React.FormEvent) => { event.preventDefault(); const payload: any = { vehicleId: vehicle?.id || null, applicant, residence, employment, hasCoBuyer, coBuyer: hasCoBuyer ? { ...coBuyer, residence: coResidence, employment: coEmployment } : null, interestedVehicle: interested, hasTradeIn, tradeIn: hasTradeIn ? tradeIn : null, marketingSmsConsent: marketing, serviceSmsConsent: serviceMessages, creditAuthorizationConsent: creditConsent, privacyPolicyConsent: privacyConsent, referrerUsername: getActiveRef() || null };

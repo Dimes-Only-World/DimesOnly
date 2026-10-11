@@ -1,6 +1,10 @@
-import "./edgeAuthFetch";
+import { installEdgeAuthFetch } from "./edgeAuthFetch";
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { processLock } from '@supabase/auth-js';
+
+// This must be an explicit call: the production bundler removes side-effect-only
+// imports, which otherwise strips the custom user/admin authorization headers.
+installEdgeAuthFetch();
 
 // Exported constants for use across the app (e.g., calling Edge Functions)
 export const SUPABASE_URL = 'https://qkcuykpndrolrewwnkwb.supabase.co';
