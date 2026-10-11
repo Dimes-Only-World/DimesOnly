@@ -65,7 +65,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !autoPlay || minimal || background) return;
-    video.muted = muted;
+    video.muted = muted ?? false;
     void video.play().catch(() => undefined);
   }, [src, autoPlay, muted, minimal, background, videoRef]);
 
