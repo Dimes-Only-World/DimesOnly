@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Heart } from "lucide-react";
 import { StoreProduct, money, productImage, useSignedStoreImage } from "@/lib/store";
 

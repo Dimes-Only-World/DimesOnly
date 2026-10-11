@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Flame, MonitorSmartphone, Tv, Smartphone, Laptop, Infinity as InfinityIcon, HandHeart, Users } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixHero from "@/components/flix/FlixHero";

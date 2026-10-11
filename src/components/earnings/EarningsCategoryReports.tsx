@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Car, CarFront, ChevronLeft, ChevronRight, Flame, Shirt, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SaleCommissionData } from "@/components/rentals/VehicleSaleCommissionsCard";

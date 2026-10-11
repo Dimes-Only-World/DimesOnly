@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { buildAuthUrl } from "@/lib/refCapture";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Flame, Plus, Trash2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import { FlixPosterCard } from "@/components/flix/FlixRow";

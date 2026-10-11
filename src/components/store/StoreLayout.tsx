@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { ShoppingBag, Search, Heart, User, Menu, X, Home } from "lucide-react";
 import { useStoreCart } from "@/contexts/StoreCartContext";
 import { money } from "@/lib/store";

@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "@/lib/router-compat";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixFooter from "@/components/flix/FlixFooter";
 import { FLIX_TERMS_BODY } from "@/data/flixTerms";

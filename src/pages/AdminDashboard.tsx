@@ -1,6 +1,6 @@
 import AdminCashAppPayments from "@/components/admin/AdminCashAppPayments";
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";

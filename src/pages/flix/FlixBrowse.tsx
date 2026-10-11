@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/lib/router-compat";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixRow, { FlixPosterCard } from "@/components/flix/FlixRow";
 import FlixHero from "@/components/flix/FlixHero";

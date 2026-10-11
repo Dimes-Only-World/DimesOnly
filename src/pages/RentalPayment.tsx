@@ -1,7 +1,7 @@
 import { WIRE_INSTRUCTIONS } from "@/lib/rentalShortTerm";
 import React, { useEffect, useState } from "react";
 import { buildAuthUrl } from "@/lib/refCapture";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

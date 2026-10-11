@@ -23,7 +23,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { getDmSignedUrl } from "@/lib/dmMedia";
 import { notifyNewDirectMessage } from "@/lib/dmNotify";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";

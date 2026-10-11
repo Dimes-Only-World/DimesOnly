@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "@/lib/router-compat";
 import { z } from "zod";
 import { ArrowLeft, BadgeDollarSign, Camera, CheckCircle2, Loader2 } from "lucide-react";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";

@@ -1,7 +1,7 @@
 import { useMembershipStage } from "@/hooks/useMembershipStage";
 import { formatUSD } from "@/lib/membershipPricing";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { User as UserIcon } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";

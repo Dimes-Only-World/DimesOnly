@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "@/lib/router-compat";
 import { ArrowLeft, Check, Maximize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import FlixPaywall from "@/components/flix/FlixPaywall";
 import { activateSubscription, fetchLiveTitles, fetchMySubscription, fetchTitle, flixImage, formatClock, saveProgress, type FlixTitle, fetchVideoUrl } from "@/lib/flix";

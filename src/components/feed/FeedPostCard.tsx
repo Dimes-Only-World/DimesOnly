@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { FeedMediaRow, FeedPostRow } from "@/lib/feedApi";
 import { useAppContext } from "@/contexts/AppContext";
 import FeedMediaItem from "./FeedMediaItem";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 
 interface Author {
   id: string;

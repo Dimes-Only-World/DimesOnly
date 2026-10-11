@@ -2,7 +2,7 @@ import React from 'react';
 import MediaUploadSection from './MediaUploadSection';
 import { Button } from '@/components/ui/button';
 import { Crown, Star, Lock, Award } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "@/lib/router-compat";
 import { resolveMembership } from '@/lib/membership';
 
 interface UserMediaUploadTabProps {

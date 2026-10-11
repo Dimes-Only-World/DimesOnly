@@ -1,7 +1,7 @@
 import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useMemo, useState } from "react";
 import { buildAuthUrl } from "@/lib/refCapture";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

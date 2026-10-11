@@ -1,6 +1,6 @@
 import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 

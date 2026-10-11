@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Lock, Crown, Star } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "@/lib/router-compat";
 
 interface ContentAccessControlProps {
   contentTier: 'free' | 'silver' | 'gold';

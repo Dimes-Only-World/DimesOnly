@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "@/lib/router-compat";
 import StoreLayout from "@/components/store/StoreLayout";
 import ProductCard from "@/components/store/ProductCard";
 import { StoreProduct as Product, SIZE_GUIDE, fetchProductBySlug, fetchProducts, money, productImage, signStorePaths } from "@/lib/store";
