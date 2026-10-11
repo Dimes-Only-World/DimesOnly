@@ -366,8 +366,10 @@
   html {
     font-size: var(--site-font-size);
     min-height: 100%;
-    background-color: hsl(var(--background));
+    background-color: hsl(222.2 47% 6%);
   }
+  /* The site is dark-themed: never let white show behind or below a page. */
+  body { background-color: hsl(222.2 47% 6%) !important; }
 
   /* Dark pages: paint the area behind/below the page the same color so no
      white band shows under the footer or when phones over-scroll. */
