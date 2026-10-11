@@ -375,7 +375,7 @@
      white band shows under the footer or when phones over-scroll. */
   html:has(.rentals-showroom),
   html:has(.rentals-showroom) body {
-    background-color: hsl(220 10% 4%);
+    background-color: hsl(220 10% 4%) !important;
   }
 
   /* Phone and unfolded-phone screens need a readable baseline too. */
