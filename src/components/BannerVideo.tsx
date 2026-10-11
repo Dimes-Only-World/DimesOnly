@@ -210,8 +210,8 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         ref={videoRef}
         key={src}
         autoPlay
-        muted={muted}
-        data-play-through={muted ? undefined : "true"}
+        muted={bgMuted}
+        data-play-through={bgMuted ? undefined : "true"}
         playsInline
         controls={false}
         disablePictureInPicture
