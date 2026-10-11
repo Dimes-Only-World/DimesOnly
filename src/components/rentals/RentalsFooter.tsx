@@ -4,6 +4,9 @@ import { buildAuthUrl } from "@/lib/refCapture";
 import { CancellationPolicyDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TERMS_EFFECTIVE_DATE, TERMS_SECTIONS } from "@/lib/termsContent";
 
 const APPLY_FORM_URL =
   "https://forms.zohopublic.com/life1consultingcom/form/BestVehicleApplication1/formperma/NEo9COacNFYLprsXe56MgiJ772zuhzaS416FqnuDaVQ";
@@ -11,6 +14,7 @@ const APPLY_FORM_URL =
 const RentalsFooter: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const { user, setUser } = useAppContext();
   const [loginUrl, setLoginUrl] = useState("/login?redirect=%2Frentals");
   const [signupUrl, setSignupUrl] = useState("/register?redirect=%2Frentals");
@@ -56,7 +60,7 @@ const RentalsFooter: React.FC = () => {
     {
       heading: "Company",
       links: [
-        { label: "Terms of Service", to: "/clothes/terms" },
+        { label: "Terms of Service", onClick: () => setShowTerms(true) },
         { label: "Cancellation policy", onClick: () => setShowCancel(true) },
         { label: "Privacy Policy", onClick: () => setShowPrivacy(true) },
       ],
@@ -89,13 +93,14 @@ const RentalsFooter: React.FC = () => {
                         {link.label}
                       </a>
                     ) : (
-                      <button
+                      <Button
                         type="button"
+                        variant="link"
                         onClick={link.onClick}
-                        className="text-rental-foreground/80 transition-colors hover:text-rental-primary"
+                        className="h-auto p-0 font-normal text-rental-foreground/80 transition-colors hover:text-rental-primary"
                       >
                         {link.label}
-                      </button>
+                      </Button>
                     )}
                   </li>
                 ))}
@@ -109,6 +114,20 @@ const RentalsFooter: React.FC = () => {
       </div>
 
       <CancellationPolicyDialog open={showCancel} onOpenChange={setShowCancel} />
+      <Dialog open={showTerms} onOpenChange={setShowTerms}>
+        <DialogContent className="terms-dialog">
+          <DialogHeader>
+            <DialogTitle>Terms of Service</DialogTitle>
+            <DialogDescription>Effective {TERMS_EFFECTIVE_DATE}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 text-sm leading-relaxed">
+            {TERMS_SECTIONS.map((section) => <section key={section.heading} className="space-y-2">
+              <h2 className="font-semibold text-foreground">{section.heading}</h2>
+              {section.lines.map((line, index) => <p key={index} className="text-muted-foreground">{line}</p>)}
+            </section>)}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {showPrivacy && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
