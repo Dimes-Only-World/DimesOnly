@@ -16,15 +16,18 @@ describe("Dashboard navigation", () => {
         return null;
       }
       const root = createRootRoute();
+      const layoutComponent = DashboardLayout.options.component;
+      const redirectToProfile = DashboardIndex.options.beforeLoad as (() => never) | undefined;
+      if (!layoutComponent || !redirectToProfile) throw new Error("Dashboard routing configuration is missing");
       const dashboard = createRoute({
         getParentRoute: () => root,
         path: "dashboard",
-        component: DashboardLayout.options.component,
+        component: layoutComponent,
       });
       const index = createRoute({
         getParentRoute: () => dashboard,
         path: "/",
-        beforeLoad: DashboardIndex.options.beforeLoad,
+        beforeLoad: () => redirectToProfile(),
       });
       const tab = createRoute({ getParentRoute: () => dashboard, path: "$tab", component: ProfileTab });
       const router = createRouter({
