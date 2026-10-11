@@ -454,9 +454,9 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           winner.user_id,
           winner.username || meta.label || "Participant",
         ),
-        avatar: (winner.user_id
-          ? userProfiles[winner.user_id]?.avatar_url ?? null
-          : null) ?? undefined,
+        avatar: winner.user_id
+          ? userProfiles[winner.user_id]?.avatar_url ?? undefined
+          : undefined,
         helper: meta.helper ?? undefined,
       });
       return acc;
