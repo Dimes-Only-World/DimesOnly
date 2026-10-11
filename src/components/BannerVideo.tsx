@@ -47,6 +47,9 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
 }) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = externalVideoRef || internalVideoRef;
+  // Controlled/minimal players default to sound on; background videos default
+  // to silent unless sound is explicitly requested with muted={false}.
+  const bgMuted = muted ?? true;
   const containerRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
