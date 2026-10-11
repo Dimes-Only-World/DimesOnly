@@ -203,22 +203,22 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
   return (
     <Card className={getCardClasses("shadow-lg border-0")}>
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
+        <div className="flex flex-wrap justify-between items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-blue-100 rounded-lg shrink-0">
               <User className="w-5 h-5 text-blue-600" />
             </div>
-            <div>
-              <CardTitle className="text-gray-900">
+            <div className="min-w-0">
+              <CardTitle className="text-gray-900 break-words">
                 Profile Information
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-1 break-words">
                 Manage your personal details and preferences
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 max-w-full">
             <TermsAndConditionsDialog userData={userData} />
             {userData.user_type && (
               <Badge variant="secondary" className="capitalize">
@@ -264,14 +264,14 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
       <CardContent className={`${getPaddingClasses("p-6")} space-y-6`}>
         {/* Personal Information Section */}
         <div>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <Badge
               variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200"
+              className="bg-blue-50 text-blue-700 border-blue-200 shrink-0"
             >
               Personal
             </Badge>
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-800 min-w-0 break-words">
               Personal Information
             </h3>
           </div>
@@ -341,14 +341,14 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
 
         {/* Address Section */}
         <div>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <Badge
               variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200"
+              className="bg-blue-50 text-blue-700 border-blue-200 shrink-0"
             >
               Location
             </Badge>
-            <h3 className="text-lg font-semibold text-gray-800">Address</h3>
+            <h3 className="text-lg font-semibold text-gray-800 min-w-0 break-words">Address</h3>
           </div>
 
           <div className="space-y-4">
@@ -386,14 +386,14 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
 
         {/* Professional Information */}
         <div>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <Badge
               variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200"
+              className="bg-blue-50 text-blue-700 border-blue-200 shrink-0"
             >
               Professional
             </Badge>
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-800 min-w-0 break-words">
               Professional Details
             </h3>
           </div>
@@ -433,14 +433,14 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
 
         {/* Bio Section */}
         <div>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <Badge
               variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200"
+              className="bg-blue-50 text-blue-700 border-blue-200 shrink-0"
             >
               Bio
             </Badge>
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-800 min-w-0 break-words">
               About & Description
             </h3>
           </div>
