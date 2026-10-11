@@ -52,7 +52,7 @@ export const FAN_DIME_SECTIONS: { heading: string; lines: string[] }[] = [
       "• “Fan Payment” means any payment a Fan makes to or for a Dime through the Platform.",
       "• “License” means the right to view Content described in Section 9.",
       "• “Paid Content” means Relevant Content that a Fan must pay for separately, such as pay-per-view media, paid messages, or custom Content.",
-      "• “Platform Fee” means the Company’s share of each Fan Payment, which is [X]% of the Fan Payment (excluding any sales tax), as set out in Terms Section 8.",
+      "• “Platform Fee” means the Company’s share of each Fan Payment, which is 10% of the Fan Payment (excluding any sales tax), as set out in Terms Section 8.",
       "• “Referral Earnings” means referral earnings owed to a Referring User under Terms Sections 9 and 24.",
       "• “Referring User” means a User whose referral link brought a Fan or a Dime to the Platform.",
       "• “Relevant Content” means the Content of a Dime that a Fan can access through a Dime Interaction.",
@@ -69,7 +69,7 @@ export const FAN_DIME_SECTIONS: { heading: string; lines: string[] }[] = [
       "• The Fan agrees to pay the price shown plus any applicable Tax. All prices are in U.S. dollars. Payments are processed by the Company’s approved payment providers, currently PayPal and Cash App, or another payment method shown at checkout. The Fan’s bank or payment provider may charge its own fees.",
       "• The Fan and the Dime both authorize the Company to:",
       "• collect each Fan Payment;",
-      "• deduct the Platform Fee of [X]% of the Fan Payment (excluding Tax);",
+      "• deduct the Platform Fee of 10% of the Fan Payment (excluding Tax);",
       "• pay the Dime Earnings to the Dime under Terms Section 8; and",
       "• pay any Referral Earnings owed on the Fan Payment under Terms Sections 9 and 24.",
       "• A Fan Payment made to the Company counts as payment to the Dime. Once the Company has received it, the Fan owes the Dime nothing more for that Dime Interaction."
