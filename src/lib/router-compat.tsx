@@ -156,16 +156,22 @@ export const Outlet = TSOutlet;
 
 // ---------- useNavigationType (react-router compat: POP | PUSH | REPLACE) ----------
 
-export function useNavigationType(): "POP" | "PUSH" | "REPLACE" {
+type NavType = "POP" | "PUSH" | "REPLACE";
+let lastNavType: NavType = "POP";
+let historyListenerAttached = false;
+
+function attachHistoryListener(router: ReturnType<typeof useRouter>) {
+  if (historyListenerAttached || typeof window === "undefined") return;
+  historyListenerAttached = true;
+  router.history.subscribe((info: { type?: NavType } | undefined) => {
+    if (info?.type) lastNavType = info.type;
+  });
+}
+
+export function useNavigationType(): NavType {
   const router = useRouter();
-  const location = tsLocation();
-  // TanStack's history location carries the method of the latest navigation.
-  type HistoryEntry = { method?: string };
-  const entry = (router.history.location as unknown as HistoryEntry | undefined) ?? undefined;
-  const method = entry?.method ?? location.__method;
-  if (method === "REPLACE") return "REPLACE";
-  if (method === "PUSH") return "PUSH";
-  return "POP";
+  attachHistoryListener(router);
+  return lastNavType;
 }
 
 // ---------- NavLink (minimal) ----------
