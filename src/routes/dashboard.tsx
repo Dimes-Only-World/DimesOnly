@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Navigate } from "@/lib/router-compat";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
-  component: () => <Navigate to="/dashboard/profile" replace />,
+  component: () => <Outlet />,
 });

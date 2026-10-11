@@ -1,4 +1,5 @@
 # Project Architecture Rules
+- Dashboard is an Outlet layout with its default redirect confined to the index route; redirecting from the parent prevents every member tab from mounting.
 - Derive featured and later event ordering through the shared UTC event schedule helper, refreshing while open and on event changes; one ordering path keeps expiry, TBA, and upload-order behavior consistent.
 
 - Apply viewport bounds, shrinkable grid tracks, and vertical scrolling through shared dialog primitives; large-text pop-ups must keep all actions reachable on small screens, and long-document pop-ups (terms, agreements) use the shared reading-column class so they stay readable on desktop without losing phone reachability.
