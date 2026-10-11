@@ -240,17 +240,20 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode }, { hasErr
 }
 
 function RootErrorComponent({ error, reset }: ErrorComponentProps) {
+  const router = useRouter();
+
   useEffect(() => {
-    console.error("Root route error:", error);
+    const err = error as Error;
+    console.error("Root route error:", err);
     reportLovableError({
-      message: error?.message || String(error),
-      stack: error?.stack,
+      message: err?.message || String(err),
+      stack: err?.stack,
       source: "root-error-boundary",
     });
   }, [error]);
 
   const tryAgain = () => {
-    Route.useRouter().invalidate();
+    router.invalidate();
     reset();
   };
 
