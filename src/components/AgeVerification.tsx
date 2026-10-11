@@ -6,6 +6,7 @@ import { normalizeRefParam } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarousel";
 import BannerVideo from "@/components/BannerVideo";
+import { shouldPlayAgeGateWarning, type AgeGateStep } from "@/lib/ageGatePlayback";
 import { Camera, Check } from "lucide-react";
 
 /** Resize a selfie to max 768px on its longest side as a JPEG (base64, no prefix) for the AI face check. */
@@ -29,7 +30,7 @@ interface AgeVerificationProps {
 const FALLBACK_VIDEO =
   "https://dimesonlyworld.s3.us-east-2.amazonaws.com/opening+intro.webm";
 
-type Step = "warning" | "role" | "form" | "video";
+type Step = AgeGateStep;
 type Role = "exotic" | "stripper" | "normal_female" | "male" | "business_owner";
 const ROLE_OPTIONS: { value: Role; label: string }[] = [
   { value: "exotic", label: "Exotic Female" },
@@ -404,23 +405,22 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
       <div
         className={`relative z-10 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto ${
           step === "form" ? "bg-gray-900/50" : "bg-gray-900"
+        } ${step === "warning" ? "lg:grid lg:grid-cols-[2fr_3fr] lg:items-center lg:gap-6" : ""
         }`}
       >
-
-
+        {shouldPlayAgeGateWarning(step) && (
+          <div className={`w-full ${step === "warning" ? "mb-4 lg:mb-0" : "max-w-sm mx-auto mb-5"}`}>
+            <BannerVideo
+              src={warningVideoUrl || FALLBACK_VIDEO}
+              background
+              loop
+              muted={false}
+              className="w-full aspect-video object-cover rounded-lg border-2 border-orange-500 pointer-events-none"
+            />
+          </div>
+        )}
         {step === "warning" && (
-          <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
-            <div className="w-full lg:w-2/5 shrink-0">
-              <BannerVideo
-                src={warningVideoUrl || FALLBACK_VIDEO}
-                background
-                muted={false}
-                className="w-full aspect-video object-cover rounded-lg border-2 border-orange-500 pointer-events-none"
-              />
-            </div>
-
-
-
+          <div className="flex flex-col items-center gap-4">
             <div className="text-center flex-1">
               <h2 className="text-orange-500 text-xl sm:text-2xl font-bold mb-4">
                 WARNING: This site is for adults only!
