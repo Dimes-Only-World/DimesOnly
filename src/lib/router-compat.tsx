@@ -120,6 +120,9 @@ type LinkProps = Omit<ComponentProps<typeof TSLink>, "to"> & {
   children?: ReactNode;
 };
 
+export type { LinkProps };
+export type NavLinkProps = LinkProps;
+
 export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
   { to, replace, state, children, ...rest },
   ref,
