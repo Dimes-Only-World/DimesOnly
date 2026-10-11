@@ -1,6 +1,7 @@
 import { signRentalMedia } from "@/lib/rentalMedia";
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
