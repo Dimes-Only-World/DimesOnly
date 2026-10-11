@@ -371,27 +371,19 @@ const AdminPayoutTab: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search by username..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="processing">Approved</SelectItem>
-            <SelectItem value="failed">Rejected</SelectItem>
-            <SelectItem value="completed">Paid</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-            <SelectItem value="refunded">Refunded</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={methodFilter} onValueChange={setMethodFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Method" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Methods</SelectItem>
-            {Object.entries(PAYOUT_METHODS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <select aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary sm:w-[180px]">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Approved</option>
+          <option value="failed">Rejected</option>
+          <option value="completed">Paid</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="refunded">Refunded</option>
+        </select>
+        <select aria-label="Filter by method" value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary sm:w-[200px]">
+          <option value="all">All Methods</option>
+          {Object.entries(PAYOUT_METHODS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
       </div>
 
       {/* Payroll bands */}
