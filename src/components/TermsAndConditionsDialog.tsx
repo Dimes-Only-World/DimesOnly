@@ -36,7 +36,7 @@ const POLICIES: { id: string; title: string; effective?: string; sections?: Sect
   { id: "p2b", title: "Platform to Business Regulation Terms", effective: P2B_EFFECTIVE_DATE, sections: P2B_SECTIONS },
   { id: "referral", title: "Referral Program Terms", effective: REF_EFFECTIVE_DATE, sections: REF_SECTIONS },
   { id: "complaints", title: "Complaints Policy", effective: CMP_EFFECTIVE_DATE, sections: CMP_SECTIONS },
-  { id: "appeals", title: "Appeals Policy" },
+  { id: "appeals", title: "Appeals Policy", effective: APL_EFFECTIVE_DATE, sections: APL_SECTIONS },
   { id: "community", title: "Community Guidelines" },
 ];
 
