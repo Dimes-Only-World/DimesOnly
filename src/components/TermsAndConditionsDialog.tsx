@@ -18,6 +18,7 @@ import { FAN_DIME_EFFECTIVE_DATE, FAN_DIME_SECTIONS } from "@/lib/fanDimeAgreeme
 import { P2B_EFFECTIVE_DATE, P2B_SECTIONS } from "@/lib/dimeBusinessTerms";
 import { REF_EFFECTIVE_DATE, REF_SECTIONS } from "@/lib/referralTerms";
 import { CMP_EFFECTIVE_DATE, CMP_SECTIONS } from "@/lib/complaintsPolicy";
+import { APL_EFFECTIVE_DATE, APL_SECTIONS } from "@/lib/appealsPolicy";
 
 type UserData = Tables<"users">;
 type Section = { heading: string; lines: string[] };
