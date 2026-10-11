@@ -41,7 +41,7 @@ const fallbackImages = [
 const fallbackPerformers: CarouselPerformer[] = Array.from({ length: 20 }, (_, i) => ({
   id: `fallback-${i}`,
   username: `Model ${i + 1}`,
-  image: fallbackImages[i % fallbackImages.length],
+  image: fallbackImages[i % fallbackImages.length] ?? "",
   rank: i + 1,
 }));
 
@@ -76,7 +76,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
       ? topRanked.map((u, i) => ({
           id: u.id,
           username: u.username,
-          image: u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length].image,
+          image: (u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length]?.image) ?? "",
           rank: u.rank,
         }))
       : fallbackPerformers;
@@ -143,7 +143,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
             const storagePath = pathMatch[1];
             const { data: signedData, error: signedError } = await supabase.storage
               .from("private-media")
-              .createSignedUrl(storagePath, 3600); // 1 hour expiry
+              .createSignedUrl(storagePath!, 3600); // 1 hour expiry
 
             if (signedError) {
               console.error("[ImageCarousel] Error creating signed URL:", signedError);
@@ -151,7 +151,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
               setSelectedVideoUrl(mediaUrl);
             } else if (signedData?.signedUrl) {
               console.log("[ImageCarousel] Using signed URL for private video");
-              setSelectedVideoUrl(signedData.signedUrl);
+              setSelectedVideoUrl(signedData?.signedUrl ?? null);
             }
           } else {
             setSelectedVideoUrl(mediaUrl);

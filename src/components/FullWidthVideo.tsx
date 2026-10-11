@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import BannerVideo from "@/components/BannerVideo";
 
 interface FullWidthVideoProps {
-  srcDesktop?: string;
-  srcMobile?: string;
+  srcDesktop?: string | undefined;
+  srcMobile?: string | undefined;
   src?: string;
   posterDesktop?: string;
   posterMobile?: string;

@@ -40,7 +40,7 @@ const fallbackImages = [
 const fallbackPerformers: LatestPerformer[] = Array.from({ length: 6 }).map((_, index) => ({
   id: `fallback-${index}`,
   username: `New Dime ${index + 1}`,
-  image: fallbackImages[index % fallbackImages.length],
+  image: fallbackImages[index % fallbackImages.length]!,
   created_at: null,
 }));
 
@@ -72,10 +72,10 @@ const LatestDimesCarousel: React.FC<{ className?: string; theme?: "dark" | "ligh
         const mapped = rows.map((user, index) => ({
           id: String(user.id),
           username: user.username || `New Dime ${index + 1}`,
-          image: user.profile_photo ?? user.front_page_photo ?? fallbackImages[index % fallbackImages.length],
+          image: (user.profile_photo ?? user.front_page_photo ?? fallbackImages[index % fallbackImages.length]) as string,
           created_at: user.created_at,
         }));
-        setPerformers(mapped);
+        setPerformers(mapped as any);
       }
     } catch (err) {
       console.error("[LatestDimesCarousel] Failed to fetch latest performers:", err);
@@ -244,7 +244,7 @@ const LatestDimesCarousel: React.FC<{ className?: string; theme?: "dark" | "ligh
                   onError={(e) => {
                     const img = e.currentTarget;
                     if (img.src !== fallbackImages[0]) {
-                      img.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                      img.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)] ?? "";
                     }
                   }}
                 />

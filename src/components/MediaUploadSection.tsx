@@ -265,7 +265,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
   };
 
   const getMembershipBadge = () => {
-    const rawTier = String(userData?.membership_tier || userData?.membership_type || '').toLowerCase();
+    const rawTier = String(userData?.membership_tier || userData['membership_type'] || '').toLowerCase();
     const isDiamondPlus = Boolean(userData?.diamond_plus_active) || rawTier === 'diamond_plus';
     const isSilverPlus = Boolean(userData?.silver_plus_active) || rawTier === 'silver_plus';
 
@@ -412,11 +412,12 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               }`}
               onClick={() => {
                 if (!isPerformer) {
-                  return toast({
+                  toast({
                     title: "Dimes Only",
                     description: "Only Strippers and Exotics can upload Silver content.",
                   });
                 }
+                
                 setSelectedContentTier("silver");
               }}
             >
@@ -444,10 +445,11 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               }`}
               onClick={() => {
                 if (!isPerformer) {
-                  return toast({
+                  toast({
                     title: "Dimes Only",
                     description: "Only Strippers and Exotics can upload Gold content.",
                   });
+                
                 }
                 setSelectedContentTier("gold");
               }}

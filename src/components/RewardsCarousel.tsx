@@ -29,7 +29,7 @@ const Slide: React.FC<{ c: Contest; now: number }> = ({ c, now }) => {
       <div className="flex flex-col items-center gap-3 py-4 text-center">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-yellow-300">🎉 We have a winner 🎉</p>
         <Crown className="h-8 w-8 animate-bounce text-yellow-400" />
-        <Avatar src={c.winner.avatar} name={c.winner.username} size="h-20 w-20" />
+        <Avatar {...(c.winner.avatar ? { src: c.winner.avatar } : {})}{...(c.winner.username ? { name: c.winner.username } : {})}size="h-20 w-20" />
         <p className="text-2xl font-black text-white">@{c.winner.username}</p>
         <p className="text-sm text-fuchsia-200">won <span className="font-bold text-yellow-300">{prize}</span> · {c.title}</p>
       </div>
@@ -43,7 +43,7 @@ const Slide: React.FC<{ c: Contest; now: number }> = ({ c, now }) => {
           <span>{cat.icon}</span>{cat.label}
         </p>
         <div className="mt-3 flex items-center justify-center gap-3 md:justify-start">
-          {c.featured_user && <Avatar src={c.featured_user.avatar} name={c.featured_user.username} size="h-12 w-12" />}
+          {c.featured_user && <Avatar {...(c.featured_user.avatar ? { src: c.featured_user.avatar } : {})}{...(c.featured_user.username ? { name: c.featured_user.username } : {})}size="h-12 w-12" />}
           <h3 className="text-xl font-black text-white md:text-2xl">{c.title}</h3>
         </div>
         <p className="mt-1 bg-gradient-to-r from-yellow-200 via-yellow-400 to-amber-500 bg-clip-text text-4xl font-black text-transparent drop-shadow-[0_0_18px_rgba(250,204,21,0.45)] md:text-5xl">{prize}</p>
@@ -70,7 +70,7 @@ const Slide: React.FC<{ c: Contest; now: number }> = ({ c, now }) => {
               return (
                 <li key={l.user_id} className={`flex items-center gap-3 rounded-lg px-2 py-1.5 ${me ? "bg-yellow-400/20 ring-1 ring-yellow-400" : ""}`}>
                   <span className={`w-5 text-center text-sm font-black ${l.rank === 1 ? "text-yellow-300" : "text-fuchsia-200"}`}>{l.rank}</span>
-                  <Avatar src={l.avatar} name={l.username} size="h-8 w-8" />
+                  <Avatar {...(l.avatar ? { src: l.avatar } : {})}{...(l.username ? { name: l.username } : {})}size="h-8 w-8" />
                   <div className="min-w-0 flex-1">
                     <div className="flex justify-between gap-2 text-sm">
                       <span className="truncate font-semibold text-white">@{l.username}</span>
@@ -113,7 +113,7 @@ const RewardsCarousel: React.FC = () => {
   if (!items.length) return null;
   const idx = i % items.length;
   const go = (d: number) => setI((p) => (p + d + items.length) % items.length);
-  const backgroundUrl = items[idx].background_image_url;
+  const backgroundUrl = items[idx]?.background_image_url;
   const videoBackground = backgroundUrl && /\.(mp4|webm|mov|m4v)(?:$|\?)/i.test(backgroundUrl);
   const categoryTheme: Record<string, string> = {
     most_tipped: "reward-theme-tipped",
@@ -124,7 +124,7 @@ const RewardsCarousel: React.FC = () => {
     most_likes: "reward-theme-likes",
     tips_given: "reward-theme-giving",
   };
-  const defaultTheme = backgroundUrl ? "" : categoryTheme[items[idx].category] || "reward-theme-default";
+  const defaultTheme = backgroundUrl ? "" : categoryTheme[items[idx]?.category ?? "reward-theme-default"] || "reward-theme-default";
 
   return (
     <section
@@ -137,8 +137,8 @@ const RewardsCarousel: React.FC = () => {
         : <img src={backgroundUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />)}
       {backgroundUrl && <div className={`absolute inset-0 ${videoBackground ? "bg-gradient-to-b from-black/70 via-black/75 to-black/85" : "bg-background/75"}`} />}
       <p className="relative mb-4 text-center text-xs font-black uppercase tracking-[0.35em] text-yellow-300">🏆 REWARDS & CONTEST 🏆</p>
-      <div key={items[idx].id} className="relative animate-fade-in">
-        <Slide c={items[idx]} now={now} />
+      <div key={items[idx]?.id} className="relative animate-fade-in">
+        <Slide c={items[idx] as Contest} now={now} />
       </div>
       {items.length > 1 && (
         <>

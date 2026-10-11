@@ -9,7 +9,7 @@ export const privateMediaPath = (url: string | null | undefined): string | null 
   if (!url) return null;
   const idx = url.indexOf(MARKER);
   if (idx === -1) return null;
-  return decodeURIComponent(url.slice(idx + MARKER.length).split("?")[0]);
+  return decodeURIComponent(url.slice(idx + MARKER.length).split("?")[0] ?? "");
 };
 
 /**

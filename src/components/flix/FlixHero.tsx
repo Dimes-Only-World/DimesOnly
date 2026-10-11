@@ -47,6 +47,7 @@ const FlixHero: React.FC<FlixHeroProps> = ({ titles }) => {
 
   if (!titles.length) return null;
   const current = titles[index % titles.length];
+  if (!current) return null;
 
   return (
     <section className="relative h-[70vh] min-h-[420px] w-full overflow-hidden bg-black" aria-label="Featured titles">

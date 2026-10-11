@@ -51,11 +51,11 @@ const FALLBACK_NOTIFICATION_ICON = notificationAvatar.url;
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
   if (!data) return FALLBACK_NOTIFICATION_ICON;
   const raw = String(
-    data.actor_photo_url ||
-      data.profile_photo_url ||
-      data.notification_icon ||
-      data.image_url ||
-      data.avatar_url ||
+    data['actor_photo_url'] ||
+      data['profile_photo_url'] ||
+      data['notification_icon'] ||
+      data['image_url'] ||
+      data['avatar_url'] ||
       FALLBACK_NOTIFICATION_ICON,
   );
   // Any absolute/relative URL pointing at the site icon should resolve to the CDN asset
@@ -471,7 +471,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                               <span
                                 className={cn(
                                   "absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-slate-950",
-                                  TYPE_ACCENT[String(n.type || "system")] || TYPE_ACCENT.system,
+                                  TYPE_ACCENT[String(n.type || "system") as keyof typeof TYPE_ACCENT] || TYPE_ACCENT["system"],
                                 )}
                               />
                             )}
@@ -480,7 +480,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                           <span
                             className={cn(
                               "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                              TYPE_ACCENT[String(n.type || "system")] || TYPE_ACCENT.system,
+                              TYPE_ACCENT[String(n.type || "system") as keyof typeof TYPE_ACCENT] || TYPE_ACCENT["system"],
                               n.is_read && "opacity-30",
                             )}
                           />

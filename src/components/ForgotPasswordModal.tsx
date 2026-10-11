@@ -26,6 +26,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [cooldown]);
 
   const sendResetEmail = async () => {

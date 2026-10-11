@@ -188,9 +188,10 @@ const RateGirls: React.FC = () => {
         });
 
         ratingsData.forEach((rating) => {
-          if (userScores[String(rating.user_id)]) {
-            userScores[String(rating.user_id)].total_score += Number(rating.rating);
-            userScores[String(rating.user_id)].rating_count += 1;
+          const score = userScores[String(rating.user_id)];
+          if (score) {
+            score.total_score += Number(rating.rating);
+            score.rating_count += 1;
           }
         });
 
@@ -395,26 +396,26 @@ const RateGirls: React.FC = () => {
                                   Total Score
                                 </div>
                               </div>
-                              {referrers[user.id] && (
+                              {(() => { const ref = referrers[user.id]; return ref ? (
                                 <div className="flex items-center gap-2 border-t border-black/10 pt-2">
                                   <img
-                                    src={referrers[user.id].username === "Company" ? companyLogo.url : referrers[user.id].photo || defaultAvatar.url}
-                                    alt={referrers[user.id].username}
+                                    src={ref.username === "Company" ? companyLogo.url : ref.photo || defaultAvatar.url}
+                                    alt={ref.username}
                                     className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
                                   />
                                   <div className="min-w-0 text-left">
                                     <p className="text-[10px] uppercase text-gray-700">Referred by</p>
                                     <p className="truncate text-xs font-bold text-violet-700">
-                                      {referrers[user.id].username === "Company" ? "Company" : `@${referrers[user.id].username}`}
+                                      {ref.username === "Company" ? "Company" : `@${ref.username}`}
                                     </p>
-                                    {getReferrerPrizeForRank(user.rank) !== null && referrers[user.id].username !== "Company" && (
+                                    {getReferrerPrizeForRank(user.rank) !== null && ref.username !== "Company" && (
                                       <p className="text-xs font-bold text-green-700">
                                         Wins ${getReferrerPrizeForRank(user.rank)!.toLocaleString()}
                                       </p>
                                     )}
                                   </div>
                                 </div>
-                              )}
+                              ) : null; })()}
                             </div>
                           </CardContent>
                         </Card>

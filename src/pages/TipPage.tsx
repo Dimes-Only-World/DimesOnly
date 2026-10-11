@@ -229,6 +229,7 @@ const TipPage: React.FC = () => {
     }
 
     setSubmittingTip(true);
+    if (!user) return;
 
     try {
       // Create payment record first

@@ -48,7 +48,8 @@ const Top20DimesCarousel: React.FC = () => {
           };
         });
         ratings.forEach((r: any) => {
-          if (scores[r.user_id]) scores[r.user_id].total_score += r.rating;
+          const scoreRow = scores[r.user_id];
+          if (scoreRow) scoreRow.total_score += r.rating;
         });
         const top = Object.values(scores)
           .filter((u) => u.total_score > 0)

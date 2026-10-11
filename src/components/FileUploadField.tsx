@@ -8,7 +8,7 @@ interface FileUploadFieldProps {
   label: string;
   accept?: string;
   onChange: (file: File | null) => void;
-  error?: string;
+  error?: string | undefined;
 }
 
 const FileUploadField: React.FC<FileUploadFieldProps> = ({

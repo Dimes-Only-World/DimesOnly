@@ -99,7 +99,8 @@ const CONTENT: Record<string, { title: string; body: string[] }> = {
 
 const FlixLegal: React.FC = () => {
   const { doc } = useParams<{ doc: string }>();
-  const page = CONTENT[doc || "terms"] || CONTENT.terms;
+  const page = CONTENT[doc || 'terms'] || CONTENT['terms'];
+  if (!page) return null;
   return (
     <div className="min-h-screen bg-[#0B0B0D] text-white">
       <FlixNav />

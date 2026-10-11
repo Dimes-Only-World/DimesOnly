@@ -55,7 +55,7 @@ const TestLogin = () => {
       setResult({
         status: 'ERROR',
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : "Unknown error",
         credentials: loginData
       });
     } finally {

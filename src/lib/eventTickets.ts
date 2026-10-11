@@ -126,7 +126,7 @@ export const resolveFreeAllocation = (
   if (!event) return bucket("none", "Free", 0, 0);
 
   const category = getViewerCategory(
-    viewer?.user_type ?? viewer?.userType,
+    viewer?.user_type ?? viewer?.["userType"],
     viewer?.gender,
   );
   const plusTier = getPlusTierKey(viewer);

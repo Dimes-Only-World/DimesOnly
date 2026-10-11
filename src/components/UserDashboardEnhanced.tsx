@@ -241,7 +241,7 @@ const UserDashboardEnhanced: React.FC = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div className="lg:col-span-1">
                       <ProfileSidebar
-                        userData={userData}
+                        userData={userData as any}
                         referrerData={null}
                         onImageUpload={(file) => handleImageUpload(file, "profile")}
                       />
@@ -265,7 +265,7 @@ const UserDashboardEnhanced: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="earnings" className="mt-0">
-                  <UserEarningsTab userData={userData} />
+                  <UserEarningsTab userData={userData as any} />
                 </TabsContent>
 
                 <TabsContent value="makemoney" className="mt-0">

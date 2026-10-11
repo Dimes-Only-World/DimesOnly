@@ -82,7 +82,7 @@ const StoreShop: React.FC = () => {
                 key={p.id}
                 product={p}
                 wishlisted={wishlistIds.includes(p.id)}
-                onToggleWishlist={signedIn ? toggleWishlist : undefined}
+                {...(signedIn ? { onToggleWishlist: toggleWishlist } : {})}
               />
             ))}
           </div>

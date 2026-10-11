@@ -33,7 +33,7 @@ const SilverVideoModal: React.FC<Props> = ({ userId, username, fallbackPhoto, on
       const row = data?.[0];
       const raw = String(row?.media_url || "");
       if (!raw) return setUrl(null);
-      const path = row?.storage_path || (raw.includes("/private-media/") ? decodeURIComponent(raw.split("/private-media/")[1]) : "");
+      const path = row?.storage_path || (raw.includes("/private-media/") ? decodeURIComponent(raw.split("/private-media/")[1] ?? "") : "");
       if (!path) return setUrl(raw);
       try {
         const { data: res } = await supabase.functions.invoke("public-data", {

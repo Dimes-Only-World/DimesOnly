@@ -105,8 +105,8 @@ const DashboardFeedSection: React.FC = () => {
   const handlePhotoError = (item: FeedItem) => (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     const alt = item.author?.profile_photo;
-    if (!img.dataset.fallback && alt && alt !== item.media_url) {
-      img.dataset.fallback = "1";
+    if (!img.dataset['fallback'] && alt && alt !== item.media_url) {
+      img.dataset['fallback'] = "1";
       img.src = alt;
       return;
     }
@@ -165,14 +165,18 @@ const DashboardFeedSection: React.FC = () => {
       // Stored URLs point at a private bucket, so they need signed links to render.
       const urlMap = await resolveMediaUrls(rows.map((r) => r.media_url));
 
-      const items: FeedItem[] = rows.map((r) => ({
-        ...r,
-        media_url: urlMap[r.media_url] || r.media_url,
-        author: authorMap.get(r.user_id),
-        likeCount: likeCounts.get(r.id) || 0,
-        commentCount: commentCounts.get(r.id) || 0,
-        liked: likedByMe.has(r.id),
-      }));
+      const items: FeedItem[] = rows.map((r) => {
+        const item: FeedItem = {
+          ...r,
+          media_url: urlMap[r.media_url] || r.media_url,
+          likeCount: likeCounts.get(r.id) || 0,
+          commentCount: commentCounts.get(r.id) || 0,
+          liked: likedByMe.has(r.id),
+        };
+        const author = authorMap.get(r.user_id);
+        if (author) item.author = author;
+        return item;
+      });
 
       const photoItems = items.filter((i) => i.media_type === "photo");
 
@@ -233,7 +237,7 @@ const DashboardFeedSection: React.FC = () => {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
           const j = Math.floor(rand() * (i + 1));
-          [a[i], a[j]] = [a[j], a[i]];
+          const t = a[i]; a[i] = a[j]!; a[j] = t!;;
         }
         return a;
       };
@@ -305,7 +309,7 @@ const DashboardFeedSection: React.FC = () => {
     const blocks: { rows: T[][]; ad?: DashboardAd }[] = [];
     for (let i = 0, b = 0; i < list.length; i += perBlock, b++) {
       // Spot 1 after the first 3 rows, spot 2 after the next, etc. No repeats; blank once ads run out.
-      blocks.push({ rows: [list.slice(i, i + perBlock)], ad: ads[b] });
+      blocks.push({ rows: [list.slice(i, i + perBlock)], ...(ads[b] ? { ad: ads[b] } : {}) });
     }
     return blocks;
   };

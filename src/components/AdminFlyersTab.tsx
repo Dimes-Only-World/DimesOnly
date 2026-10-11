@@ -49,7 +49,7 @@ const AdminFlyersTab: React.FC = () => {
 
   const add = async () => {
     if (!file) return;
-    if (file.size > 15 * 1024 * 1024) return toast({ title: "File must be under 15MB", variant: "destructive" });
+    if (file.size > 15 * 1024 * 1024)  { toast({ title: "File must be under 15MB", variant: "destructive" }); return; }
     setBusy(true);
     try {
       await call({ action: "adminAddFlyer", title, fileName: file.name, contentType: file.type, base64: await toBase64(file) });

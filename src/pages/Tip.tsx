@@ -33,13 +33,13 @@ interface UserData {
   id: string;
   username: string;
   profile_photo: string;
-  banner_photo?: string;
+  banner_photo?: string | undefined;
   city: string;
   state: string;
-  bio?: string;
+  bio?: string | undefined;
   user_type: string;
   created_at: string;
-  video_urls?: string[];
+  video_urls?: string[] | undefined;
 }
 
 interface MediaFile {
@@ -65,8 +65,8 @@ const Tip: React.FC = () => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     id: string;
-    email?: string;
-    username?: string;
+    email?: string | undefined;
+    username?: string | undefined;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -530,7 +530,7 @@ const Tip: React.FC = () => {
 
       for (const tier of tiers) {
         const photo = mediaRows.find(
-          (item) => item.media_type === "photo" && item.content_tier === tier,
+          (item: any) => item.media_type === "photo" && item.content_tier === tier,
         );
 
         if (photo) {
@@ -549,8 +549,8 @@ const Tip: React.FC = () => {
 
       // Single most recent free video with registration video 1 fallback
       const freeVideos = mediaRows
-        .filter((item) => item.media_type === "video" && item.content_tier === "free")
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        .filter((item: any) => item.media_type === "video" && item.content_tier === "free")
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       let featuredVideo: MediaFile | null = null;
 
@@ -875,11 +875,11 @@ const Tip: React.FC = () => {
                     <div className="mb-4">
                       <div className="w-full">
                         <VideoThumbnail
-                          key={recentVideos[0].id}
-                          videoUrl={recentVideos[0].media_url}
+                          key={recentVideos[0]?.id}
+                          videoUrl={recentVideos[0]!.media_url}
                           className="aspect-video w-full"
                           onClick={() => {
-                            setSelectedVideo(recentVideos[0]);
+                            setSelectedVideo(recentVideos[0]!);
                             setVideoModalOpen(true);
                           }}
                         />

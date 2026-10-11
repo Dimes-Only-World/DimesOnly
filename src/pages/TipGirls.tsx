@@ -45,8 +45,8 @@ const TipGirls: React.FC = () => {
   const [customAmount, setCustomAmount] = useState("");
   const [currentUser, setCurrentUser] = useState<{
     id: string;
-    email?: string;
-    username?: string;
+    email?: string | undefined;
+    username?: string | undefined;
   } | null>(null);
   const [rateFilter] = useState<RateFilter>("all");
 
@@ -79,7 +79,7 @@ const TipGirls: React.FC = () => {
             username: String(userData.username),
           });
         } else {
-          setCurrentUser(user);
+          setCurrentUser({ id: user.id, email: user.email, username: undefined });
         }
       }
     } catch (error) {
@@ -249,7 +249,7 @@ const TipGirls: React.FC = () => {
                         tippedUsername={selectedUser.username}
                         tipperUserId={currentUser.id}
                         tipperUsername={currentUser.username || currentUser.email || "anonymous"}
-                        referrerUsername={refUsername || undefined}
+                        {...(refUsername ? { referrerUsername: refUsername } : {})}
                         tipMessage={message}
                         onSuccess={handleTipSuccess}
                         onError={handleTipError}

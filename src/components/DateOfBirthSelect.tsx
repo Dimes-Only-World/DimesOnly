@@ -34,7 +34,7 @@ export const calculateAge = (iso: string): number | null => {
 interface Props {
   value: string; // yyyy-mm-dd
   onChange: (value: string) => void;
-  error?: string;
+  error?: string | undefined;
 }
 
 const triggerClass =
@@ -81,7 +81,7 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
     <div className="space-y-2">
       <div className="grid grid-cols-3 gap-2">
         <Select
-          value={yearNum ? String(yearNum) : undefined}
+          {...(yearNum ? { value: String(yearNum) } : {})}
           onValueChange={(v) => emit(Number(v), monthNum, dayNum)}
 
         >
@@ -98,7 +98,7 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
         </Select>
 
         <Select
-          value={monthNum ? String(monthNum) : undefined}
+          {...(monthNum ? { value: String(monthNum) } : {})}
           onValueChange={(v) => emit(yearNum, Number(v), dayNum)}
 
           disabled={!yearNum}
@@ -116,7 +116,7 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
         </Select>
 
         <Select
-          value={dayNum ? String(dayNum) : undefined}
+          {...(dayNum ? { value: String(dayNum) } : {})}
           onValueChange={(v) => emit(yearNum, monthNum, Number(v))}
           disabled={!yearNum || !monthNum}
         >

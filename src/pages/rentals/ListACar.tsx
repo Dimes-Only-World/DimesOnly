@@ -198,7 +198,7 @@ const ListACar: React.FC = () => {
     setEstimate(`$${base.toLocaleString("en-US")}/mo`);
   };
 
-  const example = EARNINGS_EXAMPLES[slide];
+  const example = EARNINGS_EXAMPLES[slide] || EARNINGS_EXAMPLES[0];
 
   return (
     <div className="rentals-showroom min-h-screen">
@@ -297,35 +297,35 @@ const ListACar: React.FC = () => {
             </div>
             <div className="mt-4 border border-rental-line bg-rental-elevated p-6">
               <h3 className="font-barlow text-xl font-bold text-rental-foreground">
-                {example.name}
-                <span className="ml-2 font-barlow text-base font-medium text-rental-muted">{example.year}</span>
+                {example?.name}
+                <span className="ml-2 font-barlow text-base font-medium text-rental-muted">{example?.year}</span>
               </h3>
               <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 font-barlow">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-rental-muted">Rental rate</p>
-                  <p className="text-lg font-bold text-rental-foreground">{example.dayRate}</p>
+                  <p className="text-lg font-bold text-rental-foreground">{example?.dayRate}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-rental-muted">Owner Plan</p>
-                  <p className="text-lg font-bold text-rental-foreground">{example.ownerPlan}</p>
+                  <p className="text-lg font-bold text-rental-foreground">{example?.ownerPlan}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-rental-muted">Occupancy</p>
-                  <p className="text-lg font-bold text-rental-foreground">{example.occupancy}</p>
+                  <p className="text-lg font-bold text-rental-foreground">{example?.occupancy}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-rental-muted">Owner Revenue</p>
-                  <p className="text-lg font-bold text-rental-foreground">{example.ownerRevenue}</p>
+                  <p className="text-lg font-bold text-rental-foreground">{example?.ownerRevenue}</p>
                 </div>
               </div>
               <div className="mt-4 space-y-1 border-t border-rental-line pt-4 font-barlow text-sm">
                 <p className="flex items-center gap-2 text-rental-foreground">
                   <ShieldCheck className="h-4 w-4 text-rental-primary" />
-                  Annual Revenue: <strong>{example.annualRevenue}</strong>
+                  Annual Revenue: <strong>{example?.annualRevenue}</strong>
                 </p>
                 <p className="flex items-center gap-2 text-rental-foreground">
                   <BadgeCheck className="h-4 w-4 text-rental-primary" />
-                  First Month Guaranteed: <strong>{example.firstMonth}</strong>
+                  First Month Guaranteed: <strong>{example?.firstMonth}</strong>
                 </p>
               </div>
               <div className="mt-5 flex justify-center gap-2">

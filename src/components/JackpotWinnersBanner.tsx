@@ -162,7 +162,7 @@ const JackpotWinnersBanner: React.FC = () => {
           return;
         }
 
-        const drawId: string = String(latest[0].draw_id);
+        const drawId: string = String(latest[0]?.draw_id);
 
         // 2) Get all winners for that draw
         const { data: all, error: allErr } = await supabase
@@ -211,7 +211,7 @@ const JackpotWinnersBanner: React.FC = () => {
         }
 
         // 4) Enrich winners with username/photo (prefer ACTUAL profile from users table over stored winner data)
-        const enriched: WinnerRow[] = (all as any[]).map((w) => {
+        const enriched: any[] = (all as any[]).map((w) => {
           const rawId = w.user_id ? String(w.user_id) : null;
           const p = rawId ? profiles[rawId] : undefined;
           return {
@@ -257,13 +257,13 @@ const JackpotWinnersBanner: React.FC = () => {
 
   const executedAtLocal = useMemo(() => {
     if (!winners.length) return null;
-    const d = new Date(winners[0].executed_at);
+    const d = new Date(winners[0]?.executed_at ?? new Date().toISOString());
     return d.toLocaleString("en-US", { timeZone: "America/New_York" });
   }, [winners]);
 
   const drawnCode = useMemo(() => {
     if (!winners.length) return null;
-    return winners[0].drawn_code || null;
+    return (winners[0] as { drawn_code?: string } | undefined)?.drawn_code || null;
   }, [winners]);
 
   const grandPrize = useMemo(

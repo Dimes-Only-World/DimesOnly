@@ -49,7 +49,9 @@ export function getStageInfo(type: PlusType, soldRaw: number): StageInfo {
   const totalSeats = stages.reduce((s, x) => s + x.size, 0);
   let cum = 0;
   for (let i = 0; i < stages.length; i++) {
-    cum += stages[i].size;
+    const stage = stages[i];
+    if (!stage) continue;
+    cum += stage.size;
     if (sold < cum) {
       return {
         sold,
@@ -57,7 +59,7 @@ export function getStageInfo(type: PlusType, soldRaw: number): StageInfo {
         remainingOverall: totalSeats - sold,
         soldOut: false,
         stageIndex: i,
-        stage: stages[i],
+        stage: stage,
         remainingInStage: cum - sold,
         next: stages[i + 1] ?? null,
       };

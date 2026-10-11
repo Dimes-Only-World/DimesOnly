@@ -185,7 +185,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     }
 
     // Current paid tier takes priority over lifetime Silver Plus flag
-    const tierBadges: Record<string, JSX.Element> = {
+    const tierBadges: Record<string, React.ReactElement> = {
       diamond: (
         <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
           <Award className="w-3 h-3 mr-1" />

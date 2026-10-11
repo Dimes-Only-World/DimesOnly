@@ -130,7 +130,7 @@ const normalizeStoredUser = (raw: StoredDashboardUser | null | undefined): UserD
     city: raw.city ?? null,
     state: raw.state ?? null,
     zip: raw.zip ?? null,
-  } as UserData;
+  } as unknown as UserData;
 };
 
 const readStoredUser = (): UserData | null => {
@@ -167,7 +167,7 @@ const mergeUserDataWithMemberDate = (
     ...(previous || {}),
     ...(incoming || {}),
     created_at: createdAt,
-  } as UserData;
+  } as unknown as UserData;
 };
 
 const SLUG_TITLES: Record<string, string> = {
@@ -333,7 +333,7 @@ const UserDashboard: React.FC = () => {
         .single();
       if (error) return false;
       if (data) {
-        const incoming = data as UserData;
+        const incoming = data as unknown as UserData;
         setUserData((prev) => {
           const merged = mergeUserDataWithMemberDate(prev, incoming);
           persistDashboardUser(merged);
@@ -367,7 +367,7 @@ const UserDashboard: React.FC = () => {
         return false;
       }
       if (data && data.length > 0) {
-        const incoming = data[0] as UserData;
+        const incoming = data[0] as unknown as UserData;
         setUserData((prev) => {
           const merged = mergeUserDataWithMemberDate(prev, incoming);
           persistDashboardUser(merged);
@@ -519,7 +519,7 @@ const UserDashboard: React.FC = () => {
           <div className="space-y-6" id="profile-info">
             <Card className="overflow-hidden">
               <DashboardBanner
-                bannerPhoto={(userData as any).banner_photo}
+                bannerPhoto={(userData).banner_photo}
                 userData={userData}
                 onImageUpload={(file) => handleImageUpload(file, "banner")}
               />
@@ -527,7 +527,7 @@ const UserDashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <ProfileSidebar
-                  userData={userData}
+                  userData={userData as any}
                   referrerData={null}
                   onImageUpload={(file) => handleImageUpload(file, "profile")}
                 />
@@ -543,7 +543,7 @@ const UserDashboard: React.FC = () => {
       case "notifications":
         return <UserNotificationsTab />;
       case "earnings":
-        return <UserEarningsTab userData={userData} />;
+        return <UserEarningsTab userData={userData as any} />;
       case "messages":
         return <UserDirectMessagesTab />;
       case "media":
@@ -559,7 +559,7 @@ const UserDashboard: React.FC = () => {
 
   return (
     <DashboardSectionLayout
-      title={SLUG_TITLES[slug]}
+      title={SLUG_TITLES[slug as keyof typeof SLUG_TITLES] ?? ""}
       username={userData.username}
       profilePhoto={userData.profile_photo}
       fullWidth={slug === "profile" || slug === "earnings"}

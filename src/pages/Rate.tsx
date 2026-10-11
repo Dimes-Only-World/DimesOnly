@@ -43,9 +43,9 @@ interface UserData {
   front_page_photo: string;
   city: string;
   state: string;
-  bio?: string;
+  bio?: string | undefined;
   user_type: string;
-  gender?: string;
+  gender?: string | undefined;
 }
 
 interface CurrentStanding {
@@ -708,6 +708,7 @@ const RatePage: React.FC = () => {
           (profiles || []).findIndex((candidate) => candidate.id === profile.id) > currentIndex
         ) || available[0];
 
+      if (!nextProfile) return;
       const nextParams = new URLSearchParams({ rate: String(nextProfile.username) });
       if (refUsername) nextParams.set("ref", refUsername);
       navigate(`/rate?${nextParams.toString()}`);
@@ -869,7 +870,7 @@ const RatePage: React.FC = () => {
                     {previewPhotos.map((url, i) => (
                       <img
                         key={url + i}
-                        src={url}
+                        src={url ?? ""}
                         alt={`Photo ${i + 1} from @${userData.username}`}
                         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
                           i === photoIndex ? "opacity-100" : "opacity-0"
@@ -966,11 +967,11 @@ const RatePage: React.FC = () => {
                       playsInline
                       controlsList="nodownload"
                     >
-                      <source src={url} />
+                      <source src={url ?? ""} />
                     </video>
                   ) : (
                     <ZoomableSwipeImage
-                      src={url}
+                      src={url ?? ""}
                       alt="Expanded content"
                       onSwipeLeft={() => showNav && go(1)}
                       onSwipeRight={() => showNav && go(-1)}

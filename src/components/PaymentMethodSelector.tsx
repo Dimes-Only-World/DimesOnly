@@ -45,7 +45,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   const [cardHolderName, setCardHolderName] = useState("");
 
   const handleCardSubmit = () => {
-    onCardSubmit({
+    onCardSubmit?.({
       cardNumber,
       expiryMonth,
       expiryYear,

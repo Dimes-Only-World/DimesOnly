@@ -197,7 +197,7 @@ export const AdminStoreSettings: React.FC = () => {
 
   const save = async (key: string) => {
     try {
-      await storeAdmin("saveSetting", { key, value: JSON.parse(drafts[key]) });
+      await storeAdmin("saveSetting", { key, value: JSON.parse(drafts[key] || "null") });
       toast({ title: `${key} saved` });
       load();
     } catch (e) {

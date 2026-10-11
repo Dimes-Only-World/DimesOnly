@@ -75,12 +75,13 @@ export default function FeedCreate() {
       const bucket = postType === "reel" ? "feed-videos" : "feed-photos";
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        if (!file) continue;
         const ext = file.name.split(".").pop() || (postType === "reel" ? "mp4" : "jpg");
         const path = `${user.id}/${post.id}/${i}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file!, {
           cacheControl: "3600",
           upsert: false,
-          contentType: file.type,
+          contentType: file!.type,
         });
         if (upErr) throw upErr;
         await supabase.from("feed_post_media").insert({
@@ -204,7 +205,7 @@ export default function FeedCreate() {
             <Label>Visibility</Label>
             <RadioGroup
               value={visibility}
-              onValueChange={(v) => setVisibility(v as any)}
+              onValueChange={(v: "public" | "money_circle") => setVisibility(v)}
               className="grid grid-cols-2 gap-3 mt-2"
             >
               <label

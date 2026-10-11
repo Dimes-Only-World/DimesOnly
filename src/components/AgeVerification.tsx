@@ -23,7 +23,7 @@ async function makeAiPreview(file: File, maxSide = 768): Promise<string> {
 
 interface AgeVerificationProps {
   onVerified: () => void;
-  initialStep?: Step;
+  initialStep?: Step | undefined;
 }
 
 const FALLBACK_VIDEO =
@@ -224,16 +224,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     const next: Record<string, string> = {};
     const uname = username.trim();
     if (!/^[a-zA-Z0-9._-]{3,30}$/.test(uname))
-      next.username = "Username must be 3+ characters (letters, numbers, . _ -)";
-    else if (usernameStatus === "taken") next.username = "That username is already taken";
-    else if (usernameStatus === "checking") next.username = "Checking username availability...";
+      next['username'] = "Username must be 3+ characters (letters, numbers, . _ -)";
+    else if (usernameStatus === "taken") next['username'] = "That username is already taken";
+    else if (usernameStatus === "checking") next['username'] = "Checking username availability...";
     const digits = phone.replace(/\D/g, "");
-    if (digits.length !== 10) next.phone = "Please enter a 10-digit phone number";
-    else if (digits.startsWith("1")) next.phone = "Phone number cannot start with 1";
+    if (digits.length !== 10) next['phone'] = "Please enter a 10-digit phone number";
+    else if (digits.startsWith("1")) next['phone'] = "Phone number cannot start with 1";
 
-    if (!dob) next.dob = "Date of birth is required";
-    else if ((calculateAge(dob) ?? 0) < 18) next.dob = "You must be at least 18 years old to enter";
-    if (!selfie) next.selfie = "A current selfie is required for age verification";
+    if (!dob) next['dob'] = "Date of birth is required";
+    else if ((calculateAge(dob) ?? 0) < 18) next['dob'] = "You must be at least 18 years old to enter";
+    if (!selfie) next['selfie'] = "A current selfie is required for age verification";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -327,10 +327,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
       return;
     }
     const next: Record<string, string> = {};
-    if (username.trim().length < 3) next.username = "Please enter your username";
+    if (username.trim().length < 3) next['username'] = "Please enter your username";
     const lookupDigits = phone.replace(/\D/g, "");
-    if (lookupDigits.length !== 10) next.phone = "Please enter a 10-digit phone number";
-    else if (lookupDigits.startsWith("1")) next.phone = "Phone number cannot start with 1";
+    if (lookupDigits.length !== 10) next['phone'] = "Please enter a 10-digit phone number";
+    else if (lookupDigits.startsWith("1")) next['phone'] = "Phone number cannot start with 1";
 
     setErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -524,7 +524,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 {usernameStatus === "taken" && (
                   <p className="text-red-400 text-xs mt-1">That username is already taken</p>
                 )}
-                {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username}</p>}
+                {errors['username'] && <p className="text-red-400 text-xs mt-1">{errors['username']}</p>}
               </div>
 
               <div>
@@ -538,7 +538,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                   placeholder="(555) 123-4567"
                   className={inputClass}
                 />
-                {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
+                {errors['phone'] && <p className="text-red-400 text-xs mt-1">{errors['phone']}</p>}
               </div>
 
               <div>
@@ -556,7 +556,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                     <span className="text-[11px] text-white/50">(age verification)</span>
                   )}
                 </label>
-                <DateOfBirthSelect value={dob} onChange={setDob} error={errors.dob} />
+                <DateOfBirthSelect value={dob} onChange={setDob} error={errors['dob']} />
               </div>
 
               <div>
@@ -592,12 +592,12 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                     }}
                   />
                 </label>
-                {errors.selfie && <p className="text-red-400 text-xs mt-1">{errors.selfie}</p>}
+                {errors['selfie'] && <p className="text-red-400 text-xs mt-1">{errors['selfie']}</p>}
               </div>
             </div>
 
-            {errors.lookup && (
-              <p className="text-red-400 text-xs sm:text-sm mt-4 text-center">{errors.lookup}</p>
+            {errors['lookup'] && (
+              <p className="text-red-400 text-xs sm:text-sm mt-4 text-center">{errors['lookup']}</p>
             )}
 
             {matchProfiles.length > 0 && (
@@ -654,7 +654,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               autoPlay
               minimal
               onEnded={() => setVideoEnded(true)}
-              videoRef={videoRef}
+              videoRef={videoRef as React.RefObject<HTMLVideoElement>}
               className="aspect-[2.35/1] rounded-lg border-2 border-orange-500"
             />
 

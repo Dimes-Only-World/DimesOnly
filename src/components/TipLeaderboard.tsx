@@ -176,14 +176,14 @@ const TipLeaderboard: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             {topDimes.map((dime, index) => {
-              const style = podiumStyles[index] ?? podiumStyles[2];
+              const style = podiumStyles[index] ?? podiumStyles[2]!;
               const prize = PRIZES[index];
 
               return (
                 <button
                   key={dime.user_id}
                   onClick={() => navigate(`/profile/${dime.username}`)}
-                  className={`group relative overflow-hidden rounded-2xl border bg-[#100A17] text-left transition-all duration-300 hover:-translate-y-1 ${style.ring} ${style.glow} ${
+                  className={`group relative overflow-hidden rounded-2xl border bg-[#100A17] text-left transition-all duration-300 hover:-translate-y-1 ${style?.ring} ${style?.glow} ${
                     index === 0 ? "sm:-translate-y-3" : ""
                   }`}
                 >
@@ -203,7 +203,7 @@ const TipLeaderboard: React.FC = () => {
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0611] via-[#0B0611]/25 to-transparent" />
 
                     <div
-                      className={`absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-sm font-black shadow ${style.chip}`}
+                      className={`absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-sm font-black shadow ${style?.chip}`}
                     >
                       {index + 1}
                     </div>
@@ -227,7 +227,7 @@ const TipLeaderboard: React.FC = () => {
                   </div>
 
                   <div className="space-y-1 p-4">
-                    <div className={`text-xl font-black ${style.accent}`}>
+                    <div className={`text-xl font-black ${style?.accent}`}>
                       {currency(dime.total_tipped)}
                     </div>
                     <div className="text-[11px] uppercase tracking-wider text-slate-400">

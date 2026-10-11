@@ -9,6 +9,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { Component, Suspense, useEffect, useState } from "react";
+import { useRouter } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "@/lib/router-compat";
@@ -198,7 +199,7 @@ function PayPalRootProvider({ children }: { children: React.ReactNode }) {
 class AppErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
   override state = { hasError: false };
 
-  static override getDerivedStateFromError() {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -206,8 +207,8 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode }, { hasErr
     console.error("React app error:", error, info);
     if (typeof window !== "undefined") {
       (window as any).__REACT_APP_ERROR__ = {
-        message: (error as Error | undefined)?.message || "Unknown error", stack: (error as Error | undefined)?.stack || "No stack trace",
-        stack: error?.stack || "No stack trace",
+        message: (error as Error | undefined)?.message || "Unknown error",
+        stack: (error as Error | undefined)?.stack || "No stack trace",
         timestamp: new Date().toISOString(),
       };
     }
@@ -215,7 +216,7 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode }, { hasErr
 
   handleReset = () => this.setState({ hasError: false });
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center text-foreground">

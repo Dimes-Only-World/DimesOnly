@@ -115,7 +115,7 @@ const AdminStoreProducts: React.FC = () => {
   const uploadImage = async (file: File) => {
     const base64 = await new Promise<string>((resolve, reject) => {
       const r = new FileReader();
-      r.onload = () => resolve(String(r.result).split(",")[1]);
+      r.onload = () => resolve(String(r.result || "").split(",")[1] ?? "");
       r.onerror = reject;
       r.readAsDataURL(file);
     });
@@ -243,7 +243,7 @@ const VariantDialog: React.FC<{ product: StoreProduct | null; onClose: () => voi
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
         const r = new FileReader();
-        r.onload = () => resolve(String(r.result).split(",")[1]);
+        r.onload = () => resolve(String(r.result || "").split(",")[1] ?? "");
         r.onerror = reject;
         r.readAsDataURL(file);
       });

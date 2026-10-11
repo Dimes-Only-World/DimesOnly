@@ -17,7 +17,7 @@ type Piece = {
   x: number;
   delay: number;
   duration: number;
-  color: string;
+  color: string | undefined;
   size: number;
   rotate: number;
 };
@@ -32,6 +32,7 @@ const TrophyCelebration = ({ className = "" }: { className?: string }) => {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         if (entry.isIntersecting) {
           setInView(true);
           setBurst((b) => b + 1);
@@ -89,7 +90,7 @@ const TrophyCelebration = ({ className = "" }: { className?: string }) => {
               width: p.size,
               height: p.size * 1.6,
               backgroundColor: p.color,
-              // @ts-expect-error custom props
+              // @ts-expect-error React CSSProperties type does not include CSS custom properties
               "--cx": `${p.x}px`,
               "--cr": `${p.rotate}deg`,
               animation: `confetti-fall ${p.duration}s ease-in ${p.delay}s forwards`,

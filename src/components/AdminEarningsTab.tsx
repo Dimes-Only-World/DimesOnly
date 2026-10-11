@@ -154,7 +154,7 @@ const AdminEarningsTab: React.FC = () => {
     setPayPeriods(periods);
 
     if (periods.length > 0) {
-      setSelectedPayPeriod(periods[0].id);
+      setSelectedPayPeriod(periods[0]!.id);
     }
   };
 
@@ -340,9 +340,9 @@ const AdminEarningsTab: React.FC = () => {
       if (activeEarners.length > 0) {
         console.log(
           "Top Earner:",
-          activeEarners[0].username,
+          activeEarners[0]!.username,
           "- $",
-          activeEarners[0].totalEarnings,
+          activeEarners[0]!.totalEarnings,
         );
       }
     } catch (error) {

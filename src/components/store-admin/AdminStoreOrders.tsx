@@ -79,7 +79,7 @@ const AdminStoreOrders: React.FC = () => {
               </div>
               {o.shipping_address && (
                 <p className="mt-2 text-sm text-gray-500">
-                  {o.shipping_address.full_name}, {o.shipping_address.line1} {o.shipping_address.line2} — {o.shipping_address.city}, {o.shipping_address.state} {o.shipping_address.zip}
+                  {o.shipping_address['full_name']}, {o.shipping_address['line1']} {o.shipping_address['line2']} — {o.shipping_address['city']}, {o.shipping_address['state']} {o.shipping_address['zip']}
                 </p>
               )}
               <div className="mt-3 flex flex-wrap items-center gap-2">

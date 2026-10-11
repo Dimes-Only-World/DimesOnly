@@ -34,7 +34,7 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
   const [muted, setMuted] = useState(true);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const videoRef = useRef<HTMLVideoElement>(null);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number>(0);
   const startedRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
 
@@ -60,9 +60,9 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    loadUrl(items[index]);
-    loadUrl(items[index + 1]);
-    loadUrl(items[index - 1]);
+    loadUrl(items[index] as StoryItem);
+    if (items[index + 1]) loadUrl(items[index + 1] as StoryItem);
+    if (items[index - 1]) loadUrl(items[index - 1] as StoryItem);
   }, [open, index, items, loadUrl]);
 
   const goNext = useCallback(() => {
@@ -93,7 +93,7 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
     const tick = (t: number) => {
       if (paused) {
         startedRef.current = t;
-        rafRef.current = requestAnimationFrame(tick);
+        rafRef.current = window.requestAnimationFrame(tick);
         return;
       }
       elapsedRef.current += t - startedRef.current;

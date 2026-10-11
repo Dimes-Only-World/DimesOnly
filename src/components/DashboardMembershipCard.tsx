@@ -53,7 +53,11 @@ const DashboardMembershipCard: React.FC<DashboardMembershipCardProps> = ({
     const el = cardRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setShowSticky(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        setShowSticky(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
       { threshold: 0 },
     );
     observer.observe(el);

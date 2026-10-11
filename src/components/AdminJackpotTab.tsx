@@ -217,7 +217,7 @@ const AdminJackpotTab: React.FC = () => {
       return;
     }
 
-    const latestDrawId = latest[0].draw_id;
+    const latestDrawId = latest[0]!.draw_id;
     const filteredWinners = latest.filter((w) => w.draw_id === latestDrawId);
     setWinners(filteredWinners);
 
@@ -527,11 +527,11 @@ const AdminJackpotTab: React.FC = () => {
 
   const latestDrawInfo = useMemo(() => {
     if (!winners.length) return null;
-    const any = winners[0];
+    const win = winners[0]!;
     return {
-      draw_id: any.draw_id,
-      code: any.drawn_code,
-      executed_at: any.executed_at,
+      draw_id: win.draw_id,
+      code: win.drawn_code,
+      executed_at: win.executed_at,
     };
   }, [winners]);
 
@@ -600,7 +600,7 @@ const AdminJackpotTab: React.FC = () => {
           .filter((row) => !!row.code)
           .map((row) => ({
             code: row.code as string,
-            created_at: row.created_at,
+            created_at: row.created_at || "",
           }))
       );
     } catch (e: any) {
@@ -903,7 +903,7 @@ const AdminJackpotTab: React.FC = () => {
                           <Avatar className="w-8 h-8">
                             {userProfiles[w.user_id]?.avatar_url ? (
                               <AvatarImage
-                                src={userProfiles[w.user_id].avatar_url}
+                                src={userProfiles[w.user_id]?.avatar_url ?? undefined}
                                 alt={displayNameFor(w.user_id, w.user_id)}
                               />
                             ) : null}

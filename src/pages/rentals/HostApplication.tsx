@@ -18,7 +18,26 @@ const COMPANY = {
 
 const DEPOSIT = 250;
 
-type Form = Record<string, string>;
+interface Form {
+  full_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city_state_zip: string;
+  drivers_license_no: string;
+  earnings_plan: string;
+  payout_method: string;
+  bank_recipient: string;
+  bank_name: string;
+  routing: string;
+  account: string;
+  account_type: string;
+  bank_address: string;
+  zelle_contact: string;
+  zelle_name: string;
+  signed_name: string;
+  [key: string]: string;
+}
 const initial: Form = {
   full_name: "", email: "", phone: "", address: "", city_state_zip: "", drivers_license_no: "",
   earnings_plan: "", payout_method: "ach",
@@ -176,19 +195,23 @@ const HostApplication: React.FC = () => {
   };
 
   const nextVehicle = () => {
-    const err = validateVehicle(vehicles[vIdx]);
-    if (err) return toast({ title: err, variant: "destructive" });
-    setVIdx((i) => i + 1);
-    window.scrollTo({ top: 0 });
+    const current = vehicles[vIdx];
+    if (!current) return;
+    const vErr = validateVehicle(current);
+    if (vErr) {
+      toast({ title: vErr, variant: "destructive" });
+      return;
+    }
+    setVIdx((prev) => prev + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const startDepositPayment = async (applicationIds: string[]) => {
-    if (!applicationIds.length) throw new Error("No pending vehicle application was found");
+  const startDepositPayment = async (ids: string[]) => {
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     const { data, error } = await supabase.functions.invoke("host-deposit-payment", {
       body: {
         action: "create",
-        applicationIds,
+        applicationIds: ids,
         returnUrl: `${baseUrl}?deposit=success`,
         cancelUrl: `${baseUrl}?deposit=cancelled`,
       },
@@ -202,7 +225,9 @@ const HostApplication: React.FC = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLastVehicle) return nextVehicle();
-    const vErr = validateVehicle(vehicles[vIdx]);
+    const vCurrent = vehicles[vIdx];
+    if (!vCurrent) return;
+    const vErr = validateVehicle(vCurrent);
     if (vErr) return toast({ title: vErr, variant: "destructive" });
     if (!f.earnings_plan) return toast({ title: "Choose Earn 50% or 60%", variant: "destructive" });
     if (!dl || !reg) return toast({ title: "Upload your driver's license and registration", variant: "destructive" });
@@ -364,7 +389,7 @@ const HostApplication: React.FC = () => {
     );
   }
 
-  const v = vehicles[vIdx];
+  const v = vehicles[vIdx] || emptyVehicle();
 
   return (
     <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">

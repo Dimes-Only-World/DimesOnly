@@ -40,7 +40,7 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
     ? messages
     : [{ id: "fallback", title: "Ready-to-Send Message", body: fallbackBody, sort_order: 0 }];
   const active = available[Math.min(activeIndex, available.length - 1)];
-  const fullMessage = `${active.body.trim()}\n\n${referralLink}`;
+  const fullMessage = `${active && active.body.trim()}\n\n${referralLink}`;
   const move = (direction: number) => {
     setActiveIndex((current) => (current + direction + available.length) % available.length);
   };
@@ -54,7 +54,7 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <MessageSquare className="h-5 w-5" /> {active.title || "Ready-to-Send Message"}
+            <MessageSquare className="h-5 w-5" /> {active?.title || "Ready-to-Send Message"}
           </CardTitle>
           {available.length > 1 && (
             <div className="flex shrink-0 gap-2">
