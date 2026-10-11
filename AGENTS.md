@@ -1,8 +1,6 @@
 # Project Architecture Rules
 - Invoke edge authorization installation explicitly from the Supabase client module; side-effect-only imports are removed by production tree shaking and would omit signed custom sessions.
-- Rental-area parent routes render only Outlet, with their own content and sharing metadata in index leaves; this lets vehicle, payment, host-application and purchase children mount independently.
-- Keep FlameFlix's parent route as an Outlet and its landing page and sharing metadata in the index route; child navigation must mount the requested page rather than the landing screen.
-- Dashboard is an Outlet layout with its default redirect confined to the index route; redirecting from the parent prevents every member tab from mounting.
+- Any route file with a same-named child folder (rentals, flix, dashboard, clothes, feed, rates, tips) renders only Outlet, with its page, sharing metadata and default redirects in the index leaf; otherwise child URLs show the parent page.
 - Derive featured and later event ordering through the shared UTC event schedule helper, refreshing while open and on event changes; one ordering path keeps expiry, TBA, and upload-order behavior consistent.
 
 - Apply viewport bounds, shrinkable grid tracks, and vertical scrolling through shared dialog primitives; large-text pop-ups must keep all actions reachable on small screens, and long-document pop-ups (terms, agreements) use the shared reading-column class so they stay readable on desktop without losing phone reachability.

@@ -56,6 +56,7 @@ import { Route as UpgradeSilverRouteImport } from './routes/upgrade-silver'
 import { Route as UpgradeSilverPlusRouteImport } from './routes/upgrade-silver-plus'
 import { Route as UpgradeSilverSubscribeRouteImport } from './routes/upgrade-silver-subscribe'
 import { Route as AccountMyRentalsRouteImport } from './routes/account/my-rentals'
+import { Route as ClothesIndexRouteImport } from './routes/clothes/index'
 import { Route as ClothesPageRouteImport } from './routes/clothes/$page'
 import { Route as ClothesCartRouteImport } from './routes/clothes/cart'
 import { Route as ClothesCheckoutRouteImport } from './routes/clothes/checkout'
@@ -65,6 +66,7 @@ import { Route as ClothesShopRouteImport } from './routes/clothes/shop'
 import { Route as ClothesWishlistRouteImport } from './routes/clothes/wishlist'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTabRouteImport } from './routes/dashboard/$tab'
+import { Route as FeedIndexRouteImport } from './routes/feed/index'
 import { Route as FeedCreateRouteImport } from './routes/feed/create'
 import { Route as FlixIndexRouteImport } from './routes/flix.index'
 import { Route as FlixAccountRouteImport } from './routes/flix/account'
@@ -73,6 +75,7 @@ import { Route as FlixEarnRouteImport } from './routes/flix/earn'
 import { Route as FlixPricingRouteImport } from './routes/flix/pricing'
 import { Route as FlixSearchRouteImport } from './routes/flix/search'
 import { Route as ProfileUsernameRouteImport } from './routes/profile/$username'
+import { Route as RatesIndexRouteImport } from './routes/rates/index'
 import { Route as RatesUsernameRouteImport } from './routes/rates/$username'
 import { Route as RentalsIndexRouteImport } from './routes/rentals/index'
 import { Route as RentalsIdRouteImport } from './routes/rentals/$id'
@@ -80,8 +83,10 @@ import { Route as RentalsHostRouteImport } from './routes/rentals/host'
 import { Route as RentalsListRouteImport } from './routes/rentals/list'
 import { Route as RentalsMyFleetRouteImport } from './routes/rentals/my-fleet'
 import { Route as RentalsPurchaseRouteImport } from './routes/rentals/purchase'
+import { Route as TipsIndexRouteImport } from './routes/tips/index'
 import { Route as TipsUsernameRouteImport } from './routes/tips/$username'
 import { Route as ClothesProductSlugRouteImport } from './routes/clothes/product/$slug'
+import { Route as ClothesShopIndexRouteImport } from './routes/clothes/shop/index'
 import { Route as ClothesShopCategoryRouteImport } from './routes/clothes/shop/$category'
 import { Route as FlixLegalDocRouteImport } from './routes/flix/legal/$doc'
 import { Route as FlixTitleIdRouteImport } from './routes/flix/title/$id'
@@ -327,6 +332,11 @@ const AccountMyRentalsRoute = AccountMyRentalsRouteImport.update({
   path: '/account/my-rentals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClothesIndexRoute = ClothesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ClothesRoute,
+} as any)
 const ClothesPageRoute = ClothesPageRouteImport.update({
   id: '/$page',
   path: '/$page',
@@ -372,6 +382,11 @@ const DashboardTabRoute = DashboardTabRouteImport.update({
   path: '/$tab',
   getParentRoute: () => DashboardRoute,
 } as any)
+const FeedIndexRoute = FeedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FeedRoute,
+} as any)
 const FeedCreateRoute = FeedCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -412,6 +427,11 @@ const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
   path: '/profile/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RatesIndexRoute = RatesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RatesRoute,
+} as any)
 const RatesUsernameRoute = RatesUsernameRouteImport.update({
   id: '/$username',
   path: '/$username',
@@ -447,6 +467,11 @@ const RentalsPurchaseRoute = RentalsPurchaseRouteImport.update({
   path: '/purchase',
   getParentRoute: () => RentalsRoute,
 } as any)
+const TipsIndexRoute = TipsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TipsRoute,
+} as any)
 const TipsUsernameRoute = TipsUsernameRouteImport.update({
   id: '/$username',
   path: '/$username',
@@ -456,6 +481,11 @@ const ClothesProductSlugRoute = ClothesProductSlugRouteImport.update({
   id: '/product/$slug',
   path: '/product/$slug',
   getParentRoute: () => ClothesRoute,
+} as any)
+const ClothesShopIndexRoute = ClothesShopIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ClothesShopRoute,
 } as any)
 const ClothesShopCategoryRoute = ClothesShopCategoryRouteImport.update({
   id: '/$category',
@@ -574,9 +604,13 @@ export interface FileRoutesByFullPath {
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
+  '/clothes/': typeof ClothesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/feed/': typeof FeedIndexRoute
   '/flix/': typeof FlixIndexRoute
+  '/rates/': typeof RatesIndexRoute
   '/rentals/': typeof RentalsIndexRoute
+  '/tips/': typeof TipsIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -585,6 +619,7 @@ export interface FileRoutesByFullPath {
   '/rentals/host/apply': typeof RentalsHostApplyRoute
   '/rentals/pay/$bookingId': typeof RentalsPayBookingIdRoute
   '/rentals/purchase/$vehicleId': typeof RentalsPurchaseVehicleIdRoute
+  '/clothes/shop/': typeof ClothesShopIndexRoute
   '/rentals/host/': typeof RentalsHostIndexRoute
   '/rentals/purchase/': typeof RentalsPurchaseIndexRoute
 }
@@ -594,7 +629,6 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/adminlogin': typeof AdminloginRoute
   '/business-owner-elite': typeof BusinessOwnerEliteRoute
-  '/clothes': typeof ClothesRouteWithChildren
   '/debug-subscription': typeof DebugSubscriptionRoute
   '/dimes': typeof DimesRoute
   '/elite': typeof EliteRoute
@@ -605,7 +639,6 @@ export interface FileRoutesByTo {
   '/events-dimes-only': typeof EventsDimesOnlyRoute
   '/eventsdimes': typeof EventsdimesRoute
   '/failsafe': typeof FailsafeRoute
-  '/feed': typeof FeedRouteWithChildren
   '/jackpot': typeof JackpotRoute
   '/login': typeof LoginRoute
   '/memberships': typeof MembershipsRoute
@@ -615,7 +648,6 @@ export interface FileRoutesByTo {
   '/rankings': typeof RankingsRoute
   '/rate': typeof RateRoute
   '/rate-girls': typeof RateGirlsRoute
-  '/rates': typeof RatesRouteWithChildren
   '/register': typeof RegisterRoute
   '/rental': typeof RentalRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -624,7 +656,6 @@ export interface FileRoutesByTo {
   '/tip': typeof TipRoute
   '/tip-girls': typeof TipGirlsRoute
   '/tip-paypal-return': typeof TipPaypalReturnRoute
-  '/tips': typeof TipsRouteWithChildren
   '/upgrade': typeof UpgradeRoute
   '/upgrade-diamond': typeof UpgradeDiamondRoute
   '/upgrade-diamond-monthly': typeof UpgradeDiamondMonthlyRoute
@@ -638,7 +669,6 @@ export interface FileRoutesByTo {
   '/clothes/checkout': typeof ClothesCheckoutRoute
   '/clothes/order-return': typeof ClothesOrderReturnRoute
   '/clothes/orders': typeof ClothesOrdersRoute
-  '/clothes/shop': typeof ClothesShopRouteWithChildren
   '/clothes/wishlist': typeof ClothesWishlistRoute
   '/dashboard/$tab': typeof DashboardTabRoute
   '/feed/create': typeof FeedCreateRoute
@@ -653,9 +683,13 @@ export interface FileRoutesByTo {
   '/rentals/list': typeof RentalsListRoute
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/tips/$username': typeof TipsUsernameRoute
+  '/clothes': typeof ClothesIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/feed': typeof FeedIndexRoute
   '/flix': typeof FlixIndexRoute
+  '/rates': typeof RatesIndexRoute
   '/rentals': typeof RentalsIndexRoute
+  '/tips': typeof TipsIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -664,6 +698,7 @@ export interface FileRoutesByTo {
   '/rentals/host/apply': typeof RentalsHostApplyRoute
   '/rentals/pay/$bookingId': typeof RentalsPayBookingIdRoute
   '/rentals/purchase/$vehicleId': typeof RentalsPurchaseVehicleIdRoute
+  '/clothes/shop': typeof ClothesShopIndexRoute
   '/rentals/host': typeof RentalsHostIndexRoute
   '/rentals/purchase': typeof RentalsPurchaseIndexRoute
 }
@@ -738,9 +773,13 @@ export interface FileRoutesById {
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
+  '/clothes/': typeof ClothesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/feed/': typeof FeedIndexRoute
   '/flix/': typeof FlixIndexRoute
+  '/rates/': typeof RatesIndexRoute
   '/rentals/': typeof RentalsIndexRoute
+  '/tips/': typeof TipsIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -749,6 +788,7 @@ export interface FileRoutesById {
   '/rentals/host/apply': typeof RentalsHostApplyRoute
   '/rentals/pay/$bookingId': typeof RentalsPayBookingIdRoute
   '/rentals/purchase/$vehicleId': typeof RentalsPurchaseVehicleIdRoute
+  '/clothes/shop/': typeof ClothesShopIndexRoute
   '/rentals/host/': typeof RentalsHostIndexRoute
   '/rentals/purchase/': typeof RentalsPurchaseIndexRoute
 }
@@ -824,9 +864,13 @@ export interface FileRouteTypes {
     | '/rentals/my-fleet'
     | '/rentals/purchase'
     | '/tips/$username'
+    | '/clothes/'
     | '/dashboard/'
+    | '/feed/'
     | '/flix/'
+    | '/rates/'
     | '/rentals/'
+    | '/tips/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -835,6 +879,7 @@ export interface FileRouteTypes {
     | '/rentals/host/apply'
     | '/rentals/pay/$bookingId'
     | '/rentals/purchase/$vehicleId'
+    | '/clothes/shop/'
     | '/rentals/host/'
     | '/rentals/purchase/'
   fileRoutesByTo: FileRoutesByTo
@@ -844,7 +889,6 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/adminlogin'
     | '/business-owner-elite'
-    | '/clothes'
     | '/debug-subscription'
     | '/dimes'
     | '/elite'
@@ -855,7 +899,6 @@ export interface FileRouteTypes {
     | '/events-dimes-only'
     | '/eventsdimes'
     | '/failsafe'
-    | '/feed'
     | '/jackpot'
     | '/login'
     | '/memberships'
@@ -865,7 +908,6 @@ export interface FileRouteTypes {
     | '/rankings'
     | '/rate'
     | '/rate-girls'
-    | '/rates'
     | '/register'
     | '/rental'
     | '/reset-password'
@@ -874,7 +916,6 @@ export interface FileRouteTypes {
     | '/tip'
     | '/tip-girls'
     | '/tip-paypal-return'
-    | '/tips'
     | '/upgrade'
     | '/upgrade-diamond'
     | '/upgrade-diamond-monthly'
@@ -888,7 +929,6 @@ export interface FileRouteTypes {
     | '/clothes/checkout'
     | '/clothes/order-return'
     | '/clothes/orders'
-    | '/clothes/shop'
     | '/clothes/wishlist'
     | '/dashboard/$tab'
     | '/feed/create'
@@ -903,9 +943,13 @@ export interface FileRouteTypes {
     | '/rentals/list'
     | '/rentals/my-fleet'
     | '/tips/$username'
+    | '/clothes'
     | '/dashboard'
+    | '/feed'
     | '/flix'
+    | '/rates'
     | '/rentals'
+    | '/tips'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -914,6 +958,7 @@ export interface FileRouteTypes {
     | '/rentals/host/apply'
     | '/rentals/pay/$bookingId'
     | '/rentals/purchase/$vehicleId'
+    | '/clothes/shop'
     | '/rentals/host'
     | '/rentals/purchase'
   id:
@@ -987,9 +1032,13 @@ export interface FileRouteTypes {
     | '/rentals/my-fleet'
     | '/rentals/purchase'
     | '/tips/$username'
+    | '/clothes/'
     | '/dashboard/'
+    | '/feed/'
     | '/flix/'
+    | '/rates/'
     | '/rentals/'
+    | '/tips/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -998,6 +1047,7 @@ export interface FileRouteTypes {
     | '/rentals/host/apply'
     | '/rentals/pay/$bookingId'
     | '/rentals/purchase/$vehicleId'
+    | '/clothes/shop/'
     | '/rentals/host/'
     | '/rentals/purchase/'
   fileRoutesById: FileRoutesById
@@ -1384,6 +1434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountMyRentalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clothes/': {
+      id: '/clothes/'
+      path: '/'
+      fullPath: '/clothes/'
+      preLoaderRoute: typeof ClothesIndexRouteImport
+      parentRoute: typeof ClothesRoute
+    }
     '/clothes/$page': {
       id: '/clothes/$page'
       path: '/$page'
@@ -1447,6 +1504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTabRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/feed/': {
+      id: '/feed/'
+      path: '/'
+      fullPath: '/feed/'
+      preLoaderRoute: typeof FeedIndexRouteImport
+      parentRoute: typeof FeedRoute
+    }
     '/feed/create': {
       id: '/feed/create'
       path: '/create'
@@ -1503,6 +1567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rates/': {
+      id: '/rates/'
+      path: '/'
+      fullPath: '/rates/'
+      preLoaderRoute: typeof RatesIndexRouteImport
+      parentRoute: typeof RatesRoute
+    }
     '/rates/$username': {
       id: '/rates/$username'
       path: '/$username'
@@ -1552,6 +1623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RentalsPurchaseRouteImport
       parentRoute: typeof RentalsRoute
     }
+    '/tips/': {
+      id: '/tips/'
+      path: '/'
+      fullPath: '/tips/'
+      preLoaderRoute: typeof TipsIndexRouteImport
+      parentRoute: typeof TipsRoute
+    }
     '/tips/$username': {
       id: '/tips/$username'
       path: '/$username'
@@ -1565,6 +1643,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/clothes/product/$slug'
       preLoaderRoute: typeof ClothesProductSlugRouteImport
       parentRoute: typeof ClothesRoute
+    }
+    '/clothes/shop/': {
+      id: '/clothes/shop/'
+      path: '/'
+      fullPath: '/clothes/shop/'
+      preLoaderRoute: typeof ClothesShopIndexRouteImport
+      parentRoute: typeof ClothesShopRoute
     }
     '/clothes/shop/$category': {
       id: '/clothes/shop/$category'
@@ -1634,10 +1719,12 @@ declare module '@tanstack/react-router' {
 
 interface ClothesShopRouteChildren {
   ClothesShopCategoryRoute: typeof ClothesShopCategoryRoute
+  ClothesShopIndexRoute: typeof ClothesShopIndexRoute
 }
 
 const ClothesShopRouteChildren: ClothesShopRouteChildren = {
   ClothesShopCategoryRoute: ClothesShopCategoryRoute,
+  ClothesShopIndexRoute: ClothesShopIndexRoute,
 }
 
 const ClothesShopRouteWithChildren = ClothesShopRoute._addFileChildren(
@@ -1652,6 +1739,7 @@ interface ClothesRouteChildren {
   ClothesOrdersRoute: typeof ClothesOrdersRoute
   ClothesShopRoute: typeof ClothesShopRouteWithChildren
   ClothesWishlistRoute: typeof ClothesWishlistRoute
+  ClothesIndexRoute: typeof ClothesIndexRoute
   ClothesProductSlugRoute: typeof ClothesProductSlugRoute
 }
 
@@ -1663,6 +1751,7 @@ const ClothesRouteChildren: ClothesRouteChildren = {
   ClothesOrdersRoute: ClothesOrdersRoute,
   ClothesShopRoute: ClothesShopRouteWithChildren,
   ClothesWishlistRoute: ClothesWishlistRoute,
+  ClothesIndexRoute: ClothesIndexRoute,
   ClothesProductSlugRoute: ClothesProductSlugRoute,
 }
 
@@ -1685,10 +1774,12 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 interface FeedRouteChildren {
   FeedCreateRoute: typeof FeedCreateRoute
+  FeedIndexRoute: typeof FeedIndexRoute
 }
 
 const FeedRouteChildren: FeedRouteChildren = {
   FeedCreateRoute: FeedCreateRoute,
+  FeedIndexRoute: FeedIndexRoute,
 }
 
 const FeedRouteWithChildren = FeedRoute._addFileChildren(FeedRouteChildren)
@@ -1721,10 +1812,12 @@ const FlixRouteWithChildren = FlixRoute._addFileChildren(FlixRouteChildren)
 
 interface RatesRouteChildren {
   RatesUsernameRoute: typeof RatesUsernameRoute
+  RatesIndexRoute: typeof RatesIndexRoute
 }
 
 const RatesRouteChildren: RatesRouteChildren = {
   RatesUsernameRoute: RatesUsernameRoute,
+  RatesIndexRoute: RatesIndexRoute,
 }
 
 const RatesRouteWithChildren = RatesRoute._addFileChildren(RatesRouteChildren)
@@ -1782,10 +1875,12 @@ const RentalsRouteWithChildren =
 
 interface TipsRouteChildren {
   TipsUsernameRoute: typeof TipsUsernameRoute
+  TipsIndexRoute: typeof TipsIndexRoute
 }
 
 const TipsRouteChildren: TipsRouteChildren = {
   TipsUsernameRoute: TipsUsernameRoute,
+  TipsIndexRoute: TipsIndexRoute,
 }
 
 const TipsRouteWithChildren = TipsRoute._addFileChildren(TipsRouteChildren)
