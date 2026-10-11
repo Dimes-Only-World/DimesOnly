@@ -27,3 +27,4 @@
 - Shared notification categories (src/lib/notificationCategories.ts) drive the user center, menu badges and admin sender; one rule keeps user and admin communication consistent.
 - Store the company's per-car monthly payment in service-role-only `vehicle_costs`, read and written only through `rental-admin`; car costs must never reach renters through the public vehicles table.
 - Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
+- Any route file that has a same-named child folder must render only Outlet, with its own page in an index leaf; otherwise every child URL silently shows the parent page (store, feed, rates and tips share links).
