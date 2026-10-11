@@ -63,6 +63,7 @@ import { Route as ClothesOrderReturnRouteImport } from './routes/clothes/order-r
 import { Route as ClothesOrdersRouteImport } from './routes/clothes/orders'
 import { Route as ClothesShopRouteImport } from './routes/clothes/shop'
 import { Route as ClothesWishlistRouteImport } from './routes/clothes/wishlist'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTabRouteImport } from './routes/dashboard/$tab'
 import { Route as FeedCreateRouteImport } from './routes/feed/create'
 import { Route as FlixAccountRouteImport } from './routes/flix/account'
@@ -357,6 +358,11 @@ const ClothesWishlistRoute = ClothesWishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => ClothesRoute,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardTabRoute = DashboardTabRouteImport.update({
   id: '/$tab',
   path: '/$tab',
@@ -544,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -560,7 +567,6 @@ export interface FileRoutesByTo {
   '/adminlogin': typeof AdminloginRoute
   '/business-owner-elite': typeof BusinessOwnerEliteRoute
   '/clothes': typeof ClothesRouteWithChildren
-  '/dashboard': typeof DashboardRouteWithChildren
   '/debug-subscription': typeof DebugSubscriptionRoute
   '/dimes': typeof DimesRoute
   '/elite': typeof EliteRoute
@@ -623,6 +629,7 @@ export interface FileRoutesByTo {
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -703,6 +710,7 @@ export interface FileRoutesById {
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -784,6 +792,7 @@ export interface FileRouteTypes {
     | '/rentals/my-fleet'
     | '/rentals/purchase'
     | '/tips/$username'
+    | '/dashboard/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -800,7 +809,6 @@ export interface FileRouteTypes {
     | '/adminlogin'
     | '/business-owner-elite'
     | '/clothes'
-    | '/dashboard'
     | '/debug-subscription'
     | '/dimes'
     | '/elite'
@@ -863,6 +871,7 @@ export interface FileRouteTypes {
     | '/rentals/my-fleet'
     | '/rentals/purchase'
     | '/tips/$username'
+    | '/dashboard'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -942,6 +951,7 @@ export interface FileRouteTypes {
     | '/rentals/my-fleet'
     | '/rentals/purchase'
     | '/tips/$username'
+    | '/dashboard/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -1383,6 +1393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClothesWishlistRouteImport
       parentRoute: typeof ClothesRoute
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/$tab': {
       id: '/dashboard/$tab'
       path: '/$tab'
@@ -1586,10 +1603,12 @@ const ClothesRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardTabRoute: typeof DashboardTabRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardTabRoute: DashboardTabRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
