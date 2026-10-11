@@ -165,9 +165,9 @@ const Rentals: React.FC = () => {
             [ShieldCheck, "Protected trips", "Coverage included"],
             [CalendarDays, "Flexible terms", "Daily to rent-to-own"],
             [Sparkles, "Curated fleet", "Economic, luxury, exotic"],
-          ].map(([IconComponent, title, copy]) => (
+          ].map(([IconComponent, title, copy]: [React.ComponentType<{ className?: string }>, string, string]) => (
             <div key={String(title)} className="flex items-center gap-3 py-5 sm:px-6 first:sm:pl-0">
-              {(IconComponent as any) && <IconComponent className="h-5 w-5 shrink-0 text-rental-primary" />}
+              {<IconComponent className="h-5 w-5 shrink-0 text-rental-primary" />}
               <div className="font-barlow">
                 <p className="text-sm font-semibold uppercase text-rental-foreground">{String(title)}</p>
                 <p className="text-xs text-rental-muted">{String(copy)}</p>

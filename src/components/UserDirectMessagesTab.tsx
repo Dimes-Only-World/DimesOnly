@@ -151,6 +151,7 @@ const UserDirectMessagesTab: React.FC = () => {
         subscription.unsubscribe();
       };
     }
+    return;
   }, [user?.id]);
 
   const fetchMessages = async () => {

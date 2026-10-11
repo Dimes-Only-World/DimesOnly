@@ -49,7 +49,7 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-3 gap-3">
 
-              <DashboardNavAvatar profilePhoto={profilePhoto ?? null} username={username ?? undefined} onLogout={handleLogout} />
+              <DashboardNavAvatar profilePhoto={profilePhoto ?? null} username={username ?? null} onLogout={handleLogout} />
 
               <div className="flex flex-1 items-center justify-center">
                 {title?.toLowerCase() !== "profile" && (

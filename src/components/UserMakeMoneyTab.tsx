@@ -121,6 +121,7 @@ const UserMakeMoneyTab: React.FC = () => {
       }, 100);
       return () => clearTimeout(t);
     }
+    return;
   }, []);
 
   const copyToClipboard = useCallback(
