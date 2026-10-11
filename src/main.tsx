@@ -86,10 +86,12 @@ const AppWithPayPal: React.FC = () => {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <PayPalErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        <AppWithPayPal />
-      </Suspense>
-    </PayPalErrorBoundary>
+    <HelmetProvider>
+      <PayPalErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <AppWithPayPal />
+        </Suspense>
+      </PayPalErrorBoundary>
+    </HelmetProvider>
   </React.StrictMode>
 );
