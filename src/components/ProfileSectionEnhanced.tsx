@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Edit, Save, X, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "@/lib/router-compat";
 import SilverPlusCounter from "./SilverPlusCounter";
 import SilverPlusMembership from "./SilverPlusMembership";
 import { Tables } from "@/types";

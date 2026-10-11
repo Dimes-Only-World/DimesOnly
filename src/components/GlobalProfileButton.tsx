@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "@/lib/router-compat";
 import HomeProfileButton from "./HomeProfileButton";
 
 // Routes where the floating profile button should NOT appear

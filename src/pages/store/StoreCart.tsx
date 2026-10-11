@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import StoreLayout from "@/components/store/StoreLayout";
 import { useStoreCart } from "@/contexts/StoreCartContext";
 import { money } from "@/lib/store";

@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/lib/router-compat";
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import defaultAvatar from "../assets/default-avatar.jpg";

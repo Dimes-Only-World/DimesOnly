@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { normalizeRefParam } from "@/lib/utils";
 import { getRatingSeasonYear, normalizeUsername } from "@/lib/timeUtils";

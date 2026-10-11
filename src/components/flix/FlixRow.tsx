@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { CalendarClock, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { flixImage, type FlixTitle } from "@/lib/flix";
 

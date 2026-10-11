@@ -1,6 +1,6 @@
 import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import StoreLayout from "@/components/store/StoreLayout";
 import { useStoreCart } from "@/contexts/StoreCartContext";
 import { defaultShipping, fetchStoreSettings, money } from "@/lib/store";

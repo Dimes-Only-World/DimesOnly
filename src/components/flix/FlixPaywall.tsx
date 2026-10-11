@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Flame, X } from "lucide-react";
 
 interface FlixPaywallProps {

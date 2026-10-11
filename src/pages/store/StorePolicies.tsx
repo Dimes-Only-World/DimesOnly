@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "@/lib/router-compat";
 import StoreLayout from "@/components/store/StoreLayout";
 
 const CONTENT: Record<string, { title: string; body: string[] }> = {

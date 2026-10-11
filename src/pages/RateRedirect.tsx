@@ -1,4 +1,4 @@
-import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "@/lib/router-compat";
 
 // /rates, /rates/:username and /rates?rate=name all open the Dime's rate page.
 // The rate page itself sends signed-out visitors to login and back.

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Crown, Trophy, Plane, PartyPopper, Timer } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";

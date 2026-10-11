@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Search,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { useMobileLayout } from "@/hooks/use-mobile";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
 import { useRankingsFinal } from "@/hooks/useRankingsFinal";

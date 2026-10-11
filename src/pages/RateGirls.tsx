@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePageVideo } from "@/hooks/usePageVideo";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import UsersList from "@/components/UsersList";
 import RatingStatusChecker from "@/components/RatingStatusChecker";
 import BannerVideo from "@/components/BannerVideo";
 import SilverVideoModal from "@/components/SilverVideoModal";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 
 const getPrizeForRank = (rank: number) =>
   rank === 1 ? 10000 : rank === 2 ? 3000 : rank === 3 ? 1750 : rank <= 10 ? 200 : rank <= 20 ? 150 : 0;

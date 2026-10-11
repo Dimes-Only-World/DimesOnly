@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { normalizeRefParam } from "@/lib/utils";
 import { CancellationPolicyDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { useAppContext } from "@/contexts/AppContext";

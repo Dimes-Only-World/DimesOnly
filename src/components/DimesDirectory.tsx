@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Search, User, Crown, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import DirectMessageModal from "./DirectMessageModal";
 import BannerVideo from "./BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";

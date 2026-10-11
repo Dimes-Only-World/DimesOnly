@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { buildAuthUrl } from "@/lib/refCapture";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "@/lib/router-compat";
 import { CalendarClock, Check, Flame, Play, Plus, Share2 } from "lucide-react";
 import FlixNav from "@/components/flix/FlixNav";
 import FlixRow from "@/components/flix/FlixRow";

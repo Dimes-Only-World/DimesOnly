@@ -1,4 +1,4 @@
-import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "@/lib/router-compat";
 
 // /tips, /tips/:username and /tips?tip=name all open the Dime's tip page.
 // The tip page itself sends signed-out visitors to login and back.

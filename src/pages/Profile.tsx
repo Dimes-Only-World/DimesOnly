@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "@/lib/router-compat";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, DollarSign, Star, Lock, Crown, Grid3x3, PlaySquare, UserSquare2, Users } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { resolveMembership } from "@/lib/membership";
 import { supabase } from "@/lib/supabase";
 import { useAppContext } from "@/contexts/AppContext";

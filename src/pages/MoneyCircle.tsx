@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import DashboardSectionLayout from "@/components/DashboardSectionLayout";
 import DashboardMoneyCircle from "@/components/DashboardMoneyCircle";
 import { supabase } from "@/lib/supabase";

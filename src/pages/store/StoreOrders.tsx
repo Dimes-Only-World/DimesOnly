@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import StoreLayout from "@/components/store/StoreLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { money } from "@/lib/store";

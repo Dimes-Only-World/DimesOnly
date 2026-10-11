@@ -1,6 +1,6 @@
 import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "@/lib/router-compat";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

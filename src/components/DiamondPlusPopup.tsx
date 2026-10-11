@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Crown, DollarSign, Calendar, Check, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Tables } from "@/types";
 import { resolveMembership } from "@/lib/membership";
 import { supabase } from "@/integrations/supabase/client";

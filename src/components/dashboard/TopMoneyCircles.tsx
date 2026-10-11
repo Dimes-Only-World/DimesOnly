@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
