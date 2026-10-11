@@ -39,7 +39,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   overlay = true,
   background = false,
   autoPlay = false,
-  muted = false,
+  muted,
   onEnded,
   videoRef: externalVideoRef,
   minimal = false,
@@ -47,6 +47,9 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
 }) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = externalVideoRef || internalVideoRef;
+  // Controlled/minimal players default to sound on; background videos default
+  // to silent unless sound is explicitly requested with muted={false}.
+  const bgMuted = muted ?? true;
   const containerRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,9 +65,47 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !autoPlay || minimal || background) return;
-    video.muted = muted;
+    video.muted = muted ?? false;
     void video.play().catch(() => undefined);
   }, [src, autoPlay, muted, minimal, background, videoRef]);
+
+  // Background mode with sound: try unmuted autoplay (allowed after any prior
+  // interaction with the site); if the browser blocks it, keep the motion going
+  // muted and restore sound on the first user gesture.
+  useEffect(() => {
+    if (!background || bgMuted) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = () => {
+      video.muted = false;
+      video.volume = 1;
+      const attempt = video.play();
+      if (attempt && typeof attempt.catch === "function") {
+        attempt.catch(() => {
+          if (video.paused) {
+            video.muted = true;
+            void video.play().catch(() => undefined);
+          }
+        });
+      }
+    };
+
+    tryPlay();
+    const onGesture = () => {
+      video.muted = false;
+      video.volume = 1;
+      if (video.paused) {
+        void video.play().catch(() => undefined);
+      }
+    };
+    document.addEventListener("click", onGesture, { passive: true });
+    document.addEventListener("touchstart", onGesture, { passive: true });
+    return () => {
+      document.removeEventListener("click", onGesture);
+      document.removeEventListener("touchstart", onGesture);
+    };
+  }, [background, bgMuted, src, videoRef]);
 
   // Time updates
   useEffect(() => {
@@ -169,7 +210,8 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
         ref={videoRef}
         key={src}
         autoPlay
-        muted
+        muted={bgMuted}
+        data-play-through={bgMuted ? undefined : "true"}
         playsInline
         controls={false}
         disablePictureInPicture
