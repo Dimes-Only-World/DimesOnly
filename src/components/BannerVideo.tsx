@@ -73,7 +73,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   // interaction with the site); if the browser blocks it, keep the motion going
   // muted and restore sound on the first user gesture.
   useEffect(() => {
-    if (!background || muted) return;
+    if (!background || bgMuted) return;
     const video = videoRef.current;
     if (!video) return;
 
