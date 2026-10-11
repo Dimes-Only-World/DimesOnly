@@ -366,6 +366,14 @@
   html {
     font-size: var(--site-font-size);
     min-height: 100%;
+    background-color: hsl(var(--background));
+  }
+
+  /* Dark pages: paint the area behind/below the page the same color so no
+     white band shows under the footer or when phones over-scroll. */
+  html:has(.rentals-showroom),
+  html:has(.rentals-showroom) body {
+    background-color: hsl(220 10% 4%);
   }
 
   /* Phone and unfolded-phone screens need a readable baseline too. */

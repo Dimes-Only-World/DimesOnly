@@ -24,6 +24,18 @@ const CookieConsentBanner: React.FC = () => {
     return onConsentChanged(sync);
   }, []);
 
+  // Reserve room at the page bottom so the banner never covers footer links.
+  const bannerRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = bannerRef.current;
+    if (!visible || !el) return;
+    const apply = () => { document.body.style.paddingBottom = `${el.offsetHeight}px`; };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => { ro.disconnect(); document.body.style.paddingBottom = ""; };
+  }, [visible]);
+
   if (!visible) return null;
 
   const accept = () => {
@@ -42,6 +54,7 @@ const CookieConsentBanner: React.FC = () => {
 
   return (
     <div
+      ref={bannerRef}
       role="dialog"
       aria-label="Cookie consent"
       className="fixed inset-x-0 bottom-0 z-[80] border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-[0_-8px_24px_rgba(0,0,0,0.4)]"
