@@ -1,6 +1,7 @@
 import "./lib/edgeAuthFetch";
 import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from 'react-dom/client'
+import { HelmetProvider } from "react-helmet-async";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import App from './App.tsx'
 import './index.css'
@@ -86,10 +87,12 @@ const AppWithPayPal: React.FC = () => {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <PayPalErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        <AppWithPayPal />
-      </Suspense>
-    </PayPalErrorBoundary>
+    <HelmetProvider>
+      <PayPalErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <AppWithPayPal />
+        </Suspense>
+      </PayPalErrorBoundary>
+    </HelmetProvider>
   </React.StrictMode>
 );
