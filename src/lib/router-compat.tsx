@@ -154,6 +154,20 @@ export function Navigate({ to, replace, state }: { to: string; replace?: boolean
 
 export const Outlet = TSOutlet;
 
+// ---------- useNavigationType (react-router compat: POP | PUSH | REPLACE) ----------
+
+export function useNavigationType(): "POP" | "PUSH" | "REPLACE" {
+  const router = useRouter();
+  const location = tsLocation();
+  // TanStack's history location carries the method of the latest navigation.
+  type HistoryEntry = { method?: string };
+  const entry = (router.history.location as unknown as HistoryEntry | undefined) ?? undefined;
+  const method = entry?.method ?? location.__method;
+  if (method === "REPLACE") return "REPLACE";
+  if (method === "PUSH") return "PUSH";
+  return "POP";
+}
+
 // ---------- NavLink (minimal) ----------
 
 export const NavLink = Link;
