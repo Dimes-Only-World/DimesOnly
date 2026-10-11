@@ -17,7 +17,7 @@ type Piece = {
   x: number;
   delay: number;
   duration: number;
-  color: string;
+  color: string | undefined;
   size: number;
   rotate: number;
 };
@@ -32,6 +32,7 @@ const TrophyCelebration = ({ className = "" }: { className?: string }) => {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         if (entry.isIntersecting) {
           setInView(true);
           setBurst((b) => b + 1);

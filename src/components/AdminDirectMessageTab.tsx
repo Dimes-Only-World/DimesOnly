@@ -74,10 +74,10 @@ const AdminDirectMessageTab: React.FC = () => {
       const rawUsers = data?.data || [];
       const typedData: User[] = rawUsers
         .map((user: Record<string, unknown>) => ({
-          id: String(user.id),
-          username: String(user.username || ""),
-          user_type: String(user.user_type || ""),
-          profile_photo: user.profile_photo ? String(user.profile_photo) : undefined,
+          id: String(user["id"]),
+          username: String(user["username"] || ""),
+          user_type: String(user["user_type"] || ""),
+          profile_photo: user["profile_photo"] ? String(user["profile_photo"]) : undefined,
         }))
         .sort((a: User, b: User) => a.username.localeCompare(b.username));
 

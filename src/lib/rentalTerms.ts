@@ -44,9 +44,16 @@ export const lastPickupDay = () => {
 };
 
 export const toLocalDateTimeValue = (date: Date, time = "10:00") => {
-  const [hours, minutes] = time.split(":").map(Number);
+  const parts = time.split(":").map(Number);
+  const hours = parts[0];
+  const minutes = parts[1];
   const local = new Date(date);
-  local.setHours(Number.isFinite(hours) ? hours : 10, Number.isFinite(minutes) ? minutes : 0, 0, 0);
+  local.setHours(
+    typeof hours === "number" && Number.isFinite(hours) ? hours : 10,
+    typeof minutes === "number" && Number.isFinite(minutes) ? minutes : 0,
+    0,
+    0
+  );
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}`;
 };

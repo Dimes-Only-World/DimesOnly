@@ -16,7 +16,7 @@ type UserInfo = { username: string; avatar: string | null };
 
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
-const Person = ({ u }: { u?: UserInfo | null }) => u
+const Person = ({ u }: { u?: UserInfo | null | undefined }) => u
   ? <div className="flex items-center gap-2"><MiniAvatar src={u.avatar} name={u.username} size={28} /><span className="text-sm">@{u.username}</span></div>
   : <span className="text-sm text-muted-foreground">Company</span>;
 
@@ -103,7 +103,7 @@ const SaleCommissionsPanel: React.FC<{ callAdmin: (action: string, extra?: Recor
             return (
               <div key={uid} className="flex flex-wrap items-center gap-3 border-b border-border py-2 last:border-0">
                 <span className="w-6 font-bold">#{i + 1}</span>
-                <Person u={users[uid]} />
+                <Person u={users[uid] ?? undefined} />
                 <span className="text-sm text-muted-foreground">earned {usd(total)}</span>
                 <div className="ml-auto flex items-center gap-2">
                   <Input type="number" min="0" step="0.01" placeholder="Bonus $" value={val} onChange={(e) => setBonusInput((c) => ({ ...c, [uid]: e.target.value }))} className="w-28" />

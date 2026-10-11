@@ -66,7 +66,7 @@ const FlixRow: React.FC<FlixRowProps> = ({ title, titles, progressMap }) => {
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto px-4 md:px-8 pb-2 snap-x scrollbar-hide" style={{ scrollbarWidth: "none" }}>
         {titles.map((t) => (
-          <FlixPosterCard key={t.id} title={t} progress={progressMap?.[t.id]} />
+          <FlixPosterCard key={t.id} title={t} {...(progressMap?.[t.id] !== undefined ? { progress: progressMap[t.id] } : {})} />
         ))}
       </div>
     </section>

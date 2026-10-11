@@ -442,13 +442,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
   const latestTicketRecipients = useMemo(() => {
     if (!latestDraw) return [];
 
-    return ROLE_SEQUENCE.reduce<{
-      key: string;
-      role: WinnerRow["role"];
-      name: string;
-      avatar?: string | null;
-      helper?: string;
-    }[]>((acc, role) => {
+    return ROLE_SEQUENCE.reduce<any[]>((acc, role) => {
       const winner = latestDraw.winners.find((w) => w.role === role);
       if (!winner) return acc;
 
@@ -460,10 +454,10 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
           winner.user_id,
           winner.username || meta.label || "Participant",
         ),
-        avatar: winner.user_id
+        avatar: (winner.user_id
           ? userProfiles[winner.user_id]?.avatar_url ?? null
-          : null,
-        helper: meta.helper,
+          : null) ?? undefined,
+        helper: meta.helper ?? undefined,
       });
       return acc;
     }, []);
@@ -804,7 +798,7 @@ const UserJackpotTab: React.FC<UserJackpotTabProps> = ({ userData }) => {
                         {recipient.name}
                       </p>
                       <p className="text-xs uppercase tracking-wide text-gray-600">
-                        {ROLE_METADATA[recipient.role].label}
+                        {ROLE_METADATA[recipient.role as WinnerRole].label}
                       </p>
                       {recipient.helper ? (
                         <p className="text-xs text-gray-500">{recipient.helper}</p>

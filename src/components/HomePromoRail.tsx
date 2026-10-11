@@ -119,7 +119,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
 
   const go = (i: number) => setIndex((i + data.length) % data.length);
 
-  const current = data[index];
+  const current = data[index]!;
   const accent = current.accent || "yellow";
   const grad = accentStyles[accent];
   const formattedFootnote = useMemo(() => {
@@ -449,7 +449,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
             )}
             {current.titleLines && current.titleLines.length > 0 ? (
               <div className="text-white font-extrabold leading-[1.05] tracking-tight text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-8xl drop-shadow-[0_4px_24px_rgba(0,0,0,0.75)] headline">
-                {current.titleLines.map((ln, i) => (
+                {current.titleLines?.map((ln, i) => (
                   <div key={i} className="block relative">
                     {i === current.highlightLineIndex ? (
                       <span

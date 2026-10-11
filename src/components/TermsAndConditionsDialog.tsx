@@ -81,9 +81,9 @@ const TermsAndConditionsDialog: React.FC<Props> = ({ userData }) => {
       </DialogTrigger>
       <DialogContent className="terms-dialog max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-foreground">{policy.title}</DialogTitle>
+          <DialogTitle className="text-foreground">{policy?.title}</DialogTitle>
           <DialogDescription>
-            {policy.effective ? `Effective Date: ${policy.effective} — ` : ""}Housing Angels, LLC (Dimes Only World)
+            {policy?.effective ? `Effective Date: ${policy?.effective} — ` : ""}Housing Angels, LLC (Dimes Only World)
           </DialogDescription>
         </DialogHeader>
 
@@ -113,10 +113,10 @@ const TermsAndConditionsDialog: React.FC<Props> = ({ userData }) => {
             </Button>
           </div>
         ) : (
-          <ScrollArea key={policy.id} className="h-[50vh] w-full rounded-md border p-4">
-            {policy.sections ? (
+          <ScrollArea key={policy?.id} className="h-[50vh] w-full rounded-md border p-4">
+            {policy?.sections ? (
               <div className="space-y-5">
-                {policy.sections.map((section) => (
+                {policy?.sections.map((section) => (
                   <section key={section.heading}>
                     <h4 className="font-semibold text-foreground pt-1">{section.heading}</h4>
                     <div className="mt-2 space-y-2 text-sm leading-relaxed text-muted-foreground">
@@ -133,7 +133,7 @@ const TermsAndConditionsDialog: React.FC<Props> = ({ userData }) => {
           </ScrollArea>
         )}
 
-        {!showFullAgreement && tier && policy.id === "terms" && (
+        {!showFullAgreement && tier && policy?.id === "terms" && (
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" size="sm" onClick={() => setShowFullAgreement(true)} className="min-h-12 touch-manipulation">
               View my full membership agreement

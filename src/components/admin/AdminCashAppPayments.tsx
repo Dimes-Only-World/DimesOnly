@@ -27,7 +27,7 @@ export default function AdminCashAppPayments() {
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("cashapp-checkout", { body: { action: "list", status } });
     setLoading(false);
-    if (error) return toast({ title: "Could not load Cash App payments", variant: "destructive" });
+    if (error) toast({ title: "Could not load Cash App payments", variant: "destructive" }); return;
     setRows(data?.payments || []);
   };
   useEffect(() => { load(); }, [status]);
@@ -36,16 +36,16 @@ export default function AdminCashAppPayments() {
     const body: Record<string, unknown> = { action, id: row.id };
     if (action === "confirm") {
       const ref = (refs[row.id] || "").trim();
-      if (!ref) return toast({ title: "Enter the Cash App transaction reference first", variant: "destructive" });
-      body.cashapp_reference = ref;
+      if (!ref) toast({ title: "Enter the Cash App transaction reference first", variant: "destructive" }); return;
+      body["cashapp_reference"] = ref;
     } else {
       const reason = window.prompt("Reason for rejecting (optional)") ?? "";
-      body.reason = reason;
+      body["reason"] = reason;
     }
     setBusy(row.id);
     const { data, error } = await supabase.functions.invoke("cashapp-checkout", { body });
     setBusy(null);
-    if (error || data?.error) return toast({ title: "Action failed", description: data?.error || error?.message, variant: "destructive" });
+    if (error || data?.error) toast({ title: "Action failed", description: data?.error || error?.message, variant: "destructive" }); return;
     toast({ title: action === "confirm" ? "Payment confirmed and fulfilled" : "Payment rejected" });
     load();
   };

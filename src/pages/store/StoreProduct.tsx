@@ -96,7 +96,7 @@ const StoreProductPage: React.FC = () => {
       size: selected.size,
       color: selected.color,
       price_cents: product.price_cents,
-      image: images[0],
+      image: images[0] ?? null,
       qty: 1,
     });
   };

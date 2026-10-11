@@ -72,10 +72,10 @@ const LatestDimesCarousel: React.FC<{ className?: string; theme?: "dark" | "ligh
         const mapped = rows.map((user, index) => ({
           id: String(user.id),
           username: user.username || `New Dime ${index + 1}`,
-          image: user.profile_photo ?? user.front_page_photo ?? fallbackImages[index % fallbackImages.length],
+          image: (user.profile_photo ?? user.front_page_photo ?? fallbackImages[index % fallbackImages.length]) as string,
           created_at: user.created_at,
         }));
-        setPerformers(mapped);
+        setPerformers(mapped as any);
       }
     } catch (err) {
       console.error("[LatestDimesCarousel] Failed to fetch latest performers:", err);

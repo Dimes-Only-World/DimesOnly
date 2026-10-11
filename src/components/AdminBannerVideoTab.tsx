@@ -175,8 +175,8 @@ const AdminBannerVideoTab: React.FC = () => {
 
       const grouped: Record<string, HistoryItem[]> = {};
       (data as any[])?.forEach((row: any) => {
-        if (!grouped[row.page_key]) grouped[row.page_key] = [];
-        grouped[row.page_key].push({
+        if (!grouped[row.page_key as string]) grouped[row.page_key as string] = [];
+        grouped[row.page_key as string]!.push({
           id: row.id,
           video_url: row.video_url,
           replaced_at: row.replaced_at,

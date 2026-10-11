@@ -26,7 +26,7 @@ export const validRouting = (r: string) => {
   const d = r.replace(/\D/g, "");
   if (d.length !== 9) return false;
   const w = [3, 7, 1, 3, 7, 1, 3, 7, 1];
-  return d.split("").reduce((s, c, i) => s + Number(c) * w[i], 0) % 10 === 0;
+  return d.split("").reduce((s, c, i) => s + Number(c) * (w[i] ?? 0), 0) % 10 === 0;
 };
 
 export function buildNacha(cfg: NachaConfig, entries: NachaEntry[], effective: Date, now = new Date()) {
@@ -50,7 +50,7 @@ export function buildNacha(cfg: NachaConfig, entries: NachaEntry[], effective: D
     hash += Number(r.slice(0, 8));
     total += cents;
     lines.push(
-      "6" + (e.type === "savings" ? "32" : "22") + r.slice(0, 8) + r[8] + pad(e.account.replace(/\D/g, ""), 17) +
+      "6" + (e.type === "savings" ? "32" : "22") + r.slice(0, 8) + (r[8] ?? "0") + pad(e.account.replace(/\D/g, ""), 17) +
         num(cents, 10) + pad(clean(e.id), 15) + pad(clean(e.name), 22) + "  " + "0" + odfi + num(i + 1, 7),
     );
   });

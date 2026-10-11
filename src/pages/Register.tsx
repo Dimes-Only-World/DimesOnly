@@ -73,20 +73,20 @@ const capitalizeWords = (value: string) =>
     .trim()
     .replace(/\s+/g, " ")
     .split(" ")
-    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
+    .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
 const formatAddress = (value: string) =>
   value
     .replace(/\s+/g, " ")
     .split(" ")
-    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
+    .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
 const formatCity = (value: string) =>
   value
     .split(" ")
-    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""))
+    .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
 const formatPhoneNumber = (value: string) => {
@@ -152,7 +152,7 @@ export const Register: React.FC = () => {
     2: null,
   });
   const [showVideo, setShowVideo] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string | undefined>>>({});
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
@@ -324,7 +324,7 @@ export const Register: React.FC = () => {
     try {
       const response = await fetch(PHOTO_UPLOAD_ENDPOINT, {
         method: "POST",
-        headers: SUPABASE_ANON_KEY ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : undefined,
+        headers: ((SUPABASE_ANON_KEY ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : {}) as Record<string, string>),
         body: uploadFormData,
       });
 
@@ -415,7 +415,7 @@ export const Register: React.FC = () => {
       try {
         const response = await fetch(VIDEO_UPLOAD_ENDPOINT, {
           method: "POST",
-          headers: SUPABASE_ANON_KEY ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : undefined,
+          headers: ((SUPABASE_ANON_KEY ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : {}) as Record<string, string>),
           body: uploadFormData,
         });
 

@@ -42,7 +42,7 @@ const measureSharpness = (canvas: HTMLCanvasElement): number => {
   const { data } = ctx.getImageData(0, 0, w, h);
   const gray = new Float32Array(w * h);
   for (let i = 0; i < w * h; i++) {
-    gray[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+    gray[i] = 0.299 * data[i * 4]! + 0.587 * data[i * 4 + 1]! + 0.114 * data[i * 4 + 2]!;
   }
   let sum = 0;
   let sumSq = 0;
@@ -51,7 +51,7 @@ const measureSharpness = (canvas: HTMLCanvasElement): number => {
     for (let x = 1; x < w - 1; x++) {
       const i = y * w + x;
       const lap =
-        4 * gray[i] - gray[i - 1] - gray[i + 1] - gray[i - w] - gray[i + w];
+        4 * gray[i]! - gray[i - 1]! - gray[i + 1]! - gray[i - w]! - gray[i + w]!;
       sum += lap;
       sumSq += lap * lap;
       n++;

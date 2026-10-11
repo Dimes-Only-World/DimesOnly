@@ -238,8 +238,8 @@ const EventDetails: React.FC = () => {
         id: appUser.id,
         username: appUser.username,
         user_type: appUser.userType || (appUser as any).user_type || undefined,
-        gender: appUser.gender || undefined,
-        ...membershipFrom(appUser),
+        gender: appUser.gender ?? undefined,
+        ...membershipFrom(appUser) as any,
       });
       return;
     }
@@ -895,8 +895,8 @@ const EventDetails: React.FC = () => {
                       <EventTicketSelector
                         event={event}
                         currentUser={currentUser}
-                        userType={currentUser.user_type}
-                        userGender={currentUser.gender}
+                        userType={currentUser.user_type ?? undefined}
+                        userGender={currentUser.gender ?? undefined}
                         usedFreeSpots={usedFreeSpots}
                         onSuccess={() => {
                           setIsUserRegistered(true);

@@ -629,7 +629,7 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
                   error={videoErrors[slot] || undefined}
                 />
                 <p className="text-xs text-white/60">
-                  Upload your {videoSlotLabels[slot].toLowerCase()} here.
+                  Upload your {videoSlotLabels[slot]!.toLowerCase()} here.
                 </p>
                 {videoUrls[slot] && (
                   <p className="text-xs text-green-300">Uploaded</p>

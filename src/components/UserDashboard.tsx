@@ -130,7 +130,7 @@ const normalizeStoredUser = (raw: StoredDashboardUser | null | undefined): UserD
     city: raw.city ?? null,
     state: raw.state ?? null,
     zip: raw.zip ?? null,
-  } as UserData;
+  } as unknown as UserData;
 };
 
 const readStoredUser = (): UserData | null => {
@@ -167,7 +167,7 @@ const mergeUserDataWithMemberDate = (
     ...(previous || {}),
     ...(incoming || {}),
     created_at: createdAt,
-  } as UserData;
+  } as unknown as UserData;
 };
 
 const SLUG_TITLES: Record<string, string> = {
@@ -333,7 +333,7 @@ const UserDashboard: React.FC = () => {
         .single();
       if (error) return false;
       if (data) {
-        const incoming = data as UserData;
+        const incoming = data as unknown as UserData;
         setUserData((prev) => {
           const merged = mergeUserDataWithMemberDate(prev, incoming);
           persistDashboardUser(merged);
@@ -367,7 +367,7 @@ const UserDashboard: React.FC = () => {
         return false;
       }
       if (data && data.length > 0) {
-        const incoming = data[0] as UserData;
+        const incoming = data[0] as unknown as UserData;
         setUserData((prev) => {
           const merged = mergeUserDataWithMemberDate(prev, incoming);
           persistDashboardUser(merged);

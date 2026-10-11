@@ -43,7 +43,7 @@ export async function decodeVin(vin: string): Promise<DecodedVin | null> {
 
 export function vehicleStockPhoto(make: string, model: string, year: string, color = "") {
   if (!make || !model) return "";
-  const family = model.toLowerCase().split(/[\s-]/)[0];
+  const family = model.toLowerCase().split(/[\s-]/)[0] ?? "";
   const params = new URLSearchParams({ customer: "img", make: make.toLowerCase(), modelFamily: family, modelYear: year, angle: "01", zoomType: "fullscreen" });
   if (color) params.set("paintDescription", color);
   return `https://cdn.imagin.studio/getimage?${params.toString()}`;

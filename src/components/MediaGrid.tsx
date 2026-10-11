@@ -197,7 +197,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
             {(onDelete || onReplace) && (
               <div className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex gap-1 z-30">
                 <Button
-                  onClick={() => onDelete(file.id)}
+                  onClick={() => onDelete?.(file.id)}
                   size="sm"
                   variant="destructive"
                   className="bg-red-500 hover:bg-red-600 text-white shadow-lg rounded-full w-7 h-7 p-0"
@@ -206,7 +206,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 </Button>
                 {onReplace && (
                   <Button
-                    onClick={() => onReplace(file.id)}
+                    onClick={() => onReplace?.(file.id)}
                     size="sm"
                     className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg rounded-full w-7 h-7 p-0"
                   >

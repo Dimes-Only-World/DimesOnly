@@ -23,7 +23,7 @@ const FlixWatch: React.FC = () => {
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const hideTimer = useRef<number>();
+  const hideTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!id) return;

@@ -226,7 +226,7 @@ const AdminSMSTextTab: React.FC = () => {
         <Accordion
           type="single"
           collapsible
-          value={openItem}
+          value={openItem ?? ""}
           onValueChange={setOpenItem}
           className="w-full"
         >

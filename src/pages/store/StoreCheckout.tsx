@@ -22,7 +22,7 @@ const StoreCheckout: React.FC = () => {
 
   useEffect(() => {
     document.title = "Checkout | Dimes Only Clothing";
-    fetchStoreSettings().then((s) => { if (s.shipping) setShipping({ ...defaultShipping, ...s.shipping }); });
+    fetchStoreSettings().then((s) => { if (s["shipping"]) setShipping({ ...defaultShipping, ...s["shipping"] }); });
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id ?? null);
       if (data.user?.email) setForm((f) => ({ ...f, email: data.user!.email as string }));

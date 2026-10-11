@@ -12,7 +12,7 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   fromDate: Date;
-  toDate?: Date;
+  toDate?: Date | undefined;
   disabled?: boolean;
 };
 

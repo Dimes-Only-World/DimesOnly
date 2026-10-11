@@ -252,12 +252,12 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username, onLogout 
                 >
                   <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-dimes-magenta/10 text-dimes-magenta group-hover:bg-dimes-magenta group-hover:text-white">
                     <Icon className="h-4 w-4" />
-                    {badges[label] > 0 && (
+                    {badges[label as keyof typeof badges] > 0 && (
                       <span
-                        aria-label={`${badges[label]} unread`}
+                        aria-label={`${badges[label as keyof typeof badges]} unread`}
                         className="absolute -right-2 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[0.6875rem] font-bold leading-none text-white ring-2 ring-white"
                       >
-                        {badges[label] > 9 ? "9+" : badges[label]}
+                        {badges[label as keyof typeof badges] > 9 ? "9+" : badges[label as keyof typeof badges]}
                       </span>
                     )}
                   </span>
@@ -297,7 +297,7 @@ const DashboardNavAvatar: React.FC<Props> = ({ profilePhoto, username, onLogout 
           </nav>
         </>
       )}
-      <ShareLinkDialog open={shareOpen} onOpenChange={setShareOpen} userId={setup.userId} username={setup.username} />
+      <ShareLinkDialog open={shareOpen} onOpenChange={setShareOpen} userId={setup.userId ?? undefined} username={setup.username ?? ""} />
     </>
   );
 };

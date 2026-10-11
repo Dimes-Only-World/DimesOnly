@@ -167,7 +167,7 @@ const Rentals: React.FC = () => {
             [Sparkles, "Curated fleet", "Economic, luxury, exotic"],
           ].map(([Icon, title, copy]) => (
             <div key={String(title)} className="flex items-center gap-3 py-5 sm:px-6 first:sm:pl-0">
-              <Icon className="h-5 w-5 shrink-0 text-rental-primary" />
+              {(Icon as any) && <Icon className="h-5 w-5 shrink-0 text-rental-primary" />}
               <div className="font-barlow">
                 <p className="text-sm font-semibold uppercase text-rental-foreground">{String(title)}</p>
                 <p className="text-xs text-rental-muted">{String(copy)}</p>

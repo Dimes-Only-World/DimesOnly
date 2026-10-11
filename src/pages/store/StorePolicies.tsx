@@ -46,7 +46,8 @@ const CONTENT: Record<string, { title: string; body: string[] }> = {
 
 const StorePolicies: React.FC = () => {
   const { page } = useParams();
-  const content = CONTENT[page || "shipping"] || CONTENT.shipping;
+  const content = CONTENT[page || 'shipping'] || CONTENT['shipping'];
+  if (!content) return null;
 
   useEffect(() => {
     document.title = `${content.title} | Dimes Only Clothing`;

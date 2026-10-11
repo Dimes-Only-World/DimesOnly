@@ -113,7 +113,7 @@ const RewardsCarousel: React.FC = () => {
   if (!items.length) return null;
   const idx = i % items.length;
   const go = (d: number) => setI((p) => (p + d + items.length) % items.length);
-  const backgroundUrl = items[idx].background_image_url;
+  const backgroundUrl = items[idx]?.background_image_url;
   const videoBackground = backgroundUrl && /\.(mp4|webm|mov|m4v)(?:$|\?)/i.test(backgroundUrl);
   const categoryTheme: Record<string, string> = {
     most_tipped: "reward-theme-tipped",
@@ -124,7 +124,7 @@ const RewardsCarousel: React.FC = () => {
     most_likes: "reward-theme-likes",
     tips_given: "reward-theme-giving",
   };
-  const defaultTheme = backgroundUrl ? "" : categoryTheme[items[idx].category] || "reward-theme-default";
+  const defaultTheme = backgroundUrl ? "" : categoryTheme[items[idx]?.category] || "reward-theme-default";
 
   return (
     <section
@@ -137,8 +137,8 @@ const RewardsCarousel: React.FC = () => {
         : <img src={backgroundUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />)}
       {backgroundUrl && <div className={`absolute inset-0 ${videoBackground ? "bg-gradient-to-b from-black/70 via-black/75 to-black/85" : "bg-background/75"}`} />}
       <p className="relative mb-4 text-center text-xs font-black uppercase tracking-[0.35em] text-yellow-300">🏆 REWARDS & CONTEST 🏆</p>
-      <div key={items[idx].id} className="relative animate-fade-in">
-        <Slide c={items[idx]} now={now} />
+      <div key={items[idx]?.id} className="relative animate-fade-in">
+        <Slide c={items[idx] as Contest} now={now} />
       </div>
       {items.length > 1 && (
         <>

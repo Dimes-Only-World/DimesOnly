@@ -57,13 +57,13 @@ export const resolveMembership = (user: any): MembershipInfo => {
     free: 'free',
   };
 
-  let best = MEMBERSHIP_OPTIONS[0];
+  let best = MEMBERSHIP_OPTIONS[0]!;
 
   for (const candidate of candidates) {
     const key = aliases[candidate];
     if (!key) continue;
-    const option = MEMBERSHIP_OPTIONS.find((o) => o.key === key)!;
-    if (option.rank > best.rank) best = option;
+    const option = MEMBERSHIP_OPTIONS.find((o) => o.key === key);
+    if (option && option.rank > best.rank) best = option;
   }
 
   const flagKeys: MembershipKey[] = [];
@@ -72,8 +72,8 @@ export const resolveMembership = (user: any): MembershipInfo => {
   if (user?.silver_plus_active) flagKeys.push('silver_plus');
 
   for (const key of flagKeys) {
-    const option = MEMBERSHIP_OPTIONS.find((o) => o.key === key)!;
-    if (option.rank > best.rank) best = option;
+    const option = MEMBERSHIP_OPTIONS.find((o) => o.key === key);
+    if (option && option.rank > best.rank) best = option;
   }
 
   // Every member gets a free promo tier at registration: Silver for everyone,

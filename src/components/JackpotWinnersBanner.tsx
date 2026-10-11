@@ -162,7 +162,7 @@ const JackpotWinnersBanner: React.FC = () => {
           return;
         }
 
-        const drawId: string = String(latest[0].draw_id);
+        const drawId: string = String(latest[0]?.draw_id);
 
         // 2) Get all winners for that draw
         const { data: all, error: allErr } = await supabase

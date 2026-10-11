@@ -249,7 +249,7 @@ const TipGirls: React.FC = () => {
                         tippedUsername={selectedUser.username}
                         tipperUserId={currentUser.id}
                         tipperUsername={currentUser.username || currentUser.email || "anonymous"}
-                        referrerUsername={refUsername || undefined}
+                        {...(refUsername ? { referrerUsername: refUsername } : {})}
                         tipMessage={message}
                         onSuccess={handleTipSuccess}
                         onError={handleTipError}

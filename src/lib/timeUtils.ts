@@ -8,8 +8,8 @@
  * This ensures all rating features use a consistent year.
  */
 export function getRatingSeasonYear(): number {
-  const envYear = import.meta.env.VITE_RATING_SEASON_YEAR;
-  if (envYear) {
+  const envYear = import.meta.env['VITE_RATING_SEASON_YEAR'];
+  if (typeof envYear === 'string') {
     const parsed = parseInt(envYear, 10);
     if (!isNaN(parsed) && parsed > 2000 && parsed < 3000) {
       return parsed;
@@ -37,11 +37,14 @@ export function formatTime12Hour(time24: string | null | undefined): string {
   
   try {
     // Handle various formats
-    const timePart = time24.split('T').pop()?.split(':') || time24.split(':');
-    if (timePart.length < 2) return time24;
+    const parts = time24.split('T').pop()?.split(':') || time24.split(':');
+    const hoursPart = parts[0];
+    const minutesPart = parts[1];
     
-    let hours = parseInt(timePart[0], 10);
-    const minutes = timePart[1].padStart(2, '0');
+    if (hoursPart === undefined || minutesPart === undefined) return time24;
+    
+    let hours = parseInt(hoursPart, 10);
+    const minutes = minutesPart.padStart(2, '0');
     
     if (isNaN(hours)) return time24;
     

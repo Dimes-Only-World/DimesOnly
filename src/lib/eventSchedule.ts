@@ -19,6 +19,7 @@ function timeOffset(time?: string | null): number | null {
   const match = time?.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (!match) return null;
   const [, hours, minutes, seconds = "0"] = match;
+  if (!hours || !minutes) return null;
   if (+hours > 23 || +minutes > 59 || +seconds > 59) return null;
   return (+hours * 3600 + +minutes * 60 + +seconds) * 1000;
 }

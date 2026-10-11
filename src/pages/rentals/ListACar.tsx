@@ -198,7 +198,7 @@ const ListACar: React.FC = () => {
     setEstimate(`$${base.toLocaleString("en-US")}/mo`);
   };
 
-  const example = EARNINGS_EXAMPLES[slide];
+  const example = EARNINGS_EXAMPLES[slide] || EARNINGS_EXAMPLES[0];
 
   return (
     <div className="rentals-showroom min-h-screen">

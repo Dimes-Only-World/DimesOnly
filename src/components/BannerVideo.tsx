@@ -135,7 +135,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
   const handleSeek = useCallback((value: number[]) => {
     const video = videoRef.current;
     if (!video || !isFinite(duration)) return;
-    const time = (value[0] / 100) * duration;
+    const time = ((value[0] ?? 0) / 100) * duration;
     video.currentTime = time;
     setCurrentTime(time);
   }, [duration]);

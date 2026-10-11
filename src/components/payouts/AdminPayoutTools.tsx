@@ -51,7 +51,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
     setFinLoading(true);
     const { data, error } = await supabase.functions.invoke("admin-data", { body: { action: "companyFinancials", adminUserId: adminUserId() } });
     setFinLoading(false);
-    if (error || !data?.data) return toast.error("Could not load company financials");
+    if (error || !data?.data) toast.error("Could not load company financials"); return;
     setFin(data.data);
   };
   useEffect(() => { loadFin(); }, []);
@@ -62,7 +62,7 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
   const ach = approved.filter((p) => p.payout_method === "direct_deposit");
 
   const runPaypalBatch = async () => {
-    if (!paypal.length) return toast.info("No approved PayPal payouts with a PayPal email");
+    if (!paypal.length) toast.info("No approved PayPal payouts with a PayPal email"); return;
     if (!confirm(`Send ${paypal.length} PayPal payout(s) totaling ${usd(sumAmounts(paypal))} now? Money leaves your PayPal balance immediately.`)) return;
     setSending(true);
     const { data, error } = await supabase.functions.invoke("admin-data", {
@@ -70,27 +70,27 @@ const AdminPayoutTools: React.FC<Props> = ({ approved, adminUserId, onDone }) =>
     });
     setSending(false);
     const msg = data?.error || (error as any)?.context?.error || error?.message;
-    if (error || !data?.data?.success) return toast.error("PayPal batch failed: " + (msg || "Unknown error"));
+    if (error || !data?.data?.success) toast.error("PayPal batch failed: " + (msg || "Unknown error"));
     toast.success(`Sent ${data.data.paid} PayPal payout(s) · batch ${data.data.payoutBatchId}`);
     onDone();
     loadFin();
   };
 
   const venmoCsv = () => {
-    if (!venmo.length) return toast.info("No approved Venmo payouts");
+    if (!venmo.length) toast.info("No approved Venmo payouts"); return;
     const rows = venmo.map((p) => { const n = parseNotes(p.notes); return [n.username || n.venmo_username || "", n.phone || n.venmo_phone || "", n.email || n.venmo_email || "", Number(p.amount).toFixed(2), `Dimes Only payout @${p.username}`]; });
     download(`venmo-batch-${today()}.csv`, toCsv(["Username", "Phone", "Email", "Amount", "Note"], rows));
   };
 
   const cashappCsv = () => {
-    if (!cashapp.length) return toast.info("No approved Cash App payouts");
+    if (!cashapp.length) toast.info("No approved Cash App payouts"); return;
     const rows = cashapp.map((p) => [p.cashapp_cashtag || "", p.cashapp_phone || "", p.cashapp_email || "", Number(p.amount).toFixed(2), `Dimes Only payout @${p.username}`]);
     download(`cashapp-batch-${today()}.csv`, toCsv(["$Cashtag", "Phone", "Email", "Amount", "Note"], rows));
   };
 
   const nachaExport = () => {
     if (!cfg.companyName || !/^\w{10}$/.test(cfg.companyId) || !validRouting(cfg.originRouting) || !cfg.originBankName) {
-      return toast.error("Enter company name, 10-character company ID, a valid bank routing number, and bank name");
+      toast.error("Enter company name, 10-character company ID, a valid bank routing number, and bank name"); return;
     }
     localStorage.setItem(NACHA_KEY, JSON.stringify(cfg));
     const entries: NachaEntry[] = [];

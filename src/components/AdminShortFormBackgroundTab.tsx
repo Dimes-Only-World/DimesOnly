@@ -90,7 +90,7 @@ const DeviceSection: React.FC<{
     setBusy(true);
     try {
       const reordered = [...rows];
-      [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+      const temp = reordered[index]; reordered[index] = reordered[target]!; reordered[target] = temp!;
       await callAdmin("reorderShortFormBackgrounds", {
         items: reordered.map((r, i) => ({ id: r.id, sort_order: i })),
       });

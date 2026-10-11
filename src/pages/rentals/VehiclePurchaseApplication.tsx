@@ -38,41 +38,41 @@ const StateField = ({ label, value, onChange, required }: { label: string; value
 const PersonFields = ({ values, setValues, prefix }: { values: Values; setValues: React.Dispatch<React.SetStateAction<Values>>; prefix: string }) => {
   const set = (name: string) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <Field label="First Name" value={values.firstName} onChange={set("firstName")} required /><Field label="Last Name" value={values.lastName} onChange={set("lastName")} required />
-    <Field label="Email" value={values.email} onChange={set("email")} required type="email" /><Field label="Cell Phone" value={values.cellPhone} onChange={set("cellPhone")} required type="tel" />
-    <Field label="Home Phone" value={values.homePhone} onChange={set("homePhone")} type="tel" /><Field label="Date of Birth" value={values.dateOfBirth} onChange={set("dateOfBirth")} required type="date" />
-    <div className="space-y-1.5"><Label>Social Security Number *</Label><Input value={values.ssn || ""} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 9); set("ssn")(d.length > 5 ? `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d); }} type="password" inputMode="numeric" autoComplete="off" placeholder="XXX-XX-XXXX" maxLength={11} className="rounded-none border-rental-line bg-rental-surface text-base text-rental-foreground" /></div>
-    <Field label="Driver's License Number" value={values.driversLicenseNumber} onChange={set("driversLicenseNumber")} required maxLength={80} /><StateField label="Driver's License State" value={values.driversLicenseState} onChange={set("driversLicenseState")} required />
-    <Field label="License Issue Date" value={values.driversLicenseIssueDate} onChange={set("driversLicenseIssueDate")} required type="date" /><Field label="License Expiry Date" value={values.driversLicenseExpiryDate} onChange={set("driversLicenseExpiryDate")} required type="date" />
+    <Field label="First Name" value={values["firstName"] ?? ""} onChange={set("firstName")} required /><Field label="Last Name" value={values["lastName"] ?? ""} onChange={set("lastName")} required />
+    <Field label="Email" value={values["email"] ?? ""} onChange={set("email")} required type="email" /><Field label="Cell Phone" value={values["cellPhone"] ?? ""} onChange={set("cellPhone")} required type="tel" />
+    <Field label="Home Phone" value={values["homePhone"] ?? ""} onChange={set("homePhone")} type="tel" /><Field label="Date of Birth" value={values["dateOfBirth"] ?? ""} onChange={set("dateOfBirth")} required type="date" />
+    <div className="space-y-1.5"><Label>Social Security Number *</Label><Input value={values["ssn"] ?? "" || ""} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 9); set("ssn")(d.length > 5 ? `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d); }} type="password" inputMode="numeric" autoComplete="off" placeholder="XXX-XX-XXXX" maxLength={11} className="rounded-none border-rental-line bg-rental-surface text-base text-rental-foreground" /></div>
+    <Field label="Driver's License Number" value={values["driversLicenseNumber"] ?? ""} onChange={set("driversLicenseNumber")} required maxLength={80} /><StateField label="Driver's License State" value={values["driversLicenseState"] ?? ""} onChange={set("driversLicenseState")} required />
+    <Field label="License Issue Date" value={values["driversLicenseIssueDate"] ?? ""} onChange={set("driversLicenseIssueDate")} required type="date" /><Field label="License Expiry Date" value={values["driversLicenseExpiryDate"] ?? ""} onChange={set("driversLicenseExpiryDate")} required type="date" />
     {prefix === "buyer" && <div className="sm:col-span-2 lg:col-span-3 border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Your Social Security number is encrypted and only visible to authorized finance staff for credit review.</div>}
   </div>;
 };
 
 const ResidenceFields = ({ values, setValues }: { values: Values; setValues: React.Dispatch<React.SetStateAction<Values>> }) => {
   const set = (name: string) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
-  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Street Address" value={values.streetAddress} onChange={set("streetAddress")} required /><Field label="City" value={values.city} onChange={set("city")} required /><StateField label="State" value={values.state} onChange={set("state")} required /><Field label="Zip Code" value={values.zipCode} onChange={set("zipCode")} required maxLength={10} /><div className="space-y-1.5"><Label>Housing Type *</Label><NativeSelect value={values.housingType} onChange={set("housingType")} options={["Own", "Rent", "Live with family", "Other"]} placeholder="Select" /></div><Field label="Monthly Rent/Mortgage Amount" value={values.monthlyPayment} onChange={set("monthlyPayment")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Address</Label><Textarea value={values.previousAddress} onChange={(event) => set("previousAddress")(event.target.value)} maxLength={300} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
+  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Street Address" value={values["streetAddress"] ?? ""} onChange={set("streetAddress")} required /><Field label="City" value={values["city"] ?? ""} onChange={set("city")} required /><StateField label="State" value={values["state"] ?? ""} onChange={set("state")} required /><Field label="Zip Code" value={values["zipCode"] ?? ""} onChange={set("zipCode")} required maxLength={10} /><div className="space-y-1.5"><Label>Housing Type *</Label><NativeSelect value={values["housingType"] ?? ""} onChange={set("housingType")} options={["Own", "Rent", "Live with family", "Other"]} placeholder="Select" /></div><Field label="Monthly Rent/Mortgage Amount" value={values["monthlyPayment"] ?? ""} onChange={set("monthlyPayment")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Address</Label><Textarea value={values["previousAddress"] ?? ""} onChange={(event) => set("previousAddress")(event.target.value)} maxLength={300} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
 };
 
 const EmploymentFields = ({ values, setValues }: { values: Values; setValues: React.Dispatch<React.SetStateAction<Values>> }) => {
   const set = (name: string) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
-  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Employer Name" value={values.employerName} onChange={set("employerName")} required /><Field label="Title/Position" value={values.title} onChange={set("title")} required /><Field label="Employer Phone Number" value={values.employerPhone} onChange={set("employerPhone")} required type="tel" /><Field label="Monthly Gross Income" value={values.monthlyGrossIncome} onChange={set("monthlyGrossIncome")} required type="number" /><Field label="Years at Job" value={values.yearsAtJob} onChange={set("yearsAtJob")} required type="number" /><Field label="Additional Months" value={values.monthsAtJob} onChange={set("monthsAtJob")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Employment</Label><Textarea value={values.previousEmployment} onChange={(event) => set("previousEmployment")(event.target.value)} maxLength={400} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
+  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Employer Name" value={values["employerName"] ?? ""} onChange={set("employerName")} required /><Field label="Title/Position" value={values["title"] ?? ""} onChange={set("title")} required /><Field label="Employer Phone Number" value={values["employerPhone"] ?? ""} onChange={set("employerPhone")} required type="tel" /><Field label="Monthly Gross Income" value={values["monthlyGrossIncome"] ?? ""} onChange={set("monthlyGrossIncome")} required type="number" /><Field label="Years at Job" value={values["yearsAtJob"] ?? ""} onChange={set("yearsAtJob")} required type="number" /><Field label="Additional Months" value={values["monthsAtJob"] ?? ""} onChange={set("monthsAtJob")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Employment</Label><Textarea value={values["previousEmployment"] ?? ""} onChange={(event) => set("previousEmployment")(event.target.value)} maxLength={400} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
 };
 
 const VehiclePreview = ({ values }: { values: Values }) => {
   const [failed, setFailed] = useState(false);
-  const src = vehicleStockPhoto(values.make, values.model, values.year, values.exteriorColor);
+  const src = vehicleStockPhoto(values["make"] ?? "", values["model"] ?? "", values["year"] ?? "", values["exteriorColor"] ?? "");
   useEffect(() => setFailed(false), [src]);
-  if (!values.year || !values.make || !values.model) return null;
-  let specs: Array<[string, string]> = []; try { specs = values.specs ? JSON.parse(values.specs) : []; } catch { specs = []; }
+  if (!values["year"] ?? "" || !values["make"] ?? "" || !values["model"] ?? "") return null;
+  let specs: Array<[string, string]> = []; try { specs = values["specs"] ?? "" ? JSON.parse(values["specs"] ?? "") : []; } catch { specs = []; }
   return <div className="sm:col-span-2 lg:col-span-3 grid gap-4 border border-rental-line bg-rental-surface p-4 md:grid-cols-2">
-    <div className="flex items-center justify-center bg-white">{src && !failed ? <img src={src} alt={`${values.year} ${values.make} ${values.model}`} onError={() => setFailed(true)} className="h-auto w-full max-w-md object-contain" /> : <p className="p-8 text-sm text-neutral-500">Photo not available</p>}</div>
-    <div><p className="rentals-wordmark text-2xl text-rental-foreground">{values.year} {values.make} {values.model}{values.trim ? ` ${values.trim}` : ""}</p>
+    <div className="flex items-center justify-center bg-white">{src && !failed ? <img src={src} alt={`${values["year"] ?? ""} ${values["make"] ?? ""} ${values["model"] ?? ""}`} onError={() => setFailed(true)} className="h-auto w-full max-w-md object-contain" /> : <p className="p-8 text-sm text-neutral-500">Photo not available</p>}</div>
+    <div><p className="rentals-wordmark text-2xl text-rental-foreground">{values["year"] ?? ""} {values["make"] ?? ""} {values["model"] ?? ""}{values["trim"] ?? "" ? ` ${values["trim"] ?? ""}` : ""}</p>
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         {specs.map(([k, v]) => <div key={k}><dt className="text-xs text-rental-muted">{k}</dt><dd className="text-rental-foreground">{v}</dd></div>)}
-        {values.vehiclePrice && <div><dt className="text-xs text-rental-muted">Price</dt><dd>${Number(values.vehiclePrice).toLocaleString()}</dd></div>}
-        {values.downPayment && <div><dt className="text-xs text-rental-muted">Down</dt><dd>${Number(values.downPayment).toLocaleString()}</dd></div>}
-        {values.exteriorColor && <div><dt className="text-xs text-rental-muted">Exterior</dt><dd>{values.exteriorColor}</dd></div>}
-        {values.interiorColor && <div><dt className="text-xs text-rental-muted">Interior</dt><dd>{values.interiorColor}</dd></div>}
+        {values["vehiclePrice"] ?? "" && <div><dt className="text-xs text-rental-muted">Price</dt><dd>${Number(values["vehiclePrice"] ?? "").toLocaleString()}</dd></div>}
+        {values["downPayment"] ?? "" && <div><dt className="text-xs text-rental-muted">Down</dt><dd>${Number(values["downPayment"] ?? "").toLocaleString()}</dd></div>}
+        {values["exteriorColor"] ?? "" && <div><dt className="text-xs text-rental-muted">Exterior</dt><dd>{values["exteriorColor"] ?? ""}</dd></div>}
+        {values["interiorColor"] ?? "" && <div><dt className="text-xs text-rental-muted">Interior</dt><dd>{values["interiorColor"] ?? ""}</dd></div>}
       </dl>
       <p className="mt-3 text-xs text-rental-muted">Stock photo for illustration; actual vehicle may differ.</p></div>
   </div>;
@@ -81,24 +81,24 @@ const VehiclePreview = ({ values }: { values: Values }) => {
 const VehicleFields = ({ values, setValues, tradeIn = false }: { values: Values; setValues: React.Dispatch<React.SetStateAction<Values>>; tradeIn?: boolean }) => {
   const [models, setModels] = useState<string[]>([]); const [loading, setLoading] = useState(false); const [decoding, setDecoding] = useState(false); const [vinMsg, setVinMsg] = useState("");
   const set = (name: string) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
-  useEffect(() => { let live = true; if (!values.make || !values.year) { setModels([]); return; } setLoading(true); fetchVehicleModels(values.make, values.year).then((items) => { if (live) setModels(items); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [values.make, values.year]);
+  useEffect(() => { let live = true; if (!values["make"] ?? "" || !values["year"] ?? "") { setModels([]); return; } setLoading(true); fetchVehicleModels(values["make"] ?? "", values["year"] ?? "").then((items) => { if (live) setModels(items); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [values["make"] ?? "", values["year"] ?? ""]);
   useEffect(() => {
-    if (tradeIn || values.hasVin !== "yes" || !/^[A-HJ-NPR-Z0-9]{17}$/i.test(values.vin || "")) { setVinMsg(""); return; }
+    if (tradeIn || values["hasVin"] ?? "" !== "yes" || !/^[A-HJ-NPR-Z0-9]{17}$/i.test(values["vin"] ?? "" || "")) { setVinMsg(""); return; }
     let live = true; setDecoding(true); setVinMsg("");
-    decodeVin(values.vin).then((d) => { if (!live) return; if (!d) { setVinMsg("We couldn't look up this VIN. Please choose the year, make and model below."); return; } setValues((c) => ({ ...c, year: d.year, make: d.make, model: d.model, trim: d.trim, specs: JSON.stringify(d.specs) })); setVinMsg("Vehicle details found."); }).finally(() => { if (live) setDecoding(false); });
+    decodeVin(values["vin"] ?? "").then((d) => { if (!live) return; if (!d) { setVinMsg("We couldn't look up this VIN. Please choose the year, make and model below."); return; } setValues((c) => ({ ...c, year: d.year, make: d.make, model: d.model, trim: d.trim, specs: JSON.stringify(d.specs) })); setVinMsg("Vehicle details found."); }).finally(() => { if (live) setDecoding(false); });
     return () => { live = false; };
-  }, [values.vin, values.hasVin, tradeIn]);
-  const showVin = tradeIn || values.hasVin === "yes";
-  const showDetails = tradeIn || values.hasVin === "no" || values.hasVin === "yes";
+  }, [values["vin"] ?? "", values["hasVin"] ?? "", tradeIn]);
+  const showVin = tradeIn || values["hasVin"] ?? "" === "yes";
+  const showDetails = tradeIn || values["hasVin"] ?? "" === "no" || values["hasVin"] ?? "" === "yes";
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {!tradeIn && <div className="sm:col-span-2 lg:col-span-3 space-y-2"><Label>Do you already have the VIN number? *</Label><div className="flex gap-2">{[["yes", "Yes"], ["no", "No"]].map(([v, l]) => <Button key={v} type="button" variant={values.hasVin === v ? "default" : "outline"} className="rounded-none" onClick={() => setValues((c) => ({ ...c, hasVin: v, ...(v === "no" ? { vin: "", specs: "", trim: "" } : {}) }))}>{l}</Button>)}</div></div>}
-    {showVin && <div className="space-y-1.5"><Field label="VIN Number" value={values.vin} onChange={(value) => set("vin")(value.toUpperCase())} required maxLength={17} placeholder="17 characters" />{decoding ? <p className="flex items-center gap-1 text-xs text-rental-muted"><Loader2 className="h-3 w-3 animate-spin" /> Looking up vehicle…</p> : vinMsg && <p className="text-xs text-rental-muted">{vinMsg}</p>}</div>}
-    {tradeIn && <Field label="Mileage" value={values.mileage || ""} onChange={set("mileage")} required type="number" />}
+    {!tradeIn && <div className="sm:col-span-2 lg:col-span-3 space-y-2"><Label>Do you already have the VIN number? *</Label><div className="flex gap-2">{[["yes", "Yes"], ["no", "No"]].map(([v, l]) => <Button key={v} type="button" variant={values["hasVin"] ?? "" === v ? "default" : "outline"} className="rounded-none" onClick={() => setValues((c) => ({ ...c, hasVin: v, ...(v === "no" ? { vin: "", specs: "", trim: "" } : {}) }))}>{l}</Button>)}</div></div>}
+    {showVin && <div className="space-y-1.5"><Field label="VIN Number" value={values["vin"] ?? ""} onChange={(value) => set("vin")(value.toUpperCase())} required maxLength={17} placeholder="17 characters" />{decoding ? <p className="flex items-center gap-1 text-xs text-rental-muted"><Loader2 className="h-3 w-3 animate-spin" /> Looking up vehicle…</p> : vinMsg && <p className="text-xs text-rental-muted">{vinMsg}</p>}</div>}
+    {tradeIn && <Field label="Mileage" value={values["mileage"] ?? "" || ""} onChange={set("mileage")} required type="number" />}
     {showDetails && <>
-    <div className="space-y-1.5"><Label>Year *</Label><NativeSelect value={values.year} onChange={(year) => setValues((current) => current.year === year ? current : ({ ...current, year, model: "" }))} options={[...new Set([values.year, ...VEHICLE_YEARS].filter(Boolean))]} placeholder="Year" /></div>
-    <div className="space-y-1.5"><Label>Make *</Label><NativeSelect value={values.make} onChange={(make) => setValues((current) => current.make === make ? current : ({ ...current, make, model: "" }))} options={[...new Set([values.make, ...VEHICLE_MAKES].filter(Boolean))]} placeholder="Make" /></div>
-    <div className="space-y-1.5"><Label>Model *</Label><NativeSelect value={values.model} onChange={set("model")} disabled={!values.make || !values.year || loading} options={[...new Set([values.model, ...models].filter(Boolean))]} placeholder={loading ? "Loading models…" : "Model"} /></div>
-    {!tradeIn && <><Field label="Vehicle Price" value={values.vehiclePrice} onChange={set("vehiclePrice")} type="number" /><Field label="Down Payment" value={values.downPayment} onChange={set("downPayment")} type="number" /><Field label="Exterior Color" value={values.exteriorColor} onChange={set("exteriorColor")} /><Field label="Interior Color" value={values.interiorColor} onChange={set("interiorColor")} /><VehiclePreview values={values} /></>}
+    <div className="space-y-1.5"><Label>Year *</Label><NativeSelect value={values["year"] ?? ""} onChange={(year) => setValues((current) => current.year === year ? current : ({ ...current, year, model: "" }))} options={[...new Set([values["year"] ?? "", ...VEHICLE_YEARS].filter(Boolean))]} placeholder="Year" /></div>
+    <div className="space-y-1.5"><Label>Make *</Label><NativeSelect value={values["make"] ?? ""} onChange={(make) => setValues((current) => current.make === make ? current : ({ ...current, make, model: "" }))} options={[...new Set([values["make"] ?? "", ...VEHICLE_MAKES].filter(Boolean))]} placeholder="Make" /></div>
+    <div className="space-y-1.5"><Label>Model *</Label><NativeSelect value={values["model"] ?? ""} onChange={set("model")} disabled={!values["make"] ?? "" || !values["year"] ?? "" || loading} options={[...new Set([values["model"] ?? "", ...models].filter(Boolean))]} placeholder={loading ? "Loading models…" : "Model"} /></div>
+    {!tradeIn && <><Field label="Vehicle Price" value={values["vehiclePrice"] ?? ""} onChange={set("vehiclePrice")} type="number" /><Field label="Down Payment" value={values["downPayment"] ?? ""} onChange={set("downPayment")} type="number" /><Field label="Exterior Color" value={values["exteriorColor"] ?? ""} onChange={set("exteriorColor")} /><Field label="Interior Color" value={values["interiorColor"] ?? ""} onChange={set("interiorColor")} /><VehiclePreview values={values} /></>}
     </>}
   </div>;
 };
@@ -176,4 +176,3 @@ const VehiclePurchaseApplication: React.FC = () => {
     </form></main>;
 };
 
-export default VehiclePurchaseApplication;

@@ -76,7 +76,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
       ? topRanked.map((u, i) => ({
           id: u.id,
           username: u.username,
-          image: u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length].image,
+          image: (u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length].image) as string,
           rank: u.rank,
         }))
       : fallbackPerformers;
@@ -151,7 +151,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
               setSelectedVideoUrl(mediaUrl);
             } else if (signedData?.signedUrl) {
               console.log("[ImageCarousel] Using signed URL for private video");
-              setSelectedVideoUrl(signedData.signedUrl);
+              setSelectedVideoUrl(signedData?.signedUrl ?? null);
             }
           } else {
             setSelectedVideoUrl(mediaUrl);

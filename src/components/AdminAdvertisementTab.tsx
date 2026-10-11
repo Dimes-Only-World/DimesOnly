@@ -112,7 +112,7 @@ const AdminAdvertisementTab: React.FC = () => {
     const target = index + dir;
     if (target < 0 || target >= ads.length) return;
     const next = [...ads];
-    [next[index], next[target]] = [next[target], next[index]];
+    const temp = next[index]; next[index] = next[target]!; next[target] = temp!;
     setAds(next.map((a, i) => ({ ...a, position: i + 1 })));
     try {
       await call("reorderDashboardAds", { order: next.map((a) => a.id) });

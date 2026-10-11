@@ -51,11 +51,11 @@ const FALLBACK_NOTIFICATION_ICON = notificationAvatar.url;
 const getNotificationPhoto = (data: Record<string, unknown> | null) => {
   if (!data) return FALLBACK_NOTIFICATION_ICON;
   const raw = String(
-    data.actor_photo_url ||
-      data.profile_photo_url ||
-      data.notification_icon ||
-      data.image_url ||
-      data.avatar_url ||
+    data['actor_photo_url'] ||
+      data['profile_photo_url'] ||
+      data['notification_icon'] ||
+      data['image_url'] ||
+      data['avatar_url'] ||
       FALLBACK_NOTIFICATION_ICON,
   );
   // Any absolute/relative URL pointing at the site icon should resolve to the CDN asset

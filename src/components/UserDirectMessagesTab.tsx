@@ -30,7 +30,7 @@ interface DirectMessage extends Tables<"direct_messages"> {
 
 type Conversation = {
   otherUserId: string;
-  otherUser: { id: string; username: string; profile_photo?: string; membership_tier?: string | null } | null;
+  otherUser: { id: string; username: string; profile_photo?: string; membership_tier?: string | null } | { id: string; username: string; profile_photo: undefined; membership_tier: string } | null;
   lastMessage: DirectMessage | null;
   unreadCount: number;
 };
@@ -466,7 +466,7 @@ const UserDirectMessagesTab: React.FC = () => {
       <DirectMessageModal
         isOpen={threadOpen && !!threadUserId}
         onClose={closeThread}
-        recipientUsername={null}
+        recipientUsername={undefined}
         recipientId={threadUserId}
       />
 

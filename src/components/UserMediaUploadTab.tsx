@@ -22,7 +22,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
 
   const membership = resolveMembership(userData);
 
-  const visuals: Record<string, { icon: JSX.Element; color: string }> = {
+  const visuals: Record<string, { icon: React.ReactElement; color: string }> = {
     free: { icon: <Lock className="w-5 h-5 text-gray-200" />, color: 'from-gray-500 to-gray-600' },
     silver: { icon: <Star className="w-5 h-5 text-gray-100" />, color: 'from-gray-500 to-gray-600' },
     silver_plus: { icon: <Star className="w-5 h-5 text-blue-100" />, color: 'from-blue-600 to-purple-600' },
@@ -33,7 +33,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
     elite_plus: { icon: <Award className="w-5 h-5 text-yellow-100" />, color: 'from-fuchsia-500 to-yellow-400' },
   };
 
-  const visual = visuals[membership.key] || visuals.free;
+  const visual = visuals[membership.key as keyof typeof visuals] || visuals.free;
   const isTopTier = membership.key === 'elite_plus';
 
   const upgradePath =
@@ -43,7 +43,7 @@ const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpd
       ? '/upgrade-silver-plus'
       : '/memberships';
 
-  const membershipStatus = { tier: membership.label, icon: visual.icon, color: visual.color };
+  const membershipStatus = { tier: membership.label, icon: visual?.icon, color: visual?.color };
 
   // Performers awaiting review (or denied) can't purchase upgrades yet
   const requiresApproval = ['stripper', 'exotic'].includes(

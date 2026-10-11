@@ -18,7 +18,26 @@ const COMPANY = {
 
 const DEPOSIT = 250;
 
-type Form = Record<string, string>;
+interface Form {
+  full_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city_state_zip: string;
+  drivers_license_no: string;
+  earnings_plan: string;
+  payout_method: string;
+  bank_recipient: string;
+  bank_name: string;
+  routing: string;
+  account: string;
+  account_type: string;
+  bank_address: string;
+  zelle_contact: string;
+  zelle_name: string;
+  signed_name: string;
+  [key: string]: string;
+}
 const initial: Form = {
   full_name: "", email: "", phone: "", address: "", city_state_zip: "", drivers_license_no: "",
   earnings_plan: "", payout_method: "ach",
@@ -175,14 +194,31 @@ const HostApplication: React.FC = () => {
     return null;
   };
 
-  const nextVehicle = () => {
-    const err = validateVehicle(vehicles[vIdx]);
-    if (err) return toast({ title: err, variant: "destructive" });
-    setVIdx((i) => i + 1);
-    window.scrollTo({ top: 0 });
-  };
-
-  const startDepositPayment = async (applicationIds: string[]) => {
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLastVehicle) {
+      nextVehicle();
+      return;
+    }
+    const currentVehicle = vehicles[vIdx];
+    if (!currentVehicle) return;
+    const vErr = validateVehicle(currentVehicle);
+    if (vErr) {
+      toast({ title: vErr, variant: "destructive" });
+      return;
+    }
+    if (!f.earnings_plan) {
+      toast({ title: "Choose Earn 50% or 60%", variant: "destructive" });
+      return;
+    }
+    if (!dl || !reg) {
+      toast({ title: "Upload your drivers license and registration", variant: "destructive" });
+      return;
+    }
+    if (!agree || !signed || !f.signed_name.trim()) {
+      toast({ title: "Sign the agreement to finish", variant: "destructive" });
+      return;
+    }
     if (!applicationIds.length) throw new Error("No pending vehicle application was found");
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     const { data, error } = await supabase.functions.invoke("host-deposit-payment", {

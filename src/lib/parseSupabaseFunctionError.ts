@@ -58,7 +58,9 @@ export function parseSupabaseFunctionError(
     } catch {
       // If it's not JSON, still surface it.
       const debugMatch = rawBody.match(/"debug_id"\s*:\s*"([^"]+)"/);
-      if (debugMatch) parsed.debugId = debugMatch[1];
+      if (debugMatch && debugMatch[1]) {
+        parsed.debugId = debugMatch[1];
+      }
 
       parsed.message = truncate(rawBody || fallbackMessage);
       return parsed;

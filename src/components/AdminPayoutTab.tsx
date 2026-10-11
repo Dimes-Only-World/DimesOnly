@@ -151,7 +151,7 @@ const AdminPayoutTab: React.FC = () => {
 
   const downloadCsv = (method: string) => {
     const rows = filteredApproved.filter((p) => p.payout_method === method);
-    if (!rows.length) return toast.info(`No approved ${methodLabel(method)} payouts to export`);
+    if (!rows.length) toast.info(`No approved ${methodLabel(method)} payouts to export`);
     const base = ["Username", "Email", "Amount", "Requested", "Approved"];
     const extra: Record<string, [string[], (p: PayoutRequest) => unknown[]]> = {
       paypal: [["PayPal Email"], (p) => [p.paypal_email]],

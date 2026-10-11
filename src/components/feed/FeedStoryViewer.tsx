@@ -60,9 +60,9 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    loadUrl(items[index]);
-    loadUrl(items[index + 1]);
-    loadUrl(items[index - 1]);
+    loadUrl(items[index] as StoryItem);
+    if (items[index + 1]) loadUrl(items[index + 1] as StoryItem);
+    if (items[index - 1]) loadUrl(items[index - 1] as StoryItem);
   }, [open, index, items, loadUrl]);
 
   const goNext = useCallback(() => {

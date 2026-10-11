@@ -11,7 +11,7 @@ type Props = {
   bookingId?: string | null;
   vehicleId?: string | null;
   userId: string;
-  vehicleTitle?: string;
+  vehicleTitle?: string | undefined;
   onUploaded?: () => void;
   trigger?: React.ReactNode;
 };
