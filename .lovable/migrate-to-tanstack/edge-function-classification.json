@@ -320,8 +320,8 @@
     },
     {
       "name": "subscriptions-sweep",
-      "classification": "cron-style maintenance job",
-      "signal": "no src callers; designed for scheduled/service invocation, idempotent downgrade sweep",
+      "classification": "cron target",
+      "signal": "no src callers; designed for scheduled/service invocation, idempotent downgrade sweep; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
       "outcome": "left"
     },
     {
