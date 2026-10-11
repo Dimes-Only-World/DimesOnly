@@ -1,8 +1,6 @@
 # Project Architecture Rules
 - Invoke edge authorization installation explicitly from the Supabase client module; side-effect-only imports are removed by production tree shaking and would omit signed custom sessions.
-- Rental-area parent routes render only Outlet, with their own content and sharing metadata in index leaves; this lets vehicle, payment, host-application and purchase children mount independently.
-- Keep FlameFlix's parent route as an Outlet and its landing page and sharing metadata in the index route; child navigation must mount the requested page rather than the landing screen.
-- Dashboard is an Outlet layout with its default redirect confined to the index route; redirecting from the parent prevents every member tab from mounting.
+- Any route file with a same-named child folder (rentals, flix, dashboard, clothes, feed, rates, tips) renders only Outlet, with its page, sharing metadata and default redirects in the index leaf; otherwise child URLs show the parent page.
 - Derive featured and later event ordering through the shared UTC event schedule helper, refreshing while open and on event changes; one ordering path keeps expiry, TBA, and upload-order behavior consistent.
 
 - Apply viewport bounds, shrinkable grid tracks, and vertical scrolling through shared dialog primitives; large-text pop-ups must keep all actions reachable on small screens, and long-document pop-ups (terms, agreements) use the shared reading-column class so they stay readable on desktop without losing phone reachability.
@@ -27,4 +25,3 @@
 - Shared notification categories (src/lib/notificationCategories.ts) drive the user center, menu badges and admin sender; one rule keeps user and admin communication consistent.
 - Store the company's per-car monthly payment in service-role-only `vehicle_costs`, read and written only through `rental-admin`; car costs must never reach renters through the public vehicles table.
 - Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
-- Any route file that has a same-named child folder must render only Outlet, with its own page in an index leaf; otherwise every child URL silently shows the parent page (store, feed, rates and tips share links).
