@@ -14,6 +14,7 @@ import MembershipAgreementBody from "@/components/MembershipAgreementBody";
 import { Tables } from "@/types";
 import { TERMS_EFFECTIVE_DATE, TERMS_SECTIONS } from "@/lib/termsContent";
 import { AUP_EFFECTIVE_DATE, AUP_SECTIONS } from "@/lib/acceptableUsePolicy";
+import { FAN_DIME_EFFECTIVE_DATE, FAN_DIME_SECTIONS } from "@/lib/fanDimeAgreement";
 
 type UserData = Tables<"users">;
 type Section = { heading: string; lines: string[] };
@@ -27,7 +28,7 @@ const POLICIES: { id: string; title: string; effective?: string; sections?: Sect
   { id: "terms", title: "Terms & Conditions", effective: TERMS_EFFECTIVE_DATE, sections: TERMS_SECTIONS },
   { id: "aup", title: "Acceptable Use Policy", effective: AUP_EFFECTIVE_DATE, sections: AUP_SECTIONS },
   { id: "terms-of-use", title: "Terms of Use" },
-  { id: "fan-creator", title: "Contract between Fan and Creator" },
+  { id: "fan-dime", title: "Contract between Fan and Dimes", effective: FAN_DIME_EFFECTIVE_DATE, sections: FAN_DIME_SECTIONS },
   { id: "p2b", title: "Platform to Business Regulation Terms" },
   { id: "referral", title: "Referral Program Terms" },
   { id: "complaints", title: "Complaints Policy" },
