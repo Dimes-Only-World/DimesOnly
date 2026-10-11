@@ -25,7 +25,11 @@ const PERKS = [
 const FlixLanding: React.FC = () => {
   const [titles, setTitles] = useState<FlixTitle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showIntro, setShowIntro] = useState(shouldShowFlixIntro());
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    setShowIntro(shouldShowFlixIntro());
+  }, []);
 
   useEffect(() => {
     fetchLiveTitles()

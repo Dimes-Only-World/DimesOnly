@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import FlixLanding from "@/pages/flix/FlixLanding";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/flix")({
-  component: FlixLanding,
+  component: Outlet,
 });
