@@ -15,7 +15,9 @@ describe("FlameFlix navigation", () => {
         return null;
       }
       const root = createRootRoute();
-      const layout = createRoute({ getParentRoute: () => root, path: "flix", component: FlixLayout.options.component });
+      const layoutComponent = FlixLayout.options.component;
+      if (!layoutComponent) throw new Error("FlameFlix layout is missing");
+      const layout = createRoute({ getParentRoute: () => root, path: "flix", component: layoutComponent });
       const children = ["/", "browse", "search", "pricing", "earn"].map(path => createRoute({ getParentRoute: () => layout, path, component: Page }));
       const router = createRouter({
         routeTree: root.addChildren([layout.addChildren(children)]),
