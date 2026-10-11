@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import TipsRedirect from "@/pages/TipsRedirect";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
+// Parent only renders children; redirects live in the index and $username leaves.
 export const Route = createFileRoute("/tips")({
-  component: TipsRedirect,
+  component: () => <Outlet />,
 });
