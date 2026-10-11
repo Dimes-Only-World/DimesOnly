@@ -31,7 +31,6 @@ interface Props {
 const POLICIES: { id: string; title: string; effective?: string; sections?: Section[] }[] = [
   { id: "terms", title: "Terms & Conditions", effective: TERMS_EFFECTIVE_DATE, sections: TERMS_SECTIONS },
   { id: "aup", title: "Acceptable Use Policy", effective: AUP_EFFECTIVE_DATE, sections: AUP_SECTIONS },
-  { id: "terms-of-use", title: "Terms of Use" },
   { id: "fan-dime", title: "Contract between Fan and Dimes", effective: FAN_DIME_EFFECTIVE_DATE, sections: FAN_DIME_SECTIONS },
   { id: "p2b", title: "Platform to Business Regulation Terms", effective: P2B_EFFECTIVE_DATE, sections: P2B_SECTIONS },
   { id: "referral", title: "Referral Program Terms", effective: REF_EFFECTIVE_DATE, sections: REF_SECTIONS },
