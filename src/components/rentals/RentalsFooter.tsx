@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "@/lib/router-compat";
-import { normalizeRefParam } from "@/lib/utils";
+import { buildAuthUrl } from "@/lib/refCapture";
 import { CancellationPolicyDialog } from "@/components/rentals/RentalPolicyDialogs";
 import { useAppContext } from "@/contexts/AppContext";
 import { supabase } from "@/lib/supabase";
@@ -12,6 +12,13 @@ const RentalsFooter: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const { user, setUser } = useAppContext();
+  const [loginUrl, setLoginUrl] = useState("/login?redirect=%2Frentals");
+  const [signupUrl, setSignupUrl] = useState("/register?redirect=%2Frentals");
+
+  useEffect(() => {
+    setLoginUrl(buildAuthUrl("/login", "/rentals"));
+    setSignupUrl(buildAuthUrl("/register", "/rentals"));
+  }, []);
 
   const logout = async () => {
     localStorage.removeItem("authToken");
@@ -23,18 +30,13 @@ const RentalsFooter: React.FC = () => {
     window.location.assign("/rentals");
   };
 
-  const withRef = (path: string) => {
-    const ref = normalizeRefParam(new URLSearchParams(window.location.search).get("ref"));
-    return ref ? `${path}?ref=${encodeURIComponent(ref)}` : path;
-  };
-
   const columns: { heading: string; links: { label: string; to?: string; href?: string; onClick?: () => void }[] }[] = [
     {
       heading: "Product",
       links: [
         { label: "Book a car", to: "/rentals" },
         { label: "List a car", to: "/rentals/list" },
-        { label: "Become a Host", to: "/rentals/host" },
+        { label: "Become a Host", to: "/rentals/host/apply" },
         { label: "My Fleet", to: "/rentals/my-fleet" },
         { label: "Purchase", to: "/rentals/purchase" },
       ],
@@ -46,8 +48,8 @@ const RentalsFooter: React.FC = () => {
         ...(user
           ? [{ label: "Log out", onClick: logout }]
           : [
-              { label: "Log in", to: withRef("/login") },
-              { label: "Sign up", to: withRef("/?signup=1") },
+              { label: "Log in", to: loginUrl },
+              { label: "Sign up", to: signupUrl },
             ]),
       ],
     },

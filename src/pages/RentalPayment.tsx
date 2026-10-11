@@ -43,7 +43,7 @@ const RentalPayment: React.FC = () => {
       const uid = await resolveUserId();
       setUserId(uid);
       if (!uid) {
-        navigate(buildAuthUrl("/login", window.location.pathname));
+        navigate(buildAuthUrl("/login", `/rentals/pay/${bookingId}`));
         return;
       }
 

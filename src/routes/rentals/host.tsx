@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import BecomeAHost from "@/pages/rentals/BecomeAHost";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/rentals/host")({
-  component: BecomeAHost,
+  component: Outlet,
 });

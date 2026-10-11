@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Restore rental-area navigation, car details, host and purchase applications, and verify public buttons; check admin rental information access.
 - [x] Update /flix search and sharing wording and uploaded logo; exact server-rendered tags and image load verified.
 - [x] Restore FlameFlix Browse, New, Search, Pricing, and Earn navigation; all five links and live catalog search verified, six routing tests passed.
 - [x] Add a Terms & Conditions button next to the preferences line on Profile Info; dialog verified in isolation at 360/412/1280 (signed-in page unavailable on external auth).
