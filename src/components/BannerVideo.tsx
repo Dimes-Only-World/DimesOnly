@@ -66,6 +66,44 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
     void video.play().catch(() => undefined);
   }, [src, autoPlay, muted, minimal, background, videoRef]);
 
+  // Background mode with sound: try unmuted autoplay (allowed after any prior
+  // interaction with the site); if the browser blocks it, keep the motion going
+  // muted and restore sound on the first user gesture.
+  useEffect(() => {
+    if (!background || muted) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = () => {
+      video.muted = false;
+      video.volume = 1;
+      const attempt = video.play();
+      if (attempt && typeof attempt.catch === "function") {
+        attempt.catch(() => {
+          if (video.paused) {
+            video.muted = true;
+            void video.play().catch(() => undefined);
+          }
+        });
+      }
+    };
+
+    tryPlay();
+    const onGesture = () => {
+      video.muted = false;
+      video.volume = 1;
+      if (video.paused) {
+        void video.play().catch(() => undefined);
+      }
+    };
+    document.addEventListener("click", onGesture, { passive: true });
+    document.addEventListener("touchstart", onGesture, { passive: true });
+    return () => {
+      document.removeEventListener("click", onGesture);
+      document.removeEventListener("touchstart", onGesture);
+    };
+  }, [background, muted, src, videoRef]);
+
   // Time updates
   useEffect(() => {
     const video = videoRef.current;
