@@ -1,62 +1,364 @@
-{"functions": [
-  {"name": "admin-data", "classification": "internal-only (left per project architecture rule)", "signal": "called from 16 src/ files; uses Supabase-managed secrets and service-role; project rules mandate privileged ops stay as Supabase Edge Functions", "outcome": "left"},
-  {"name": "authenticate-user", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; bcryptjs auth flow mandated as Edge Function", "outcome": "left"},
-  {"name": "broadcast-notification", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; admin broadcast via shared notification categories", "outcome": "left"},
-  {"name": "cancel-paypal-subscription", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; uses PAYPAL_* secrets held in Supabase", "outcome": "left"},
-  {"name": "capture-event-payment", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; PayPal capture with Supabase-held secrets", "outcome": "left"},
-  {"name": "capture-tip-order", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; PayPal capture with Supabase-held secrets", "outcome": "left"},
-  {"name": "cashapp-checkout", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; payment flow with server-side totals", "outcome": "left"},
-  {"name": "create-paypal-order", "classification": "internal-only (left per project architecture rule)", "signal": "called from 5 src/ files; PAYPAL_* secrets held in Supabase", "outcome": "left"},
-  {"name": "create-paypal-subscription", "classification": "internal-only (left per project architecture rule)", "signal": "called from 4 src/ files; PAYPAL_* secrets held in Supabase", "outcome": "left"},
-  {"name": "earnings-payers", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; admin payroll data", "outcome": "left"},
-  {"name": "earnings-query", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; earnings ledger computed server-side", "outcome": "left"},
-  {"name": "feed-signed-url", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; short-lived signed URLs", "outcome": "left"},
-  {"name": "flix-admin", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; admin ops", "outcome": "left"},
-  {"name": "flix-subscribe", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; payment flow", "outcome": "left"},
-  {"name": "flyer-insights", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; click analytics", "outcome": "left"},
-  {"name": "get-entries", "classification": "unknown", "signal": "no internal call sites, no signature signal — default to external", "outcome": "left"},
-  {"name": "hash-migration", "classification": "unknown", "signal": "no internal call sites — default to external; likely one-off migration tool", "outcome": "left"},
-  {"name": "host-deposit-payment", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; $250/vehicle deposit payment", "outcome": "left"},
-  {"name": "make-money", "classification": "internal-only (left per project architecture rule)", "signal": "called from 3 src/ files; referral-agnostic message bodies with signed URLs", "outcome": "left"},
-  {"name": "media-upload", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file", "outcome": "left"},
-  {"name": "membership-webhook", "classification": "webhook receiver", "signal": "name matches *-webhook; external payment provider caller", "outcome": "left"},
-  {"name": "notification-config", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file", "outcome": "left"},
-  {"name": "notify-direct-message", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; admin DM architecture", "outcome": "left"},
-  {"name": "paypal-config", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file (app bootstrap for PayPal SDK)", "outcome": "left"},
-  {"name": "paypal-subscription-webhook", "classification": "webhook receiver", "signal": "name matches *-webhook; external PayPal caller with fixed URL", "outcome": "left"},
-  {"name": "paypal-webhook-events", "classification": "webhook receiver", "signal": "name matches paypal-webhook*; external PayPal caller", "outcome": "left"},
-  {"name": "paypal-webhook-public", "classification": "webhook receiver", "signal": "name matches paypal-webhook*; external PayPal caller", "outcome": "left"},
-  {"name": "paypal-webhook-simple", "classification": "webhook receiver", "signal": "name matches paypal-webhook*; external PayPal caller", "outcome": "left"},
-  {"name": "paypal-webhook", "classification": "webhook receiver", "signal": "name matches *-webhook; external PayPal caller; signature verification mandated by project rule", "outcome": "left"},
-  {"name": "process-card-event-payment", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; card payment flow with Supabase-held secrets", "outcome": "left"},
-  {"name": "process-card-tip", "classification": "unknown", "signal": "no internal call sites found — default to external; uses PAYPAL_* secrets", "outcome": "left"},
-  {"name": "process-tip", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; server-side tip allocation rules", "outcome": "left"},
-  {"name": "public-data", "classification": "internal-only (left per project architecture rule)", "signal": "called from 13 src/ files; public data delegation pattern mandated as Edge Function", "outcome": "left"},
-  {"name": "register-user", "classification": "internal-only (left per project architecture rule)", "signal": "raw fetch from src/pages/Register.tsx; bcrypt cost 12 auth flow mandated as Edge Function", "outcome": "left"},
-  {"name": "rental-admin", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; service-role-only vehicle_costs and financial reconciliation", "outcome": "left"},
-  {"name": "rental-booking", "classification": "internal-only (left per project architecture rule)", "signal": "called from 3 src/ files; server-validated booking prices and PayPal capture", "outcome": "left"},
-  {"name": "rental-extension", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; server-verified PayPal capture before finalizing", "outcome": "left"},
-  {"name": "rental-media-urls", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; short-lived signed URLs", "outcome": "left"},
-  {"name": "reset-password", "classification": "internal-only (left per project architecture rule)", "signal": "raw fetch from src/pages/ResetPassword.tsx; bcrypt auth flow mandated as Edge Function", "outcome": "left"},
-  {"name": "rewards", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; contests computed server-side", "outcome": "left"},
-  {"name": "sale-commissions", "classification": "internal-only (left per project architecture rule)", "signal": "called from 2 src/ files; commission amounts must never come from the browser", "outcome": "left"},
-  {"name": "save-push-subscription", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; OneSignal push subscription storage", "outcome": "left"},
-  {"name": "send-admin-message", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; admin sender via shared notification categories", "outcome": "left"},
-  {"name": "send-dime-email", "classification": "unknown", "signal": "no internal call sites — likely called by other edge functions or external scheduler", "outcome": "left"},
-  {"name": "send-notification", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file", "outcome": "left"},
-  {"name": "set-user-password", "classification": "unknown", "signal": "no internal call sites — default to external", "outcome": "left"},
-  {"name": "start-membership-paypal", "classification": "internal-only (left per project architecture rule)", "signal": "called from 7 src/ files; membership payment flow bypassing RLS", "outcome": "left"},
-  {"name": "store-admin", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; admin ops", "outcome": "left"},
-  {"name": "store-capture", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file (StoreOrderReturn); PayPal capture with Supabase-held secrets", "outcome": "left"},
-  {"name": "store-checkout", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; payment flow with server-side totals", "outcome": "left"},
-  {"name": "store-images", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file", "outcome": "left"},
-  {"name": "submit-age-gate-lead", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file", "outcome": "left"},
-  {"name": "submit-vehicle-purchase", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; service-role-only buyer financial data mandated as Edge Function", "outcome": "left"},
-  {"name": "subscriptions-sweep", "classification": "cron-style maintenance job", "signal": "no src callers; designed for scheduled/service invocation, idempotent downgrade sweep", "outcome": "left"},
-  {"name": "test-webhook", "classification": "webhook receiver", "signal": "name matches *-webhook", "outcome": "left"},
-  {"name": "tip-webhook", "classification": "webhook receiver", "signal": "name matches *-webhook; external payment provider caller", "outcome": "left"},
-  {"name": "upload-photo", "classification": "internal-only (left per project architecture rule)", "signal": "raw fetch from src/pages/Register.tsx", "outcome": "left"},
-  {"name": "upload-video", "classification": "internal-only (left per project architecture rule)", "signal": "raw fetch from src/pages/Register.tsx", "outcome": "left"},
-  {"name": "verify-membership-upgrade", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; requires valid Supabase JWT", "outcome": "left"},
-  {"name": "verify-paypal-subscription", "classification": "internal-only (left per project architecture rule)", "signal": "called from 1 src/ file; PayPal verification with Supabase-held secrets", "outcome": "left"}
-]}
+{
+  "functions": [
+    {
+      "name": "admin-data",
+      "classification": "internal-only",
+      "signal": "called from 16 src/ files; uses Supabase-managed secrets and service-role; project rules mandate privileged ops stay as Supabase Edge Functions; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "authenticate-user",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; bcryptjs auth flow mandated as Edge Function; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "broadcast-notification",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; admin broadcast via shared notification categories; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "cancel-paypal-subscription",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; uses PAYPAL_* secrets held in Supabase; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "capture-event-payment",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; PayPal capture with Supabase-held secrets; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "capture-tip-order",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; PayPal capture with Supabase-held secrets; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "cashapp-checkout",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; payment flow with server-side totals; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "create-paypal-order",
+      "classification": "internal-only",
+      "signal": "called from 5 src/ files; PAYPAL_* secrets held in Supabase; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "create-paypal-subscription",
+      "classification": "internal-only",
+      "signal": "called from 4 src/ files; PAYPAL_* secrets held in Supabase; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "earnings-payers",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; admin payroll data; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "earnings-query",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; earnings ledger computed server-side; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "feed-signed-url",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; short-lived signed URLs; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "flix-admin",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; admin ops; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "flix-subscribe",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; payment flow; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "flyer-insights",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; click analytics; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "get-entries",
+      "classification": "unknown",
+      "signal": "no internal call sites, no signature signal \u2014 default to external",
+      "outcome": "left"
+    },
+    {
+      "name": "hash-migration",
+      "classification": "unknown",
+      "signal": "no internal call sites \u2014 default to external; likely one-off migration tool",
+      "outcome": "left"
+    },
+    {
+      "name": "host-deposit-payment",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; $250/vehicle deposit payment; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "make-money",
+      "classification": "internal-only",
+      "signal": "called from 3 src/ files; referral-agnostic message bodies with signed URLs; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "media-upload",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "membership-webhook",
+      "classification": "webhook receiver",
+      "signal": "name matches *-webhook; external payment provider caller",
+      "outcome": "left"
+    },
+    {
+      "name": "notification-config",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "notify-direct-message",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; admin DM architecture; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "paypal-config",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file (app bootstrap for PayPal SDK); left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "paypal-subscription-webhook",
+      "classification": "webhook receiver",
+      "signal": "name matches *-webhook; external PayPal caller with fixed URL",
+      "outcome": "left"
+    },
+    {
+      "name": "paypal-webhook-events",
+      "classification": "webhook receiver",
+      "signal": "name matches paypal-webhook*; external PayPal caller",
+      "outcome": "left"
+    },
+    {
+      "name": "paypal-webhook-public",
+      "classification": "webhook receiver",
+      "signal": "name matches paypal-webhook*; external PayPal caller",
+      "outcome": "left"
+    },
+    {
+      "name": "paypal-webhook-simple",
+      "classification": "webhook receiver",
+      "signal": "name matches paypal-webhook*; external PayPal caller",
+      "outcome": "left"
+    },
+    {
+      "name": "paypal-webhook",
+      "classification": "webhook receiver",
+      "signal": "name matches *-webhook; external PayPal caller; signature verification mandated by project rule",
+      "outcome": "left"
+    },
+    {
+      "name": "process-card-event-payment",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; card payment flow with Supabase-held secrets; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "process-card-tip",
+      "classification": "unknown",
+      "signal": "no internal call sites found \u2014 default to external; uses PAYPAL_* secrets",
+      "outcome": "left"
+    },
+    {
+      "name": "process-tip",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; server-side tip allocation rules; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "public-data",
+      "classification": "internal-only",
+      "signal": "called from 13 src/ files; public data delegation pattern mandated as Edge Function; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "register-user",
+      "classification": "internal-only",
+      "signal": "raw fetch from src/pages/Register.tsx; bcrypt cost 12 auth flow mandated as Edge Function; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "rental-admin",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; service-role-only vehicle_costs and financial reconciliation; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "rental-booking",
+      "classification": "internal-only",
+      "signal": "called from 3 src/ files; server-validated booking prices and PayPal capture; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "rental-extension",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; server-verified PayPal capture before finalizing; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "rental-media-urls",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; short-lived signed URLs; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "reset-password",
+      "classification": "internal-only",
+      "signal": "raw fetch from src/pages/ResetPassword.tsx; bcrypt auth flow mandated as Edge Function; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "rewards",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; contests computed server-side; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "sale-commissions",
+      "classification": "internal-only",
+      "signal": "called from 2 src/ files; commission amounts must never come from the browser; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "save-push-subscription",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; OneSignal push subscription storage; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "send-admin-message",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; admin sender via shared notification categories; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "send-dime-email",
+      "classification": "unknown",
+      "signal": "no internal call sites \u2014 likely called by other edge functions or external scheduler",
+      "outcome": "left"
+    },
+    {
+      "name": "send-notification",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "set-user-password",
+      "classification": "unknown",
+      "signal": "no internal call sites \u2014 default to external",
+      "outcome": "left"
+    },
+    {
+      "name": "start-membership-paypal",
+      "classification": "internal-only",
+      "signal": "called from 7 src/ files; membership payment flow bypassing RLS; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "store-admin",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; admin ops; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "store-capture",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file (StoreOrderReturn); PayPal capture with Supabase-held secrets; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "store-checkout",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; payment flow with server-side totals; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "store-images",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "submit-age-gate-lead",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "submit-vehicle-purchase",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; service-role-only buyer financial data mandated as Edge Function; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "subscriptions-sweep",
+      "classification": "cron-style maintenance job",
+      "signal": "no src callers; designed for scheduled/service invocation, idempotent downgrade sweep",
+      "outcome": "left"
+    },
+    {
+      "name": "test-webhook",
+      "classification": "webhook receiver",
+      "signal": "name matches *-webhook",
+      "outcome": "left"
+    },
+    {
+      "name": "tip-webhook",
+      "classification": "webhook receiver",
+      "signal": "name matches *-webhook; external payment provider caller",
+      "outcome": "left"
+    },
+    {
+      "name": "upload-photo",
+      "classification": "internal-only",
+      "signal": "raw fetch from src/pages/Register.tsx; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "upload-video",
+      "classification": "internal-only",
+      "signal": "raw fetch from src/pages/Register.tsx; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "verify-membership-upgrade",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; requires valid Supabase JWT; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    },
+    {
+      "name": "verify-paypal-subscription",
+      "classification": "internal-only",
+      "signal": "called from 1 src/ file; PayPal verification with Supabase-held secrets; left on Supabase per project architecture rule (privileged ops stay as Edge Functions; secrets held by Supabase)",
+      "outcome": "left"
+    }
+  ]
+}
