@@ -1,0 +1,24 @@
+{
+  "customizations": [
+    { "token": "--site-font-size / --site-caption-size / --site-label-size / --site-compact-size / --site-message-size / --site-popup-heading-size", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "viewport-responsive root font scaling (18px desktop, 20px <=900px, clamp on phones)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "sale-pending/sold/declined colors", "source": "src/index.css + tailwind.config.ts", "reappliedIn": "src/styles.css @theme inline" },
+    { "token": "dimes-magenta/dimes-gold/dimes-surface/dimes-surface-elevated", "source": "src/index.css + tailwind.config.ts", "reappliedIn": "src/styles.css @theme inline" },
+    { "token": "rental-* (background/surface/elevated/foreground/muted/line/primary/primary-foreground/success)", "source": "src/index.css + tailwind.config.ts", "reappliedIn": "src/styles.css @theme inline" },
+    { "token": "brand-paypal/paypal-hover/paylater/card-start/card-end", "source": "src/index.css + tailwind.config.ts", "reappliedIn": "src/styles.css @theme inline" },
+    { "token": "reward-* carousel theme variables + .reward-theme-* component classes", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "store-theme / store-display (clothing store)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "rentals-showroom / rentals-showroom-light / rentals-wordmark / bg-rental-hero", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "viewport-dialog / terms-dialog shared popup bounds", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "glass-effect / font-inter / animate-fade-in-up / mobile-full-width", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "PayPal iframe/overlay/modal styling rules", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "dimes-flame / dimes-zoom-fade / dimes-zoom-img + keyframes", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "earnings-wall mobile rules", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "scrollbar-hide, foldable phone rules, rate-hero-title, image-rendering", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "legacy pixel text utilities remapped on mobile (text-[9px..26px], recharts ticks)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "font-barlow/font-bebas/font-mono utilities", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css @theme --font-*" },
+    { "token": "animate-bell-wiggle, animate-accordion-down/up, animate-fade-in, animate-slide-in", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css @theme --animate-* + keyframes" },
+    { "token": "container utility (centered, 2rem padding, 2xl cap 1400px)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css @utility container" },
+    { "token": "typography plugin with max-width none", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css @plugin + .prose override" }
+  ]
+}
