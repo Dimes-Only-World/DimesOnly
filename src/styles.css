@@ -106,10 +106,10 @@
   --animate-slide-in: slide-in 0.3s ease-out;
 
   @keyframes bell-wiggle {
-    '0%, 55%, 100%': { transform: rotate(0deg); }
-    '5%, 25%': { transform: rotate(-16deg); }
-    '15%, 35%': { transform: rotate(16deg); }
-    '45%': { transform: rotate(-6deg); }
+    0%, 55%, 100% { transform: rotate(0deg); }
+    5%, 25% { transform: rotate(-16deg); }
+    15%, 35% { transform: rotate(16deg); }
+    45% { transform: rotate(-6deg); }
   }
   @keyframes accordion-down {
     from { height: 0; }
