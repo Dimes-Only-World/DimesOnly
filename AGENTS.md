@@ -1,4 +1,5 @@
 # Project Architecture Rules
+- Keep FlameFlix's parent route as an Outlet and its landing page and sharing metadata in the index route; child navigation must mount the requested page rather than the landing screen.
 - Dashboard is an Outlet layout with its default redirect confined to the index route; redirecting from the parent prevents every member tab from mounting.
 - Derive featured and later event ordering through the shared UTC event schedule helper, refreshing while open and on event changes; one ordering path keeps expiry, TBA, and upload-order behavior consistent.
 

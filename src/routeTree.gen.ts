@@ -66,6 +66,7 @@ import { Route as ClothesWishlistRouteImport } from './routes/clothes/wishlist'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTabRouteImport } from './routes/dashboard/$tab'
 import { Route as FeedCreateRouteImport } from './routes/feed/create'
+import { Route as FlixIndexRouteImport } from './routes/flix.index'
 import { Route as FlixAccountRouteImport } from './routes/flix/account'
 import { Route as FlixBrowseRouteImport } from './routes/flix/browse'
 import { Route as FlixEarnRouteImport } from './routes/flix/earn'
@@ -373,6 +374,11 @@ const FeedCreateRoute = FeedCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => FeedRoute,
 } as any)
+const FlixIndexRoute = FlixIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FlixRoute,
+} as any)
 const FlixAccountRoute = FlixAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/flix/': typeof FlixIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -578,7 +585,6 @@ export interface FileRoutesByTo {
   '/eventsdimes': typeof EventsdimesRoute
   '/failsafe': typeof FailsafeRoute
   '/feed': typeof FeedRouteWithChildren
-  '/flix': typeof FlixRouteWithChildren
   '/jackpot': typeof JackpotRoute
   '/login': typeof LoginRoute
   '/memberships': typeof MembershipsRoute
@@ -630,6 +636,7 @@ export interface FileRoutesByTo {
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/flix': typeof FlixIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -711,6 +718,7 @@ export interface FileRoutesById {
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/tips/$username': typeof TipsUsernameRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/flix/': typeof FlixIndexRoute
   '/clothes/product/$slug': typeof ClothesProductSlugRoute
   '/clothes/shop/$category': typeof ClothesShopCategoryRoute
   '/flix/legal/$doc': typeof FlixLegalDocRoute
@@ -793,6 +801,7 @@ export interface FileRouteTypes {
     | '/rentals/purchase'
     | '/tips/$username'
     | '/dashboard/'
+    | '/flix/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -820,7 +829,6 @@ export interface FileRouteTypes {
     | '/eventsdimes'
     | '/failsafe'
     | '/feed'
-    | '/flix'
     | '/jackpot'
     | '/login'
     | '/memberships'
@@ -872,6 +880,7 @@ export interface FileRouteTypes {
     | '/rentals/purchase'
     | '/tips/$username'
     | '/dashboard'
+    | '/flix'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -952,6 +961,7 @@ export interface FileRouteTypes {
     | '/rentals/purchase'
     | '/tips/$username'
     | '/dashboard/'
+    | '/flix/'
     | '/clothes/product/$slug'
     | '/clothes/shop/$category'
     | '/flix/legal/$doc'
@@ -1414,6 +1424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedCreateRouteImport
       parentRoute: typeof FeedRoute
     }
+    '/flix/': {
+      id: '/flix/'
+      path: '/'
+      fullPath: '/flix/'
+      preLoaderRoute: typeof FlixIndexRouteImport
+      parentRoute: typeof FlixRoute
+    }
     '/flix/account': {
       id: '/flix/account'
       path: '/account'
@@ -1631,6 +1648,7 @@ interface FlixRouteChildren {
   FlixEarnRoute: typeof FlixEarnRoute
   FlixPricingRoute: typeof FlixPricingRoute
   FlixSearchRoute: typeof FlixSearchRoute
+  FlixIndexRoute: typeof FlixIndexRoute
   FlixLegalDocRoute: typeof FlixLegalDocRoute
   FlixTitleIdRoute: typeof FlixTitleIdRoute
   FlixWatchIdRoute: typeof FlixWatchIdRoute
@@ -1642,6 +1660,7 @@ const FlixRouteChildren: FlixRouteChildren = {
   FlixEarnRoute: FlixEarnRoute,
   FlixPricingRoute: FlixPricingRoute,
   FlixSearchRoute: FlixSearchRoute,
+  FlixIndexRoute: FlixIndexRoute,
   FlixLegalDocRoute: FlixLegalDocRoute,
   FlixTitleIdRoute: FlixTitleIdRoute,
   FlixWatchIdRoute: FlixWatchIdRoute,
