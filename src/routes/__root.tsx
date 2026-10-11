@@ -10,7 +10,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { Component, Suspense, useEffect, useState } from "react";
 import type { ErrorComponentProps } from "@tanstack/react-router";
-import supabase from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "@/lib/router-compat";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { AppProvider } from "@/contexts/AppContext";
