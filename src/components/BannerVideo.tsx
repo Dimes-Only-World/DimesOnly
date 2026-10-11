@@ -105,7 +105,7 @@ const BannerVideo: React.FC<BannerVideoProps> = ({
       document.removeEventListener("click", onGesture);
       document.removeEventListener("touchstart", onGesture);
     };
-  }, [background, muted, src, videoRef]);
+  }, [background, bgMuted, src, videoRef]);
 
   // Time updates
   useEffect(() => {
