@@ -90,7 +90,7 @@ const TrophyCelebration = ({ className = "" }: { className?: string }) => {
               width: p.size,
               height: p.size * 1.6,
               backgroundColor: p.color,
-              // @ts-expect-error custom props
+              // @ts-expect-error React CSSProperties type does not include CSS custom properties
               "--cx": `${p.x}px`,
               "--cr": `${p.rotate}deg`,
               animation: `confetti-fall ${p.duration}s ease-in ${p.delay}s forwards`,

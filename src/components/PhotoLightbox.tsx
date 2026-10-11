@@ -52,7 +52,9 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current == null) return;
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current!;
+    const touch = e.touches[0];
+    if (!touch) return;
+    touchDeltaX.current = touch.clientX - touchStartX.current;
   };
   const onTouchEnd = () => {
     const dx = touchDeltaX.current;

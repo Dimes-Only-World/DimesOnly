@@ -335,8 +335,8 @@ const Events: React.FC = () => {
       const v = e.date.slice(0, 7);
       if (!seen.has(v)) {
         const parts = v.split("-").map(Number);
-        const y = parts[0];
-        const m = parts[1];
+        const y = parts[0] ?? 0;
+        const m = parts[1] ?? 1;
         seen.set(v, new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" }));
       }
     });

@@ -471,7 +471,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                               <span
                                 className={cn(
                                   "absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-slate-950",
-                                  TYPE_ACCENT[String(n.type || "system") as keyof typeof TYPE_ACCENT] || TYPE_ACCENT.system,
+                                  TYPE_ACCENT[String(n.type || "system") as keyof typeof TYPE_ACCENT] || TYPE_ACCENT["system"],
                                 )}
                               />
                             )}
@@ -480,7 +480,7 @@ const NotificationBell: React.FC<{ className?: string }> = ({ className }) => {
                           <span
                             className={cn(
                               "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                              TYPE_ACCENT[String(n.type || "system") as keyof typeof TYPE_ACCENT] || TYPE_ACCENT.system,
+                              TYPE_ACCENT[String(n.type || "system") as keyof typeof TYPE_ACCENT] || TYPE_ACCENT["system"],
                               n.is_read && "opacity-30",
                             )}
                           />

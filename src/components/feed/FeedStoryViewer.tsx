@@ -34,7 +34,7 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
   const [muted, setMuted] = useState(true);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const videoRef = useRef<HTMLVideoElement>(null);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number>(0);
   const startedRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
 

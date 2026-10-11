@@ -89,7 +89,7 @@ const CelebrationCanvas: React.FC = () => {
           life: 0,
           maxLife: 70 + Math.random() * 40,
           size: 2 + Math.random() * 2.2,
-          color: Math.random() > 0.5 ? color : pick() ?? "#FFF",
+          color: (Math.random() > 0.5 ? color : pick()) ?? "#FFF",
           shape: "circle",
           rot: 0,
           vr: 0,

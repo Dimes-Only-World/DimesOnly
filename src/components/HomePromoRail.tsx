@@ -461,7 +461,7 @@ const HomePromoRail: React.FC<HomePromoRailProps> = ({
                     ) : (
                       <span style={{ WebkitTextStroke: "0.6px rgba(0,0,0,0.45)" }}>{ln}</span>
                     )}
-                    {i === current.titleLines ?? [].length - 1 && (
+                    {i === (current.titleLines ?? []).length - 1 && (
                       <div className="mt-1 h-1.5 w-[58%] rounded-full overflow-hidden bg-white/15">
                         <div
                           className="h-full w-1/3 bg-gradient-to-r from-white/0 via-white to-white/0"

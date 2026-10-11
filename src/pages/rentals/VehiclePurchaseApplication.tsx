@@ -66,13 +66,13 @@ const VehiclePreview = ({ values }: { values: Values }) => {
   let specs: Array<[string, string]> = []; try { specs = values["specs"] ?? "" ? JSON.parse(values["specs"] ?? "") : []; } catch { specs = []; }
   return <div className="sm:col-span-2 lg:col-span-3 grid gap-4 border border-rental-line bg-rental-surface p-4 md:grid-cols-2">
     <div className="flex items-center justify-center bg-white">{src && !failed ? <img src={src} alt={`${values["year"] ?? ""} ${values["make"] ?? ""} ${values["model"] ?? ""}`} onError={() => setFailed(true)} className="h-auto w-full max-w-md object-contain" /> : <p className="p-8 text-sm text-neutral-500">Photo not available</p>}</div>
-    <div><p className="rentals-wordmark text-2xl text-rental-foreground">{values["year"] ?? ""} {values["make"] ?? ""} {values["model"] ?? ""}{values["trim"] ?? "" ? ` ${values["trim"] ?? ""}` : ""}</p>
+    <div><p className="rentals-wordmark text-2xl text-rental-foreground">{values["year"] ?? ""} {values["make"] ?? ""} {values["model"] ?? ""}{values["trim"] ? ` ${values["trim"]}` : ""}</p>
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         {specs.map(([k, v]) => <div key={k}><dt className="text-xs text-rental-muted">{k}</dt><dd className="text-rental-foreground">{v}</dd></div>)}
-        {values["vehiclePrice"] ?? "" && <div><dt className="text-xs text-rental-muted">Price</dt><dd>${Number(values["vehiclePrice"] ?? "").toLocaleString()}</dd></div>}
-        {values["downPayment"] ?? "" && <div><dt className="text-xs text-rental-muted">Down</dt><dd>${Number(values["downPayment"] ?? "").toLocaleString()}</dd></div>}
-        {values["exteriorColor"] ?? "" && <div><dt className="text-xs text-rental-muted">Exterior</dt><dd>{values["exteriorColor"] ?? ""}</dd></div>}
-        {values["interiorColor"] ?? "" && <div><dt className="text-xs text-rental-muted">Interior</dt><dd>{values["interiorColor"] ?? ""}</dd></div>}
+        {values["vehiclePrice"] && <div><dt className="text-xs text-rental-muted">Price</dt><dd>${Number(values["vehiclePrice"] ?? "").toLocaleString()}</dd></div>}
+        {values["downPayment"] && <div><dt className="text-xs text-rental-muted">Down</dt><dd>${Number(values["downPayment"] ?? "").toLocaleString()}</dd></div>}
+        {values["exteriorColor"] && <div><dt className="text-xs text-rental-muted">Exterior</dt><dd>{values["exteriorColor"] ?? ""}</dd></div>}
+        {values["interiorColor"] && <div><dt className="text-xs text-rental-muted">Interior</dt><dd>{values["interiorColor"] ?? ""}</dd></div>}
       </dl>
       <p className="mt-3 text-xs text-rental-muted">Stock photo for illustration; actual vehicle may differ.</p></div>
   </div>;
@@ -91,9 +91,9 @@ const VehicleFields = ({ values, setValues, tradeIn = false }: { values: Values;
   const showVin = tradeIn || (values["hasVin"] ?? "") === "yes";
   const showDetails = tradeIn || (values["hasVin"] ?? "") === "no" || (values["hasVin"] ?? "") === "yes";
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {!tradeIn && <div className="sm:col-span-2 lg:col-span-3 space-y-2"><Label>Do you already have the VIN number? *</Label><div className="flex gap-2">{[["yes", "Yes"], ["no", "No"]].map(([v, l]) => <Button key={v} type="button" variant={values["hasVin"] ?? "" === v ? "default" : "outline"} className="rounded-none" onClick={() => setValues((c: Values) => ({ ...c, hasVin: v, ...(v === "no" ? { vin: "", specs: "", trim: "" } : {}) }) as Values)}>{l}</Button>)}</div></div>}
+    {!tradeIn && <div className="sm:col-span-2 lg:col-span-3 space-y-2"><Label>Do you already have the VIN number? *</Label><div className="flex gap-2">{[["yes", "Yes"], ["no", "No"]].map(([v, l]) => <Button key={v} type="button" variant={values["hasVin"] === v ? "default" : "outline"} className="rounded-none" onClick={() => setValues((c: Values) => ({ ...c, hasVin: v, ...(v === "no" ? { vin: "", specs: "", trim: "" } : {}) }) as Values)}>{l}</Button>)}</div></div>}
     {showVin && <div className="space-y-1.5"><Field label="VIN Number" value={values["vin"] ?? ""} onChange={(value) => set("vin")(value.toUpperCase())} required maxLength={17} placeholder="17 characters" />{decoding ? <p className="flex items-center gap-1 text-xs text-rental-muted"><Loader2 className="h-3 w-3 animate-spin" /> Looking up vehicle…</p> : vinMsg && <p className="text-xs text-rental-muted">{vinMsg}</p>}</div>}
-    {tradeIn && <Field label="Mileage" value={values["mileage"] ?? "" || ""} onChange={set("mileage")} required type="number" />}
+    {tradeIn && <Field label="Mileage" value={values["mileage"] || ""} onChange={set("mileage")} required type="number" />}
     {showDetails && <>
     <div className="space-y-1.5"><Label>Year *</Label><NativeSelect value={values["year"] ?? ""} onChange={(year) => setValues((current: Values) => current["year"] === year ? current : ({ ...current, year, model: "" }))} options={[...new Set([values["year"] ?? "", ...VEHICLE_YEARS].filter(Boolean))]} placeholder="Year" /></div>
     <div className="space-y-1.5"><Label>Make *</Label><NativeSelect value={values["make"] ?? ""} onChange={(make) => setValues((current: Values) => current["make"] === make ? current : ({ ...current, make, model: "" }))} options={[...new Set([values["make"] ?? "", ...VEHICLE_MAKES].filter(Boolean))]} placeholder="Make" /></div>

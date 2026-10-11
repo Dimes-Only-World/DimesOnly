@@ -128,7 +128,7 @@ const ReferrerDisplay: React.FC<ReferrerDisplayProps> = ({
             username: String(finalData.username),
             front_page_photo: (finalData as any).front_page_photo
               ? String((finalData as any).front_page_photo)
-              : undefined,
+              : "",
           });
           console.log("✅ Successfully found referrer:", finalData.username);
         } else {

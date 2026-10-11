@@ -76,7 +76,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
       ? topRanked.map((u, i) => ({
           id: u.id,
           username: u.username,
-          image: (u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length]?.image ?? "") as string,
+          image: (u.profile_photo || u.front_page_photo || fallbackPerformers[i % fallbackPerformers.length]?.image) ?? "",
           rank: u.rank,
         }))
       : fallbackPerformers;

@@ -40,7 +40,7 @@ const fallbackImages = [
 const fallbackPerformers: LatestPerformer[] = Array.from({ length: 6 }).map((_, index) => ({
   id: `fallback-${index}`,
   username: `New Dime ${index + 1}`,
-  image: fallbackImages[index % fallbackImages.length],
+  image: fallbackImages[index % fallbackImages.length]!,
   created_at: null,
 }));
 

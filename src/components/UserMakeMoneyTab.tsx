@@ -115,7 +115,6 @@ const UserMakeMoneyTab: React.FC = () => {
   }, [user?.id, fetchActualUserData]);
 
   useEffect(() => {
-    if (!user?.id) 
     if (typeof window !== "undefined" && window.location.hash === "#referral-link") {
       const t = setTimeout(() => {
         document.getElementById("referral-link-section")?.scrollIntoView({ behavior: "smooth", block: "start" });

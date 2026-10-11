@@ -198,8 +198,8 @@ const UserDashboard: React.FC = () => {
 
   const userType = (userData?.user_type || "").toLowerCase();
   const isDimeUser = ["stripper", "exotic"].includes(userType);
-  const isBusinessOwner = userType === "business_owner" || (userData)?.is_business_owner === true;
-  const boEliteActive = (userData)?.business_owner_elite_active === true;
+  const isBusinessOwner = userType === "business_owner" || (userData as any)?.is_business_owner === true;
+  const boEliteActive = (userData as any)?.business_owner_elite_active === true;
   const heroKey = isBusinessOwner ? "dashboard_business_owner" : (isDimeUser ? "dashboard_dimes" : "dashboard_male");
   const { videoUrl: heroVideoUrl } = usePageVideo(heroKey);
 
@@ -527,7 +527,7 @@ const UserDashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <ProfileSidebar
-                  userData={userData}
+                  userData={userData as any}
                   referrerData={null}
                   onImageUpload={(file) => handleImageUpload(file, "profile")}
                 />
@@ -543,7 +543,7 @@ const UserDashboard: React.FC = () => {
       case "notifications":
         return <UserNotificationsTab />;
       case "earnings":
-        return <UserEarningsTab userData={userData} />;
+        return <UserEarningsTab userData={userData as any} />;
       case "messages":
         return <UserDirectMessagesTab />;
       case "media":
@@ -584,7 +584,7 @@ const UserDashboard: React.FC = () => {
       )}
       {isBusinessOwner && boEliteActive && (
         <div className="mb-4 rounded-lg border border-yellow-400/60 bg-black/40 px-4 py-2 text-yellow-300 text-sm font-semibold">
-          Business Owner Elite Member · Seat #{(userData)?.business_owner_elite_seat_number ?? "—"}
+          Business Owner Elite Member · Seat #{(userData as any)?.business_owner_elite_seat_number ?? "—"}
         </div>
       )}
       {renderSection()}

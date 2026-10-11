@@ -27,18 +27,17 @@ const JackpotCountdown: React.FC<JackpotCountdownProps> = ({
     const safeTarget = Number(targetAmount) || 1000;
     
     // Only show countdown if jackpot reaches target amount
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (safeJackpot >= safeTarget && nextDrawDate) {
       setShowCountdown(true);
       
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         const now = new Date().getTime();
         const drawTime = new Date(nextDrawDate).getTime();
         const difference = drawTime - now;
 
         if (difference > 0) {
           const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        return;
-      return;
           const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((difference % (1000 * 60)) / 1000);
@@ -48,11 +47,12 @@ const JackpotCountdown: React.FC<JackpotCountdownProps> = ({
           setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
         }
       }, 1000);
-
-      return () => clearInterval(interval);
     } else {
       setShowCountdown(false);
     }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [currentJackpot, targetAmount, nextDrawDate]);
 
   const safeJackpot = Number(currentJackpot) || 0;

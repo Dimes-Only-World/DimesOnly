@@ -257,13 +257,13 @@ const JackpotWinnersBanner: React.FC = () => {
 
   const executedAtLocal = useMemo(() => {
     if (!winners.length) return null;
-    const d = new Date(winners[0] ?? { executed_at: new Date().toISOString() }.executed_at);
+    const d = new Date(winners[0]?.executed_at ?? new Date().toISOString());
     return d.toLocaleString("en-US", { timeZone: "America/New_York" });
   }, [winners]);
 
   const drawnCode = useMemo(() => {
     if (!winners.length) return null;
-    return winners[0] ?? {}.drawn_code || null;
+    return (winners[0] as { drawn_code?: string } | undefined)?.drawn_code || null;
   }, [winners]);
 
   const grandPrize = useMemo(
