@@ -2,6 +2,7 @@
 - [x] Restore rental-area navigation, vehicle details, host and purchase destinations, policy buttons and login returns; all seven real car pages, searches, host estimator and call dialog verified with no page errors; 19 routing/auth tests and six pricing tests passed.
 - [x] Repair custom admin/member authorization installation removed by production tree shaking; preserve signed headers without weakening server verification.
 - [ ] Verify authenticated admin Users/Rentals and paid booking end-to-end: external account sessions unavailable; all seven active cars are marked rented, and no live payment was initiated.
+- [x] Send every site notification by email from Talent@DimesOnly.World through Mailtrap in the black & gold style; domain verified in GoDaddy, sender address corrected on admin approval/rejection/deactivation mails, delivery confirmed by the owner.
 - [x] Update /flix search and sharing wording and uploaded logo; exact server-rendered tags and image load verified.
 - [x] Restore FlameFlix Browse, New, Search, Pricing, and Earn navigation; all five links and live catalog search verified, six routing tests passed.
 - [x] Add a Terms & Conditions button next to the preferences line on Profile Info; dialog verified in isolation at 360/412/1280 (signed-in page unavailable on external auth).
