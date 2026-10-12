@@ -326,3 +326,49 @@ export async function sendEmailWithAttachment(
   }
   return { ok: true, status: res.status };
 }
+
+// General notice (admin messages, new messages, earnings) in the same black & gold style.
+export function buildNoticeEmail(n: { name: string; title: string; message: string; buttonUrl: string; buttonLabel?: string }) {
+  const title = escapeHtml(n.title);
+  const name = escapeHtml(n.name || "there");
+  const body = escapeHtml(n.message).replace(/\n/g, "<br/>");
+  const label = escapeHtml(n.buttonLabel || "Open Dimes Only World");
+  const url = escapeHtml(n.buttonUrl);
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>${title}</title></head>
+<body style="margin:0;padding:0;background-color:#000000;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;"><tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background-color:#0A0A0A;border:1px solid #2A230F;border-radius:12px;">
+<tr><td align="center" style="padding:28px 24px 18px;border-bottom:1px solid #2A230F;"><span style="font-family:Georgia,serif;font-size:22px;letter-spacing:6px;color:#D4AF37;font-weight:bold;">${EMAIL_BRAND.header}</span></td></tr>
+<tr><td align="center" style="padding:28px 24px 6px;"><span style="font-family:Georgia,serif;font-size:28px;line-height:36px;color:#F5D76E;font-weight:bold;">${title}</span></td></tr>
+<tr><td style="padding:14px 40px 6px;color:#EDEDED;font-family:Georgia,serif;font-size:16px;line-height:26px;text-align:center;">Hi ${name},</td></tr>
+<tr><td style="padding:6px 40px;color:#EDEDED;font-family:Georgia,serif;font-size:16px;line-height:26px;text-align:center;">${body}</td></tr>
+<tr><td align="center" style="padding:26px 24px 34px;"><a href="${url}" style="display:inline-block;background-color:#D4AF37;color:#000000;font-family:Georgia,serif;font-size:16px;font-weight:bold;text-decoration:none;padding:15px 42px;border-radius:30px;">${label}</a></td></tr>
+<tr><td align="center" style="padding:20px 24px 26px;border-top:1px solid #2A230F;"><span style="font-family:Georgia,serif;font-size:12px;color:#8A8A8A;">${EMAIL_BRAND.footer}</span></td></tr>
+</table></td></tr></table></body></html>`;
+  const text = [EMAIL_BRAND.header, "", n.title, "", `Hi ${n.name || "there"},`, n.message, "", `${n.buttonLabel || "Open Dimes Only World"}: ${n.buttonUrl}`, "", EMAIL_BRAND.footer].join("\n");
+  return { subject: n.title, html, text };
+}
+
+export async function sendNoticeEmail(
+  to: { email: string; name?: string },
+  n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string },
+): Promise<SendResult> {
+  const token = Deno.env.get("MAILTRAP_API_TOKEN");
+  if (!token) return { ok: false, error: "missing_mailtrap_token" };
+  const { subject, html, text } = buildNoticeEmail({ name: to.name || "", ...n });
+  const res = await fetch(MAILTRAP_ENDPOINT, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: { email: EMAIL_BRAND.fromEmail, name: EMAIL_BRAND.fromName },
+      to: [{ email: to.email, name: to.name }],
+      subject, text, html, category: n.category.slice(0, 255),
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("Mailtrap notice failed", res.status, body);
+    return { ok: false, status: res.status, error: body };
+  }
+  return { ok: true, status: res.status };
+}
