@@ -371,7 +371,7 @@ serve(async (req) => {
                   'Api-Token': mailtrapToken,
                 },
                 body: JSON.stringify({
-                  from: { email: senderEmail, name: 'Dimelot' },
+                  from: { email: senderEmail, name: EMAIL_BRAND.fromName },
                   to: [{ email: userData.email }],
                   subject: 'Your Account Has Been Deactivated',
                   text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
