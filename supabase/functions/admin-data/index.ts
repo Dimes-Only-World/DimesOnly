@@ -368,7 +368,7 @@ serve(async (req) => {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${mailtrapToken}`,
+                  'Api-Token': mailtrapToken,
                 },
                 body: JSON.stringify({
                   from: { email: senderEmail, name: 'Dimelot' },
@@ -836,7 +836,7 @@ serve(async (req) => {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${mailtrapToken}`,
+                  'Api-Token': mailtrapToken,
                 },
                 body: JSON.stringify({
                   from: { email: senderEmail, name: 'Dimes Only World' },
@@ -931,7 +931,7 @@ serve(async (req) => {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${mailtrapToken}`,
+                  'Api-Token': mailtrapToken,
                 },
                 body: JSON.stringify({
                   from: { email: senderEmail, name: 'Dimes Only World' },
