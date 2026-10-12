@@ -357,7 +357,7 @@ serve(async (req) => {
         // Send deactivation email
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
           console.log('Mailtrap config:', { hasToken: !!mailtrapToken, senderEmail });
 
           if (!mailtrapToken) {
@@ -371,11 +371,11 @@ serve(async (req) => {
                   'Api-Token': mailtrapToken,
                 },
                 body: JSON.stringify({
-                  from: { email: senderEmail, name: 'Dimelot' },
+                  from: { email: senderEmail, name: 'Dimes Only World' },
                   to: [{ email: userData.email }],
                   subject: 'Your Account Has Been Deactivated',
-                  text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
-                  html: `<p>Hi ${userData.username},</p><p>Your account on Dimelot has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimelot Team</p>`,
+                  text: `Hi ${userData.username},\n\nYour account on Dimes Only World has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimes Only World Team`,
+                  html: `<p>Hi ${userData.username},</p><p>Your account on Dimes Only World has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimes Only World Team</p>`,
                 }),
               });
               const responseText = await mailtrapResponse.text();
@@ -829,7 +829,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
@@ -924,7 +924,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
