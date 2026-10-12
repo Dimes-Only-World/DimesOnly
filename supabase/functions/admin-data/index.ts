@@ -374,8 +374,8 @@ serve(async (req) => {
                   from: { email: senderEmail, name: 'Dimes Only World' },
                   to: [{ email: userData.email }],
                   subject: 'Your Account Has Been Deactivated',
-                  text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
-                  html: `<p>Hi ${userData.username},</p><p>Your account on Dimelot has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimelot Team</p>`,
+                  text: `Hi ${userData.username},\n\nYour account on Dimes Only World has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimes Only World Team`,
+                  html: `<p>Hi ${userData.username},</p><p>Your account on Dimes Only World has been deactivated by an administrator.</p><p>If you believe this was a mistake, please send an appeal by contacting our support team.</p><p>Regards,<br/>Dimes Only World Team</p>`,
                 }),
               });
               const responseText = await mailtrapResponse.text();
