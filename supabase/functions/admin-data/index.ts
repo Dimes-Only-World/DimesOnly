@@ -2,7 +2,7 @@ import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { EMAIL_BRAND, sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
+import { sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
 import { notifyPayout, companyFinancials, executePaypalBatch } from "../_shared/payoutAdmin.ts";
 
 
@@ -357,7 +357,7 @@ serve(async (req) => {
         // Send deactivation email
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || EMAIL_BRAND.fromEmail;
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
           console.log('Mailtrap config:', { hasToken: !!mailtrapToken, senderEmail });
 
           if (!mailtrapToken) {
@@ -371,7 +371,7 @@ serve(async (req) => {
                   'Api-Token': mailtrapToken,
                 },
                 body: JSON.stringify({
-                  from: { email: senderEmail, name: EMAIL_BRAND.fromName },
+                  from: { email: senderEmail, name: 'Dimes Only World' },
                   to: [{ email: userData.email }],
                   subject: 'Your Account Has Been Deactivated',
                   text: `Hi ${userData.username},\n\nYour account on Dimelot has been deactivated by an administrator.\n\nIf you believe this was a mistake, please send an appeal by contacting our support team.\n\nRegards,\nDimelot Team`,
@@ -829,7 +829,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || EMAIL_BRAND.fromEmail;
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
@@ -924,7 +924,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || EMAIL_BRAND.fromEmail;
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
