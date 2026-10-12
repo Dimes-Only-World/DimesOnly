@@ -639,6 +639,18 @@ serve(async (req) => {
         break;
       }
 
+      // Signed upload URL for admin notification media (admin verified above)
+      case 'createNotificationUploadUrl': {
+        const ext = String(params.fileExt || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+        const path = `notifications/notification_${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
+        const { data, error } = await supabaseAdmin.storage
+          .from('notification')
+          .createSignedUploadUrl(path);
+        if (error) throw error;
+        result = { path: data.path, token: data.token };
+        break;
+      }
+
       // Signed URL for private media
       case 'createSignedUrl': {
         const { storagePath, expiresIn } = params;

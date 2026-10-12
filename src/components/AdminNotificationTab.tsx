@@ -138,21 +138,21 @@ const AdminNotificationTab: React.FC = () => {
 
   const uploadMedia = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `notification_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(7)}.${fileExt}`;
-      const filePath = `notifications/${fileName}`;
+      const fileExt = file.name.split(".").pop() || "bin";
 
       setUploadProgress(10);
 
-      // Upload to notifications bucket
+      // Admin sessions are custom, so the server verifies the admin and issues a one-time upload slot
+      const { data: slot, error: slotError } = await supabase.functions.invoke("admin-data", {
+        body: { action: "createNotificationUploadUrl", adminUserId: getAdminUserId(), fileExt },
+      });
+      if (slotError) throw slotError;
+      const { path: filePath, token } = slot?.data || {};
+      if (!filePath || !token) throw new Error(slot?.error || "Could not start upload");
+
       const { error: uploadError } = await supabase.storage
         .from("notification")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .uploadToSignedUrl(filePath, token, file, { cacheControl: "3600" });
 
       if (uploadError) {
         console.error("Upload error:", uploadError);
