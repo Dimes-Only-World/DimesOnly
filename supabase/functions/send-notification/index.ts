@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendNoticeEmail } from "../_shared/dimes-emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -283,7 +284,36 @@ Deno.serve(async (req) => {
       push = await sendPush(admin, userIds, title, message, link, { ...data, type, link });
     }
 
-    return json({ success: true, created: inserted?.length ?? 0, push });
+    // Email copy from Talent@DimesOnly.World. Failures never fail the notification.
+    let email: Record<string, unknown> = { sent: 0 };
+    if ((payload as { email?: boolean }).email !== false) {
+      try {
+        const { data: people } = await admin
+          .from("users")
+          .select("id, email, username, first_name, is_active")
+          .in("id", userIds);
+        const buttonUrl = link ? `${SITE_URL}${link.startsWith("/") ? link : `/${link}`}` : `${SITE_URL}/dashboard`;
+        // deno-lint-ignore no-explicit-any
+        const list = (people ?? []).filter((p: any) => p.email && p.is_active !== false);
+        let sent = 0;
+        for (let i = 0; i < list.length; i += 10) {
+          // deno-lint-ignore no-explicit-any
+          const results = await Promise.all(list.slice(i, i + 10).map((p: any) =>
+            sendNoticeEmail(
+              { email: p.email, name: p.first_name || p.username || "" },
+              { title, message, buttonUrl, buttonLabel: type === "message" ? "Read Message" : "View Details", category: `notice_${type}` },
+            )
+          ));
+          sent += results.filter((r) => r.ok).length;
+        }
+        email = { sent, recipients: list.length };
+      } catch (e) {
+        console.error("notice email failed", e);
+        email = { sent: 0, reason: "failed" };
+      }
+    }
+
+    return json({ success: true, created: inserted?.length ?? 0, push, email });
   } catch (e) {
     console.error("send-notification failed", e);
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
