@@ -273,7 +273,7 @@ export async function sendDimesEmail(
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      "Api-Token": token,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -311,7 +311,7 @@ export async function sendEmailWithAttachment(
   if (!token) return { ok: false, error: "missing_mailtrap_token" };
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    headers: { "Api-Token": token, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: { email: EMAIL_BRAND.fromEmail, name: msg.fromName || EMAIL_BRAND.fromName },
       to: [{ email: to.email, name: to.name }],
@@ -358,7 +358,7 @@ export async function sendNoticeEmail(
   const { subject, html, text } = buildNoticeEmail({ name: to.name || "", ...n });
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    headers: { "Api-Token": token, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: { email: EMAIL_BRAND.fromEmail, name: EMAIL_BRAND.fromName },
       to: [{ email: to.email, name: to.name }],
