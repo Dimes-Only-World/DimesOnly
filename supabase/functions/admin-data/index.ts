@@ -2,7 +2,7 @@ import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
+import { EMAIL_BRAND, sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
 import { notifyPayout, companyFinancials, executePaypalBatch } from "../_shared/payoutAdmin.ts";
 
 
@@ -357,7 +357,7 @@ serve(async (req) => {
         // Send deactivation email
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || EMAIL_BRAND.fromEmail;
           console.log('Mailtrap config:', { hasToken: !!mailtrapToken, senderEmail });
 
           if (!mailtrapToken) {
@@ -829,7 +829,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || EMAIL_BRAND.fromEmail;
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
@@ -924,7 +924,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'noreply@dimelot.com';
+          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || EMAIL_BRAND.fromEmail;
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
