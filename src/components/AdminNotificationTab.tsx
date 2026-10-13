@@ -12,6 +12,23 @@ import { getAdminUserId } from "@/lib/adminAuth";
 import { Upload, FileImage, FileVideo, X } from "lucide-react";
 import { NOTIFICATION_CATEGORIES, NotificationCategory } from "@/lib/notificationCategories";
 
+// Turns a backend error into the server's real reason instead of "non-2xx status code".
+async function functionErrorMessage(error: unknown): Promise<string> {
+  const ctx = (error as { context?: unknown })?.context;
+  if (ctx instanceof Response) {
+    try {
+      const text = await ctx.clone().text();
+      try {
+        const j = JSON.parse(text);
+        if (j?.error) return String(j.error);
+      } catch { /* not json */ }
+      if (text) return text.slice(0, 300);
+    } catch { /* ignore */ }
+    if (ctx.status === 401) return "Admin session expired. Please sign out and sign in again.";
+  }
+  return error instanceof Error ? error.message : "Request failed";
+}
+
 const AUDIENCES = [
   { value: "all", label: "Everyone" },
   { value: "dimes", label: "Dimes (Exotic & Stripper)" },
@@ -146,7 +163,7 @@ const AdminNotificationTab: React.FC = () => {
       const { data: slot, error: slotError } = await supabase.functions.invoke("admin-data", {
         body: { action: "createNotificationUploadUrl", adminUserId: getAdminUserId(), fileExt },
       });
-      if (slotError) throw slotError;
+      if (slotError) throw new Error(`Photo upload: ${await functionErrorMessage(slotError)}`);
       const { path: filePath, token } = slot?.data || {};
       if (!filePath || !token) throw new Error(slot?.error || "Could not start upload");
 
@@ -224,7 +241,7 @@ const AdminNotificationTab: React.FC = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) throw new Error(await functionErrorMessage(error));
       const result = data as { success?: boolean; totalUsers?: number; created?: number; pushRecipients?: number; emailsSent?: number; emailError?: string; error?: string };
       if (!result.success) throw new Error(result.error || "Failed to send notification");
 
