@@ -15,7 +15,7 @@ function mailtrapToken(): string {
 
 export const EMAIL_BRAND = {
   siteUrl: "https://dimesonly.world",
-  fromEmail: "Talent@DimesOnly.World",
+  fromEmail: "talent@dimesonly.world",
   fromName: "Dimes Only World",
   header: "DIMES ONLY WORLD",
   footer: "Talent Team • Talent@DimesOnly.World • Sexy Starts Here",

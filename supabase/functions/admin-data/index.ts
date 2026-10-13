@@ -357,7 +357,7 @@ serve(async (req) => {
         // Send deactivation email
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
+          const senderEmail = (Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'talent@dimesonly.world').trim().toLowerCase();
           console.log('Mailtrap config:', { hasToken: !!mailtrapToken, senderEmail });
 
           if (!mailtrapToken) {
@@ -829,7 +829,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
+          const senderEmail = (Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'talent@dimesonly.world').trim().toLowerCase();
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
@@ -924,7 +924,7 @@ serve(async (req) => {
         let emailSent = false;
         if (userData?.email) {
           const mailtrapToken = Deno.env.get('MAILTRAP_API_TOKEN');
-          const senderEmail = Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'Talent@DimesOnly.World';
+          const senderEmail = (Deno.env.get('MAILTRAP_SENDER_EMAIL') || 'talent@dimesonly.world').trim().toLowerCase();
           if (mailtrapToken) {
             try {
               const mailtrapResponse = await fetch('https://send.api.mailtrap.io/api/send', {
