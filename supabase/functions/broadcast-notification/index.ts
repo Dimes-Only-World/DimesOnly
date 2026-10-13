@@ -62,6 +62,8 @@ Deno.serve(async (req) => {
 
     let created = 0;
     let pushRecipients = 0;
+    let emailsSent = 0;
+    let emailError = "";
     const pushResults: unknown[] = [];
 
     for (const batch of chunk(userIds, 500)) {
@@ -74,10 +76,11 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           user_ids: batch,
-          title: "Admin Notification",
+          title,
           message,
           type: "admin",
-          link: "/dashboard?tab=notifications",
+          link,
+          category,
           data: {
             media_url: mediaUrl,
             media_type: mediaType,
@@ -98,6 +101,8 @@ Deno.serve(async (req) => {
 
       created += Number(result?.created ?? batch.length) || 0;
       pushRecipients += Number(result?.push?.recipients ?? 0) || 0;
+      emailsSent += Number(result?.email?.sent ?? 0) || 0;
+      if (!emailError && result?.email?.error) emailError = String(result.email.error);
     }
 
     return json({
@@ -105,6 +110,8 @@ Deno.serve(async (req) => {
       totalUsers: userIds.length,
       created,
       pushRecipients,
+      emailsSent,
+      emailError,
       pushResults,
     });
   } catch (e) {

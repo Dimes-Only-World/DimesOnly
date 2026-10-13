@@ -296,6 +296,7 @@ Deno.serve(async (req) => {
         // deno-lint-ignore no-explicit-any
         const list = (people ?? []).filter((p: any) => p.email && p.is_active !== false);
         let sent = 0;
+        let firstError = "";
         for (let i = 0; i < list.length; i += 10) {
           // deno-lint-ignore no-explicit-any
           const results = await Promise.all(list.slice(i, i + 10).map((p: any) =>
@@ -305,11 +306,13 @@ Deno.serve(async (req) => {
             )
           ));
           sent += results.filter((r) => r.ok).length;
+          const bad = results.find((r) => !r.ok);
+          if (bad && !firstError) firstError = `${bad.status ?? ""} ${String(bad.error ?? "").slice(0, 200)}`.trim();
         }
-        email = { sent, recipients: list.length };
+        email = { sent, recipients: list.length, error: firstError || undefined };
       } catch (e) {
         console.error("notice email failed", e);
-        email = { sent: 0, reason: "failed" };
+        email = { sent: 0, reason: "failed", error: e instanceof Error ? e.message : String(e) };
       }
     }
 
