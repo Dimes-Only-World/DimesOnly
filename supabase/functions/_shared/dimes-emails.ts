@@ -4,6 +4,15 @@
 
 const MAILTRAP_ENDPOINT = "https://send.api.mailtrap.io/api/send";
 
+// Tolerate tokens saved with stray spaces, quotes or a "Bearer " prefix.
+function mailtrapToken(): string {
+  return String(Deno.env.get("MAILTRAP_API_TOKEN") ?? "")
+    .trim()
+    .replace(/^["']+|["']+$/g, "")
+    .replace(/^bearer\s+/i, "")
+    .trim();
+}
+
 export const EMAIL_BRAND = {
   siteUrl: "https://dimesonly.world",
   fromEmail: "Talent@DimesOnly.World",
@@ -262,7 +271,7 @@ export async function sendDimesEmail(
   type: DimeEmailType,
   data: DimeEmailData,
 ): Promise<SendResult> {
-  const token = Deno.env.get("MAILTRAP_API_TOKEN");
+  const token = mailtrapToken();
   if (!token) {
     console.error("MAILTRAP_API_TOKEN is not set");
     return { ok: false, error: "missing_mailtrap_token" };
@@ -307,7 +316,7 @@ export async function sendEmailWithAttachment(
   msg: { subject: string; html: string; text: string; category: string; fromName?: string },
   attachments: EmailAttachment[],
 ): Promise<SendResult> {
-  const token = Deno.env.get("MAILTRAP_API_TOKEN");
+  const token = mailtrapToken();
   if (!token) return { ok: false, error: "missing_mailtrap_token" };
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
@@ -353,7 +362,7 @@ export async function sendNoticeEmail(
   to: { email: string; name?: string },
   n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string },
 ): Promise<SendResult> {
-  const token = Deno.env.get("MAILTRAP_API_TOKEN");
+  const token = mailtrapToken();
   if (!token) return { ok: false, error: "missing_mailtrap_token" };
   const { subject, html, text } = buildNoticeEmail({ name: to.name || "", ...n });
   const res = await fetch(MAILTRAP_ENDPOINT, {
