@@ -225,14 +225,15 @@ const AdminNotificationTab: React.FC = () => {
       });
 
       if (error) throw error;
-      const result = data as { success?: boolean; totalUsers?: number; created?: number; pushRecipients?: number; error?: string };
+      const result = data as { success?: boolean; totalUsers?: number; created?: number; pushRecipients?: number; emailsSent?: number; emailError?: string; error?: string };
       if (!result.success) throw new Error(result.error || "Failed to send notification");
 
       toast({
-        title: "Success!",
-        description: `Notification sent to ${result.created ?? 0}/${result.totalUsers ?? 0} users. Lock-screen push sent to ${result.pushRecipients ?? 0} saved devices${
-          mediaUrl ? " with media attachment" : ""
-        }.`,
+        title: result.emailError ? "Sent, but email failed" : "Success!",
+        variant: result.emailError ? "destructive" : undefined,
+        description: `Notification sent to ${result.created ?? 0}/${result.totalUsers ?? 0} users. Emails sent: ${result.emailsSent ?? 0}. Push: ${result.pushRecipients ?? 0} devices.${
+          result.emailError ? ` Email error: ${result.emailError}` : ""
+        }`,
       });
 
       // Reset form
