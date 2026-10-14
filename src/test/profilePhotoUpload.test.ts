@@ -25,7 +25,9 @@ describe('profile photo upload', () => {
     invoke.mockResolvedValue({ data: { success: true, url: 'https://example.test/banner.jpg' }, error: null });
     const file = new File(['photo'], 'banner.jpg', { type: 'image/jpeg' });
     expect(await uploadProfilePhoto(file, 'thetruth', 'banner')).toBe('https://example.test/banner.jpg');
-    const [endpoint, { body }] = invoke.mock.calls[0];
+    const call = invoke.mock.calls[0];
+    if (!call) throw new Error('Upload endpoint was not called');
+    const [endpoint, { body }] = call;
     expect(endpoint).toBe('upload-photo');
     expect(body.get('username')).toBe('thetruth');
     expect(body.get('photoType')).toBe('banner');
@@ -34,7 +36,9 @@ describe('profile photo upload', () => {
   it('maps the featured photo to the existing endpoint field', async () => {
     invoke.mockResolvedValue({ data: { success: true, url: 'https://example.test/front.jpg' }, error: null });
     await uploadProfilePhoto(new File(['x'], 'front.jpg'), 'thetruth', 'front_page');
-    expect(invoke.mock.calls[0][1].body.get('photoType')).toBe('frontPage');
+    const call = invoke.mock.calls[0];
+    if (!call) throw new Error('Upload endpoint was not called');
+    expect(call[1].body.get('photoType')).toBe('frontPage');
   });
   it('does not report success when saving failed', async () => {
     invoke.mockResolvedValue({ data: { success: false, error: 'Could not save your photo.' }, error: null });
