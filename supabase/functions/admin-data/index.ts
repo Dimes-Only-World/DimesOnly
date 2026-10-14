@@ -651,6 +651,29 @@ serve(async (req) => {
         break;
       }
 
+      // Sent admin notifications with every recipient username (for the sent-history view)
+      case 'fetchNotificationHistory': {
+        const { data, error } = await supabaseAdmin
+          .from('notifications')
+          .select('id, user_id, title, message, created_at, is_read')
+          .eq('type', 'admin')
+          .order('created_at', { ascending: false })
+          .limit(3000);
+        if (error) throw error;
+        const userIds = [...new Set((data || []).map((n: any) => n.user_id).filter(Boolean))];
+        const usersMap: Record<string, string> = {};
+        if (userIds.length > 0) {
+          const { data: users, error: usersErr } = await supabaseAdmin
+            .from('users')
+            .select('id, username')
+            .in('id', userIds);
+          if (usersErr) throw usersErr;
+          for (const u of (users || [])) usersMap[u.id] = u.username;
+        }
+        result = (data || []).map((n: any) => ({ ...n, username: usersMap[n.user_id] || 'Unknown' }));
+        break;
+      }
+
       // Signed URL for private media
       case 'createSignedUrl': {
         const { storagePath, expiresIn } = params;

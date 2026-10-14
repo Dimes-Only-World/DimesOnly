@@ -1,6 +1,7 @@
 import { getVerifiedAdminId, AUTH_HEADERS } from "../_shared/caller.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildAudienceConditions } from "../_shared/audienceFilter.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -48,9 +49,11 @@ Deno.serve(async (req) => {
     if (adminError || !isAdmin) return json({ error: "Admin access required" }, 403);
 
     let q = admin.from("users").select("id").eq("is_active", true);
-    if (audience === "user_type" && audienceValue) {
-      if (audienceValue === "dimes") q = q.in("user_type", ["exotic", "stripper"]);
-      else q = q.eq("user_type", audienceValue);
+    const audienceConditions = buildAudienceConditions(audience, audienceValue);
+    if (audienceConditions) {
+      for (const cond of audienceConditions) {
+        q = q.in(cond.column, Array.isArray(cond.value) ? cond.value : [cond.value]);
+      }
     } else if (audience === "username" && audienceValue) {
       q = q.ilike("username", audienceValue.replace(/^@/, "").replace(/[%_]/g, ""));
     }
