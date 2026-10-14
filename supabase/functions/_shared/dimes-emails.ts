@@ -274,7 +274,7 @@ export async function sendDimesEmail(
   const token = mailtrapToken();
   if (!token) {
     console.error("MAILTRAP_API_TOKEN is not set");
-    return { ok: false, error: "missing_mailtrap_token" };
+    return logEmail(to, `dime_${type}`, type, { ok: false, error: "missing_mailtrap_token" });
   }
 
   const { subject, html, text } = buildDimeEmail(type, data);
@@ -298,9 +298,29 @@ export async function sendDimesEmail(
   if (!res.ok) {
     const body = await res.text();
     console.error("Mailtrap send failed", res.status, body);
-    return { ok: false, status: res.status, error: body };
+    return logEmail(to, `dime_${type}`, subject, { ok: false, status: res.status, error: body });
   }
-  return { ok: true, status: res.status };
+  return logEmail(to, `dime_${type}`, subject, { ok: true, status: res.status });
+}
+
+// Record every send attempt in email_logs (service role). Never throws.
+async function logEmail(to: { email: string; name?: string }, category: string, subject: string, r: SendResult): Promise<SendResult> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (url && key) {
+      await fetch(`${url}/rest/v1/email_logs`, {
+        method: "POST",
+        headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({
+          recipient_email: to.email, recipient_name: to.name ?? null, category,
+          subject: String(subject).slice(0, 500), status: r.ok ? "sent" : "failed",
+          status_code: r.status ?? null, error: r.error ? String(r.error).slice(0, 1000) : null,
+        }),
+      });
+    }
+  } catch (e) { console.error("email log failed", e); }
+  return r;
 }
 
 export interface EmailAttachment { filename: string; content: Uint8Array; type: string }
@@ -317,7 +337,7 @@ export async function sendEmailWithAttachment(
   attachments: EmailAttachment[],
 ): Promise<SendResult> {
   const token = mailtrapToken();
-  if (!token) return { ok: false, error: "missing_mailtrap_token" };
+  if (!token) return logEmail(to, msg.category, msg.subject, { ok: false, error: "missing_mailtrap_token" });
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
     headers: { "Api-Token": token, "Content-Type": "application/json" },
@@ -331,9 +351,9 @@ export async function sendEmailWithAttachment(
   if (!res.ok) {
     const body = await res.text();
     console.error("Mailtrap send failed", res.status, body);
-    return { ok: false, status: res.status, error: body };
+    return logEmail(to, msg.category, msg.subject, { ok: false, status: res.status, error: body });
   }
-  return { ok: true, status: res.status };
+  return logEmail(to, msg.category, msg.subject, { ok: true, status: res.status });
 }
 
 // General notice (admin messages, new messages, earnings) in the same black & gold style.
@@ -377,7 +397,7 @@ export async function sendNoticeEmail(
   n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string; media?: NoticeMedia },
 ): Promise<SendResult> {
   const token = mailtrapToken();
-  if (!token) return { ok: false, error: "missing_mailtrap_token" };
+  if (!token) return logEmail(to, n.category, n.title, { ok: false, error: "missing_mailtrap_token" });
   const { subject, html, text } = buildNoticeEmail({ name: to.name || "", ...n });
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
@@ -391,7 +411,7 @@ export async function sendNoticeEmail(
   if (!res.ok) {
     const body = await res.text();
     console.error("Mailtrap notice failed", res.status, body);
-    return { ok: false, status: res.status, error: body };
+    return logEmail(to, n.category, subject, { ok: false, status: res.status, error: body });
   }
-  return { ok: true, status: res.status };
+  return logEmail(to, n.category, subject, { ok: true, status: res.status });
 }
