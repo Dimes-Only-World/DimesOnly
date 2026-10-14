@@ -7,15 +7,15 @@ import { resolveMembership } from '@/lib/membership';
 
 interface UserMediaUploadTabProps {
   userData: any;
-  onUpdate?: (data: any) => Promise<boolean>;
+  onUpdate?: (data: any, alreadySaved?: boolean) => Promise<boolean>;
 }
 
 const UserMediaUploadTab: React.FC<UserMediaUploadTabProps> = ({ userData, onUpdate }) => {
   const navigate = useNavigate();
   
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: any, alreadySaved?: boolean) => {
     if (onUpdate) {
-      return await onUpdate(data);
+      return await onUpdate(data, alreadySaved);
     }
     return false;
   };

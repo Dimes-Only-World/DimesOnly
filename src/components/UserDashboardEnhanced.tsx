@@ -29,6 +29,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/types";
+import { uploadProfilePhoto } from "@/lib/profilePhotoUpload";
 
 type UserData = Tables<"users">;
 
@@ -98,8 +99,12 @@ const UserDashboardEnhanced: React.FC = () => {
     }
   };
 
-  const updateUserData = async (updatedData: Partial<UserData>) => {
+  const updateUserData = async (updatedData: Partial<UserData>, alreadySaved = false) => {
     if (!userData) return false;
+    if (alreadySaved) {
+      setUserData((prev) => prev ? { ...prev, ...updatedData } : prev);
+      return true;
+    }
 
     try {
       const { error } = await supabaseAdmin
@@ -128,26 +133,16 @@ const UserDashboardEnhanced: React.FC = () => {
     if (!userData) return;
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `profiles/${userData.username}/${imageType}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from("user-photos")
-        .upload(fileName, file, { cacheControl: "3600", upsert: true });
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("user-photos")
-        .getPublicUrl(fileName);
+      const publicUrl = await uploadProfilePhoto(file, userData.username, imageType);
 
       const updateField = imageType === "profile" ? "profile_photo" : 
                          imageType === "banner" ? "banner_photo" : "front_page_photo";
 
-      await updateUserData({ [updateField]: publicUrl });
+      await updateUserData({ [updateField]: publicUrl }, true);
+      toast({ title: "Success", description: "Photo updated successfully" });
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to upload image", variant: "destructive" });
     }
   };
 

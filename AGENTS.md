@@ -1,9 +1,10 @@
 # Project Architecture Rules
-- Invoke edge authorization installation explicitly from the Supabase client module; side-effect-only imports are removed by production tree shaking and would omit signed custom sessions.
+- Explicitly install edge authorization in the Supabase client; tree shaking removes side-effect-only imports and custom-session headers.
+- Save profile photos via owner-verified upload-photo, not browser storage/table writes; custom sessions cannot satisfy RLS.
 - Any route file with a same-named child folder (rentals, flix, dashboard, clothes, feed, rates, tips) renders only Outlet, with its page, sharing metadata and default redirects in the index leaf; otherwise child URLs show the parent page.
 - Derive featured and later event ordering through the shared UTC event schedule helper, refreshing while open and on event changes; one ordering path keeps expiry, TBA, and upload-order behavior consistent.
 
-- Apply viewport bounds, shrinkable grid tracks, and vertical scrolling through shared dialog primitives; large-text pop-ups must keep all actions reachable on small screens, and long-document pop-ups (terms, agreements) use the shared reading-column class so they stay readable on desktop without losing phone reachability.
+- Shared dialogs enforce viewport bounds, shrinkable tracks and scrolling so actions stay reachable; long documents use the shared reading-column class.
 
 - Define feed pagination controls at module scope so asynchronous media updates preserve the pressed button and touch interaction.
 
