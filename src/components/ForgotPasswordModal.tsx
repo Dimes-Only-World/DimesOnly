@@ -96,9 +96,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               <p className="font-medium mb-2">📧 Didn't receive the email?</p>
               <ul className="list-disc list-inside space-y-1 text-amber-700">
                 <li>Check your Spam/Junk folder</li>
-                <li>Search for "Supabase" or "password reset"</li>
+                <li>Search for "DimesOnly" or "password reset"</li>
                 <li>Delivery can take up to 10 minutes</li>
-                <li>Reset link expires in 24 hours</li>
+                <li>Reset link expires in 5 minutes — use it right away</li>
               </ul>
             </div>
 
