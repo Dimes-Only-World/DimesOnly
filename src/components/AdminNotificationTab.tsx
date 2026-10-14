@@ -88,7 +88,7 @@ const AdminNotificationTab: React.FC = () => {
         body: { action: "fetchNotificationHistory", adminUserId },
       });
       if (error) throw new Error(await functionErrorMessage(error));
-      const rows = (data as SentNotificationRow[]) || [];
+      const rows = ((data as { data?: SentNotificationRow[] })?.data) || [];
       const byKey: Record<string, SentGroup> = {};
       for (const row of rows) {
         const key = `${row.title}||${row.created_at}`;
