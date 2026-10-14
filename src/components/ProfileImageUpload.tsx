@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, User, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { uploadProfilePhoto } from '@/lib/profilePhotoUpload';
 
 interface ProfileImageUploadProps {
   userData: any;
-  onUpdate: (data: any) => Promise<boolean>;
+  onUpdate: (data: any, alreadySaved?: boolean) => Promise<boolean>;
 }
 
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ userData, onUpdate }) => {
@@ -15,27 +15,16 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ userData, onUpd
   const { toast } = useToast();
 
   const handleImageUpload = async (file: File, type: 'profile' | 'banner' | 'front_page') => {
-    if (!userData?.id) return;
+    if (!userData?.username) return;
 
     setUploading(type);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userData.id}/${type}_${Date.now()}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from('user-photos')
-        .upload(fileName, file, { cacheControl: '3600', upsert: true });
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('user-photos')
-        .getPublicUrl(fileName);
+      const publicUrl = await uploadProfilePhoto(file, userData.username, type);
 
       const updateField = type === 'profile' ? 'profile_photo' : 
                          type === 'banner' ? 'banner_photo' : 'front_page_photo';
 
-      await onUpdate({ [updateField]: publicUrl });
+      await onUpdate({ [updateField]: publicUrl }, true);
       
       toast({
         title: 'Success',
@@ -45,7 +34,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ userData, onUpd
       console.error('Error uploading image:', error);
       toast({
         title: 'Error',
-        description: 'Failed to upload image',
+        description: error instanceof Error ? error.message : 'Failed to upload image',
         variant: 'destructive',
       });
     } finally {

@@ -29,7 +29,7 @@ interface MediaUploadSectionProps {
     user_type?: string;
     [key: string]: unknown;
   };
-  onUpdate: (data: Record<string, unknown>) => Promise<boolean>;
+  onUpdate: (data: Record<string, unknown>, alreadySaved?: boolean) => Promise<boolean>;
 }
 
 interface UploadLimits {

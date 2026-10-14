@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Repair Profile Info banner-photo upload via owner-verified upload-photo; deployed, seven authorization/upload tests passed; storage RLS unchanged.
+- [ ] Verify a signed-in banner upload and refresh on the owner's account: external Supabase session unavailable for automated checks.
 - [x] Restore rental-area navigation, vehicle details, host and purchase destinations, policy buttons and login returns; all seven real car pages, searches, host estimator and call dialog verified with no page errors; 19 routing/auth tests and six pricing tests passed.
 - [x] Repair custom admin/member authorization installation removed by production tree shaking; preserve signed headers without weakening server verification.
 - [ ] Verify authenticated admin Users/Rentals and paid booking end-to-end: external account sessions unavailable; all seven active cars are marked rented, and no live payment was initiated.

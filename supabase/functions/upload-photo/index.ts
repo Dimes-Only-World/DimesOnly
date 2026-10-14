@@ -1,6 +1,7 @@
 import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyPhotoOwner } from "./authorization.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +18,7 @@ serve(async (req) => {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const username = formData.get("username")?.toString();
+    const username = formData.get("username")?.toString().trim().toLowerCase();
     const photoType = formData.get("photoType")?.toString() ?? "profile";
 
     if (!file || !username) {
@@ -54,9 +55,27 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const timestamp = Date.now();
-    const storagePath = `profiles/${username}_${photoType}_${timestamp}.${ext}`;
+    const columnMap: Record<string, string> = {
+      profile: "profile_photo",
+      banner: "banner_photo",
+      frontPage: "front_page_photo",
+    };
+    const column = columnMap[photoType];
+    if (!column || username.includes("/") || username.includes("\\")) {
+      return new Response(JSON.stringify({ error: "Invalid photo type or username." }), { status: 400, headers: corsHeaders });
+    }
+    const { data: owner, error: ownerError } = await supabase.from("users")
+      .select("id").ilike("username", username.replace(/[\\%_]/g, "\\$&")).maybeSingle();
+    if (ownerError) {
+      return new Response(JSON.stringify({ error: "Could not verify this profile. Please try again." }), { status: 500, headers: corsHeaders });
+    }
+    // Authorize before writing any file. Signup photos for unused names remain supported.
+    if (!(await verifyPhotoOwner(owner?.id ?? null, () => getCallerId(req)))) {
+      return new Response(JSON.stringify({ error: "Please sign in again to change this photo." }), { status: 403, headers: corsHeaders });
+    }
+    const extensions: Record<string, string> = { "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
+    const ext = extensions[file.type] || "jpg";
+    const storagePath = `profiles/${username}/${photoType}_${crypto.randomUUID()}.${ext}`;
 
     const bytes = new Uint8Array(await file.arrayBuffer());
 
@@ -65,7 +84,7 @@ serve(async (req) => {
       .upload(storagePath, bytes, {
         contentType: file.type,
         cacheControl: "3600",
-        upsert: true,
+        upsert: false,
       });
 
     if (uploadError) {
@@ -79,29 +98,13 @@ serve(async (req) => {
     const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(storagePath);
     const url = urlData?.publicUrl ?? "";
 
-    {
-      const { data: _owner } = await supabase.from("users").select("id").eq("username", username).maybeSingle();
-      if (_owner?.id) {
-        const _caller = await getCallerId(req);
-        if (_caller !== _owner.id) {
-          return new Response(JSON.stringify({ error: "Not allowed to change this profile" }), { status: 403, headers: corsHeaders });
-        }
+    if (owner) {
+      const { data: saved, error: updateError } = await supabase.from("users")
+        .update({ [column]: url }).eq("id", owner.id).select("id").single();
+      if (updateError || !saved) {
+        await supabase.storage.from("user-photos").remove([storagePath]);
+        return new Response(JSON.stringify({ error: "Could not save your photo. Please try again." }), { status: 500, headers: corsHeaders });
       }
-    }
-    const columnMap: Record<string, string> = {
-      profile: "profile_photo",
-      banner: "banner_photo",
-      frontPage: "front_page_photo",
-    };
-    const column = columnMap[photoType] ?? "profile_photo";
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ [column]: url })
-      .eq("username", username);
-
-    if (updateError) {
-      console.log("Skipping user record update:", updateError.message);
     }
 
     // Registration photos also become entry-level ("silver") feed content.
