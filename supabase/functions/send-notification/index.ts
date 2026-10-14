@@ -297,12 +297,15 @@ Deno.serve(async (req) => {
         const list = (people ?? []).filter((p: any) => p.email && p.is_active !== false);
         let sent = 0;
         let firstError = "";
+        const mediaUrl = toHttpsUrl(data.email_media_url) || toHttpsUrl(data.media_url);
+        const mediaType = String(data.email_media_type ?? data.media_type ?? "");
+        const media = mediaUrl && mediaType ? { url: mediaUrl, type: mediaType } : undefined;
         for (let i = 0; i < list.length; i += 10) {
           // deno-lint-ignore no-explicit-any
           const results = await Promise.all(list.slice(i, i + 10).map((p: any) =>
             sendNoticeEmail(
               { email: p.email, name: p.first_name || p.username || "" },
-              { title, message, buttonUrl, buttonLabel: type === "message" ? "Read Message" : "View Details", category: `notice_${type}` },
+              { title, message, buttonUrl, buttonLabel: type === "message" ? "Read Message" : "View Details", category: `notice_${type}`, media },
             )
           ));
           sent += results.filter((r) => r.ok).length;

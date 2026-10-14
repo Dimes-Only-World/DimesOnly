@@ -65,6 +65,28 @@ Deno.serve(async (req) => {
     const handle = `@${sender?.username ?? "member"}`;
     const photo = sender?.profile_photo || sender?.front_page_photo || null;
 
+    // Attach the newest photo/voice/video from this sender to the email (7-day signed link).
+    let emailMedia: { email_media_url?: string; email_media_type?: string } = {};
+    {
+      const since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: latest } = await admin
+        .from("direct_messages")
+        .select("media_type, media_storage_path")
+        .eq("sender_id", senderId)
+        .eq("recipient_id", recipientId)
+        .gte("created_at", since)
+        .not("media_storage_path", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (latest?.media_storage_path && latest.media_type) {
+        const { data: signed } = await admin.storage
+          .from("private-media")
+          .createSignedUrl(latest.media_storage_path, 7 * 24 * 60 * 60);
+        if (signed?.signedUrl) emailMedia = { email_media_url: signed.signedUrl, email_media_type: String(latest.media_type) };
+      }
+    }
+
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-notification`, {
       method: "POST",
       headers: {
@@ -83,6 +105,7 @@ Deno.serve(async (req) => {
           actor_username: sender?.username ?? null,
           actor_photo_url: photo,
           notification_icon: photo,
+          ...emailMedia,
         },
         push: true,
       }),
