@@ -85,6 +85,9 @@ verify_jwt = false
 [functions.media-upload]
 verify_jwt = false
 
+[functions.upload-photo]
+verify_jwt = false
+
 [functions.save-push-subscription]
 verify_jwt = false
 

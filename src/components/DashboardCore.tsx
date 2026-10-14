@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, Upload, Heart, Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase"; // Import your Supabase client
 import { useToast } from "@/hooks/use-toast"; // For error notifications
+import { uploadProfilePhoto } from "@/lib/profilePhotoUpload";
 
 interface DashboardCoreProps {
   onLogout?: () => void;
@@ -108,39 +109,8 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
     const file = event.target.files?.[0];
     if (!file || !userData?.username) return;
 
-    const fileExt = file.name.split(".").pop();
-    // Use new folder structure: profiles/username/profile.ext
-    const filePath = `profiles/${userData.username}/profile.${fileExt}`;
-
     try {
-      const { error: uploadError } = await supabase.storage
-        .from("user-photos")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) {
-        throw new Error(`Photo upload failed: ${uploadError.message}`);
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from("user-photos")
-        .getPublicUrl(filePath);
-
-      const photoUrl = publicUrlData.publicUrl;
-      if (!photoUrl) {
-        throw new Error("Failed to get public URL for profile photo");
-      }
-
-      // Update users table with new profile photo URL
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({ profile_photo: photoUrl })
-        .eq("username", userData.username);
-
-      if (updateError) {
-        throw new Error(
-          `Failed to update profile photo: ${updateError.message}`
-        );
-      }
+      const photoUrl = await uploadProfilePhoto(file, userData.username, "profile");
 
       setProfilePhoto(photoUrl);
       toast({
@@ -168,39 +138,8 @@ const DashboardCore: React.FC<DashboardCoreProps> = ({
     const file = event.target.files?.[0];
     if (!file || !userData?.username) return;
 
-    const fileExt = file.name.split(".").pop();
-    // Use new folder structure: profiles/username/banner.ext
-    const filePath = `profiles/${userData.username}/banner.${fileExt}`;
-
     try {
-      const { error: uploadError } = await supabase.storage
-        .from("user-photos")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) {
-        throw new Error(`Banner upload failed: ${uploadError.message}`);
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from("user-photos")
-        .getPublicUrl(filePath);
-
-      const photoUrl = publicUrlData.publicUrl;
-      if (!photoUrl) {
-        throw new Error("Failed to get public URL for banner photo");
-      }
-
-      // Update users table with new banner photo URL
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({ banner_photo: photoUrl })
-        .eq("username", userData.username);
-
-      if (updateError) {
-        throw new Error(
-          `Failed to update banner photo: ${updateError.message}`
-        );
-      }
+      const photoUrl = await uploadProfilePhoto(file, userData.username, "banner");
 
       setBannerPhoto(photoUrl);
       toast({
