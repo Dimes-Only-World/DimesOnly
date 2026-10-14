@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { getAdminUserId } from "@/lib/adminAuth";
-import { Upload, FileImage, FileVideo, X } from "lucide-react";
+import { Upload, FileImage, FileVideo, X, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { NOTIFICATION_CATEGORIES, NotificationCategory } from "@/lib/notificationCategories";
 
 // Turns a backend error into the server's real reason instead of "non-2xx status code".
@@ -57,6 +57,66 @@ const AdminNotificationTab: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Sent-notification history with recipients
+  interface SentNotificationRow {
+    id: string;
+    user_id: string;
+    username: string;
+    title: string;
+    message: string;
+    created_at: string;
+    is_read: boolean;
+  }
+  interface SentGroup {
+    key: string;
+    title: string;
+    message: string;
+    createdAt: string;
+    recipients: SentNotificationRow[];
+  }
+  const [sentGroups, setSentGroups] = useState<SentGroup[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const loadHistory = React.useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const adminUserId = getAdminUserId();
+      if (!adminUserId) return;
+      const { data, error } = await supabase.functions.invoke("admin-data", {
+        body: { action: "fetchNotificationHistory", adminUserId },
+      });
+      if (error) throw new Error(await functionErrorMessage(error));
+      const rows = (data as SentNotificationRow[]) || [];
+      const byKey: Record<string, SentGroup> = {};
+      for (const row of rows) {
+        const key = `${row.title}||${row.created_at}`;
+        if (!byKey[key]) {
+          byKey[key] = {
+            key,
+            title: row.title,
+            message: row.message,
+            createdAt: row.created_at,
+            recipients: [],
+          };
+        }
+        byKey[key].recipients.push(row);
+      }
+      const groups = Object.values(byKey)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 20);
+      setSentGroups(groups);
+    } catch (e) {
+      console.error("Failed to load sent notifications:", e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
 
   const normalizedUsername = username.trim().replace(/^@/, "");
   const exactMatch = userSuggestions.find(
@@ -266,6 +326,8 @@ const AdminNotificationTab: React.FC = () => {
         "media-upload"
       ) as HTMLInputElement;
       if (fileInput) fileInput.value = "";
+
+      void loadHistory();
     } catch (error: unknown) {
       console.error("Send notification error:", error);
       toast({
