@@ -355,7 +355,8 @@ const AdminNotificationTab: React.FC = () => {
   };
 
   return (
-    <Card>
+    <>
+      <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
@@ -572,7 +573,80 @@ const AdminNotificationTab: React.FC = () => {
           </Button>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Sent Notifications
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Every notification you have sent, with who received it. Tap a row to
+            expand the full recipient list.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {loadingHistory ? (
+            <p className="text-sm text-muted-foreground">Loading sent notifications...</p>
+          ) : sentGroups.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No notifications sent yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {sentGroups.map((group) => (
+                <div key={group.key} className="rounded-md border">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
+                    onClick={() => setExpanded(expanded === group.key ? null : group.key)}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {group.title || "Admin Notification"}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{group.message}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(group.createdAt).toLocaleString()} ·{" "}
+                        {group.recipients.length} recipient
+                        {group.recipients.length === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    {expanded === group.key ? (
+                      <ChevronUp className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    )}
+                  </button>
+                  {expanded === group.key && (
+                    <div className="max-h-64 overflow-y-auto border-t px-3 py-2">
+                      <ul className="space-y-1">
+                        {group.recipients.map((r) => (
+                          <li key={r.id} className="flex items-center justify-between text-sm">
+                            <span>@{r.username}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {r.is_read ? "Read" : "Unread"}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => void loadHistory()}
+            disabled={loadingHistory}
+          >
+            Refresh
+          </Button>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
