@@ -27,4 +27,4 @@
 - Shared notification categories (src/lib/notificationCategories.ts) drive the user center, menu badges and admin sender; one rule keeps user and admin communication consistent.
 - Store the company's per-car monthly payment in service-role-only `vehicle_costs`, read and written only through `rental-admin`; car costs must never reach renters through the public vehicles table.
 - Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
-- Send all outbound email through `_shared/dimes-emails.ts` using the `Api-Token` header; Mailtrap rejects Bearer, and a wrong header fails silently.
+- Send all outbound email with the `Api-Token` header (Mailtrap rejects Bearer); note `send-username-reminder` lives at `supabase/send-username-reminder/` outside `supabase/functions/`, so its edits need a manual `supabase functions deploy`.
