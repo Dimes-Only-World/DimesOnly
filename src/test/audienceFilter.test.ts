@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildAudienceConditions } from "../supabase/functions/_shared/audienceFilter";
+import { buildAudienceConditions } from "../../supabase/functions/_shared/audienceFilter";
 
 describe("buildAudienceConditions", () => {
   it("targets every male member by gender, not user_type", () => {
