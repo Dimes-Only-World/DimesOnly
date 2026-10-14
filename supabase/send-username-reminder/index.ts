@@ -40,9 +40,9 @@ serve(async (req) => {
       );
     }
 
-    const mailtrapToken = Deno.env.get("MAILTRAP_API_TOKEN");
-    const senderEmail = Deno.env.get("MAILTRAP_SENDER_EMAIL");
-    const senderName = Deno.env.get("MAILTRAP_SENDER_NAME") ?? "DimesOnly Support";
+    const mailtrapToken = (Deno.env.get("MAILTRAP_API_TOKEN") ?? "").trim().replace(/^Bearer\s+/i, "");
+    const senderEmail = (Deno.env.get("MAILTRAP_SENDER_EMAIL") || "talent@dimesonly.world").trim().toLowerCase();
+    const senderName = Deno.env.get("MAILTRAP_SENDER_NAME") ?? "Dimes Only";
 
     if (!mailtrapToken || !senderEmail) {
       return new Response(
@@ -54,7 +54,7 @@ serve(async (req) => {
     const mailtrapResponse = await fetch("https://send.api.mailtrap.io/api/send", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${mailtrapToken}`,
+        "Api-Token": mailtrapToken,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
