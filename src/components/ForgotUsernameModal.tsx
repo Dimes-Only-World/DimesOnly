@@ -42,7 +42,10 @@ const ForgotUsernameModal: React.FC<ForgotUsernameModalProps> = ({ isOpen, onClo
       }
 
       setSuccess(true);
-      toast({ title: "Username sent", description: "Check your inbox for your username." });
+      toast({
+        title: "Username sent",
+        description: "Check your inbox (and spam folder). Delivery can take up to 10 minutes—check Spam/Junk and search for 'DimesOnly'.",
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to send username email. Please try again.";
@@ -73,15 +76,27 @@ const ForgotUsernameModal: React.FC<ForgotUsernameModalProps> = ({ isOpen, onClo
         </DialogHeader>
 
         {success ? (
-          <div className="py-6">
+          <div className="py-6 space-y-4">
             <Alert className="bg-green-50 border-green-200">
               <AlertDescription className="text-green-800">
-                Your username has been sent to your email address.
+                Your username has been sent to <strong>{email}</strong>.
               </AlertDescription>
             </Alert>
-            <Button onClick={handleClose} className="w-full mt-4">
-              Close
-            </Button>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+              <p className="font-medium mb-2">📧 Didn't receive the email?</p>
+              <ul className="list-disc list-inside space-y-1 text-amber-700">
+                <li>Check your Spam/Junk folder</li>
+                <li>Search for "DimesOnly" or "username"</li>
+                <li>Delivery can take up to 10 minutes</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleClose} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                Close
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
