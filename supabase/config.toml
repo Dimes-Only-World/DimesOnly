@@ -1,5 +1,9 @@
 project_id = "qkcuykpndrolrewwnkwb"
 
+[functions.send-username-reminder]
+verify_jwt = true
+
+
 [functions.submit-age-gate-lead]
 verify_jwt = false
 
