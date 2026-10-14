@@ -674,6 +674,18 @@ serve(async (req) => {
         break;
       }
 
+      // Every outgoing email with recipient and send status
+      case 'fetchEmailLogs': {
+        const { data, error } = await supabaseAdmin
+          .from('email_logs')
+          .select('id, recipient_email, recipient_name, category, subject, status, status_code, error, created_at')
+          .order('created_at', { ascending: false })
+          .limit(1000);
+        if (error) throw error;
+        result = data || [];
+        break;
+      }
+
       // Signed URL for private media
       case 'createSignedUrl': {
         const { storagePath, expiresIn } = params;

@@ -33,6 +33,7 @@ import {
   FileImage,
 } from "lucide-react";
 import AdminEmailSettings from "@/components/AdminEmailSettings";
+import AdminEmailLogs from "@/components/AdminEmailLogs";
 import AdminAppLaunchSettings from "@/components/AdminAppLaunchSettings";
 import AdminUsersListEnhanced from "@/components/AdminUsersListEnhanced";
 import AdminEarningsTab from "@/components/AdminEarningsTab";
@@ -319,6 +320,7 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="notifications">
             <AdminNotificationTab />
+            <AdminEmailLogs />
           </TabsContent>
 
           <TabsContent value="messages">
