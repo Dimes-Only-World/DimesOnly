@@ -80,6 +80,13 @@ serve(async (req) => {
       const ageMs = Date.now() - new Date(rating.created_at).getTime();
       if (ageMs > 15 * 60 * 1000) return json({ skipped: "stale" });
 
+      // Email only on a member's first-ever rating to conserve the monthly email quota.
+      const { count: ratingCount } = await supabase
+        .from("ratings")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", rating.user_id);
+      if ((ratingCount ?? 0) > 1) return json({ skipped: "not_first_rating" });
+
       const { data: dime } = await supabase
         .from("users")
         .select("email, username, first_name, is_active")

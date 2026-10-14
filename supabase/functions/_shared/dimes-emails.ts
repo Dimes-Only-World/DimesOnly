@@ -337,7 +337,20 @@ export async function sendEmailWithAttachment(
 }
 
 // General notice (admin messages, new messages, earnings) in the same black & gold style.
-export function buildNoticeEmail(n: { name: string; title: string; message: string; buttonUrl: string; buttonLabel?: string }) {
+export type NoticeMedia = { url: string; type: string };
+
+function noticeMediaBlock(media: NoticeMedia | undefined, buttonUrl: string): string {
+  if (!media?.url || !/^https:\/\//i.test(media.url)) return "";
+  const url = escapeHtml(media.url);
+  const kind = media.type.toLowerCase();
+  if (kind.startsWith("photo") || kind.startsWith("image")) {
+    return `<tr><td align="center" style="padding:18px 40px 4px;"><a href="${escapeHtml(buttonUrl)}" style="text-decoration:none;"><img src="${url}" alt="Attached photo" width="480" style="display:block;width:100%;max-width:480px;height:auto;border:2px solid #D4AF37;border-radius:10px;"/></a></td></tr>`;
+  }
+  const label = kind.startsWith("audio") ? "&#9654; Play Voice Message" : "&#9654; View Video";
+  return `<tr><td align="center" style="padding:18px 40px 4px;"><a href="${url}" style="display:inline-block;border:2px solid #D4AF37;color:#F5D76E;font-family:Georgia,serif;font-size:15px;font-weight:bold;text-decoration:none;padding:13px 34px;border-radius:30px;">${label}</a></td></tr>`;
+}
+
+export function buildNoticeEmail(n: { name: string; title: string; message: string; buttonUrl: string; buttonLabel?: string; media?: NoticeMedia }) {
   const title = escapeHtml(n.title);
   const name = escapeHtml(n.name || "there");
   const body = escapeHtml(n.message).replace(/\n/g, "<br/>");
@@ -351,16 +364,17 @@ export function buildNoticeEmail(n: { name: string; title: string; message: stri
 <tr><td align="center" style="padding:28px 24px 6px;"><span style="font-family:Georgia,serif;font-size:28px;line-height:36px;color:#F5D76E;font-weight:bold;">${title}</span></td></tr>
 <tr><td style="padding:14px 40px 6px;color:#EDEDED;font-family:Georgia,serif;font-size:16px;line-height:26px;text-align:center;">Hi ${name},</td></tr>
 <tr><td style="padding:6px 40px;color:#EDEDED;font-family:Georgia,serif;font-size:16px;line-height:26px;text-align:center;">${body}</td></tr>
+${noticeMediaBlock(n.media, n.buttonUrl)}
 <tr><td align="center" style="padding:26px 24px 34px;"><a href="${url}" style="display:inline-block;background-color:#D4AF37;color:#000000;font-family:Georgia,serif;font-size:16px;font-weight:bold;text-decoration:none;padding:15px 42px;border-radius:30px;">${label}</a></td></tr>
 <tr><td align="center" style="padding:20px 24px 26px;border-top:1px solid #2A230F;"><span style="font-family:Georgia,serif;font-size:12px;color:#8A8A8A;">${EMAIL_BRAND.footer}</span></td></tr>
 </table></td></tr></table></body></html>`;
-  const text = [EMAIL_BRAND.header, "", n.title, "", `Hi ${n.name || "there"},`, n.message, "", `${n.buttonLabel || "Open Dimes Only World"}: ${n.buttonUrl}`, "", EMAIL_BRAND.footer].join("\n");
+  const text = [EMAIL_BRAND.header, "", n.title, "", `Hi ${n.name || "there"},`, n.message, ...(n.media?.url ? ["", `Attachment: ${n.media.url}`] : []), "", `${n.buttonLabel || "Open Dimes Only World"}: ${n.buttonUrl}`, "", EMAIL_BRAND.footer].join("\n");
   return { subject: n.title, html, text };
 }
 
 export async function sendNoticeEmail(
   to: { email: string; name?: string },
-  n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string },
+  n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string; media?: NoticeMedia },
 ): Promise<SendResult> {
   const token = mailtrapToken();
   if (!token) return { ok: false, error: "missing_mailtrap_token" };
