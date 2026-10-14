@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { getAdminUserId } from "@/lib/adminAuth";
-import { Upload, FileImage, FileVideo, X } from "lucide-react";
+import { Upload, FileImage, FileVideo, X, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { NOTIFICATION_CATEGORIES, NotificationCategory } from "@/lib/notificationCategories";
 
 // Turns a backend error into the server's real reason instead of "non-2xx status code".
@@ -57,6 +57,66 @@ const AdminNotificationTab: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Sent-notification history with recipients
+  interface SentNotificationRow {
+    id: string;
+    user_id: string;
+    username: string;
+    title: string;
+    message: string;
+    created_at: string;
+    is_read: boolean;
+  }
+  interface SentGroup {
+    key: string;
+    title: string;
+    message: string;
+    createdAt: string;
+    recipients: SentNotificationRow[];
+  }
+  const [sentGroups, setSentGroups] = useState<SentGroup[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const loadHistory = React.useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const adminUserId = getAdminUserId();
+      if (!adminUserId) return;
+      const { data, error } = await supabase.functions.invoke("admin-data", {
+        body: { action: "fetchNotificationHistory", adminUserId },
+      });
+      if (error) throw new Error(await functionErrorMessage(error));
+      const rows = ((data as { data?: SentNotificationRow[] })?.data) || [];
+      const byKey: Record<string, SentGroup> = {};
+      for (const row of rows) {
+        const key = `${row.title}||${row.created_at}`;
+        if (!byKey[key]) {
+          byKey[key] = {
+            key,
+            title: row.title,
+            message: row.message,
+            createdAt: row.created_at,
+            recipients: [],
+          };
+        }
+        byKey[key].recipients.push(row);
+      }
+      const groups = Object.values(byKey)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 20);
+      setSentGroups(groups);
+    } catch (e) {
+      console.error("Failed to load sent notifications:", e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
 
   const normalizedUsername = username.trim().replace(/^@/, "");
   const exactMatch = userSuggestions.find(
@@ -266,6 +326,8 @@ const AdminNotificationTab: React.FC = () => {
         "media-upload"
       ) as HTMLInputElement;
       if (fileInput) fileInput.value = "";
+
+      void loadHistory();
     } catch (error: unknown) {
       console.error("Send notification error:", error);
       toast({
@@ -293,7 +355,8 @@ const AdminNotificationTab: React.FC = () => {
   };
 
   return (
-    <Card>
+    <>
+      <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
@@ -510,7 +573,80 @@ const AdminNotificationTab: React.FC = () => {
           </Button>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Sent Notifications
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Every notification you have sent, with who received it. Tap a row to
+            expand the full recipient list.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {loadingHistory ? (
+            <p className="text-sm text-muted-foreground">Loading sent notifications...</p>
+          ) : sentGroups.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No notifications sent yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {sentGroups.map((group) => (
+                <div key={group.key} className="rounded-md border">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
+                    onClick={() => setExpanded(expanded === group.key ? null : group.key)}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {group.title || "Admin Notification"}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{group.message}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(group.createdAt).toLocaleString()} ·{" "}
+                        {group.recipients.length} recipient
+                        {group.recipients.length === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    {expanded === group.key ? (
+                      <ChevronUp className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    )}
+                  </button>
+                  {expanded === group.key && (
+                    <div className="max-h-64 overflow-y-auto border-t px-3 py-2">
+                      <ul className="space-y-1">
+                        {group.recipients.map((r) => (
+                          <li key={r.id} className="flex items-center justify-between text-sm">
+                            <span>@{r.username}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {r.is_read ? "Read" : "Unread"}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => void loadHistory()}
+            disabled={loadingHistory}
+          >
+            Refresh
+          </Button>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
