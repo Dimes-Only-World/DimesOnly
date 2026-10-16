@@ -793,6 +793,24 @@ export type Database = {
         }
         Relationships: []
       }
+      email_suppressions: {
+        Row: {
+          created_at: string
+          email: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       entries: {
         Row: {
           amount: number | null
