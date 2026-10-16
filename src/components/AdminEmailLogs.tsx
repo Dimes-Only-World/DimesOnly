@@ -90,8 +90,8 @@ const AdminEmailLogs: React.FC = () => {
                     <div className="text-xs text-muted-foreground">{r.category}</div>
                   </td>
                   <td className="p-2">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.status === "sent" ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
-                      {r.status === "sent" ? "Sent" : "Failed"}
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.status === "sent" ? "bg-primary/15 text-primary" : r.status === "skipped" ? "bg-muted text-muted-foreground" : "bg-destructive/15 text-destructive"}`}>
+                      {r.status === "sent" ? "Sent" : r.status === "skipped" ? "Skipped (bounced)" : "Failed"}
                     </span>
                     {r.error && <div className="mt-1 max-w-xs break-words text-xs text-destructive">{r.error}</div>}
                   </td>
