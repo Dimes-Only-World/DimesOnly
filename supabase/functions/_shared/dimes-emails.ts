@@ -337,7 +337,7 @@ async function logEmail(to: { email: string; name?: string }, category: string, 
         headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
         body: JSON.stringify({
           recipient_email: to.email, recipient_name: to.name ?? null, category,
-          subject: String(subject).slice(0, 500), status: r.ok ? "sent" : "failed",
+          subject: String(subject).slice(0, 500), status: r.skipped ? "skipped" : r.ok ? "sent" : "failed",
           status_code: r.status ?? null, error: r.error ? String(r.error).slice(0, 1000) : null,
         }),
       });
@@ -359,6 +359,8 @@ export async function sendEmailWithAttachment(
   msg: { subject: string; html: string; text: string; category: string; fromName?: string },
   attachments: EmailAttachment[],
 ): Promise<SendResult> {
+  const skipA = await skipIfSuppressed(to, msg.category, msg.subject);
+  if (skipA) return skipA;
   const token = mailtrapToken();
   if (!token) return logEmail(to, msg.category, msg.subject, { ok: false, error: "missing_mailtrap_token" });
   const res = await fetch(MAILTRAP_ENDPOINT, {
@@ -419,6 +421,8 @@ export async function sendNoticeEmail(
   to: { email: string; name?: string },
   n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string; media?: NoticeMedia },
 ): Promise<SendResult> {
+  const skipN = await skipIfSuppressed(to, n.category, n.title);
+  if (skipN) return skipN;
   const token = mailtrapToken();
   if (!token) return logEmail(to, n.category, n.title, { ok: false, error: "missing_mailtrap_token" });
   const { subject, html, text } = buildNoticeEmail({ name: to.name || "", ...n });
