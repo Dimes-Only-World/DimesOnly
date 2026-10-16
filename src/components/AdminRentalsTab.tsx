@@ -633,6 +633,16 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
     }
   };
 
+  const setCover = async (m: any) => {
+    try {
+      await callAdmin("setCoverMedia", { id: m.id, vehicleId: currentId });
+      toast({ title: "Cover photo updated" });
+      loadMedia(currentId!);
+    } catch (e: any) {
+      toast({ title: "Could not set cover", description: e.message, variant: "destructive" });
+    }
+  };
+
   return (
     <Card><CardContent className="p-4 space-y-3">
       <div className="flex justify-between items-center"><h3 className="font-semibold">{currentId ? "Edit" : "Add"} Vehicle</h3>
@@ -731,8 +741,10 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         {currentId && (
           <>
             <div className="flex flex-wrap gap-2">
-              {media.map((m) => (
-                <div key={m.id} className="relative w-24 h-24 bg-muted rounded overflow-hidden">
+              {media.map((m) => {
+                const isCover = m.media_type === "photo" && m.id === media.find((x) => x.media_type === "photo")?.id;
+                return (
+                <div key={m.id} className={`relative w-24 h-24 bg-muted rounded overflow-hidden ${isCover ? "ring-2 ring-primary" : ""}`}>
                   {m.media_type === "photo" ? (
                     <img src={m.url} className="w-full h-full object-cover" />
                   ) : (
@@ -741,8 +753,16 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
                   <button onClick={() => removeMedia(m)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1">
                     <Trash2 className="w-3 h-3 text-white" />
                   </button>
+                  {m.media_type === "photo" && (
+                    isCover ? (
+                      <span className="absolute bottom-0 inset-x-0 text-[10px] text-center bg-primary text-primary-foreground py-0.5">Cover</span>
+                    ) : (
+                      <button onClick={() => setCover(m)} className="absolute bottom-0 inset-x-0 text-[10px] bg-black/70 text-white py-0.5">Set as cover</button>
+                    )
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div className="flex gap-2">
               <label className="cursor-pointer">
