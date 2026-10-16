@@ -88,6 +88,19 @@ serve(async (req) => {
         if (error) throw error;
         return json({ data });
       }
+      case "setCoverMedia": {
+        const { id, vehicleId } = params;
+        const { data: photos, error } = await admin.from("vehicle_media").select("id")
+          .eq("vehicle_id", vehicleId).eq("media_type", "photo").order("sort_order").order("created_at");
+        if (error) throw error;
+        if (!(photos || []).some((p: any) => p.id === id)) return json({ error: "Photo not found" }, 404);
+        const ordered = [id, ...(photos || []).map((p: any) => p.id).filter((x: string) => x !== id)];
+        for (let i = 0; i < ordered.length; i++) {
+          const { error: uErr } = await admin.from("vehicle_media").update({ sort_order: i }).eq("id", ordered[i]);
+          if (uErr) throw uErr;
+        }
+        return json({ ok: true });
+      }
       case "deleteMedia": {
         const { id, storagePath } = params;
         if (storagePath) await admin.storage.from("vehicle-media").remove([storagePath]);
