@@ -264,6 +264,7 @@ export interface SendResult {
   ok: boolean;
   status?: number;
   error?: string;
+  skipped?: boolean;
 }
 
 export async function sendDimesEmail(
@@ -271,13 +272,14 @@ export async function sendDimesEmail(
   type: DimeEmailType,
   data: DimeEmailData,
 ): Promise<SendResult> {
+  const { subject, html, text } = buildDimeEmail(type, data);
+  const skip = await skipIfSuppressed(to, `dime_${type}`, subject);
+  if (skip) return skip;
   const token = mailtrapToken();
   if (!token) {
     console.error("MAILTRAP_API_TOKEN is not set");
     return logEmail(to, `dime_${type}`, type, { ok: false, error: "missing_mailtrap_token" });
   }
-
-  const { subject, html, text } = buildDimeEmail(type, data);
 
   const res = await fetch(MAILTRAP_ENDPOINT, {
     method: "POST",
@@ -303,6 +305,27 @@ export async function sendDimesEmail(
   return logEmail(to, `dime_${type}`, subject, { ok: true, status: res.status });
 }
 
+// True when the address previously bounced (email_suppressions). Fails open on lookup errors.
+async function isSuppressed(email: string): Promise<boolean> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !key || !email) return false;
+    const res = await fetch(`${url}/rest/v1/email_suppressions?select=email&email=eq.${encodeURIComponent(email.trim().toLowerCase())}&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) return false;
+    const rows = await res.json();
+    return Array.isArray(rows) && rows.length > 0;
+  } catch { return false; }
+}
+
+// Logs a skipped send and returns a result, or null if the address is OK to send.
+async function skipIfSuppressed(to: { email: string; name?: string }, category: string, subject: string): Promise<SendResult | null> {
+  if (!(await isSuppressed(to.email))) return null;
+  return logEmail(to, category, subject, { ok: false, skipped: true, error: "skipped_previously_bounced" });
+}
+
 // Record every send attempt in email_logs (service role). Never throws.
 async function logEmail(to: { email: string; name?: string }, category: string, subject: string, r: SendResult): Promise<SendResult> {
   try {
@@ -314,7 +337,7 @@ async function logEmail(to: { email: string; name?: string }, category: string, 
         headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
         body: JSON.stringify({
           recipient_email: to.email, recipient_name: to.name ?? null, category,
-          subject: String(subject).slice(0, 500), status: r.ok ? "sent" : "failed",
+          subject: String(subject).slice(0, 500), status: r.skipped ? "skipped" : r.ok ? "sent" : "failed",
           status_code: r.status ?? null, error: r.error ? String(r.error).slice(0, 1000) : null,
         }),
       });
@@ -336,6 +359,8 @@ export async function sendEmailWithAttachment(
   msg: { subject: string; html: string; text: string; category: string; fromName?: string },
   attachments: EmailAttachment[],
 ): Promise<SendResult> {
+  const skipA = await skipIfSuppressed(to, msg.category, msg.subject);
+  if (skipA) return skipA;
   const token = mailtrapToken();
   if (!token) return logEmail(to, msg.category, msg.subject, { ok: false, error: "missing_mailtrap_token" });
   const res = await fetch(MAILTRAP_ENDPOINT, {
@@ -396,6 +421,8 @@ export async function sendNoticeEmail(
   to: { email: string; name?: string },
   n: { title: string; message: string; buttonUrl: string; buttonLabel?: string; category: string; media?: NoticeMedia },
 ): Promise<SendResult> {
+  const skipN = await skipIfSuppressed(to, n.category, n.title);
+  if (skipN) return skipN;
   const token = mailtrapToken();
   if (!token) return logEmail(to, n.category, n.title, { ok: false, error: "missing_mailtrap_token" });
   const { subject, html, text } = buildNoticeEmail({ name: to.name || "", ...n });
