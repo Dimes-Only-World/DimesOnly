@@ -155,6 +155,7 @@ export const Register: React.FC = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string | undefined>>>({});
   const [missingItems, setMissingItems] = useState<string[]>([]);
+  const stepChangedAt = React.useRef(0);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
@@ -552,6 +553,15 @@ export const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Ignore submits until the final step, or the same tap that just advanced the step.
+    if (currentStep < totalSteps) {
+      if (validateStep(currentStep)) {
+        stepChangedAt.current = Date.now();
+        setCurrentStep((s) => Math.min(totalSteps, s + 1));
+      }
+      return;
+    }
+    if (Date.now() - stepChangedAt.current < 800) return;
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -816,10 +826,14 @@ export const Register: React.FC = () => {
 
                     {currentStep < totalSteps ? (
                       <Button
+                        key="next-btn"
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
                           if (validateStep(currentStep)) {
+                            stepChangedAt.current = Date.now();
                             setCurrentStep((s) => Math.min(totalSteps, s + 1));
+                            window.scrollTo({ top: 0, behavior: "smooth" });
                           }
                         }}
                         className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -829,6 +843,7 @@ export const Register: React.FC = () => {
                     ) : (
 
                       <Button
+                        key="submit-btn"
                         type="submit"
                         disabled={isLoading}
                         className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg"
