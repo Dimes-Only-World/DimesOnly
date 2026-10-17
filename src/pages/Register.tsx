@@ -703,7 +703,7 @@ export const Register: React.FC = () => {
       <RotatingBackground images={backgroundImages} interval={3000} />
       <RegisterMissingDialog
         open={missingItems.length > 0}
-        stepTitle={stepTitles[currentStep - 1]}
+        stepTitle={stepTitles[currentStep - 1] ?? "this step"}
         items={missingItems}
         onClose={() => setMissingItems([])}
       />
