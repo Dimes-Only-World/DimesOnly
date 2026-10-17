@@ -7,9 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Upload, Download, MessageSquare, Plus, Save } from "lucide-react";
+import { MESSAGE_AUDIENCES, audienceLabel } from "@/lib/messageAudiences";
 
 interface Flyer { id: string; title: string; url: string; sort_order: number; is_active: boolean }
-interface ShareMessage { id: string; title: string; body: string; sort_order: number; is_active: boolean }
+interface ShareMessage { id: string; title: string; body: string; sort_order: number; is_active: boolean; audience?: string | null }
+
+const AudienceSelect: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    aria-label="Message audience"
+    className="rounded-md border border-border bg-background p-2 text-sm text-foreground"
+  >
+    <option value="all">Everyone</option>
+    {MESSAGE_AUDIENCES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+  </select>
+);
 
 const call = async (body: Record<string, unknown>) => {
   const { data, error } = await supabase.functions.invoke("make-money", { body: { ...body, adminUserId: getAdminUserId() } });
@@ -35,6 +48,8 @@ const AdminFlyersTab: React.FC = () => {
   const [messages, setMessages] = useState<ShareMessage[]>([]);
   const [messageTitle, setMessageTitle] = useState("");
   const [messageBody, setMessageBody] = useState("");
+  const [messageAudience, setMessageAudience] = useState("all");
+  const [audienceFilter, setAudienceFilter] = useState("any");
   const [messageBusy, setMessageBusy] = useState(false);
 
   const load = async () => {
@@ -75,7 +90,7 @@ const AdminFlyersTab: React.FC = () => {
     if (!messageBody.trim()) return;
     setMessageBusy(true);
     try {
-      await call({ action: "adminAddMessage", title: messageTitle.trim(), body: messageBody.trim() });
+      await call({ action: "adminAddMessage", title: messageTitle.trim(), body: messageBody.trim(), audience: messageAudience });
       setMessageTitle("");
       setMessageBody("");
       toast({ title: "Message added" });
@@ -130,6 +145,7 @@ const AdminFlyersTab: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           <Input placeholder="Message title" value={messageTitle} onChange={(e) => setMessageTitle(e.target.value)} maxLength={120} />
+          <label className="flex items-center gap-2 text-sm">Show to: <AudienceSelect value={messageAudience} onChange={setMessageAudience} /></label>
           <Textarea
             placeholder="Write the message here. The member's referral URL is added automatically."
             value={messageBody}
@@ -143,10 +159,24 @@ const AdminFlyersTab: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="font-medium">Ready-to-Send Messages for:</span>
+        <select
+          value={audienceFilter}
+          onChange={(e) => setAudienceFilter(e.target.value)}
+          className="rounded-md border border-border bg-background p-2 text-sm text-foreground"
+        >
+          <option value="any">All groups</option>
+          <option value="all">Everyone</option>
+          {MESSAGE_AUDIENCES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+        </select>
+      </div>
       <div className="space-y-3">
-        {messages.map((message) => (
-          <MessageEditor key={message.id} message={message} onSave={updateMessage} onDelete={removeMessage} />
-        ))}
+        {messages
+          .filter((m) => audienceFilter === "any" || (m.audience || "all") === audienceFilter)
+          .map((message) => (
+            <MessageEditor key={message.id} message={message} onSave={updateMessage} onDelete={removeMessage} />
+          ))}
       </div>
     </div>
   );
@@ -160,20 +190,25 @@ const MessageEditor: React.FC<{
   const [title, setTitle] = useState(message.title);
   const [body, setBody] = useState(message.body);
   const [sortOrder, setSortOrder] = useState(message.sort_order);
+  const [audience, setAudience] = useState(message.audience || "all");
   const [saving, setSaving] = useState(false);
   const save = async () => {
     if (!body.trim()) return;
     setSaving(true);
-    await onSave(message.id, { title: title.trim(), body: body.trim(), sort_order: sortOrder });
+    await onSave(message.id, { title: title.trim(), body: body.trim(), sort_order: sortOrder, audience });
     setSaving(false);
   };
   return (
     <Card className={message.is_active ? "" : "opacity-60"}>
       <CardContent className="space-y-3 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{audienceLabel(message.audience || "all")}</span>
+        </div>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Message title" maxLength={120} />
         <Textarea value={body} onChange={(e) => setBody(e.target.value)} className="min-h-36" maxLength={5000} />
         <p className="text-xs text-muted-foreground">The member's personal referral URL is added automatically.</p>
         <div className="flex flex-wrap items-center gap-2">
+          <AudienceSelect value={audience} onChange={setAudience} />
           <Input type="number" min={0} max={10000} className="w-24" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} aria-label="Message order" />
           <Button onClick={save} disabled={saving || !body.trim()}><Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : "Save"}</Button>
           <Button variant="outline" onClick={() => onSave(message.id, { is_active: !message.is_active })}>{message.is_active ? "Hide" : "Show"}</Button>

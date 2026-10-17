@@ -1,0 +1,1 @@
+ALTER TABLE public.make_money_messages ADD COLUMN IF NOT EXISTS audience text NOT NULL DEFAULT 'all';

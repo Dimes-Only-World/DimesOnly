@@ -2579,6 +2579,7 @@ export type Database = {
       }
       make_money_messages: {
         Row: {
+          audience: string
           body: string
           created_at: string
           id: string
@@ -2588,6 +2589,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          audience?: string
           body?: string
           created_at?: string
           id?: string
@@ -2597,6 +2599,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          audience?: string
           body?: string
           created_at?: string
           id?: string

@@ -4,12 +4,14 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { MESSAGE_AUDIENCES, messagesForAudience } from "@/lib/messageAudiences";
 
 interface ShareMessage {
   id: string;
   title: string;
   body: string;
   sort_order: number;
+  audience?: string | null;
 }
 
 interface MakeMoneyMessagesProps {
@@ -21,6 +23,7 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
   const { toast } = useToast();
   const [messages, setMessages] = useState<ShareMessage[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [audience, setAudience] = useState<string>("normal_female");
 
   useEffect(() => {
     let mounted = true;
@@ -36,8 +39,9 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
     () => `www.DimesOnlyWorld.com?ref=${encodeURIComponent(username)}`,
     [username],
   );
-  const available = messages.length > 0
-    ? messages
+  const filtered = messagesForAudience(messages, audience);
+  const available = filtered.length > 0
+    ? filtered
     : [{ id: "fallback", title: "Ready-to-Send Message", body: fallbackBody, sort_order: 0 }];
   const active = available[Math.min(activeIndex, available.length - 1)];
   const fullMessage = `${active && active.body.trim()}\n\n${referralLink}`;
@@ -69,6 +73,16 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        <label className="block space-y-1">
+          <span className="text-sm font-medium text-foreground">Who are you sending to?</span>
+          <select
+            value={audience}
+            onChange={(e) => { setAudience(e.target.value); setActiveIndex(0); }}
+            className="w-full rounded-md border border-border bg-background p-2 text-sm text-foreground sm:w-64"
+          >
+            {MESSAGE_AUDIENCES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+          </select>
+        </label>
         <p className="text-sm text-muted-foreground">
           Copy this message and paste it into any app. Your personal referral link is added automatically.
         </p>
