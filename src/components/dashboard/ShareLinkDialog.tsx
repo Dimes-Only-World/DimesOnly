@@ -18,8 +18,8 @@ export const markLinkShared = (userId?: string) => {
 
 const ShareLinkDialog: React.FC<Props> = ({ open, onOpenChange, userId, username }) => {
   const { toast } = useToast();
-  const link = `www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
-  const absoluteLink = `https://www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
+  const link = `www.DimesOnlyWorld.com?ref=${encodeURIComponent(username || "")}`;
+  const absoluteLink = `https://www.DimesOnlyWorld.com?ref=${encodeURIComponent(username || "")}`;
   const text = `Join me on Dimes Only World ${link}`;
 
   const act = (fn: () => void | Promise<void>) => async () => {

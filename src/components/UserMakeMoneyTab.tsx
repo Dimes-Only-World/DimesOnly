@@ -79,11 +79,11 @@ const UserMakeMoneyTab: React.FC = () => {
   const referralUsername = actualUsername;
 
   const shareLink = useMemo(
-    () => `www.DimesOnly.World?ref=${encodeURIComponent(referralUsername || "")}`,
+    () => `www.DimesOnlyWorld.com?ref=${encodeURIComponent(referralUsername || "")}`,
     [referralUsername],
   );
   const absoluteShareLink = useMemo(
-    () => `https://www.DimesOnly.World?ref=${encodeURIComponent(referralUsername || "")}`,
+    () => `https://www.DimesOnlyWorld.com?ref=${encodeURIComponent(referralUsername || "")}`,
     [referralUsername],
   );
 

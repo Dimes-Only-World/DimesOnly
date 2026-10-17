@@ -42,8 +42,8 @@ const MakeMoneyFlyers: React.FC<{ username?: string }> = ({ username }) => {
       .catch(() => setFlyers(FALLBACK));
   }, []);
 
-  const link = `www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
-  const absoluteLink = `https://www.DimesOnly.World?ref=${encodeURIComponent(username || "")}`;
+  const link = `www.DimesOnlyWorld.com?ref=${encodeURIComponent(username || "")}`;
+  const absoluteLink = `https://www.DimesOnlyWorld.com?ref=${encodeURIComponent(username || "")}`;
   const shareText = (f: Flyer) =>
     `${f.title || "Dimes Only World"} — Join me on Dimes Only World ${link}`;
   const enc = encodeURIComponent;
