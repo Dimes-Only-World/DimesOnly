@@ -14,6 +14,8 @@ const QR_PRICE = 1.99;
 const PLUS_TIERS = ["silver_plus", "diamond_plus", "elite", "elite_plus", "business_owner_elite", "business_owner_elite_installment"];
 const norm = (v: unknown) => String(v ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
 
+const Audience = z.enum(["all", "normal_female", "dimes", "male", "business_owner"]);
+
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("qrStatus") }),
   z.object({ action: z.literal("qrCreate"), returnUrl: z.string().url().max(500), cancelUrl: z.string().url().max(500) }),
@@ -31,7 +33,7 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("adminUpdateFlyer"), id: z.string().uuid(), title: z.string().max(200).optional(), sort_order: z.number().int().optional(), is_active: z.boolean().optional() }),
   z.object({ action: z.literal("adminDeleteFlyer"), id: z.string().uuid() }),
   z.object({ action: z.literal("adminListMessages") }),
-  z.object({ action: z.literal("adminAddMessage"), title: z.string().max(120).default(""), body: z.string().min(1).max(5000) }),
+  z.object({ action: z.literal("adminAddMessage"), title: z.string().max(120).default(""), body: z.string().min(1).max(5000), audience: Audience.default("all") }),
   z.object({
     action: z.literal("adminUpdateMessage"),
     id: z.string().uuid(),
@@ -39,6 +41,7 @@ const Body = z.discriminatedUnion("action", [
     body: z.string().min(1).max(5000).optional(),
     sort_order: z.number().int().min(0).max(10000).optional(),
     is_active: z.boolean().optional(),
+    audience: Audience.optional(),
   }),
   z.object({ action: z.literal("adminDeleteMessage"), id: z.string().uuid() }),
 ]);
@@ -119,6 +122,7 @@ Deno.serve(async (req) => {
         const { error } = await admin.from("make_money_messages").insert({
           title: p.title,
           body: p.body,
+          audience: p.audience,
           sort_order: (max?.[0]?.sort_order ?? 0) + 1,
         });
         if (error) throw error;
@@ -149,7 +153,7 @@ Deno.serve(async (req) => {
     if (p.action === "listMessages") {
       const { data, error } = await admin
         .from("make_money_messages")
-        .select("id,title,body,sort_order")
+        .select("id,title,body,sort_order,audience")
         .eq("is_active", true)
         .order("sort_order")
         .order("created_at");
