@@ -13,5 +13,9 @@ export const audienceLabel = (a: string) =>
 
 /** Messages for the chosen audience; "Everyone" messages appear in every group. */
 export function messagesForAudience<T extends { audience?: string | null }>(list: T[], audience: string): T[] {
-  return list.filter((m) => !m.audience || m.audience === "all" || m.audience === audience);
+  const isAll = (m: T) => !m.audience || m.audience === "all";
+  const specific = list.filter((m) => !isAll(m) && m.audience === audience);
+  const everyone = list.filter(isAll);
+  // Group-specific messages first; "Everyone" messages always come last.
+  return [...specific, ...everyone];
 }
