@@ -11,10 +11,10 @@ const list = [
 
 describe("messagesForAudience", () => {
   it("Dimes see Dimes messages plus Everyone messages only", () => {
-    expect(messagesForAudience(list, "dimes").map((m) => m.id)).toEqual(["a", "d"]);
+    expect(messagesForAudience(list, "dimes").map((m) => m.id)).toEqual(["d", "a"]);
   });
   it("Males do not see Normal Female messages", () => {
-    expect(messagesForAudience(list, "male").map((m) => m.id)).toEqual(["a", "m"]);
+    expect(messagesForAudience(list, "male").map((m) => m.id)).toEqual(["m", "a"]);
   });
 });
 
