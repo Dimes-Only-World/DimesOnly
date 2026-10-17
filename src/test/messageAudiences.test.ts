@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { messagesForAudience } from "../src/lib/messageAudiences";
+import { messagesForAudience } from "@/lib/messageAudiences";
 
 const list = [
   { id: "a", audience: "all" },
