@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Copy, MessageSquare } from "lucide-react";
+import { Copy, MessageSquare } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,9 +45,6 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
     : [{ id: "fallback", title: "Ready-to-Send Message", body: fallbackBody, sort_order: 0 }];
   const active = available[Math.min(activeIndex, available.length - 1)];
   const fullMessage = `${active && active.body.trim()}\n\n${referralLink}`;
-  const move = (direction: number) => {
-    setActiveIndex((current) => (current + direction + available.length) % available.length);
-  };
   const copyMessage = async () => {
     await navigator.clipboard.writeText(fullMessage);
     toast({ title: "Message copied", description: "Your personal referral link is included." });
