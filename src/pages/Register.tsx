@@ -14,6 +14,7 @@ import { useMobileLayout } from "@/hooks/use-mobile";
 import { getReferralUsername } from "@/lib/utils";
 import { getStoredRef } from "@/lib/refCapture";
 import { useAppContext } from "@/contexts/AppContext";
+import RegisterMissingDialog from "@/components/RegisterMissingDialog";
 
 const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 const PHOTO_UPLOAD_ENDPOINT = `${FUNCTIONS_BASE_URL}/upload-photo`;
@@ -153,6 +154,7 @@ export const Register: React.FC = () => {
   });
   const [showVideo, setShowVideo] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string | undefined>>>({});
+  const [missingItems, setMissingItems] = useState<string[]>([]);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const { isMobile, getCardClasses, getPaddingClasses } = useMobileLayout();
 
@@ -491,7 +493,9 @@ export const Register: React.FC = () => {
       if (!formData.zip) newErrors.zip = "Zip code is required";
     }
     setErrors((prev) => ({ ...prev, ...newErrors }));
-    return Object.keys(newErrors).length === 0;
+    const messages = Object.values(newErrors).filter(Boolean) as string[];
+    setMissingItems(messages);
+    return messages.length === 0;
   };
 
   const validateForm = (): boolean => {
@@ -523,19 +527,12 @@ export const Register: React.FC = () => {
     if (!bannerPhotoUrl) newErrors.bannerPhoto = "Banner photo is required";
     if (!frontPagePhotoUrl) newErrors.frontPagePhoto = "Front page photo is required";
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
+    const messages = Object.values(newErrors).filter(Boolean) as string[];
     if (showVideo) {
+      const tiers = ["Free", "Silver", "Gold"];
       const missingVideos = videoUrls
         .map((url, idx) => (!url ? idx : -1))
         .filter((idx) => idx !== -1);
-
       if (missingVideos.length > 0) {
         setVideoErrors((prev) => {
           const next = [...prev];
@@ -544,14 +541,18 @@ export const Register: React.FC = () => {
           });
           return next;
         });
-        toast({
-          title: "Missing Videos",
-          description: "Please upload all three required videos.",
-          variant: "destructive",
-        });
-        return;
+        missingVideos.forEach((idx) => messages.push(`Upload Video ${idx + 1} (${tiers[idx]} tier)`));
       }
     }
+
+    setErrors(newErrors);
+    setMissingItems(messages);
+    return messages.length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
     setIsLoading(true);
     try {
@@ -700,6 +701,12 @@ export const Register: React.FC = () => {
   return (
     <div className="w-full min-h-screen relative overflow-x-hidden">
       <RotatingBackground images={backgroundImages} interval={3000} />
+      <RegisterMissingDialog
+        open={missingItems.length > 0}
+        stepTitle={stepTitles[currentStep - 1] ?? "this step"}
+        items={missingItems}
+        onClose={() => setMissingItems([])}
+      />
 
     <div className="relative z-10 w-full min-h-screen py-8 overflow-x-hidden">
       <LatestDimesCarousel className="mb-6 md:mb-8" />
@@ -810,16 +817,9 @@ export const Register: React.FC = () => {
                     {currentStep < totalSteps ? (
                       <Button
                         type="button"
-                        disabled={currentStep === 1 && (usernameStatus === 'checking' || usernameStatus === 'taken' || usernameStatus === 'invalid' || (!!formData.username && usernameStatus !== 'available'))}
                         onClick={() => {
                           if (validateStep(currentStep)) {
                             setCurrentStep((s) => Math.min(totalSteps, s + 1));
-                          } else {
-                            toast({
-                              title: "Missing Information",
-                              description: "Please complete the required fields before continuing.",
-                              variant: "destructive",
-                            });
                           }
                         }}
                         className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-lg shadow-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
