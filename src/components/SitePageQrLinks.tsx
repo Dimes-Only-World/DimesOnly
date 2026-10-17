@@ -43,7 +43,7 @@ export default function SitePageQrLinks({ username, dime }: { username?: string 
         </div>
         <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {pages.map((p) => {
-            const display = `www.DimesOnly.World/${p.link}`;
+            const display = `www.DimesOnlyWorld.com/${p.link}`;
             const full = `https://${display}`;
             const canvasId = `page-qr-${p.path}`;
             const download = () => {
