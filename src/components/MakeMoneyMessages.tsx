@@ -60,16 +60,6 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageSquare className="h-5 w-5" /> {active?.title || "Ready-to-Send Message"}
           </CardTitle>
-          {available.length > 1 && (
-            <div className="flex shrink-0 gap-2">
-              <Button variant="outline" size="icon" onClick={() => move(-1)} aria-label="Previous message">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => move(1)} aria-label="Next message">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -86,6 +76,23 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
         <p className="text-sm text-muted-foreground">
           Copy this message and paste it into any app. Your personal referral link is added automatically.
         </p>
+        {available.length > 1 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-foreground">Message</span>
+            {available.map((m, i) => (
+              <Button
+                key={m.id}
+                size="sm"
+                variant={i === activeIndex ? "default" : "outline"}
+                onClick={() => setActiveIndex(i)}
+                aria-label={`Show message ${i + 1}`}
+                className="h-8 min-w-8 px-2"
+              >
+                {i + 1}
+              </Button>
+            ))}
+          </div>
+        )}
         <div className="min-h-44 rounded-md border border-border bg-muted p-4">
           <p className="whitespace-pre-line break-words text-sm text-foreground">{fullMessage}</p>
         </div>
@@ -93,9 +100,6 @@ const MakeMoneyMessages: React.FC<MakeMoneyMessagesProps> = ({ username, fallbac
           <Button onClick={copyMessage} className="w-full sm:w-auto">
             <Copy className="mr-2 h-4 w-4" /> Copy Message
           </Button>
-          {available.length > 1 && (
-            <span className="text-xs text-muted-foreground">{activeIndex + 1} of {available.length}</span>
-          )}
         </div>
       </CardContent>
     </Card>
