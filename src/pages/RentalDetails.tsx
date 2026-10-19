@@ -516,7 +516,7 @@ const RentalDetails: React.FC = () => {
                 )}
                 {vehicle.weekly_rate && <div className="flex justify-between"><span>Weekly</span><span>${Number(vehicle.weekly_rate).toLocaleString()}</span></div>}
                 {vehicle.monthly_rate && <div className="flex justify-between"><span>Monthly</span><span>${Number(vehicle.monthly_rate).toLocaleString()}</span></div>}
-                {vehicle.down_payment && <div className="flex justify-between"><span>Initial down payment</span><span>${Number(vehicle.down_payment).toLocaleString()}</span></div>}
+                {Number(vehicle.down_payment) > 0 && (vehicle.rental_options || []).includes("rent_to_own") && <div className="flex justify-between"><span>Initial down payment</span><span>${Number(vehicle.down_payment).toLocaleString()}</span></div>}
                 {vehicle.monthly_rate && vehicle.rental_options?.includes("rent_to_own") && <div className="flex justify-between text-rental-success"><span>Rent-to-own (48 months)</span><span>${rentToOwnPayment.toLocaleString()}/month</span></div>}
                 {securityDeposit > 0 && (
                   <div className="flex justify-between border-t border-border/50 pt-2">
