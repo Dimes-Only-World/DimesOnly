@@ -591,11 +591,21 @@ serve(async (req) => {
         console.log("ssn_reveal", { adminUserId, id, who });
         return json({ ssn: await decryptSsn(enc) });
       }
+      case "signPurchaseDoc": {
+        const { id, documentId } = params;
+        const { data: row } = await admin.from("vehicle_purchase_applications").select("documents").eq("id", id).maybeSingle();
+        const doc = (row?.documents || []).find((d: any) => d.id === documentId);
+        if (!doc) return json({ error: "Document not found" }, 404);
+        const { data, error } = await admin.storage.from("credit-app-docs").createSignedUrl(doc.path, 300);
+        if (error) throw error;
+        return json({ url: data.signedUrl });
+      }
       case "updatePurchaseApplication": {
         const { id, payload } = params;
         const clean: Record<string, any> = {};
         if (typeof payload?.status === "string" && ["new", "reviewing", "contacted", "approved", "declined", "closed"].includes(payload.status)) clean.status = payload.status;
         if (typeof payload?.admin_notes === "string") clean.admin_notes = payload.admin_notes.trim().slice(0, 2000) || null;
+        if (typeof payload?.requested_items === "string") clean.requested_items = payload.requested_items.trim().slice(0, 2000) || null;
         if (!Object.keys(clean).length) return json({ error: "No valid changes supplied" }, 400);
         if (clean.status === "declined") clean.sale_status = "declined";
         if (clean.status === "approved" || clean.status === "declined") {

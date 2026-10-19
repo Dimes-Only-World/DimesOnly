@@ -49,6 +49,7 @@ const RentalsFooter: React.FC = () => {
       heading: "Account",
       links: [
         { label: "My Rentals", to: "/account/my-rentals" },
+        { label: "My Purchases", to: "/account/my-purchases" },
         ...(user
           ? [{ label: "Log out", onClick: logout }]
           : [
