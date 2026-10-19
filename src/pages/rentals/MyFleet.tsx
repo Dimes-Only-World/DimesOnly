@@ -50,7 +50,7 @@ const MyFleet: React.FC = () => {
   return (
     <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
       <BestLogoBanner />
-      <div className="mx-auto max-w-4xl px-4 py-10">
+      <div className="mobile-wall mx-auto max-w-4xl px-4 py-10">
         <h1 className="text-3xl font-bold uppercase tracking-wide">My Fleet</h1>
 
         {loading ? <p className="mt-6 text-rental-muted">Loading…</p> : !signedIn ? (

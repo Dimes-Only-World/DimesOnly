@@ -354,7 +354,7 @@ const HostApplication: React.FC = () => {
   if (vehicleCount === null) {
     return (
       <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
+        <div className="mobile-wall mx-auto max-w-3xl space-y-6 px-4 py-10">
           <Link to="/rentals/host" className="text-sm text-rental-muted hover:text-rental-foreground">← Back</Link>
           <header>
             <h1 className="font-barlow text-3xl font-bold uppercase">Become a Host</h1>
@@ -393,7 +393,7 @@ const HostApplication: React.FC = () => {
 
   return (
     <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
+      <div className="mobile-wall mx-auto max-w-3xl space-y-6 px-4 py-10">
         <Link to="/rentals/host" className="text-sm text-rental-muted hover:text-rental-foreground">← Back</Link>
         <header>
           <h1 className="font-barlow text-3xl font-bold uppercase">Become a Host</h1>

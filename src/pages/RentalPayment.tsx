@@ -136,7 +136,7 @@ const RentalPayment: React.FC = () => {
 
   return (
     <div className="rentals-showroom min-h-screen pb-16 pt-24 sm:px-4">
-      <div className="max-w-xl mx-auto">
+      <div className="mobile-wall max-w-xl mx-auto px-4 lg:px-0">
         <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 px-4 text-sm text-rental-muted hover:text-rental-primary sm:px-0">
           <ArrowLeft className="w-4 h-4" /> Back to rentals
         </Link>

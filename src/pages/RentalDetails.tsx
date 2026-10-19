@@ -467,7 +467,7 @@ const RentalDetails: React.FC = () => {
             )}
           </div>
 
-          <div className="px-4 sm:px-0">
+          <div className="mobile-wall px-4 lg:px-0">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
