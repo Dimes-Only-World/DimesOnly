@@ -584,7 +584,7 @@ const RentalDetails: React.FC = () => {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                          {rentalOptions.map((o: string) => (
-                          <SelectItem key={o} value={o}>{o.replace("_", " ")}</SelectItem>
+                          <SelectItem key={o} value={o}>{o === "long_term" ? "Long Term (Month to Month)" : o === "rent_to_own" ? "Rent to Own (Deposit Required)" : o === "weekly" ? "Rent (Weekly)" : o === "monthly" ? "Rent (1 Month)" : o === "daily" ? "Rent (Daily)" : o.replace("_", " ")}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -614,7 +614,7 @@ const RentalDetails: React.FC = () => {
                     </div>
                   )}
                   {rentalType === "long_term" && <p className="border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">6-month lease: 28 days × 6 months with 2 free days each month, at the daily rate (156 days × ${Number(vehicle?.day_rate || 0).toLocaleString()}) = <b className="text-rental-foreground">${vehicle ? sixMonthLeaseTotal(vehicle).toLocaleString() : 0}</b>. Your end date is filled automatically.</p>}
-                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>Deposit to be collected: <b className="text-rental-foreground">${Number(vehicle?.down_payment || 0).toLocaleString()}</b>. Wire instructions are shown at checkout.</p><p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the deposit, with $75 deducted from the contract total. No credit check required! Proof of Residence and Proof of Income REQUIRED! For lower payment options CLICK HERE to fill in Credit App.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
+                  {rentalType === "rent_to_own" && <div className="border-l-2 border-rental-success pl-3 text-sm text-rental-muted"><p>Deposit to be collected: <b className="text-rental-foreground">${Number(vehicle?.down_payment || 0).toLocaleString()}</b>. Wire instructions are shown at checkout.</p>{startDate && <p>Pickup date: <b className="text-rental-foreground">{new Date(startDate).toLocaleDateString()}</b> · Payoff date: <b className="text-rental-foreground">{addMonths(new Date(startDate), 48).toLocaleDateString()}</b></p>}<p>48 monthly payments of <b className="text-rental-foreground">${rentToOwnPayment.toLocaleString()}</b> after the deposit, with $75 deducted from the contract total. No credit check required! Proof of Residence and Proof of Income REQUIRED! For lower payment options <Link to="/rentals/purchase" className="font-semibold text-rental-primary underline">CLICK HERE</Link> to fill in Credit App.</p><p>Contract total: <b className="text-rental-foreground">${rentToOwnTotal.toLocaleString()}</b>.</p></div>}
 
                   <div>
                     <Label>Pickup location</Label>
@@ -865,6 +865,8 @@ const RentalDetails: React.FC = () => {
         vehicle={vehicle}
         rentalType={rentalType}
         startDate={startDate}
+        rentTotal={total}
+        longTermTotal={vehicle ? sixMonthLeaseTotal(vehicle) : 0}
         endDate={endDate}
         memberName={signature || memberProfile.fullName}
         memberAddress={memberProfile.address}

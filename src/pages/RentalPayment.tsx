@@ -207,8 +207,11 @@ const RentalPayment: React.FC = () => {
                 <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cashapp")}>
                   Pay ${Number(booking.total_price).toLocaleString()} with Cash App NO FEES
                 </Button>
+                <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cash")}>
+                  Pay ${Number(booking.total_price).toLocaleString()} cash at any 7-11
+                </Button>
                 <p className="text-center text-xs text-rental-muted">
-                  Pay with PayPal/Credit or Debit Card or Cash App,. The car is held for you and marked rented once payment is confirmed.
+                  Pay with PayPal/Credit or Debit Card, Cash App, or cash at any 7-11. The car is held for you and marked rented once payment is confirmed.
                 </p>
               </>
             )}
@@ -219,7 +222,7 @@ const RentalPayment: React.FC = () => {
       <Dialog open={manualPaymentDialog !== null} onOpenChange={(open) => !open && setManualPaymentDialog(null)}>
         <DialogContent className="max-w-md border-rental-line bg-rental-background text-rental-foreground">
           <DialogHeader>
-            <DialogTitle className="text-rental-foreground">{manualPaymentDialog === "cashapp" ? "Cash App instructions" : "Cash at pickup"}</DialogTitle>
+            <DialogTitle className="text-rental-foreground">{manualPaymentDialog === "cashapp" ? "Cash App instructions" : "Pay cash at any 7-11"}</DialogTitle>
             <DialogDescription className="text-rental-muted">Booking code {String(bookingId).slice(0, 8).toUpperCase()}</DialogDescription>
           </DialogHeader>
           {manualPaymentDialog === "cashapp" ? (
@@ -233,9 +236,12 @@ const RentalPayment: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3 text-sm">
-              <p>Bring ${Number(booking.total_price).toFixed(2)} in cash to pickup. Your booking code is <b>{String(bookingId).slice(0, 8).toUpperCase()}</b>. You'll get the keys once admin records the payment.</p>
-              <p>Admin collects payment at the pickup location, then your car is marked rented. We will contact you via text with the pickup location within 1 hour.</p>
-              <p>Business hours are 9 AM–7 PM Monday–Friday and 10 AM–4 PM Saturday. We are closed Sunday.</p>
+              <p>Total to pay in cash: <b>${Number(booking.total_price).toFixed(2)}</b>{Number(booking.security_deposit) > 0 ? ` (includes $${Number(booking.security_deposit).toLocaleString()} security deposit)` : ""}.</p>
+              <p>When you are in front of any 7-11, text <b>"AT 7-11"</b> to <a href="sms:7076401661?&body=AT%207-11" className="font-semibold text-rental-primary underline">707.640.1661</a> to get your barcode to pay.</p>
+              <p>Show the barcode to the cashier and pay the amount above. Your booking code is <b>{String(bookingId).slice(0, 8).toUpperCase()}</b>. Admin confirms the payment, then your car is marked rented.</p>
+              <Button asChild className="w-full rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90">
+                <a href="sms:7076401661?&body=AT%207-11">Text "AT 7-11" now</a>
+              </Button>
             </div>
           )}
         </DialogContent>

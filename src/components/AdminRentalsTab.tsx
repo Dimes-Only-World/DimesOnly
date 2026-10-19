@@ -829,7 +829,7 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
       if (r === null) return;
       reference = r;
     } else {
-      const r = prompt("Who collected the cash?");
+      const r = prompt("7-11 receipt/barcode reference or who confirmed the cash payment?");
       if (r === null) return;
       reference = r;
     }
@@ -874,7 +874,7 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
             Email: {b.renter_email ? <a className="underline" href={`mailto:${b.renter_email}`}>{b.renter_email}</a> : "—"} · Phone:{" "}
             {b.renter_phone ? <a className="underline" href={`tel:${b.renter_phone}`}>{b.renter_phone}</a> : "—"}
           </p>
-          <p className="text-xs">Total ${Number(b.total_price).toLocaleString()} · Status: <b>{b.status}</b>{b.payment_method ? <> · Method: <b>{b.payment_method === "cashapp" ? "Cash App" : b.payment_method === "cash" ? "Cash" : "PayPal"}</b>{["pending", "approved"].includes(b.status) ? " (renter's choice)" : ""}</> : null}</p>
+          <p className="text-xs">Total ${Number(b.total_price).toLocaleString()} · Status: <b>{b.status}</b>{b.payment_method ? <> · Method: <b>{b.payment_method === "cashapp" ? "Cash App" : b.payment_method === "cash" ? "Cash (7-11)" : "PayPal"}</b>{["pending", "approved"].includes(b.status) ? " (renter's choice)" : ""}</> : null}</p>
           {b.payment_reference && <p className="text-xs text-muted-foreground">Ref: {b.payment_reference}{b.amount_received ? ` · Received $${Number(b.amount_received).toLocaleString()}` : ""}</p>}
           <p className="text-xs text-muted-foreground">Booking code: {String(b.id).slice(0, 8).toUpperCase()}</p>
           {b.referrer_username && <p className="text-xs text-muted-foreground">Ref: {b.referrer_username} · Upline: {b.upline_referrer_username || "—"}</p>}
@@ -918,7 +918,7 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
             {verifying ? "Verifying PayPal..." : "Mark Paid (verify PayPal payment)"}
           </Button>
         )}
-        {["pending", "approved"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => markManual("cash")}>Mark Paid – Cash</Button>}
+        {["pending", "approved"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => markManual("cash")}>Mark Paid – Cash (7-11)</Button>}
         {["pending", "approved"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => markManual("cashapp")}>Mark Paid – Cash App</Button>}
         {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (picked up)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
