@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download, ShieldCheck } from "lucide-react";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 import { Input } from "@/components/ui/input";
 import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
@@ -649,16 +650,11 @@ const MyBookings: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-20 pb-16 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-4 pb-16 px-4">
+      <BestLogoBanner className="mb-6" />
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <Link
-              to="/rentals"
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-1"
-            >
-              <ArrowLeft className="w-4 h-4" /> Browse rentals
-            </Link>
             <h1 className="text-3xl md:text-4xl font-bold">My Rentals</h1>
             <p className="text-muted-foreground text-sm">
               Manage your upcoming, active, and completed rentals.
@@ -705,6 +701,11 @@ const MyBookings: React.FC = () => {
             <Section title="Past Rentals" items={grouped.past} />
           </div>
         )}
+        <div className="mt-10 flex justify-center">
+          <Link to="/rentals">
+            <Button size="lg" className="gap-2"><ArrowLeft className="h-5 w-5" /> Back to Rentals</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Extend rental */}

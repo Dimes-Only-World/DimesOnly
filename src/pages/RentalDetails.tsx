@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import NotifyMeDialog from "@/components/rentals/NotifyMeDialog";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 import { BellRing } from "lucide-react";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 
 type Review = {
   id: string;
@@ -385,10 +386,17 @@ const RentalDetails: React.FC = () => {
     }
   };
 
-  if (loading) return <AngelLoader variant="fullscreen" className="pt-24" />;
+  if (loading)
+    return (
+      <div className="rentals-showroom rentals-showroom-light min-h-screen sm:px-4">
+        <BestLogoBanner />
+        <AngelLoader variant="fullscreen" className="pt-10" />
+      </div>
+    );
   if (!vehicle)
     return (
-      <div className="min-h-screen pt-24 text-center">
+      <div className="rentals-showroom rentals-showroom-light min-h-screen pt-10 text-center">
+        <BestLogoBanner />
         <p className="mb-4">Vehicle not found.</p>
         <Link to="/rentals"><Button>Back to Rentals</Button></Link>
       </div>
@@ -400,7 +408,8 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 pt-16 sm:px-4">
+    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 sm:px-4">
+      <BestLogoBanner />
       <div className="mx-auto max-w-6xl">
 
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
