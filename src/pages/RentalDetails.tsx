@@ -409,7 +409,7 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="rentals-showroom rentals-detail-dark min-h-screen pb-16 sm:px-4">
+    <div className="rentals-showroom rentals-detail-dark min-h-screen pb-8 sm:px-4">
       <BestLogoBanner />
       <div className="mx-auto max-w-6xl">
 
@@ -862,7 +862,7 @@ const RentalDetails: React.FC = () => {
 
         {id && <CapturesGallery vehicleId={id} limit={12} />}
 
-        <div className="mt-10 flex justify-center px-4">
+        <div className="mt-8 flex justify-center px-4">
           <Link to="/rentals">
             <Button size="lg" className="gap-2 rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90"><ArrowLeft className="h-5 w-5" /> Back to Rentals</Button>
           </Link>

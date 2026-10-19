@@ -66,8 +66,8 @@ const RentalsFooter: React.FC = () => {
 
   return (
     <footer className="border-t border-rental-line bg-rental-surface pb-14 font-barlow sm:pb-0">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-3 sm:text-left">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-3 sm:gap-8 sm:text-left">
           {columns.map((col) => (
             <div key={col.heading}>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rental-muted">
