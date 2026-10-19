@@ -248,6 +248,43 @@ serve(async (req) => {
         if (error) throw error;
         return json({ data: { paths: next } });
       }
+      case "listRentalUpdates": {
+        const { data: s } = await admin.from("app_settings").select("value").eq("key", "rental_updates").maybeSingle();
+        if (!s) return json({ data: null });
+        const items: any[] = Array.isArray((s.value as any)?.items) ? (s.value as any).items : [];
+        const paths = items.map((x) => x.path).filter(Boolean);
+        const { data: signed } = paths.length ? await admin.storage.from("vehicle-media").createSignedUrls(paths, 3600) : { data: [] };
+        const map = new Map((signed || []).map((x: any) => [x.path, x.signedUrl]));
+        return json({ data: items.map((x) => ({ ...x, url: x.path ? map.get(x.path) || null : x.image_url || null })) });
+      }
+      case "uploadRentalUpdateImage": {
+        const { fileName, contentType, base64 } = params;
+        const ext = (fileName?.split(".").pop() || "jpg").toLowerCase();
+        if (!["image/jpeg", "image/png", "image/webp"].includes(String(contentType)) || !/^[a-z0-9]{1,5}$/.test(ext)) return json({ error: "Use a JPG, PNG or WEBP photo" }, 400);
+        if (typeof base64 !== "string" || base64.length > 20 * 1024 * 1024) return json({ error: "Photo too large" }, 400);
+        const path = `rental-updates/${crypto.randomUUID()}.${ext}`;
+        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+        const { error: upErr } = await admin.storage.from("vehicle-media").upload(path, bytes, { contentType });
+        if (upErr) throw upErr;
+        return json({ data: { path } });
+      }
+      case "saveRentalUpdates": {
+        const raw: any[] = Array.isArray(params.items) ? params.items.slice(0, 20) : [];
+        const items = raw.map((x) => ({
+          id: String(x?.id || crypto.randomUUID()).slice(0, 64),
+          title: String(x?.title || "").slice(0, 120),
+          body: String(x?.body || "").slice(0, 400),
+          path: typeof x?.path === "string" && /^rental-updates\/[\w-]+\.[a-z0-9]{1,5}$/.test(x.path) ? x.path : null,
+          image_url: typeof x?.image_url === "string" && /^(\/__l5e\/|https:\/\/)/.test(x.image_url) ? x.image_url.slice(0, 500) : null,
+        })).filter((x) => x.path || x.image_url || x.title || x.body);
+        const { data: s } = await admin.from("app_settings").select("value").eq("key", "rental_updates").maybeSingle();
+        const old: string[] = (((s?.value as any)?.items) || []).map((x: any) => x.path).filter(Boolean);
+        const removed = old.filter((p) => !items.some((x) => x.path === p));
+        if (removed.length) await admin.storage.from("vehicle-media").remove(removed);
+        const { error } = await admin.from("app_settings").upsert({ key: "rental_updates", value: { items } });
+        if (error) throw error;
+        return json({ data: { items } });
+      }
       case "setHoldDeposit": {
         const amt = Number(params.amount);
         if (!Number.isFinite(amt) || amt < 0 || amt > 10000) return json({ error: "Enter a deposit between $0 and $10,000" }, 400);

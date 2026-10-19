@@ -1,4 +1,5 @@
 import { signRentalMedia } from "@/lib/rentalMedia";
+import RentalUpdatesCarousel from "@/components/rentals/RentalUpdatesCarousel";
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ const Rentals: React.FC = () => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [optionFilter, setOptionFilter] = useState<string>("all");
+  const [availableOnly, setAvailableOnly] = useState(false);
   const [page, setPage] = useState(1);
   const gridRef = React.useRef<HTMLDivElement>(null);
 
@@ -130,7 +132,8 @@ const Rentals: React.FC = () => {
       (v.pickup_location || "").toLowerCase().includes(q);
     const matchType = typeFilter === "all" || v.vehicle_type === typeFilter;
     const matchOpt = optionFilter === "all" || v.rental_options?.includes(optionFilter);
-    return matchQ && matchType && matchOpt;
+    const matchAvail = !availableOnly || (v.availability_status === "available" && blockedUntil(v.booked || [], Date.now()) === null);
+    return matchQ && matchType && matchOpt && matchAvail;
   });
 
   const PER_PAGE = 8;
@@ -140,7 +143,7 @@ const Rentals: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, optionFilter]);
+  }, [search, typeFilter, optionFilter, availableOnly]);
 
   const goPage = (n: number) => {
     const next = Math.min(Math.max(1, n), totalPages);
@@ -236,6 +239,8 @@ const Rentals: React.FC = () => {
           </Button>
         </div>
 
+        <RentalUpdatesCarousel />
+
         <div id="fleet" className="mb-10 grid scroll-mt-4 grid-cols-1 gap-px border-y border-rental-line bg-rental-line sm:border-x md:grid-cols-4">
           <div className="relative md:col-span-2">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-rental-muted" />
@@ -275,14 +280,34 @@ const Rentals: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="-mt-9 mb-10 flex justify-end border-x-0 border-b border-rental-line bg-rental-surface p-3 sm:border-x">
+          <button
+            type="button"
+            aria-pressed={availableOnly}
+            onClick={() => setAvailableOnly((v) => !v)}
+            className={`flex items-center gap-2 border px-4 py-2 font-barlow text-sm font-semibold uppercase transition-colors ${availableOnly ? "border-rental-success bg-rental-success text-rental-background" : "border-rental-line bg-rental-elevated text-rental-foreground hover:border-rental-success"}`}
+          >
+            <Check className="h-4 w-4" /> {availableOnly ? "Showing available only" : "Available"}
+          </button>
+        </div>
 
         {loading ? (
           <p className="py-20 text-center font-barlow text-rental-muted">Preparing the fleet…</p>
         ) : filtered.length === 0 ? (
           <div className="border border-rental-line bg-rental-surface py-20 text-center">
             <Car className="mx-auto mb-4 h-12 w-12 text-rental-muted" />
-            <p className="font-barlow text-rental-muted">No vehicles match these filters.</p>
-            <Button variant="link" onClick={clearFilters} className="mt-2 text-rental-primary">Clear filters</Button>
+            {availableOnly ? (
+              <>
+                <p className="font-barlow text-lg font-semibold text-rental-foreground">Nothing available right now</p>
+                <p className="mt-1 font-barlow text-rental-muted">Click Get Notified on the car you want.</p>
+                <Button onClick={() => setAvailableOnly(false)} className="mt-4 rounded-none bg-rental-warning font-semibold text-rental-warning-foreground hover:bg-rental-warning/90">Show all cars</Button>
+              </>
+            ) : (
+              <>
+                <p className="font-barlow text-rental-muted">No vehicles match these filters.</p>
+                <Button variant="link" onClick={clearFilters} className="mt-2 text-rental-primary">Clear filters</Button>
+              </>
+            )}
           </div>
         ) : (
           <>

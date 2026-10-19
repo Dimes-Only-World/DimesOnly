@@ -26,6 +26,9 @@ Deno.serve(async (req) => {
       const { data: bg } = await admin.from("app_settings").select("value").eq("key", "purchase_backgrounds").maybeSingle();
       const bgPaths: string[] = Array.isArray((bg?.value as any)?.paths) ? (bg!.value as any).paths : [];
       allowed.push(...clean.filter((p) => bgPaths.includes(p)));
+      const { data: up } = await admin.from("app_settings").select("value").eq("key", "rental_updates").maybeSingle();
+      const upPaths: string[] = (((up?.value as any)?.items) || []).map((x: any) => x?.path).filter(Boolean);
+      allowed.push(...clean.filter((p) => upPaths.includes(p)));
     } else {
       const { data } = await admin.from("rental_captures").select("storage_path")
         .in("storage_path", clean).eq("moderation_status", "approved");
