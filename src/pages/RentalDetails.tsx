@@ -533,7 +533,7 @@ const RentalDetails: React.FC = () => {
                 <div>
                   <p className="font-semibold">Insurance &amp; Protection</p>
                   <p className="text-sm text-muted-foreground">
-                    Every trip is covered by our protection plan for peace of mind on the road.
+                    Choose Standard ($34/day), Minimum ($27/day), or your own insurance when you book.
                   </p>
                 </div>
               </CardContent>
