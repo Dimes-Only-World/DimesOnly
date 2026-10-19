@@ -642,16 +642,38 @@ serve(async (req) => {
           .select("*, vehicles(year,make,model)")
           .order("submitted_at", { ascending: false });
         if (error) throw error;
-        const strip = (p: any) => { if (!p) return p; const { ssnEncrypted, ...rest } = p; return { ...rest, hasSsn: !!ssnEncrypted }; };
-        return json({ data: (data || []).map((r: any) => ({ ...r, applicant: strip(r.applicant), co_buyer: strip(r.co_buyer) })) });
+        const strip = (p: any) => {
+          if (!p) return p;
+          const { ssnEncrypted, dateOfBirth, driversLicenseNumber, ...rest } = p;
+          return { ...rest, hasSsn: !!ssnEncrypted, hasDob: !!dateOfBirth, hasDl: !!driversLicenseNumber };
+        };
+        const ids = (data || []).map((r: any) => r.id);
+        const { data: logs } = ids.length
+          ? await admin.from("credit_app_reveal_log").select("application_id, admin_user_id, person, field, revealed_at").in("application_id", ids).order("revealed_at", { ascending: false }).limit(1000)
+          : { data: [] as any[] };
+        const adminIds = [...new Set((logs || []).map((l: any) => l.admin_user_id).filter(Boolean))];
+        const names: Record<string, string> = {};
+        if (adminIds.length) {
+          const { data: us } = await admin.from("users").select("id, username").in("id", adminIds);
+          for (const u of us || []) names[u.id] = u.username;
+        }
+        return json({ data: (data || []).map((r: any) => ({
+          ...r, applicant: strip(r.applicant), co_buyer: strip(r.co_buyer),
+          reveal_log: (logs || []).filter((l: any) => l.application_id === r.id).map((l: any) => ({ ...l, admin_username: names[l.admin_user_id] || null })),
+        })) });
       }
-      case "revealPurchaseSsn": {
+      case "revealPurchaseSsn":
+      case "revealPurchaseField": {
         const { id, who } = params;
+        const field = action === "revealPurchaseSsn" ? "ssn" : String(params.field);
+        if (!["ssn", "dob", "dl"].includes(field) || !["applicant", "coBuyer"].includes(who)) return json({ error: "Invalid request" }, 400);
         const { data: row } = await admin.from("vehicle_purchase_applications").select("applicant, co_buyer").eq("id", id).maybeSingle();
-        const enc = (who === "coBuyer" ? row?.co_buyer : row?.applicant)?.ssnEncrypted;
-        if (!enc) return json({ error: "No Social Security number on file" }, 404);
-        console.log("ssn_reveal", { adminUserId, id, who });
-        return json({ ssn: await decryptSsn(enc) });
+        const person = who === "coBuyer" ? row?.co_buyer : row?.applicant;
+        const raw = field === "ssn" ? person?.ssnEncrypted : field === "dob" ? person?.dateOfBirth : person?.driversLicenseNumber;
+        if (!raw) return json({ error: "Nothing on file" }, 404);
+        await admin.from("credit_app_reveal_log").insert({ application_id: id, admin_user_id: adminUserId, person: who, field });
+        const value = field === "ssn" ? await decryptSsn(raw) : String(raw);
+        return json({ value, ssn: field === "ssn" ? value : undefined });
       }
       case "signPurchaseDoc": {
         const { id, documentId } = params;
