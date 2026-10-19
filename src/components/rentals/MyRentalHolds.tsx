@@ -69,13 +69,17 @@ const MyRentalHolds: React.FC<{ userId: string }> = ({ userId }) => {
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{title}</p><Badge variant="outline">{LABELS[h.status] || h.status}</Badge></div>
                 <p className="text-sm text-muted-foreground">Wanted {day(h.wanted_start)} → {day(h.wanted_end)} · Deposit ${Number(h.amount).toFixed(2)}</p>
+                {["held", "refundable", "pending_payment"].includes(h.status) && <p className="text-xs text-muted-foreground">Hold expires {day(h.wanted_start)} — book these dates by then to use your deposit.</p>}
                 {h.status === "refundable" && <p className="text-sm text-amber-300">The current renter extended. Choose new dates to keep your deposit, or request a refund.</p>}
                 {h.status === "pending_payment" && h.payment_method === "cashapp" && <p className="text-xs text-muted-foreground">Send the deposit to $BestCarRentals with code {String(h.id).slice(0, 8).toUpperCase()}.</p>}
               </div>
+              {h.status === "pending_payment" && h.payment_method === "cashapp" && (
+                <Button asChild size="sm"><a href={`https://cash.app/$BestCarRentals/${Number(h.amount).toFixed(2)}`} target="_blank" rel="noopener noreferrer">Pay now</a></Button>
+              )}
               {canEdit && (
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => setEditing(h)}>Change date</Button>
-                  <Button size="sm" variant="destructive" disabled={busy === h.id} onClick={() => refund(h)}>Request refund</Button>
+                  <Button size="sm" variant="destructive" disabled={busy === h.id} onClick={() => refund(h)}>Cancel hold & refund</Button>
                 </div>
               )}
             </CardContent>

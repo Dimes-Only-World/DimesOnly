@@ -55,8 +55,10 @@ import { Route as UpgradeGoldRouteImport } from './routes/upgrade-gold'
 import { Route as UpgradeSilverRouteImport } from './routes/upgrade-silver'
 import { Route as UpgradeSilverPlusRouteImport } from './routes/upgrade-silver-plus'
 import { Route as UpgradeSilverSubscribeRouteImport } from './routes/upgrade-silver-subscribe'
+import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as AccountMyPurchasesRouteImport } from './routes/account/my-purchases'
 import { Route as AccountMyRentalsRouteImport } from './routes/account/my-rentals'
+import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as ClothesIndexRouteImport } from './routes/clothes/index'
 import { Route as ClothesPageRouteImport } from './routes/clothes/$page'
 import { Route as ClothesCartRouteImport } from './routes/clothes/cart'
@@ -329,6 +331,11 @@ const UpgradeSilverSubscribeRoute = UpgradeSilverSubscribeRouteImport.update({
   path: '/upgrade-silver-subscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountMyPurchasesRoute = AccountMyPurchasesRouteImport.update({
   id: '/account/my-purchases',
   path: '/account/my-purchases',
@@ -337,6 +344,11 @@ const AccountMyPurchasesRoute = AccountMyPurchasesRouteImport.update({
 const AccountMyRentalsRoute = AccountMyRentalsRouteImport.update({
   id: '/account/my-rentals',
   path: '/account/my-rentals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountProfileRoute = AccountProfileRouteImport.update({
+  id: '/account/profile',
+  path: '/account/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClothesIndexRoute = ClothesIndexRouteImport.update({
@@ -595,6 +607,7 @@ export interface FileRoutesByFullPath {
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
   '/account/my-purchases': typeof AccountMyPurchasesRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
   '/clothes/checkout': typeof ClothesCheckoutRoute
@@ -618,6 +631,7 @@ export interface FileRoutesByFullPath {
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/rentals/signup': typeof RentalsSignupRoute
   '/tips/$username': typeof TipsUsernameRoute
+  '/account/': typeof AccountIndexRoute
   '/clothes/': typeof ClothesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/feed/': typeof FeedIndexRoute
@@ -679,6 +693,7 @@ export interface FileRoutesByTo {
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
   '/account/my-purchases': typeof AccountMyPurchasesRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
   '/clothes/checkout': typeof ClothesCheckoutRoute
@@ -699,6 +714,7 @@ export interface FileRoutesByTo {
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/signup': typeof RentalsSignupRoute
   '/tips/$username': typeof TipsUsernameRoute
+  '/account': typeof AccountIndexRoute
   '/clothes': typeof ClothesIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/feed': typeof FeedIndexRoute
@@ -768,6 +784,7 @@ export interface FileRoutesById {
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
   '/account/my-purchases': typeof AccountMyPurchasesRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
   '/clothes/checkout': typeof ClothesCheckoutRoute
@@ -791,6 +808,7 @@ export interface FileRoutesById {
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
   '/rentals/signup': typeof RentalsSignupRoute
   '/tips/$username': typeof TipsUsernameRoute
+  '/account/': typeof AccountIndexRoute
   '/clothes/': typeof ClothesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/feed/': typeof FeedIndexRoute
@@ -861,6 +879,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver-subscribe'
     | '/account/my-purchases'
     | '/account/my-rentals'
+    | '/account/profile'
     | '/clothes/$page'
     | '/clothes/cart'
     | '/clothes/checkout'
@@ -884,6 +903,7 @@ export interface FileRouteTypes {
     | '/rentals/purchase'
     | '/rentals/signup'
     | '/tips/$username'
+    | '/account/'
     | '/clothes/'
     | '/dashboard/'
     | '/feed/'
@@ -945,6 +965,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver-subscribe'
     | '/account/my-purchases'
     | '/account/my-rentals'
+    | '/account/profile'
     | '/clothes/$page'
     | '/clothes/cart'
     | '/clothes/checkout'
@@ -965,6 +986,7 @@ export interface FileRouteTypes {
     | '/rentals/my-fleet'
     | '/rentals/signup'
     | '/tips/$username'
+    | '/account'
     | '/clothes'
     | '/dashboard'
     | '/feed'
@@ -1033,6 +1055,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver-subscribe'
     | '/account/my-purchases'
     | '/account/my-rentals'
+    | '/account/profile'
     | '/clothes/$page'
     | '/clothes/cart'
     | '/clothes/checkout'
@@ -1056,6 +1079,7 @@ export interface FileRouteTypes {
     | '/rentals/purchase'
     | '/rentals/signup'
     | '/tips/$username'
+    | '/account/'
     | '/clothes/'
     | '/dashboard/'
     | '/feed/'
@@ -1125,7 +1149,9 @@ export interface RootRouteChildren {
   UpgradeSilverSubscribeRoute: typeof UpgradeSilverSubscribeRoute
   AccountMyPurchasesRoute: typeof AccountMyPurchasesRoute
   AccountMyRentalsRoute: typeof AccountMyRentalsRoute
+  AccountProfileRoute: typeof AccountProfileRoute
   ProfileUsernameRoute: typeof ProfileUsernameRoute
+  AccountIndexRoute: typeof AccountIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1452,6 +1478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UpgradeSilverSubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/my-purchases': {
       id: '/account/my-purchases'
       path: '/account/my-purchases'
@@ -1464,6 +1497,13 @@ declare module '@tanstack/react-router' {
       path: '/account/my-rentals'
       fullPath: '/account/my-rentals'
       preLoaderRoute: typeof AccountMyRentalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/profile': {
+      id: '/account/profile'
+      path: '/account/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clothes/': {
@@ -1975,7 +2015,9 @@ const rootRouteChildren: RootRouteChildren = {
   UpgradeSilverSubscribeRoute: UpgradeSilverSubscribeRoute,
   AccountMyPurchasesRoute: AccountMyPurchasesRoute,
   AccountMyRentalsRoute: AccountMyRentalsRoute,
+  AccountProfileRoute: AccountProfileRoute,
   ProfileUsernameRoute: ProfileUsernameRoute,
+  AccountIndexRoute: AccountIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

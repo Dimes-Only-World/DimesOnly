@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "@/lib/router-compat";
 import { ArrowLeft, CheckCircle2, Clock, Download, FileText, Loader2, ShieldCheck, Upload, XCircle, Car } from "lucide-react";
 import BestLogoBanner from "@/components/rentals/BestLogoBanner";
+import AccountMenu from "@/components/rentals/AccountMenu";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
@@ -44,6 +45,7 @@ const MyPurchases: React.FC = () => {
   const open = async (docId: string) => { try { window.open(await signMyPurchaseDoc(app.id, docId), "_blank", "noopener"); } catch (e: any) { toast({ title: "Unavailable", description: e.message, variant: "destructive" }); } };
   return <div className="rentals-showroom flex min-h-screen flex-col bg-rental-background text-rental-foreground">
     <BestLogoBanner />
+    <AccountMenu />
     <main className="mobile-wall mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
       <p className="text-xs font-semibold uppercase text-rental-primary">Best Car Rental Services</p>
       <h1 className="rentals-wordmark text-5xl leading-none sm:text-6xl">MY PURCHASES</h1>

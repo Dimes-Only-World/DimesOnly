@@ -1,0 +1,1 @@
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS drivers_license_no text, ADD COLUMN IF NOT EXISTS drivers_license_state text;
