@@ -436,7 +436,7 @@ const Rentals: React.FC = () => {
         <div className="font-barlow"><CapturesGallery limit={12} /></div>
       </main>
       <Dialog open={!!gateTarget} onOpenChange={(o) => !o && setGateTarget(null)}>
-        <DialogContent className="rounded-none border-rental-line bg-rental-surface font-barlow text-rental-foreground">
+        <DialogContent className="rentals-showroom rounded-none border-rental-line bg-rental-surface font-barlow text-rental-foreground">
           <DialogHeader>
             <DialogTitle className="text-rental-foreground">Do you already have an account?</DialogTitle>
             <DialogDescription className="text-rental-muted">Sign in to view this car, book it, or get notified when it's available.</DialogDescription>

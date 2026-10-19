@@ -223,7 +223,7 @@ const RentalSignup: React.FC = () => {
       </main>
 
       <Dialog open={missing.length > 0} onOpenChange={(o) => !o && setMissing([])}>
-        <DialogContent className="rounded-none border-rental-line bg-rental-surface font-barlow text-rental-foreground">
+        <DialogContent className="rentals-showroom rounded-none border-rental-line bg-rental-surface font-barlow text-rental-foreground">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rental-foreground"><AlertCircle className="h-5 w-5 text-rental-warning" />Please complete these</DialogTitle>
             <DialogDescription className="text-rental-muted">Fill in the items below to create your account.</DialogDescription>
