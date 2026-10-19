@@ -1,3 +1,4 @@
+import fleetBanner from "@/assets/rentals/fleet-banner.jpg";
 import { signRentalMedia } from "@/lib/rentalMedia";
 import RentalUpdatesCarousel from "@/components/rentals/RentalUpdatesCarousel";
 import React, { useEffect, useState, useMemo } from "react";
@@ -12,7 +13,6 @@ import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 import { formatRentalLocation } from "@/lib/rentalLocation";
@@ -180,7 +180,7 @@ const Rentals: React.FC = () => {
           </Link>
           <ReferrerBadge />
         </div>
-        <div className="rentals-wordmark text-right text-3xl leading-[0.75] text-rental-foreground sm:text-5xl">
+        <div className="rentals-wordmark text-right text-2xl leading-[0.75] text-rental-foreground sm:text-5xl">
           BEST
           <span className="block text-rental-primary">RENTAL CARS</span>
         </div>
@@ -188,17 +188,17 @@ const Rentals: React.FC = () => {
 
       <section className="relative min-h-[560px] overflow-hidden bg-rental-background sm:min-h-[680px]">
         {headerVideo ? (
-          <BannerVideo src={headerVideo} background className="absolute inset-0 h-full w-full object-cover" />
+          <BannerVideo src={headerVideo} background className="absolute inset-0 h-full w-full object-cover opacity-35" />
         ) : (
           <div className="absolute inset-0 bg-rental-surface" />
         )}
         <div className="absolute inset-0 bg-rental-hero" />
-        <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-4 pb-12 pt-28 sm:min-h-[680px] sm:px-8 sm:pb-20 lg:px-12">
+        <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-4 pb-12 pt-36 sm:min-h-[680px] sm:px-8 sm:pb-20 lg:px-12">
           <div className="max-w-3xl">
             <p className="mb-3 flex items-center gap-2 font-barlow text-xs font-semibold uppercase text-rental-primary">
               <span className="h-px w-8 bg-rental-primary" /> Dimes Only Rentals
             </p>
-            <h1 className="rentals-wordmark text-5xl leading-[0.88] text-rental-foreground sm:text-8xl lg:text-9xl">
+            <h1 className="rentals-wordmark text-[clamp(2.25rem,13.5vw,3rem)] leading-[0.88] text-rental-foreground sm:text-8xl lg:text-9xl">
               DRIVE THE
               <span className="block text-rental-primary">EXTRAORDINARY.</span>
             </h1>
@@ -206,7 +206,7 @@ const Rentals: React.FC = () => {
               A curated fleet for every move—from everyday comfort to statement-making luxury.
               Book with clear pricing and drive with confidence.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap [&>*]:w-full sm:[&>*]:w-auto">
               <Button asChild size="lg" className="rounded-none bg-rental-primary font-barlow font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
                 <a href="#fleet">Explore the fleet <ArrowRight className="ml-2 h-4 w-4" /></a>
               </Button>
@@ -260,6 +260,20 @@ const Rentals: React.FC = () => {
       </main>
 
       <RentalUpdatesCarousel />
+
+      <section className="relative mt-10 overflow-hidden border-y border-rental-line">
+        <img src={fleetBanner} alt="Luxury fleet of cars in a showroom" width={1600} height={800} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-rental-hero" />
+        <div className="relative mx-auto flex min-h-[320px] max-w-7xl flex-col items-start justify-end gap-4 px-4 py-10 sm:min-h-[400px] sm:px-8 lg:px-12">
+          <h2 className="rentals-wordmark text-[clamp(2.25rem,11vw,4.5rem)] leading-[0.9] text-rental-foreground">
+            OWN A FLEET.
+            <span className="block text-rental-primary">EARN WITH BEST.</span>
+          </h2>
+          <Button asChild size="lg" className="w-full rounded-none bg-rental-primary font-barlow font-semibold text-rental-primary-foreground hover:bg-rental-primary/90 sm:w-auto">
+            <Link to="/rentals/host">Become a Host <ArrowRight className="ml-2 h-4 w-4" /></Link>
+          </Button>
+        </div>
+      </section>
 
       <div className="mx-auto max-w-7xl sm:px-8 lg:px-12">
 
@@ -535,7 +549,6 @@ const Rentals: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <RentalsFooter />
     </div>
   );
 };

@@ -18,7 +18,6 @@ import {
   TrendingUp,
   Wrench,
 } from "lucide-react";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 import ScheduleCallDialog from "@/components/rentals/ScheduleCallDialog";
 
 const SCHEDULE_CALL_URL =
@@ -439,8 +438,6 @@ const ListACar: React.FC = () => {
           </div>
         </div>
       </section>
-
-      <RentalsFooter />
       <ScheduleCallDialog open={callOpen} onOpenChange={setCallOpen} />
     </div>
   );

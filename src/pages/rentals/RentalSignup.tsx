@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DateOfBirthSelect, { calculateAge } from "@/components/DateOfBirthSelect";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { getActiveRef, buildAuthUrl } from "@/lib/refCapture";
 import { useAppContext } from "@/contexts/AppContext";
@@ -234,7 +233,6 @@ const RentalSignup: React.FC = () => {
           <Button onClick={() => setMissing([])} className="rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90">Got it</Button>
         </DialogContent>
       </Dialog>
-      <RentalsFooter />
     </div>
   );
 };

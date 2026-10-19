@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminloginRouteImport } from './routes/adminlogin'
 import { Route as BusinessOwnerEliteRouteImport } from './routes/business-owner-elite'
+import { Route as CancellationRouteImport } from './routes/cancellation'
 import { Route as ClothesRouteImport } from './routes/clothes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DebugSubscriptionRouteImport } from './routes/debug-subscription'
@@ -34,6 +35,7 @@ import { Route as MembershipsRouteImport } from './routes/memberships'
 import { Route as MoneyCircleRouteImport } from './routes/money-circle'
 import { Route as MyBookingsRouteImport } from './routes/my-bookings'
 import { Route as PaymentReturnRouteImport } from './routes/payment-return'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RankingsRouteImport } from './routes/rankings'
 import { Route as RateRouteImport } from './routes/rate'
 import { Route as RateGirlsRouteImport } from './routes/rate-girls'
@@ -43,6 +45,7 @@ import { Route as RentalRouteImport } from './routes/rental'
 import { Route as RentalsRouteImport } from './routes/rentals'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as StoreRouteImport } from './routes/store'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TestLoginRouteImport } from './routes/test-login'
 import { Route as TipRouteImport } from './routes/tip'
 import { Route as TipGirlsRouteImport } from './routes/tip-girls'
@@ -124,6 +127,11 @@ const AdminloginRoute = AdminloginRouteImport.update({
 const BusinessOwnerEliteRoute = BusinessOwnerEliteRouteImport.update({
   id: '/business-owner-elite',
   path: '/business-owner-elite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CancellationRoute = CancellationRouteImport.update({
+  id: '/cancellation',
+  path: '/cancellation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClothesRoute = ClothesRouteImport.update({
@@ -226,6 +234,11 @@ const PaymentReturnRoute = PaymentReturnRouteImport.update({
   path: '/payment-return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RankingsRoute = RankingsRouteImport.update({
   id: '/rankings',
   path: '/rankings',
@@ -269,6 +282,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const StoreRoute = StoreRouteImport.update({
   id: '/store',
   path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestLoginRoute = TestLoginRouteImport.update({
@@ -564,6 +582,7 @@ export interface FileRoutesByFullPath {
   '/admin-login': typeof AdminLoginRoute
   '/adminlogin': typeof AdminloginRoute
   '/business-owner-elite': typeof BusinessOwnerEliteRoute
+  '/cancellation': typeof CancellationRoute
   '/clothes': typeof ClothesRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/debug-subscription': typeof DebugSubscriptionRoute
@@ -584,6 +603,7 @@ export interface FileRoutesByFullPath {
   '/money-circle': typeof MoneyCircleRoute
   '/my-bookings': typeof MyBookingsRoute
   '/payment-return': typeof PaymentReturnRoute
+  '/privacy': typeof PrivacyRoute
   '/rankings': typeof RankingsRoute
   '/rate': typeof RateRoute
   '/rate-girls': typeof RateGirlsRoute
@@ -593,6 +613,7 @@ export interface FileRoutesByFullPath {
   '/rentals': typeof RentalsRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/store': typeof StoreRoute
+  '/terms': typeof TermsRoute
   '/test-login': typeof TestLoginRoute
   '/tip': typeof TipRoute
   '/tip-girls': typeof TipGirlsRoute
@@ -657,6 +678,7 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/adminlogin': typeof AdminloginRoute
   '/business-owner-elite': typeof BusinessOwnerEliteRoute
+  '/cancellation': typeof CancellationRoute
   '/debug-subscription': typeof DebugSubscriptionRoute
   '/dimes': typeof DimesRoute
   '/elite': typeof EliteRoute
@@ -673,6 +695,7 @@ export interface FileRoutesByTo {
   '/money-circle': typeof MoneyCircleRoute
   '/my-bookings': typeof MyBookingsRoute
   '/payment-return': typeof PaymentReturnRoute
+  '/privacy': typeof PrivacyRoute
   '/rankings': typeof RankingsRoute
   '/rate': typeof RateRoute
   '/rate-girls': typeof RateGirlsRoute
@@ -680,6 +703,7 @@ export interface FileRoutesByTo {
   '/rental': typeof RentalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/store': typeof StoreRoute
+  '/terms': typeof TermsRoute
   '/test-login': typeof TestLoginRoute
   '/tip': typeof TipRoute
   '/tip-girls': typeof TipGirlsRoute
@@ -741,6 +765,7 @@ export interface FileRoutesById {
   '/admin-login': typeof AdminLoginRoute
   '/adminlogin': typeof AdminloginRoute
   '/business-owner-elite': typeof BusinessOwnerEliteRoute
+  '/cancellation': typeof CancellationRoute
   '/clothes': typeof ClothesRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/debug-subscription': typeof DebugSubscriptionRoute
@@ -761,6 +786,7 @@ export interface FileRoutesById {
   '/money-circle': typeof MoneyCircleRoute
   '/my-bookings': typeof MyBookingsRoute
   '/payment-return': typeof PaymentReturnRoute
+  '/privacy': typeof PrivacyRoute
   '/rankings': typeof RankingsRoute
   '/rate': typeof RateRoute
   '/rate-girls': typeof RateGirlsRoute
@@ -770,6 +796,7 @@ export interface FileRoutesById {
   '/rentals': typeof RentalsRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/store': typeof StoreRoute
+  '/terms': typeof TermsRoute
   '/test-login': typeof TestLoginRoute
   '/tip': typeof TipRoute
   '/tip-girls': typeof TipGirlsRoute
@@ -836,6 +863,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/adminlogin'
     | '/business-owner-elite'
+    | '/cancellation'
     | '/clothes'
     | '/dashboard'
     | '/debug-subscription'
@@ -856,6 +884,7 @@ export interface FileRouteTypes {
     | '/money-circle'
     | '/my-bookings'
     | '/payment-return'
+    | '/privacy'
     | '/rankings'
     | '/rate'
     | '/rate-girls'
@@ -865,6 +894,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/reset-password'
     | '/store'
+    | '/terms'
     | '/test-login'
     | '/tip'
     | '/tip-girls'
@@ -929,6 +959,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/adminlogin'
     | '/business-owner-elite'
+    | '/cancellation'
     | '/debug-subscription'
     | '/dimes'
     | '/elite'
@@ -945,6 +976,7 @@ export interface FileRouteTypes {
     | '/money-circle'
     | '/my-bookings'
     | '/payment-return'
+    | '/privacy'
     | '/rankings'
     | '/rate'
     | '/rate-girls'
@@ -952,6 +984,7 @@ export interface FileRouteTypes {
     | '/rental'
     | '/reset-password'
     | '/store'
+    | '/terms'
     | '/test-login'
     | '/tip'
     | '/tip-girls'
@@ -1012,6 +1045,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/adminlogin'
     | '/business-owner-elite'
+    | '/cancellation'
     | '/clothes'
     | '/dashboard'
     | '/debug-subscription'
@@ -1032,6 +1066,7 @@ export interface FileRouteTypes {
     | '/money-circle'
     | '/my-bookings'
     | '/payment-return'
+    | '/privacy'
     | '/rankings'
     | '/rate'
     | '/rate-girls'
@@ -1041,6 +1076,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/reset-password'
     | '/store'
+    | '/terms'
     | '/test-login'
     | '/tip'
     | '/tip-girls'
@@ -1106,6 +1142,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminloginRoute: typeof AdminloginRoute
   BusinessOwnerEliteRoute: typeof BusinessOwnerEliteRoute
+  CancellationRoute: typeof CancellationRoute
   ClothesRoute: typeof ClothesRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
   DebugSubscriptionRoute: typeof DebugSubscriptionRoute
@@ -1126,6 +1163,7 @@ export interface RootRouteChildren {
   MoneyCircleRoute: typeof MoneyCircleRoute
   MyBookingsRoute: typeof MyBookingsRoute
   PaymentReturnRoute: typeof PaymentReturnRoute
+  PrivacyRoute: typeof PrivacyRoute
   RankingsRoute: typeof RankingsRoute
   RateRoute: typeof RateRoute
   RateGirlsRoute: typeof RateGirlsRoute
@@ -1135,6 +1173,7 @@ export interface RootRouteChildren {
   RentalsRoute: typeof RentalsRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   StoreRoute: typeof StoreRoute
+  TermsRoute: typeof TermsRoute
   TestLoginRoute: typeof TestLoginRoute
   TipRoute: typeof TipRoute
   TipGirlsRoute: typeof TipGirlsRoute
@@ -1189,6 +1228,13 @@ declare module '@tanstack/react-router' {
       path: '/business-owner-elite'
       fullPath: '/business-owner-elite'
       preLoaderRoute: typeof BusinessOwnerEliteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cancellation': {
+      id: '/cancellation'
+      path: '/cancellation'
+      fullPath: '/cancellation'
+      preLoaderRoute: typeof CancellationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clothes': {
@@ -1331,6 +1377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rankings': {
       id: '/rankings'
       path: '/rankings'
@@ -1392,6 +1445,13 @@ declare module '@tanstack/react-router' {
       path: '/store'
       fullPath: '/store'
       preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/test-login': {
@@ -1972,6 +2032,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminloginRoute: AdminloginRoute,
   BusinessOwnerEliteRoute: BusinessOwnerEliteRoute,
+  CancellationRoute: CancellationRoute,
   ClothesRoute: ClothesRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
   DebugSubscriptionRoute: DebugSubscriptionRoute,
@@ -1992,6 +2053,7 @@ const rootRouteChildren: RootRouteChildren = {
   MoneyCircleRoute: MoneyCircleRoute,
   MyBookingsRoute: MyBookingsRoute,
   PaymentReturnRoute: PaymentReturnRoute,
+  PrivacyRoute: PrivacyRoute,
   RankingsRoute: RankingsRoute,
   RateRoute: RateRoute,
   RateGirlsRoute: RateGirlsRoute,
@@ -2001,6 +2063,7 @@ const rootRouteChildren: RootRouteChildren = {
   RentalsRoute: RentalsRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   StoreRoute: StoreRoute,
+  TermsRoute: TermsRoute,
   TestLoginRoute: TestLoginRoute,
   TipRoute: TipRoute,
   TipGirlsRoute: TipGirlsRoute,

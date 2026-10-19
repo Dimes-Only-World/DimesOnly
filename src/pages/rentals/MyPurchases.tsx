@@ -5,7 +5,6 @@ import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 import AccountMenu from "@/components/rentals/AccountMenu";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 import PurchaseDocPicker, { type PendingDocs } from "@/components/rentals/PurchaseDocPicker";
 import { listMyPurchases, signMyPurchaseDoc, uploadPurchaseDoc, type PurchaseDocType } from "@/lib/purchaseDocs";
 import { buildAuthUrl } from "@/lib/refCapture";
@@ -70,7 +69,6 @@ const MyPurchases: React.FC = () => {
         <Link to="/rentals" className="inline-flex items-center gap-2 bg-rental-primary px-6 py-3 font-semibold text-rental-background"><ArrowLeft className="h-4 w-4" /> Back to Rentals</Link>
       </div>
     </main>
-    <RentalsFooter />
   </div>;
 };
 export default MyPurchases;
