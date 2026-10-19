@@ -3,30 +3,19 @@
 - Save profile photos via owner-verified upload-photo, not browser storage/table writes; custom sessions cannot satisfy RLS.
 - Any route file with a same-named child folder (rentals, flix, dashboard, clothes, feed, rates, tips) renders only Outlet, with its page, sharing metadata and default redirects in the index leaf; otherwise child URLs show the parent page.
 - Derive featured and later event ordering through the shared UTC event schedule helper, refreshing while open and on event changes; one ordering path keeps expiry, TBA, and upload-order behavior consistent.
-
 - Shared dialogs enforce viewport bounds, shrinkable tracks and scrolling so actions stay reachable; long documents use the shared reading-column class.
-
 - Define feed pagination controls at module scope so asynchronous media updates preserve the pressed button and touch interaction.
-
 - Control site-wide typography through the root font-size token in global CSS, scaled by viewport width on phones; keep new UI text rem-based and map legacy pixel text utilities to shared rem tokens on mobile so every phone, including zoomed or narrow ones, gets the same proportions.
-
 - Route all viewer-facing videos sourced from `page_videos` through `BannerVideo`; this keeps playback controls consistent while background videos explicitly use background mode.
 - Keep the age-gate warning player mounted outside individual steps; continuous playback survives warning, role and form transitions.
 - Keep Make Money message bodies referral-agnostic in storage and append the signed-in member's canonical referral URL when rendering; this prevents stale or mismatched referral credit.
 - Store age-verification selfies in the private `age-verification-selfies` bucket and expose only short-lived signed URLs through authorized edge functions; selfies are sensitive identity evidence.
-- Submit vehicle purchase applications through the `submit-vehicle-purchase` Edge Function and keep their table service-role-only; buyer applications contain private financial data.- Calculate vehicle sale commissions (53% direct, 5% second level) only in edge functions from the stored referral chain on `vehicle_purchase_applications`; members read them via `sale-commissions`, and payout amounts must never come from the browser.
+- Submit vehicle purchase applications through the `submit-vehicle-purchase` Edge Function and keep their table service-role-only; buyer applications contain private financial data.
+- Calculate vehicle sale commissions (53% direct, 5% second level) only in edge functions from the stored referral chain on `vehicle_purchase_applications`; members read them via `sale-commissions`, and payout amounts must never come from the browser.
 - Contests computed server-side in `rewards` edge function from existing activity tables; `reward_contests` is service-role-only so standings can't be tampered with.
 - Store optional reward-carousel image and video backgrounds in the existing public `promo-videos/rewards` folder and save only their URLs on contests; this keeps admin-managed campaign media centralized.
-- Finalize rental extensions only after server-verified PayPal capture, then store each permissive-use statement privately and authorize short-lived downloads through the rental extension edge function; this prevents unpaid date changes and document exposure.
-- Validate rental pickup windows, long-term minimums, rent-to-own terms, and booking prices again inside `rental-booking`; browser totals and dates are display inputs, not authoritative payment data.
-- Generate manual rental payment receipts only when an authorized admin marks cash or Cash App funds received, store them privately, and authorize short-lived downloads for the renter or admin.
-- Reconcile rental booking and extension payments through the admin-only rental function, using recorded paid amounts and server-calculated method totals; this keeps financial reporting authoritative.
-- Rental PayPal calls currently use the main PAYPAL_* secrets; RENTAL_PAYPAL_* routing is paused until the Best Rental Cars PayPal account is approved.
 - Compute member Available balance only via `computeLedger` (total earned minus pending, approved, and paid payout requests) and keep the payout_requests insert guard (minimum and one open request); this prevents double withdrawals.
 - Run PayPal batch payouts only from the admin-data edge function with a deterministic sender_batch_id; PayPal rejects repeats, so a selection can never be paid twice.
 - Shared notification categories (src/lib/notificationCategories.ts) drive the user center, menu badges and admin sender; one rule keeps user and admin communication consistent.
-- Store the company's per-car monthly payment in service-role-only `vehicle_costs`, read and written only through `rental-admin`; car costs must never reach renters through the public vehicles table.
-- Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
 - Send all outbound email with the `Api-Token` header (Mailtrap rejects Bearer); note `send-username-reminder` lives at `supabase/send-username-reminder/` outside `supabase/functions/`, so its edits need a manual `supabase functions deploy`.
-- Rental availability: src/lib/rentalAvailability.ts, mirrored in rental-booking.
-- Rentals visitors sign up through `/rentals/signup` (src/pages/rentals/RentalSignup.tsx), which reuses `register-user` without media; rentals pages must link there, not `/register`, so renters get a short rentals-only form.
+- Subdirectories may have their own AGENTS.md; read src/pages/rentals/AGENTS.md before changing any rentals page, rental edge function or rental pricing/availability helper.
