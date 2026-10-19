@@ -67,8 +67,9 @@ export default function RentalUpdatesCarousel() {
         ))}
         {slides.length > 1 && (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="Previous update" className="absolute left-3 top-1/3 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground sm:flex sm:left-6"><ChevronLeft className="h-5 w-5" /></button>
-            <button type="button" onClick={() => go(1)} aria-label="Next update" className="absolute right-3 top-1/3 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground sm:flex sm:right-6"><ChevronRight className="h-5 w-5" /></button>
+            <button type="button" onClick={() => go(-1)} aria-label="Previous update" className="absolute left-3 top-1/3 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground lg:flex lg:left-6"><ChevronLeft className="h-5 w-5" /></button>
+            <button type="button" onClick={() => go(1)} aria-label="Next update" className="absolute right-3 top-1/3 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground lg:flex lg:right-6"><ChevronRight className="h-5 w-5" /></button>
+
 
             <div className="absolute right-4 top-3 flex gap-1.5 sm:right-8">
               {slides.map((s, n) => <button key={s.id} type="button" onClick={() => setI(n)} aria-label={`Show update ${n + 1}`} className={`h-2 w-2 rounded-full ${n === i ? "bg-rental-primary" : "bg-rental-foreground/50"}`} />)}
