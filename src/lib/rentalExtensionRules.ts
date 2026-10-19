@@ -27,7 +27,7 @@ export const lateFeeStatus = (dueMs: number, nowMs: number, dailyRate: number, h
 
 /** Pay order: unpaid late fee (after deposit), then extension price, then 4.5% + $1.27 on the amount charged. */
 export const extensionCharge = (opts: {
-  days: number; dailyRate: number; dueMs: number; nowMs: number; depositAvailable: number; useDeposit: boolean; hourRate?: number | null;
+  days: number; dailyRate: number; dueMs: number; nowMs: number; depositAvailable: number; useDeposit: boolean; hourRate?: number | null | undefined;
 }) => {
   const late = lateFeeStatus(opts.dueMs, opts.nowMs, opts.dailyRate, opts.hourRate);
   const lateFeeOwed = late.isLate && !late.waived ? late.lateFee : 0;
