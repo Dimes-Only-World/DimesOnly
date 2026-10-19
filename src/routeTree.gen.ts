@@ -84,6 +84,7 @@ import { Route as RentalsHostRouteImport } from './routes/rentals/host'
 import { Route as RentalsListRouteImport } from './routes/rentals/list'
 import { Route as RentalsMyFleetRouteImport } from './routes/rentals/my-fleet'
 import { Route as RentalsPurchaseRouteImport } from './routes/rentals/purchase'
+import { Route as RentalsSignupRouteImport } from './routes/rentals/signup'
 import { Route as TipsIndexRouteImport } from './routes/tips/index'
 import { Route as TipsUsernameRouteImport } from './routes/tips/$username'
 import { Route as ClothesProductSlugRouteImport } from './routes/clothes/product/$slug'
@@ -473,6 +474,11 @@ const RentalsPurchaseRoute = RentalsPurchaseRouteImport.update({
   path: '/purchase',
   getParentRoute: () => RentalsRoute,
 } as any)
+const RentalsSignupRoute = RentalsSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => RentalsRoute,
+} as any)
 const TipsIndexRoute = TipsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -610,6 +616,7 @@ export interface FileRoutesByFullPath {
   '/rentals/list': typeof RentalsListRoute
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
+  '/rentals/signup': typeof RentalsSignupRoute
   '/tips/$username': typeof TipsUsernameRoute
   '/clothes/': typeof ClothesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -690,6 +697,7 @@ export interface FileRoutesByTo {
   '/rentals/$id': typeof RentalsIdRoute
   '/rentals/list': typeof RentalsListRoute
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
+  '/rentals/signup': typeof RentalsSignupRoute
   '/tips/$username': typeof TipsUsernameRoute
   '/clothes': typeof ClothesIndexRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -781,6 +789,7 @@ export interface FileRoutesById {
   '/rentals/list': typeof RentalsListRoute
   '/rentals/my-fleet': typeof RentalsMyFleetRoute
   '/rentals/purchase': typeof RentalsPurchaseRouteWithChildren
+  '/rentals/signup': typeof RentalsSignupRoute
   '/tips/$username': typeof TipsUsernameRoute
   '/clothes/': typeof ClothesIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -873,6 +882,7 @@ export interface FileRouteTypes {
     | '/rentals/list'
     | '/rentals/my-fleet'
     | '/rentals/purchase'
+    | '/rentals/signup'
     | '/tips/$username'
     | '/clothes/'
     | '/dashboard/'
@@ -953,6 +963,7 @@ export interface FileRouteTypes {
     | '/rentals/$id'
     | '/rentals/list'
     | '/rentals/my-fleet'
+    | '/rentals/signup'
     | '/tips/$username'
     | '/clothes'
     | '/dashboard'
@@ -1043,6 +1054,7 @@ export interface FileRouteTypes {
     | '/rentals/list'
     | '/rentals/my-fleet'
     | '/rentals/purchase'
+    | '/rentals/signup'
     | '/tips/$username'
     | '/clothes/'
     | '/dashboard/'
@@ -1643,6 +1655,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RentalsPurchaseRouteImport
       parentRoute: typeof RentalsRoute
     }
+    '/rentals/signup': {
+      id: '/rentals/signup'
+      path: '/signup'
+      fullPath: '/rentals/signup'
+      preLoaderRoute: typeof RentalsSignupRouteImport
+      parentRoute: typeof RentalsRoute
+    }
     '/tips/': {
       id: '/tips/'
       path: '/'
@@ -1876,6 +1895,7 @@ interface RentalsRouteChildren {
   RentalsListRoute: typeof RentalsListRoute
   RentalsMyFleetRoute: typeof RentalsMyFleetRoute
   RentalsPurchaseRoute: typeof RentalsPurchaseRouteWithChildren
+  RentalsSignupRoute: typeof RentalsSignupRoute
   RentalsIndexRoute: typeof RentalsIndexRoute
   RentalsPayBookingIdRoute: typeof RentalsPayBookingIdRoute
 }
@@ -1886,6 +1906,7 @@ const RentalsRouteChildren: RentalsRouteChildren = {
   RentalsListRoute: RentalsListRoute,
   RentalsMyFleetRoute: RentalsMyFleetRoute,
   RentalsPurchaseRoute: RentalsPurchaseRouteWithChildren,
+  RentalsSignupRoute: RentalsSignupRoute,
   RentalsIndexRoute: RentalsIndexRoute,
   RentalsPayBookingIdRoute: RentalsPayBookingIdRoute,
 }
