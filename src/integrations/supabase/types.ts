@@ -3822,18 +3822,22 @@ export type Database = {
           cancellation_reason: string | null
           cancellation_refund: number | null
           cancellation_status: string | null
+          cancelled_by: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
           discount_amount: number
           down_payment_amount: number
           end_date: string | null
+          hold_credit: number
+          hold_id: string | null
           id: string
           insurance_path: string | null
           latest_reported_mileage: number | null
           license_path: string | null
           mileage_plan: string
           mileage_total: number
+          no_show: boolean
           paid_at: string | null
           payment_method: string | null
           payment_note: string | null
@@ -3869,18 +3873,22 @@ export type Database = {
           cancellation_reason?: string | null
           cancellation_refund?: number | null
           cancellation_status?: string | null
+          cancelled_by?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           discount_amount?: number
           down_payment_amount?: number
           end_date?: string | null
+          hold_credit?: number
+          hold_id?: string | null
           id?: string
           insurance_path?: string | null
           latest_reported_mileage?: number | null
           license_path?: string | null
           mileage_plan?: string
           mileage_total?: number
+          no_show?: boolean
           paid_at?: string | null
           payment_method?: string | null
           payment_note?: string | null
@@ -3916,18 +3924,22 @@ export type Database = {
           cancellation_reason?: string | null
           cancellation_refund?: number | null
           cancellation_status?: string | null
+          cancelled_by?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           discount_amount?: number
           down_payment_amount?: number
           end_date?: string | null
+          hold_credit?: number
+          hold_id?: string | null
           id?: string
           insurance_path?: string | null
           latest_reported_mileage?: number | null
           license_path?: string | null
           mileage_plan?: string
           mileage_total?: number
+          no_show?: boolean
           paid_at?: string | null
           payment_method?: string | null
           payment_note?: string | null
@@ -4215,6 +4227,74 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_top_money_circles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      rental_holds: {
+        Row: {
+          amount: number
+          applied_booking_id: string | null
+          created_at: string
+          id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
+          refund_reference: string | null
+          refunded_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string
+          wanted_end: string
+          wanted_start: string
+        }
+        Insert: {
+          amount?: number
+          applied_booking_id?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          refund_reference?: string | null
+          refunded_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_id: string
+          wanted_end: string
+          wanted_start: string
+        }
+        Update: {
+          amount?: number
+          applied_booking_id?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          refund_reference?: string | null
+          refunded_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string
+          wanted_end?: string
+          wanted_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_holds_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -6268,6 +6348,32 @@ export type Database = {
         }
         Relationships: []
       }
+      v_vehicle_booked_dates: {
+        Row: {
+          end_date: string | null
+          start_date: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          end_date?: string | null
+          start_date?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          end_date?: string | null
+          start_date?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_vehicle_rented_until: {
         Row: {
           rented_until: string | null
@@ -6464,6 +6570,7 @@ export type Database = {
         }
         Returns: Json
       }
+      rental_auto_no_show: { Args: never; Returns: number }
       tip_leaderboard_top_dimes: {
         Args: { p_limit?: number; p_year: number }
         Returns: {
