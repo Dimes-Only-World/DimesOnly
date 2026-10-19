@@ -215,7 +215,7 @@ const RentalDetails: React.FC = () => {
       title: "Create your profile to continue",
       description: "You'll come right back to this vehicle after signing up.",
     });
-    navigate(buildAuthUrl("/register", `/rentals/${id}`));
+    navigate(buildAuthUrl("/rentals/signup", `/rentals/${id}`));
     return false;
   };
 
