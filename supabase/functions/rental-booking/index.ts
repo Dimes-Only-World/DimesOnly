@@ -230,6 +230,36 @@ serve(async (req) => {
     }
     const admin = createServiceClient(requestId);
 
+    // A Notify Me deposit is only consumed once its booking is paid. Release deposits
+    // attached to bookings that are still unpaid (abandoned, replaced or cancelled checkout).
+    if (userId && ["createBooking", "listHolds", "changeHoldDates", "refundHold"].includes(action)) {
+      try {
+        const { data: applied } = await admin.from("rental_holds").select("id, applied_booking_id")
+          .eq("user_id", userId).eq("status", "applied").not("applied_booking_id", "is", null);
+        const ids = (applied || []).map((h: any) => h.applied_booking_id);
+        if (ids.length) {
+          const { data: bks } = await admin.from("rental_bookings").select("id, status, paid_at").in("id", ids);
+          const pendingIds = new Set<string>();
+          for (const b of bks || []) {
+            const paid = Boolean(b.paid_at) || ["paid", "confirmed", "active", "completed"].includes(String(b.status));
+            if (!paid) pendingIds.add(b.id);
+          }
+          for (const h of applied || []) {
+            if (!pendingIds.has(h.applied_booking_id)) continue;
+            await admin.from("rental_holds").update({ status: "held", applied_booking_id: null }).eq("id", h.id).eq("status", "applied");
+            // The unpaid booking no longer carries the credit, so restore its full price.
+            const { data: ob } = await admin.from("rental_bookings").select("total_price, hold_credit").eq("id", h.applied_booking_id).maybeSingle();
+            if (ob && Number(ob.hold_credit || 0) > 0) {
+              await admin.from("rental_bookings").update({
+                hold_credit: 0,
+                total_price: Math.round((Number(ob.total_price || 0) + Number(ob.hold_credit || 0)) * 100) / 100,
+              }).eq("id", h.applied_booking_id).is("paid_at", null);
+            }
+          }
+        }
+      } catch (e) { logError(requestId, "release unpaid hold credits failed", e); }
+    }
+
     log(requestId, "request received", {
       action,
       hasUserId: Boolean(userId),
