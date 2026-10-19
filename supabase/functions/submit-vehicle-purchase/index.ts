@@ -276,6 +276,7 @@ serve(async (req) => {
       if (!upErr) avatarPath = path;
     }
 
+    const accessKey = crypto.randomUUID() + crypto.randomUUID();
     const { data, error } = await admin.from("vehicle_purchase_applications").insert({
       vehicle_id: vehicleId, user_id: callerId,
       applicant: { ...(await cleanPerson(body.applicant)), requestedUsername, ...Object.fromEntries((Array.isArray(body.references) ? body.references : []).slice(0, 5).filter((r: any) => r && text(r.name)).map((r: any, i: number) => [`reference${i + 1}`, { name: text(r.name, 120), phone: text(r.phone, 30), address: text(r.address, 250) }])) }, residence: cleanResidence(residence), employment: cleanEmployment(employment),
