@@ -216,6 +216,7 @@ const DeviceSection: React.FC<{
               </div>
             ))}
           </div>
+          </>
         )}
 
         {rows.length > 0 && (
