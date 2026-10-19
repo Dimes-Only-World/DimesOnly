@@ -29,6 +29,7 @@ interface Vehicle {
   availability_status: string;
   hero_url?: string | null;
   rented_until?: string | null;
+  booked?: BookedRange[];
 }
 
 const Rentals: React.FC = () => {
@@ -61,6 +62,9 @@ const Rentals: React.FC = () => {
           .order("sort_order", { ascending: true }),
         (supabase as any).from("v_vehicle_rented_until").select("vehicle_id, rented_until"),
       ]);
+      const { data: bookedRows } = await (supabase as any).from("v_vehicle_booked_dates").select("vehicle_id, start_date, end_date").order("start_date");
+      const bookedMap = new Map<string, BookedRange[]>();
+      for (const r of bookedRows || []) bookedMap.set(r.vehicle_id, [...(bookedMap.get(r.vehicle_id) || []), r]);
 
       const items: Vehicle[] = vsRes.data || [];
 
@@ -85,6 +89,7 @@ const Rentals: React.FC = () => {
             ...v,
             hero_url: p ? urlByPath.get(p) || null : null,
             rented_until: rentedMap.get(v.id) || null,
+            booked: bookedMap.get(v.id) || [],
           };
         })
       );
@@ -283,11 +288,11 @@ const Rentals: React.FC = () => {
                         <Car className="h-12 w-12 text-rental-muted" />
                       </div>
                     )}
-                    {v.availability_status !== "available" && (
+                    {unavailable && (
                       <div className="absolute right-3 top-3 bg-rental-primary px-3 py-1 font-barlow text-xs font-semibold uppercase text-rental-primary-foreground">
-                        Rented
-                        {v.rented_until
-                          ? ` till ${new Date(v.rented_until).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}`
+                        {v.availability_status !== "available" ? "Rented" : "Reserved"}
+                        {(blockEnd || v.rented_until)
+                          ? ` till ${new Date(blockEnd || v.rented_until!).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}`
                           : ""}
                       </div>
                     )}
@@ -300,6 +305,12 @@ const Rentals: React.FC = () => {
                       </div>
                       {v.availability_status === "available" && <Check className="mt-1 h-4 w-4 text-rental-success" />}
                     </div>
+                    {(v.booked || []).length > 0 && (
+                      <div className="text-xs text-rental-muted">
+                        <span className="font-semibold uppercase text-rental-primary">Booked: </span>
+                        {(v.booked || []).map((r) => `${new Date(r.start_date).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}–${new Date(r.end_date || r.start_date).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}`).join(", ")}
+                      </div>
+                    )}
                     {v.pickup_location && (
                       <p className="flex items-center gap-1.5 text-xs text-rental-muted">
                         <MapPin className="h-3.5 w-3.5 text-rental-primary" /> {v.pickup_location}
@@ -321,7 +332,9 @@ const Rentals: React.FC = () => {
                       <div className="flex flex-col gap-2">
                         {purchaseAvailable && <Button asChild size="sm" variant="outline" className="rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
                         <Button asChild size="sm" className="rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
-                          <Link to="/rentals/$id" params={{ id: v.id }}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                          {unavailable
+                            ? <Link to="/rentals/$id" params={{ id: v.id }} hash="notify">Get Notified <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                            : <Link to="/rentals/$id" params={{ id: v.id }}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>}
                         </Button>
                       </div>
                     </div>
