@@ -154,7 +154,9 @@ const AdminEarningsTab: React.FC = () => {
     setPayPeriods(periods);
 
     if (periods.length > 0) {
-      setSelectedPayPeriod(periods[0]!.id);
+      const now = new Date();
+      const current = periods.find((p) => now >= p.startDate && now < new Date(p.endDate.getFullYear(), p.endDate.getMonth(), p.endDate.getDate() + 1));
+      setSelectedPayPeriod((current ?? periods[0]!).id);
     }
   };
 

@@ -336,6 +336,8 @@ serve(async (req) => {
 
       case 'deactivateUser': {
         const { userId } = params;
+        { const { data: targetIsAdmin } = await supabaseAdmin.rpc('check_admin_by_user_id', { _user_id: userId });
+          if (targetIsAdmin) return new Response(JSON.stringify({ error: 'Admin accounts cannot be deactivated or deleted.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }); }
         console.log('deactivateUser called for userId:', userId);
 
         // Fetch user email and username before deactivating
@@ -407,6 +409,8 @@ serve(async (req) => {
 
       case 'deleteUser': {
         const { userId } = params;
+        { const { data: targetIsAdmin } = await supabaseAdmin.rpc('check_admin_by_user_id', { _user_id: userId });
+          if (targetIsAdmin) return new Response(JSON.stringify({ error: 'Admin accounts cannot be deactivated or deleted.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }); }
         const { error: dbError } = await supabaseAdmin
           .from('users')
           .delete()
