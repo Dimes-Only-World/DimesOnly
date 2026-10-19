@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import AngelLoader from "@/components/AngelLoader";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
+import { rentalOptionLabel } from "@/lib/rentalLocation";
 import { CheckCircle2, CreditCard, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -135,11 +137,9 @@ const RentalPayment: React.FC = () => {
   const v = booking.vehicles;
 
   return (
-    <div className="rentals-showroom min-h-screen pb-16 pt-24 sm:px-4">
+    <div className="rentals-showroom min-h-screen pb-16 sm:px-4">
+      <BestLogoBanner />
       <div className="mobile-wall max-w-xl mx-auto px-4 lg:px-0">
-        <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 px-4 text-sm text-rental-muted hover:text-rental-primary sm:px-0">
-          <ArrowLeft className="w-4 h-4" /> Back to rentals
-        </Link>
 
         <Card className="rounded-none border-x-0 border-rental-line bg-rental-surface text-rental-foreground sm:border-x">
           <CardContent className="space-y-6 p-6 sm:p-8">
@@ -162,8 +162,43 @@ const RentalPayment: React.FC = () => {
             )}
 
             <div className="space-y-2 border-t border-rental-line pt-5 text-sm">
+              <p className="text-xs font-semibold uppercase text-rental-muted">Booking summary</p>
+              <div className="flex justify-between gap-3">
+                <span>Vehicle</span>
+                <span className="text-right">{v ? `${v.year || ""} ${v.make || ""} ${v.model || ""}` : "Vehicle rental"}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span>Rate type</span>
+                <span className="capitalize">{rentalOptionLabel(String(booking.rental_type || ""))}</span>
+              </div>
+              {(() => {
+                const days = booking.end_date ? Math.max(1, Math.ceil((new Date(booking.end_date).getTime() - new Date(booking.start_date).getTime()) / 86_400_000)) : 1;
+                const rent = Math.max(0, Number(booking.total_price || 0) - Number(booking.security_deposit || 0) + Number(booking.discount_amount || 0) + Number(booking.hold_credit || 0));
+                return (
+                  <div className="flex justify-between gap-3">
+                    <span>{days} day{days === 1 ? "" : "s"} × ${(rent / days).toFixed(2)}</span>
+                    <span>${rent.toFixed(2)}</span>
+                  </div>
+                );
+              })()}
+              {Number(booking.security_deposit) > 0 && (
+                <div className="flex justify-between gap-3">
+                  <span>Security deposit</span>
+                  <span>+${Number(booking.security_deposit).toLocaleString()}</span>
+                </div>
+              )}
+              {Number(booking.hold_credit) > 0 && (
+                <div className="flex justify-between gap-3 text-emerald-500">
+                  <span>Notify Me deposit credit</span>
+                  <span>-${Number(booking.hold_credit).toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between gap-3 text-rental-muted">
+                <span>Fees</span>
+                <span className="text-right">PayPal/card fee added at PayPal · Cash App & 7-11 free</span>
+              </div>
               <div className="flex justify-between">
-                <span>Start</span>
+                <span>Pickup</span>
                 <span>{new Date(booking.start_date).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
@@ -180,7 +215,7 @@ const RentalPayment: React.FC = () => {
                 <span>Total due</span>
                 <span>${Number(booking.total_price).toLocaleString()}</span>
               </div>
-              {Number(booking.security_deposit) > 0 && (
+              {false && (
                 <div className="text-rental-muted sm:flex sm:justify-between">
                   <span className="block">Includes security deposit</span>
                   <span className="mt-1 block font-semibold text-rental-foreground sm:mt-0">${Number(booking.security_deposit).toLocaleString()}</span>
@@ -217,6 +252,11 @@ const RentalPayment: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        <div className="mt-8 flex justify-center">
+          <Button asChild size="lg" className="gap-2 rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90">
+            <Link to="/rentals"><ArrowLeft className="h-5 w-5" /> Back to Rentals</Link>
+          </Button>
+        </div>
       </div>
 
       <Dialog open={manualPaymentDialog !== null} onOpenChange={(open) => !open && setManualPaymentDialog(null)}>
