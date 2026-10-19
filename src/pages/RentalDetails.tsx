@@ -386,10 +386,17 @@ const RentalDetails: React.FC = () => {
     }
   };
 
-  if (loading) return <AngelLoader variant="fullscreen" className="pt-24" />;
+  if (loading)
+    return (
+      <div className="rentals-showroom rentals-showroom-light min-h-screen sm:px-4">
+        <BestLogoBanner />
+        <AngelLoader variant="fullscreen" className="pt-10" />
+      </div>
+    );
   if (!vehicle)
     return (
-      <div className="min-h-screen pt-24 text-center">
+      <div className="rentals-showroom rentals-showroom-light min-h-screen pt-10 text-center">
+        <BestLogoBanner />
         <p className="mb-4">Vehicle not found.</p>
         <Link to="/rentals"><Button>Back to Rentals</Button></Link>
       </div>
