@@ -2,7 +2,6 @@ import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "@/lib/router-compat";
 import BestLogoBanner from "@/components/rentals/BestLogoBanner";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 
 export type LegalSection = { heading: string; lines: string[] };
 
@@ -31,7 +30,6 @@ const LegalPage: React.FC<{ title: string; subtitle?: string; sections: LegalSec
         </Link>
       </div>
     </main>
-    <RentalsFooter />
   </div>
 );
 

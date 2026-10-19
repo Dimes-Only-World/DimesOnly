@@ -18,6 +18,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { StoreCartProvider } from "@/contexts/StoreCartContext";
 import GARefTracker from "@/components/GARefTracker";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
+import RentalsFooter from "@/components/rentals/RentalsFooter";
 import GlobalVideoDownloadBlocker from "@/components/GlobalVideoDownloadBlocker";
 import DashboardBackButtonGuard from "@/components/DashboardBackButtonGuard";
 import AddToHomeScreenPrompt from "@/components/AddToHomeScreenPrompt";
@@ -128,6 +129,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const location = useLocation();
   const normalizedPath = location.pathname.replace(/\/+$/, "");
+  const showRentalsFooter = /^\/(rentals|account|terms|cancellation|privacy)(\/|$)/.test(normalizedPath || "/");
   const showNotificationBell = normalizedPath === "/dashboard" || normalizedPath === "/dashboard/profile";
 
   return (
@@ -143,6 +145,7 @@ function RootComponent() {
                 <CookieConsentBanner />
                 {showNotificationBell && <AddToHomeScreenPrompt />}
                 <Outlet />
+                {showRentalsFooter && <RentalsFooter />}
                 <Toaster />
               </div>
             </PayPalRootProvider>

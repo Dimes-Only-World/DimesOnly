@@ -13,7 +13,6 @@ import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 import { formatRentalLocation } from "@/lib/rentalLocation";
@@ -550,7 +549,6 @@ const Rentals: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <RentalsFooter />
     </div>
   );
 };

@@ -19,7 +19,6 @@ import {
   Trophy,
   UserCheck,
 } from "lucide-react";
-import RentalsFooter from "@/components/rentals/RentalsFooter";
 
 
 const EARNINGS_PER_CAR = 485;
@@ -403,8 +402,6 @@ const BecomeAHost: React.FC = () => {
           </Accordion>
         </div>
       </section>
-
-      <RentalsFooter />
     </div>
   );
 };
