@@ -463,6 +463,33 @@ export type Database = {
           },
         ]
       }
+      credit_app_reveal_log: {
+        Row: {
+          admin_user_id: string | null
+          application_id: string
+          field: string
+          id: string
+          person: string
+          revealed_at: string
+        }
+        Insert: {
+          admin_user_id?: string | null
+          application_id: string
+          field: string
+          id?: string
+          person: string
+          revealed_at?: string
+        }
+        Update: {
+          admin_user_id?: string | null
+          application_id?: string
+          field?: string
+          id?: string
+          person?: string
+          revealed_at?: string
+        }
+        Relationships: []
+      }
       dashboard_ad_clicks: {
         Row: {
           ad_id: string
