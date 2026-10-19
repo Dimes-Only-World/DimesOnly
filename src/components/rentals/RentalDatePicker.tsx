@@ -51,7 +51,7 @@ const RentalDatePicker = ({ label, value, onChange, fromDate, toDate, disabled }
               day_button: "inline-flex h-10 w-10 items-center justify-center font-normal text-rental-foreground transition-colors hover:bg-rental-primary/20 disabled:pointer-events-none",
               selected: "[&>button]:bg-rental-primary [&>button]:font-semibold [&>button]:text-rental-primary-foreground [&>button:hover]:bg-rental-primary",
               today: "[&>button]:text-rental-primary [&>button]:font-semibold",
-              disabled: "opacity-25 [&>button]:line-through",
+              disabled: "opacity-25",
             }}
           />
 
