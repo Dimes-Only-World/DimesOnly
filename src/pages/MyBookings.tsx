@@ -650,7 +650,7 @@ const MyBookings: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-4 pb-16 px-4">
+    <div className="mobile-wall min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-4 pb-16 px-4">
       <BestLogoBanner className="mb-6" />
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">

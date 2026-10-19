@@ -1016,3 +1016,18 @@ img {
 @media (min-width: 1024px) {
   .rentals-logo-mark { width: min(24rem, 38%); }
 }
+
+/* ── Wall-to-wall containers on phones and tablets ────────────────────
+   Inside a .mobile-wall page, outer bordered cards stretch past the page
+   gutter to the screen edges below 1024px; long words/emails wrap. */
+.mobile-wall { overflow-wrap: anywhere; overflow-x: clip; }
+@media (max-width: 1023px) {
+  .mobile-wall :is(div, section, article, form, li)[class*="rounded"][class*="border"]:not(.mobile-wall :is(div, section, article, form, li)[class*="rounded"][class*="border"] *) {
+    margin-inline: -1rem;
+    width: auto;
+    max-width: none;
+    border-radius: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+  }
+}

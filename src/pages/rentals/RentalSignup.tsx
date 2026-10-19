@@ -145,7 +145,7 @@ const RentalSignup: React.FC = () => {
 
   return (
     <div className="rentals-showroom flex min-h-screen flex-col bg-rental-background font-barlow text-rental-foreground">
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
+      <main className="mobile-wall mx-auto w-full max-w-2xl flex-1 px-4 py-10">
         <Link to="/rentals" className="text-sm text-rental-muted hover:text-rental-primary">← Back to rentals</Link>
         <div className="mt-4 flex items-center gap-3">
           <Car className="h-8 w-8 text-rental-success" />

@@ -44,7 +44,7 @@ const MyPurchases: React.FC = () => {
   const open = async (docId: string) => { try { window.open(await signMyPurchaseDoc(app.id, docId), "_blank", "noopener"); } catch (e: any) { toast({ title: "Unavailable", description: e.message, variant: "destructive" }); } };
   return <div className="rentals-showroom flex min-h-screen flex-col bg-rental-background text-rental-foreground">
     <BestLogoBanner />
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
+    <main className="mobile-wall mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
       <p className="text-xs font-semibold uppercase text-rental-primary">Best Car Rental Services</p>
       <h1 className="rentals-wordmark text-5xl leading-none sm:text-6xl">MY PURCHASES</h1>
       {newId && <div className="mt-5 flex items-start gap-3 border border-rental-success/60 bg-rental-surface/80 p-4"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-rental-success" /><div><p className="font-semibold">Application received</p><p className="text-sm text-rental-muted">One of our representatives will be in contact with you shortly. Upload any remaining documents below to speed up your approval.</p></div></div>}
