@@ -1,7 +1,7 @@
 import { FileCheck2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LONG_TERM_MIN_MONTHS, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment } from "@/lib/rentalTerms";
+import { addMonths, LONG_TERM_MIN_MONTHS, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment } from "@/lib/rentalTerms";
 
 type Props = {
   open: boolean;
@@ -12,17 +12,20 @@ type Props = {
   endDate: string;
   memberName: string;
   memberAddress?: string;
+  rentTotal?: number;
+  longTermTotal?: number;
   onAccept: () => void;
 };
 
 const valueOrAdmin = (value: unknown) => value ? String(value) : "To be completed by Best Rental Car Service";
 const money = (value: unknown) => `$${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startDate, endDate, memberName, memberAddress, onAccept }: Props) => {
+const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startDate, endDate, memberName, memberAddress, rentTotal = 0, longTermTotal = 0, onAccept }: Props) => {
   const isRentToOwn = rentalType === "rent_to_own";
   const isLongAgreement = rentalType === "long_term" || isRentToOwn;
   const monthlyPayment = isRentToOwn ? rentToOwnMonthlyPayment(vehicle?.monthly_rate) : Number(vehicle?.monthly_rate || 0);
   const term = isRentToOwn ? `${RENT_TO_OWN_MONTHS} months` : rentalType === "long_term" ? `${LONG_TERM_MIN_MONTHS} months minimum` : rentalType.replace("_", " ");
+  const typeLabel = isRentToOwn ? "Rent to Own (Deposit Required)" : rentalType === "long_term" ? "Long Term (Month to Month)" : `Rent (${rentalType === "weekly" ? "Weekly" : rentalType === "monthly" ? "1 Month" : "Daily"})`;
   const securityDeposit = Number(vehicle?.security_deposit || 0);
 
   const fields = [
@@ -58,8 +61,15 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
             <h3 className="flex items-center gap-2 font-semibold"><FileCheck2 className="h-4 w-4 text-rental-primary" /> Member and term</h3>
             <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Permissive member:</b> {valueOrAdmin(memberName)}</p>
             <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Address:</b> {valueOrAdmin(memberAddress)}</p>
-            <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Use term:</b> {startDate ? new Date(startDate).toLocaleString() : "Choose a pickup date"} through {endDate ? new Date(endDate).toLocaleString() : "—"} ({term})</p>
-            <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Down payment:</b> {money(vehicle?.down_payment)} · <b className="text-rental-foreground">Monthly use payment:</b> {money(monthlyPayment)}</p>
+            <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Rental type:</b> {typeLabel}</p>
+            <p className="text-sm text-rental-muted"><b className="text-rental-foreground">{isRentToOwn ? "Pickup date" : "Use term"}:</b> {startDate ? new Date(startDate).toLocaleString() : "Choose a pickup date"}{isRentToOwn ? <> · <b className="text-rental-foreground">Payoff date:</b> {startDate ? addMonths(new Date(startDate), RENT_TO_OWN_MONTHS).toLocaleDateString() : "—"}</> : <> through {endDate ? new Date(endDate).toLocaleString() : "—"} ({term})</>}</p>
+            {isRentToOwn ? (
+              <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Deposit (down payment):</b> {money(vehicle?.down_payment)} · <b className="text-rental-foreground">Monthly use payment:</b> {money(monthlyPayment)} × {RENT_TO_OWN_MONTHS}</p>
+            ) : rentalType === "long_term" ? (
+              <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Month-to-month payment:</b> {money(monthlyPayment)} · <b className="text-rental-foreground">6-month lease total:</b> {money(longTermTotal)}</p>
+            ) : (
+              <p className="text-sm text-rental-muted"><b className="text-rental-foreground">Rental total:</b> {money(rentTotal)} · <b className="text-rental-foreground">Security deposit:</b> {money(securityDeposit)} · <b className="text-rental-foreground">Total collected:</b> {money(Number(rentTotal || 0) + securityDeposit)}</p>
+            )}
             {isRentToOwn && <p className="text-sm text-rental-muted"><b className="text-rental-foreground">48-month contract total:</b> {money(rentToOwnContractTotal(vehicle?.monthly_rate, vehicle?.down_payment))}, calculated as the down payment plus 48 months × the listed monthly rate, less $75.</p>}
           </section>
 
