@@ -39,6 +39,9 @@ const Rentals: React.FC = () => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [optionFilter, setOptionFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const gridRef = React.useRef<HTMLDivElement>(null);
+
   const { videoUrl: headerVideo } = usePageVideo("rentals_page");
 
   const clearFilters = () => {
@@ -115,7 +118,23 @@ const Rentals: React.FC = () => {
     return matchQ && matchType && matchOpt;
   });
 
+  const PER_PAGE = 8;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const visible = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, typeFilter, optionFilter]);
+
+  const goPage = (n: number) => {
+    const next = Math.min(Math.max(1, n), totalPages);
+    setPage(next);
+    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
+
     <div className="rentals-showroom min-h-screen">
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 py-4 sm:px-8 lg:px-12">
         <div>
@@ -251,8 +270,10 @@ const Rentals: React.FC = () => {
             <Button variant="link" onClick={clearFilters} className="mt-2 text-rental-primary">Clear filters</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {filtered.map((v) => {
+          <>
+          <div ref={gridRef} className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {visible.map((v) => {
+
               const rateFor = (opt: string): { amount: number; label: string } | null => {
                 if (opt === "daily" && v.day_rate) return { amount: v.day_rate, label: "/day" };
                 if (opt === "weekly" && v.weekly_rate) return { amount: v.weekly_rate, label: "/week" };
@@ -348,7 +369,49 @@ const Rentals: React.FC = () => {
               );
             })}
           </div>
+          {totalPages > 1 && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 font-barlow">
+              <p className="w-full pb-2 text-center text-[11px] font-semibold uppercase text-rental-muted">
+                Showing {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, filtered.length)} of {filtered.length}
+              </p>
+              <Button
+                size="sm"
+                onClick={() => goPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="rounded-none border border-rental-line bg-rental-surface font-semibold text-rental-foreground hover:border-rental-primary hover:text-rental-primary disabled:opacity-40"
+              >
+                Prev
+              </Button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <Button
+                  key={n}
+                  size="sm"
+                  onClick={() => goPage(n)}
+                  aria-current={n === currentPage ? "page" : undefined}
+                  className={
+                    n === currentPage
+                      ? "rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90"
+                      : "rounded-none border border-rental-line bg-rental-surface text-rental-foreground hover:border-rental-primary hover:text-rental-primary"
+                  }
+                >
+                  {n}
+                </Button>
+              ))}
+              <Button
+                size="sm"
+                onClick={() => goPage(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="rounded-none border border-rental-line bg-rental-surface font-semibold text-rental-foreground hover:border-rental-primary hover:text-rental-primary disabled:opacity-40"
+              >
+                Next
+              </Button>
+
+            </div>
+          )}
+          </>
         )}
+
 
         <div className="font-barlow"><CapturesGallery limit={12} /></div>
       </main>
