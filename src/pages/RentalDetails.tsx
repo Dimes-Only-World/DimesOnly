@@ -400,16 +400,13 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 pt-20 sm:px-4">
+    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 pt-16 sm:px-4">
       <div className="mx-auto max-w-6xl">
-        <Link to="/rentals" className="mb-4 inline-flex items-center gap-1 px-4 text-sm text-rental-muted hover:text-rental-primary sm:px-0">
-          <ArrowLeft className="w-4 h-4" /> Back to rentals
-        </Link>
 
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="space-y-3">
             <div
-              className="group relative aspect-video overflow-hidden bg-rental-elevated cursor-zoom-in ring-1 ring-rental-line hover:ring-rental-primary transition-all sm:rounded-lg"
+              className="group relative left-1/2 w-screen max-w-none -translate-x-1/2 aspect-video overflow-hidden bg-rental-elevated cursor-zoom-in transition-all lg:left-0 lg:w-full lg:translate-x-0 lg:rounded-lg lg:ring-1 lg:ring-rental-line lg:hover:ring-rental-primary"
               onClick={() => photos.length && (setLightboxIndex(0), setLightboxOpen(true))}
             >
               {photos[0]?.signedUrl ? (
@@ -854,6 +851,12 @@ const RentalDetails: React.FC = () => {
         )}
 
         {id && <CapturesGallery vehicleId={id} limit={12} />}
+
+        <div className="mt-10 flex justify-center px-4">
+          <Link to="/rentals">
+            <Button size="lg" className="gap-2"><ArrowLeft className="h-5 w-5" /> Back to Rentals</Button>
+          </Link>
+        </div>
       </div>
 
 
