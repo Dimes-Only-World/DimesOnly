@@ -48,8 +48,6 @@ import { Route as TipRouteImport } from './routes/tip'
 import { Route as TipGirlsRouteImport } from './routes/tip-girls'
 import { Route as TipPaypalReturnRouteImport } from './routes/tip-paypal-return'
 import { Route as TipsRouteImport } from './routes/tips'
-import { Route as TmpLogoCheckRouteImport } from './routes/tmp-logo-check'
-import { Route as TmpMyrentalsCheckRouteImport } from './routes/tmp-myrentals-check'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as UpgradeDiamondRouteImport } from './routes/upgrade-diamond'
 import { Route as UpgradeDiamondMonthlyRouteImport } from './routes/upgrade-diamond-monthly'
@@ -294,16 +292,6 @@ const TipPaypalReturnRoute = TipPaypalReturnRouteImport.update({
 const TipsRoute = TipsRouteImport.update({
   id: '/tips',
   path: '/tips',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TmpLogoCheckRoute = TmpLogoCheckRouteImport.update({
-  id: '/tmp-logo-check',
-  path: '/tmp-logo-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TmpMyrentalsCheckRoute = TmpMyrentalsCheckRouteImport.update({
-  id: '/tmp-myrentals-check',
-  path: '/tmp-myrentals-check',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UpgradeRoute = UpgradeRouteImport.update({
@@ -598,8 +586,6 @@ export interface FileRoutesByFullPath {
   '/tip-girls': typeof TipGirlsRoute
   '/tip-paypal-return': typeof TipPaypalReturnRoute
   '/tips': typeof TipsRouteWithChildren
-  '/tmp-logo-check': typeof TmpLogoCheckRoute
-  '/tmp-myrentals-check': typeof TmpMyrentalsCheckRoute
   '/upgrade': typeof UpgradeRoute
   '/upgrade-diamond': typeof UpgradeDiamondRoute
   '/upgrade-diamond-monthly': typeof UpgradeDiamondMonthlyRoute
@@ -684,8 +670,6 @@ export interface FileRoutesByTo {
   '/tip': typeof TipRoute
   '/tip-girls': typeof TipGirlsRoute
   '/tip-paypal-return': typeof TipPaypalReturnRoute
-  '/tmp-logo-check': typeof TmpLogoCheckRoute
-  '/tmp-myrentals-check': typeof TmpMyrentalsCheckRoute
   '/upgrade': typeof UpgradeRoute
   '/upgrade-diamond': typeof UpgradeDiamondRoute
   '/upgrade-diamond-monthly': typeof UpgradeDiamondMonthlyRoute
@@ -775,8 +759,6 @@ export interface FileRoutesById {
   '/tip-girls': typeof TipGirlsRoute
   '/tip-paypal-return': typeof TipPaypalReturnRoute
   '/tips': typeof TipsRouteWithChildren
-  '/tmp-logo-check': typeof TmpLogoCheckRoute
-  '/tmp-myrentals-check': typeof TmpMyrentalsCheckRoute
   '/upgrade': typeof UpgradeRoute
   '/upgrade-diamond': typeof UpgradeDiamondRoute
   '/upgrade-diamond-monthly': typeof UpgradeDiamondMonthlyRoute
@@ -870,8 +852,6 @@ export interface FileRouteTypes {
     | '/tip-girls'
     | '/tip-paypal-return'
     | '/tips'
-    | '/tmp-logo-check'
-    | '/tmp-myrentals-check'
     | '/upgrade'
     | '/upgrade-diamond'
     | '/upgrade-diamond-monthly'
@@ -956,8 +936,6 @@ export interface FileRouteTypes {
     | '/tip'
     | '/tip-girls'
     | '/tip-paypal-return'
-    | '/tmp-logo-check'
-    | '/tmp-myrentals-check'
     | '/upgrade'
     | '/upgrade-diamond'
     | '/upgrade-diamond-monthly'
@@ -1046,8 +1024,6 @@ export interface FileRouteTypes {
     | '/tip-girls'
     | '/tip-paypal-return'
     | '/tips'
-    | '/tmp-logo-check'
-    | '/tmp-myrentals-check'
     | '/upgrade'
     | '/upgrade-diamond'
     | '/upgrade-diamond-monthly'
@@ -1140,8 +1116,6 @@ export interface RootRouteChildren {
   TipGirlsRoute: typeof TipGirlsRoute
   TipPaypalReturnRoute: typeof TipPaypalReturnRoute
   TipsRoute: typeof TipsRouteWithChildren
-  TmpLogoCheckRoute: typeof TmpLogoCheckRoute
-  TmpMyrentalsCheckRoute: typeof TmpMyrentalsCheckRoute
   UpgradeRoute: typeof UpgradeRoute
   UpgradeDiamondRoute: typeof UpgradeDiamondRoute
   UpgradeDiamondMonthlyRoute: typeof UpgradeDiamondMonthlyRoute
@@ -1427,20 +1401,6 @@ declare module '@tanstack/react-router' {
       path: '/tips'
       fullPath: '/tips'
       preLoaderRoute: typeof TipsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tmp-logo-check': {
-      id: '/tmp-logo-check'
-      path: '/tmp-logo-check'
-      fullPath: '/tmp-logo-check'
-      preLoaderRoute: typeof TmpLogoCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tmp-myrentals-check': {
-      id: '/tmp-myrentals-check'
-      path: '/tmp-myrentals-check'
-      fullPath: '/tmp-myrentals-check'
-      preLoaderRoute: typeof TmpMyrentalsCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/upgrade': {
@@ -2006,8 +1966,6 @@ const rootRouteChildren: RootRouteChildren = {
   TipGirlsRoute: TipGirlsRoute,
   TipPaypalReturnRoute: TipPaypalReturnRoute,
   TipsRoute: TipsRouteWithChildren,
-  TmpLogoCheckRoute: TmpLogoCheckRoute,
-  TmpMyrentalsCheckRoute: TmpMyrentalsCheckRoute,
   UpgradeRoute: UpgradeRoute,
   UpgradeDiamondRoute: UpgradeDiamondRoute,
   UpgradeDiamondMonthlyRoute: UpgradeDiamondMonthlyRoute,
