@@ -585,6 +585,8 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         monthly_rate: Number(f.monthly_rate) || null,
         down_payment: Number(f.down_payment) || null,
         mileage: Number(f.mileage) || null,
+        extra_mile_fee: Number(f.extra_mile_fee) || null,
+        unlimited_mileage_rate: Number(f.unlimited_mileage_rate) || null,
         our_monthly_payment: f.our_monthly_payment === "" || f.our_monthly_payment == null ? undefined : Number(f.our_monthly_payment),
       };
       delete payload.id; delete payload.created_at; delete payload.updated_at; delete payload.created_by;
@@ -705,6 +707,8 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         <div><Label>Weekly Rate ($)</Label><Input type="number" value={f.weekly_rate || 0} onChange={(e) => setF({ ...f, weekly_rate: e.target.value })} /></div>
         <div><Label>Monthly Rate ($)</Label><Input type="number" value={f.monthly_rate || 0} onChange={(e) => setF({ ...f, monthly_rate: e.target.value })} /></div>
         <div><Label>Initial Down Payment ($)</Label><Input type="number" value={f.down_payment || 0} onChange={(e) => setF({ ...f, down_payment: e.target.value })} /></div>
+        <div><Label>Fee per mile over 200 miles/day ($)</Label><Input type="number" step="0.01" value={f.extra_mile_fee ?? ""} onChange={(e) => setF({ ...f, extra_mile_fee: e.target.value })} placeholder="e.g. 0.44" /></div>
+        <div><Label>Unlimited mileage ($ / day)</Label><Input type="number" step="0.01" value={f.unlimited_mileage_rate ?? ""} onChange={(e) => setF({ ...f, unlimited_mileage_rate: e.target.value })} placeholder="Blank = not offered" /></div>
       </div>
       {agreementFieldsMissing.length > 0 && (
         <div className="border border-destructive/50 bg-destructive/10 p-3 text-sm">
