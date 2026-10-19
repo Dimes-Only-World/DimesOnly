@@ -322,7 +322,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     controlClasses?: { left: string; right: string },
   ) => {
     const btnBase =
-      "absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-yellow-400";
+      "absolute top-1/2 -translate-y-1/2 z-10 hidden lg:flex items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-yellow-400";
 
     return (
       <div className="relative">
