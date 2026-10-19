@@ -1040,23 +1040,23 @@ img {
 
 /* Vehicle details page: dark showroom matching the home page, with shared UI tokens remapped */
 .rentals-showroom.rentals-detail-dark {
-  --background: hsl(var(--rental-background));
-  --foreground: hsl(var(--rental-foreground));
-  --card: hsl(var(--rental-surface));
-  --card-foreground: hsl(var(--rental-foreground));
-  --popover: hsl(var(--rental-surface));
-  --popover-foreground: hsl(var(--rental-foreground));
-  --primary: hsl(var(--rental-primary));
-  --primary-foreground: hsl(var(--rental-primary-foreground));
-  --secondary: hsl(var(--rental-elevated));
-  --secondary-foreground: hsl(var(--rental-foreground));
-  --muted: hsl(var(--rental-elevated));
-  --muted-foreground: hsl(var(--rental-muted));
-  --accent: hsl(var(--rental-elevated));
-  --accent-foreground: hsl(var(--rental-foreground));
-  --border: hsl(var(--rental-line));
-  --input: hsl(var(--rental-line));
-  --ring: hsl(var(--rental-primary));
+  --background: var(--rental-background);
+  --foreground: var(--rental-foreground);
+  --card: var(--rental-surface);
+  --card-foreground: var(--rental-foreground);
+  --popover: var(--rental-surface);
+  --popover-foreground: var(--rental-foreground);
+  --primary: var(--rental-primary);
+  --primary-foreground: var(--rental-primary-foreground);
+  --secondary: var(--rental-elevated);
+  --secondary-foreground: var(--rental-foreground);
+  --muted: var(--rental-elevated);
+  --muted-foreground: var(--rental-muted);
+  --accent: var(--rental-elevated);
+  --accent-foreground: var(--rental-foreground);
+  --border: var(--rental-line);
+  --input: var(--rental-line);
+  --ring: var(--rental-primary);
   background: hsl(var(--rental-background));
   color: hsl(var(--rental-foreground));
 }
