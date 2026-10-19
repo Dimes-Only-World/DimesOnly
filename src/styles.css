@@ -956,3 +956,24 @@ img {
   .text-\[10px\].md\:text-xs { font-size: 0.75rem !important; }
   .text-\[10px\].md\:text-sm { font-size: 0.875rem !important; }
 }
+
+/* Branded rental date picker (react-day-picker v9) */
+.rental-calendar .rdp-root {
+  --rdp-accent-color: hsl(var(--rental-primary));
+  --rdp-accent-background-color: hsl(var(--rental-primary) / 0.15);
+  --rdp-day-height: 2.5rem;
+  --rdp-day-width: 2.5rem;
+  --rdp-day_button-height: 2.375rem;
+  --rdp-day_button-width: 2.375rem;
+  --rdp-day_button-border-radius: 0;
+  --rdp-selected-border: 2px solid hsl(var(--rental-primary));
+  --rdp-today-color: hsl(var(--rental-primary));
+  font-family: inherit;
+}
+.rental-calendar .rdp-selected .rdp-day_button { background: hsl(var(--rental-primary)); color: hsl(var(--rental-primary-foreground)); }
+.rental-calendar .rdp-day_button:hover { background: hsl(var(--rental-primary) / 0.2); }
+.rental-calendar .rdp-dropdown_root { border: 1px solid hsl(var(--rental-line)); padding: 0.25rem 0.5rem; }
+.rental-calendar .rdp-dropdown { background: hsl(var(--rental-surface)); color: hsl(var(--rental-foreground)); }
+.rental-calendar .rdp-chevron { fill: hsl(var(--rental-primary)); }
+.rental-calendar .rdp-weekday { color: hsl(var(--rental-muted)); font-size: 0.75rem; text-transform: uppercase; }
+.rental-calendar .rdp-outside { opacity: 0.35; }
