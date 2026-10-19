@@ -12,6 +12,7 @@ import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";
+import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 
 interface Vehicle {
   id: string;
@@ -270,6 +271,8 @@ const Rentals: React.FC = () => {
                 { amount: 0, label: "" };
               const { amount: startingRate, label: rateLabel } = preferred || fallback;
               const purchaseAvailable = v.rental_options?.includes("purchase");
+              const blockEnd = blockedUntil(v.booked || [], Date.now());
+              const unavailable = v.availability_status !== "available" || blockEnd !== null;
               return (
                 <Card
                   key={v.id}
