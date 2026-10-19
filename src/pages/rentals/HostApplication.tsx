@@ -289,7 +289,7 @@ const HostApplication: React.FC = () => {
             <Link to={buildAuthUrl("/login", "/rentals/host/apply")}>Log in</Link>
           </Button>
           <Button asChild variant="outline" className="rounded-none border-rental-primary px-8 text-rental-primary">
-            <Link to={buildAuthUrl("/register", "/rentals/host/apply")}>Create account</Link>
+            <Link to={buildAuthUrl("/rentals/signup", "/rentals/host/apply")}>Create account</Link>
           </Button>
         </div>
       </div>

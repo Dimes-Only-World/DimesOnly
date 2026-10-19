@@ -17,11 +17,11 @@ const RentalsFooter: React.FC = () => {
   const [showTerms, setShowTerms] = useState(false);
   const { user, setUser } = useAppContext();
   const [loginUrl, setLoginUrl] = useState("/login?redirect=%2Frentals");
-  const [signupUrl, setSignupUrl] = useState("/register?redirect=%2Frentals");
+  const [signupUrl, setSignupUrl] = useState("/rentals/signup?redirect=%2Frentals");
 
   useEffect(() => {
     setLoginUrl(buildAuthUrl("/login", "/rentals"));
-    setSignupUrl(buildAuthUrl("/register", "/rentals"));
+    setSignupUrl(buildAuthUrl("/rentals/signup", "/rentals"));
   }, []);
 
   const logout = async () => {

@@ -446,7 +446,7 @@ const Rentals: React.FC = () => {
               <a href={`/login?redirect=${encodeURIComponent(gateTarget || "/rentals")}`}>Yes, sign in</a>
             </Button>
             <Button asChild className="flex-1 rounded-none border border-rental-line bg-rental-elevated font-semibold text-rental-foreground hover:bg-rental-elevated/80">
-              <a href={`/register?redirect=${encodeURIComponent(gateTarget || "/rentals")}${refParam ? `&ref=${encodeURIComponent(refParam)}` : ""}`}>No, create one</a>
+              <a href={`/rentals/signup?redirect=${encodeURIComponent(gateTarget || "/rentals")}${refParam ? `&ref=${encodeURIComponent(refParam)}` : ""}`}>No, create one</a>
             </Button>
           </div>
         </DialogContent>

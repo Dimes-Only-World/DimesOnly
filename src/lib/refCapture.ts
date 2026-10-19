@@ -37,7 +37,7 @@ export function getActiveRef(): string {
  * Builds a /register or /login URL that carries both the referral username
  * and the page the visitor should return to.
  */
-export function buildAuthUrl(base: "/register" | "/login", returnTo: string): string {
+export function buildAuthUrl(base: "/register" | "/login" | "/rentals/signup", returnTo: string): string {
   const params = new URLSearchParams();
   if (returnTo) params.set("redirect", returnTo);
   const ref = getActiveRef();
