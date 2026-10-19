@@ -704,6 +704,47 @@ serve(async (req) => {
         if (upErr) throw upErr;
         return json({ data: { ...quote, amountPaid: paid }, requestId });
       }
+      case "getProfile": {
+        const { data, error } = await admin.from("users")
+          .select("username, first_name, last_name, phone_number, email, drivers_license_no, drivers_license_state")
+          .eq("id", userId).maybeSingle();
+        if (error) throw error;
+        return json({ data: data || null, requestId });
+      }
+      case "updateProfile": {
+        const p = parsed.data.profile || {};
+        const patch: Record<string, string | null> = {};
+        for (const k of ["first_name", "last_name", "phone_number", "drivers_license_no", "drivers_license_state"] as const) {
+          if (p[k] !== undefined) patch[k] = p[k] || null;
+        }
+        if (p.email) {
+          const email = p.email.toLowerCase();
+          const { data: taken } = await admin.from("users").select("id").ilike("email", email).neq("id", userId).limit(1);
+          if (taken?.length) return json({ error: "That email is already used by another account.", requestId }, 400);
+          const { error: authErr } = await admin.auth.admin.updateUserById(userId, { email, email_confirm: true });
+          if (authErr) return json({ error: "Could not change your email. Please try again.", requestId }, 400);
+          patch.email = email;
+        }
+        patch.updated_at = new Date().toISOString();
+        const { error } = await admin.from("users").update(patch).eq("id", userId);
+        if (error) throw error;
+        return json({ data: { ok: true }, requestId });
+      }
+      case "changePassword": {
+        const { currentPassword, newPassword } = parsed.data;
+        if (!currentPassword || !newPassword) return json({ error: "Enter your current and new password.", requestId }, 400);
+        const bcrypt = (await import("https://esm.sh/bcryptjs@2.4.3")).default;
+        const { data: u } = await admin.from("users").select("password_hash").eq("id", userId).maybeSingle();
+        if (!u?.password_hash || !bcrypt.compareSync(currentPassword, u.password_hash)) {
+          return json({ error: "Your current password is incorrect.", requestId }, 400);
+        }
+        const hash = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(12));
+        const { error: authErr } = await admin.auth.admin.updateUserById(userId, { password: newPassword });
+        if (authErr) return json({ error: "Could not change your password. Please try again.", requestId }, 400);
+        const { error } = await admin.from("users").update({ password_hash: hash, hash_type: "bcrypt" }).eq("id", userId);
+        if (error) throw error;
+        return json({ data: { ok: true }, requestId });
+      }
       case "holdInfo":
       case "listHolds":
       case "createHold":
