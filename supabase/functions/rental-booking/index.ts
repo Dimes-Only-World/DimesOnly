@@ -247,9 +247,13 @@ serve(async (req) => {
           for (const h of applied || []) {
             if (!pendingIds.has(h.applied_booking_id)) continue;
             await admin.from("rental_holds").update({ status: "held", applied_booking_id: null }).eq("id", h.id).eq("status", "applied");
-            if (action === "createBooking") {
-              // Superseded unpaid booking no longer carries the credit.
-              await admin.from("rental_bookings").update({ hold_credit: 0 }).eq("id", h.applied_booking_id).is("paid_at", null);
+            // The unpaid booking no longer carries the credit, so restore its full price.
+            const { data: ob } = await admin.from("rental_bookings").select("total_price, hold_credit").eq("id", h.applied_booking_id).maybeSingle();
+            if (ob && Number(ob.hold_credit || 0) > 0) {
+              await admin.from("rental_bookings").update({
+                hold_credit: 0,
+                total_price: Math.round((Number(ob.total_price || 0) + Number(ob.hold_credit || 0)) * 100) / 100,
+              }).eq("id", h.applied_booking_id).is("paid_at", null);
             }
           }
         }
