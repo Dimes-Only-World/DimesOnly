@@ -5766,12 +5766,14 @@ export type Database = {
       }
       vehicle_purchase_applications: {
         Row: {
+          access_key_hash: string | null
           admin_notes: string | null
           applicant: Json
           buyer_avatar_path: string | null
           co_buyer: Json | null
           created_at: string
           credit_authorization_consent: boolean
+          documents: Json
           employment: Json
           id: string
           interested_vehicle: Json
@@ -5781,6 +5783,7 @@ export type Database = {
           referrer_overridden: boolean
           referrer_user_id: string | null
           referrer_username: string | null
+          requested_items: string | null
           residence: Json
           sale_amount: number | null
           sale_status: string
@@ -5796,12 +5799,14 @@ export type Database = {
           vehicle_id: string | null
         }
         Insert: {
+          access_key_hash?: string | null
           admin_notes?: string | null
           applicant: Json
           buyer_avatar_path?: string | null
           co_buyer?: Json | null
           created_at?: string
           credit_authorization_consent?: boolean
+          documents?: Json
           employment: Json
           id?: string
           interested_vehicle: Json
@@ -5811,6 +5816,7 @@ export type Database = {
           referrer_overridden?: boolean
           referrer_user_id?: string | null
           referrer_username?: string | null
+          requested_items?: string | null
           residence: Json
           sale_amount?: number | null
           sale_status?: string
@@ -5826,12 +5832,14 @@ export type Database = {
           vehicle_id?: string | null
         }
         Update: {
+          access_key_hash?: string | null
           admin_notes?: string | null
           applicant?: Json
           buyer_avatar_path?: string | null
           co_buyer?: Json | null
           created_at?: string
           credit_authorization_consent?: boolean
+          documents?: Json
           employment?: Json
           id?: string
           interested_vehicle?: Json
@@ -5841,6 +5849,7 @@ export type Database = {
           referrer_overridden?: boolean
           referrer_user_id?: string | null
           referrer_username?: string | null
+          requested_items?: string | null
           residence?: Json
           sale_amount?: number | null
           sale_status?: string
