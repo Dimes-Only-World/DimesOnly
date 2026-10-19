@@ -130,8 +130,8 @@ const RewardsCarousel: React.FC = () => {
     <section
       className={`reward-carousel ${defaultTheme} relative mb-6 overflow-hidden rounded-2xl border border-dimes-gold/40 bg-dimes-surface-elevated p-5 shadow-lg md:p-7`}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-      onTouchStart={(e) => { const t = e.touches[0]; (e.currentTarget as any)._sx = t.clientX; (e.currentTarget as any)._sy = t.clientY; }}
-      onTouchEnd={(e) => { const el = e.currentTarget as any; const t = e.changedTouches[0]; const dx = t.clientX - (el._sx ?? t.clientX); const dy = t.clientY - (el._sy ?? t.clientY); if (items.length > 1 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1); }}
+      onTouchStart={(e) => { const t = e.touches[0]; if (!t) return; (e.currentTarget as any)._sx = t.clientX; (e.currentTarget as any)._sy = t.clientY; }}
+      onTouchEnd={(e) => { const el = e.currentTarget as any; const t = e.changedTouches[0]; if (!t) return; const dx = t.clientX - (el._sx ?? t.clientX); const dy = t.clientY - (el._sy ?? t.clientY); if (items.length > 1 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1); }}
     >
       {!backgroundUrl && <div className="reward-theme-pattern absolute inset-0" aria-hidden="true" />}
       {backgroundUrl && (videoBackground
