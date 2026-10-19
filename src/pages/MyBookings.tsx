@@ -96,11 +96,11 @@ const resolveUserId = async (): Promise<string | null> => {
 
 const statusMeta = (status: string) => {
   const s = (status || "").toLowerCase();
-  if (["pending", "approved", "upcoming"].includes(s))
-    return { label: "Upcoming", className: "bg-primary/20 text-primary border-primary/40" };
+  if (["pending", "approved", "upcoming", "paid"].includes(s))
+    return { label: s === "paid" ? "Paid · Upcoming" : "Upcoming", className: "bg-primary/20 text-primary border-primary/40" };
   if (["active", "in_progress", "picked_up"].includes(s))
     return { label: "Active", className: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" };
-  if (["completed", "returned", "paid"].includes(s))
+  if (["completed", "returned"].includes(s))
     return { label: "Completed", className: "bg-blue-500/20 text-blue-300 border-blue-500/40" };
   if (["cancelled", "canceled", "rejected"].includes(s))
     return { label: "Cancelled", className: "bg-red-500/20 text-red-300 border-red-500/40" };
