@@ -207,6 +207,32 @@ serve(async (req) => {
         }
         return json({ data: b });
       }
+      case "listHolds": {
+        const { data: setting } = await admin.from("app_settings").select("value").eq("key", "rental_hold_deposit").maybeSingle();
+        const { data, error } = await admin.from("rental_holds").select("*, vehicles(year, make, model)").order("created_at", { ascending: false }).limit(300);
+        if (error) throw error;
+        const ids = [...new Set((data || []).map((h: any) => h.user_id))];
+        const { data: users } = ids.length ? await admin.from("users").select("id, username").in("id", ids) : { data: [] };
+        const names = new Map((users || []).map((u: any) => [u.id, u.username]));
+        return json({ data: (data || []).map((h: any) => ({ ...h, username: names.get(h.user_id) || null })), depositAmount: Number((setting?.value as any)?.value ?? 150) });
+      }
+      case "setHoldDeposit": {
+        const amt = Number(params.amount);
+        if (!Number.isFinite(amt) || amt < 0 || amt > 10000) return json({ error: "Enter a deposit between $0 and $10,000" }, 400);
+        const { error } = await admin.from("app_settings").upsert({ key: "rental_hold_deposit", value: { value: Math.round(amt * 100) / 100 } });
+        if (error) throw error;
+        return json({ data: { depositAmount: amt } });
+      }
+      case "updateHold": {
+        const { id, status, reference } = params;
+        if (!["held", "refunded", "cancelled"].includes(status)) return json({ error: "Invalid status" }, 400);
+        const patch: Record<string, unknown> = { status };
+        if (status === "held") { patch.paid_at = new Date().toISOString(); patch.payment_reference = String(reference || "").slice(0, 120) || null; }
+        if (status === "refunded") { patch.refunded_at = new Date().toISOString(); patch.refund_reference = String(reference || "").slice(0, 120) || null; }
+        const { data, error } = await admin.from("rental_holds").update(patch).eq("id", id).select("*").single();
+        if (error) throw error;
+        return json({ data });
+      }
       case "reviewCancellation": {
         const { id, approve } = params;
         const { data: cur, error: cErr } = await admin.from("rental_bookings").select("id, vehicle_id, cancellation_status").eq("id", id).single();

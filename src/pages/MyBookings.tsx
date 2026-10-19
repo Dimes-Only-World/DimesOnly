@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
+import MyRentalHolds from "@/components/rentals/MyRentalHolds";
 
 type Booking = {
   id: string;
@@ -95,11 +96,11 @@ const resolveUserId = async (): Promise<string | null> => {
 
 const statusMeta = (status: string) => {
   const s = (status || "").toLowerCase();
-  if (["pending", "approved", "upcoming"].includes(s))
-    return { label: "Upcoming", className: "bg-primary/20 text-primary border-primary/40" };
+  if (["pending", "approved", "upcoming", "paid"].includes(s))
+    return { label: s === "paid" ? "Paid · Upcoming" : "Upcoming", className: "bg-primary/20 text-primary border-primary/40" };
   if (["active", "in_progress", "picked_up"].includes(s))
     return { label: "Active", className: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" };
-  if (["completed", "returned", "paid"].includes(s))
+  if (["completed", "returned"].includes(s))
     return { label: "Completed", className: "bg-blue-500/20 text-blue-300 border-blue-500/40" };
   if (["cancelled", "canceled", "rejected"].includes(s))
     return { label: "Cancelled", className: "bg-red-500/20 text-red-300 border-red-500/40" };
@@ -161,7 +162,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, cancellation_status, cancellation_refund, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, cancellation_status, cancellation_refund, cancellation_fee, cancellation_reason, cancel_requested_at, cancel_reviewed_at, paid_at, no_show, hold_credit, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -272,6 +273,7 @@ const MyBookings: React.FC = () => {
   }, [bookings]);
 
   const canCancel = (b: Booking) =>
+    (String(b.status).toLowerCase() === "paid" || !!(b as any).paid_at) &&
     ["pending", "approved", "upcoming", "paid"].includes(String(b.status).toLowerCase()) &&
     b.cancellation_status !== "requested" &&
     (!b.end_date || new Date(b.end_date).getTime() > Date.now());
@@ -497,6 +499,23 @@ const MyBookings: React.FC = () => {
                 </div>
               )}
             </div>
+            {Number((b as any).hold_credit || 0) > 0 && (
+              <p className="text-xs text-emerald-300">Notify Me deposit applied: −${Number((b as any).hold_credit).toFixed(2)}</p>
+            )}
+            {["cancelled", "canceled"].includes(String(b.status).toLowerCase()) && (
+              <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm space-y-1">
+                <p className="font-semibold text-red-300">Cancellation details</p>
+                <p className="text-muted-foreground">
+                  Cancelled by: {(b as any).no_show ? "Automatic (no-show)" : b.cancellation_status === "approved" ? "You (approved by admin)" : "Admin"}
+                  {((b as any).cancel_reviewed_at || (b as any).cancel_requested_at) ? ` · ${formatDate((b as any).cancel_reviewed_at || (b as any).cancel_requested_at)}` : ""}
+                </p>
+                {(b as any).cancellation_reason && <p>{(b as any).cancellation_reason}</p>}
+                {(b as any).cancellation_fee != null && (
+                  <p>Kept: ${Number((b as any).cancellation_fee || 0).toFixed(2)} · Refund: ${Number(b.cancellation_refund || 0).toFixed(2)}
+                    {Number(b.cancellation_refund || 0) > 0 ? " — our team sends your refund to your original payment method." : ""}</p>
+                )}
+              </div>
+            )}
 
             <div className="flex items-end justify-between gap-3 flex-wrap pt-2 border-t border-border/50">
               <div>
@@ -682,6 +701,7 @@ const MyBookings: React.FC = () => {
             )}
             <Section title="Active" items={grouped.active} />
             <Section title="Upcoming" items={grouped.upcoming} />
+            {userId && <MyRentalHolds userId={userId} />}
             <Section title="Past Rentals" items={grouped.past} />
           </div>
         )}

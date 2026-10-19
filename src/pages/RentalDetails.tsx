@@ -24,6 +24,9 @@ import RentalMemberAgreement from "@/components/rentals/RentalMemberAgreement";
 import { addDays, addMonths, lastPickupDay, LONG_TERM_MIN_MONTHS, MONTHLY_RENTAL_MAX_DAYS, monthlyRentalEndIsValid, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment, startOfToday, toLocalDateTimeValue } from "@/lib/rentalTerms";
 import { rentalExtras, extrasDays, type MileagePlan, type ProtectionPlan } from "@/lib/rentalExtras";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import NotifyMeDialog from "@/components/rentals/NotifyMeDialog";
+import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
+import { BellRing } from "lucide-react";
 
 type Review = {
   id: string;
@@ -69,6 +72,8 @@ const RentalDetails: React.FC = () => {
 
   // booking form
   const [showBook, setShowBook] = useState(false);
+  const [showNotify, setShowNotify] = useState(false);
+  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
   const [showCancelPolicy, setShowCancelPolicy] = useState(false);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -142,6 +147,8 @@ const RentalDetails: React.FC = () => {
         return;
       }
       setVehicle(v);
+      (supabase as any).from("v_vehicle_booked_dates").select("start_date, end_date").eq("vehicle_id", v.id).order("start_date")
+        .then(({ data }: any) => setBookedRanges(data || []));
       setPickup(v.pickup_location || "");
       // Default rental type to first available option
       if (Array.isArray(v.rental_options) && v.rental_options.length) {
@@ -196,6 +203,11 @@ const RentalDetails: React.FC = () => {
     ["down payment", vehicle?.down_payment],
   ] as const;
   const missingAgreementFields = agreementVehicleFields.filter(([, value]) => value === null || value === undefined || value === "").map(([label]) => label);
+
+  const carUnavailable = !!vehicle && (vehicle.availability_status !== "available" || blockedUntil(bookedRanges, Date.now()) !== null);
+  useEffect(() => {
+    if (vehicle && carUnavailable && user?.id && typeof window !== "undefined" && window.location.hash === "#notify") setShowNotify(true);
+  }, [vehicle, carUnavailable, user?.id]);
 
   const requireAccount = () => {
     if (user) return true;
@@ -550,8 +562,14 @@ const RentalDetails: React.FC = () => {
 
             {!showBook ? (
               <div className="grid gap-3 sm:grid-cols-2">
-                {rentalOptions.length > 0 && <Button size="lg" className="w-full" onClick={() => { if (requireAccount()) setShowBook(true); }} disabled={vehicle.availability_status !== "available"}>
-                  {vehicle.availability_status === "available" ? "Rent This Car" : "Currently Unavailable"}
+                {bookedRanges.length > 0 && (
+                  <div className="sm:col-span-2 rounded-md border border-border p-3 text-sm">
+                    <p className="mb-1 font-semibold">Booked dates</p>
+                    {bookedRanges.map((r, i) => <p key={i} className="text-muted-foreground">{new Date(r.start_date).toLocaleDateString()} – {new Date(r.end_date || r.start_date).toLocaleDateString()}</p>)}
+                  </div>
+                )}
+                {rentalOptions.length > 0 && <Button size="lg" className="w-full" onClick={() => { if (!requireAccount()) return; if (carUnavailable) setShowNotify(true); else setShowBook(true); }}>
+                  {carUnavailable ? <><BellRing className="mr-2 h-5 w-5" /> Notify Me When Available</> : "Rent This Car"}
                 </Button>}
                 {purchaseAvailable && <Button asChild size="lg" variant="outline" className="w-full border-primary"><Link to={`/rentals/purchase/${vehicle.id}`}><BadgeDollarSign className="mr-2 h-5 w-5" /> Apply to Purchase</Link></Button>}
               </div>
@@ -859,6 +877,10 @@ const RentalDetails: React.FC = () => {
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
       />
+      {user?.id && vehicle && (
+        <NotifyMeDialog open={showNotify} onOpenChange={setShowNotify} userId={user.id} vehicleId={vehicle.id}
+          vehicleTitle={`${vehicle.year || ""} ${vehicle.make || ""} ${vehicle.model || ""}`.trim()} />
+      )}
     </div>
   );
 };

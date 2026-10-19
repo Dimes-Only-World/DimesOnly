@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HostApplicationsPanel from "@/components/rentals/HostApplicationsPanel";
 import PurchaseApplicationsPanel from "@/components/rentals/PurchaseApplicationsPanel";
+import RentalHoldsPanel from "@/components/rentals/RentalHoldsPanel";
 import SaleCommissionsPanel from "@/components/rentals/SaleCommissionsPanel";
 import PaymentHistoryPanel from "@/components/rentals/PaymentHistoryPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -87,6 +88,7 @@ const AdminRentalsTab: React.FC = () => {
           <TabsTrigger value="calls">Call Requests</TabsTrigger>
           <TabsTrigger value="hosts">Host Applications</TabsTrigger>
           <TabsTrigger value="purchases">Credit Apps</TabsTrigger>
+          <TabsTrigger value="holds">Notify Me Holds</TabsTrigger>
           <TabsTrigger value="sales">Sale Commissions</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="packages">Themed Packages</TabsTrigger>
@@ -152,6 +154,7 @@ const AdminRentalsTab: React.FC = () => {
 
         <TabsContent value="hosts"><HostApplicationsPanel callAdmin={callAdmin} /></TabsContent>
         <TabsContent value="purchases"><PurchaseApplicationsPanel callAdmin={callAdmin} /></TabsContent>
+        <TabsContent value="holds"><RentalHoldsPanel callAdmin={callAdmin} /></TabsContent>
         <TabsContent value="sales"><SaleCommissionsPanel callAdmin={callAdmin} /></TabsContent>
 
         <TabsContent value="commissions" className="space-y-3">
