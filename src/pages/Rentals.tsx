@@ -376,13 +376,13 @@ const Rentals: React.FC = () => {
               </p>
               <Button
                 size="sm"
-                variant="outline"
                 onClick={() => goPage(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="rounded-none border-rental-line text-rental-foreground hover:border-rental-primary hover:text-rental-primary disabled:opacity-40"
+                className="rounded-none border border-rental-line bg-rental-surface font-semibold text-rental-foreground hover:border-rental-primary hover:text-rental-primary disabled:opacity-40"
               >
                 Prev
               </Button>
+
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                 <Button
                   key={n}
@@ -400,13 +400,13 @@ const Rentals: React.FC = () => {
               ))}
               <Button
                 size="sm"
-                variant="outline"
                 onClick={() => goPage(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="rounded-none border-rental-line text-rental-foreground hover:border-rental-primary hover:text-rental-primary disabled:opacity-40"
+                className="rounded-none border border-rental-line bg-rental-surface font-semibold text-rental-foreground hover:border-rental-primary hover:text-rental-primary disabled:opacity-40"
               >
                 Next
               </Button>
+
             </div>
           )}
           </>
