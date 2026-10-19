@@ -240,6 +240,8 @@ serve(async (req) => {
       if (!_caller || _caller !== userId) return json({ error: "Please sign in again to continue.", requestId }, 401);
     }
     const admin = createServiceClient(requestId);
+    // Return reminders and late notices go out whenever renters or admins use rentals (each email once).
+    try { await runReturnReminders(admin); } catch (e) { console.error("reminder sweep failed", e); }
 
     // A Notify Me deposit is only consumed once its booking is paid. Release deposits
     // attached to bookings that are still unpaid (abandoned, replaced or cancelled checkout).
