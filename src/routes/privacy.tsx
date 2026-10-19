@@ -17,7 +17,6 @@ export const Route = createFileRoute("/privacy")({
     <LegalPage
       title="PRIVACY POLICY"
       subtitle={PRIVACY_EFFECTIVE_DATE}
-      notice="DRAFT — This policy is a draft for the owner to review with a lawyer before it takes effect."
       sections={PRIVACY_SECTIONS}
     />
   ),
