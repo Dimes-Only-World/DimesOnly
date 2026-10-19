@@ -142,6 +142,7 @@ serve(async (req) => {
     if (!body) return json({ error: "Invalid request." }, 400);
     const admin0 = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     if (body.action === "check") return json(await checkIdentity(admin0, body));
+    if (body.action === "listMine" || body.action === "uploadDoc" || body.action === "signDoc") return await ownerAction(admin0, req, body);
     const applicantError = validatePerson(body.applicant, "Applicant");
     if (applicantError) return json({ error: applicantError }, 400);
     if (body.hasCoBuyer) {
