@@ -21,7 +21,7 @@ const AccountHome: React.FC = () => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) { navigate({ to: "/login", search: { redirect: "/account" } as any, replace: true }); return; }
       const m = data.session.user.user_metadata || {};
-      setName(m.first_name || m.username || data.session.user.email || "");
+      setName(m['first_name'] || m['username'] || data.session.user.email || "");
       setReady(true);
     });
   }, [navigate]);
