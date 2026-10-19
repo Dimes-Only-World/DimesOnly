@@ -5478,6 +5478,8 @@ export type Database = {
           diamond_plus_active: boolean | null
           diamond_plus_payment_id: string | null
           diamond_plus_signed_at: string | null
+          drivers_license_no: string | null
+          drivers_license_state: string | null
           email: string
           event_available_balance: number | null
           event_total_earnings: number | null
@@ -5550,6 +5552,8 @@ export type Database = {
           diamond_plus_active?: boolean | null
           diamond_plus_payment_id?: string | null
           diamond_plus_signed_at?: string | null
+          drivers_license_no?: string | null
+          drivers_license_state?: string | null
           email: string
           event_available_balance?: number | null
           event_total_earnings?: number | null
@@ -5622,6 +5626,8 @@ export type Database = {
           diamond_plus_active?: boolean | null
           diamond_plus_payment_id?: string | null
           diamond_plus_signed_at?: string | null
+          drivers_license_no?: string | null
+          drivers_license_state?: string | null
           email?: string
           event_available_balance?: number | null
           event_total_earnings?: number | null
