@@ -35,15 +35,26 @@ const RentalDatePicker = ({ label, value, onChange, fromDate, toDate, disabled }
             {selected ? format(selected, "MMM d, yyyy") : "Pick a date"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] border-border bg-popover p-0 text-popover-foreground shadow-xl" align="start" collisionPadding={16}>
+        <PopoverContent className="rental-calendar w-auto max-w-[calc(100vw-2rem)] rounded-none border-rental-line bg-rental-surface p-0 text-rental-foreground shadow-2xl" align="start" collisionPadding={16}>
           <Calendar
             mode="single"
             selected={selected}
+            {...(selected ? { defaultMonth: selected } : {})}
             onSelect={(date) => date && onChange(toLocalDateTimeValue(date, time))}
             disabled={[{ before: fromDate }, ...(toDate ? [{ after: toDate }] : [])]}
-            initialFocus
-            className="pointer-events-auto p-3"
+            className="pointer-events-auto p-4"
+            classNames={{
+              caption_label: "text-sm font-semibold uppercase tracking-[0.2em] text-rental-foreground",
+              button_previous: "inline-flex h-8 w-8 items-center justify-center border border-rental-line text-rental-foreground transition-colors hover:border-rental-primary hover:text-rental-primary",
+              button_next: "inline-flex h-8 w-8 items-center justify-center border border-rental-line text-rental-foreground transition-colors hover:border-rental-primary hover:text-rental-primary",
+              weekday: "w-10 text-center text-[0.7rem] font-medium uppercase tracking-wider text-rental-muted",
+              day_button: "inline-flex h-10 w-10 items-center justify-center font-normal text-rental-foreground transition-colors hover:bg-rental-primary/20 disabled:pointer-events-none",
+              selected: "[&>button]:bg-rental-primary [&>button]:font-semibold [&>button]:text-rental-primary-foreground [&>button:hover]:bg-rental-primary",
+              today: "[&>button]:text-rental-primary [&>button]:font-semibold",
+              disabled: "opacity-25",
+            }}
           />
+
         </PopoverContent>
       </Popover>
       <div className="relative">
