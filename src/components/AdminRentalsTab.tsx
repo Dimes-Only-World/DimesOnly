@@ -21,6 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Trash2, Plus, Upload, ExternalLink, Download } from "lucide-react";
 import { lateFeeStatus } from "@/lib/rentalExtensionRules";
+import { checkBookingTotal } from "@/lib/bookingTotalCheck";
 import { vehicleRateWarnings } from "@/lib/vehicleRateWarnings";
 import { signRentalMedia } from "@/lib/rentalMedia";
 
@@ -73,6 +74,7 @@ const AdminRentalsTab: React.FC = () => {
     window.history.replaceState(window.history.state, "", url.toString());
   };
   const [bookingFilter, setBookingFilter] = useState<"all" | "overdue" | "expired">("all");
+  const [showTest, setShowTest] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -176,8 +178,10 @@ const AdminRentalsTab: React.FC = () => {
 
         <TabsContent value="bookings" className="space-y-3">
           {(() => {
-            const counts = { all: bookings.length, overdue: bookings.filter(isOverdue).length, expired: bookings.filter(isExpired).length };
-            const shown = bookings.filter((b) => bookingFilter === "overdue" ? isOverdue(b) : bookingFilter === "expired" ? isExpired(b) : true);
+            const real = showTest ? bookings : bookings.filter((b) => !b.is_test);
+            const counts = { all: real.length, overdue: real.filter(isOverdue).length, expired: real.filter(isExpired).length };
+            const shown = real.filter((b) => bookingFilter === "overdue" ? isOverdue(b) : bookingFilter === "expired" ? isExpired(b) : true);
+            const mismatches = real.filter((b) => { const c = b.vehicles ? checkBookingTotal(b, b.vehicles) : null; return c && !c.matches; }).length;
             return <>
               <div className="flex flex-wrap items-center gap-2">
                 {(["all", "overdue", "expired"] as const).map((f) => (
@@ -187,9 +191,12 @@ const AdminRentalsTab: React.FC = () => {
                 ))}
                 {counts.expired > 0 && <Button size="sm" variant="destructive" onClick={async () => {
                   if (!confirm(`Cancel ${counts.expired} expired pending booking(s)? They are unpaid and more than 24 hours past their start date.`)) return;
-                  try { for (const b of bookings.filter(isExpired)) await callAdmin("updateBookingStatus", { id: b.id, status: "cancelled" }); toast({ title: "Expired bookings cleared" }); loadAll(); }
+                  try { for (const b of real.filter(isExpired)) await callAdmin("updateBookingStatus", { id: b.id, status: "cancelled" }); toast({ title: "Expired bookings cleared" }); loadAll(); }
                   catch (e: any) { toast({ title: "Clear failed", description: e.message, variant: "destructive" }); }
                 }}>Clear expired</Button>}
+                <label className="ml-auto flex items-center gap-2 text-sm"><Checkbox checked={showTest} onCheckedChange={(v) => setShowTest(!!v)} /> Show test data</label>
+              </div>
+              {mismatches > 0 && <p className="text-sm text-destructive">⚠ {mismatches} booking total{mismatches > 1 ? "s don't" : " doesn't"} match the car's current rates. Open the total line on each booking to see why.</p>}
               </div>
               {shown.map((b) => <BookingRow key={b.id} b={b} onChange={loadAll} />)}
               {shown.length === 0 && <p className="text-muted-foreground">{loaded ? "No bookings here." : "Loading bookings…"}</p>}
@@ -978,7 +985,23 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
           )}
         </div>
       )}
+      {(() => {
+        const chk = b.vehicles ? checkBookingTotal(b, b.vehicles) : null;
+        if (!chk) return null;
+        return (
+          <details className={`border p-2 text-xs ${chk.matches ? "border-border" : "border-destructive/60 bg-destructive/10"}`}>
+            <summary className="cursor-pointer font-semibold">
+              {chk.matches ? `Total checks out: $${chk.saved.toFixed(2)}` : `⚠ Total mismatch: saved $${chk.saved.toFixed(2)}, current rates give $${chk.expected.toFixed(2)} (${chk.difference > 0 ? "+" : ""}${chk.difference.toFixed(2)})`}
+            </summary>
+            <ul className="mt-1 space-y-0.5">{chk.lines.map((l, i) => <li key={i} className="flex justify-between gap-2"><span>{l.label}</span><span>{l.amount < 0 ? "−" : ""}${Math.abs(l.amount).toFixed(2)}</span></li>)}</ul>
+          </details>
+        );
+      })()}
       <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant={b.is_test ? "secondary" : "ghost"} onClick={async () => {
+          try { await callAdmin("setTestFlag", { kind: "booking", id: b.id, value: !b.is_test }); onChange(); }
+          catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
+        }}>{b.is_test ? "Test ✓ (unmark)" : "Mark as test"}</Button>
         {b.status === "pending" && <>
           <Button size="sm" onClick={() => setStatus("approved")}>Approve</Button>
           <Button size="sm" variant="destructive" onClick={() => setStatus("rejected")}>Reject</Button>
