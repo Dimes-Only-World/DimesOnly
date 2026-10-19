@@ -146,7 +146,7 @@ const BecomeAHost: React.FC = () => {
   const monthlyEarnings = fleetSize * EARNINGS_PER_CAR;
 
   return (
-    <div className="rentals-showroom mobile-wall min-h-screen">
+    <div className="rentals-showroom overflow-x-clip [overflow-wrap:anywhere] min-h-screen">
       <header className="flex items-center justify-between px-4 py-5 sm:px-8 lg:px-12">
         <Link to="/" className="rentals-wordmark text-2xl leading-none text-rental-foreground sm:text-3xl">
           DIMES ONLY
