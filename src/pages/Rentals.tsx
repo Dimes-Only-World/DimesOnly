@@ -278,7 +278,15 @@ const Rentals: React.FC = () => {
                   key={v.id}
                   className="group overflow-hidden rounded-none border-x-0 border-rental-line bg-rental-surface transition-colors hover:border-rental-primary sm:border-x"
                 >
+                  <div className="flex items-baseline justify-between gap-2 border-b border-rental-line bg-rental-elevated/40 px-5 py-3 font-barlow">
+                    <span className="text-[10px] font-semibold uppercase text-rental-muted">Starting at</span>
+                    <p className="text-2xl font-semibold leading-none text-rental-foreground">
+                      ${Number(startingRate).toLocaleString()}
+                      <span className="ml-1 text-xs font-normal text-rental-muted">{rateLabel}</span>
+                    </p>
+                  </div>
                   <div className="relative aspect-[4/3] overflow-hidden bg-rental-elevated">
+
                     {v.hero_url ? (
                       <img
                         loading="lazy"
@@ -324,23 +332,17 @@ const Rentals: React.FC = () => {
                         3-day rate: ${Number((v as any).three_day_rate).toLocaleString()}/day
                       </p>
                     )}
-                    <div className="flex items-end justify-between gap-3 border-t border-rental-line pt-4">
-                      <div>
-                        <span className="text-[10px] font-semibold uppercase text-rental-muted">Starting at</span>
-                        <p className="text-2xl font-semibold text-rental-foreground">
-                          ${Number(startingRate).toLocaleString()}
-                          <span className="ml-1 text-xs font-normal text-rental-muted">{rateLabel}</span>
-                        </p>
-                      </div>
+                    <div className="border-t border-rental-line pt-4">
                       <div className="flex flex-col gap-2">
-                        {purchaseAvailable && <Button asChild size="sm" variant="outline" className="rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
-                        <Button asChild size="sm" className="rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
+                        {purchaseAvailable && <Button asChild size="sm" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
+                        <Button asChild size="sm" className="w-full rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
                           {unavailable
                             ? <Link to="/rentals/$id" params={{ id: v.id }} hash="notify">Get Notified <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
                             : <Link to="/rentals/$id" params={{ id: v.id }}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>}
                         </Button>
                       </div>
                     </div>
+
                   </CardContent>
                 </Card>
               );
