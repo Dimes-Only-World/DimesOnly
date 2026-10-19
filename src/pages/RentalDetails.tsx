@@ -27,7 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import NotifyMeDialog from "@/components/rentals/NotifyMeDialog";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 import { BellRing } from "lucide-react";
-import { rentalOptionLabel } from "@/lib/rentalLocation";
+import { formatRentalLocation, rentalOptionLabel } from "@/lib/rentalLocation";
 import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 
 type Review = {
@@ -389,14 +389,14 @@ const RentalDetails: React.FC = () => {
 
   if (loading)
     return (
-      <div className="rentals-showroom min-h-screen sm:px-4">
+      <div className="rentals-showroom rentals-detail-dark min-h-screen sm:px-4">
         <BestLogoBanner />
         <AngelLoader variant="fullscreen" className="pt-10" />
       </div>
     );
   if (!vehicle)
     return (
-      <div className="rentals-showroom min-h-screen pt-10 text-center">
+      <div className="rentals-showroom rentals-detail-dark min-h-screen pt-10 text-center">
         <BestLogoBanner />
         <p className="mb-4">Vehicle not found.</p>
         <Link to="/rentals"><Button>Back to Rentals</Button></Link>
@@ -409,7 +409,7 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="rentals-showroom min-h-screen pb-16 sm:px-4">
+    <div className="rentals-showroom rentals-detail-dark min-h-screen pb-16 sm:px-4">
       <BestLogoBanner />
       <div className="mx-auto max-w-6xl">
 
@@ -499,7 +499,7 @@ const RentalDetails: React.FC = () => {
             <div className="grid grid-cols-2 gap-3 mb-6">
               {vehicle.pickup_location && (
                 <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-primary" /> {vehicle.pickup_location}
+                  <MapPin className="w-4 h-4 text-primary" /> {formatRentalLocation(vehicle.pickup_location)}
                 </div>
               )}
             </div>
