@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RentalCheckbox } from "@/components/rentals/RentalCheckbox";
 import { toast } from "@/hooks/use-toast";
 import { Car, MapPin, ArrowLeft, Upload, Expand, Star, ShieldCheck, CalendarX2, Tag, BadgeDollarSign, FileText } from "lucide-react";
 import PhotoLightbox from "@/components/PhotoLightbox";
@@ -708,7 +708,7 @@ const RentalDetails: React.FC = () => {
                   </div>
 
                   <div className="flex items-start gap-2">
-                    <Checkbox checked={agree} onCheckedChange={() => setShowAgreement(true)} id="agree" />
+                    <RentalCheckbox checked={agree} onCheckedChange={() => setShowAgreement(true)} id="agree" />
                     <button type="button" onClick={() => setShowAgreement(true)} className="text-left text-xs leading-snug underline underline-offset-2">
                       I reviewed and accept the Rental Agreement and confirm the uploaded documents are authentic.
                     </button>

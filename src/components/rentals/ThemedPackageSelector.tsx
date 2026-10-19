@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RentalCheckbox } from "@/components/rentals/RentalCheckbox";
 import { Sparkles } from "lucide-react";
 
 export type ThemedPackage = {
@@ -73,7 +73,7 @@ const ThemedPackageSelector: React.FC<Props> = ({ selected, onChange }) => {
               }`}
             >
               <CardContent className="p-3 flex gap-2 items-start">
-                <Checkbox checked={isOn} className="mt-0.5" />
+                <RentalCheckbox checked={isOn} className="mt-0.5" />
                 <div className="flex-1">
                   <div className="flex justify-between gap-2">
                     <p className="text-sm font-medium">
