@@ -207,6 +207,18 @@ serve(async (req) => {
         }
         return json({ data: b });
       }
+      case "reviewCancellation": {
+        const { id, approve } = params;
+        const { data: cur, error: cErr } = await admin.from("rental_bookings").select("id, vehicle_id, cancellation_status").eq("id", id).single();
+        if (cErr) throw cErr;
+        if (cur.cancellation_status !== "requested") return json({ error: "No cancellation request is waiting" }, 400);
+        const patch: Record<string, unknown> = { cancellation_status: approve ? "approved" : "declined", cancel_reviewed_at: new Date().toISOString() };
+        if (approve) patch.status = "cancelled";
+        const { data: b, error: bErr } = await admin.from("rental_bookings").update(patch).eq("id", id).select().single();
+        if (bErr) throw bErr;
+        if (approve && cur.vehicle_id) await admin.from("vehicles").update({ availability_status: "available" }).eq("id", cur.vehicle_id);
+        return json({ data: b });
+      }
       case "markPaidManual": {
         const { id, method, reference, amount, note } = params;
         if (!["cash", "cashapp"].includes(method)) return json({ error: "Choose Cash or Cash App" }, 400);

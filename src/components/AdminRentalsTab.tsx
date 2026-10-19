@@ -882,6 +882,28 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
           {b.payment_receipt_path && <Button size="sm" variant="outline" onClick={() => openDoc(b.payment_receipt_path)}><Download className="w-3 h-3 mr-1" />Receipt</Button>}
         </div>
       </div>
+      {b.cancellation_status && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm space-y-2">
+          <p className="font-semibold">
+            Cancellation {b.cancellation_status === "requested" ? "requested — needs your approval" : b.cancellation_status}
+            {b.cancel_requested_at ? ` · ${new Date(b.cancel_requested_at).toLocaleString()}` : ""}
+          </p>
+          <p>{b.cancellation_reason}</p>
+          <p>Keep <b>${Number(b.cancellation_fee || 0).toFixed(2)}</b> · Refund <b>${Number(b.cancellation_refund || 0).toFixed(2)}</b></p>
+          {b.cancellation_status === "requested" && (
+            <div className="flex gap-2">
+              <Button size="sm" variant="destructive" onClick={async () => {
+                try { const r = await callAdmin("reviewCancellation", { id: b.id, approve: true }); if (r?.error) throw new Error(r.error); toast({ title: "Cancellation approved", description: "Send the refund to the renter." }); onChange(); }
+                catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
+              }}>Approve cancellation</Button>
+              <Button size="sm" variant="outline" onClick={async () => {
+                try { const r = await callAdmin("reviewCancellation", { id: b.id, approve: false }); if (r?.error) throw new Error(r.error); toast({ title: "Cancellation declined" }); onChange(); }
+                catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
+              }}>Decline</Button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {b.status === "pending" && <>
           <Button size="sm" onClick={() => setStatus("approved")}>Approve</Button>

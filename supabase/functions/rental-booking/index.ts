@@ -6,6 +6,7 @@ import { z } from "https://esm.sh/zod@3.23.8";
 import { allowedPickupDate, minimumEndDate, monthlyRentalEndIsValid, monthlyRentalPrice } from "./rules.ts";
 import { shortTermTotal } from "./shortTerm.ts";
 import { rentalExtras, extrasDays } from "./extras.ts";
+import { cancellationQuote } from "./cancellation.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -33,7 +34,7 @@ const BookingPayloadSchema = z.object({
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt", "quoteCancellation", "requestCancellation"]),
   userId: z.string().uuid(),
   bookingId: z.string().uuid().optional(),
   returnUrl: z.string().url().optional(),
@@ -613,6 +614,30 @@ serve(async (req) => {
         if (bk.vehicle_id) await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", bk.vehicle_id);
 
         return json({ data: { status: "paid", capture_id: capture?.id || null }, requestId });
+      }
+      case "quoteCancellation":
+      case "requestCancellation": {
+        if (!bookingId) return json({ error: "Booking not found", requestId }, 404);
+        const { data: bk } = await admin.from("rental_bookings")
+          .select("id, renter_user_id, status, start_date, end_date, created_at, paid_at, amount_received, total_price, cancellation_status, vehicles(day_rate)")
+          .eq("id", bookingId).maybeSingle();
+        if (!bk || bk.renter_user_id !== userId) return json({ error: "Booking not found", requestId }, 404);
+        const st = String(bk.status);
+        if (["cancelled", "rejected", "completed", "returned", "active"].includes(st)) return json({ error: "This booking can't be cancelled", requestId }, 400);
+        if (bk.cancellation_status === "requested") return json({ error: "A cancellation request is already waiting for admin approval", requestId }, 400);
+        const v: any = Array.isArray(bk.vehicles) ? bk.vehicles[0] : bk.vehicles;
+        const paid = bk.paid_at || st === "paid" ? Number(bk.amount_received ?? bk.total_price ?? 0) : 0;
+        const quote = cancellationQuote({
+          now: Date.now(), bookedAt: new Date(bk.created_at).getTime(), startAt: new Date(bk.start_date).getTime(),
+          endAt: bk.end_date ? new Date(bk.end_date).getTime() : null, dailyRent: Number(v?.day_rate || 0), amountPaid: paid,
+        });
+        if (action === "quoteCancellation") return json({ data: { ...quote, amountPaid: paid }, requestId });
+        const { error: upErr } = await admin.from("rental_bookings").update({
+          cancellation_status: "requested", cancellation_fee: quote.fee, cancellation_refund: quote.refund,
+          cancellation_reason: quote.explanation, cancel_requested_at: new Date().toISOString(),
+        }).eq("id", bk.id);
+        if (upErr) throw upErr;
+        return json({ data: { ...quote, amountPaid: paid }, requestId });
       }
       case "chooseManualPayment": {
         const method = String(parsed.data.method || "");

@@ -3816,6 +3816,12 @@ export type Database = {
         Row: {
           admin_notes: string | null
           amount_received: number | null
+          cancel_requested_at: string | null
+          cancel_reviewed_at: string | null
+          cancellation_fee: number | null
+          cancellation_reason: string | null
+          cancellation_refund: number | null
+          cancellation_status: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -3857,6 +3863,12 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           amount_received?: number | null
+          cancel_requested_at?: string | null
+          cancel_reviewed_at?: string | null
+          cancellation_fee?: number | null
+          cancellation_reason?: string | null
+          cancellation_refund?: number | null
+          cancellation_status?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -3898,6 +3910,12 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           amount_received?: number | null
+          cancel_requested_at?: string | null
+          cancel_reviewed_at?: string | null
+          cancellation_fee?: number | null
+          cancellation_reason?: string | null
+          cancellation_refund?: number | null
+          cancellation_status?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string

@@ -46,6 +46,8 @@ type Booking = {
   created_at: string;
   payment_method?: string | null;
   payment_receipt_path?: string | null;
+  cancellation_status?: string | null;
+  cancellation_refund?: number | null;
   vehicles?: {
     id: string;
     year: number | null;
@@ -132,6 +134,11 @@ const MyBookings: React.FC = () => {
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cancelQuote, setCancelQuote] = useState<
+    | { kind: string; fee: number; refund: number; amountPaid: number; explanation: string }
+    | { error: string }
+    | null
+  >(null);
 
   useEffect(() => {
     (async () => {
@@ -154,7 +161,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, cancellation_status, cancellation_refund, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -264,7 +271,10 @@ const MyBookings: React.FC = () => {
     return { upcoming, active, past };
   }, [bookings]);
 
-  const canCancel = (b: Booking) => statusMeta(b.status).label === "Upcoming";
+  const canCancel = (b: Booking) =>
+    ["pending", "approved", "upcoming", "paid"].includes(String(b.status).toLowerCase()) &&
+    b.cancellation_status !== "requested" &&
+    (!b.end_date || new Date(b.end_date).getTime() > Date.now());
   const canReview = (b: Booking) =>
     statusMeta(b.status).label === "Completed" && !b.review;
   const canCapture = (b: Booking) => {
@@ -369,17 +379,23 @@ const MyBookings: React.FC = () => {
     }
   };
 
+  const openCancel = async (b: Booking) => {
+    setCancelTarget(b);
+    setCancelQuote(null);
+    const { data, error } = await supabase.functions.invoke("rental-booking", { body: { action: "quoteCancellation", userId, bookingId: b.id } });
+    if (error || data?.error || !data?.data) setCancelQuote({ error: data?.error || "Couldn't work out your refund. Please try again." });
+    else setCancelQuote(data.data);
+  };
+
   const confirmCancel = async () => {
     if (!cancelTarget) return;
     setSubmitting(true);
     try {
-      const { error } = await (supabase as any)
-        .from("rental_bookings")
-        .update({ status: "cancelled", updated_at: new Date().toISOString() })
-        .eq("id", cancelTarget.id);
-      if (error) throw error;
-      toast({ title: "Booking cancelled" });
+      const { data, error } = await supabase.functions.invoke("rental-booking", { body: { action: "requestCancellation", userId, bookingId: cancelTarget.id } });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast({ title: "Cancellation requested", description: "Our team will review it and send your refund once approved." });
       setCancelTarget(null);
+      setCancelQuote(null);
       if (userId) await loadBookings(userId);
     } catch (e: any) {
       toast({
@@ -549,11 +565,19 @@ const MyBookings: React.FC = () => {
                     <CalendarPlus className="w-4 h-4 mr-1" /> Extend
                   </Button>
                 )}
+                {b.cancellation_status === "requested" && (
+                  <span className="text-xs text-amber-300 self-center">
+                    Cancellation requested — waiting for approval (${Number(b.cancellation_refund || 0).toFixed(2)} refund)
+                  </span>
+                )}
+                {b.cancellation_status === "declined" && (
+                  <span className="text-xs text-muted-foreground self-center">Cancellation request declined</span>
+                )}
                 {canCancel(b) && (
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => setCancelTarget(b)}
+                    onClick={() => openCancel(b)}
                   >
                     <XCircle className="w-4 h-4 mr-1" /> Cancel
                   </Button>
@@ -757,23 +781,38 @@ const MyBookings: React.FC = () => {
       </Dialog>
 
       {/* Cancel confirmation */}
-      <AlertDialog open={!!cancelTarget} onOpenChange={(o) => !o && setCancelTarget(null)}>
+      <AlertDialog open={!!cancelTarget} onOpenChange={(o) => { if (!o) { setCancelTarget(null); setCancelQuote(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will cancel your reservation. If a deposit was paid, admin will reach out about
-              any applicable refund per rental terms.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                {!cancelQuote ? (
+                  <p>Working out your refund…</p>
+                ) : "error" in cancelQuote ? (
+                  <p className="text-destructive">{cancelQuote.error}</p>
+                ) : (
+                  <>
+                    <p>{cancelQuote.explanation}</p>
+                    <div className="rounded-md border border-border p-3 space-y-1">
+                      <div className="flex justify-between"><span>Amount paid</span><span>${cancelQuote.amountPaid.toFixed(2)}</span></div>
+                      <div className="flex justify-between"><span>Amount kept</span><span>${cancelQuote.fee.toFixed(2)}</span></div>
+                      <div className="flex justify-between font-semibold"><span>Refund to you</span><span>${cancelQuote.refund.toFixed(2)}</span></div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Your request goes to our team for approval. Your booking stays in place until it's approved.</p>
+                  </>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={submitting}>Keep Booking</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmCancel}
-              disabled={submitting}
+              onClick={(e) => { e.preventDefault(); confirmCancel(); }}
+              disabled={submitting || !cancelQuote || "error" in cancelQuote}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {submitting ? "Cancelling…" : "Yes, Cancel"}
+              {submitting ? "Sending…" : "Request Cancellation"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
