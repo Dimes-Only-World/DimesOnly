@@ -840,6 +840,7 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
   };
 
   const [verifying, setVerifying] = React.useState(false);
+  const [returnOpen, setReturnOpen] = React.useState(false);
 
   const verifyPayment = async () => {
     setVerifying(true);
@@ -969,12 +970,20 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
         {["pending", "approved"].includes(b.status) && <Button size="sm" variant="outline" onClick={() => markManual("cashapp")}>Mark Paid – Cash App</Button>}
         {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (picked up)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
-        {["paid", "active"].includes(b.status) && <Button size="sm" variant="secondary" onClick={async () => {
-          if (!confirm("Mark this vehicle as returned? The rental moves to past and the car becomes available.")) return;
-          try { const r = await callAdmin("markReturned", { id: b.id }); if (r?.error) throw new Error(r.error); toast({ title: "Vehicle returned", description: "Rental moved to past; vehicle is available again." }); onChange(); }
-          catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); }
-        }}>Mark Returned</Button>}
-        {b.returned_at && <span className="text-xs text-muted-foreground self-center">Returned {new Date(b.returned_at).toLocaleString()}</span>}
+        {["paid", "active"].includes(b.status) && <Button size="sm" variant="secondary" onClick={() => setReturnOpen(true)}>Mark Returned</Button>}
+        {returnOpen && <MarkReturnedDialog booking={b} open={returnOpen} onOpenChange={setReturnOpen} onSubmit={async (payload) => {
+          try { const r = await callAdmin("markReturned", { id: b.id, ...payload }); if (r?.error) throw new Error(r.error); toast({ title: "Vehicle returned", description: "Booking completed; car is available again." }); onChange(); }
+          catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); throw e; }
+        }} />}
+        {b.returned_at && <span className="text-xs text-muted-foreground self-center">
+          Returned {new Date(b.returned_at).toLocaleString()}
+          {b.return_mileage != null ? ` · ${Number(b.return_mileage).toLocaleString()} mi` : ""}
+          {b.return_fuel ? ` · Fuel ${b.return_fuel}` : ""}
+          {Number(b.late_fee_charged) > 0 ? ` · Late fee $${Number(b.late_fee_charged).toFixed(2)}` : ""}
+          {` · Deposit kept $${Number(b.deposit_kept || 0).toFixed(2)} / refunded $${Number(b.deposit_refunded || 0).toFixed(2)}`}
+          {b.return_damage_notes ? ` · Damage: ${b.return_damage_notes}` : ""}
+        </span>}
+        {(b.return_photo_paths || []).map((p: string, i: number) => <Button key={p} size="sm" variant="outline" onClick={() => openDoc(p)}>Damage photo {i + 1}</Button>)}
         {["pending", "approved", "paid", "active"].includes(b.status) && <Button size="sm" variant="ghost" onClick={() => setStatus("cancelled")}>Cancel</Button>}
       </div>
     </CardContent></Card>
