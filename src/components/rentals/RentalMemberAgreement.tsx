@@ -1,6 +1,7 @@
 import { FileCheck2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { rentalOptionLabel } from "@/lib/rentalLocation";
 import { addMonths, LONG_TERM_MIN_MONTHS, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment } from "@/lib/rentalTerms";
 
 type Props = {
@@ -24,7 +25,7 @@ const RentalMemberAgreement = ({ open, onOpenChange, vehicle, rentalType, startD
   const isRentToOwn = rentalType === "rent_to_own";
   const isLongAgreement = rentalType === "long_term" || isRentToOwn;
   const monthlyPayment = isRentToOwn ? rentToOwnMonthlyPayment(vehicle?.monthly_rate) : Number(vehicle?.monthly_rate || 0);
-  const term = isRentToOwn ? `${RENT_TO_OWN_MONTHS} months` : rentalType === "long_term" ? `${LONG_TERM_MIN_MONTHS} months minimum` : rentalType.replace("_", " ");
+  const term = isRentToOwn ? `${RENT_TO_OWN_MONTHS} months` : rentalType === "long_term" ? `${LONG_TERM_MIN_MONTHS} months minimum` : rentalOptionLabel(rentalType);
   const typeLabel = isRentToOwn ? "Rent to Own (Deposit Required)" : rentalType === "long_term" ? "Long Term (Month to Month)" : `Rent (${rentalType === "weekly" ? "Weekly" : rentalType === "monthly" ? "1 Month" : "Daily"})`;
   const securityDeposit = Number(vehicle?.security_deposit || 0);
 

@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import NotifyMeDialog from "@/components/rentals/NotifyMeDialog";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 import { BellRing } from "lucide-react";
+import { rentalOptionLabel } from "@/lib/rentalLocation";
 import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 
 type Review = {
@@ -524,7 +525,7 @@ const RentalDetails: React.FC = () => {
                   </div>
                 )}
                 <div className="pt-2 text-xs text-muted-foreground">
-                   Options: {(vehicle.rental_options || []).map((option: string) => option === "purchase" ? "Purchase" : option.replace("_", " ")).join(", ") || "—"}
+                   Options: {(vehicle.rental_options || []).map((option: string) => rentalOptionLabel(option)).join(", ") || "—"}
                 </div>
               </CardContent>
             </Card>
@@ -534,13 +535,13 @@ const RentalDetails: React.FC = () => {
               tabIndex={0}
               onClick={() => setShowCancelPolicy(true)}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowCancelPolicy(true); } }}
-              className="-mx-4 mb-6 cursor-pointer rounded-none border-x-0 border-emerald-500/30 bg-emerald-500/10 transition-colors hover:border-emerald-400/60 sm:mx-0 sm:border-x"
+              className="-mx-4 mb-6 cursor-pointer rounded-none border-x-0 border-emerald-500/60 bg-rental-surface transition-colors hover:border-emerald-400 sm:mx-0 sm:border-x"
             >
               <CardContent className="p-4 flex items-start gap-3">
                 <CalendarX2 className="w-5 h-5 text-emerald-400 mt-0.5" />
                 <div>
                   <p className="font-semibold text-emerald-400 underline underline-offset-4">Free cancellation</p>
-                  <p className="text-sm text-emerald-300/80">Full Refund Until 24 Hours Before Trip Start</p>
+                  <p className="text-sm text-rental-foreground">Full Refund Until 24 Hours Before Trip Start</p>
                   <Button
                     type="button"
                     size="sm"
@@ -590,7 +591,7 @@ const RentalDetails: React.FC = () => {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                          {rentalOptions.map((o: string) => (
-                          <SelectItem key={o} value={o}>{o === "long_term" ? "Long Term (Month to Month)" : o === "rent_to_own" ? "Rent to Own (Deposit Required)" : o === "weekly" ? "Rent (Weekly)" : o === "monthly" ? "Rent (1 Month)" : o === "daily" ? "Rent (Daily)" : o.replace("_", " ")}</SelectItem>
+                          <SelectItem key={o} value={o}>{o === "long_term" ? "Long Term (Month to Month)" : o === "rent_to_own" ? "Rent to Own (Deposit Required)" : o === "weekly" ? "Rent (Weekly)" : o === "monthly" ? "Rent (1 Month)" : o === "daily" ? "Rent (Daily)" : rentalOptionLabel(o)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

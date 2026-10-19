@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
+import { rentalOptionLabel } from "@/lib/rentalLocation";
 import MyRentalHolds from "@/components/rentals/MyRentalHolds";
 
 type Booking = {
@@ -477,7 +478,7 @@ const MyBookings: React.FC = () => {
                   {title || "Vehicle"}
                 </Link>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mt-0.5">
-                  {b.rental_type?.replace("_", " ")}
+                  {b.rental_type ? rentalOptionLabel(b.rental_type) : ""}
                 </p>
               </div>
               <Badge variant="outline" className={`${meta.className} border`}>
