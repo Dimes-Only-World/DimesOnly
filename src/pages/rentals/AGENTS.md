@@ -8,3 +8,4 @@
 - Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
 - Rental availability: src/lib/rentalAvailability.ts, mirrored in rental-booking.
 - Rentals visitors sign up through `/rentals/signup` (src/pages/rentals/RentalSignup.tsx), which reuses `register-user` without media; rentals pages must link there, not `/register`, so renters get a short rentals-only form.
+- Renter profile reads/edits and password changes go through rental-booking (getProfile/updateProfile/changePassword), which verifies the caller and updates both users.password_hash and the auth password; browser table writes can't satisfy RLS.
