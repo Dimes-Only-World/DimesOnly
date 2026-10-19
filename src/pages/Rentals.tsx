@@ -376,7 +376,7 @@ const Rentals: React.FC = () => {
                     <div className="border-t border-rental-line pt-4">
                       <div className="flex flex-col gap-2">
                         {purchaseAvailable && <Button asChild size="sm" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
-                        <Button asChild size="sm" className="w-full rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90">
+                        <Button asChild size="sm" className={unavailable ? "w-full rounded-none bg-rental-warning font-semibold text-rental-warning-foreground hover:bg-rental-warning/90" : "w-full rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90"}>
                           {unavailable
                             ? <Link to="/rentals/$id" params={{ id: v.id }} hash="notify" onClick={(e) => gate(e, `/rentals/${v.id}#notify`)}>Get Notified <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
                             : <Link to="/rentals/$id" params={{ id: v.id }} onClick={(e) => gate(e, `/rentals/${v.id}`)}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>}
