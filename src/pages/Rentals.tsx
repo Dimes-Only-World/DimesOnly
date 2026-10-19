@@ -180,15 +180,15 @@ const Rentals: React.FC = () => {
           </Link>
           <ReferrerBadge />
         </div>
-        <div className="rentals-wordmark text-right text-2xl leading-[0.75] text-rental-foreground/40 sm:text-5xl">
+        <div className="rentals-wordmark text-right text-2xl leading-[0.75] text-rental-foreground sm:text-5xl">
           BEST
-          <span className="block text-rental-primary/50">RENTAL CARS</span>
+          <span className="block text-rental-primary">RENTAL CARS</span>
         </div>
       </header>
 
       <section className="relative min-h-[560px] overflow-hidden bg-rental-background sm:min-h-[680px]">
         {headerVideo ? (
-          <BannerVideo src={headerVideo} background className="absolute inset-0 h-full w-full object-cover" />
+          <BannerVideo src={headerVideo} background className="absolute inset-0 h-full w-full object-cover opacity-35" />
         ) : (
           <div className="absolute inset-0 bg-rental-surface" />
         )}
