@@ -146,7 +146,7 @@ const BecomeAHost: React.FC = () => {
   const monthlyEarnings = fleetSize * EARNINGS_PER_CAR;
 
   return (
-    <div className="rentals-showroom min-h-screen">
+    <div className="rentals-showroom overflow-x-clip [overflow-wrap:anywhere] min-h-screen">
       <header className="flex items-center justify-between px-4 py-5 sm:px-8 lg:px-12">
         <Link to="/" className="rentals-wordmark text-2xl leading-none text-rental-foreground sm:text-3xl">
           DIMES ONLY
@@ -205,8 +205,8 @@ const BecomeAHost: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <div className="w-full rounded-none border border-rental-line bg-rental-elevated p-6 sm:p-8">
+          <div className="flex items-center max-lg:block min-w-0">
+            <div className="w-full max-lg:-mx-4 sm:max-lg:-mx-8 max-lg:w-auto max-lg:border-x-0 rounded-none border border-rental-line bg-rental-elevated p-6 sm:p-8">
               <h2 className="font-barlow text-2xl font-bold text-rental-foreground">Host Calculator</h2>
               <p className="mt-1 font-barlow text-sm text-rental-muted">
                 Estimate your monthly earnings as a Best host.
@@ -252,7 +252,7 @@ const BecomeAHost: React.FC = () => {
 
       {/* Onboarding banner */}
       <section className="px-4 py-10 sm:px-8 lg:px-12">
-        <div className="mx-auto max-w-3xl rounded-none border border-rental-line bg-rental-elevated px-6 py-5 text-center font-barlow">
+        <div className="mx-auto max-lg:-mx-4 sm:max-lg:-mx-8 max-lg:max-w-none max-lg:border-x-0 max-w-3xl rounded-none border border-rental-line bg-rental-elevated px-6 py-5 text-center font-barlow">
           <p className="text-sm font-bold text-rental-foreground sm:text-base">Now onboarding hosts in the LA area.</p>
           <p className="mt-1 text-sm text-rental-muted">
             Outside Los Angeles? Apply now - we'll reach out as we grow.
