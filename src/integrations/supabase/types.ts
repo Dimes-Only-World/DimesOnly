@@ -3826,6 +3826,8 @@ export type Database = {
           contact_email: string | null
           contact_phone: string | null
           created_at: string
+          deposit_kept: number
+          deposit_refunded: number
           discount_amount: number
           down_payment_amount: number
           end_date: string | null
@@ -3833,6 +3835,7 @@ export type Database = {
           hold_id: string | null
           id: string
           insurance_path: string | null
+          late_fee_charged: number
           latest_reported_mileage: number | null
           license_path: string | null
           mileage_plan: string
@@ -3853,6 +3856,10 @@ export type Database = {
           referrer_username: string | null
           rental_type: string
           renter_user_id: string
+          return_damage_notes: string | null
+          return_fuel: string | null
+          return_mileage: number | null
+          return_photo_paths: string[]
           returned_at: string | null
           security_deposit: number
           signature_text: string | null
@@ -3877,6 +3884,8 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          deposit_kept?: number
+          deposit_refunded?: number
           discount_amount?: number
           down_payment_amount?: number
           end_date?: string | null
@@ -3884,6 +3893,7 @@ export type Database = {
           hold_id?: string | null
           id?: string
           insurance_path?: string | null
+          late_fee_charged?: number
           latest_reported_mileage?: number | null
           license_path?: string | null
           mileage_plan?: string
@@ -3904,6 +3914,10 @@ export type Database = {
           referrer_username?: string | null
           rental_type: string
           renter_user_id: string
+          return_damage_notes?: string | null
+          return_fuel?: string | null
+          return_mileage?: number | null
+          return_photo_paths?: string[]
           returned_at?: string | null
           security_deposit?: number
           signature_text?: string | null
@@ -3928,6 +3942,8 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          deposit_kept?: number
+          deposit_refunded?: number
           discount_amount?: number
           down_payment_amount?: number
           end_date?: string | null
@@ -3935,6 +3951,7 @@ export type Database = {
           hold_id?: string | null
           id?: string
           insurance_path?: string | null
+          late_fee_charged?: number
           latest_reported_mileage?: number | null
           license_path?: string | null
           mileage_plan?: string
@@ -3955,6 +3972,10 @@ export type Database = {
           referrer_username?: string | null
           rental_type?: string
           renter_user_id?: string
+          return_damage_notes?: string | null
+          return_fuel?: string | null
+          return_mileage?: number | null
+          return_photo_paths?: string[]
           returned_at?: string | null
           security_deposit?: number
           signature_text?: string | null
