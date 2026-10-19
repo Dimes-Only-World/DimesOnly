@@ -28,4 +28,4 @@
 - Store the company's per-car monthly payment in service-role-only `vehicle_costs`, read and written only through `rental-admin`; car costs must never reach renters through the public vehicles table.
 - Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
 - Send all outbound email with the `Api-Token` header (Mailtrap rejects Bearer); note `send-username-reminder` lives at `supabase/send-username-reminder/` outside `supabase/functions/`, so its edits need a manual `supabase functions deploy`.
-- Rental availability only via src/lib/rentalAvailability.ts (mirrored in rental-booking); display and server must agree.
+- Rental availability: src/lib/rentalAvailability.ts, mirrored in rental-booking.
