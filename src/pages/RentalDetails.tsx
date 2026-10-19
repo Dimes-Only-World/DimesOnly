@@ -22,6 +22,8 @@ import { buildAuthUrl } from "@/lib/refCapture";
 import RentalDatePicker from "@/components/rentals/RentalDatePicker";
 import RentalMemberAgreement from "@/components/rentals/RentalMemberAgreement";
 import { addDays, addMonths, lastPickupDay, LONG_TERM_MIN_MONTHS, MONTHLY_RENTAL_MAX_DAYS, monthlyRentalEndIsValid, RENT_TO_OWN_MONTHS, rentToOwnContractTotal, rentToOwnMonthlyPayment, startOfToday, toLocalDateTimeValue } from "@/lib/rentalTerms";
+import { rentalExtras, extrasDays, type MileagePlan, type ProtectionPlan } from "@/lib/rentalExtras";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Review = {
   id: string;
@@ -79,6 +81,9 @@ const RentalDetails: React.FC = () => {
   const [phone, setPhone] = useState<string>("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
+  const [mileagePlan, setMileagePlan] = useState<MileagePlan>("limited");
+  const [protectionPlan, setProtectionPlan] = useState<ProtectionPlan | null>(null);
+  const [showProtectionInfo, setShowProtectionInfo] = useState(false);
   const [signature, setSignature] = useState<string>("");
   const [agree, setAgree] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -170,7 +175,8 @@ const RentalDetails: React.FC = () => {
   const breakdown = vehicle
     ? calculateRentalPricing(vehicle, rentalType, startDate, endDate)
     : { days: 1, lines: [], total: 0, standardDailyTotal: 0, savings: 0 };
-  const subtotal = breakdown.total + addonTotal;
+  const extras = rentalExtras(vehicle || {}, mileagePlan, protectionPlan || "own", extrasDays(rentalType, breakdown.days));
+  const subtotal = Math.round((breakdown.total + addonTotal + extras.total) * 100) / 100;
   const dayDiscount = Number(breakdown.savings || 0);
   const promoDiscount = Math.min(promo?.discount || 0, subtotal);
   const total = Math.max(0, subtotal - promoDiscount);
@@ -258,8 +264,16 @@ const RentalDetails: React.FC = () => {
 
   const submitBooking = async () => {
     if (!requireAccount()) return;
-    if (!startDate || !signature || !agree || !licenseFile || !insuranceFile) {
-      toast({ title: "Missing info", description: "Fill all fields, upload ID + insurance, sign and agree.", variant: "destructive" });
+    if (!startDate || !signature || !agree || !licenseFile) {
+      toast({ title: "Missing info", description: "Fill all fields, upload your ID, sign and agree.", variant: "destructive" });
+      return;
+    }
+    if (!protectionPlan) {
+      toast({ title: "Choose protection", description: "Pick Standard, Minimum, or your own insurance.", variant: "destructive" });
+      return;
+    }
+    if (protectionPlan === "own" && !insuranceFile) {
+      toast({ title: "Insurance card needed", description: "Upload your insurance card to use your own insurance.", variant: "destructive" });
       return;
     }
     if (!endDate) {
@@ -305,6 +319,8 @@ const RentalDetails: React.FC = () => {
           signed_at: new Date().toISOString(),
           contact_email: email || null,
           contact_phone: phone || null,
+          mileage_plan: mileagePlan,
+          protection_plan: protectionPlan,
         },
         documentFiles: {
           license: {
@@ -312,11 +328,11 @@ const RentalDetails: React.FC = () => {
             type: licenseFile.type,
             base64: await fileToBase64(licenseFile),
           },
-          insurance: {
+          ...(protectionPlan === "own" && insuranceFile ? { insurance: {
             name: insuranceFile.name,
             type: insuranceFile.type,
             base64: await fileToBase64(insuranceFile),
-          },
+          } } : {}),
         },
         addonPackageIds: selectedPackageIds,
         promoCode: promo?.code || null,
@@ -593,10 +609,56 @@ const RentalDetails: React.FC = () => {
                     <Label className="flex items-center gap-1"><Upload className="w-3 h-3" /> Driver's License</Label>
                     <Input type="file" accept="image/*,application/pdf" onChange={(e) => setLicenseFile(e.target.files?.[0] || null)} />
                   </div>
-                  <div>
-                    <Label className="flex items-center gap-1"><Upload className="w-3 h-3" /> Proof of Insurance</Label>
-                    <Input type="file" accept="image/*,application/pdf" onChange={(e) => setInsuranceFile(e.target.files?.[0] || null)} />
+                  <div className="space-y-2 border-t pt-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">Distance included</p>
+                    </div>
+                    <button type="button" onClick={() => setMileagePlan("limited")} className={`w-full border p-3 text-left ${mileagePlan === "limited" ? "border-rental-primary bg-rental-primary/10" : "border-rental-line"}`}>
+                      <p className="font-semibold">200 miles per day</p>
+                      <p className="text-xs text-rental-muted">{Number(vehicle?.extra_mile_fee) > 0 ? `$${Number(vehicle.extra_mile_fee).toFixed(2)} fee for each additional mile` : "Included in the price"}</p>
+                    </button>
+                    {Number(vehicle?.unlimited_mileage_rate) > 0 && (
+                      <button type="button" onClick={() => setMileagePlan("unlimited")} className={`w-full border p-3 text-left ${mileagePlan === "unlimited" ? "border-rental-primary bg-rental-primary/10" : "border-rental-line"}`}>
+                        <p className="font-semibold">Unlimited mileage</p>
+                        <p className="text-xs text-rental-muted">${Number(vehicle.unlimited_mileage_rate).toFixed(2)}/day</p>
+                      </button>
+                    )}
                   </div>
+
+                  <div className="space-y-2 border-t pt-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">Insurance &amp; Protection</p>
+                      <button type="button" onClick={() => setShowProtectionInfo(true)} className="text-xs font-semibold text-rental-primary underline underline-offset-4">Learn more</button>
+                    </div>
+                    {([
+                      ["standard", "Standard Plan", "$34.00/day · $500 max out of pocket"],
+                      ["minimum", "Minimum Plan", "$27.00/day · $3,000 max out of pocket"],
+                      ["own", "Use my own insurance", "Upload your insurance card"],
+                    ] as const).map(([value, title, sub]) => (
+                      <button key={value} type="button" onClick={() => setProtectionPlan(value)} className={`w-full border p-3 text-left ${protectionPlan === value ? "border-rental-primary bg-rental-primary/10" : "border-rental-line"}`}>
+                        <p className="font-semibold">{title}</p>
+                        <p className="text-xs text-rental-muted">{sub}</p>
+                      </button>
+                    ))}
+                    {protectionPlan === "own" && (
+                      <div>
+                        <Label className="flex items-center gap-1"><Upload className="w-3 h-3" /> Insurance card</Label>
+                        <Input type="file" accept="image/*,application/pdf" onChange={(e) => setInsuranceFile(e.target.files?.[0] || null)} />
+                      </div>
+                    )}
+                  </div>
+
+                  <Dialog open={showProtectionInfo} onOpenChange={setShowProtectionInfo}>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader><DialogTitle>Choose a Protection Plan</DialogTitle></DialogHeader>
+                      <div className="space-y-4 text-sm">
+                        <p className="text-muted-foreground"><b>Note:</b> Liability insurance only covers damages to third parties or third-party vehicles, not your rented vehicle.</p>
+                        <div><p className="font-semibold">Standard Plan</p><p>Maximum out-of-pocket cost: $500</p><p className="text-muted-foreground">Includes coverage for physical damage, collision, theft, and vandalism to your rented vehicle.</p></div>
+                        <div><p className="font-semibold">Minimum Plan</p><p>Maximum out-of-pocket cost: $3,000</p><p className="text-muted-foreground">Includes coverage for physical damage, collision, theft, and vandalism to your rented vehicle.</p></div>
+                        <p>This trip requires you to select a protection plan, which will help limit your out-of-pocket costs in case of damage to the vehicle.</p>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
 
                   <div>
                     <Label>Digital signature (type full legal name)</Label>
@@ -676,6 +738,18 @@ const RentalDetails: React.FC = () => {
                       <div className="flex justify-between text-emerald-400">
                         <span>Promo {promo?.code}</span>
                         <span>-${promoDiscount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {extras.mileageTotal > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Unlimited mileage · {extras.days} day{extras.days > 1 ? "s" : ""} × ${Number(vehicle?.unlimited_mileage_rate || 0).toLocaleString()}</span>
+                        <span>+${extras.mileageTotal.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {extras.protectionTotal > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>{protectionPlan === "standard" ? "Standard" : "Minimum"} protection · {extras.days} day{extras.days > 1 ? "s" : ""} × ${extras.protectionRate}</span>
+                        <span>+${extras.protectionTotal.toLocaleString()}</span>
                       </div>
                     )}
                     {addonTotal > 0 && (
