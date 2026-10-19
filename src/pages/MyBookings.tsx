@@ -28,6 +28,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download, ShieldCheck } from "lucide-react";
 import BestLogoBanner from "@/components/rentals/BestLogoBanner";
+import AccountMenu from "@/components/rentals/AccountMenu";
 import { Input } from "@/components/ui/input";
 import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
@@ -653,6 +654,7 @@ const MyBookings: React.FC = () => {
   return (
     <div className="mobile-wall min-h-screen bg-gradient-to-br from-background via-background to-primary/10 pt-4 pb-16 px-4">
       <BestLogoBanner className="mb-6" />
+      <AccountMenu />
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
