@@ -29,3 +29,4 @@
 - Price short rental bookings only through the shared short-term rule (src/lib/rentalShortTerm.ts, mirrored in rental-booking/shortTerm.ts); browser display and server charge must match.
 - Send all outbound email with the `Api-Token` header (Mailtrap rejects Bearer); note `send-username-reminder` lives at `supabase/send-username-reminder/` outside `supabase/functions/`, so its edits need a manual `supabase functions deploy`.
 - Rental availability: src/lib/rentalAvailability.ts, mirrored in rental-booking.
+- Rentals visitors sign up through `/rentals/signup` (src/pages/rentals/RentalSignup.tsx), which reuses `register-user` without media; rentals pages must link there, not `/register`, so renters get a short rentals-only form.
