@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import MarkReturnedDialog from "@/components/rentals/MarkReturnedDialog";
 import HostApplicationsPanel from "@/components/rentals/HostApplicationsPanel";
 import PurchaseApplicationsPanel from "@/components/rentals/PurchaseApplicationsPanel";
 import RentalHoldsPanel from "@/components/rentals/RentalHoldsPanel";
@@ -971,7 +972,7 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
         {b.status === "paid" && <Button size="sm" onClick={() => setStatus("active")}>Mark Active (picked up)</Button>}
         {b.status === "active" && <Button size="sm" onClick={() => setStatus("completed")}>Mark Completed</Button>}
         {["paid", "active"].includes(b.status) && <Button size="sm" variant="secondary" onClick={() => setReturnOpen(true)}>Mark Returned</Button>}
-        {returnOpen && <MarkReturnedDialog booking={b} open={returnOpen} onOpenChange={setReturnOpen} onSubmit={async (payload) => {
+        {returnOpen && <MarkReturnedDialog booking={b} open={returnOpen} onOpenChange={setReturnOpen} onSubmit={async (payload: Record<string, unknown>) => {
           try { const r = await callAdmin("markReturned", { id: b.id, ...payload }); if (r?.error) throw new Error(r.error); toast({ title: "Vehicle returned", description: "Booking completed; car is available again." }); onChange(); }
           catch (e: any) { toast({ title: "Update failed", description: e.message, variant: "destructive" }); throw e; }
         }} />}
