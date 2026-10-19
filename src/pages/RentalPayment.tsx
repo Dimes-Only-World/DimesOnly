@@ -202,16 +202,16 @@ const RentalPayment: React.FC = () => {
               <>
                 <Button className="w-full rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90" size="lg" disabled={working} onClick={startPayment}>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  {working ? "Connecting to PayPal..." : `Pay $${Number(booking.total_price).toLocaleString()} with PayPal`}
+                  {working ? "Connecting to PayPal..." : `Pay $${Number(booking.total_price).toLocaleString()} with PayPal with Fees`}
                 </Button>
                 <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cashapp")}>
-                  Pay ${Number(booking.total_price).toLocaleString()} with Cash App
+                  Pay ${Number(booking.total_price).toLocaleString()} with Cash App NO FEES
                 </Button>
                 <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cash")}>
                   Pay cash at pickup
                 </Button>
                 <p className="text-center text-xs text-rental-muted">
-                  Pay with PayPal/card, Cash App, or cash at pickup. The car is held for you and marked rented once payment is confirmed.
+                  Pay with PayPal/Credit or Debit Card or Cash App,. The car is held for you and marked rented once payment is confirmed.
                 </p>
               </>
             )}
