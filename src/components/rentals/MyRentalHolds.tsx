@@ -27,7 +27,7 @@ const MyRentalHolds: React.FC<{ userId: string }> = ({ userId }) => {
     if (error || data?.error) throw new Error(data?.error || "Please try again.");
     return data.data;
   };
-  const load = async () => { try { setHolds(await call({ action: "listHolds" })); } catch { /* ignore */ } };
+  const load = async () => { try { setHolds((await call({ action: "listHolds" })) || []); } catch { /* ignore */ } };
 
   useEffect(() => {
     (async () => {

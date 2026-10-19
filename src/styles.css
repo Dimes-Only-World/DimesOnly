@@ -1022,6 +1022,12 @@ img {
    gutter to the screen edges below 1024px; long words/emails wrap. */
 .mobile-wall { overflow-wrap: anywhere; overflow-x: clip; }
 @media (max-width: 1023px) {
+  /* Inner width wrappers would add a second phone gutter; the page's own
+     1rem gutter is the only one the cards need to cancel. */
+  .mobile-wall :is(.max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl) {
+    padding-left: 0;
+    padding-right: 0;
+  }
   .mobile-wall :is(div, section, article, form, li)[class*="rounded"][class*="border"]:not(.mobile-wall :is(div, section, article, form, li)[class*="rounded"][class*="border"] *) {
     margin-inline: -1rem;
     width: auto;
