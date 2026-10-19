@@ -21,6 +21,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Trash2, Plus, Upload, ExternalLink, Download } from "lucide-react";
 import { lateFeeStatus } from "@/lib/rentalExtensionRules";
+import { vehicleRateWarnings } from "@/lib/vehicleRateWarnings";
+import { signRentalMedia } from "@/lib/rentalMedia";
 
 const RENTAL_OPTS = ["daily", "weekly", "monthly", "long_term", "rent_to_own", "purchase"];
 
@@ -78,6 +80,7 @@ const AdminRentalsTab: React.FC = () => {
   const [callRequests, setCallRequests] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [covers, setCovers] = useState<Record<string, string>>({});
 
   const loadAll = async () => {
     try {
@@ -88,6 +91,15 @@ const AdminRentalsTab: React.FC = () => {
         callAdmin("listCallRequests"),
       ]);
       setVehicles(vs?.data || []);
+      void (async () => {
+        const { data: media } = await supabase.from("vehicle_media").select("vehicle_id, storage_path, sort_order").eq("media_type", "photo").order("sort_order", { ascending: true });
+        const first = new Map<string, string>();
+        for (const m of (media || []) as any[]) if (!first.has(m.vehicle_id)) first.set(m.vehicle_id, m.storage_path);
+        const signed = await signRentalMedia("vehicle-media", Array.from(first.values()));
+        const out: Record<string, string> = {};
+        first.forEach((p, id) => { const u = signed.get(p); if (u) out[id] = u; });
+        setCovers(out);
+      })();
       setBookings(bs?.data || []);
       setCommissions(cs?.data || []);
       setCallRequests(crs?.data || []);
@@ -131,14 +143,21 @@ const AdminRentalsTab: React.FC = () => {
             />
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {vehicles.map((v) => (
+            {vehicles.map((v) => {
+              const warnings = vehicleRateWarnings(v);
+              const money = (x: any) => (Number(x) > 0 ? `$${Number(x).toLocaleString()}` : "—");
+              return (
               <Card key={v.id}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="h-16 w-24 shrink-0 overflow-hidden rounded bg-muted">
+                    {covers[v.id] ? <img src={covers[v.id]} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold">{v.year} {v.make} {v.model}</p>
                     <p className="text-xs text-muted-foreground">{v.vehicle_type} · {v.pickup_location}</p>
-                    <p className="text-xs">Options: {(v.rental_options || []).join(", ")}</p>
-                    <p className="text-xs">Active: {v.is_active ? "yes" : "no"} · {v.availability_status}</p>
+                    <p className="text-xs">Day {money(v.day_rate)} · Week {money(v.weekly_rate)} · Month {money(v.monthly_rate)}</p>
+                    <p className="text-xs">Active: {v.is_active ? "yes" : "no"} · <span className="capitalize">{v.availability_status}</span></p>
+                    {warnings.length > 0 && <p className="mt-1 text-xs text-destructive">⚠ {warnings.join(" ")}</p>}
                   </div>
                   <div className="flex flex-col gap-1">
                     <Button size="sm" variant="outline" onClick={() => { setEditing(v); setShowForm(true); }}>Edit</Button>
@@ -150,7 +169,8 @@ const AdminRentalsTab: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
 
