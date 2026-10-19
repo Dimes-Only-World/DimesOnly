@@ -4,6 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { getCallerId } from "../_shared/caller.ts";
+import { sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
 import { extensionCharge, mileageIsValid, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "./rules.ts";
 
 const RequestSchema = z.discriminatedUnion("action", [
@@ -310,6 +311,20 @@ serve(async (req) => {
       p_paid_at: paidAt, p_statement_path: path,
     });
     if (finalizeError || finalized !== true) throw finalizeError || new Error("Could not finalize extension");
+    try {
+      const { data: u } = await admin.from("users").select("email").eq("id", callerId).maybeSingle();
+      if (u?.email) {
+        const car = [vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ");
+        const newEnd = new Date(extension.new_end_date).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" }) + " PT";
+        const total = Number(extension.total_charged || 0).toFixed(2);
+        const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+        await sendEmailWithAttachment({ email: u.email, name: memberName }, {
+          subject: "Extension receipt - Best Rental Car Service", fromName: "Best Rental Car Service", category: "rental_extension_receipt",
+          text: `Hi ${memberName},\n\nYour extension is paid.\nVehicle: ${car}\nExtra days: ${extension.extra_days}\nNew return: ${newEnd}\nTotal charged: $${total}\n\nYour Statement of Permissive Member is attached. Keep it with the vehicle.\n\nBest Rental Car Service`,
+          html: `<div style="font-family:Arial,sans-serif;color:#111;max-width:560px"><h2>Extension receipt</h2><p>Hi ${esc(memberName)},</p><p>Your extension is paid.</p><ul><li>Vehicle: ${esc(car)}</li><li>Extra days: ${extension.extra_days}</li><li>New return: ${esc(newEnd)}</li><li>Total charged: $${total}</li></ul><p>Your Statement of Permissive Member is attached. Keep it with the vehicle.</p><p>Best Rental Car Service</p></div>`,
+        }, [{ filename, content: pdf, type: "application/pdf" }]);
+      }
+    } catch (e) { console.error("extension receipt email failed", e); }
     return json({ data: { status: "paid", extensionId: extension.id, filename, statementReady: true } });
   } catch (error) {
     console.error("rental-extension", error);
