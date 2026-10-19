@@ -10,6 +10,7 @@ import { ArrowRight, BadgeDollarSign, CalendarDays, Car, Check, MapPin, Search, 
 import BannerVideo from "@/components/BannerVideo";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import CapturesGallery from "@/components/rentals/CapturesGallery";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
@@ -434,6 +435,22 @@ const Rentals: React.FC = () => {
 
         <div className="font-barlow"><CapturesGallery limit={12} /></div>
       </main>
+      <Dialog open={!!gateTarget} onOpenChange={(o) => !o && setGateTarget(null)}>
+        <DialogContent className="rounded-none border-rental-line bg-rental-surface font-barlow text-rental-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-rental-foreground">Do you already have an account?</DialogTitle>
+            <DialogDescription className="text-rental-muted">Sign in to view this car, book it, or get notified when it's available.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild className="flex-1 rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90">
+              <a href={`/login?redirect=${encodeURIComponent(gateTarget || "/rentals")}`}>Yes, sign in</a>
+            </Button>
+            <Button asChild className="flex-1 rounded-none border border-rental-line bg-rental-elevated font-semibold text-rental-foreground hover:bg-rental-elevated/80">
+              <a href={`/register?redirect=${encodeURIComponent(gateTarget || "/rentals")}${refParam ? `&ref=${encodeURIComponent(refParam)}` : ""}`}>No, create one</a>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <RentalsFooter />
     </div>
   );
