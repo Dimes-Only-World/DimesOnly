@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import NotifyMeDialog from "@/components/rentals/NotifyMeDialog";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
 import { BellRing } from "lucide-react";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 
 type Review = {
   id: string;
@@ -400,7 +401,8 @@ const RentalDetails: React.FC = () => {
   const purchaseAvailable = (vehicle.rental_options || []).includes("purchase");
 
   return (
-    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 pt-16 sm:px-4">
+    <div className="rentals-showroom rentals-showroom-light min-h-screen pb-16 sm:px-4">
+      <BestLogoBanner />
       <div className="mx-auto max-w-6xl">
 
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
