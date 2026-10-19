@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
 import CaptureMomentUploader from "@/components/rentals/CaptureMomentUploader";
+import MyRentalHolds from "@/components/rentals/MyRentalHolds";
 
 type Booking = {
   id: string;
@@ -700,6 +701,7 @@ const MyBookings: React.FC = () => {
             )}
             <Section title="Active" items={grouped.active} />
             <Section title="Upcoming" items={grouped.upcoming} />
+            {userId && <MyRentalHolds userId={userId} />}
             <Section title="Past Rentals" items={grouped.past} />
           </div>
         )}
