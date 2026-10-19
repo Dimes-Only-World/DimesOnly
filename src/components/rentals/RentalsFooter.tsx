@@ -66,8 +66,8 @@ const RentalsFooter: React.FC = () => {
 
   return (
     <footer className="border-t border-rental-line bg-rental-surface pb-14 font-barlow sm:pb-0">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-3 sm:text-left">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-3 sm:gap-8 sm:text-left">
           {columns.map((col) => (
             <div key={col.heading}>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rental-muted">
@@ -105,7 +105,7 @@ const RentalsFooter: React.FC = () => {
             </div>
           ))}
         </div>
-        <div className="mt-8 text-center text-sm text-rental-foreground/80">
+        <div className="mt-6 text-center text-sm text-rental-foreground/80 sm:mt-8">
           Call or text <a href={`tel:${RENTALS_PHONE_TEL}`} className="font-semibold text-rental-primary">{RENTALS_PHONE_DISPLAY}</a>
           <span className="block text-xs text-rental-muted sm:inline sm:before:content-['_·_']">{RENTALS_HOURS}</span>
         </div>

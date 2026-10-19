@@ -820,6 +820,23 @@ body.paypal-overlay-open {
   font-family: "Barlow", sans-serif;
 }
 
+/* Rental tokens at :root so UI rendered outside the showroom scope
+   (footer, cookie banner, fixed bars) gets the same palette instead of
+   falling back to dark-on-dark text. The light variant still overrides. */
+:root {
+  --rental-background: 220 10% 4%;
+  --rental-surface: 220 9% 10%;
+  --rental-elevated: 220 9% 15%;
+  --rental-foreground: 0 0% 96%;
+  --rental-muted: 216 8% 65%;
+  --rental-line: 216 8% 22%;
+  --rental-primary: 358 82% 47%;
+  --rental-primary-foreground: 0 0% 100%;
+  --rental-success: 151 55% 54%;
+  --rental-warning: 48 95% 55%;
+  --rental-warning-foreground: 220 10% 6%;
+}
+
 .rentals-wordmark {
   font-family: "Bebas Neue", sans-serif;
   letter-spacing: 0;
