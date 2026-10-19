@@ -29,6 +29,7 @@ import { toast } from "@/hooks/use-toast";
 import { Car, ArrowLeft, Calendar, MapPin, Star, XCircle, CalendarPlus, Download, ShieldCheck } from "lucide-react";
 import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 import AccountMenu from "@/components/rentals/AccountMenu";
+import ReturnCountdown from "@/components/rentals/ReturnCountdown";
 import { Input } from "@/components/ui/input";
 import { extensionCharge, lateFeeStatus, MAX_EXTENSION_DAYS, rentalIsActiveForExtension } from "@/lib/rentalExtensionRules";
 import { Label } from "@/components/ui/label";
