@@ -105,7 +105,7 @@ const RentalsFooter: React.FC = () => {
             </div>
           ))}
         </div>
-        <div className="mt-8 text-center text-sm text-rental-foreground/80">
+        <div className="mt-6 text-center text-sm text-rental-foreground/80 sm:mt-8">
           Call or text <a href={`tel:${RENTALS_PHONE_TEL}`} className="font-semibold text-rental-primary">{RENTALS_PHONE_DISPLAY}</a>
           <span className="block text-xs text-rental-muted sm:inline sm:before:content-['_·_']">{RENTALS_HOURS}</span>
         </div>
