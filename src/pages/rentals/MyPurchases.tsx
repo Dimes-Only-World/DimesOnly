@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "@/lib/router-compat";
 import { ArrowLeft, CheckCircle2, Clock, Download, FileText, Loader2, ShieldCheck, Upload, XCircle, Car } from "lucide-react";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import RentalsFooter from "@/components/rentals/RentalsFooter";
