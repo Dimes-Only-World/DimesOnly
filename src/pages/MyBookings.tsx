@@ -104,7 +104,7 @@ const statusMeta = (status: string) => {
   if (["completed", "returned"].includes(s))
     return { label: "Completed", className: "bg-blue-500/20 text-blue-300 border-blue-500/40" };
   if (["cancelled", "canceled", "rejected"].includes(s))
-    return { label: "Cancelled", className: "bg-red-500/20 text-red-300 border-red-500/40" };
+    return { label: "Cancelled", className: "bg-red-500 text-white border-red-500" };
   return { label: status || "Unknown", className: "bg-muted text-muted-foreground border-border" };
 };
 
