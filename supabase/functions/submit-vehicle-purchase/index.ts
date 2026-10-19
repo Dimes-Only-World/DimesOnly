@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCallerId, AUTH_HEADERS } from "../_shared/caller.ts";
 import { resolveReferralChain } from "../_shared/saleCommission.ts";
 import { encryptSsn, ssnDigits, ssnValid } from "../_shared/ssnCrypto.ts";
+import { sendNoticeEmail } from "../_shared/dimes-emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -292,6 +293,19 @@ serve(async (req) => {
       access_key_hash: await sha256(accessKey),
     }).select("id").single();
     if (error) throw error;
+    try {
+      const a = body.applicant || {};
+      const name = `${text(a.firstName, 60)} ${text(a.lastName, 60)}`.trim() || "New applicant";
+      const veh = `${interested.year || ""} ${text(interested.make, 80)} ${text(interested.model, 100)}`.trim();
+      const adminTo = (Deno.env.get("ADMIN_NOTIFY_EMAIL") || "talent@dimesonly.world").toLowerCase();
+      await sendNoticeEmail({ email: adminTo, name: "Admin" }, {
+        category: "admin_purchase_application",
+        title: `New buyer application: ${name}`,
+        message: `${name} submitted a buyer application for ${veh || "a vehicle"}.\nPrice: $${money(interested.vehiclePrice) ?? "-"} · Down: $${money(interested.downPayment) ?? "-"}\n${body.hasCoBuyer ? "Includes a co-buyer.\n" : ""}Uploaded documents stay private — open Admin → Rentals → Purchases to review and view them securely.`,
+        buttonUrl: "https://dimesonly.world/admin",
+        buttonLabel: "Review in Admin",
+      });
+    } catch (e) { console.error("admin purchase email", e); }
     return json({ data: { id: data.id, accessKey }, message: "Application received." });
   } catch (error) {
     console.error("submit-vehicle-purchase", error);
