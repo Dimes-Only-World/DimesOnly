@@ -238,8 +238,12 @@ const Rentals: React.FC = () => {
             <Link to="/rentals/purchase"><BadgeDollarSign className="mr-2 h-4 w-4" /> Start Credit Application</Link>
           </Button>
         </div>
+      </main>
 
-        <RentalUpdatesCarousel />
+      <RentalUpdatesCarousel />
+
+      <div className="mx-auto max-w-7xl sm:px-8 lg:px-12">
+
 
         <div id="fleet" className="mb-10 grid scroll-mt-4 grid-cols-1 gap-px border-y border-rental-line bg-rental-line sm:border-x md:grid-cols-4">
           <div className="relative md:col-span-2">
@@ -459,7 +463,8 @@ const Rentals: React.FC = () => {
 
 
         <div className="font-barlow"><CapturesGallery limit={12} /></div>
-      </main>
+      </div>
+
       <Dialog open={!!gateTarget} onOpenChange={(o) => !o && setGateTarget(null)}>
         <DialogContent className="rentals-showroom rounded-none border-rental-line bg-rental-surface font-barlow text-rental-foreground">
           <DialogHeader>
