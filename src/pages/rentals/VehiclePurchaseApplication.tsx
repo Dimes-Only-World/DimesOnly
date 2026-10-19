@@ -197,7 +197,7 @@ const Section = ({ number, title, children }: { number: string; title: string; c
 export const APP_STEPS = ["Personal", "Residence", "Employment", "Vehicle", "References", "Finish"] as const;
 const FIELD_LABELS: Record<string, string> = { firstName: "First Name", lastName: "Last Name", email: "Email", cellPhone: "Cell Phone (10 digits)", dateOfBirth: "Date of Birth", driversLicenseNumber: "Driver's License Number", driversLicenseState: "Driver's License State", driversLicenseIssueDate: "License Issue Date", driversLicenseExpiryDate: "License Expiry Date", ssn: "Social Security Number (9 digits)", vin: "VIN Number", year: "Vehicle Year", make: "Vehicle Make", model: "Vehicle Model" };
 const firstIssue = (r: { success: boolean; error?: any }, who: string) => { if (r.success) return null; const k = String(r.error.issues[0]?.path.slice(-1)[0] ?? ""); return `${who}: ${FIELD_LABELS[k] || k}`; };
-const tradeProblem = (t: Record<string, string>, label: string) => (!/^[A-HJ-NPR-Z0-9]{17}$/i.test(t.vin) || !t.mileage || !t.year || !t.make || !t.model) ? `${label}: VIN, mileage, year, make and model are required` : null;
+const tradeProblem = (t: { vin: string; mileage: string; year: string; make: string; model: string }, label: string) => (!/^[A-HJ-NPR-Z0-9]{17}$/i.test(t.vin) || !t.mileage || !t.year || !t.make || !t.model) ? `${label}: VIN, mileage, year, make and model are required` : null;
 
 const VehiclePurchaseApplication: React.FC = () => {
   const { vehicleId } = useParams<{ vehicleId: string }>(); const [vehicle, setVehicle] = useState<any>(null);
