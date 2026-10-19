@@ -35,7 +35,17 @@ const BookingPayloadSchema = z.object({
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt", "quoteCancellation", "requestCancellation", "holdInfo", "listHolds", "createHold", "captureHold", "changeHoldDates", "refundHold"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt", "quoteCancellation", "requestCancellation", "holdInfo", "listHolds", "createHold", "captureHold", "changeHoldDates", "refundHold", "getProfile", "updateProfile", "changePassword"]),
+  profile: z.object({
+    first_name: z.string().trim().max(80).optional(),
+    last_name: z.string().trim().max(80).optional(),
+    phone_number: z.string().trim().max(30).optional(),
+    email: z.string().trim().email().max(255).optional(),
+    drivers_license_no: z.string().trim().max(40).optional(),
+    drivers_license_state: z.string().trim().max(40).optional(),
+  }).optional(),
+  currentPassword: z.string().max(200).optional(),
+  newPassword: z.string().min(8).max(200).optional(),
   vehicleId: z.string().uuid().optional(),
   holdId: z.string().uuid().optional(),
   wantedStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
