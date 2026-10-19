@@ -42,6 +42,20 @@ const Rentals: React.FC = () => {
   const [page, setPage] = useState(1);
   const gridRef = React.useRef<HTMLDivElement>(null);
 
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [gateTarget, setGateTarget] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+  const gate = (e: React.MouseEvent, target: string) => {
+    if (signedIn) return;
+    e.preventDefault();
+    setGateTarget(target);
+  };
+  const refParam = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref") : null;
+
   const { videoUrl: headerVideo } = usePageVideo("rentals_page");
 
   const clearFilters = () => {
@@ -320,6 +334,11 @@ const Rentals: React.FC = () => {
                         <Car className="h-12 w-12 text-rental-muted" />
                       </div>
                     )}
+                    {!unavailable && (
+                      <div className="absolute right-3 top-3 bg-rental-success px-3 py-1 font-barlow text-xs font-semibold uppercase text-rental-background">
+                        Available
+                      </div>
+                    )}
                     {unavailable && (
                       <div className="absolute right-3 top-3 bg-rental-primary px-3 py-1 font-barlow text-xs font-semibold uppercase text-rental-primary-foreground">
                         {v.availability_status !== "available" ? "Rented" : "Reserved"}
@@ -356,10 +375,10 @@ const Rentals: React.FC = () => {
                     <div className="border-t border-rental-line pt-4">
                       <div className="flex flex-col gap-2">
                         {purchaseAvailable && <Button asChild size="sm" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
-                        <Button asChild size="sm" className="w-full rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90">
+                        <Button asChild size="sm" className="w-full rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90">
                           {unavailable
-                            ? <Link to="/rentals/$id" params={{ id: v.id }} hash="notify">Get Notified <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
-                            : <Link to="/rentals/$id" params={{ id: v.id }}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>}
+                            ? <Link to="/rentals/$id" params={{ id: v.id }} hash="notify" onClick={(e) => gate(e, `/rentals/${v.id}#notify`)}>Get Notified <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                            : <Link to="/rentals/$id" params={{ id: v.id }} onClick={(e) => gate(e, `/rentals/${v.id}`)}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>}
                         </Button>
                       </div>
                     </div>
