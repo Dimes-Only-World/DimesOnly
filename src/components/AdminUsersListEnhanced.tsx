@@ -51,6 +51,7 @@ const AdminUsersListEnhanced: React.FC = () => {
   const [cityFilter, setCityFilter] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [referredByFilter, setReferredByFilter] = useState("");
+  const [showTest, setShowTest] = useState(false);
 
   const { toast } = useToast();
 
@@ -58,7 +59,7 @@ const AdminUsersListEnhanced: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter, sortKey]);
+  }, [users, userTypeFilter, genderFilter, usernameFilter, cityFilter, stateFilter, referredByFilter, sortKey, showTest]);
 
   useEffect(() => {
     setPage(1);
@@ -83,7 +84,7 @@ const AdminUsersListEnhanced: React.FC = () => {
   };
 
   const applyFilters = () => {
-    let filtered = [...users];
+    let filtered = users.filter((u: any) => showTest || !u.is_test);
     if (userTypeFilter !== "all") {
       filtered = filtered.filter((user) => {
         const userType = user.user_type?.toLowerCase() || "";
@@ -259,6 +260,7 @@ const AdminUsersListEnhanced: React.FC = () => {
             Showing {pagedUsers.length} of {filteredUsers.length} filtered ({users.length} total) — page {currentPage} of {totalPages}
           </div>
 
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={showTest} onChange={(e) => setShowTest(e.target.checked)} /> Show test data</label>
           <div className="grid gap-4">
             {pagedUsers.map((user) => (
               <Card key={user.id} className="hover:shadow-md transition-shadow">
@@ -271,6 +273,12 @@ const AdminUsersListEnhanced: React.FC = () => {
                           {getUserTypeDisplay(user.user_type)}
                         </Badge>
                         <Badge variant="outline">{getGenderDisplay(user)}</Badge>
+                        <button type="button" className="text-xs underline text-muted-foreground" onClick={async () => {
+                          const next = !(user as any).is_test;
+                          const { data, error } = await supabase.functions.invoke("rental-admin", { body: { action: "setTestFlag", adminUserId: getAdminUserId(), kind: "user", id: user.id, value: next } });
+                          if (error || data?.error) { toast({ title: "Update failed", variant: "destructive" }); return; }
+                          setUsers((c) => c.map((u) => u.id === user.id ? ({ ...u, is_test: next } as any) : u));
+                        }}>{(user as any).is_test ? "Test ✓" : "Mark test"}</button>
                         {user.is_active === false && (
                           <Badge variant="destructive">Deactivated</Badge>
                         )}
