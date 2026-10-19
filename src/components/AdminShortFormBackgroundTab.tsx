@@ -84,13 +84,16 @@ const DeviceSection: React.FC<{
     }
   };
 
-  const move = async (index: number, direction: -1 | 1) => {
-    const target = index + direction;
-    if (target < 0 || target >= rows.length) return;
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const moveTo = async (from: number, to: number) => {
+    if (to < 0 || to >= rows.length || from === to) return;
     setBusy(true);
     try {
       const reordered = [...rows];
-      const temp = reordered[index]; reordered[index] = reordered[target]!; reordered[target] = temp!;
+      const [item] = reordered.splice(from, 1);
+      reordered.splice(to, 0, item!);
       await callAdmin("reorderShortFormBackgrounds", {
         items: reordered.map((r, i) => ({ id: r.id, sort_order: i })),
       });
@@ -101,6 +104,8 @@ const DeviceSection: React.FC<{
       setBusy(false);
     }
   };
+
+  const move = (index: number, direction: -1 | 1) => moveTo(index, index + direction);
 
   const remove = async (id: string) => {
     setBusy(true);
