@@ -14,7 +14,7 @@ export const RentalCheckbox = React.forwardRef<
   <Checkbox
     ref={ref}
     className={cn(
-      "h-5 w-5 border-rental-foreground/70 bg-rental-surface/80",
+      "h-5 w-5 border-2 border-rental-foreground bg-rental-surface/80",
       "data-[state=checked]:border-rental-primary data-[state=checked]:bg-rental-primary data-[state=checked]:text-rental-primary-foreground",
       className
     )}
