@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "@/lib/router-compat";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
+import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { HOST_AGREEMENT_SECTIONS_A, HOST_AGREEMENT_SECTIONS_B } from "@/lib/hostAgreementText";
@@ -355,7 +357,7 @@ const HostApplication: React.FC = () => {
     return (
       <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
         <div className="mobile-wall mx-auto max-w-3xl space-y-6 px-4 py-10">
-          <Link to="/rentals/host" className="text-sm text-rental-muted hover:text-rental-foreground">← Back</Link>
+          <BestLogoBanner />
           <header>
             <h1 className="font-barlow text-3xl font-bold uppercase">Become a Host</h1>
             <p className="text-rental-muted">Add your vehicle and sign the Co-Host Agreement.</p>
@@ -384,6 +386,7 @@ const HostApplication: React.FC = () => {
               Continue
             </Button>
           </Section>
+          <div className="flex justify-center pt-4"><Link to="/rentals/host"><Button size="lg" type="button" className="gap-2 rounded-none bg-rental-primary font-barlow font-semibold uppercase text-rental-primary-foreground"><ArrowLeft className="h-5 w-5" /> Back</Button></Link></div>
         </div>
       </div>
     );
@@ -394,7 +397,7 @@ const HostApplication: React.FC = () => {
   return (
     <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
       <div className="mobile-wall mx-auto max-w-3xl space-y-6 px-4 py-10">
-        <Link to="/rentals/host" className="text-sm text-rental-muted hover:text-rental-foreground">← Back</Link>
+        <BestLogoBanner />
         <header>
           <h1 className="font-barlow text-3xl font-bold uppercase">Become a Host</h1>
           <p className="text-rental-muted">Add your vehicle and sign the Co-Host Agreement.</p>
@@ -584,6 +587,7 @@ const HostApplication: React.FC = () => {
             {submitting ? "Submitting…" : isLastVehicle ? `Sign, Submit & Pay ${money(totalDeposit)} Deposit` : `Next Vehicle (${vIdx + 2} of ${vehicleCount})`}
           </Button>
         </form>
+        <div className="flex justify-center pt-4"><Link to="/rentals/host"><Button size="lg" type="button" className="gap-2 rounded-none bg-rental-primary font-barlow font-semibold uppercase text-rental-primary-foreground"><ArrowLeft className="h-5 w-5" /> Back</Button></Link></div>
       </div>
     </div>
   );
