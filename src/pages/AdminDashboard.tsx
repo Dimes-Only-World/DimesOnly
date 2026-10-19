@@ -125,7 +125,14 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("leads");
+  const [activeTab, setActiveTabState] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("tab")) || "leads");
+  const setActiveTab = (v: string) => {
+    setActiveTabState(v);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", v);
+    if (v !== "rentals") url.searchParams.delete("sub");
+    window.history.replaceState(window.history.state, "", url.toString());
+  };
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
