@@ -106,6 +106,7 @@ function validateEmployment(value: unknown, label: string) {
 }
 
 const USERNAME_RE = /^[A-Za-z0-9_]{3,30}$/;
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 // ---- Applicant self-service (My Purchases) ----
 const DOC_TYPES: Record<string, string> = {
@@ -287,9 +288,10 @@ serve(async (req) => {
       referrer_username: chain.referrerUsername,
       referrer_user_id: chain.referrerId, upline_user_id: chain.uplineId,
       buyer_avatar_path: avatarPath,
+      access_key_hash: await sha256(accessKey),
     }).select("id").single();
     if (error) throw error;
-    return json({ data: { id: data.id }, message: "Application received." });
+    return json({ data: { id: data.id, accessKey }, message: "Application received." });
   } catch (error) {
     console.error("submit-vehicle-purchase", error);
     return new Response(JSON.stringify({ error: "We could not submit your application. Please try again." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
