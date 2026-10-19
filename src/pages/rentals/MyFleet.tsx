@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "@/lib/router-compat";
 import { supabase } from "@/lib/supabase";
 import { buildAuthUrl } from "@/lib/refCapture";
+import { ArrowLeft } from "lucide-react";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 
 type Car = {
   id: string; make: string; model: string; year: string; color: string | null; license_plate: string | null;
@@ -47,9 +49,9 @@ const MyFleet: React.FC = () => {
 
   return (
     <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
+      <BestLogoBanner />
       <div className="mx-auto max-w-4xl px-4 py-10">
-        <Link to="/rentals" className="text-sm text-rental-muted hover:text-rental-primary">← Back to Rentals</Link>
-        <h1 className="mt-4 text-3xl font-bold uppercase tracking-wide">My Fleet</h1>
+        <h1 className="text-3xl font-bold uppercase tracking-wide">My Fleet</h1>
 
         {loading ? <p className="mt-6 text-rental-muted">Loading…</p> : !signedIn ? (
           <div className="mt-6 space-y-3">
@@ -94,6 +96,9 @@ const MyFleet: React.FC = () => {
             )}
           </>
         )}
+        <div className="mt-10 flex justify-center">
+          <Link to="/rentals" className="inline-flex items-center gap-2 bg-rental-primary px-6 py-3 font-semibold text-rental-background"><ArrowLeft className="h-4 w-4" /> Back to Rentals</Link>
+        </div>
       </div>
     </div>
   );

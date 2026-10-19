@@ -42,9 +42,9 @@ const MyPurchases: React.FC = () => {
   const app = apps?.find((a) => a.id === selected);
   const open = async (docId: string) => { try { window.open(await signMyPurchaseDoc(app.id, docId), "_blank", "noopener"); } catch (e: any) { toast({ title: "Unavailable", description: e.message, variant: "destructive" }); } };
   return <div className="rentals-showroom flex min-h-screen flex-col bg-rental-background text-rental-foreground">
+    <BestLogoBanner />
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
-      <Link to="/rentals" className="inline-flex items-center gap-2 text-sm text-rental-muted hover:text-rental-primary"><ArrowLeft className="h-4 w-4" /> Back to vehicles</Link>
-      <p className="mt-6 text-xs font-semibold uppercase text-rental-primary">Best Car Rental Services</p>
+      <p className="text-xs font-semibold uppercase text-rental-primary">Best Car Rental Services</p>
       <h1 className="rentals-wordmark text-5xl leading-none sm:text-6xl">MY PURCHASES</h1>
       {newId && <div className="mt-5 flex items-start gap-3 border border-rental-success/60 bg-rental-surface/80 p-4"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-rental-success" /><div><p className="font-semibold">Application received</p><p className="text-sm text-rental-muted">One of our representatives will be in contact with you shortly. Upload any remaining documents below to speed up your approval.</p></div></div>}
       {apps === null ? <div className="py-20 text-center text-rental-muted"><Loader2 className="mx-auto h-6 w-6 animate-spin" /></div>
@@ -63,6 +63,9 @@ const MyPurchases: React.FC = () => {
             <section className="border border-rental-line bg-rental-surface/80 p-5 sm:p-6"><h3 className="mb-3 font-semibold uppercase tracking-wide text-rental-primary">Application details</h3><dl className="grid gap-3 sm:grid-cols-3"><Row k="Applicant" v={`${app.applicant?.firstName || ""} ${app.applicant?.lastName || ""}`.trim()} /><Row k="Email" v={app.applicant?.email} /><Row k="Phone" v={app.applicant?.cellPhone} /><Row k="SSN" v={app.applicant?.ssnLast4 ? `•••-••-${app.applicant.ssnLast4}` : null} /><Row k="Submitted" v={new Date(app.submitted_at).toLocaleString()} /><Row k="Co-buyer" v={app.has_co_buyer ? "Yes" : "No"} /><Row k="Vehicle VIN" v={app.interested_vehicle?.vin} /><Row k="Vehicle price" v={app.interested_vehicle?.vehiclePrice ? `$${Number(app.interested_vehicle.vehiclePrice).toLocaleString()}` : null} /><Row k="Down payment" v={app.interested_vehicle?.downPayment ? `$${Number(app.interested_vehicle.downPayment).toLocaleString()}` : null} /><Row k="Trade-in" v={app.trade_in ? vName(app.trade_in) + (app.trade_in.secondVehicle ? ` + ${vName(app.trade_in.secondVehicle)}` : "") : "None"} /></dl><p className="mt-4 flex items-center gap-2 text-xs text-rental-muted"><ShieldCheck className="h-4 w-4" /> Sensitive details are encrypted and hidden.</p></section>
           </>}
         </div>}
+      <div className="flex justify-center px-4 pb-10">
+        <Link to="/rentals" className="inline-flex items-center gap-2 bg-rental-primary px-6 py-3 font-semibold text-rental-background"><ArrowLeft className="h-4 w-4" /> Back to Rentals</Link>
+      </div>
     </main>
     <RentalsFooter />
   </div>;
