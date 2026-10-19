@@ -7,6 +7,7 @@ import { allowedPickupDate, minimumEndDate, monthlyRentalEndIsValid, monthlyRent
 import { shortTermTotal } from "./shortTerm.ts";
 import { rentalExtras, extrasDays } from "./extras.ts";
 import { cancellationQuote } from "./cancellation.ts";
+import { bookingConflict, nextAvailableDate } from "./availability.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -34,7 +35,12 @@ const BookingPayloadSchema = z.object({
 });
 
 const RequestSchema = z.object({
-  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt", "quoteCancellation", "requestCancellation"]),
+  action: z.enum(["createBooking", "validatePromo", "createPayment", "capturePayment", "chooseManualPayment", "downloadReceipt", "quoteCancellation", "requestCancellation", "holdInfo", "listHolds", "createHold", "captureHold", "changeHoldDates", "refundHold"]),
+  vehicleId: z.string().uuid().optional(),
+  holdId: z.string().uuid().optional(),
+  wantedStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  wantedEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  holdMethod: z.enum(["paypal", "cashapp"]).optional(),
   userId: z.string().uuid(),
   bookingId: z.string().uuid().optional(),
   returnUrl: z.string().url().optional(),
@@ -657,6 +663,91 @@ serve(async (req) => {
         }).eq("id", bk.id);
         if (upErr) throw upErr;
         return json({ data: { ...quote, amountPaid: paid }, requestId });
+      }
+      case "holdInfo":
+      case "listHolds":
+      case "createHold":
+      case "captureHold":
+      case "changeHoldDates":
+      case "refundHold": {
+        const { vehicleId, holdId, wantedStart, wantedEnd, holdMethod } = parsed.data;
+        const { data: setting } = await admin.from("app_settings").select("value").eq("key", "rental_hold_deposit").maybeSingle();
+        const depositAmount = Math.max(0, Number((setting?.value as any)?.value ?? 150));
+        const vehicleWindow = async (vid: string) => {
+          const { data } = await admin.from("rental_bookings").select("start_date, end_date").eq("vehicle_id", vid).in("status", ["paid", "active"]);
+          return nextAvailableDate(data || [], Date.now());
+        };
+        const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const checkDates = async (vid: string) => {
+          if (!wantedStart || !wantedEnd) return "Choose the dates you want the car";
+          const first = ymd(await vehicleWindow(vid));
+          if (wantedStart < first) return `The earliest date you can hold is ${first}`;
+          if (wantedEnd < wantedStart) return "Return date must be after the start date";
+          if ((new Date(wantedEnd).getTime() - new Date(wantedStart).getTime()) / 86_400_000 > 30) return "Holds can cover up to 30 days";
+          return null;
+        };
+        if (action === "holdInfo") {
+          if (!vehicleId) return json({ error: "Vehicle is required", requestId }, 400);
+          return json({ data: { depositAmount, firstDate: ymd(await vehicleWindow(vehicleId)) }, requestId });
+        }
+        if (action === "listHolds") {
+          const { data } = await admin.from("rental_holds").select("*, vehicles(year, make, model)").eq("user_id", userId).neq("status", "cancelled").order("created_at", { ascending: false });
+          return json({ data: data || [], requestId });
+        }
+        if (action === "createHold") {
+          if (!vehicleId || !holdMethod) return json({ error: "Choose a payment method", requestId }, 400);
+          const bad = await checkDates(vehicleId);
+          if (bad) return json({ error: bad, requestId }, 400);
+          if (depositAmount <= 0) return json({ error: "Holds are not available right now", requestId }, 400);
+          const { data: hold, error: hErr } = await admin.from("rental_holds").insert({ vehicle_id: vehicleId, user_id: userId, wanted_start: wantedStart, wanted_end: wantedEnd, amount: depositAmount, payment_method: holdMethod }).select("*").single();
+          if (hErr) throw hErr;
+          if (holdMethod === "cashapp") return json({ data: { hold }, requestId });
+          if (!returnUrl || !cancelUrl) return json({ error: "Missing payment details", requestId }, 400);
+          const token = await paypalToken(requestId);
+          const res = await fetch(`${paypalBase()}/v2/checkout/orders`, {
+            method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ intent: "CAPTURE", purchase_units: [{ custom_id: `hold_${hold.id}`, description: "Dimes Only rental hold deposit", amount: { currency_code: "USD", value: depositAmount.toFixed(2) } }],
+              application_context: { brand_name: "Dimes Only Rentals", user_action: "PAY_NOW", shipping_preference: "NO_SHIPPING", return_url: `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}holdId=${hold.id}`, cancel_url: cancelUrl } }),
+          });
+          const order = await res.json();
+          if (!res.ok) { logError(requestId, "hold order failed", order); return json({ error: "Could not start PayPal checkout. Try Cash App.", requestId }, 400); }
+          await admin.from("rental_holds").update({ paypal_order_id: order.id }).eq("id", hold.id);
+          return json({ data: { hold, approve_url: (order.links || []).find((l: any) => l.rel === "approve")?.href }, requestId });
+        }
+        if (!holdId) return json({ error: "Hold not found", requestId }, 404);
+        const { data: h } = await admin.from("rental_holds").select("*").eq("id", holdId).maybeSingle();
+        if (!h || h.user_id !== userId) return json({ error: "Hold not found", requestId }, 404);
+        if (action === "captureHold") {
+          if (h.status !== "pending_payment") return json({ data: h, requestId });
+          if (!paypalOrderId || h.paypal_order_id !== paypalOrderId) return json({ error: "Payment reference mismatch", requestId }, 400);
+          const token = await paypalToken(requestId);
+          const capRes = await fetch(`${paypalBase()}/v2/checkout/orders/${paypalOrderId}/capture`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } });
+          const capJson = await capRes.json();
+          const capture = capJson?.purchase_units?.[0]?.payments?.captures?.[0];
+          if (!capRes.ok || capture?.status !== "COMPLETED") { logError(requestId, "hold capture failed", capJson); return json({ error: "PayPal payment was not completed", requestId }, 400); }
+          const { data } = await admin.from("rental_holds").update({ status: "held", paypal_capture_id: capture.id, paid_at: new Date().toISOString() }).eq("id", h.id).select("*").single();
+          return json({ data, requestId });
+        }
+        if (!["held", "refundable"].includes(h.status)) return json({ error: "This hold can't be changed", requestId }, 400);
+        if (action === "changeHoldDates") {
+          const bad = await checkDates(h.vehicle_id);
+          if (bad) return json({ error: bad, requestId }, 400);
+          const { data } = await admin.from("rental_holds").update({ wanted_start: wantedStart, wanted_end: wantedEnd, status: "held" }).eq("id", h.id).select("*").single();
+          return json({ data, requestId });
+        }
+        if (h.payment_method === "paypal" && h.paypal_capture_id) {
+          const token = await paypalToken(requestId);
+          const rRes = await fetch(`${paypalBase()}/v2/payments/captures/${h.paypal_capture_id}/refund`, {
+            method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "PayPal-Request-Id": `hold-refund-${h.id}` },
+            body: JSON.stringify({ amount: { currency_code: "USD", value: Number(h.amount).toFixed(2) } }),
+          });
+          const rJson = await rRes.json();
+          if (!rRes.ok || !["COMPLETED", "PENDING"].includes(rJson?.status)) { logError(requestId, "hold refund failed", rJson); return json({ error: "PayPal couldn't process the refund. Our team will follow up.", requestId }, 400); }
+          const { data } = await admin.from("rental_holds").update({ status: "refunded", refund_reference: rJson.id, refunded_at: new Date().toISOString() }).eq("id", h.id).select("*").single();
+          return json({ data, requestId });
+        }
+        const { data } = await admin.from("rental_holds").update({ status: "refund_requested" }).eq("id", h.id).select("*").single();
+        return json({ data, requestId });
       }
       case "chooseManualPayment": {
         const method = String(parsed.data.method || "");
