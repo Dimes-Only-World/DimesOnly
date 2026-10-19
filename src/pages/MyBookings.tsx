@@ -447,7 +447,7 @@ const MyBookings: React.FC = () => {
     return (
       <Card
         key={b.id}
-        className="bg-card/60 border-border/60 overflow-hidden hover:border-primary/50 transition-colors"
+        className="max-lg:-mx-4 max-lg:rounded-none max-lg:border-x-0 bg-card/60 border-border/60 overflow-hidden hover:border-primary/50 transition-colors"
       >
         <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-0">
           <Link
