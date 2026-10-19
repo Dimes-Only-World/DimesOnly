@@ -24,7 +24,7 @@ const empty: Form = {
   address: "", city: "", state: "", zip: "", username: "", password: "", confirmPassword: "",
 };
 
-const titleCase = (v: string) => v.replace(/\s+/g, " ").split(" ").map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "")).join(" ");
+const titleCase = (v: string) => v.replace(/\s+/g, " ").split(" ").map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : "")).join(" ");
 const formatPhone = (v: string) => {
   const d = v.replace(/\D/g, "").slice(0, 10);
   if (d.length > 6) return `(${d.slice(0, 3)})${d.slice(3, 6)}-${d.slice(6)}`;
@@ -174,7 +174,7 @@ const RentalSignup: React.FC = () => {
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold text-rental-foreground">Gender</Label>
               <div className="flex gap-2">
-                {[["male", "Male"], ["female", "Female"]].map(([v, l]) => (
+                {([["male", "Male"], ["female", "Female"]] as const).map(([v, l]) => (
                   <button
                     key={v}
                     type="button"
