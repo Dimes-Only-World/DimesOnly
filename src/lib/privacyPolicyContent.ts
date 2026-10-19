@@ -1,4 +1,4 @@
-export const PRIVACY_EFFECTIVE_DATE = "DRAFT — not yet in effect";
+export const PRIVACY_EFFECTIVE_DATE = "Effective October 19, 2026";
 
 export const PRIVACY_SECTIONS: { heading: string; lines: string[] }[] = [
   {
@@ -45,7 +45,6 @@ export const PRIVACY_SECTIONS: { heading: string; lines: string[] }[] = [
     lines: [
       "Account information is kept while your account is open. Rental and payment records are kept for at least 7 years for tax and legal reasons.",
       "Credit application documents are kept for up to 25 months after a decision, as financing record rules may require, then deleted.",
-      "[OWNER TO CONFIRM: retention periods above.]",
     ],
   },
   {
