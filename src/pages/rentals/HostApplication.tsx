@@ -58,14 +58,14 @@ const Field: React.FC<{ label: string; name: string; value: string; onChange: (n
 );
 
 const Row: React.FC<{ k: string; v?: string }> = ({ k, v }) => (
-  <div className="grid grid-cols-[160px_1fr] border-b border-rental-line py-1 text-sm">
+  <div className="grid grid-cols-[minmax(0,38%)_minmax(0,1fr)] gap-2 sm:grid-cols-[160px_1fr] border-b border-rental-line py-1 text-sm">
     <span className="text-rental-muted">{k}</span>
-    <span className="font-semibold">{v || "—"}</span>
+    <span className="min-w-0 break-words font-semibold [overflow-wrap:anywhere]">{v || "—"}</span>
   </div>
 );
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="space-y-4 border border-rental-line bg-rental-surface/40 p-5">
+  <section className="max-lg:-mx-4 max-lg:rounded-none max-lg:border-x-0 space-y-4 border border-rental-line bg-rental-surface/40 p-5">
     <h2 className="font-barlow text-lg font-bold uppercase tracking-wide text-rental-primary">{title}</h2>
     {children}
   </section>
@@ -500,7 +500,7 @@ const HostApplication: React.FC = () => {
               </Section>
 
               {/* Agreement preview with the owner's details filled in */}
-              <section className="space-y-4 bg-white p-6 text-slate-900">
+              <section className="max-lg:-mx-4 space-y-4 bg-white p-6 text-slate-900">
                 <div className="text-center">
                   <p className="text-lg font-black uppercase">{COMPANY.name}</p>
                   <p className="font-bold uppercase">Co-Host Agreement — Vehicle Management Services</p>
