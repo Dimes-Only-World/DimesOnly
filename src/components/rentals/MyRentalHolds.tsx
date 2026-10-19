@@ -64,7 +64,7 @@ const MyRentalHolds: React.FC<{ userId: string }> = ({ userId }) => {
         const title = `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim() || "Vehicle";
         const canEdit = ["held", "refundable"].includes(h.status);
         return (
-          <Card key={h.id} className="bg-card/60 border-border/60">
+          <Card key={h.id} className="max-lg:-mx-4 max-lg:rounded-none max-lg:border-x-0 bg-card/60 border-border/60">
             <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{title}</p><Badge variant="outline">{LABELS[h.status] || h.status}</Badge></div>
