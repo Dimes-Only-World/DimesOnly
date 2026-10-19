@@ -205,7 +205,7 @@ const BecomeAHost: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center max-lg:block">
+          <div className="flex items-center max-lg:block min-w-0">
             <div className="w-full max-lg:-mx-4 sm:max-lg:-mx-8 max-lg:w-auto max-lg:border-x-0 rounded-none border border-rental-line bg-rental-elevated p-6 sm:p-8">
               <h2 className="font-barlow text-2xl font-bold text-rental-foreground">Host Calculator</h2>
               <p className="mt-1 font-barlow text-sm text-rental-muted">
