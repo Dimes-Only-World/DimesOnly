@@ -58,9 +58,9 @@ const Field: React.FC<{ label: string; name: string; value: string; onChange: (n
 );
 
 const Row: React.FC<{ k: string; v?: string }> = ({ k, v }) => (
-  <div className="grid grid-cols-[160px_1fr] border-b border-rental-line py-1 text-sm">
+  <div className="grid grid-cols-[minmax(0,38%)_minmax(0,1fr)] gap-2 sm:grid-cols-[160px_1fr] border-b border-rental-line py-1 text-sm">
     <span className="text-rental-muted">{k}</span>
-    <span className="font-semibold">{v || "—"}</span>
+    <span className="min-w-0 break-words font-semibold [overflow-wrap:anywhere]">{v || "—"}</span>
   </div>
 );
 
