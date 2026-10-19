@@ -23,6 +23,9 @@ Deno.serve(async (req) => {
     if (bucket === "vehicle-media") {
       const { data } = await admin.from("vehicle_media").select("storage_path").in("storage_path", clean);
       allowed = (data || []).map((r: any) => r.storage_path);
+      const { data: bg } = await admin.from("app_settings").select("value").eq("key", "purchase_backgrounds").maybeSingle();
+      const bgPaths: string[] = Array.isArray((bg?.value as any)?.paths) ? (bg!.value as any).paths : [];
+      allowed.push(...clean.filter((p) => bgPaths.includes(p)));
     } else {
       const { data } = await admin.from("rental_captures").select("storage_path")
         .in("storage_path", clean).eq("moderation_status", "approved");

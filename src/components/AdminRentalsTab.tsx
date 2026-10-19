@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HostApplicationsPanel from "@/components/rentals/HostApplicationsPanel";
 import PurchaseApplicationsPanel from "@/components/rentals/PurchaseApplicationsPanel";
 import RentalHoldsPanel from "@/components/rentals/RentalHoldsPanel";
+import PurchaseBackgroundsPanel from "@/components/rentals/PurchaseBackgroundsPanel";
 import SaleCommissionsPanel from "@/components/rentals/SaleCommissionsPanel";
 import PaymentHistoryPanel from "@/components/rentals/PaymentHistoryPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -153,7 +154,7 @@ const AdminRentalsTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="hosts"><HostApplicationsPanel callAdmin={callAdmin} /></TabsContent>
-        <TabsContent value="purchases"><PurchaseApplicationsPanel callAdmin={callAdmin} /></TabsContent>
+        <TabsContent value="purchases" className="space-y-4"><PurchaseBackgroundsPanel callAdmin={callAdmin} /><PurchaseApplicationsPanel callAdmin={callAdmin} /></TabsContent>
         <TabsContent value="holds"><RentalHoldsPanel callAdmin={callAdmin} /></TabsContent>
         <TabsContent value="sales"><SaleCommissionsPanel callAdmin={callAdmin} /></TabsContent>
 

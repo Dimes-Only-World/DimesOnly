@@ -216,6 +216,38 @@ serve(async (req) => {
         const names = new Map((users || []).map((u: any) => [u.id, u.username]));
         return json({ data: (data || []).map((h: any) => ({ ...h, username: names.get(h.user_id) || null })), depositAmount: Number((setting?.value as any)?.value ?? 150) });
       }
+      case "listPurchaseBackgrounds": {
+        const { data: bg } = await admin.from("app_settings").select("value").eq("key", "purchase_backgrounds").maybeSingle();
+        const paths: string[] = Array.isArray((bg?.value as any)?.paths) ? (bg!.value as any).paths : [];
+        const { data: signed } = paths.length ? await admin.storage.from("vehicle-media").createSignedUrls(paths, 3600) : { data: [] };
+        const map = new Map((signed || []).map((x: any) => [x.path, x.signedUrl]));
+        return json({ data: paths.map((p) => ({ path: p, url: map.get(p) || null })) });
+      }
+      case "addPurchaseBackground": {
+        const { fileName, contentType, base64 } = params;
+        const ext = (fileName?.split(".").pop() || "jpg").toLowerCase();
+        if (!["image/jpeg", "image/png", "image/webp"].includes(String(contentType)) || !/^[a-z0-9]{1,5}$/.test(ext)) return json({ error: "Use a JPG, PNG or WEBP photo" }, 400);
+        if (typeof base64 !== "string" || base64.length > 20 * 1024 * 1024) return json({ error: "Photo too large" }, 400);
+        const path = `purchase-backgrounds/${crypto.randomUUID()}.${ext}`;
+        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+        const { error: upErr } = await admin.storage.from("vehicle-media").upload(path, bytes, { contentType });
+        if (upErr) throw upErr;
+        const { data: bg } = await admin.from("app_settings").select("value").eq("key", "purchase_backgrounds").maybeSingle();
+        const paths: string[] = Array.isArray((bg?.value as any)?.paths) ? (bg!.value as any).paths : [];
+        const { error } = await admin.from("app_settings").upsert({ key: "purchase_backgrounds", value: { paths: [...paths, path] } });
+        if (error) throw error;
+        return json({ data: { path } });
+      }
+      case "setPurchaseBackgrounds": {
+        const { data: bg } = await admin.from("app_settings").select("value").eq("key", "purchase_backgrounds").maybeSingle();
+        const current: string[] = Array.isArray((bg?.value as any)?.paths) ? (bg!.value as any).paths : [];
+        const next: string[] = Array.isArray(params.paths) ? params.paths.filter((p: unknown) => typeof p === "string" && current.includes(p as string)) : [];
+        const removed = current.filter((p) => !next.includes(p));
+        if (removed.length) await admin.storage.from("vehicle-media").remove(removed);
+        const { error } = await admin.from("app_settings").upsert({ key: "purchase_backgrounds", value: { paths: next } });
+        if (error) throw error;
+        return json({ data: { paths: next } });
+      }
       case "setHoldDeposit": {
         const amt = Number(params.amount);
         if (!Number.isFinite(amt) || amt < 0 || amt > 10000) return json({ error: "Enter a deposit between $0 and $10,000" }, 400);
