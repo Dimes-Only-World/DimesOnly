@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Trash2, Plus, Upload, ExternalLink, Download } from "lucide-react";
+import { lateFeeStatus } from "@/lib/rentalExtensionRules";
 
 const RENTAL_OPTS = ["daily", "weekly", "monthly", "long_term", "rent_to_own", "purchase"];
 
@@ -584,6 +585,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
     try {
       const payload = { ...f,
         day_rate: Number(f.day_rate) || null,
+        hour_rate: Number(f.hour_rate) || null,
         three_day_rate: Number(f.three_day_rate) || null,
         security_deposit: Number(f.security_deposit) || 0,
         weekly_rate: Number(f.weekly_rate) || null,
@@ -707,6 +709,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
           <p className="mt-1 text-xs text-muted-foreground">Private — never shown to renters. Rates fill in as percentages of your payment: Monthly = payment + monthly %, Weekly = payment + weekly %, Day = (payment ÷ 30) + daily %, 3+ Day = daily rate minus the discount %. You can still edit them.</p>
         </div>
         <div><Label>Day Rate ($)</Label><Input type="number" value={f.day_rate || 0} onChange={(e) => setF({ ...f, day_rate: e.target.value })} /></div>
+        <div><Label>Hourly Late Rate ($ / hr)</Label><Input type="number" value={f.hour_rate || ""} onChange={(e) => setF({ ...f, hour_rate: e.target.value })} placeholder="Blank = day rate ÷ 24" /></div>
         <div><Label>3+ Day Rate ($ / day)</Label><Input type="number" value={f.three_day_rate || 0} onChange={(e) => setF({ ...f, three_day_rate: e.target.value })} placeholder="Discounted daily rate for 3+ days" /></div>
 
         <div><Label>Weekly Rate ($)</Label><Input type="number" value={f.weekly_rate || 0} onChange={(e) => setF({ ...f, weekly_rate: e.target.value })} /></div>
@@ -867,6 +870,17 @@ const BookingRow: React.FC<{ b: any; onChange: () => void }> = ({ b, onChange })
           <p className="font-semibold">
             {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.rental_type}
           </p>
+          {(() => {
+            const active = ["active", "in_progress", "picked_up", "confirmed"].includes(String(b.status || "").toLowerCase());
+            if (!active || !b.end_date) return null;
+            const l = lateFeeStatus(new Date(b.end_date).getTime(), Date.now(), Number(b.vehicles?.day_rate || 0), b.vehicles?.hour_rate);
+            if (!l.isLate) return null;
+            return (
+              <p className="mt-1 inline-block rounded bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
+                LATE · {l.hoursLate} hr past grace · {l.waived ? "fee waivable if extended today" : `fee due $${l.lateFee.toFixed(2)}`}
+              </p>
+            );
+          })()}
           <p className="text-xs text-muted-foreground">
             Renter {b.renter_username || b.renter_user_id.slice(0, 8)} · Start {new Date(b.start_date).toLocaleString()} · Return{" "}
             {b.end_date ? new Date(b.end_date).toLocaleString() : "—"}

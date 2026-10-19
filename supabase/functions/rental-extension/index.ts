@@ -219,7 +219,7 @@ serve(async (req) => {
 
     if (body.action === "createPayment") {
       const { data: booking } = await admin.from("rental_bookings")
-        .select("id, renter_user_id, status, end_date, security_deposit, pickup_mileage, latest_reported_mileage, vehicle_id, vehicles(day_rate, mileage)")
+        .select("id, renter_user_id, status, end_date, security_deposit, pickup_mileage, latest_reported_mileage, vehicle_id, vehicles(day_rate, hour_rate, mileage)")
         .eq("id", body.bookingId).maybeSingle();
       if (!booking || booking.renter_user_id !== callerId) return json({ error: "Rental not found" }, 404);
       const status = String(booking.status || "").toLowerCase();
@@ -237,7 +237,7 @@ serve(async (req) => {
       const { data: prior } = await admin.from("rental_extensions").select("deposit_applied").eq("booking_id", booking.id).eq("status", "paid");
       const depositUsed = (prior || []).reduce((t: number, e: any) => t + Number(e.deposit_applied || 0), 0);
       const amounts = extensionCharge({
-        days: body.extraDays, dailyRate, dueMs: endMs, nowMs: Date.now(),
+        days: body.extraDays, dailyRate, hourRate: vehicle?.hour_rate, dueMs: endMs, nowMs: Date.now(),
         depositAvailable: Math.max(0, Number(booking.security_deposit || 0) - depositUsed), useDeposit: body.useDeposit,
       });
       // If the rental is already past due, the extension starts today (late hours are covered by the late fee).
