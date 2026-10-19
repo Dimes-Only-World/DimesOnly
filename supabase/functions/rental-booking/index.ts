@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { allowedPickupDate, minimumEndDate, monthlyRentalEndIsValid, monthlyRentalPrice } from "./rules.ts";
 import { shortTermTotal } from "./shortTerm.ts";
+import { rentalExtras, extrasDays } from "./extras.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -27,6 +28,8 @@ const BookingPayloadSchema = z.object({
   security_deposit: z.coerce.number().nonnegative().optional().default(0),
   contact_email: z.string().max(255).nullable().optional(),
   contact_phone: z.string().max(50).nullable().optional(),
+  mileage_plan: z.enum(["limited", "unlimited"]).optional().default("limited"),
+  protection_plan: z.enum(["standard", "minimum", "own"]),
 });
 
 const RequestSchema = z.object({
@@ -304,7 +307,7 @@ serve(async (req) => {
 
         const { data: vehicle, error: vehicleErr } = await admin
           .from("vehicles")
-          .select("id, vin, mileage, registration_state, license_plate, plate_expiration, body_style, color, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment, security_deposit, rental_options, is_active")
+          .select("id, vin, mileage, registration_state, license_plate, plate_expiration, body_style, color, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment, security_deposit, rental_options, is_active, extra_mile_fee, unlimited_mileage_rate")
           .eq("id", booking.vehicle_id)
           .maybeSingle();
         if (vehicleErr || !vehicle || !vehicle.is_active) {
@@ -353,7 +356,15 @@ serve(async (req) => {
           (sum: number, item: any) => sum + Math.max(0, Number(item.price || 0)),
           0,
         );
-        const verifiedSubtotal = Math.round((baseRentalTotal + addonTotal) * 100) / 100;
+        if (booking.protection_plan === "own" && !documentFiles?.insurance) {
+          return json({ error: "Upload your insurance card to use your own insurance", requestId }, 400);
+        }
+        if (booking.mileage_plan === "unlimited" && !(Number(vehicle.unlimited_mileage_rate) > 0)) {
+          return json({ error: "Unlimited mileage is not offered for this vehicle", requestId }, 400);
+        }
+        const extras = rentalExtras(vehicle, booking.mileage_plan, booking.protection_plan,
+          extrasDays(booking.rental_type, rentalDaysBetween(booking.start_date, booking.end_date)));
+        const verifiedSubtotal = Math.round((baseRentalTotal + addonTotal + extras.total) * 100) / 100;
 
         const uploadDocument = async (file: UploadedDocument, label: "license" | "insurance") => {
           const okDocTypes = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
@@ -436,6 +447,10 @@ serve(async (req) => {
           upline_referrer_username: uplineRef,
           contact_email: booking.contact_email || null,
           contact_phone: booking.contact_phone || null,
+          mileage_plan: booking.mileage_plan,
+          mileage_total: extras.mileageTotal,
+          protection_plan: booking.protection_plan,
+          protection_total: extras.protectionTotal,
           status: "pending",
         };
 
