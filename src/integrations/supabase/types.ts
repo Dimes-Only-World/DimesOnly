@@ -3826,6 +3826,8 @@ export type Database = {
           insurance_path: string | null
           latest_reported_mileage: number | null
           license_path: string | null
+          mileage_plan: string
+          mileage_total: number
           paid_at: string | null
           payment_method: string | null
           payment_note: string | null
@@ -3836,6 +3838,8 @@ export type Database = {
           pickup_location: string | null
           pickup_mileage: number | null
           promo_code: string | null
+          protection_plan: string
+          protection_total: number
           referrer_username: string | null
           rental_type: string
           renter_user_id: string
@@ -3863,6 +3867,8 @@ export type Database = {
           insurance_path?: string | null
           latest_reported_mileage?: number | null
           license_path?: string | null
+          mileage_plan?: string
+          mileage_total?: number
           paid_at?: string | null
           payment_method?: string | null
           payment_note?: string | null
@@ -3873,6 +3879,8 @@ export type Database = {
           pickup_location?: string | null
           pickup_mileage?: number | null
           promo_code?: string | null
+          protection_plan?: string
+          protection_total?: number
           referrer_username?: string | null
           rental_type: string
           renter_user_id: string
@@ -3900,6 +3908,8 @@ export type Database = {
           insurance_path?: string | null
           latest_reported_mileage?: number | null
           license_path?: string | null
+          mileage_plan?: string
+          mileage_total?: number
           paid_at?: string | null
           payment_method?: string | null
           payment_note?: string | null
@@ -3910,6 +3920,8 @@ export type Database = {
           pickup_location?: string | null
           pickup_mileage?: number | null
           promo_code?: string | null
+          protection_plan?: string
+          protection_total?: number
           referrer_username?: string | null
           rental_type?: string
           renter_user_id?: string
@@ -5834,6 +5846,7 @@ export type Database = {
           day_rate: number | null
           description: string | null
           down_payment: number | null
+          extra_mile_fee: number | null
           features: Json
           id: string
           is_active: boolean
@@ -5848,6 +5861,7 @@ export type Database = {
           rental_options: string[]
           security_deposit: number
           three_day_rate: number | null
+          unlimited_mileage_rate: number | null
           updated_at: string
           vehicle_type: string | null
           vin: string | null
@@ -5863,6 +5877,7 @@ export type Database = {
           day_rate?: number | null
           description?: string | null
           down_payment?: number | null
+          extra_mile_fee?: number | null
           features?: Json
           id?: string
           is_active?: boolean
@@ -5877,6 +5892,7 @@ export type Database = {
           rental_options?: string[]
           security_deposit?: number
           three_day_rate?: number | null
+          unlimited_mileage_rate?: number | null
           updated_at?: string
           vehicle_type?: string | null
           vin?: string | null
@@ -5892,6 +5908,7 @@ export type Database = {
           day_rate?: number | null
           description?: string | null
           down_payment?: number | null
+          extra_mile_fee?: number | null
           features?: Json
           id?: string
           is_active?: boolean
@@ -5906,6 +5923,7 @@ export type Database = {
           rental_options?: string[]
           security_deposit?: number
           three_day_rate?: number | null
+          unlimited_mileage_rate?: number | null
           updated_at?: string
           vehicle_type?: string | null
           vin?: string | null
