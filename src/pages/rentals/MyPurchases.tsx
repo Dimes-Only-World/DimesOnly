@@ -41,8 +41,8 @@ const MyPurchases: React.FC = () => {
   useEffect(() => { if (failed) toast({ title: "Some documents did not upload", description: `${failed} file(s) failed. Please upload them again below.`, variant: "destructive" }); }, [failed]);
   const app = apps?.find((a) => a.id === selected);
   const open = async (docId: string) => { try { window.open(await signMyPurchaseDoc(app.id, docId), "_blank", "noopener"); } catch (e: any) { toast({ title: "Unavailable", description: e.message, variant: "destructive" }); } };
-  return <div className="rentals-showroom min-h-screen bg-rental-background text-rental-foreground">
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-8">
+  return <div className="rentals-showroom flex min-h-screen flex-col bg-rental-background text-rental-foreground">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
       <Link to="/rentals" className="inline-flex items-center gap-2 text-sm text-rental-muted hover:text-rental-primary"><ArrowLeft className="h-4 w-4" /> Back to vehicles</Link>
       <p className="mt-6 text-xs font-semibold uppercase text-rental-primary">Best Car Rental Services</p>
       <h1 className="rentals-wordmark text-5xl leading-none sm:text-6xl">MY PURCHASES</h1>
