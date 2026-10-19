@@ -102,11 +102,15 @@ const HostApplication: React.FC = () => {
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const apply = (session: { user?: { email?: string | null } } | null) => {
       setSignedIn(!!session);
-      if (session?.user?.email) setF((p) => ({ ...p, email: p.email || session.user.email || "" }));
+      const email = session?.user?.email;
+      if (email) setF((p) => ({ ...p, email: p.email || email }));
       setAuthChecked(true);
-    });
+    };
+    supabase.auth.getSession().then(({ data: { session } }) => apply(session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => apply(session));
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
