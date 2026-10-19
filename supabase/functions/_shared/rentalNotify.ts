@@ -65,7 +65,7 @@ export async function notifyCreditAppStatus(admin: any, appId: string, status: s
   const to = email ? { email: String(email), name: String(a.applicant?.firstName || "") } : await renter(admin, a.user_id);
   if (!to) return;
   if (!(await claim(admin, a.id, `app_status_${status}`))) return;
-  try { await sendNoticeEmail(to, { title: "Credit application update", message: text, buttonUrl: `${SITE}/rentals/my-purchases`, buttonLabel: "View My Purchases", category: "rental_app_status" }); }
+  try { await sendNoticeEmail(to, { title: "Credit application update", message: text, buttonUrl: `${SITE}/account/my-purchases`, buttonLabel: "View My Purchases", category: "rental_app_status" }); }
   catch (e) { console.error("app status notify failed", e); }
 }
 
