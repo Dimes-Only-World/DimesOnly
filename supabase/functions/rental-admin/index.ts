@@ -110,7 +110,7 @@ serve(async (req) => {
       }
       case "listBookings": {
         const { data, error } = await admin.from("rental_bookings")
-          .select("*, vehicles(year,make,model)")
+          .select("*, vehicles(year,make,model,day_rate,hour_rate)")
           .order("created_at", { ascending: false });
         if (error) throw error;
 

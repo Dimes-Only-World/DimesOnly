@@ -59,6 +59,7 @@ type Booking = {
     make: string | null;
     model: string | null;
     day_rate?: number | null;
+    hour_rate?: number | null;
     three_day_rate?: number | null;
     weekly_rate?: number | null;
     monthly_rate?: number | null;
@@ -166,7 +167,7 @@ const MyBookings: React.FC = () => {
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select(
-          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, cancellation_status, cancellation_refund, cancellation_fee, cancellation_reason, cancel_requested_at, cancel_reviewed_at, paid_at, no_show, hold_credit, vehicles ( id, year, make, model, day_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
+          "id, vehicle_id, rental_type, start_date, end_date, pickup_location, total_price, down_payment_amount, security_deposit, status, created_at, payment_method, payment_receipt_path, cancellation_status, cancellation_refund, cancellation_fee, cancellation_reason, cancel_requested_at, cancel_reviewed_at, paid_at, no_show, hold_credit, vehicles ( id, year, make, model, day_rate, hour_rate, three_day_rate, weekly_rate, monthly_rate, down_payment )"
         )
         .eq("renter_user_id", uid)
         .order("created_at", { ascending: false });
@@ -299,6 +300,7 @@ const MyBookings: React.FC = () => {
   const charge = useMemo(() => extensionCharge({
     days: Math.max(1, Math.min(MAX_EXTENSION_DAYS, extendDays)),
     dailyRate: Number(extendTarget?.vehicles?.day_rate || 0),
+    hourRate: extendTarget?.vehicles?.hour_rate,
     dueMs: extendTarget?.end_date ? new Date(extendTarget.end_date).getTime() : Date.now(),
     nowMs: Date.now(),
     depositAvailable: depositAvailable(extendTarget),
@@ -309,7 +311,7 @@ const MyBookings: React.FC = () => {
   const extensionFee = charge.transactionFee;
   const extensionTotal = charge.totalCharged;
   const lateFor = (b: Booking) => b.end_date && statusMeta(b.status).label === "Active"
-    ? lateFeeStatus(new Date(b.end_date).getTime(), Date.now(), Number(b.vehicles?.day_rate || 0))
+    ? lateFeeStatus(new Date(b.end_date).getTime(), Date.now(), Number(b.vehicles?.day_rate || 0), b.vehicles?.hour_rate)
     : null;
   const extensionStartDate = extendTarget?.end_date
     ? new Date(Math.max(new Date(extendTarget.end_date).getTime(), Date.now())).toISOString()
@@ -767,11 +769,11 @@ const MyBookings: React.FC = () => {
                   </>)}
                 </div>
               )}
-              <div className="grid grid-cols-[auto_1fr] gap-x-3 text-muted-foreground">
-                <span>Extension dates</span>
-                <span className="text-right">{formatDate(extensionStartDate)}</span>
-                <span />
-                <span className="text-right">→ {formatDate(proposedEndDate)}</span>
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-muted-foreground">
+                <span>Extension starts</span>
+                <span className="text-right tabular-nums">{formatDate(extensionStartDate)}</span>
+                <span>New return</span>
+                <span className="text-right tabular-nums font-semibold text-foreground">{formatDate(proposedEndDate)}</span>
               </div>
               <div className="flex justify-between font-semibold">
                 <span>Extension price</span>

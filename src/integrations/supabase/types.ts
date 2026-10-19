@@ -5961,6 +5961,7 @@ export type Database = {
           down_payment: number | null
           extra_mile_fee: number | null
           features: Json
+          hour_rate: number | null
           id: string
           is_active: boolean
           license_plate: string | null
@@ -5992,6 +5993,7 @@ export type Database = {
           down_payment?: number | null
           extra_mile_fee?: number | null
           features?: Json
+          hour_rate?: number | null
           id?: string
           is_active?: boolean
           license_plate?: string | null
@@ -6023,6 +6025,7 @@ export type Database = {
           down_payment?: number | null
           extra_mile_fee?: number | null
           features?: Json
+          hour_rate?: number | null
           id?: string
           is_active?: boolean
           license_plate?: string | null
