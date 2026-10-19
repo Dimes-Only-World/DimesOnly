@@ -55,6 +55,7 @@ import { Route as UpgradeGoldRouteImport } from './routes/upgrade-gold'
 import { Route as UpgradeSilverRouteImport } from './routes/upgrade-silver'
 import { Route as UpgradeSilverPlusRouteImport } from './routes/upgrade-silver-plus'
 import { Route as UpgradeSilverSubscribeRouteImport } from './routes/upgrade-silver-subscribe'
+import { Route as AccountMyPurchasesRouteImport } from './routes/account/my-purchases'
 import { Route as AccountMyRentalsRouteImport } from './routes/account/my-rentals'
 import { Route as ClothesIndexRouteImport } from './routes/clothes/index'
 import { Route as ClothesPageRouteImport } from './routes/clothes/$page'
@@ -327,6 +328,11 @@ const UpgradeSilverSubscribeRoute = UpgradeSilverSubscribeRouteImport.update({
   path: '/upgrade-silver-subscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountMyPurchasesRoute = AccountMyPurchasesRouteImport.update({
+  id: '/account/my-purchases',
+  path: '/account/my-purchases',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountMyRentalsRoute = AccountMyRentalsRouteImport.update({
   id: '/account/my-rentals',
   path: '/account/my-rentals',
@@ -581,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/upgrade-silver': typeof UpgradeSilverRoute
   '/upgrade-silver-plus': typeof UpgradeSilverPlusRoute
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
+  '/account/my-purchases': typeof AccountMyPurchasesRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
@@ -663,6 +670,7 @@ export interface FileRoutesByTo {
   '/upgrade-silver': typeof UpgradeSilverRoute
   '/upgrade-silver-plus': typeof UpgradeSilverPlusRoute
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
+  '/account/my-purchases': typeof AccountMyPurchasesRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
@@ -750,6 +758,7 @@ export interface FileRoutesById {
   '/upgrade-silver': typeof UpgradeSilverRoute
   '/upgrade-silver-plus': typeof UpgradeSilverPlusRoute
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
+  '/account/my-purchases': typeof AccountMyPurchasesRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
@@ -841,6 +850,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver'
     | '/upgrade-silver-plus'
     | '/upgrade-silver-subscribe'
+    | '/account/my-purchases'
     | '/account/my-rentals'
     | '/clothes/$page'
     | '/clothes/cart'
@@ -923,6 +933,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver'
     | '/upgrade-silver-plus'
     | '/upgrade-silver-subscribe'
+    | '/account/my-purchases'
     | '/account/my-rentals'
     | '/clothes/$page'
     | '/clothes/cart'
@@ -1009,6 +1020,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver'
     | '/upgrade-silver-plus'
     | '/upgrade-silver-subscribe'
+    | '/account/my-purchases'
     | '/account/my-rentals'
     | '/clothes/$page'
     | '/clothes/cart'
@@ -1099,6 +1111,7 @@ export interface RootRouteChildren {
   UpgradeSilverRoute: typeof UpgradeSilverRoute
   UpgradeSilverPlusRoute: typeof UpgradeSilverPlusRoute
   UpgradeSilverSubscribeRoute: typeof UpgradeSilverSubscribeRoute
+  AccountMyPurchasesRoute: typeof AccountMyPurchasesRoute
   AccountMyRentalsRoute: typeof AccountMyRentalsRoute
   ProfileUsernameRoute: typeof ProfileUsernameRoute
 }
@@ -1425,6 +1438,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade-silver-subscribe'
       fullPath: '/upgrade-silver-subscribe'
       preLoaderRoute: typeof UpgradeSilverSubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/my-purchases': {
+      id: '/account/my-purchases'
+      path: '/account/my-purchases'
+      fullPath: '/account/my-purchases'
+      preLoaderRoute: typeof AccountMyPurchasesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account/my-rentals': {
@@ -1932,6 +1952,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpgradeSilverRoute: UpgradeSilverRoute,
   UpgradeSilverPlusRoute: UpgradeSilverPlusRoute,
   UpgradeSilverSubscribeRoute: UpgradeSilverSubscribeRoute,
+  AccountMyPurchasesRoute: AccountMyPurchasesRoute,
   AccountMyRentalsRoute: AccountMyRentalsRoute,
   ProfileUsernameRoute: ProfileUsernameRoute,
 }
