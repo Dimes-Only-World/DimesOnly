@@ -182,7 +182,7 @@ const RentalPayment: React.FC = () => {
               </div>
               {Number(booking.security_deposit) > 0 && (
                 <div className="text-rental-muted sm:flex sm:justify-between">
-                  <span className="block">Security deposit (authorized before pickup)</span>
+                  <span className="block">Includes security deposit</span>
                   <span className="mt-1 block font-semibold text-rental-foreground sm:mt-0">${Number(booking.security_deposit).toLocaleString()}</span>
                 </div>
               )}
@@ -206,9 +206,6 @@ const RentalPayment: React.FC = () => {
                 </Button>
                 <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cashapp")}>
                   Pay ${Number(booking.total_price).toLocaleString()} with Cash App NO FEES
-                </Button>
-                <Button variant="outline" className="w-full rounded-none border-rental-line" size="lg" disabled={working} onClick={() => chooseManual("cash")}>
-                  Pay cash at pickup
                 </Button>
                 <p className="text-center text-xs text-rental-muted">
                   Pay with PayPal/Credit or Debit Card or Cash App,. The car is held for you and marked rented once payment is confirmed.
