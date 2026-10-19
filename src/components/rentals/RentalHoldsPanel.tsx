@@ -42,7 +42,7 @@ const RentalHoldsPanel: React.FC<{ callAdmin: (action: string, extra?: Record<st
         return (
           <Card key={h.id}><CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-2"><p className="font-semibold">@{h.username || "member"} · {v.year} {v.make} {v.model}</p><Badge variant="outline">{h.status.replace("_", " ")}</Badge></div>
+              <div className="flex flex-wrap items-center gap-2"><p className="font-semibold">@{h.username || "member"} · {v.year} {v.make} {v.model}</p><Badge variant="outline">{h.status.replace(/_/g, " ")}</Badge></div>
               <p className="text-sm text-muted-foreground">{h.wanted_start} → {h.wanted_end} · ${Number(h.amount).toFixed(2)} via {h.payment_method === "cashapp" ? "Cash App" : "PayPal"} · Code {String(h.id).slice(0, 8).toUpperCase()}</p>
             </div>
             <div className="flex gap-2">

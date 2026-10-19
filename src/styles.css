@@ -1037,3 +1037,26 @@ img {
     border-right-width: 0;
   }
 }
+
+/* Vehicle details page: dark showroom matching the home page, with shared UI tokens remapped */
+.rentals-showroom.rentals-detail-dark {
+  --background: hsl(var(--rental-background));
+  --foreground: hsl(var(--rental-foreground));
+  --card: hsl(var(--rental-surface));
+  --card-foreground: hsl(var(--rental-foreground));
+  --popover: hsl(var(--rental-surface));
+  --popover-foreground: hsl(var(--rental-foreground));
+  --primary: hsl(var(--rental-primary));
+  --primary-foreground: hsl(var(--rental-primary-foreground));
+  --secondary: hsl(var(--rental-elevated));
+  --secondary-foreground: hsl(var(--rental-foreground));
+  --muted: hsl(var(--rental-elevated));
+  --muted-foreground: hsl(var(--rental-muted));
+  --accent: hsl(var(--rental-elevated));
+  --accent-foreground: hsl(var(--rental-foreground));
+  --border: hsl(var(--rental-line));
+  --input: hsl(var(--rental-line));
+  --ring: hsl(var(--rental-primary));
+  background: hsl(var(--rental-background));
+  color: hsl(var(--rental-foreground));
+}

@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import RentalsFooter from "@/components/rentals/RentalsFooter";
 import ReferrerBadge from "@/components/rentals/ReferrerBadge";
 import { blockedUntil, type BookedRange } from "@/lib/rentalAvailability";
+import { formatRentalLocation } from "@/lib/rentalLocation";
 
 interface Vehicle {
   id: string;
@@ -42,6 +43,8 @@ const Rentals: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [optionFilter, setOptionFilter] = useState<string>("all");
   const [availableOnly, setAvailableOnly] = useState(false);
+  const [priceFilter, setPriceFilter] = useState<string>("all");
+  const [wantedDate, setWantedDate] = useState<string>("");
   const [page, setPage] = useState(1);
   const gridRef = React.useRef<HTMLDivElement>(null);
 
@@ -119,10 +122,14 @@ const Rentals: React.FC = () => {
     load();
   }, []);
 
-  const types = useMemo(
-    () => Array.from(new Set(vehicles.map((v) => v.vehicle_type).filter(Boolean))) as string[],
-    [vehicles]
-  );
+  const types = useMemo(() => {
+    const base = ["Economy", "Luxury", "Exotic", "SUV", "Truck"];
+    const seen = new Set(base.map((t) => t.toLowerCase()));
+    for (const t of vehicles.map((v) => v.vehicle_type).filter(Boolean) as string[]) {
+      if (!seen.has(t.toLowerCase())) { seen.add(t.toLowerCase()); base.push(t); }
+    }
+    return base;
+  }, [vehicles]);
 
   const filtered = vehicles.filter((v) => {
     const q = search.toLowerCase();
@@ -130,10 +137,22 @@ const Rentals: React.FC = () => {
       !q ||
       `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(q) ||
       (v.pickup_location || "").toLowerCase().includes(q);
-    const matchType = typeFilter === "all" || v.vehicle_type === typeFilter;
+    const matchType = typeFilter === "all" || (v.vehicle_type || "").toLowerCase().includes(typeFilter.toLowerCase());
+    const day = Number(v.day_rate || 0);
+    const matchPrice = priceFilter === "all" || (day > 0 && (
+      priceFilter === "u100" ? day < 100 : priceFilter === "100-200" ? day >= 100 && day <= 200 : priceFilter === "200-400" ? day > 200 && day <= 400 : day > 400));
+    let matchDate = true;
+    if (wantedDate) {
+      const t = new Date(`${wantedDate}T12:00:00`).getTime();
+      matchDate = (v.booked || []).every((b) => {
+        const s0 = new Date(b.start_date).getTime() - 3 * 86_400_000;
+        const e0 = new Date(b.end_date || b.start_date).getTime();
+        return t < s0 || t > e0;
+      });
+    }
     const matchOpt = optionFilter === "all" || v.rental_options?.includes(optionFilter);
     const matchAvail = !availableOnly || (v.availability_status === "available" && blockedUntil(v.booked || [], Date.now()) === null);
-    return matchQ && matchType && matchOpt && matchAvail;
+    return matchQ && matchType && matchOpt && matchAvail && matchPrice && matchDate;
   });
 
   const PER_PAGE = 8;
@@ -143,7 +162,7 @@ const Rentals: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, optionFilter, availableOnly]);
+  }, [search, typeFilter, optionFilter, availableOnly, priceFilter, wantedDate]);
 
   const goPage = (n: number) => {
     const next = Math.min(Math.max(1, n), totalPages);
@@ -284,7 +303,26 @@ const Rentals: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="-mt-9 mb-10 flex justify-end border-x-0 border-b border-rental-line bg-rental-surface p-3 sm:border-x">
+        <div className="-mt-10 mb-px grid grid-cols-1 gap-px border-x-0 border-b border-rental-line bg-rental-line sm:grid-cols-2 sm:border-x">
+          <Select value={priceFilter} onValueChange={setPriceFilter}>
+            <SelectTrigger aria-label="Filter by daily price" className="h-14 rounded-none border-0 bg-rental-surface font-barlow text-rental-foreground focus:ring-rental-primary">
+              <SelectValue placeholder="Daily price" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any daily price</SelectItem>
+              <SelectItem value="u100">Under $100/day</SelectItem>
+              <SelectItem value="100-200">$100–$200/day</SelectItem>
+              <SelectItem value="200-400">$200–$400/day</SelectItem>
+              <SelectItem value="400+">Over $400/day</SelectItem>
+            </SelectContent>
+          </Select>
+          <label className="flex h-14 items-center gap-3 bg-rental-surface px-4 font-barlow text-sm text-rental-muted">
+            <span className="shrink-0 uppercase">Available on</span>
+            <input type="date" aria-label="Available on date" value={wantedDate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setWantedDate(e.target.value)}
+              className="h-10 min-w-0 flex-1 border border-rental-line bg-rental-elevated px-2 text-rental-foreground [color-scheme:dark]" />
+          </label>
+        </div>
+        <div className="mb-10 flex justify-end border-x-0 border-b border-rental-line bg-rental-surface p-3 sm:border-x">
           <button
             type="button"
             aria-pressed={availableOnly}
@@ -296,7 +334,15 @@ const Rentals: React.FC = () => {
         </div>
 
         {loading ? (
-          <p className="py-20 text-center font-barlow text-rental-muted">Preparing the fleet…</p>
+          <div aria-label="Loading fleet" className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="animate-pulse border border-rental-line bg-rental-surface">
+                <div className="h-12 border-b border-rental-line bg-rental-elevated/40" />
+                <div className="aspect-[4/3] bg-rental-elevated" />
+                <div className="space-y-3 p-5"><div className="h-3 w-1/3 bg-rental-elevated" /><div className="h-5 w-2/3 bg-rental-elevated" /><div className="h-3 w-1/2 bg-rental-elevated" /><div className="h-9 bg-rental-elevated" /></div>
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="border border-rental-line bg-rental-surface py-20 text-center">
             <Car className="mx-auto mb-4 h-12 w-12 text-rental-muted" />
@@ -316,7 +362,7 @@ const Rentals: React.FC = () => {
         ) : (
           <>
           <div ref={gridRef} className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {visible.map((v) => {
+            {visible.map((v, idx) => {
 
               const rateFor = (opt: string): { amount: number; label: string } | null => {
                 if (opt === "daily" && v.day_rate) return { amount: v.day_rate, label: "/day" };
@@ -341,7 +387,7 @@ const Rentals: React.FC = () => {
               return (
                 <Card
                   key={v.id}
-                  className="group overflow-hidden rounded-none border-x-0 border-rental-line bg-rental-surface transition-colors hover:border-rental-primary sm:border-x"
+                  className="group flex h-full flex-col overflow-hidden rounded-none border-x-0 border-rental-line bg-rental-surface transition-colors hover:border-rental-primary sm:border-x"
                 >
                   <div className="flex items-baseline justify-between gap-2 border-b border-rental-line bg-rental-elevated/40 px-5 py-3 font-barlow">
                     <span className="text-[10px] font-semibold uppercase text-rental-muted">Starting at</span>
@@ -354,7 +400,9 @@ const Rentals: React.FC = () => {
 
                     {v.hero_url ? (
                       <img
-                        loading="lazy"
+                        loading={idx < 3 ? "eager" : "lazy"}
+                        decoding="async"
+                        {...({ fetchpriority: idx < 3 ? "high" : "low" } as any)}
                         src={v.hero_url}
                         alt={`${v.year} ${v.make} ${v.model}`}
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
@@ -378,11 +426,11 @@ const Rentals: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <CardContent className="space-y-4 p-5 font-barlow">
+                  <CardContent className="flex flex-1 flex-col gap-4 p-5 font-barlow">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-[11px] font-semibold uppercase text-rental-primary">{v.vehicle_type || "Premium fleet"}</p>
-                        <h3 className="mt-1 text-xl font-semibold text-rental-foreground">{v.year} {v.make} {v.model}</h3>
+                        <h3 className="mt-1 line-clamp-2 min-h-[3.5rem] text-xl font-semibold leading-7 text-rental-foreground">{v.year} {v.make} {v.model}</h3>
                       </div>
                       {v.availability_status === "available" && <Check className="mt-1 h-4 w-4 text-rental-success" />}
                     </div>
@@ -392,24 +440,30 @@ const Rentals: React.FC = () => {
                         {(v.booked || []).map((r) => `${new Date(r.start_date).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}–${new Date(r.end_date || r.start_date).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}`).join(", ")}
                       </div>
                     )}
-                    {v.pickup_location && (
-                      <p className="flex items-center gap-1.5 text-xs text-rental-muted">
-                        <MapPin className="h-3.5 w-3.5 text-rental-primary" /> {v.pickup_location}
+                    <p className="flex items-center gap-1.5 text-xs text-rental-muted">
+                      <MapPin className="h-3.5 w-3.5 text-rental-primary" /> {formatRentalLocation(v.pickup_location)}
+                    </p>
+                    <ul className="space-y-1 border-l-2 border-rental-success pl-2 text-xs font-medium text-rental-foreground">
+                      {Number(v.day_rate) > 0 && <li>Daily: ${Number(v.day_rate).toLocaleString()}/day</li>}
+                      {Number(v.three_day_rate) > 0 && <li>3+ days: ${Number(v.three_day_rate).toLocaleString()}/day</li>}
+                      {Number(v.weekly_rate) > 0 && <li>Weekly: ${Number(v.weekly_rate).toLocaleString()}/week</li>}
+                    </ul>
+                    {unavailable && (blockEnd || v.rented_until) && (
+                      <p className="text-xs font-semibold text-rental-warning">
+                        Available from {new Date(new Date(blockEnd || v.rented_until!).getTime() + 86_400_000).toLocaleDateString()}
                       </p>
                     )}
-                    {(v as any).three_day_rate > 0 && (
-                      <p className="border-l-2 border-rental-success pl-2 text-xs font-medium text-rental-success">
-                        3-day rate: ${Number((v as any).three_day_rate).toLocaleString()}/day
-                      </p>
-                    )}
-                    <div className="border-t border-rental-line pt-4">
+                    <div className="mt-auto border-t border-rental-line pt-4">
                       <div className="flex flex-col gap-2">
                         {purchaseAvailable && <Button asChild size="sm" variant="outline" className="w-full rounded-none border-rental-primary text-rental-primary hover:bg-rental-primary hover:text-rental-primary-foreground"><Link to="/rentals/purchase/$vehicleId" params={{ vehicleId: v.id }}><BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> Purchase</Link></Button>}
-                        <Button asChild size="sm" className={unavailable ? "w-full rounded-none bg-rental-warning font-semibold text-rental-warning-foreground hover:bg-rental-warning/90" : "w-full rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90"}>
-                          {unavailable
-                            ? <Link to="/rentals/$id" params={{ id: v.id }} hash="notify" onClick={(e) => gate(e, `/rentals/${v.id}#notify`)}>Get Notified <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
-                            : <Link to="/rentals/$id" params={{ id: v.id }} onClick={(e) => gate(e, `/rentals/${v.id}`)}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>}
+                        <Button asChild size="sm" className="w-full rounded-none bg-rental-success font-semibold text-rental-background hover:bg-rental-success/90">
+                          <Link to="/rentals/$id" params={{ id: v.id }} onClick={(e) => gate(e, `/rentals/${v.id}`)}>View car <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
                         </Button>
+                        {unavailable && (
+                          <Button asChild size="sm" className="w-full rounded-none bg-rental-warning font-semibold text-rental-warning-foreground hover:bg-rental-warning/90">
+                            <Link to="/rentals/$id" params={{ id: v.id }} hash="notify" onClick={(e) => gate(e, `/rentals/${v.id}#notify`)}>Notify Me <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                          </Button>
+                        )}
                       </div>
                     </div>
 
