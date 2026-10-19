@@ -8,6 +8,7 @@ import { shortTermTotal } from "./shortTerm.ts";
 import { rentalExtras, extrasDays } from "./extras.ts";
 import { cancellationQuote } from "./cancellation.ts";
 import { bookingConflict, nextAvailableDate } from "./availability.ts";
+import { notifyBookingConfirmed, runReturnReminders } from "../_shared/rentalNotify.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -677,6 +678,7 @@ serve(async (req) => {
           })
           .eq("id", bk.id);
         if (bk.vehicle_id) await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", bk.vehicle_id);
+        await notifyBookingConfirmed(admin, bk.id);
 
         return json({ data: { status: "paid", capture_id: capture?.id || null }, requestId });
       }
