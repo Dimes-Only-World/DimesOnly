@@ -50,9 +50,15 @@ function cleanResidence(value: Record<string, unknown>) {
   return {
     streetAddress: text(value.streetAddress, 200), city: text(value.city, 100), state: text(value.state, 2).toUpperCase(),
     zipCode: text(value.zipCode, 10), housingType: text(value.housingType, 30), monthlyPayment: money(value.monthlyPayment),
+    yearsAtAddress: Number(value.yearsAtAddress) || 0, monthsAtAddress: Number(value.monthsAtAddress) || 0,
     previousAddress: text(value.previousAddress, 300) || null,
+    previousResidence: (Number(value.yearsAtAddress) || 0) + (Number(value.monthsAtAddress) || 0) / 12 < 2 && text(value.prev_streetAddress) ? {
+      streetAddress: text(value.prev_streetAddress, 200), city: text(value.prev_city, 100), state: text(value.prev_state, 2).toUpperCase(), zipCode: text(value.prev_zipCode, 10),
+      housingType: text(value.prev_housingType, 30), monthlyPayment: money(value.prev_monthlyPayment), yearsAtAddress: Number(value.prev_yearsAtAddress) || 0, monthsAtAddress: Number(value.prev_monthsAtAddress) || 0,
+    } : null,
   };
 }
+const cleanTrade = (t: any) => ({ vin: text(t.vin, 17).toUpperCase(), mileage: money(t.mileage), year: Number(t.year), make: text(t.make, 80), model: text(t.model, 100) });
 
 function cleanJob(value: Record<string, unknown>) {
   const self = value.selfEmployed === "yes";
@@ -158,7 +164,7 @@ serve(async (req) => {
     if ((iVin && !vinOk(iVin)) || !text(interested.year) || !text(interested.make) || !text(interested.model)) return json({ error: "Interested vehicle requires a year, make, and model (and a valid 17-character VIN if provided)." }, 400);
     if (body.hasTradeIn) {
       const trade = body.tradeIn || {};
-      if (!vinOk(text(trade.vin, 17)) || money(trade.mileage) === null || !text(trade.year) || !text(trade.make) || !text(trade.model)) return json({ error: "Trade-in requires a valid VIN, mileage, year, make, and model." }, 400);
+      for (const t of [trade, trade.secondVehicle].filter(Boolean)) if (!vinOk(text(t.vin, 17)) || money(t.mileage) === null || !text(t.year) || !text(t.make) || !text(t.model)) return json({ error: "Trade-in requires a valid VIN, mileage, year, make, and model." }, 400);
     }
     const callerId0 = await getCallerId(req);
     let requestedUsername: string | null = null;
@@ -199,11 +205,11 @@ serve(async (req) => {
 
     const { data, error } = await admin.from("vehicle_purchase_applications").insert({
       vehicle_id: vehicleId, user_id: callerId,
-      applicant: { ...(await cleanPerson(body.applicant)), requestedUsername }, residence: cleanResidence(residence), employment: cleanEmployment(employment),
+      applicant: { ...(await cleanPerson(body.applicant)), requestedUsername, ...Object.fromEntries((Array.isArray(body.references) ? body.references : []).slice(0, 5).filter((r: any) => r && text(r.name)).map((r: any, i: number) => [`reference${i + 1}`, { name: text(r.name, 120), phone: text(r.phone, 30), address: text(r.address, 250) }])) }, residence: cleanResidence(residence), employment: cleanEmployment(employment),
       co_buyer: body.hasCoBuyer ? { relationship: text(body.coBuyer.relationship, 60), ...(await cleanPerson(body.coBuyer)), residence: cleanResidence(body.coBuyer.residence || {}), employment: cleanEmployment(body.coBuyer.employment || {}) } : null,
       interested_vehicle: { vin: iVin.toUpperCase() || null, year: Number(interested.year), make: text(interested.make, 80), model: text(interested.model, 100), vin_provided: !!iVin, trim: text(interested.trim, 120) || null,
         specs: (() => { try { const a = JSON.parse(text(interested.specs, 3000) || "[]"); return Array.isArray(a) ? Object.fromEntries(a.slice(0, 15).filter((x: unknown) => Array.isArray(x)).map(([k, v]: any) => [String(k).slice(0, 40), String(v).slice(0, 120)])) : null; } catch { return null; } })(), vehiclePrice: money(interested.vehiclePrice), downPayment: money(interested.downPayment), exteriorColor: text(interested.exteriorColor, 60) || null, interiorColor: text(interested.interiorColor, 60) || null },
-      trade_in: body.hasTradeIn ? { vin: text(body.tradeIn.vin, 17).toUpperCase(), mileage: money(body.tradeIn.mileage), year: Number(body.tradeIn.year), make: text(body.tradeIn.make, 80), model: text(body.tradeIn.model, 100) } : null,
+      trade_in: body.hasTradeIn ? { ...cleanTrade(body.tradeIn), secondVehicle: body.tradeIn.secondVehicle ? cleanTrade(body.tradeIn.secondVehicle) : null } : null,
       marketing_sms_consent: body.marketingSmsConsent === true, service_sms_consent: body.serviceSmsConsent === true,
       credit_authorization_consent: true, privacy_policy_consent: true,
       referrer_username: chain.referrerUsername,
