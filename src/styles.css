@@ -84,6 +84,8 @@
   --color-rental-primary: hsl(var(--rental-primary));
   --color-rental-primary-foreground: hsl(var(--rental-primary-foreground));
   --color-rental-success: hsl(var(--rental-success));
+  --color-rental-warning: hsl(var(--rental-warning));
+  --color-rental-warning-foreground: hsl(var(--rental-warning-foreground));
 
   /* Payment brand colors (semantic tokens) */
   --color-paypal: hsl(var(--brand-paypal));
@@ -810,6 +812,8 @@ body.paypal-overlay-open {
   --rental-primary: 358 82% 47%;
   --rental-primary-foreground: 0 0% 100%;
   --rental-success: 151 55% 54%;
+  --rental-warning: 48 95% 55%;
+  --rental-warning-foreground: 220 10% 6%;
   background: hsl(var(--rental-background));
   color: hsl(var(--rental-foreground));
   font-family: "Barlow", sans-serif;
@@ -933,6 +937,8 @@ img {
   --rental-primary: 358 82% 47%;
   --rental-primary-foreground: 0 0% 100%;
   --rental-success: 151 55% 34%;
+  --rental-warning: 43 90% 42%;
+  --rental-warning-foreground: 0 0% 100%;
   background: hsl(var(--rental-background));
   color: hsl(var(--rental-foreground));
 }
