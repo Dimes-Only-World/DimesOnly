@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { vehicleRateWarnings } from "../src/lib/vehicleRateWarnings";
+import { vehicleRateWarnings } from "./vehicleRateWarnings";
 
 describe("vehicleRateWarnings", () => {
   it("is quiet for sensible rates", () => {

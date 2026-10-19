@@ -771,6 +771,7 @@ const VehicleForm: React.FC<{ initial: any | null; onClose: () => void; onSaved:
         <div><Label>Fee per mile over 200 miles/day ($)</Label><Input type="number" step="0.01" value={f.extra_mile_fee ?? ""} onChange={(e) => setF({ ...f, extra_mile_fee: e.target.value })} placeholder="e.g. 0.44" /></div>
         <div><Label>Unlimited mileage ($ / day)</Label><Input type="number" step="0.01" value={f.unlimited_mileage_rate ?? ""} onChange={(e) => setF({ ...f, unlimited_mileage_rate: e.target.value })} placeholder="Blank = not offered" /></div>
       </div>
+      {vehicleRateWarnings(f).length > 0 && (<div className="border border-destructive/50 bg-destructive/10 p-3 text-sm"><p className="font-semibold">Check these rates:</p>{vehicleRateWarnings(f).map((w) => <p key={w} className="text-muted-foreground">{w}</p>)}</div>)}
       {agreementFieldsMissing.length > 0 && (
         <div className="border border-destructive/50 bg-destructive/10 p-3 text-sm">
           <p className="font-semibold">Complete these agreement details before approving a long-term booking:</p>
