@@ -8,6 +8,7 @@ import { shortTermTotal } from "./shortTerm.ts";
 import { rentalExtras, extrasDays } from "./extras.ts";
 import { cancellationQuote } from "./cancellation.ts";
 import { bookingConflict, nextAvailableDate } from "./availability.ts";
+import { notifyBookingConfirmed, runReturnReminders } from "../_shared/rentalNotify.ts";
 
 type UploadedDocument = { name?: string; type?: string; base64: string };
 
@@ -239,6 +240,8 @@ serve(async (req) => {
       if (!_caller || _caller !== userId) return json({ error: "Please sign in again to continue.", requestId }, 401);
     }
     const admin = createServiceClient(requestId);
+    // Return reminders and late notices go out whenever renters or admins use rentals (each email once).
+    try { await runReturnReminders(admin); } catch (e) { console.error("reminder sweep failed", e); }
 
     // A Notify Me deposit is only consumed once its booking is paid. Release deposits
     // attached to bookings that are still unpaid (abandoned, replaced or cancelled checkout).
@@ -677,6 +680,7 @@ serve(async (req) => {
           })
           .eq("id", bk.id);
         if (bk.vehicle_id) await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", bk.vehicle_id);
+        await notifyBookingConfirmed(admin, bk.id);
 
         return json({ data: { status: "paid", capture_id: capture?.id || null }, requestId });
       }

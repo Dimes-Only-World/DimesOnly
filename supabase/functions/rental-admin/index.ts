@@ -3,6 +3,7 @@ import { resolveReferralChain, computeCommissions, areaCode, signAvatar } from "
 import { decryptSsn } from "../_shared/ssnCrypto.ts";
 import { buildManualPaymentReceiptPdf } from "./receipt.ts";
 import { sendEmailWithAttachment } from "../_shared/dimes-emails.ts";
+import { notifyBookingConfirmed, notifyCarAvailable, notifyCreditAppStatus, runReturnReminders } from "../_shared/rentalNotify.ts";
 import { summarizePayments, validPaymentDate, validPaymentMethod, type PaymentHistoryRow } from "./paymentHistory.ts";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": AUTH_HEADERS, "Access-Control-Allow-Methods": "POST, OPTIONS" };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -45,6 +46,7 @@ serve(async (req) => {
           : admin.from("vehicles").update(payload).eq("id", id);
         const { data, error } = await q.select().single();
         if (error) throw error;
+        if (payload?.availability_status === "available" && data?.id) await notifyCarAvailable(admin, data.id);
         const pay = Number(our_monthly_payment);
         if (our_monthly_payment !== undefined && our_monthly_payment !== null && our_monthly_payment !== "" && Number.isFinite(pay) && pay >= 0) {
           const { error: cErr } = await admin.from("vehicle_costs").upsert({ vehicle_id: data.id, monthly_payment: pay, updated_at: new Date().toISOString() });
@@ -116,6 +118,7 @@ serve(async (req) => {
         return json({ ok: true });
       }
       case "listBookings": {
+        await runReturnReminders(admin).catch((e) => console.error("reminder sweep failed", e));
         const { data, error } = await admin.from("rental_bookings")
           .select("*, vehicles(year,make,model,day_rate,three_day_rate,weekly_rate,monthly_rate,down_payment,security_deposit,hour_rate), booking_addons(name_snapshot, price_snapshot)")
           .order("created_at", { ascending: false });
@@ -205,12 +208,13 @@ serve(async (req) => {
         const { id, status } = params;
         const { data: b, error: bErr } = await admin.from("rental_bookings").update({ status }).eq("id", id).select().single();
         if (bErr) throw bErr;
-        if (status === "paid" && b) await createCommissions(admin, b);
+        if (status === "paid" && b) { await createCommissions(admin, b); await notifyBookingConfirmed(admin, b.id); }
         if (["paid", "active"].includes(status) && b?.vehicle_id) {
           await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", b.vehicle_id);
         }
         if (["cancelled", "completed", "rejected"].includes(status) && b?.vehicle_id) {
           await admin.from("vehicles").update({ availability_status: "available" }).eq("id", b.vehicle_id);
+          await notifyCarAvailable(admin, b.vehicle_id);
         }
         return json({ data: b });
       }
@@ -318,7 +322,7 @@ serve(async (req) => {
         if (approve) patch.status = "cancelled";
         const { data: b, error: bErr } = await admin.from("rental_bookings").update(patch).eq("id", id).select().single();
         if (bErr) throw bErr;
-        if (approve && cur.vehicle_id) await admin.from("vehicles").update({ availability_status: "available" }).eq("id", cur.vehicle_id);
+        if (approve && cur.vehicle_id) { await admin.from("vehicles").update({ availability_status: "available" }).eq("id", cur.vehicle_id); await notifyCarAvailable(admin, cur.vehicle_id); }
         return json({ data: b });
       }
       case "markPaidManual": {
@@ -358,6 +362,7 @@ serve(async (req) => {
         }
         await admin.from("vehicles").update({ availability_status: "rented" }).eq("id", b.vehicle_id);
         await createCommissions(admin, updated);
+        await notifyBookingConfirmed(admin, b.id);
         const { data: signedReceipt } = await admin.storage.from("rental-documents").createSignedUrl(receiptPath, 300);
         let emailed = false;
         let emailError: string | null = null;
@@ -422,6 +427,7 @@ serve(async (req) => {
         if (bErr) throw bErr;
         const { error: vErr } = await admin.from("vehicles").update({ availability_status: "available" }).eq("id", b.vehicle_id);
         if (vErr) throw vErr;
+        await notifyCarAvailable(admin, b.vehicle_id);
         return json({ data: b });
       }
       case "verifyPaypalPayment": {
@@ -470,7 +476,7 @@ serve(async (req) => {
           .select()
           .single();
         if (upErr) throw upErr;
-        if (!alreadyPaid) await createCommissions(admin, updated);
+        if (!alreadyPaid) { await createCommissions(admin, updated); await notifyBookingConfirmed(admin, id); }
         return json({ data: updated, verified: true });
       }
       case "listCommissions": {
@@ -710,6 +716,7 @@ serve(async (req) => {
         }
         const { data, error } = await admin.from("vehicle_purchase_applications").update(clean).eq("id", id).select().single();
         if (error) throw error;
+        if (clean.status) await notifyCreditAppStatus(admin, id, clean.status);
         return json({ data });
       }
 

@@ -4349,6 +4349,27 @@ export type Database = {
           },
         ]
       }
+      rental_notifications_sent: {
+        Row: {
+          id: string
+          kind: string
+          ref_id: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          ref_id: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          ref_id?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       reward_contests: {
         Row: {
           audience: string[]
