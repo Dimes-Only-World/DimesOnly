@@ -785,16 +785,16 @@ const RentalDetails: React.FC = () => {
                         <span>+${addonTotal.toLocaleString()}</span>
                       </div>
                     )}
-                    <div className="flex justify-between border-t border-border/50 pt-2 text-base">
-                      <span>Total</span>
-                      <span className="font-bold">${total.toLocaleString()}</span>
-                    </div>
                     {securityDeposit > 0 && (
-                      <div className="text-muted-foreground sm:flex sm:justify-between">
-                        <span className="block">Security deposit (authorized before pickup)</span>
-                        <span className="mt-1 block font-semibold text-rental-foreground sm:mt-0">${securityDeposit.toLocaleString()}</span>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Security deposit</span>
+                        <span>+${securityDeposit.toLocaleString()}</span>
                       </div>
                     )}
+                    <div className="flex justify-between border-t border-border/50 pt-2 text-base">
+                      <span>Total to be collected</span>
+                      <span className="font-bold">${(Math.round((total + securityDeposit) * 100) / 100).toLocaleString()}</span>
+                    </div>
                     {downPayment > 0 && (
                       <div className="flex justify-between text-primary">
                         <span>Down payment</span>
