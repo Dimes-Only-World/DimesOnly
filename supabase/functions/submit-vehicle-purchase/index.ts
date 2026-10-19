@@ -50,9 +50,15 @@ function cleanResidence(value: Record<string, unknown>) {
   return {
     streetAddress: text(value.streetAddress, 200), city: text(value.city, 100), state: text(value.state, 2).toUpperCase(),
     zipCode: text(value.zipCode, 10), housingType: text(value.housingType, 30), monthlyPayment: money(value.monthlyPayment),
+    yearsAtAddress: Number(value.yearsAtAddress) || 0, monthsAtAddress: Number(value.monthsAtAddress) || 0,
     previousAddress: text(value.previousAddress, 300) || null,
+    previousResidence: (Number(value.yearsAtAddress) || 0) + (Number(value.monthsAtAddress) || 0) / 12 < 2 && text(value.prev_streetAddress) ? {
+      streetAddress: text(value.prev_streetAddress, 200), city: text(value.prev_city, 100), state: text(value.prev_state, 2).toUpperCase(), zipCode: text(value.prev_zipCode, 10),
+      housingType: text(value.prev_housingType, 30), monthlyPayment: money(value.prev_monthlyPayment), yearsAtAddress: Number(value.prev_yearsAtAddress) || 0, monthsAtAddress: Number(value.prev_monthsAtAddress) || 0,
+    } : null,
   };
 }
+const cleanTrade = (t: any) => ({ vin: text(t.vin, 17).toUpperCase(), mileage: money(t.mileage), year: Number(t.year), make: text(t.make, 80), model: text(t.model, 100) });
 
 function cleanJob(value: Record<string, unknown>) {
   const self = value.selfEmployed === "yes";
