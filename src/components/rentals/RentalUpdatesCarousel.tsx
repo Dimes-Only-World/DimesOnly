@@ -32,9 +32,26 @@ export default function RentalUpdatesCarousel() {
   if (!slides.length) return null;
   const go = (d: number) => setI((n) => (n + d + slides.length) % slides.length);
 
+  // Finger swipe left/right moves through the slides — phones show no arrow buttons.
+  const touchStart = React.useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.changedTouches[0];
+    touchStart.current = t ? { x: t.clientX, y: t.clientY } : null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    const t = e.changedTouches[0];
+    if (!start || !t) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+  };
+
+
   return (
     <section aria-label="Rental updates" className="relative mb-6 overflow-hidden border-y border-rental-line bg-rental-surface">
-      <div className="relative aspect-[4/3] w-full sm:aspect-[21/8] sm:max-h-[480px]">
+      <div className="relative aspect-[4/3] w-full touch-pan-y sm:aspect-[21/8] sm:max-h-[480px]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {slides.map((s, n) => (
           <div key={s.id} className={`absolute inset-0 transition-opacity duration-700 ${n === i ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={n !== i}>
             {s.src && <img src={s.src} alt={s.title || "Rental update"} className="h-full w-full object-cover" loading={n === 0 ? "eager" : "lazy"} />}
@@ -50,8 +67,9 @@ export default function RentalUpdatesCarousel() {
         ))}
         {slides.length > 1 && (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="Previous update" className="absolute left-3 top-1/3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground sm:left-6"><ChevronLeft className="h-5 w-5" /></button>
-            <button type="button" onClick={() => go(1)} aria-label="Next update" className="absolute right-3 top-1/3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground sm:right-6"><ChevronRight className="h-5 w-5" /></button>
+            <button type="button" onClick={() => go(-1)} aria-label="Previous update" className="absolute left-3 top-1/3 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground sm:flex sm:left-6"><ChevronLeft className="h-5 w-5" /></button>
+            <button type="button" onClick={() => go(1)} aria-label="Next update" className="absolute right-3 top-1/3 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-rental-background/70 text-rental-foreground sm:flex sm:right-6"><ChevronRight className="h-5 w-5" /></button>
+
             <div className="absolute right-4 top-3 flex gap-1.5 sm:right-8">
               {slides.map((s, n) => <button key={s.id} type="button" onClick={() => setI(n)} aria-label={`Show update ${n + 1}`} className={`h-2 w-2 rounded-full ${n === i ? "bg-rental-primary" : "bg-rental-foreground/50"}`} />)}
             </div>
