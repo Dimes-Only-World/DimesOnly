@@ -997,7 +997,7 @@ img {
 .rentals-logo-mark {
   display: block;
   width: 100%;
-  aspect-ratio: 265 / 103;
+  aspect-ratio: 1078 / 544;
   background-color: var(--color-rental-logo);
   -webkit-mask-image: var(--rentals-logo-src);
   mask-image: var(--rentals-logo-src);
@@ -1010,9 +1010,9 @@ img {
 }
 
 @media (min-width: 640px) {
-  .rentals-logo-mark { width: min(26rem, 70%); }
+  .rentals-logo-mark { width: min(18rem, 50%); }
 }
 
 @media (min-width: 1024px) {
-  .rentals-logo-mark { width: min(32rem, 55%); }
+  .rentals-logo-mark { width: min(24rem, 38%); }
 }
