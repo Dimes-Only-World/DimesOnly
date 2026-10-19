@@ -214,10 +214,10 @@ const RentalDetails: React.FC = () => {
   const requireAccount = () => {
     if (user) return true;
     toast({
-      title: "Create your profile to continue",
-      description: "You'll come right back to this vehicle after signing up.",
+      title: "Sign in to continue",
+      description: "You'll come right back to this vehicle after you sign in or sign up.",
     });
-    navigate(buildAuthUrl("/rentals/signup", `/rentals/${id}`));
+    navigate(buildAuthUrl("/login", `/rentals/${id}`));
     return false;
   };
 
@@ -575,7 +575,7 @@ const RentalDetails: React.FC = () => {
                     {bookedRanges.map((r, i) => <p key={i} className="text-muted-foreground">{new Date(r.start_date).toLocaleDateString()} – {new Date(r.end_date || r.start_date).toLocaleDateString()}</p>)}
                   </div>
                 )}
-                {rentalOptions.length > 0 && <Button size="lg" className="w-full" onClick={() => { if (!requireAccount()) return; if (carUnavailable) setShowNotify(true); else setShowBook(true); }}>
+                {rentalOptions.length > 0 && <Button size="lg" className="w-full rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90" onClick={() => { if (!requireAccount()) return; if (carUnavailable) setShowNotify(true); else setShowBook(true); }}>
                   {carUnavailable ? <><BellRing className="mr-2 h-5 w-5" /> Notify Me When Available</> : "Rent This Car"}
                 </Button>}
                 {purchaseAvailable && <Button asChild size="lg" variant="outline" className="w-full border-primary"><Link to={`/rentals/purchase/${vehicle.id}`}><BadgeDollarSign className="mr-2 h-5 w-5" /> Apply to Purchase</Link></Button>}
@@ -812,7 +812,7 @@ const RentalDetails: React.FC = () => {
 
 
 
-                  <Button className="w-full" onClick={submitBooking} disabled={submitting}>
+                  <Button size="lg" className="w-full rounded-none bg-rental-primary font-semibold text-rental-primary-foreground hover:bg-rental-primary/90" onClick={submitBooking} disabled={submitting}>
                     {submitting ? "Submitting..." : "Submit Booking Request"}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
@@ -864,7 +864,7 @@ const RentalDetails: React.FC = () => {
 
         <div className="mt-10 flex justify-center px-4">
           <Link to="/rentals">
-            <Button size="lg" className="gap-2"><ArrowLeft className="h-5 w-5" /> Back to Rentals</Button>
+            <Button size="lg" className="gap-2 rounded-none bg-rental-primary text-rental-primary-foreground hover:bg-rental-primary/90"><ArrowLeft className="h-5 w-5" /> Back to Rentals</Button>
           </Link>
         </div>
       </div>

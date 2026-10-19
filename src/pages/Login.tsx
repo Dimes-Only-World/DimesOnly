@@ -307,9 +307,11 @@ const Login: React.FC = () => {
                   
                   <div className="text-center pt-2">
                     <p className="text-sm text-white/80">
-                      Don't have an account?{" "}
+                      {pendingRedirect?.startsWith("/rentals") || pendingRedirect?.startsWith("/account") ? "New here?" : "Don't have an account?"}{" "}
                       <Link
-                        to={shortFormUrl}
+                        to={pendingRedirect?.startsWith("/rentals") || pendingRedirect?.startsWith("/account")
+                          ? `/rentals/signup?redirect=${encodeURIComponent(pendingRedirect)}${searchParams.get("ref") ? `&ref=${encodeURIComponent(searchParams.get("ref")!)}` : ""}`
+                          : shortFormUrl}
                         className="text-blue-300 hover:text-blue-200 hover:underline font-medium"
                       >
                         Sign up
