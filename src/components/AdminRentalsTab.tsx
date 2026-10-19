@@ -197,7 +197,6 @@ const AdminRentalsTab: React.FC = () => {
                 <label className="ml-auto flex items-center gap-2 text-sm"><Checkbox checked={showTest} onCheckedChange={(v) => setShowTest(!!v)} /> Show test data</label>
               </div>
               {mismatches > 0 && <p className="text-sm text-destructive">⚠ {mismatches} booking total{mismatches > 1 ? "s don't" : " doesn't"} match the car's current rates. Open the total line on each booking to see why.</p>}
-              </div>
               {shown.map((b) => <BookingRow key={b.id} b={b} onChange={loadAll} />)}
               {shown.length === 0 && <p className="text-muted-foreground">{loaded ? "No bookings here." : "Loading bookings…"}</p>}
             </>;
