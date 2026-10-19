@@ -3862,6 +3862,7 @@ export type Database = {
           hold_id: string | null
           id: string
           insurance_path: string | null
+          is_test: boolean
           late_fee_charged: number
           latest_reported_mileage: number | null
           license_path: string | null
@@ -3920,6 +3921,7 @@ export type Database = {
           hold_id?: string | null
           id?: string
           insurance_path?: string | null
+          is_test?: boolean
           late_fee_charged?: number
           latest_reported_mileage?: number | null
           license_path?: string | null
@@ -3978,6 +3980,7 @@ export type Database = {
           hold_id?: string | null
           id?: string
           insurance_path?: string | null
+          is_test?: boolean
           late_fee_charged?: number
           latest_reported_mileage?: number | null
           license_path?: string | null
@@ -5542,6 +5545,7 @@ export type Database = {
           is_active: boolean
           is_business_owner: boolean
           is_ranked: boolean | null
+          is_test: boolean
           last_login_at: string | null
           last_name: string | null
           liked_by: string | null
@@ -5616,6 +5620,7 @@ export type Database = {
           is_active?: boolean
           is_business_owner?: boolean
           is_ranked?: boolean | null
+          is_test?: boolean
           last_login_at?: string | null
           last_name?: string | null
           liked_by?: string | null
@@ -5690,6 +5695,7 @@ export type Database = {
           is_active?: boolean
           is_business_owner?: boolean
           is_ranked?: boolean | null
+          is_test?: boolean
           last_login_at?: string | null
           last_name?: string | null
           liked_by?: string | null
@@ -5831,6 +5837,7 @@ export type Database = {
           employment: Json
           id: string
           interested_vehicle: Json
+          is_test: boolean
           marketing_sms_consent: boolean
           privacy_policy_consent: boolean
           referrer_commission: number
@@ -5864,6 +5871,7 @@ export type Database = {
           employment: Json
           id?: string
           interested_vehicle: Json
+          is_test?: boolean
           marketing_sms_consent?: boolean
           privacy_policy_consent?: boolean
           referrer_commission?: number
@@ -5897,6 +5905,7 @@ export type Database = {
           employment?: Json
           id?: string
           interested_vehicle?: Json
+          is_test?: boolean
           marketing_sms_consent?: boolean
           privacy_policy_consent?: boolean
           referrer_commission?: number
