@@ -53,8 +53,24 @@ const fileToBase64 = (file: File): Promise<string> =>
     r.readAsDataURL(file);
   });
 
+const ACTIVE_STATUSES = ["active", "in_progress", "picked_up", "confirmed", "paid"];
+const isOverdue = (b: any) => {
+  if (!ACTIVE_STATUSES.includes(String(b.status || "").toLowerCase()) || !b.end_date || b.returned_at) return false;
+  return lateFeeStatus(new Date(b.end_date).getTime(), Date.now(), Number(b.vehicles?.day_rate || 0), b.vehicles?.hour_rate).isLate;
+};
+const isExpired = (b: any) => ["pending", "approved"].includes(b.status) && !!b.start_date && Date.now() - new Date(b.start_date).getTime() > 24 * 3600 * 1000;
+
+const readSub = () => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("sub"));
+
 const AdminRentalsTab: React.FC = () => {
-  const [tab, setTab] = useState("vehicles");
+  const [tab, setTabState] = useState(() => readSub() || "vehicles");
+  const setTab = (v: string) => {
+    setTabState(v);
+    const url = new URL(window.location.href); url.searchParams.set("sub", v);
+    window.history.replaceState(window.history.state, "", url.toString());
+  };
+  const [bookingFilter, setBookingFilter] = useState<"all" | "overdue" | "expired">("all");
+  const [loaded, setLoaded] = useState(false);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [commissions, setCommissions] = useState<any[]>([]);
@@ -76,7 +92,7 @@ const AdminRentalsTab: React.FC = () => {
       setCallRequests(crs?.data || []);
     } catch (e: any) {
       toast({ title: "Load failed", description: e.message, variant: "destructive" });
-    }
+    } finally { setLoaded(true); }
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -138,10 +154,26 @@ const AdminRentalsTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-3">
-          {bookings.map((b) => (
-            <BookingRow key={b.id} b={b} onChange={loadAll} />
-          ))}
-          {bookings.length === 0 && <p className="text-muted-foreground">No bookings yet.</p>}
+          {(() => {
+            const counts = { all: bookings.length, overdue: bookings.filter(isOverdue).length, expired: bookings.filter(isExpired).length };
+            const shown = bookings.filter((b) => bookingFilter === "overdue" ? isOverdue(b) : bookingFilter === "expired" ? isExpired(b) : true);
+            return <>
+              <div className="flex flex-wrap items-center gap-2">
+                {(["all", "overdue", "expired"] as const).map((f) => (
+                  <Button key={f} size="sm" variant={bookingFilter === f ? "default" : "outline"} onClick={() => setBookingFilter(f)} className="capitalize">
+                    {f} ({counts[f]})
+                  </Button>
+                ))}
+                {counts.expired > 0 && <Button size="sm" variant="destructive" onClick={async () => {
+                  if (!confirm(`Cancel ${counts.expired} expired pending booking(s)? They are unpaid and more than 24 hours past their start date.`)) return;
+                  try { for (const b of bookings.filter(isExpired)) await callAdmin("updateBookingStatus", { id: b.id, status: "cancelled" }); toast({ title: "Expired bookings cleared" }); loadAll(); }
+                  catch (e: any) { toast({ title: "Clear failed", description: e.message, variant: "destructive" }); }
+                }}>Clear expired</Button>}
+              </div>
+              {shown.map((b) => <BookingRow key={b.id} b={b} onChange={loadAll} />)}
+              {shown.length === 0 && <p className="text-muted-foreground">{loaded ? "No bookings here." : "Loading bookings…"}</p>}
+            </>;
+          })()}
         </TabsContent>
 
         <TabsContent value="payments">
