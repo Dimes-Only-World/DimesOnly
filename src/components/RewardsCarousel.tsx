@@ -130,6 +130,8 @@ const RewardsCarousel: React.FC = () => {
     <section
       className={`reward-carousel ${defaultTheme} relative mb-6 overflow-hidden rounded-2xl border border-dimes-gold/40 bg-dimes-surface-elevated p-5 shadow-lg md:p-7`}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onTouchStart={(e) => { const t = e.touches[0]; if (!t) return; (e.currentTarget as any)._sx = t.clientX; (e.currentTarget as any)._sy = t.clientY; }}
+      onTouchEnd={(e) => { const el = e.currentTarget as any; const t = e.changedTouches[0]; if (!t) return; const dx = t.clientX - (el._sx ?? t.clientX); const dy = t.clientY - (el._sy ?? t.clientY); if (items.length > 1 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1); }}
     >
       {!backgroundUrl && <div className="reward-theme-pattern absolute inset-0" aria-hidden="true" />}
       {backgroundUrl && (videoBackground
@@ -142,8 +144,8 @@ const RewardsCarousel: React.FC = () => {
       </div>
       {items.length > 1 && (
         <>
-          <Button type="button" size="icon" variant="ghost" aria-label="Previous contest" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 text-white shadow-md hover:bg-black/50 hover:text-white"><ChevronLeft className="h-5 w-5 text-white" /></Button>
-          <Button type="button" size="icon" variant="ghost" aria-label="Next contest" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 text-white shadow-md hover:bg-black/50 hover:text-white"><ChevronRight className="h-5 w-5 text-white" /></Button>
+          <Button type="button" size="icon" variant="ghost" aria-label="Previous contest" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 hidden lg:inline-flex rounded-full border border-white/30 bg-black/30 text-white shadow-md hover:bg-black/50 hover:text-white"><ChevronLeft className="h-5 w-5 text-white" /></Button>
+          <Button type="button" size="icon" variant="ghost" aria-label="Next contest" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:inline-flex rounded-full border border-white/30 bg-black/30 text-white shadow-md hover:bg-black/50 hover:text-white"><ChevronRight className="h-5 w-5 text-white" /></Button>
           <div className="relative mt-4 flex justify-center gap-1.5">
             {items.map((c, k) => (
               <Button type="button" key={c.id} variant="ghost" aria-label={`Contest ${k + 1}`} onClick={() => setI(k)} className={`h-2 min-w-0 rounded-full p-0 transition-all ${k === idx ? "w-6 bg-dimes-gold" : "w-2 bg-foreground/40"}`} />

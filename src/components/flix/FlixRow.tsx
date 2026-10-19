@@ -55,7 +55,7 @@ const FlixRow: React.FC<FlixRowProps> = ({ title, titles, progressMap }) => {
     <section className="relative" aria-label={title}>
       <div className="flex items-center justify-between px-4 md:px-8 mb-3">
         <h2 className="text-white text-lg md:text-xl font-bold">{title}</h2>
-        <div className="hidden md:flex gap-2">
+        <div className="hidden lg:flex gap-2">
           <button onClick={() => scroll(-1)} className="p-1.5 rounded-full bg-[#141416] text-[#A1A1A1] hover:text-white" aria-label={`Scroll ${title} left`}>
             <ChevronLeft size={18} />
           </button>
