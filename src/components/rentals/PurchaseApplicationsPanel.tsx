@@ -24,6 +24,7 @@ const DetailBlock = ({ heading, data }: { heading: string; data: Record<string, 
         <dd className="break-words text-sm text-foreground">{show(value)}</dd>
       </div>)}
     </dl>
+    {Object.entries(data).filter(([key, value]) => value && typeof value === "object" && !Array.isArray(value) && key !== "residence" && key !== "employment").map(([key, value]) => <div key={key} className="mt-4 border-t border-border pt-3"><h4 className="mb-2 text-sm font-semibold text-foreground">{title(key)}</h4><dl className="grid gap-x-5 gap-y-2 sm:grid-cols-2">{Object.entries(value as Record<string, unknown>).filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => <div key={k}><dt className="text-xs text-muted-foreground">{title(k)}</dt><dd className="break-words text-sm text-foreground">{show(v)}</dd></div>)}</dl></div>)}
   </section>;
 };
 

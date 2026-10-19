@@ -54,12 +54,32 @@ function cleanResidence(value: Record<string, unknown>) {
   };
 }
 
-function cleanEmployment(value: Record<string, unknown>) {
-  return {
+function cleanJob(value: Record<string, unknown>) {
+  const self = value.selfEmployed === "yes";
+  const job: Record<string, unknown> = {
+    selfEmployed: self ? "Yes" : "No", employmentType: text(value.employmentType, 60) || null,
     employerName: text(value.employerName, 150), title: text(value.title, 100), employerPhone: text(value.employerPhone, 30),
-    monthlyGrossIncome: money(value.monthlyGrossIncome), yearsAtJob: Number(value.yearsAtJob) || 0,
-    monthsAtJob: Number(value.monthsAtJob) || 0, previousEmployment: text(value.previousEmployment, 400) || null,
+    employerAddress: text(value.employerAddress, 250) || null,
+    monthlyGrossIncome: money(value.monthlyGrossIncome), yearsAtJob: Number(value.yearsAtJob) || 0, monthsAtJob: Number(value.monthsAtJob) || 0,
   };
+  if (self) Object.assign(job, {
+    dba: text(value.dba, 150) || null, businessType: text(value.businessType, 40) || null,
+    einLast4: /^\d{2}-\d{7}$/.test(text(value.ein, 10)) ? text(value.ein, 10).slice(-4) : null,
+    industry: text(value.industry, 150) || null, ownershipPercent: Math.min(100, Math.max(0, Number(value.ownershipPercent) || 0)),
+    businessStartDate: text(value.businessStartDate, 20) || null, businessLicense: text(value.businessLicense, 80) || null,
+    netMonthlyIncome: money(value.netMonthlyIncome), annualRevenue: money(value.annualRevenue),
+  });
+  return job;
+}
+
+function cleanEmployment(value: Record<string, unknown>) {
+  const main = cleanJob(value);
+  const prev = value.previousJob && typeof value.previousJob === "object" ? cleanJob(value.previousJob as Record<string, unknown>) : null;
+  const extra = Array.isArray(value.additionalJobs) ? value.additionalJobs.slice(0, 3).filter((j) => j && typeof j === "object").map((j) => cleanJob(j as Record<string, unknown>)) : [];
+  const out: Record<string, unknown> = { ...main, previousEmployment: text(value.previousEmployment, 400) || null };
+  if (prev && (Number(value.yearsAtJob) || 0) + (Number(value.monthsAtJob) || 0) / 12 < 2) out.previousJob = prev;
+  extra.forEach((j, i) => { out[`additionalJob${i + 1}`] = j; });
+  return out;
 }
 
 function validateResidence(value: unknown, label: string) {
