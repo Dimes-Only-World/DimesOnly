@@ -222,9 +222,16 @@ const AdminRentalsTab: React.FC = () => {
         <TabsContent value="commissions" className="space-y-3">
           {commissions.map((c) => (
             <Card key={c.id}><CardContent className="p-3 text-sm flex items-center justify-between">
-              <div>
-                <p>User {c.user_id.slice(0, 8)} · {c.commission_type} · ${Number(c.amount).toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Booking {c.booking_id.slice(0, 8)} · {c.status}</p>
+              <div className="flex items-center gap-3 min-w-0">
+                {c.profile_photo ? (
+                  <img src={c.profile_photo} alt={c.username || "Member"} className="h-10 w-10 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold uppercase shrink-0">{(c.username || "?").slice(0, 1)}</div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate"><b>{c.username ? `@${c.username}` : `User ${c.user_id.slice(0, 8)}`}</b>{c.full_name ? ` (${c.full_name})` : ""} · {c.commission_type} · ${Number(c.amount).toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">Booking {c.booking_id.slice(0, 8)} · {c.status}</p>
+                </div>
               </div>
               {c.status === "pending" && (
                 <Button size="sm" onClick={async () => {

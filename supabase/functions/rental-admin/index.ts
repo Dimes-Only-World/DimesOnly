@@ -482,7 +482,16 @@ serve(async (req) => {
       case "listCommissions": {
         const { data, error } = await admin.from("rental_commissions").select("*").order("created_at", { ascending: false });
         if (error) throw error;
-        return json({ data });
+        const ids = [...new Set((data || []).map((c: any) => c.user_id).filter(Boolean))];
+        const { data: us } = ids.length
+          ? await admin.from("users").select("id, username, first_name, last_name, profile_photo").in("id", ids)
+          : { data: [] as any[] };
+        const byId = new Map((us || []).map((u: any) => [u.id, u]));
+        const enriched = (data || []).map((c: any) => {
+          const u: any = byId.get(c.user_id);
+          return { ...c, username: u?.username || null, full_name: u ? [u.first_name, u.last_name].filter(Boolean).join(" ") || null : null, profile_photo: u?.profile_photo || null };
+        });
+        return json({ data: enriched });
       }
       case "updateCommissionStatus": {
         const { id, status } = params;
