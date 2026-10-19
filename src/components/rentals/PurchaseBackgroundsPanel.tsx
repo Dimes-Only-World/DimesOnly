@@ -25,7 +25,7 @@ const PurchaseBackgroundsPanel: React.FC<{ callAdmin: (action: string, extra?: R
     try { await callAdmin("setPurchaseBackgrounds", { paths }); load(); }
     catch (e: any) { toast({ title: "Save failed", description: e.message, variant: "destructive" }); }
   };
-  const move = (i: number, d: number) => { const p = items.map((x) => x.path); const j = i + d; if (j < 0 || j >= p.length) return; [p[i], p[j]] = [p[j], p[i]]; save(p); };
+  const move = (i: number, d: number) => { const p = items.map((x) => x.path); const j = i + d; if (j < 0 || j >= p.length) return; const tmp = p[i]!; p[i] = p[j]!; p[j] = tmp; save(p); };
 
   return <Card><CardContent className="space-y-4 p-4">
     <div className="flex flex-wrap items-center justify-between gap-3">

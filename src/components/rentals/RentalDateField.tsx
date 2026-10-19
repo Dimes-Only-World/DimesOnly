@@ -25,7 +25,7 @@ export default function RentalDateField({ value, onChange, fromYear = 1930, toYe
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild><button type="button" aria-label="Open calendar" className="flex h-full items-center px-3 text-rental-muted transition-colors hover:text-rental-primary"><CalendarDays className="h-5 w-5" /></button></PopoverTrigger>
       <PopoverContent align="end" className="rental-calendar w-auto rounded-none border-rental-line bg-rental-surface p-3 text-rental-foreground shadow-2xl">
-        <DayPicker mode="single" captionLayout="dropdown" startMonth={new Date(fromYear, 0)} endMonth={new Date(toYear, 11)} selected={selected && isValid(selected) ? selected : undefined} defaultMonth={selected && isValid(selected) ? selected : undefined}
+        <DayPicker mode="single" captionLayout="dropdown" startMonth={new Date(fromYear, 0)} endMonth={new Date(toYear, 11)} {...(selected && isValid(selected) ? { selected, defaultMonth: selected } : {})}
           onSelect={(d) => { if (d) { onChange(format(d, "yyyy-MM-dd")); setOpen(false); } }} className="pointer-events-auto" />
       </PopoverContent>
     </Popover>
