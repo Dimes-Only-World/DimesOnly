@@ -321,6 +321,12 @@ serve(async (req) => {
           return json({ error: "Pickup must be scheduled from today through the next 28 days", requestId }, 400);
         }
         if (!booking.end_date) return json({ error: "A return or contract end date is required", requestId }, 400);
+        {
+          const { data: others } = await admin.from("rental_bookings").select("start_date, end_date")
+            .eq("vehicle_id", booking.vehicle_id).in("status", ["paid", "active"]).neq("renter_user_id", userId);
+          const conflict = bookingConflict(others || [], new Date(booking.start_date).getTime(), new Date(booking.end_date).getTime(), Date.now());
+          if (conflict) return json({ error: conflict, requestId }, 400);
+        }
         if (booking.rental_type !== "long_term" && booking.rental_type !== "rent_to_own" && !monthlyRentalEndIsValid(booking.start_date, booking.end_date)) {
           return json({ error: "Bookings may run no more than 30 days. Choose 6 months or lease to own for longer.", requestId }, 400);
         }
@@ -425,13 +431,22 @@ serve(async (req) => {
           discountAmount = result.discount;
         }
 
+        const { data: heldDeposit } = await admin.from("rental_holds").select("id, amount")
+          .eq("user_id", userId).eq("vehicle_id", booking.vehicle_id).in("status", ["held", "refundable"])
+          .order("created_at").limit(1).maybeSingle();
+        const holdCredit = heldDeposit ? Math.min(Number(heldDeposit.amount || 0), Math.max(0, verifiedSubtotal - discountAmount)) : 0;
+
+
+
         const insertPayload = {
           vehicle_id: booking.vehicle_id,
           rental_type: booking.rental_type,
           start_date: booking.start_date,
           end_date: booking.end_date || null,
           pickup_location: booking.pickup_location || null,
-          total_price: Math.max(0, verifiedSubtotal - discountAmount),
+          total_price: Math.max(0, verifiedSubtotal - discountAmount - holdCredit),
+          hold_credit: holdCredit,
+          hold_id: heldDeposit?.id || null,
           down_payment_amount:
             booking.rental_type === "long_term" || booking.rental_type === "rent_to_own"
               ? Math.max(0, Number(vehicle.down_payment || 0)) + addonTotal
@@ -507,6 +522,10 @@ serve(async (req) => {
               .update({ uses_count: Number(appliedPromo.uses_count || 0) + 1 })
               .eq("id", appliedPromo.id);
           }
+        }
+
+        if (heldDeposit && bookingRow?.id) {
+          await admin.from("rental_holds").update({ status: "applied", applied_booking_id: bookingRow.id }).eq("id", heldDeposit.id);
         }
 
         log(requestId, "booking created", { bookingId: bookingRow.id });
