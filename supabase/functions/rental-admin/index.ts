@@ -384,9 +384,34 @@ serve(async (req) => {
         return json({ data: updated, receiptUrl: signedReceipt?.signedUrl || null, emailed, emailError });
       }
       case "markReturned": {
-        const { id } = params;
-        const returnedAt = new Date().toISOString();
-        const { data: b, error: bErr } = await admin.from("rental_bookings").update({ status: "returned", returned_at: returnedAt }).eq("id", id).select().single();
+        const { id, returnedAt, mileage, fuel, damageNotes, lateFee, depositKept, photos } = params;
+        const { data: cur, error: cErr } = await admin.from("rental_bookings").select("id, security_deposit, status").eq("id", id).single();
+        if (cErr) throw cErr;
+        const when = returnedAt ? new Date(returnedAt) : new Date();
+        if (isNaN(when.getTime())) return json({ error: "Invalid return time" }, 400);
+        const deposit = Number(cur.security_deposit || 0);
+        const kept = Math.max(0, Math.min(deposit, Number(depositKept) || 0));
+        const fee = Math.max(0, Number(lateFee) || 0);
+        const miles = mileage === "" || mileage == null ? null : parseInt(String(mileage).replace(/[^0-9]/g, ""), 10);
+        const paths: string[] = [];
+        for (const p of (Array.isArray(photos) ? photos.slice(0, 10) : [])) {
+          if (!["image/jpeg", "image/png", "image/webp"].includes(String(p?.contentType)) || typeof p?.base64 !== "string" || p.base64.length > 15 * 1024 * 1024) return json({ error: "Photos must be JPG, PNG or WEBP under 10MB" }, 400);
+          const ext = p.contentType === "image/png" ? "png" : p.contentType === "image/webp" ? "webp" : "jpg";
+          const path = `returns/${id}/${crypto.randomUUID()}.${ext}`;
+          const bytes = Uint8Array.from(atob(p.base64), (c) => c.charCodeAt(0));
+          const { error: upErr } = await admin.storage.from("rental-documents").upload(path, bytes, { contentType: p.contentType });
+          if (upErr) throw upErr;
+          paths.push(path);
+        }
+        const { data: b, error: bErr } = await admin.from("rental_bookings").update({
+          status: "completed", returned_at: when.toISOString(),
+          return_mileage: Number.isFinite(miles as number) ? miles : null,
+          return_fuel: fuel ? String(fuel).slice(0, 40) : null,
+          return_damage_notes: damageNotes ? String(damageNotes).slice(0, 4000) : null,
+          return_photo_paths: paths, late_fee_charged: fee,
+          deposit_kept: kept, deposit_refunded: Math.max(0, deposit - kept),
+          ...(Number.isFinite(miles as number) ? { latest_reported_mileage: miles } : {}),
+        }).eq("id", id).select().single();
         if (bErr) throw bErr;
         const { error: vErr } = await admin.from("vehicles").update({ availability_status: "available" }).eq("id", b.vehicle_id);
         if (vErr) throw vErr;
