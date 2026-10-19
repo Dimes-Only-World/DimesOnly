@@ -522,7 +522,16 @@ const RentalDetails: React.FC = () => {
                 <CalendarX2 className="w-5 h-5 text-emerald-400 mt-0.5" />
                 <div>
                   <p className="font-semibold text-emerald-400 underline underline-offset-4">Free cancellation</p>
-                  <p className="text-sm text-emerald-300/80">Full Refund Until 24 Hours Before Trip Start<br />Learn More</p>
+                  <p className="text-sm text-emerald-300/80">Full Refund Until 24 Hours Before Trip Start</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 border-emerald-400/50 text-emerald-300 hover:bg-emerald-500/20"
+                    onClick={(e) => { e.stopPropagation(); setShowCancelPolicy(true); }}
+                  >
+                    Learn More
+                  </Button>
                 </div>
               </CardContent>
             </Card>
