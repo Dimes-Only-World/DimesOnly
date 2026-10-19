@@ -55,6 +55,7 @@ import { Route as UpgradeGoldRouteImport } from './routes/upgrade-gold'
 import { Route as UpgradeSilverRouteImport } from './routes/upgrade-silver'
 import { Route as UpgradeSilverPlusRouteImport } from './routes/upgrade-silver-plus'
 import { Route as UpgradeSilverSubscribeRouteImport } from './routes/upgrade-silver-subscribe'
+import { Route as ZzcaltestRouteImport } from './routes/zzcaltest'
 import { Route as AccountMyRentalsRouteImport } from './routes/account/my-rentals'
 import { Route as ClothesIndexRouteImport } from './routes/clothes/index'
 import { Route as ClothesPageRouteImport } from './routes/clothes/$page'
@@ -327,6 +328,11 @@ const UpgradeSilverSubscribeRoute = UpgradeSilverSubscribeRouteImport.update({
   path: '/upgrade-silver-subscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ZzcaltestRoute = ZzcaltestRouteImport.update({
+  id: '/zzcaltest',
+  path: '/zzcaltest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountMyRentalsRoute = AccountMyRentalsRouteImport.update({
   id: '/account/my-rentals',
   path: '/account/my-rentals',
@@ -581,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/upgrade-silver': typeof UpgradeSilverRoute
   '/upgrade-silver-plus': typeof UpgradeSilverPlusRoute
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
+  '/zzcaltest': typeof ZzcaltestRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
@@ -663,6 +670,7 @@ export interface FileRoutesByTo {
   '/upgrade-silver': typeof UpgradeSilverRoute
   '/upgrade-silver-plus': typeof UpgradeSilverPlusRoute
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
+  '/zzcaltest': typeof ZzcaltestRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
@@ -750,6 +758,7 @@ export interface FileRoutesById {
   '/upgrade-silver': typeof UpgradeSilverRoute
   '/upgrade-silver-plus': typeof UpgradeSilverPlusRoute
   '/upgrade-silver-subscribe': typeof UpgradeSilverSubscribeRoute
+  '/zzcaltest': typeof ZzcaltestRoute
   '/account/my-rentals': typeof AccountMyRentalsRoute
   '/clothes/$page': typeof ClothesPageRoute
   '/clothes/cart': typeof ClothesCartRoute
@@ -841,6 +850,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver'
     | '/upgrade-silver-plus'
     | '/upgrade-silver-subscribe'
+    | '/zzcaltest'
     | '/account/my-rentals'
     | '/clothes/$page'
     | '/clothes/cart'
@@ -923,6 +933,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver'
     | '/upgrade-silver-plus'
     | '/upgrade-silver-subscribe'
+    | '/zzcaltest'
     | '/account/my-rentals'
     | '/clothes/$page'
     | '/clothes/cart'
@@ -1009,6 +1020,7 @@ export interface FileRouteTypes {
     | '/upgrade-silver'
     | '/upgrade-silver-plus'
     | '/upgrade-silver-subscribe'
+    | '/zzcaltest'
     | '/account/my-rentals'
     | '/clothes/$page'
     | '/clothes/cart'
@@ -1099,6 +1111,7 @@ export interface RootRouteChildren {
   UpgradeSilverRoute: typeof UpgradeSilverRoute
   UpgradeSilverPlusRoute: typeof UpgradeSilverPlusRoute
   UpgradeSilverSubscribeRoute: typeof UpgradeSilverSubscribeRoute
+  ZzcaltestRoute: typeof ZzcaltestRoute
   AccountMyRentalsRoute: typeof AccountMyRentalsRoute
   ProfileUsernameRoute: typeof ProfileUsernameRoute
 }
@@ -1425,6 +1438,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade-silver-subscribe'
       fullPath: '/upgrade-silver-subscribe'
       preLoaderRoute: typeof UpgradeSilverSubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zzcaltest': {
+      id: '/zzcaltest'
+      path: '/zzcaltest'
+      fullPath: '/zzcaltest'
+      preLoaderRoute: typeof ZzcaltestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account/my-rentals': {
@@ -1932,6 +1952,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpgradeSilverRoute: UpgradeSilverRoute,
   UpgradeSilverPlusRoute: UpgradeSilverPlusRoute,
   UpgradeSilverSubscribeRoute: UpgradeSilverSubscribeRoute,
+  ZzcaltestRoute: ZzcaltestRoute,
   AccountMyRentalsRoute: AccountMyRentalsRoute,
   ProfileUsernameRoute: ProfileUsernameRoute,
 }
