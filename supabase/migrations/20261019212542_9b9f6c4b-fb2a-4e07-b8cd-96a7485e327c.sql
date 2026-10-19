@@ -1,0 +1,1 @@
+REVOKE ALL ON public.credit_app_reveal_log FROM anon, authenticated;
