@@ -84,13 +84,16 @@ const DeviceSection: React.FC<{
     }
   };
 
-  const move = async (index: number, direction: -1 | 1) => {
-    const target = index + direction;
-    if (target < 0 || target >= rows.length) return;
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const moveTo = async (from: number, to: number) => {
+    if (to < 0 || to >= rows.length || from === to) return;
     setBusy(true);
     try {
       const reordered = [...rows];
-      const temp = reordered[index]; reordered[index] = reordered[target]!; reordered[target] = temp!;
+      const [item] = reordered.splice(from, 1);
+      reordered.splice(to, 0, item!);
       await callAdmin("reorderShortFormBackgrounds", {
         items: reordered.map((r, i) => ({ id: r.id, sort_order: i })),
       });
@@ -101,6 +104,8 @@ const DeviceSection: React.FC<{
       setBusy(false);
     }
   };
+
+  const move = (index: number, direction: -1 | 1) => moveTo(index, index + direction);
 
   const remove = async (id: string) => {
     setBusy(true);
@@ -140,21 +145,55 @@ const DeviceSection: React.FC<{
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No media yet for this device size.</p>
         ) : (
+          <>
+          <p className="text-xs text-muted-foreground mb-2">Drag any tile to a new spot, or type its position number.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {rows.map((row, i) => (
-              <div key={row.id} className="rounded-lg overflow-hidden border border-border bg-muted/40">
-                <div className="aspect-video bg-black">
+              <div
+                key={row.id}
+                draggable={!busy}
+                onDragStart={() => setDragIndex(i)}
+                onDragOver={(e) => { e.preventDefault(); setOverIndex(i); }}
+                onDragLeave={() => setOverIndex((o) => (o === i ? null : o))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragIndex !== null) void moveTo(dragIndex, i);
+                  setDragIndex(null); setOverIndex(null);
+                }}
+                onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
+                className={`rounded-lg overflow-hidden border bg-muted/40 cursor-grab active:cursor-grabbing transition ${
+                  overIndex === i && dragIndex !== i ? "border-primary ring-2 ring-primary" : "border-border"
+                } ${dragIndex === i ? "opacity-50" : ""}`}
+              >
+                <div className="aspect-video bg-black pointer-events-none">
                   {row.media_type === "video" ? (
                     <video className="w-full h-full object-cover" muted playsInline preload="metadata">
                       <source src={row.url} />
                     </video>
                   ) : (
-                    <img src={row.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={row.url} alt="" className="w-full h-full object-cover" loading="lazy" draggable={false} />
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-1 p-2">
-                  <span className="text-xs text-muted-foreground">
-                    #{i + 1} · {row.media_type}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    #
+                    <input
+                      key={`${row.id}-${i}`}
+                      type="number"
+                      min={1}
+                      max={rows.length}
+                      defaultValue={i + 1}
+                      disabled={busy}
+                      aria-label="Position"
+                      className="w-12 rounded border border-border bg-background px-1 py-0.5 text-xs text-foreground"
+                      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                      onBlur={(e) => {
+                        const n = parseInt(e.target.value, 10);
+                        if (!Number.isFinite(n)) { e.target.value = String(i + 1); return; }
+                        void moveTo(i, Math.min(Math.max(n, 1), rows.length) - 1);
+                      }}
+                    />
+                    · {row.media_type}
                   </span>
                   <div className="flex items-center gap-1">
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0" disabled={busy || i === 0} onClick={() => move(i, -1)}>
@@ -177,6 +216,7 @@ const DeviceSection: React.FC<{
               </div>
             ))}
           </div>
+          </>
         )}
 
         {rows.length > 0 && (
