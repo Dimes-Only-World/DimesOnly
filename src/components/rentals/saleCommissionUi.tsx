@@ -5,7 +5,7 @@ export const SALE_STATUS_LABEL: Record<string, string> = { pending: "Pending", s
 export const SaleStatusBadge = ({ status }: { status: string }) => {
   const cls =
     status === "sold" ? "bg-sale-sold text-background" :
-    status === "declined" ? "bg-sale-declined text-background" :
+    status === "declined" ? "bg-sale-declined text-white" :
     "bg-sale-pending text-foreground";
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${cls}`}>{SALE_STATUS_LABEL[status] || "Pending"}</span>;
 };
