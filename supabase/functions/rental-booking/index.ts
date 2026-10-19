@@ -450,7 +450,7 @@ serve(async (req) => {
           start_date: booking.start_date,
           end_date: booking.end_date || null,
           pickup_location: booking.pickup_location || null,
-          total_price: Math.max(0, verifiedSubtotal - discountAmount - holdCredit),
+          total_price: Math.round((Math.max(0, verifiedSubtotal - discountAmount - holdCredit) + Math.max(0, Number(vehicle.security_deposit || 0))) * 100) / 100,
           hold_credit: holdCredit,
           hold_id: heldDeposit?.id || null,
           down_payment_amount:
