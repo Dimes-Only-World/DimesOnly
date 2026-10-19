@@ -22,7 +22,7 @@ import { decodeVin, fetchVehicleModels, vehicleStockPhoto, VEHICLE_MAKES, VEHICL
 type Values = Record<string, string>;
 const blankPerson: Values = { firstName: "", lastName: "", email: "", cellPhone: "", homePhone: "", dateOfBirth: "", driversLicenseNumber: "", driversLicenseState: "", driversLicenseIssueDate: "", driversLicenseExpiryDate: "", ssn: "" };
 const blankResidence: Values = { streetAddress: "", city: "", state: "", zipCode: "", housingType: "", monthlyPayment: "", previousAddress: "" };
-const blankEmployment: Values = { employerName: "", title: "", employerPhone: "", monthlyGrossIncome: "", yearsAtJob: "", monthsAtJob: "", previousEmployment: "" };
+
 const blankVehicle: Values = { hasVin: "", vin: "", year: "", make: "", model: "", trim: "", specs: "", vehiclePrice: "", downPayment: "", exteriorColor: "", interiorColor: "" };
 const states = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 
@@ -56,9 +56,86 @@ const ResidenceFields = ({ values, setValues }: { values: Values; setValues: Rea
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Street Address" value={(values["streetAddress"] ?? "")} onChange={set("streetAddress")} required /><Field label="City" value={(values["city"] ?? "")} onChange={set("city")} required /><StateField label="State" value={(values["state"] ?? "")} onChange={set("state")} required /><Field label="Zip Code" value={(values["zipCode"] ?? "")} onChange={set("zipCode")} required maxLength={10} /><div className="space-y-1.5"><Label>Housing Type *</Label><NativeSelect value={(values["housingType"] ?? "")} onChange={set("housingType")} options={["Own", "Rent", "Live with family", "Other"]} placeholder="Select" /></div><Field label="Monthly Rent/Mortgage Amount" value={(values["monthlyPayment"] ?? "")} onChange={set("monthlyPayment")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Address</Label><Textarea value={(values["previousAddress"] ?? "")} onChange={(event) => set("previousAddress")(event.target.value)} maxLength={300} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
 };
 
-const EmploymentFields = ({ values, setValues }: { values: Values; setValues: React.Dispatch<React.SetStateAction<Values>> }) => {
-  const set = (name: string) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
-  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Employer Name" value={(values["employerName"] ?? "")} onChange={set("employerName")} required /><Field label="Title/Position" value={(values["title"] ?? "")} onChange={set("title")} required /><Field label="Employer Phone Number" value={(values["employerPhone"] ?? "")} onChange={set("employerPhone")} required type="tel" /><Field label="Monthly Gross Income" value={(values["monthlyGrossIncome"] ?? "")} onChange={set("monthlyGrossIncome")} required type="number" /><Field label="Years at Job" value={(values["yearsAtJob"] ?? "")} onChange={set("yearsAtJob")} required type="number" /><Field label="Additional Months" value={(values["monthsAtJob"] ?? "")} onChange={set("monthsAtJob")} required type="number" /><div className="sm:col-span-2 lg:col-span-3 space-y-1.5"><Label>Previous Employment</Label><Textarea value={(values["previousEmployment"] ?? "")} onChange={(event) => set("previousEmployment")(event.target.value)} maxLength={400} className="rounded-none border-rental-line bg-rental-surface" /></div></div>;
+const EMPLOYMENT_TYPES = ["Employed (W-2)", "Self-Employed / Business Owner", "1099 Contractor", "Retired", "Other"];
+const BUSINESS_TYPES = ["Sole Proprietor", "LLC", "S-Corp", "C-Corp", "Partnership", "1099 Contractor"];
+const isSelfEmployed = (job: any) => job?.selfEmployed === "yes";
+export const blankJob = (): any => ({ selfEmployed: "", employmentType: "", employerName: "", title: "", employerPhone: "", monthlyGrossIncome: "", yearsAtJob: "", monthsAtJob: "", employerAddress: "" });
+const YesNo = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => <div className="space-y-1.5"><Label>{label} *</Label><div className="flex gap-2">{["yes", "no"].map((v) => <button key={v} type="button" onClick={() => onChange(v)} className={`h-10 flex-1 border text-sm font-semibold uppercase tracking-wide transition-colors ${value === v ? "border-rental-primary bg-rental-primary text-rental-primary-foreground" : "border-rental-line bg-rental-surface text-rental-foreground hover:border-rental-foreground/60"}`}>{v === "yes" ? "Yes" : "No"}</button>)}</div></div>;
+
+/** One job (employer or self-employed business). Used for current, previous and additional employment. */
+const JobFields = ({ values, onChange, heading }: { values: any; onChange: (next: any) => void; heading?: string }) => {
+  const set = (name: string) => (value: string) => onChange({ ...values, [name]: value });
+  const self = isSelfEmployed(values);
+  return <div className="space-y-4">
+    {heading && <h4 className="text-sm font-bold uppercase tracking-[0.18em] text-rental-primary">{heading}</h4>}
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <YesNo label="Are you self-employed?" value={values.selfEmployed || ""} onChange={(v) => onChange({ ...values, selfEmployed: v, employmentType: v === "yes" ? "Self-Employed / Business Owner" : (values.employmentType && values.employmentType !== "Self-Employed / Business Owner" && values.employmentType !== "1099 Contractor" ? values.employmentType : "Employed (W-2)") })} />
+      <div className="space-y-1.5"><Label>Employment Type *</Label><NativeSelect value={values.employmentType || ""} onChange={(v) => onChange({ ...values, employmentType: v, selfEmployed: v === "Self-Employed / Business Owner" || v === "1099 Contractor" ? "yes" : "no" })} options={EMPLOYMENT_TYPES} placeholder="Select type" /></div>
+    </div>
+    {values.selfEmployed && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {self ? <>
+        <Field label="Business Legal Name" value={values.employerName || ""} onChange={set("employerName")} required maxLength={150} />
+        <Field label="DBA (Doing Business As)" value={values.dba || ""} onChange={set("dba")} maxLength={150} />
+        <div className="space-y-1.5"><Label>Business Type *</Label><NativeSelect value={values.businessType || ""} onChange={set("businessType")} options={BUSINESS_TYPES} placeholder="Select business type" /></div>
+        <Field label="EIN (XX-XXXXXXX) — blank if sole proprietor using SSN" value={values.ein || ""} onChange={(v) => { const d = v.replace(/\D/g, "").slice(0, 9); set("ein")(d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d); }} maxLength={10} placeholder="XX-XXXXXXX" />
+        <Field label="Industry / What the Business Does" value={values.industry || ""} onChange={set("industry")} required maxLength={150} />
+        <Field label="Your Title / Role" value={values.title || ""} onChange={set("title")} required maxLength={100} />
+        <Field label="Business Address" value={values.employerAddress || ""} onChange={set("employerAddress")} required maxLength={250} />
+        <Field label="Business Phone" value={values.employerPhone || ""} onChange={set("employerPhone")} required type="tel" />
+        <Field label="Ownership Percentage (0–100)" value={values.ownershipPercent || ""} onChange={set("ownershipPercent")} required type="number" />
+        <Field label="Date Business Started" value={values.businessStartDate || ""} onChange={set("businessStartDate")} required type="date" />
+        <Field label="Business License Number (optional)" value={values.businessLicense || ""} onChange={set("businessLicense")} maxLength={80} />
+        <Field label="Gross Monthly Income" value={values.monthlyGrossIncome || ""} onChange={set("monthlyGrossIncome")} required type="number" />
+        <Field label="Net Monthly Income (after business expenses)" value={values.netMonthlyIncome || ""} onChange={set("netMonthlyIncome")} required type="number" />
+        <Field label="Annual Gross Business Revenue" value={values.annualRevenue || ""} onChange={set("annualRevenue")} required type="number" />
+        <Field label="Years in Business" value={values.yearsAtJob || ""} onChange={set("yearsAtJob")} required type="number" />
+        <Field label="Additional Months" value={values.monthsAtJob || ""} onChange={set("monthsAtJob")} required type="number" />
+        <div className="sm:col-span-2 lg:col-span-3 border-l-2 border-rental-primary pl-3 text-sm text-rental-muted">Self-employed applicants: our finance team will request your last 2 years of tax returns (Schedule C or business returns) and last 3 months of business and personal bank statements during review.</div>
+      </> : <>
+        <Field label="Employer Name" value={values.employerName || ""} onChange={set("employerName")} required maxLength={150} />
+        <Field label="Title/Position" value={values.title || ""} onChange={set("title")} required maxLength={100} />
+        <Field label="Employer Phone Number" value={values.employerPhone || ""} onChange={set("employerPhone")} required type="tel" />
+        <Field label="Employer Address" value={values.employerAddress || ""} onChange={set("employerAddress")} maxLength={250} />
+        <Field label="Monthly Gross Income" value={values.monthlyGrossIncome || ""} onChange={set("monthlyGrossIncome")} required type="number" />
+        <Field label="Years at Job" value={values.yearsAtJob || ""} onChange={set("yearsAtJob")} required type="number" />
+        <Field label="Additional Months" value={values.monthsAtJob || ""} onChange={set("monthsAtJob")} required type="number" />
+      </>}
+    </div>}
+  </div>;
+};
+
+const jobYears = (job: any) => (Number(job?.yearsAtJob) || 0) + (Number(job?.monthsAtJob) || 0) / 12;
+
+const EmploymentFields = ({ values, setValues }: { values: any; setValues: (updater: any) => void }) => {
+  const update = (next: any) => setValues(() => next);
+  const additional: any[] = Array.isArray(values.additionalJobs) ? values.additionalJobs : [];
+  const needsPrevious = values.yearsAtJob !== "" && values.yearsAtJob !== undefined && jobYears(values) < 2;
+  return <div className="space-y-8">
+    <JobFields values={values} onChange={(next) => update({ ...values, ...next })} />
+    {needsPrevious && <div className="border-t border-rental-line pt-6"><p className="mb-4 text-sm text-rental-muted">Less than 2 years at your current job — please add your previous employer.</p><JobFields heading="Previous Employment" values={values.previousJob || blankJob()} onChange={(previousJob) => update({ ...values, previousJob })} /></div>}
+    {additional.map((job, i) => <div key={i} className="border-t border-rental-line pt-6"><JobFields heading={`Additional Employment ${i + 1}`} values={job} onChange={(next) => update({ ...values, additionalJobs: additional.map((j, k) => k === i ? next : j) })} /><button type="button" onClick={() => update({ ...values, additionalJobs: additional.filter((_, k) => k !== i) })} className="mt-3 text-sm font-semibold text-rental-primary hover:underline">Remove this employment</button></div>)}
+    {additional.length < 3 && <button type="button" onClick={() => update({ ...values, additionalJobs: [...additional, blankJob()] })} className="w-full border border-dashed border-rental-foreground/50 py-3 text-sm font-semibold uppercase tracking-wide text-rental-foreground hover:border-rental-primary hover:text-rental-primary">+ Do you have another employer or are you also self-employed?</button>}
+  </div>;
+};
+
+/** Returns a message naming the first missing employment field, or null. */
+const jobProblem = (job: any, label: string): string | null => {
+  if (!job?.selfEmployed) return `${label}: answer "Are you self-employed?"`;
+  const req: Array<[string, string]> = isSelfEmployed(job)
+    ? [["employerName", "Business Legal Name"], ["businessType", "Business Type"], ["industry", "Industry"], ["title", "Title / Role"], ["employerAddress", "Business Address"], ["employerPhone", "Business Phone"], ["ownershipPercent", "Ownership Percentage"], ["businessStartDate", "Date Business Started"], ["monthlyGrossIncome", "Gross Monthly Income"], ["netMonthlyIncome", "Net Monthly Income"], ["annualRevenue", "Annual Gross Revenue"], ["yearsAtJob", "Years in Business"], ["monthsAtJob", "Additional Months"]]
+    : [["employerName", "Employer Name"], ["title", "Title/Position"], ["employerPhone", "Employer Phone"], ["monthlyGrossIncome", "Monthly Gross Income"], ["yearsAtJob", "Years at Job"], ["monthsAtJob", "Additional Months"]];
+  const miss = req.find(([k]) => !String(job[k] ?? "").trim());
+  if (miss) return `${label}: ${miss[1]}`;
+  if ((String(job.employerPhone).match(/\d/g) || []).length < 10) return `${label}: phone must have 10 digits`;
+  if (isSelfEmployed(job)) { const pct = Number(job.ownershipPercent); if (!(pct >= 0 && pct <= 100)) return `${label}: Ownership Percentage must be 0–100`; if (job.ein && !/^\d{2}-\d{7}$/.test(job.ein)) return `${label}: EIN must be XX-XXXXXXX`; }
+  const m = Number(job.monthsAtJob); if (!(m >= 0 && m <= 11)) return `${label}: Additional Months must be 0–11`;
+  return null;
+};
+export const employmentProblem = (emp: any, who: string): string | null => {
+  const main = jobProblem(emp, `${who} employment`); if (main) return main;
+  if (jobYears(emp) < 2) { const prev = jobProblem(emp.previousJob, `${who} previous employment`); if (prev) return prev; }
+  for (const [i, job] of (emp.additionalJobs || []).entries()) { const p = jobProblem(job, `${who} additional employment ${i + 1}`); if (p) return p; }
+  return null;
 };
 
 const VehiclePreview = ({ values }: { values: Values }) => {
@@ -110,8 +187,8 @@ const Section = ({ number, title, children }: { number: string; title: string; c
 
 const VehiclePurchaseApplication: React.FC = () => {
   const { vehicleId } = useParams<{ vehicleId: string }>(); const [vehicle, setVehicle] = useState<any>(null);
-  const [applicant, setApplicant] = useState({ ...blankPerson }); const [residence, setResidence] = useState({ ...blankResidence }); const [employment, setEmployment] = useState({ ...blankEmployment });
-  const [hasCoBuyer, setHasCoBuyer] = useState(false); const [coBuyer, setCoBuyer] = useState({ ...blankPerson, relationship: "" }); const [coResidence, setCoResidence] = useState({ ...blankResidence }); const [coEmployment, setCoEmployment] = useState({ ...blankEmployment });
+  const [applicant, setApplicant] = useState({ ...blankPerson }); const [residence, setResidence] = useState({ ...blankResidence }); const [employment, setEmployment] = useState<any>(blankJob());
+  const [hasCoBuyer, setHasCoBuyer] = useState(false); const [coBuyer, setCoBuyer] = useState({ ...blankPerson, relationship: "" }); const [coResidence, setCoResidence] = useState({ ...blankResidence }); const [coEmployment, setCoEmployment] = useState<any>(blankJob());
   const [interested, setInterested] = useState({ ...blankVehicle }); const [hasTradeIn, setHasTradeIn] = useState(false); const [tradeIn, setTradeIn] = useState({ vin: "", mileage: "", year: "", make: "", model: "" });
   const [marketing, setMarketing] = useState(false); const [serviceMessages, setServiceMessages] = useState(false); const [creditConsent, setCreditConsent] = useState(false); const [privacyConsent, setPrivacyConsent] = useState(false); const [submitting, setSubmitting] = useState(false); const [submittedId, setSubmittedId] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null); const [avatarPreview, setAvatarPreview] = useState(""); const navigate = useNavigate();
@@ -138,7 +215,7 @@ const VehiclePurchaseApplication: React.FC = () => {
   const loginHref = `/login?redirect=${encodeURIComponent(location.pathname)}`;
   useEffect(() => { if (!vehicleId) return; (supabase as any).from("vehicles").select("id,year,make,model,vin,down_payment,rental_options,is_active").eq("id", vehicleId).maybeSingle().then(({ data }: any) => { if (!data?.is_active || !data.rental_options?.includes("purchase")) return; setVehicle(data); setInterested((current) => ({ ...current, hasVin: data.vin ? "yes" : "no", vin: data.vin || "", year: String(data.year || ""), make: data.make || "", model: data.model || "", downPayment: String(data.down_payment || "") })); }); }, [vehicleId]);
   const vehicleName = useMemo(() => vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : "Vehicle purchase", [vehicle]);
-  const submit = async (event: React.FormEvent) => { event.preventDefault(); const payload: any = { vehicleId: vehicle?.id || null, applicant, residence, employment, hasCoBuyer, coBuyer: hasCoBuyer ? { ...coBuyer, residence: coResidence, employment: coEmployment } : null, interestedVehicle: interested, hasTradeIn, tradeIn: hasTradeIn ? tradeIn : null, marketingSmsConsent: marketing, serviceSmsConsent: serviceMessages, creditAuthorizationConsent: creditConsent, privacyPolicyConsent: privacyConsent, referrerUsername: getActiveRef() || null };
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); const empIssue = employmentProblem(employment, "Applicant") || (hasCoBuyer ? employmentProblem(coEmployment, "Co-buyer") : null); if (empIssue) { toast({ title: "Check required fields", description: `Please fix: ${empIssue}`, variant: "destructive" }); return; } const payload: any = { vehicleId: vehicle?.id || null, applicant, residence, employment, hasCoBuyer, coBuyer: hasCoBuyer ? { ...coBuyer, residence: coResidence, employment: coEmployment } : null, interestedVehicle: interested, hasTradeIn, tradeIn: hasTradeIn ? tradeIn : null, marketingSmsConsent: marketing, serviceSmsConsent: serviceMessages, creditAuthorizationConsent: creditConsent, privacyPolicyConsent: privacyConsent, referrerUsername: getActiveRef() || null };
     const parsed = schema.safeParse(payload); if (!parsed.success || (hasCoBuyer && !schema.pick({ applicant: true, residence: true, employment: true }).safeParse({ applicant: coBuyer, residence: coResidence, employment: coEmployment }).success)) { const issue = !parsed.success ? parsed.error.issues[0] : null; const labels: Record<string, string> = { firstName: "First Name", lastName: "Last Name", email: "Email", cellPhone: "Cell Phone (10 digits)", dateOfBirth: "Date of Birth", driversLicenseNumber: "Driver's License Number", driversLicenseState: "Driver's License State", driversLicenseIssueDate: "License Issue Date", driversLicenseExpiryDate: "License Expiry Date", ssn: "Social Security Number (9 digits)", streetAddress: "Street Address", city: "City", state: "State", zipCode: "Zip Code (5 digits)", housingType: "Housing Type", monthlyPayment: "Monthly Rent/Mortgage", employerName: "Employer Name", title: "Title/Position", employerPhone: "Employer Phone (10 digits)", monthlyGrossIncome: "Monthly Gross Income", yearsAtJob: "Years at Job", monthsAtJob: "Additional Months (0-11)", vin: "VIN Number", year: "Vehicle Year", make: "Vehicle Make", model: "Vehicle Model" }; const key = String(issue?.path[issue.path.length - 1] ?? ""); toast({ title: "Check required fields", description: issue ? `Please fix: ${labels[key] || key}${issue.path[0] === "interestedVehicle" ? " (Interested Vehicle)" : ""}` : "Complete every required co-buyer field.", variant: "destructive" }); return; }
     if (hasTradeIn && (!/^[A-HJ-NPR-Z0-9]{17}$/i.test(tradeIn.vin) || !tradeIn.mileage || !tradeIn.year || !tradeIn.make || !tradeIn.model)) { toast({ title: "Complete trade-in details", description: "VIN, mileage, year, make, and model are required.", variant: "destructive" }); return; }
     if (!creditConsent || !privacyConsent) { toast({ title: "Consent required", description: "Accept the credit authorization and Privacy Policy to submit.", variant: "destructive" }); return; }
