@@ -171,7 +171,7 @@ export default function FeedStoryViewer({ items, startIndex, onClose }: Props) {
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-4 right-4 z-30 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white hidden lg:flex items-center justify-center transition"
+        className="absolute top-4 right-4 z-30 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
       >
         <X className="w-6 h-6" />
       </button>
