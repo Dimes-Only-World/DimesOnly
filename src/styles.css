@@ -86,6 +86,7 @@
   --color-rental-success: hsl(var(--rental-success));
   --color-rental-warning: hsl(var(--rental-warning));
   --color-rental-warning-foreground: hsl(var(--rental-warning-foreground));
+  --color-rental-logo: hsl(358 82% 47%);
 
   /* Payment brand colors (semantic tokens) */
   --color-paypal: hsl(var(--brand-paypal));
