@@ -108,9 +108,16 @@ serve(async (req) => {
         if (error) throw error;
         return json({ ok: true });
       }
+      case "setTestFlag": {
+        const table = params.kind === "booking" ? "rental_bookings" : params.kind === "application" ? "vehicle_purchase_applications" : params.kind === "user" ? "users" : null;
+        if (!table || typeof params.id !== "string") return json({ error: "Invalid request" }, 400);
+        const { error } = await admin.from(table).update({ is_test: !!params.value }).eq("id", params.id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
       case "listBookings": {
         const { data, error } = await admin.from("rental_bookings")
-          .select("*, vehicles(year,make,model,day_rate,hour_rate)")
+          .select("*, vehicles(year,make,model,day_rate,three_day_rate,weekly_rate,monthly_rate,down_payment,security_deposit,hour_rate), booking_addons(name_snapshot, price_snapshot)")
           .order("created_at", { ascending: false });
         if (error) throw error;
 
