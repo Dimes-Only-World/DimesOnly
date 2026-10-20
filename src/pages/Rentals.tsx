@@ -457,11 +457,6 @@ const Rentals: React.FC = () => {
                     <p className="flex items-center gap-1.5 text-xs text-rental-muted">
                       <MapPin className="h-3.5 w-3.5 text-rental-primary" /> {formatRentalLocation(v.pickup_location)}
                     </p>
-                    <ul className="space-y-1 border-l-2 border-rental-success pl-2 text-xs font-medium text-rental-foreground">
-                      {Number(v.day_rate) > 0 && <li>Daily: ${Number(v.day_rate).toLocaleString()}/day</li>}
-                      {Number(v.three_day_rate) > 0 && <li>3+ days: ${Number(v.three_day_rate).toLocaleString()}/day</li>}
-                      {Number(v.weekly_rate) > 0 && <li>Weekly: ${Number(v.weekly_rate).toLocaleString()}/week</li>}
-                    </ul>
                     {unavailable && (blockEnd || v.rented_until) && (
                       <p className="text-xs font-semibold text-rental-warning">
                         Available from {new Date(new Date(blockEnd || v.rented_until!).getTime() + 86_400_000).toLocaleDateString()}
