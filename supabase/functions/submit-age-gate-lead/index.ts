@@ -261,6 +261,21 @@ serve(async (req) => {
 
     if (Object.keys(errors).length > 0) return json({ error: errors }, 400);
 
+    // One lead per phone number: a returning visitor reuses their existing lead.
+    {
+      const last10 = digits.slice(-10);
+      const { data: existing } = await admin
+        .from("age_gate_leads")
+        .select("id, phone")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true })
+        .limit(5000);
+      const dup = (existing ?? []).find(
+        (l: any) => String(l.phone ?? "").replace(/\D/g, "").slice(-10) === last10,
+      );
+      if (dup) return json({ success: true, leadId: dup.id, alreadySubmitted: true });
+    }
+
     let selfieBytes: Uint8Array;
     try {
       selfieBytes = Uint8Array.from(atob(selfieBase64), (character) => character.charCodeAt(0));
