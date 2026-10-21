@@ -251,11 +251,18 @@ serve(async (req) => {
           .eq("user_id", userId).eq("status", "applied").not("applied_booking_id", "is", null);
         const ids = (applied || []).map((h: any) => h.applied_booking_id);
         if (ids.length) {
-          const { data: bks } = await admin.from("rental_bookings").select("id, status, paid_at").in("id", ids);
+          const { data: bks } = await admin.from("rental_bookings").select("id, status, paid_at, payment_method, created_at").in("id", ids);
           const pendingIds = new Set<string>();
+          const STALE_MS = 48 * 60 * 60 * 1000;
           for (const b of bks || []) {
-            const paid = Boolean(b.paid_at) || ["paid", "confirmed", "active", "completed"].includes(String(b.status));
-            if (!paid) pendingIds.add(b.id);
+            if (b.paid_at) continue;
+            const status = String(b.status || "");
+            if (["paid", "confirmed", "active", "completed"].includes(status)) continue;
+            // Release only from dead bookings, or unpaid checkouts abandoned for 48h with no
+            // payment method chosen. A live pending booking keeps its quoted (reduced) total.
+            const dead = ["cancelled", "canceled", "declined", "rejected", "expired", "no_show"].includes(status);
+            const abandoned = !b.payment_method && Date.now() - new Date(b.created_at).getTime() > STALE_MS;
+            if (dead || abandoned) pendingIds.add(b.id);
           }
           for (const h of applied || []) {
             if (!pendingIds.has(h.applied_booking_id)) continue;
