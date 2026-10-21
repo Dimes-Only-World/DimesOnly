@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "@/lib/router-compat";
 import NotificationBell from "./NotificationBell";
+import HeaderSearch, { MessagesIconLink } from "./HeaderSearch";
 import { Button } from "@/components/ui/button";
 import AuthGuard from "./AuthGuard";
 import DashboardNavAvatar from "./dashboard/DashboardNavAvatar";
@@ -59,7 +60,11 @@ const DashboardSectionLayout: React.FC<DashboardSectionLayoutProps> = ({
                 )}
               </div>
 
-              <NotificationBell className="shrink-0" />
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                <MessagesIconLink />
+                <NotificationBell className="shrink-0" />
+                <HeaderSearch />
+              </div>
             </div>
           </div>
         </div>
