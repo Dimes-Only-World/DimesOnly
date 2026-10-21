@@ -6,7 +6,7 @@ import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Star, Sparkles, Users, TrendingUp, CheckCircle2 } from "lucide-react";
+import { Crown, Star, Sparkles, Users, TrendingUp, CheckCircle2, Home } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 
 interface Plan {
@@ -224,6 +224,14 @@ const Memberships: React.FC = () => {
           <div className="text-center text-xs text-white/40 mt-12">
             Referral commissions are paid on every membership sold through your unique link.
           </div>
+
+          <div className="mt-8 flex justify-center">
+            <Link to="/dashboard">
+              <Button size="lg" className="gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-semibold hover:brightness-110">
+                <Home className="h-5 w-5" /> Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </AppLayout>
@@ -248,7 +256,7 @@ const RoleCard: React.FC<{
       <div className="text-white/70 text-sm">{quarterly}</div>
     </CardHeader>
     <CardContent>
-      <p className="text-black/80 leading-relaxed text-sm md:text-base">{body}</p>
+      <p className="text-white/85 leading-relaxed text-sm md:text-base">{body}</p>
       <div className="mt-5 flex flex-wrap gap-3">
         <Link to={cta.href}>
           <Button className={`${goldBg} text-black hover:brightness-110 font-semibold`}>
