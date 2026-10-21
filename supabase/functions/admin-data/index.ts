@@ -138,6 +138,32 @@ serve(async (req) => {
           console.error('lead backfill failed', e);
         }
 
+        // Remove duplicate leads (same phone): keep the oldest, move extras to trash.
+        try {
+          const { data: activeLeads } = await supabaseAdmin
+            .from('age_gate_leads')
+            .select('id, phone, selfie_path, created_at')
+            .is('deleted_at', null)
+            .order('created_at', { ascending: true })
+            .limit(5000);
+          const seen = new Map<string, any>();
+          const dupIds: string[] = [];
+          for (const l of activeLeads || []) {
+            const key = String((l as any).phone || '').replace(/\D/g, '').slice(-10);
+            if (key.length !== 10) continue;
+            const keep = seen.get(key);
+            if (!keep) { seen.set(key, l); continue; }
+            // Prefer the row that has a selfie.
+            if (!keep.selfie_path && (l as any).selfie_path) { dupIds.push(keep.id); seen.set(key, l); }
+            else dupIds.push((l as any).id);
+          }
+          if (dupIds.length) {
+            await supabaseAdmin.from('age_gate_leads').update({ deleted_at: new Date().toISOString() }).in('id', dupIds);
+          }
+        } catch (e) {
+          console.error('lead dedupe failed', e);
+        }
+
         let query = supabaseAdmin
           .from('age_gate_leads')
           .select('*')
@@ -151,7 +177,7 @@ serve(async (req) => {
         // Determine which leads have completed registration (matched by phone / phone + DOB)
         const { data: registeredUsers, error: usersError } = await supabaseAdmin
           .from('users')
-          .select('phone_number, mobile_number, username, first_name, last_name, created_at, date_of_birth')
+          .select('phone_number, mobile_number, username, first_name, last_name, created_at, date_of_birth, profile_photo, front_page_photo')
           .limit(5000);
         if (usersError) throw usersError;
 
@@ -167,7 +193,7 @@ serve(async (req) => {
         const normName = (v: string | null | undefined) =>
           (v || '').toLowerCase().replace(/[^a-z]/g, '');
 
-        type UserEntry = { username: string | null; created_at: string | null; dob: string; full_name: string };
+        type UserEntry = { username: string | null; created_at: string | null; dob: string; full_name: string; photo: string | null };
         const byPhone = new Map<string, UserEntry>();
         const byName = new Map<string, UserEntry>();
         for (const u of registeredUsers || []) {
@@ -177,6 +203,7 @@ serve(async (req) => {
             created_at: (u as any).created_at,
             dob: normDob((u as any).date_of_birth),
             full_name: regName,
+            photo: (u as any).profile_photo || (u as any).front_page_photo || null,
           };
           for (const raw of [(u as any).phone_number, (u as any).mobile_number]) {
             const key = digits(raw);
@@ -210,6 +237,7 @@ serve(async (req) => {
             registered_username: match?.username ?? null,
             registered_full_name: match?.full_name || null,
             registered_at: match?.created_at ?? null,
+            registered_photo: match?.photo ?? null,
           };
         }));
 
