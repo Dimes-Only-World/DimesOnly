@@ -41,18 +41,18 @@ export const DashboardBackButtonGuard = () => {
   const lastDashboardPath = useRef<string | null>(null);
   const handling = useRef(false);
 
-  const isDashboard = location.pathname.startsWith("/dashboard");
+  const path = location.pathname.replace(/\/+$/, "") || "/";
+  const isExitPage = path === "/" || path === LOGIN_PATH;
 
   useEffect(() => {
-    if (isDashboard) {
+    if (!isExitPage) {
       lastDashboardPath.current = location.pathname + location.search;
       handling.current = false;
     }
-  }, [isDashboard, location.pathname, location.search]);
+  }, [isExitPage, location.pathname, location.search]);
 
   useEffect(() => {
-    if (location.pathname !== LOGIN_PATH) return;
-    if (navigationType !== "POP") return;
+    if (!isExitPage) return;
     if (handling.current) return;
     if (!lastDashboardPath.current) return;
     if (!isAuthenticated()) return;
@@ -61,7 +61,7 @@ export const DashboardBackButtonGuard = () => {
     // Undo the back navigation and ask what the user wants to do.
     navigate(lastDashboardPath.current, { replace: true });
     setOpen(true);
-  }, [location.pathname, navigationType, navigate]);
+  }, [isExitPage, location.pathname, navigationType, navigate]);
 
   const handleLogout = async () => {
     setOpen(false);
@@ -96,8 +96,7 @@ export const DashboardBackButtonGuard = () => {
         <AlertDialogHeader>
           <AlertDialogTitle>Do you want to log out?</AlertDialogTitle>
           <AlertDialogDescription>
-            Going back will take you to the login screen. Would you like to log
-            out instead?
+            This takes you to the home or login screen. Do you want to log out or stay logged in?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
