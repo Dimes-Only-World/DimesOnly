@@ -38,6 +38,7 @@ interface Lead {
   phone_match?: boolean;
   dob_match?: boolean;
   selfie_url?: string | null;
+  registered_photo?: string | null;
 }
 
 type LeadStatus = "complete" | "more_info" | "incomplete" | "deciding";
@@ -330,7 +331,7 @@ const AdminLeadsTab: React.FC = () => {
                         ? lead.registered_full_name
                         : lead.full_name}
                     </td>
-                    <td className="py-2 pr-4"><LeadPhotoDialog url={lead.selfie_url} name={lead.full_name} /></td>
+                    <td className="py-2 pr-4"><LeadPhotoDialog url={lead.registration_completed && lead.registered_photo ? lead.registered_photo : lead.selfie_url} name={lead.full_name} /></td>
                     <td
                       className={`py-2 pr-4 ${
                         lead.phone_match ? "bg-green-100 text-green-900 font-medium rounded" : ""
