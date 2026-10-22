@@ -237,6 +237,22 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    // Instant check right after a photo is picked: is it a real selfie? Saves nothing.
+    if ((body as any).checkOnly === true) {
+      const preview = String((body as any).aiPreviewBase64 ?? "");
+      if (!preview || preview.length > 1_500_000 || !/^[A-Za-z0-9+/=]+$/.test(preview)) {
+        return json({ error: { selfie: "The selfie could not be read" } }, 400);
+      }
+      const control = await loadControl(admin);
+      if (control && !control.enabled) return json({ ok: true, checked: false });
+      const faceCheck = await verifyFace(preview, "image/jpeg");
+      if (faceCheck.status !== "unavailable" && control) await recordCheck(admin, control);
+      if (faceCheck.status === "rejected") {
+        return json({ ok: false, reason: faceCheck.reason || "Please take a clear selfie showing your face." });
+      }
+      return json({ ok: true, checked: faceCheck.status === "ok" });
+    }
+
     // First call: create the lead.
     const vt = String((body as any).visitorType ?? "");
     const visitorType = ["exotic","stripper","normal_female","male","business_owner"].includes(vt) ? vt : null;
