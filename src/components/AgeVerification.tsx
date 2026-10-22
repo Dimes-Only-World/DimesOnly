@@ -578,13 +578,13 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                     <span className="mt-1 block text-xs text-white/70">Clear photo of your face · JPG, PNG, or WebP · 5MB max</span>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {([["user", "Take photo"], [null, "Choose from phone"]] as const).map(([cap, text]) => (
-                        <label key={text} className="cursor-pointer rounded-md bg-orange-500 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-600">
+                        <label key={text} className="relative cursor-pointer overflow-hidden rounded-md bg-orange-500 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-600">
                           {selfie && text === "Take photo" ? "Retake" : text}
                           <input
                             type="file"
                             accept="image/*"
                             {...(cap ? { capture: cap } : {})}
-                            className="sr-only"
+                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                             onChange={(event) => {
                               const file = event.target.files?.[0] || null;
                               event.currentTarget.value = "";
