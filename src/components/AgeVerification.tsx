@@ -67,6 +67,25 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
   const [showProfiles, setShowProfiles] = useState(false);
   const [selfie, setSelfie] = useState<File | null>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfieCheck, setSelfieCheck] = useState<"idle" | "checking" | "ok" | "rejected">("idle");
+  const checkSelfie = async (file: File) => {
+    setSelfieCheck("checking");
+    try {
+      const aiPreviewBase64 = await makeAiPreview(file);
+      const { data, error } = await supabase.functions.invoke("submit-age-gate-lead", { body: { checkOnly: true, aiPreviewBase64 } });
+      if (error) throw error;
+      if (data?.ok === false) {
+        setSelfie(null);
+        setSelfieCheck("rejected");
+        setErrors((c) => ({ ...c, selfie: `${data.reason || "That doesn't look like a selfie."} Please tap Take photo and take a selfie of your face.` }));
+        return;
+      }
+      setSelfieCheck("ok");
+    } catch {
+      // Check couldn't run now; the photo is checked again when you submit.
+      setSelfieCheck("ok");
+    }
+  };
 
 
   const [role, setRole] = useState<Role | null>(null);
@@ -235,6 +254,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     if (!dob) next['dob'] = "Date of birth is required";
     else if ((calculateAge(dob) ?? 0) < 18) next['dob'] = "You must be at least 18 years old to enter";
     if (!selfie) next['selfie'] = "A current selfie is required for age verification";
+    else if (selfieCheck === "checking") next['selfie'] = "Please wait while we check your selfie";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -572,8 +592,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                   )}
                   <div className="min-w-0 flex-1 text-sm">
                     <span className="flex items-center gap-2 font-semibold">
-                      {selfie ? <Check className="h-4 w-4 text-green-400" /> : <Camera className="h-4 w-4" />}
-                      {selfie ? "Selfie ready" : "Take or upload selfie"}
+                      {selfie && selfieCheck === "ok" ? <Check className="h-4 w-4 text-green-400" /> : <Camera className="h-4 w-4" />}
+                      {selfieCheck === "checking" ? "Checking your selfie…" : selfie ? "Selfie verified" : "Take or upload selfie"}
                     </span>
                     <span className="mt-1 block text-xs text-white/70">Clear photo of your face · JPG, PNG, or WebP · 5MB max</span>
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -596,6 +616,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                               }
                               setSelfie(file);
                               setErrors((current) => ({ ...current, selfie: "" }));
+                              void checkSelfie(file);
                             }}
                           />
                         </label>
