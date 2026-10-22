@@ -265,16 +265,20 @@ serve(async (req) => {
     }
     const chain = await resolveReferralChain(admin, refName);
 
-    // Optional buyer photo
+    // Required buyer profile photo
     let avatarPath: string | null = null;
     const av = body.buyerAvatar;
-    if (av && typeof av.base64 === "string" && ["image/jpeg", "image/png", "image/webp"].includes(av.contentType)) {
+    if (!av || typeof av.base64 !== "string" || !av.base64 || !["image/jpeg", "image/png", "image/webp"].includes(av.contentType)) {
+      return json({ error: "A profile photo (JPG, PNG or WebP) is required." }, 400);
+    }
+    {
       if (av.base64.length > 7 * 1024 * 1024) return json({ error: "Photo is too large (max 5 MB)." }, 400);
       const ext = av.contentType === "image/png" ? "png" : av.contentType === "image/webp" ? "webp" : "jpg";
       const path = `${crypto.randomUUID()}.${ext}`;
       const bytes = Uint8Array.from(atob(av.base64), (c) => c.charCodeAt(0));
       const { error: upErr } = await admin.storage.from("credit-app-avatars").upload(path, bytes, { contentType: av.contentType });
-      if (!upErr) avatarPath = path;
+      if (upErr) return json({ error: "Could not save your profile photo. Please try again." }, 500);
+      avatarPath = path;
     }
 
     const accessKey = crypto.randomUUID() + crypto.randomUUID();
