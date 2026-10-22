@@ -9,6 +9,7 @@ import DateOfBirthSelect, { calculateAge } from "@/components/DateOfBirthSelect"
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { getActiveRef, buildAuthUrl } from "@/lib/refCapture";
 import { useAppContext } from "@/contexts/AppContext";
+import { formatUsPhoneInput, normalizeUsPhone } from "@/lib/usPhone";
 
 const REGISTER_ENDPOINT = `${SUPABASE_URL}/functions/v1/register-user`;
 
@@ -35,7 +36,7 @@ export function rentalSignupMissing(f: Form): string[] {
   else if ((calculateAge(f.dateOfBirth) ?? 0) < 18) m.push("You must be at least 18 years old");
   if (!f.gender) m.push("Gender");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) m.push("A valid email");
-  if (f.mobileNumber.replace(/\D/g, "").length !== 10) m.push("A 10-digit mobile number");
+  if (!normalizeUsPhone(f.mobileNumber)) m.push("A 10-digit mobile number");
   if (!f.address.trim()) m.push("Street address");
   if (!f.city.trim()) m.push("City");
   if (!f.state.trim()) m.push("State");
@@ -87,6 +88,7 @@ const RentalSignup: React.FC = () => {
           zip: form.zip.trim(),
           gender: form.gender,
           userType: "normal",
+          signupSource: "rentals",
           referredBy: ref && ref.toLowerCase() !== "company" ? ref : "Company",
           dateOfBirth: form.dateOfBirth,
           videoUrls: [],
@@ -186,7 +188,7 @@ const RentalSignup: React.FC = () => {
             <h2 className="border-b border-rental-line pb-2 text-lg font-bold uppercase">Contact & address</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {field("email", "Email", { type: "email", autoComplete: "email" })}
-              {field("mobileNumber", "Mobile number", { type: "tel", autoComplete: "tel", placeholder: "(555)555-5555" }, formatPhone)}
+              {field("mobileNumber", "Mobile number", { type: "tel", autoComplete: "tel", placeholder: "+1 (555) 555-5555" }, formatPhone)}
             </div>
             {field("address", "Street address", { autoComplete: "street-address" })}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">

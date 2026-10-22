@@ -3,7 +3,7 @@ import { rentalSignupMissing } from "./RentalSignup";
 
 const ok = {
   firstName: "Ann", lastName: "Lee", dateOfBirth: "1990-05-05", gender: "female",
-  email: "ann@example.com", mobileNumber: "(555)555-5555", address: "1 Main St",
+  email: "ann@example.com", mobileNumber: "+1 (555) 555-5555", address: "1 Main St",
   city: "Goodyear", state: "AZ", zip: "85395", username: "annlee",
   password: "secret1", confirmPassword: "secret1",
 };

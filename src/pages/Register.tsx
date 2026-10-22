@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { formatUsPhoneInput } from "@/lib/usPhone";
 import RegistrationFormFields from "@/components/RegistrationFormFields";
 import { calculateAge } from "@/components/DateOfBirthSelect";
 
