@@ -711,7 +711,7 @@ export const Register: React.FC = () => {
       />
 
     <div className="relative z-10 w-full min-h-screen py-8 overflow-x-hidden">
-      <LatestDimesCarousel className="mb-6 md:mb-8" />
+      {currentStep === 1 && <LatestDimesCarousel className="mb-6 md:mb-8" />}
 
       <div className={`w-full ${isMobile ? "px-0" : "px-6"}`}>
         <div className={isMobile ? "w-full" : "w-full max-w-[896px] mx-auto"}>
