@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import BannerVideo from "@/components/BannerVideo";
-import DateOfBirthSelect from "@/components/DateOfBirthSelect";
+import DateOfBirthSelect, { calculateAge } from "@/components/DateOfBirthSelect";
 
 
 interface FormData {
