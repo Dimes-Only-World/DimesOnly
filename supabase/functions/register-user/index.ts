@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import bcrypt from 'https://esm.sh/bcryptjs@3.0.2';
+import { normalizeUsPhone } from '../_shared/usPhone.ts';
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
       firstName, lastName, username, email, password, confirmPassword, 
       mobileNumber, address, city, state, zip, gender, userType, 
       referredBy, profilePhotoUrl, bannerPhotoUrl, frontPagePhotoUrl,
-      dateOfBirth, videoUrls, videoMeta
+      dateOfBirth, videoUrls, videoMeta, signupSource
     } = await req.json();
 
     console.log(`Registration attempt for: ${username} (${email}) from IP: ${clientIP}`);
@@ -118,6 +119,23 @@ Deno.serve(async (req) => {
     for (const v of [firstName, lastName, referredBy]) if (!safeText(v)) return bad400('Names cannot contain special characters like < > " or start with = + - @');
     for (const u of [profilePhotoUrl, bannerPhotoUrl, frontPagePhotoUrl]) {
       if (u && (typeof u !== 'string' || !/^https:\/\/[^\s"'<>`]+$/.test(u))) return bad400('Invalid photo link');
+    }
+
+    // Phone must be a real U.S. number; stored as +1 (xxx) xxx-xxxx
+    const phone = normalizeUsPhone(mobileNumber);
+    if (!phone) return bad400('Enter a valid U.S. mobile number: +1 (xxx) xxx-xxxx');
+
+    // All three photos are mandatory (except rental-only accounts) and must come from this username's upload folder
+    const isRentalSignup = signupSource === 'rentals' && gender !== 'business_owner' && (userType || 'normal') === 'normal';
+    if (!isRentalSignup) {
+      const base = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
+      const prefix = `${base}/storage/v1/object/public/user-photos/profiles/${username}/`;
+      const required: [unknown, string][] = [[profilePhotoUrl, 'profile'], [bannerPhotoUrl, 'banner'], [frontPagePhotoUrl, 'frontPage']];
+      for (const [u, kind] of required) {
+        if (typeof u !== 'string' || !u.startsWith(`${prefix}${kind}_`)) {
+          return bad400('Please upload your profile photo, banner photo and front page photo before registering.');
+        }
+      }
     }
 
     // Initialize Supabase client with service role key (server-side only)
@@ -236,7 +254,7 @@ Deno.serve(async (req) => {
           hash_type: 'bcrypt',
           first_name: firstName,
           last_name: lastName,
-          mobile_number: mobileNumber,
+          mobile_number: phone,
           address,
           city,
           state,
