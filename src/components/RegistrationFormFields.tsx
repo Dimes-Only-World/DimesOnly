@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { usePageVideo } from "@/hooks/usePageVideo";
 import BannerVideo from "@/components/BannerVideo";
-import DateOfBirthSelect from "@/components/DateOfBirthSelect";
+import DateOfBirthSelect, { calculateAge } from "@/components/DateOfBirthSelect";
 
 
 interface FormData {
@@ -193,6 +193,15 @@ const RegistrationFormFields: React.FC<RegistrationFormFieldsProps> = ({
         <div className="space-y-2">
           <Label className="text-sm font-medium text-white">
             Date of Birth <span className="text-red-400">*</span> (Must be 18 Years or Older)
+            {formData.dateOfBirth && (calculateAge(formData.dateOfBirth) ?? 0) >= 18 ? (
+              <span className="ml-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/40">
+                Age {calculateAge(formData.dateOfBirth)} — Verified 18+
+              </span>
+            ) : formData.dateOfBirth ? (
+              <span className="ml-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/40">
+                Must be 18+
+              </span>
+            ) : null}
           </Label>
           <DateOfBirthSelect
             value={formData.dateOfBirth}
