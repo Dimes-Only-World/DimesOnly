@@ -90,16 +90,7 @@ const formatCity = (value: string) =>
     .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : ""))
     .join(" ");
 
-const formatPhoneNumber = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 10);
-  const area = digits.slice(0, 3);
-  const middle = digits.slice(3, 6);
-  const line = digits.slice(6);
-  if (digits.length > 6) return `(${area})${middle}-${line}`;
-  if (digits.length > 3) return `(${area})${middle}`;
-  if (digits.length > 0) return `(${area}`;
-  return "";
-};
+const formatPhoneNumber = (value: string) => formatUsPhoneInput(value);
 
 const validateRequired = (data: FormData): string[] => {
   const errors: string[] = [];

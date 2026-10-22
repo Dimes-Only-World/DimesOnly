@@ -24,12 +24,7 @@ const empty: Form = {
 };
 
 const titleCase = (v: string) => v.replace(/\s+/g, " ").split(" ").map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : "")).join(" ");
-const formatPhone = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 10);
-  if (d.length > 6) return `(${d.slice(0, 3)})${d.slice(3, 6)}-${d.slice(6)}`;
-  if (d.length > 3) return `(${d.slice(0, 3)})${d.slice(3)}`;
-  return d ? `(${d}` : "";
-};
+const formatPhone = (v: string) => formatUsPhoneInput(v);
 
 /** Checks the rental signup form and returns a plain list of what still needs to be filled in. */
 export function rentalSignupMissing(f: Form): string[] {
