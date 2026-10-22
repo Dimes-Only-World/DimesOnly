@@ -562,7 +562,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
 
               <div>
                 <label className="block text-sm font-medium mb-1.5">Age Verification Selfie</label>
-                <label className="flex min-h-24 cursor-pointer items-center gap-4 rounded-lg border border-dashed border-orange-400/70 bg-background/15 p-3 transition-colors hover:bg-background/25">
+                <div className="flex min-h-24 items-center gap-4 rounded-lg border border-dashed border-orange-400/70 bg-background/15 p-3 select-none">
                   {selfiePreview ? (
                     <img src={selfiePreview} alt="Selfie preview" className="h-20 w-20 shrink-0 rounded-md object-cover" />
                   ) : (
@@ -570,29 +570,39 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                       <Camera className="h-8 w-8 text-orange-300" />
                     </span>
                   )}
-                  <span className="min-w-0 text-sm">
+                  <div className="min-w-0 flex-1 text-sm">
                     <span className="flex items-center gap-2 font-semibold">
                       {selfie ? <Check className="h-4 w-4 text-green-400" /> : <Camera className="h-4 w-4" />}
                       {selfie ? "Selfie ready" : "Take or upload selfie"}
                     </span>
                     <span className="mt-1 block text-xs text-white/70">Clear photo of your face · JPG, PNG, or WebP · 5MB max</span>
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0] || null;
-                      if (file && file.size > 5 * 1024 * 1024) {
-                        setSelfie(null);
-                        setErrors((current) => ({ ...current, selfie: "The selfie must be smaller than 5MB" }));
-                        return;
-                      }
-                      setSelfie(file);
-                      setErrors((current) => ({ ...current, selfie: "" }));
-                    }}
-                  />
-                </label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {([["user", "Take photo"], [null, "Choose from phone"]] as const).map(([cap, text]) => (
+                        <label key={text} className="cursor-pointer rounded-md bg-orange-500 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-600">
+                          {selfie && text === "Take photo" ? "Retake" : text}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            {...(cap ? { capture: cap } : {})}
+                            className="sr-only"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0] || null;
+                              event.currentTarget.value = "";
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) {
+                                setSelfie(null);
+                                setErrors((current) => ({ ...current, selfie: "The selfie must be smaller than 5MB" }));
+                                return;
+                              }
+                              setSelfie(file);
+                              setErrors((current) => ({ ...current, selfie: "" }));
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 {errors['selfie'] && <p className="text-red-400 text-xs mt-1">{errors['selfie']}</p>}
               </div>
             </div>
