@@ -12,7 +12,7 @@ type Row = {
 };
 
 const KIND_LABEL: Record<string, string> = {
-  tip: "Tip", event: "Event ticket", store: "Clothing order", membership: "Membership", host_deposit: "Host deposit",
+  tip: "Tip", event: "Event ticket", store: "Clothing order", membership: "Membership", host_deposit: "Host deposit", qr: "QR code unlock",
 };
 
 export default function AdminCashAppPayments() {
