@@ -1,0 +1,2 @@
+ALTER TABLE public.cashapp_payments DROP CONSTRAINT IF EXISTS cashapp_payments_kind_check;
+ALTER TABLE public.cashapp_payments ADD CONSTRAINT cashapp_payments_kind_check CHECK (kind IN ('tip','event','store','membership','host_deposit','qr'));
