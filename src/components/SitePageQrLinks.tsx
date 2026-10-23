@@ -3,6 +3,7 @@ import { Copy, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { saveCanvasPng } from "@/lib/qrDownload";
 import flixBg from "@/assets/share/flix.jpg";
 import rentalsBg from "@/assets/share/rentals.jpg";
 import clothesBg from "@/assets/share/clothes.jpg";
@@ -46,13 +47,9 @@ export default function SitePageQrLinks({ username, dime }: { username?: string 
             const display = `www.DimesOnlyWorld.com/${p.link}`;
             const full = `https://${display}`;
             const canvasId = `page-qr-${p.path}`;
-            const download = () => {
-              const c = document.getElementById(canvasId) as HTMLCanvasElement | null;
-              if (!c) return;
-              const a = document.createElement("a");
-              a.href = c.toDataURL("image/png");
-              a.download = `DimesOnly-${p.label}-QR.png`;
-              a.click();
+            const download = async () => {
+              const r = await saveCanvasPng(canvasId, `DimesOnly-${p.label.replace(/\s+/g, "-")}-QR.png`);
+              if (r === "opened") toast({ title: "Press and hold the QR code", description: "Then tap Save to Photos." });
             };
             const copy = async () => {
               try { await navigator.clipboard.writeText(display); toast({ title: `${p.label} link copied` }); }

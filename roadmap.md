@@ -36,3 +36,4 @@
 - [x] Fix rental calendar opacity and add clickable agreements and payment instruction popups
 
 - [x] Share Pages card: Rate QR/link for Exotic/Stripper Dimes only; Males, Normal Females and Business Owners see FlameFlix, Rentals, Clothes (rule covered by tests/dime.test.ts)
+- [x] Make Money QR: iPhone save/view, Plus members free, non-members pay $1.99 via PayPal+fees, Cash App or 7-11 cash (admin confirms in Cash App Payments)

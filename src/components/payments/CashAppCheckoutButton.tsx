@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const CASH_APP_TAG = "$BestCarRentals";
 const CASH_APP_URL = "https://cash.app/$BestCarRentals";
 
-export type CashAppKind = "tip" | "event" | "store" | "membership" | "host_deposit";
+export type CashAppKind = "tip" | "event" | "store" | "membership" | "host_deposit" | "qr";
 
 interface Props {
   kind: CashAppKind;
