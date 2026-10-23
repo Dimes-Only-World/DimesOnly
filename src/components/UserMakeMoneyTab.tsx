@@ -362,24 +362,61 @@ const UserMakeMoneyTab: React.FC = () => {
             {qrUnlocked ? (
               <>
                 <div className="hidden"><QRCodeCanvas id="referral-qr-canvas" value={absoluteShareLink} size={1024} level="M" marginSize={4} /></div>
+                <Button onClick={() => setQrViewOpen(true)} className="w-full">
+                  View QR Code
+                </Button>
                 <Button onClick={handleDownloadQr} variant="outline" className="w-full">
                   <Download className="w-4 h-4 mr-2" />
                   Download QR Code
                 </Button>
+                <Dialog open={qrViewOpen} onOpenChange={setQrViewOpen}>
+                  <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                      <DialogTitle>Your QR Code</DialogTitle>
+                      <DialogDescription>On iPhone, press and hold the code and tap Save to Photos.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-center rounded-lg bg-foreground p-4">
+                      <QRCodeCanvas value={absoluteShareLink} size={260} level="M" marginSize={2} style={{ width: "100%", height: "auto", maxWidth: 260 }} />
+                    </div>
+                    <p className="break-all text-center font-mono text-xs text-muted-foreground">{shareLink}</p>
+                    <Button onClick={handleDownloadQr} className="w-full">
+                      <Download className="w-4 h-4 mr-2" /> Save Image
+                    </Button>
+                  </DialogContent>
+                </Dialog>
               </>
             ) : qrUnlocked === false ? (
               <div className="w-full space-y-2 rounded-lg border border-border bg-muted p-3 text-left">
                 <p className="text-sm text-foreground">
-                  Upgrade to {upgradeTarget.label} to view and download your QR code, or unlock it once for $1.99.
+                  Upgrade to {upgradeTarget.label} to view and download your QR code free, or unlock it once for $1.99.
                 </p>
                 <div className="flex flex-col gap-2 w-full min-w-0">
                   <Button onClick={handleBuyQr} disabled={qrBusy} className="w-full h-auto min-h-10 py-2 whitespace-normal text-center">
-                    {qrBusy ? "Opening PayPal…" : "Pay $1.99 to Unlock QR"}
+                    {qrBusy ? "Please wait…" : "Pay $1.99 + fees with PayPal / Card ($3.35)"}
+                  </Button>
+                  <CashAppCheckoutButton kind="qr" payload={{ method: "cashapp" }} displayAmount={1.99} disabled={qrBusy}
+                    label="Pay $1.99 with Cash App — NO FEES" className="w-full h-auto min-h-10 py-2 whitespace-normal text-center" />
+                  <Button onClick={startCash711} disabled={qrBusy} variant="outline" className="w-full h-auto min-h-10 py-2 whitespace-normal text-center">
+                    Pay $1.99 cash at any 7-11 — NO FEES
                   </Button>
                   <Button asChild variant="outline" className="w-full h-auto min-h-10 py-2 whitespace-normal text-center">
                     <a href={upgradeTarget.href}>Upgrade to {upgradeTarget.label.replace(/^Lifetime /, "")}</a>
                   </Button>
                 </div>
+                <Dialog open={!!cashCode} onOpenChange={(o) => !o && setCashCode(null)}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Pay cash at any 7-11</DialogTitle>
+                      <DialogDescription>QR code unlock — $1.99</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 text-sm">
+                      <p>Total to pay in cash: <b>$1.99</b>.</p>
+                      <p>When you are in front of any 7-11, text <b>"AT 7-11"</b> to <a href="sms:7076401661?&body=AT%207-11" className="font-semibold underline">707.640.1661</a> to get your barcode to pay.</p>
+                      <p>Your payment code is <b className="font-mono">{cashCode}</b>. Once an admin confirms the payment, your QR code unlocks.</p>
+                      <Button asChild className="w-full"><a href="sms:7076401661?&body=AT%207-11">Text "AT 7-11" now</a></Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             ) : null}
           </CardContent>
