@@ -10,7 +10,8 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const QR_PRICE = 1.99;
+// $1.99 plus PayPal/card fees (4.5% + $1.27); Cash App and 7-11 pay $1.99 with no fees.
+const QR_PRICE = Math.round((1.99 * 1.045 + 1.27) * 100) / 100;
 const PLUS_TIERS = ["silver_plus", "diamond_plus", "elite", "elite_plus", "business_owner_elite", "business_owner_elite_installment"];
 const norm = (v: unknown) => String(v ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
 

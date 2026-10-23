@@ -31,6 +31,7 @@ const Body = z.union([
     phone_number: z.string().max(30).optional() }),
   z.object({ action: z.literal("create"), kind: z.literal("host_deposit"),
     applicationIds: z.array(z.string().uuid()).min(1).max(20) }),
+  z.object({ action: z.literal("create"), kind: z.literal("qr"), method: z.enum(["cashapp", "cash"]).default("cashapp") }),
   z.object({ action: z.literal("mine") }),
   z.object({ action: z.literal("list"), status: z.string().max(20).optional() }),
   z.object({ action: z.literal("confirm"), id: z.string().uuid(), cashapp_reference: z.string().min(1).max(200) }),
@@ -173,6 +174,12 @@ Deno.serve(async (req) => {
       if (uErr) throw uErr;
       referenceId = up.id;
       description = `${b.tier.replace(/_/g, " ")} membership`;
+    } else if (b.kind === "qr") {
+      const { data: paidQr } = await db.from("qr_code_purchases").select("id").eq("user_id", userId).eq("status", "paid").limit(1);
+      if (paidQr?.length) return json({ error: "Your QR code is already unlocked" }, 409);
+      amount = 1.99;
+      description = b.method === "cash" ? "Referral QR code unlock (cash at 7-11)" : "Referral QR code unlock";
+      details.method = b.method;
     } else if (b.kind === "host_deposit") {
       const ids = [...new Set(b.applicationIds)];
       const { data: apps } = await db.from("host_applications").select("id, deposit_status").in("id", ids).eq("user_id", userId);
@@ -224,6 +231,12 @@ async function fulfill(db: any, p: any) {
       body: { event_type: "PAYMENT.CAPTURE.COMPLETED", resource: { id: txId } },
     });
     if (error || data?.error) throw new Error(data?.error || error?.message || "Membership activation failed");
+  } else if (p.kind === "qr") {
+    const { error } = await db.from("qr_code_purchases").insert({
+      user_id: p.user_id, paypal_order_id: txId, paypal_capture_id: p.cashapp_reference || txId,
+      amount: Number(p.amount), status: "paid", paid_at: new Date().toISOString(),
+    });
+    if (error) throw error;
   } else if (p.kind === "host_deposit") {
     const { error } = await db.from("host_applications")
       .update({ deposit_status: "paid", deposit_paypal_capture_id: txId, deposit_paid_at: new Date().toISOString() })
