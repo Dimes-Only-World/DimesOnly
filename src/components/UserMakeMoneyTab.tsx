@@ -353,11 +353,11 @@ const UserMakeMoneyTab: React.FC = () => {
                 <p className="text-sm text-foreground">
                   Upgrade to {upgradeTarget.label} to view and download your QR code, or unlock it once for $1.99.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button onClick={handleBuyQr} disabled={qrBusy} className="flex-1">
+                <div className="flex flex-col gap-2 w-full min-w-0">
+                  <Button onClick={handleBuyQr} disabled={qrBusy} className="w-full h-auto min-h-10 py-2 whitespace-normal text-center">
                     {qrBusy ? "Opening PayPal…" : "Pay $1.99 to Unlock QR"}
                   </Button>
-                  <Button asChild variant="outline" className="flex-1">
+                  <Button asChild variant="outline" className="w-full h-auto min-h-10 py-2 whitespace-normal text-center">
                     <a href={upgradeTarget.href}>Upgrade to {upgradeTarget.label.replace(/^Lifetime /, "")}</a>
                   </Button>
                 </div>
