@@ -16,7 +16,10 @@ import Top20DimesCarousel from "@/components/Top20DimesCarousel";
 import { getPlusUpgradeTarget } from "@/lib/freeMembership";
 import { QRCodeCanvas } from "qrcode.react";
 import SitePageQrLinks from "@/components/SitePageQrLinks";
-import { isDime } from "@/lib/membership";
+import { isDime, resolveMembership } from "@/lib/membership";
+import { saveCanvasPng } from "@/lib/qrDownload";
+import CashAppCheckoutButton from "@/components/payments/CashAppCheckoutButton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Lock } from "lucide-react";
 
 const UserMakeMoneyTab: React.FC = () => {
@@ -31,6 +34,8 @@ const UserMakeMoneyTab: React.FC = () => {
   const bannerVideoUrl = adminBannerVideo || "https://dimesonlyworld.s3.us-east-2.amazonaws.com/0415+(1).mp4";
   const [qrUnlocked, setQrUnlocked] = useState<boolean | null>(null);
   const [qrBusy, setQrBusy] = useState(false);
+  const [qrViewOpen, setQrViewOpen] = useState(false);
+  const [cashCode, setCashCode] = useState<string | null>(null);
   const upgradeTarget = getPlusUpgradeTarget(user);
 
   useEffect(() => {
@@ -48,10 +53,16 @@ const UserMakeMoneyTab: React.FC = () => {
         else toast({ title: "Payment not completed", description: data?.error || "Please try again.", variant: "destructive" });
       }
       const { data } = await supabase.functions.invoke("make-money", { body: { action: "qrStatus" } });
-      setQrUnlocked(!!data?.unlocked);
+      setQrUnlocked((prev) => prev === true || !!data?.unlocked);
     };
     run();
   }, [user?.id]);
+
+  // Silver Plus / Diamond Plus / Elite Plus members get the QR code included.
+  useEffect(() => {
+    const key = resolveMembership(user).key;
+    if (["silver_plus", "diamond_plus", "elite_plus"].includes(key)) setQrUnlocked(true);
+  }, [user]);
 
   const handleBuyQr = async () => {
     setQrBusy(true);
@@ -67,13 +78,21 @@ const UserMakeMoneyTab: React.FC = () => {
     window.location.href = data.approvalUrl;
   };
 
-  const handleDownloadQr = () => {
-    const canvas = document.getElementById("referral-qr-canvas") as HTMLCanvasElement | null;
-    if (!canvas) return;
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
-    a.download = `DimesOnly-QR-${actualUsername || "referral"}.png`;
-    a.click();
+  const startCash711 = async () => {
+    setQrBusy(true);
+    const { data, error } = await supabase.functions.invoke("cashapp-checkout", { body: { action: "create", kind: "qr", method: "cash" } });
+    setQrBusy(false);
+    if (error || !data?.success) {
+      toast({ title: "Could not start cash payment", description: data?.error || "Please try again.", variant: "destructive" });
+      return;
+    }
+    setCashCode(data.payment.payment_code);
+  };
+
+  const handleDownloadQr = async () => {
+    const r = await saveCanvasPng("referral-qr-canvas", `DimesOnly-QR-${actualUsername || "referral"}.png`);
+    if (r === "opened") toast({ title: "Press and hold the QR code", description: "Then tap Save to Photos." });
+    if (r === "failed") setQrViewOpen(true);
   };
 
   const referralUsername = actualUsername;
