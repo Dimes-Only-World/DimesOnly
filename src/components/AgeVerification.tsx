@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ShortFormBackgroundCarousel from "@/components/ShortFormBackgroundCarousel";
 import BannerVideo from "@/components/BannerVideo";
 import { shouldPlayAgeGateWarning, type AgeGateStep } from "@/lib/ageGatePlayback";
-import { Camera, Check } from "lucide-react";
+import { Camera, Check, Loader2 } from "lucide-react";
+import { AGE_OK_KEY, SHORT_FORM_USERNAME_KEY } from "@/lib/joinFlow";
 
 /** Resize a selfie to max 768px on its longest side as a JPEG (base64, no prefix) for the AI face check. */
 async function makeAiPreview(file: File, maxSide = 768): Promise<string> {
@@ -25,6 +26,8 @@ async function makeAiPreview(file: File, maxSide = 768): Promise<string> {
 interface AgeVerificationProps {
   onVerified: () => void;
   initialStep?: Step | undefined;
+  /** "gate" = 18+ entry only; "join" = short form flow opened from a Join Free button. */
+  mode?: "gate" | "join";
 }
 
 const FALLBACK_VIDEO =
@@ -33,11 +36,11 @@ const FALLBACK_VIDEO =
 type Step = AgeGateStep;
 type Role = "exotic" | "stripper" | "normal_female" | "male" | "business_owner";
 const ROLE_OPTIONS: { value: Role; label: string }[] = [
-  { value: "exotic", label: "Exotic Female" },
-  { value: "stripper", label: "Stripper" },
-  { value: "normal_female", label: "Normal Female" },
-  { value: "male", label: "Male" },
-  { value: "business_owner", label: "Business Owner" },
+  { value: "exotic", label: "I'm Exotic" },
+  { value: "stripper", label: "I'm a Stripper" },
+  { value: "normal_female", label: "I'm a Normal Female" },
+  { value: "male", label: "I'm a Male" },
+  { value: "business_owner", label: "I'm a Business Owner" },
 ];
 
 interface Referrer {
@@ -45,7 +48,7 @@ interface Referrer {
   photo: string | null;
 }
 
-const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialStep }) => {
+const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialStep, mode = "join" }) => {
   const [step, setStep] = useState<Step>(initialStep ?? "warning");
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<
@@ -288,6 +291,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
       });
       if (error) throw error;
       if (data?.leadId) setLeadId(data.leadId);
+      try { sessionStorage.setItem(SHORT_FORM_USERNAME_KEY, username.trim()); } catch { /* ignore */ }
       setSubmitting(false);
       markVerified();
       setStep("video");
@@ -329,7 +333,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     try {
       sessionStorage.setItem(
         "ageGatePrefill",
-        JSON.stringify({ username: username.trim(), phone: phone.trim(), dateOfBirth: dob }),
+        JSON.stringify({ username: username.trim(), phone: phone.trim(), dateOfBirth: dob, visitorType: role || undefined }),
       );
     } catch (e) {
       console.error("Unable to store prefill data", e);
@@ -397,7 +401,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
   const closeContact = () => {
     markVerified();
     setShowContact(false);
-    onVerified();
+    window.location.href = "/explore";
   };
 
   // Format as (111) 111-1111 while typing.
@@ -420,7 +424,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
     "w-full rounded-lg bg-white/10 border border-white/30 text-white placeholder-white/50 px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto p-3 sm:p-4 flex items-start sm:items-center justify-center">
+    <div className={`fixed inset-0 z-50 ${mode === "gate" ? "bg-black/50 backdrop-blur-md" : "bg-black/90"} overflow-y-auto p-3 sm:p-4 flex items-start sm:items-center justify-center`}>
       {step === "form" && <ShortFormBackgroundCarousel position="fixed" className="z-0" />}
       <div
         className={`relative z-10 text-white p-4 sm:p-8 rounded-2xl border-4 border-orange-500 shadow-2xl max-w-4xl w-full my-auto ${
@@ -428,6 +432,16 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
         } ${step === "warning" ? "lg:grid lg:grid-cols-[2fr_3fr] lg:items-center lg:gap-6" : ""
         }`}
       >
+        {mode === "join" && step !== "warning" && (
+          <div className="max-w-lg mx-auto mb-5">
+            <div className="flex justify-between text-xs text-white/70 mb-1.5">
+              <span>Step {step === "role" ? 1 : step === "form" ? 2 : 3} of 4</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full bg-orange-500 transition-all" style={{ width: `${(step === "role" ? 1 : step === "form" ? 2 : 3) * 25}%` }} />
+            </div>
+          </div>
+        )}
         {shouldPlayAgeGateWarning(step) && (
           <div className={`w-full ${step === "warning" ? "mb-4 lg:mb-0" : "max-w-sm mx-auto mb-5"}`}>
             <BannerVideo
@@ -446,16 +460,21 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 WARNING: This site is for adults only!
               </h2>
               <p className="mb-6 text-xs sm:text-sm leading-relaxed">
-                By entering this website, I acknowledge that I am 18 years old or older and agree to the Terms of
-                Service, which are available per request at the footer of the website.
+                By entering you confirm you are 18 or older and agree to our{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-orange-400 underline">Terms of Service</a>.
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button
-                  onClick={() => setStep("role")}
+                  onClick={() => {
+                    if (mode === "gate") {
+                      try { localStorage.setItem(AGE_OK_KEY, "true"); } catch { /* ignore */ }
+                      onVerified();
+                    } else setStep("role");
+                  }}
                   type="button"
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-xs sm:text-sm"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-lg font-bold transition-colors text-sm sm:text-base"
                 >
-                  ENTER - I am 18 years old or older
+                  I&apos;m 18+ – Enter
                 </button>
                 <button
                   onClick={() => {
@@ -492,7 +511,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
             </div>
             <button
               type="button"
-              onClick={() => setStep("warning")}
+              onClick={() => onVerified()}
               className="mt-5 text-white/60 hover:text-white text-sm underline"
             >
               Back
@@ -581,7 +600,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5">Age Verification Selfie</label>
+                <label className="block text-sm font-medium mb-1">Age Verification Selfie</label>
+                <p className="text-xs text-white/70 mb-1.5">Your selfie is private and only used to verify your age.</p>
                 <div className="flex min-h-24 items-center gap-4 rounded-lg border border-dashed border-orange-400/70 bg-background/15 p-3 select-none">
                   {selfiePreview ? (
                     <img src={selfiePreview} alt="Selfie preview" className="h-20 w-20 shrink-0 rounded-md object-cover" />
@@ -645,7 +665,7 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => setStep("warning")}
+                onClick={() => setStep("role")}
                 className="sm:w-auto px-5 py-3 rounded-lg border border-white/30 text-white/80 hover:bg-white/10 transition-colors text-sm font-semibold"
               >
                 Back
@@ -665,7 +685,9 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                   disabled={submitting}
                   className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
                 >
-                  {submitting ? "Submitting..." : "Submit"}
+                  {submitting ? (
+                    <span className="inline-flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Verifying…</span>
+                  ) : "Submit"}
                 </button>
               )}
             </div>
@@ -690,16 +712,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               className="aspect-[2.35/1] rounded-lg border-2 border-orange-500"
             />
 
-            {!videoEnded && (
-              <p className="text-white/60 text-xs sm:text-sm mt-4 text-center">
-                Your options will unlock once the video finishes.
-              </p>
-            )}
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 type="button"
-                disabled={!videoEnded}
                 onClick={handleContinueRegistration}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
               >
@@ -707,11 +723,10 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
               </button>
               <button
                 type="button"
-                disabled={!videoEnded}
                 onClick={handleMoreInfo}
                 className="flex-1 bg-pink-600 hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
               >
-                For more information click here
+                More Info
               </button>
             </div>
           </div>
