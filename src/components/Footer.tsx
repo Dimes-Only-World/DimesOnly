@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
               show="settings"
             />
           </div>
-          <p className="text-sm">© 2025 Housing Angels, LLC</p>
+          <p className="text-sm">© {new Date().getFullYear()} Housing Angels, LLC</p>
         </div>
       </footer>
 

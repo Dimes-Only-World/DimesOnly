@@ -145,6 +145,36 @@ serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
+    // Phone-only lookup for returning visitors. Returns username, role, masked DOB
+    // and registered profile photo only — never the private selfie or full DOB.
+    if ((body as any).phoneLookup) {
+      const digits = String((body as any).phone ?? "").replace(/\D/g, "").slice(-10);
+      if (digits.length !== 10) return json({ error: "Enter a valid phone number" }, 400);
+      const { data: leads, error: lErr } = await admin
+        .from("age_gate_leads")
+        .select("id, username, full_name, phone, date_of_birth, visitor_type, deleted_at")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+      if (lErr) throw lErr;
+      const lead = (leads ?? []).find((l: any) => !l.deleted_at && String(l.phone ?? "").replace(/\D/g, "").slice(-10) === digits);
+      if (!lead) return json({ found: false });
+      const uname = String(lead.username || lead.full_name || "");
+      let photo: string | null = null;
+      if (uname) {
+        const { data: u } = await admin.from("users").select("profile_photo, front_page_photo").ilike("username", uname).maybeSingle();
+        photo = (u as any)?.profile_photo || (u as any)?.front_page_photo || null;
+      }
+      const dob = String(lead.date_of_birth ?? "").slice(0, 10);
+      return json({
+        found: true,
+        leadId: lead.id,
+        username: uname,
+        visitorType: lead.visitor_type || null,
+        dobMasked: dob ? `**/**/${dob.slice(0, 4)}` : "",
+        photo,
+      });
+    }
+
     // Lookup call: verify a returning visitor already submitted the short form.
     if (lookup) {
       const name = String((body as any).fullName ?? "").trim();

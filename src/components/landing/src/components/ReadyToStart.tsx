@@ -1,7 +1,8 @@
+import { openJoinFlow } from "@/lib/joinFlow";
+
 const ReadyToStart = () => {
   const params = new URLSearchParams(window.location.search);
   const ref = params.get("ref");
-  const registerUrl = ref ? `/register?ref=${encodeURIComponent(ref)}` : "/register";
   const loginUrl = ref ? `/login?ref=${encodeURIComponent(ref)}` : "/login";
 
   return (
@@ -11,12 +12,13 @@ const ReadyToStart = () => {
           <span className="text-[#E916D1]">JOIN FREE TODAY</span>
         </h2>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-          <a
-            href={registerUrl}
+          <button
+            type="button"
+            onClick={() => openJoinFlow()}
             className="px-10 py-4 rounded-full font-bold bg-[#E916D1] text-white hover:bg-[#E916D1]/90 transition-colors text-lg"
           >
             START FREE
-          </a>
+          </button>
           <a
             href={loginUrl}
             className="px-10 py-4 rounded-full font-bold border border-[#E916D1] text-[#E916D1] hover:bg-[#E916D1]/10 transition-colors text-lg"

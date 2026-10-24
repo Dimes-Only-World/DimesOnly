@@ -11,8 +11,8 @@ const steps = [
   },
   {
     num: "3",
-    title: "Transfer Your Followers",
-    desc: "Bring your existing audience to the platform and start earning right away.",
+    title: "Build Your Money Circle",
+    desc: "Put all your followers in your Money Circle and make money daily.",
   },
 ];
 
@@ -22,6 +22,8 @@ const AUDIENCES = [
   "Exxxotic Females",
   "Exotic Females",
 ];
+
+import JoinFreeButton from "@/components/JoinFreeButton";
 
 const GetStartedSteps = () => (
   <section className="py-24 bg-transparent relative z-10">
@@ -72,6 +74,7 @@ const GetStartedSteps = () => (
           </div>
         ))}
       </div>
+      <div className="mt-10 flex justify-center"><JoinFreeButton /></div>
     </div>
   </section>
 );

@@ -26,6 +26,7 @@ import { Route as EventPaymentReturnRouteImport } from './routes/event-payment-r
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as EventsDimesOnlyRouteImport } from './routes/events-dimes-only'
 import { Route as EventsdimesRouteImport } from './routes/eventsdimes'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as FailsafeRouteImport } from './routes/failsafe'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as FlixRouteImport } from './routes/flix'
@@ -187,6 +188,11 @@ const EventsDimesOnlyRoute = EventsDimesOnlyRouteImport.update({
 const EventsdimesRoute = EventsdimesRouteImport.update({
   id: '/eventsdimes',
   path: '/eventsdimes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FailsafeRoute = FailsafeRouteImport.update({
@@ -594,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRoute
   '/events-dimes-only': typeof EventsDimesOnlyRoute
   '/eventsdimes': typeof EventsdimesRoute
+  '/explore': typeof ExploreRoute
   '/failsafe': typeof FailsafeRoute
   '/feed': typeof FeedRouteWithChildren
   '/flix': typeof FlixRouteWithChildren
@@ -688,6 +695,7 @@ export interface FileRoutesByTo {
   '/events': typeof EventsRoute
   '/events-dimes-only': typeof EventsDimesOnlyRoute
   '/eventsdimes': typeof EventsdimesRoute
+  '/explore': typeof ExploreRoute
   '/failsafe': typeof FailsafeRoute
   '/jackpot': typeof JackpotRoute
   '/login': typeof LoginRoute
@@ -777,6 +785,7 @@ export interface FileRoutesById {
   '/events': typeof EventsRoute
   '/events-dimes-only': typeof EventsDimesOnlyRoute
   '/eventsdimes': typeof EventsdimesRoute
+  '/explore': typeof ExploreRoute
   '/failsafe': typeof FailsafeRoute
   '/feed': typeof FeedRouteWithChildren
   '/flix': typeof FlixRouteWithChildren
@@ -875,6 +884,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/events-dimes-only'
     | '/eventsdimes'
+    | '/explore'
     | '/failsafe'
     | '/feed'
     | '/flix'
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/events-dimes-only'
     | '/eventsdimes'
+    | '/explore'
     | '/failsafe'
     | '/jackpot'
     | '/login'
@@ -1057,6 +1068,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/events-dimes-only'
     | '/eventsdimes'
+    | '/explore'
     | '/failsafe'
     | '/feed'
     | '/flix'
@@ -1154,6 +1166,7 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRoute
   EventsDimesOnlyRoute: typeof EventsDimesOnlyRoute
   EventsdimesRoute: typeof EventsdimesRoute
+  ExploreRoute: typeof ExploreRoute
   FailsafeRoute: typeof FailsafeRoute
   FeedRoute: typeof FeedRouteWithChildren
   FlixRoute: typeof FlixRouteWithChildren
@@ -1312,6 +1325,13 @@ declare module '@tanstack/react-router' {
       path: '/eventsdimes'
       fullPath: '/eventsdimes'
       preLoaderRoute: typeof EventsdimesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/failsafe': {
@@ -2044,6 +2064,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRoute,
   EventsDimesOnlyRoute: EventsDimesOnlyRoute,
   EventsdimesRoute: EventsdimesRoute,
+  ExploreRoute: ExploreRoute,
   FailsafeRoute: FailsafeRoute,
   FeedRoute: FeedRouteWithChildren,
   FlixRoute: FlixRouteWithChildren,
