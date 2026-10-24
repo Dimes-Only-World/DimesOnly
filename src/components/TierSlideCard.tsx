@@ -64,7 +64,7 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining, fi
             alt=""
             loading="lazy"
             className={`absolute inset-0 h-full w-full object-center ${
-              fit === "cover" ? "object-cover lg:object-contain" : "object-contain"
+              fit === "cover" ? "object-cover" : "object-contain"
             }`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
