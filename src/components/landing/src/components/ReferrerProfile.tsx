@@ -47,10 +47,10 @@ const ReferrerProfile = () => {
 
   const photoUrl = referrer?.front_page_photo || referrer?.profile_photo || defaultAvatar;
 
-  return (
-    <section id="referrer-section" className={ref ? "py-16 bg-black" : "relative z-10 pt-10 pb-4 bg-transparent"}>
-      <div className="container mx-auto px-4 text-center">
-        {ref ? (
+  if (ref) {
+    return (
+      <section id="referrer-section" className="py-16 bg-black">
+        <div className="container mx-auto px-4 text-center">
           <div className="flex flex-col items-center gap-4">
             <div className="max-w-sm w-full rounded-lg border-2 border-primary overflow-hidden">
               {loading ? (
@@ -66,17 +66,12 @@ const ReferrerProfile = () => {
             </div>
             <p className="text-xl font-semibold text-white">@{referrer?.username || ref}</p>
             <p className="text-white/80 text-sm">invited you to join Dimes Only Network</p>
-
           </div>
-        ) : (
-          <img
-            src={dimesLogo.url}
-            alt="Dimes Only World"
-            className="mx-auto w-full max-w-2xl h-auto object-contain"
-          />
-        )}
-      </div>
-    </section>);
+        </div>
+      </section>
+    );
+  }
+  return null;
 };
 
 export default ReferrerProfile;
