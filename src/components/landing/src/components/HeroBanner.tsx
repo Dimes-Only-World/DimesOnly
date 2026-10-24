@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import placeholderLady from "../../../../assets/weo.png";
-import dimesLogo from "@/assets/dimes-only-world-logo.png.asset.json";
 import JoinFreeButton from "@/components/JoinFreeButton";
 
 const supabaseUrl = "https://qkcuykpndrolrewwnkwb.supabase.co";
