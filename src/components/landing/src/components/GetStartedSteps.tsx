@@ -26,7 +26,7 @@ const AUDIENCES = [
 import dimesLogo from "@/assets/dimes-only-world-logo.png.asset.json";
 
 const GetStartedSteps = () => (
-  <section className="py-24 bg-transparent relative z-10">
+  <section className="pt-24 pb-6 bg-transparent relative z-10">
     <div className="container mx-auto px-4">
       <div className="max-w-3xl mx-auto text-center mb-16">
         <img
