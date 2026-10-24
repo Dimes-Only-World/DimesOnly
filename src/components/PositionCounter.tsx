@@ -109,7 +109,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               { image: eliteLounge, caption: "Tier 2: $1,170,000 minimum" },
               { image: eliteTattoo, caption: "This can change your business.", emphasis: true },
             ]}
-            title="Elite Plus" remaining={left(elite)} audience="Business Owners"
+            title="Elite Plus" remaining={left(elite)} audience="Business Owners" fit="cover"
           />
           <TierSlideCard
             slides={[
