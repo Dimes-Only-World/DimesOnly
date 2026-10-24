@@ -47,6 +47,7 @@ const TierSlideCard: React.FC<Props> = ({ audience, title, slides, remaining }) 
         </motion.div>
       </AnimatePresence>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black via-black/70 to-transparent" />
 
       <div className="relative z-10 flex h-full flex-col justify-between p-6 pb-20 md:p-8 md:pb-20">
         <div>
