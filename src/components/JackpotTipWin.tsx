@@ -99,7 +99,7 @@ const JackpotTipWin: React.FC<{ example?: boolean }> = ({ example = false }) => 
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 py-20 md:py-28">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 pt-20 pb-6 md:pt-28 md:pb-10">
         {/* Eyebrow */}
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#E916D1] backdrop-blur">

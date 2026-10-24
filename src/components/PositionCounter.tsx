@@ -79,7 +79,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
 
 
   return (
-    <div className={`py-16 px-5 bg-black ${className}`}>
+    <div className={`pt-4 pb-16 px-5 bg-black ${className}`}>
       {/* === MEMBERSHIP CARDS === */}
       <div className="max-w-6xl mx-auto px-6 my-10">
         <motion.h2
