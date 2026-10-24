@@ -114,7 +114,7 @@ const JackpotTipWin: React.FC<{ example?: boolean }> = ({ example = false }) => 
             <div className="flex items-center justify-center gap-3 mb-3">
               <Trophy className="h-7 w-7 text-[#E916D1]" />
               <span className="text-sm font-semibold uppercase tracking-[0.35em] text-white/70">
-                {example ? "Example Jackpot" : "Current Jackpot"}
+                {example ? "TIP & WIN JACKPOT" : "Current Jackpot"}
               </span>
             </div>
             <div
@@ -125,7 +125,7 @@ const JackpotTipWin: React.FC<{ example?: boolean }> = ({ example = false }) => 
               {formatCurrency(example ? exShown : jackpotAmount)}
             </div>
             <div className="mt-4 text-xs uppercase tracking-widest text-white/50">
-              {example ? "Example only · Real live jackpot disclosed inside" : "Live pool · Updates in real time"}
+              {example ? "REAL LIVE JACKPOT DISCLOSED INSIDE" : "Live pool · Updates in real time"}
             </div>
           </div>
         </div>
