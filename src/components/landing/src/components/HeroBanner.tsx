@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import placeholderLady from "../../../../assets/weo.png";
-import dimesLogo from "@/assets/dimes-only-world-logo.png.asset.json";
 import JoinFreeButton from "@/components/JoinFreeButton";
 
 const supabaseUrl = "https://qkcuykpndrolrewwnkwb.supabase.co";
@@ -82,12 +81,7 @@ const HeroBanner = () => {
         <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-white leading-tight [text-shadow:0_4px_16px_rgba(0,0,0,0.8)]">
           Get Seen. Get Promoted. <span className="text-orange-500">Get Paid.</span>
         </h1>
-        <img
-          src={dimesLogo.url}
-          alt="Dimes Only World"
-          className="mx-auto w-full max-w-md sm:max-w-lg h-auto object-contain mt-8 mb-6"
-        />
-        <div className="mt-2"><JoinFreeButton /></div>
+        <div className="mt-8"><JoinFreeButton /></div>
       </div>
     </section>
   );
