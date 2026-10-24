@@ -13,13 +13,13 @@ import { useMembershipStage } from "@/hooks/useMembershipStage";
 import eliteSuitA from "@/assets/tiers/u-elite-suit.jpg.asset.json";
 import eliteDesignerA from "@/assets/tiers/u-elite-designer.jpg.asset.json";
 import eliteDressA from "@/assets/tiers/u-elite-dress.jpg.asset.json";
-import silverTattooA from "@/assets/tiers/u-silver-tattoo.jpg.asset.json";
-import silverManA from "@/assets/tiers/u-silver-man.jpg.asset.json";
-import silverBeigeA from "@/assets/tiers/u-silver-beige.jpg.asset.json";
+import silverCreamDressA from "@/assets/tiers/silver-cream-dress.png.asset.json";
+import silverKnitDressA from "@/assets/tiers/silver-knit-dress.png.asset.json";
+import silverSuitManA from "@/assets/tiers/silver-suit-man.png.asset.json";
 import diamondLeopardA from "@/assets/tiers/diamond-leopard-2.png.asset.json";
 import diamondPinkA from "@/assets/tiers/diamond-pink-2.png.asset.json";
 const eliteSuit = eliteSuitA.url, eliteDesigner = eliteDesignerA.url, eliteDress = eliteDressA.url;
-const silverTattoo = silverTattooA.url, silverMan = silverManA.url, silverBeige = silverBeigeA.url;
+const silverCreamDress = silverCreamDressA.url, silverKnitDress = silverKnitDressA.url, silverSuitMan = silverSuitManA.url;
 const diamondLeopard = diamondLeopardA.url, diamondPink = diamondPinkA.url;
 
 interface PositionCounterProps {
@@ -181,9 +181,9 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             title="Silver Plus"
             remaining={loading ? "..." : silverPlusData?.remaining ?? "N/A"}
             slides={[
-              { image: silverMan, eyebrow: "Tier 1", headline: "Up to", amount: "$75,000", note: "Max annual profit sharing" },
-              { image: silverTattoo, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
-              { image: silverBeige, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
+              { image: silverCreamDress, eyebrow: "Tier 1", headline: "Up to", amount: "$75,000", note: "Max annual profit sharing" },
+              { image: silverKnitDress, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
+              { image: silverSuitMan, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
             ]}
           />
         </div>
