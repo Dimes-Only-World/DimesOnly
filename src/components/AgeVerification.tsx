@@ -460,8 +460,8 @@ const AgeVerification: React.FC<AgeVerificationProps> = ({ onVerified, initialSt
                 WARNING: This site is for adults only!
               </h2>
               <p className="mb-6 text-xs sm:text-sm leading-relaxed">
-                By entering you confirm you are 18 or older and agree to our{" "}
-                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-orange-400 underline">Terms of Service</a>.
+                By entering this website, I acknowledge that I am 18 years old or older and agree to the{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-orange-400 underline">Terms of Service</a>, which are available at the footer of the website.
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button

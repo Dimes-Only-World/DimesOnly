@@ -424,19 +424,19 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
 
           {/* Prize Grid */}
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            <div className="rounded-2xl border border-[#E916D1]/40 bg-gradient-to-b from-[#E916D1]/15 to-transparent p-6 backdrop-blur-md">
+            <div className="rounded-2xl border border-[#E916D1]/40 bg-gradient-to-b from-[#E916D1]/15 to-transparent p-4 md:p-6 backdrop-blur-md">
               <div className="text-xs uppercase tracking-widest text-[#E916D1] mb-2">Grand Prize</div>
-              <div className="text-3xl font-black text-white tabular-nums">$10,000</div>
+              <div className="text-2xl md:text-3xl font-black text-white tabular-nums whitespace-nowrap">$10,000</div>
               <div className="mt-2 text-xs text-white/60">#1 Ranked</div>
             </div>
-            <div className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-md">
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-4 md:p-6 backdrop-blur-md">
               <div className="text-xs uppercase tracking-widest text-white/60 mb-2">Runner-Ups</div>
-              <div className="text-3xl font-black text-white tabular-nums">#2 – #20</div>
+              <div className="text-2xl md:text-3xl font-black text-white tabular-nums whitespace-nowrap">#2 – #20</div>
               <div className="mt-2 text-xs text-white/60">Additional Cash Prizes</div>
             </div>
-            <div className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-md">
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-4 md:p-6 backdrop-blur-md">
               <div className="text-xs uppercase tracking-widest text-white/60 mb-2">Recurring</div>
-              <div className="text-3xl font-black text-white">Quarterly</div>
+              <div className="text-2xl md:text-3xl font-black text-white whitespace-nowrap">Quarterly</div>
               <div className="mt-2 text-xs text-white/60">New Winners Every 3 Months</div>
             </div>
           </div>

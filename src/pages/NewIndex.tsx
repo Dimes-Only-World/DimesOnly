@@ -6,7 +6,6 @@ import ReadyToStart from '../components/landing/src/components/ReadyToStart';
 import SecurePlatform from '../components/landing/src/components/SecurePlatform';
 import LandingFooter from '../components/landing/src/components/LandingFooter';
 import JackpotTipWin from '@/components/JackpotTipWin';
-import MockJackpotCounter from '@/components/MockJackpotCounter';
 import JoinFreeButton from '@/components/JoinFreeButton';
 
 import PositionCounter from '@/components/PositionCounter';
@@ -40,8 +39,7 @@ const NewIndex: React.FC = () => {
         </div>
       </div>
 
-      <MockJackpotCounter />
-      <JackpotTipWin />
+      <JackpotTipWin example />
       <ImageCarousel />
       <div className="bg-black py-10 flex justify-center"><JoinFreeButton /></div>
 
