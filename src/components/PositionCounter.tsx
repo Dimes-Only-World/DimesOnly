@@ -10,13 +10,13 @@ import TierSlideCard from "@/components/TierSlideCard";
 import { useMembershipStage } from "@/hooks/useMembershipStage";
 import eliteDimesA from "@/assets/tiers/elite-dimes-3.jpg.asset.json";
 import eliteLoungeA from "@/assets/tiers/elite-lounge-2.jpg.asset.json";
-import eliteSuit2A from "@/assets/tiers/elite-suit-7.jpg.asset.json";
+import eliteTattooA from "@/assets/tiers/elite-tattoo.png.asset.json";
 import silverCreamDressA from "@/assets/tiers/silver-cream-dress.png.asset.json";
 import silverKnitDressA from "@/assets/tiers/silver-knit-dress.png.asset.json";
 import silverSuitManA from "@/assets/tiers/silver-suit-man.png.asset.json";
 import diamondLeopardA from "@/assets/tiers/diamond-leopard-2.png.asset.json";
 import diamondPinkA from "@/assets/tiers/diamond-pink-2.png.asset.json";
-const eliteDimes = eliteDimesA.url, eliteLounge = eliteLoungeA.url, eliteSuit2 = eliteSuit2A.url;
+const eliteDimes = eliteDimesA.url, eliteLounge = eliteLoungeA.url, eliteTattoo = eliteTattooA.url;
 const silverCreamDress = silverCreamDressA.url, silverKnitDress = silverKnitDressA.url, silverSuitMan = silverSuitManA.url;
 const diamondLeopard = diamondLeopardA.url, diamondPink = diamondPinkA.url;
 
@@ -107,7 +107,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             slides={[
               { image: eliteDimes },
               { image: eliteLounge },
-              { image: eliteSuit2 },
+              { image: eliteTattoo },
             ]}
             title="Elite Plus" remaining={left(elite)} audience="Business Owners" tier1="Up to $200,000 annually" tier2="$1,170,000 minimum"
           />
