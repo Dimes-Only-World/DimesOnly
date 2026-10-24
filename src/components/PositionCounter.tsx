@@ -1,15 +1,12 @@
 import JoinFreeButton from "@/components/JoinFreeButton";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { supabase } from "../lib/supabase";
 
 import nudeImg from "@/assets/nude.png";
-import exoticImg from "@/assets/exotic.png";
 import step1Img from "@/assets/step1.png";
 import step2Img from "@/assets/step2.png";
 import step3Img from "@/assets/step3.png";
 import TierSlideCard from "@/components/TierSlideCard";
-import { useMembershipStage } from "@/hooks/useMembershipStage";
 import eliteDimesA from "@/assets/tiers/elite-dimes-2.jpg.asset.json";
 import eliteLoungeA from "@/assets/tiers/elite-lounge.jpg.asset.json";
 import eliteSuit2A from "@/assets/tiers/elite-suit-5.jpg.asset.json";
@@ -26,12 +23,6 @@ interface PositionCounterProps {
   className?: string;
 }
 
-interface CounterData {
-  current_count: number;
-  max_count: number;
-  available: boolean;
-  remaining: number;
-}
 
 // 🔠 Word-by-word fade animation
 const WordFade: React.FC<{text: string;delay?: number;}> = ({ text, delay = 0 }) => {
