@@ -15,13 +15,13 @@ const ReadyToStart = () => {
           <button
             type="button"
             onClick={() => openJoinFlow()}
-            className="px-10 py-4 rounded-full font-bold bg-[#E916D1] text-white hover:bg-[#E916D1]/90 transition-colors text-lg"
+            className="w-full sm:w-80 px-6 py-4 rounded-full font-bold border border-transparent bg-[#E916D1] text-white hover:bg-[#E916D1]/90 transition-colors text-lg"
           >
             START FREE
           </button>
           <a
             href={loginUrl}
-            className="px-10 py-4 rounded-full font-bold border border-[#E916D1] text-[#E916D1] hover:bg-[#E916D1]/10 transition-colors text-lg"
+            className="w-full sm:w-80 px-6 py-4 rounded-full font-bold border border-[#E916D1] text-[#E916D1] hover:bg-[#E916D1]/10 transition-colors text-lg"
           >
             MEMBERS LOGIN
           </a>

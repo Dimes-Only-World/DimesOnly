@@ -1,4 +1,3 @@
-import JoinFreeButton from "@/components/JoinFreeButton";
 import React from "react";
 import { motion } from "framer-motion";
 
@@ -123,7 +122,6 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         </div>
         <div className="mt-10 text-center">
           <p className="text-white text-base md:text-lg mb-5">Profit sharing positions are limited. Join free to learn more.</p>
-          <JoinFreeButton />
         </div>
       </div>
 
