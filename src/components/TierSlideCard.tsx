@@ -12,6 +12,8 @@ interface Props {
   title: string;
   audience: string;
   remaining: number | string;
+  /** "contain" shows the whole photo (may leave dark bands); "cover" fills the card on phones/tablets. */
+  fit?: "contain" | "cover";
 }
 
 const WordFade: React.FC<{ text: string }> = ({ text }) => (
@@ -31,7 +33,7 @@ const WordFade: React.FC<{ text: string }> = ({ text }) => (
   </span>
 );
 
-const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining }) => {
+const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining, fit = "contain" }) => {
   const [i, setI] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -61,7 +63,9 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining }) 
             src={s.image}
             alt=""
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-contain object-center"
+            className={`absolute inset-0 h-full w-full object-center ${
+              fit === "cover" ? "object-cover lg:object-contain" : "object-contain"
+            }`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
