@@ -8,6 +8,14 @@ import exoticImg from "@/assets/exotic.png";
 import step1Img from "@/assets/step1.png";
 import step2Img from "@/assets/step2.png";
 import step3Img from "@/assets/step3.png";
+import TierSlideCard from "@/components/TierSlideCard";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
+import eliteSuit from "@/assets/tiers/elite-suit.png";
+import eliteDesigner from "@/assets/tiers/elite-designer.png";
+import eliteDress from "@/assets/tiers/elite-black-dress.png";
+import silverTattoo from "@/assets/tiers/silver-tattoo.png";
+import silverMan from "@/assets/tiers/silver-man.png";
+import silverBeige from "@/assets/tiers/silver-beige.png";
 
 interface PositionCounterProps {
   className?: string;
@@ -45,6 +53,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
   const [diamondPlusSpotsLeft, setDiamondPlusSpotsLeft] = useState(300);
   const [silverPlusData, setSilverPlusData] = useState<CounterData | null>(null);
   const [loading, setLoading] = useState(true);
+  const elite = useMembershipStage("business_owner_elite");
 
   useEffect(() => {
     fetchCounts();
@@ -141,90 +150,37 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         </motion.h2>
 
         {/* === CARDS === */}
-        <div className="grid gap-12 grid-cols-1 md:grid-cols-2">
-          {/* 💎 Diamond Plus */}
-          <motion.div
-            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-[#E916D1]/30 transition-all duration-500"
-            initial="hidden"
-            animate="show"
-            variants={fadeIn}
-            whileHover={{ scale: 1.02 }}>
-
-            <div className="absolute inset-0 overflow-hidden flex items-end justify-start">
-              <img
-                src={nudeImg}
-                alt="diamond plus"
-                className="h-full w-auto md:h-[110%] object-contain object-bottom" />
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
-            </div>
-
-            <div className="relative z-10 p-8 text-left">
-              <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
-                <WordFade text="Exotic Females & Strippers" />
-              </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-[#E916D1] mt-2">
-                <WordFade text="Diamond Plus Memberships" />
-              </h3>
-
-              <div className="mt-8 flex items-baseline gap-3">
-                <span className="text-gray-400 uppercase tracking-wide text-sm">
-                  <WordFade text="Lifetime Positions Left:" />
-                </span>
-                <motion.span
-                  key={diamondPlusSpotsLeft}
-                  className="text-5xl font-extrabold text-[#E916D1]"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.4 }}>
-
-                  {diamondPlusSpotsLeft}
-                </motion.span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* 🥈 Silver Plus */}
-          <motion.div
-            className="relative flex flex-col justify-end h-[500px] bg-[#0b0b0b] border border-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-[#E916D1]/30 transition-all duration-500"
-            initial="hidden"
-            animate="show"
-            variants={fadeIn}
-            whileHover={{ scale: 1.02 }}>
-
-            <div className="absolute inset-0 overflow-hidden flex items-end justify-start">
-              <img
-                src={exoticImg}
-                alt="silver plus"
-                className="h-full w-auto md:h-[110%] object-contain object-bottom" />
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
-            </div>
-
-            <div className="relative z-10 p-8 text-left">
-              <p className="text-gray-300 text-sm tracking-widest uppercase font-semibold">
-                <WordFade text="Normal Females & Males" />
-              </p>
-              <h3 className="text-2xl md:text-3xl font-bold text-[#E916D1] mt-2">
-                <WordFade text="Silver Plus Memberships" />
-              </h3>
-
-              <div className="mt-8 flex items-baseline gap-3">
-                <span className="text-gray-400 uppercase tracking-wide text-sm">
-                  <WordFade text="Lifetime Positions Left:" />
-                </span>
-                <motion.span
-                  key={silverPlusData?.remaining}
-                  className="text-5xl font-extrabold text-[#E916D1]"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.4 }}>
-
-                  {loading ? "..." : silverPlusData?.remaining ?? "N/A"}
-                </motion.span>
-              </div>
-            </div>
-          </motion.div>
+        <div className="-mx-11 grid grid-cols-1 gap-8 lg:mx-0 lg:grid-cols-3 lg:gap-6">
+          <TierSlideCard
+            audience="Exotic Females & Strippers"
+            title="Diamond Plus"
+            remaining={diamondPlusSpotsLeft}
+            slides={[
+              { image: nudeImg, eyebrow: "Tier 1", headline: "Up to", amount: "$125,000", note: "Max annual profit sharing" },
+              { image: exoticImg, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
+              { image: nudeImg, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
+            ]}
+          />
+          <TierSlideCard
+            audience="Business Owners"
+            title="Elite Plus"
+            remaining={elite.loading ? "..." : elite.remainingOverall}
+            slides={[
+              { image: eliteSuit, eyebrow: "Tier 1", headline: "Up to", amount: "$200,000", note: "Max annual profit sharing" },
+              { image: eliteDesigner, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
+              { image: eliteDress, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
+            ]}
+          />
+          <TierSlideCard
+            audience="Normal Females & Males"
+            title="Silver Plus"
+            remaining={loading ? "..." : silverPlusData?.remaining ?? "N/A"}
+            slides={[
+              { image: silverMan, eyebrow: "Tier 1", headline: "Up to", amount: "$75,000", note: "Max annual profit sharing" },
+              { image: silverTattoo, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
+              { image: silverBeige, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
+            ]}
+          />
         </div>
         <div className="mt-10 text-center">
           <p className="text-white text-base md:text-lg mb-5">Profit sharing positions are limited. Join free to learn more.</p>
