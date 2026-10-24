@@ -48,7 +48,7 @@ const ReferrerProfile = () => {
   const photoUrl = referrer?.front_page_photo || referrer?.profile_photo || defaultAvatar;
 
   return (
-    <section id="referrer-section" className={ref ? "py-16 bg-black" : "relative z-10 -mb-48 sm:-mb-64 pt-6 pb-0 bg-transparent"}>
+    <section id="referrer-section" className={ref ? "py-16 bg-black" : "relative z-10 pt-10 pb-4 bg-transparent"}>
       <div className="container mx-auto px-4 text-center">
         {ref ? (
           <div className="flex flex-col items-center gap-4">
