@@ -7,6 +7,7 @@ import step1Img from "@/assets/step1.png";
 import step2Img from "@/assets/step2.png";
 import step3Img from "@/assets/step3.png";
 import TierSlideCard from "@/components/TierSlideCard";
+import { useMembershipStage } from "@/hooks/useMembershipStage";
 import eliteDimesA from "@/assets/tiers/elite-dimes-3.jpg.asset.json";
 import eliteLoungeA from "@/assets/tiers/elite-lounge-2.jpg.asset.json";
 import eliteSuit2A from "@/assets/tiers/elite-suit-7.jpg.asset.json";
@@ -46,6 +47,10 @@ const WordFade: React.FC<{text: string;delay?: number;}> = ({ text, delay = 0 })
 };
 
 const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => {
+  const diamond = useMembershipStage("diamond_plus");
+  const elite = useMembershipStage("business_owner_elite");
+  const silver = useMembershipStage("silver_plus");
+  const left = (m: { loading: boolean; remainingOverall: number }) => (m.loading ? "..." : m.remainingOverall);
 
 
   const fadeIn = {
@@ -96,7 +101,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               { image: diamondPink },
               { image: nudeImg },
             ]}
-            title="Diamond Plus" audience="Exotic Females & Strippers" tier1="Up to $125,000 annually" tier2="$1,170,000 minimum"
+            title="Diamond Plus" remaining={left(diamond)} audience="Exotic Females & Strippers" tier1="Up to $125,000 annually" tier2="$1,170,000 minimum"
           />
           <TierSlideCard
             slides={[
@@ -104,7 +109,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               { image: eliteLounge },
               { image: eliteSuit2 },
             ]}
-            title="Elite Plus" audience="For Business Owners" tier1="Up to $200,000 annually" tier2="$1,170,000 minimum"
+            title="Elite Plus" remaining={left(elite)} audience="Business Owners" tier1="Up to $200,000 annually" tier2="$1,170,000 minimum"
           />
           <TierSlideCard
             slides={[
@@ -112,7 +117,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               { image: silverKnitDress },
               { image: silverSuitMan },
             ]}
-            title="Silver Plus" audience="Normal Females & Males" tier1="Up to $75,000 annually" tier2="$1,170,000 minimum"
+            title="Silver Plus" remaining={left(silver)} audience="Normal Females & Males" tier1="Up to $75,000 annually" tier2="$1,170,000 minimum"
           />
 
         </div>
