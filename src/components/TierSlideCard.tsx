@@ -48,7 +48,7 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2,
             src={s.image}
             alt=""
             loading="lazy"
-            className="absolute bottom-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2 object-contain object-bottom lg:left-0 lg:translate-x-0"
+            className="absolute inset-0 h-full w-full object-cover object-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -82,11 +82,6 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2,
         </div>
       </div>
 
-      <div className="absolute right-4 top-4 z-20 flex gap-1.5">
-        {slides.map((_, n) => (
-          <span key={n} className={`h-1.5 rounded-full transition-all ${n === i ? "w-5 bg-[#E916D1]" : "w-2 bg-white/40"}`} />
-        ))}
-      </div>
     </div>
   );
 };
