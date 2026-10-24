@@ -11,9 +11,27 @@ interface Props {
   audience: string;
   tier1: string;
   tier2: string;
+  remaining: number | string;
 }
 
-const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2 }) => {
+const WordFade: React.FC<{ text: string }> = ({ text }) => (
+  <span className="inline-block">
+    {text.split(" ").map((w, i) => (
+      <motion.span
+        key={i}
+        className="mr-1 inline-block"
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: i * 0.05, duration: 0.45, ease: "easeOut" }}
+        viewport={{ once: true }}
+      >
+        {w}
+      </motion.span>
+    ))}
+  </span>
+);
+
+const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2, remaining }) => {
   const [i, setI] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setI((n) => (n + 1) % slides.length), 4000);
@@ -30,25 +48,41 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2 
             src={s.image}
             alt=""
             loading="lazy"
-            className="absolute bottom-0 left-0 h-full w-auto max-w-none object-contain object-bottom"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.5 }}
+            className="absolute bottom-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2 object-contain object-bottom lg:left-0 lg:translate-x-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
           />
         </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
       </div>
 
       <div className="relative z-10 p-8 text-left">
-        <p className="text-sm font-semibold uppercase tracking-widest text-gray-300">{audience}</p>
-        <h3 className="mt-2 text-2xl font-bold text-[#E916D1] md:text-3xl">{title}</h3>
-        <p className="mt-4 text-sm text-white"><span className="font-semibold">Tier 1:</span> {tier1}</p>
-        <p className="text-sm text-white"><span className="font-semibold">Tier 2:</span> {tier2}</p>
-        <p className="mt-2 text-sm font-semibold text-yellow-400">This won't last!</p>
+        <p className="text-sm font-semibold uppercase tracking-widest text-gray-300">
+          <WordFade text={audience} />
+        </p>
+        <h3 className="mt-2 text-2xl font-bold text-[#E916D1] md:text-3xl">
+          <WordFade text={`${title} Memberships`} />
+        </h3>
+        <p className="mt-3 text-sm text-white">Tier 1: {tier1} · Tier 2: {tier2}</p>
+        <div className="mt-6 flex items-baseline gap-3">
+          <span className="text-sm uppercase tracking-wide text-gray-400">
+            <WordFade text="Lifetime Positions Left:" />
+          </span>
+          <motion.span
+            key={String(remaining)}
+            className="text-5xl font-extrabold text-[#E916D1]"
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            {remaining}
+          </motion.span>
+        </div>
       </div>
 
-      <div className="absolute bottom-4 right-4 z-20 flex gap-1.5">
+      <div className="absolute right-4 top-4 z-20 flex gap-1.5">
         {slides.map((_, n) => (
           <span key={n} className={`h-1.5 rounded-full transition-all ${n === i ? "w-5 bg-[#E916D1]" : "w-2 bg-white/40"}`} />
         ))}
