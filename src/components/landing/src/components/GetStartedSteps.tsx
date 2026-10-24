@@ -24,7 +24,6 @@ const AUDIENCES = [
 ];
 
 import dimesLogo from "@/assets/dimes-only-world-logo.png.asset.json";
-import JoinFreeButton from "@/components/JoinFreeButton";
 
 const GetStartedSteps = () => (
   <section className="py-24 bg-transparent relative z-10">
@@ -80,7 +79,6 @@ const GetStartedSteps = () => (
           </div>
         ))}
       </div>
-      <div className="mt-10 flex justify-center"><JoinFreeButton /></div>
     </div>
   </section>
 );
