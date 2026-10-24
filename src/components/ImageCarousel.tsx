@@ -388,7 +388,7 @@ const ImageCarousel: React.FC<{ className?: string }> = ({ className = "" }) => 
     <div className={`w-full bg-gradient-to-b from-black via-gray-900 to-black py-10 ${className}`}>
       {/* ---------- HERO SECTION ---------- */}
       <div
-        className="relative flex flex-col items-center justify-center bg-cover bg-center rounded-[30px] md:rounded-[50px] mx-4 my-6 sm:mx-6 md:mx-10 md:my-10 shadow-2xl overflow-hidden border border-white/10"
+        className="relative flex flex-col items-center justify-center bg-cover bg-center rounded-none lg:rounded-[50px] mx-0 my-6 lg:mx-10 lg:my-10 shadow-2xl overflow-hidden border-y lg:border border-white/10"
         style={{ backgroundImage: `url(${heroBg.url})` }}
       >
         {/* Dark professional overlay */}
