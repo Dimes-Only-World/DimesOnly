@@ -30,7 +30,7 @@ const getReferrerPrizeForRank = (rank: number): number | null => {
   if (rank >= 11 && rank <= 20) return 170;
   return null;
 };
-import companyLogo from "@/assets/dimes-only-world-logo.jpg.asset.json";
+import companyLogo from "@/assets/dimes-only-world-logo.png.asset.json";
 import defaultAvatar from "@/assets/default-avatar.png.asset.json";
 import { supabase } from "@/lib/supabase";
 import { getRatingSeasonYear } from "@/lib/timeUtils";
