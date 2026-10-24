@@ -3,14 +3,14 @@ import { AnimatePresence, motion } from "framer-motion";
 
 export interface TierSlide {
   image: string;
+  caption: string;
+  emphasis?: boolean;
 }
 
 interface Props {
   slides: TierSlide[];
   title: string;
   audience: string;
-  tier1: string;
-  tier2: string;
   remaining: number | string;
 }
 
@@ -31,7 +31,7 @@ const WordFade: React.FC<{ text: string }> = ({ text }) => (
   </span>
 );
 
-const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2, remaining }) => {
+const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining }) => {
   const [i, setI] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setI((n) => (n + 1) % slides.length), 4000);
@@ -65,7 +65,24 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, tier1, tier2,
         <h3 className="mt-2 text-2xl font-bold text-[#E916D1] md:text-3xl">
           <WordFade text={`${title} Memberships`} />
         </h3>
-        <p className="mt-3 text-sm text-white">Tier 1: {tier1} · Tier 2: {tier2}</p>
+        <div className="mt-3 flex min-h-[3.5rem] items-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={s.caption}
+              className={
+                s.emphasis
+                  ? "text-xl font-bold leading-snug text-[#E916D1] md:text-2xl"
+                  : "text-base font-semibold leading-snug text-white md:text-lg"
+              }
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              {s.caption}
+            </motion.p>
+          </AnimatePresence>
+        </div>
         <div className="mt-6 flex items-baseline gap-3">
           <span className="text-sm uppercase tracking-wide text-gray-400">
             <WordFade text="Lifetime Positions Left:" />

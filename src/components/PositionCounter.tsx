@@ -97,27 +97,27 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         <div className="-mx-11 grid grid-cols-1 gap-8 lg:mx-0 lg:grid-cols-3 lg:gap-6">
           <TierSlideCard
             slides={[
-              { image: diamondLeopard },
-              { image: diamondPink },
-              { image: nudeImg },
+              { image: diamondLeopard, caption: "Tier 1: Up to $125,000 annually" },
+              { image: diamondPink, caption: "Tier 2: $1,170,000 minimum" },
+              { image: nudeImg, caption: "No more algorithm games! Just straight cash!", emphasis: true },
             ]}
-            title="Diamond Plus" remaining={left(diamond)} audience="Exotic Females & Strippers" tier1="Up to $125,000 annually" tier2="$1,170,000 minimum"
+            title="Diamond Plus" remaining={left(diamond)} audience="Exotic Females & Strippers"
           />
           <TierSlideCard
             slides={[
-              { image: eliteDimes },
-              { image: eliteLounge },
-              { image: eliteTattoo },
+              { image: eliteDimes, caption: "Tier 1: Up to $200,000 annually" },
+              { image: eliteLounge, caption: "Tier 2: $1,170,000 minimum" },
+              { image: eliteTattoo, caption: "This can change your business.", emphasis: true },
             ]}
-            title="Elite Plus" remaining={left(elite)} audience="Business Owners" tier1="Up to $200,000 annually" tier2="$1,170,000 minimum"
+            title="Elite Plus" remaining={left(elite)} audience="Business Owners"
           />
           <TierSlideCard
             slides={[
-              { image: silverCreamDress },
-              { image: silverKnitDress },
-              { image: silverSuitMan },
+              { image: silverCreamDress, caption: "Tier 1: Up to $75,000 annually" },
+              { image: silverKnitDress, caption: "Tier 2: $1,170,000 minimum" },
+              { image: silverSuitMan, caption: "This won't last.", emphasis: true },
             ]}
-            title="Silver Plus" remaining={left(silver)} audience="Normal Females & Males" tier1="Up to $75,000 annually" tier2="$1,170,000 minimum"
+            title="Silver Plus" remaining={left(silver)} audience="Normal Females & Males"
           />
 
         </div>
