@@ -3,8 +3,37 @@ import { Trophy, Ticket, Sparkles, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import jackpotBg from "@/assets/jackpot-bg.mp4.asset.json";
 
-const JackpotTipWin: React.FC = () => {
+/** `example` shows an illustrative counter (clearly labelled) instead of the live pool; the real jackpot is shown inside to members. */
+const JackpotTipWin: React.FC<{ example?: boolean }> = ({ example = false }) => {
   const [jackpotAmount, setJackpotAmount] = useState(0);
+  const [exTarget, setExTarget] = useState(34674.78);
+  const [exShown, setExShown] = useState(34674.78);
+  const [glow, setGlow] = useState(false);
+
+  useEffect(() => {
+    if (!example) return;
+    const id = setInterval(() => {
+      setExTarget((t) => t + Math.round((Math.random() * 25 + 1) * 100) / 100);
+      setGlow(true);
+      setTimeout(() => setGlow(false), 600);
+    }, 1500);
+    return () => clearInterval(id);
+  }, [example]);
+
+  useEffect(() => {
+    if (!example) return;
+    let raf = 0;
+    const tick = () => {
+      setExShown((s) => {
+        const d = exTarget - s;
+        if (Math.abs(d) < 0.01) return exTarget;
+        raf = requestAnimationFrame(tick);
+        return s + d * 0.12;
+      });
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [example, exTarget]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US", {
@@ -15,6 +44,7 @@ const JackpotTipWin: React.FC = () => {
     }).format(amount);
 
   useEffect(() => {
+    if (example) return;
     const fetchJackpot = async () => {
       try {
         const { data: poolData, error: poolError } = await supabase
@@ -42,7 +72,7 @@ const JackpotTipWin: React.FC = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "jackpot_pools" }, () => fetchJackpot())
       .subscribe();
     return () => { sub.unsubscribe(); };
-  }, []);
+  }, [example]);
 
   return (
     <section className="relative w-full overflow-hidden bg-black">
@@ -84,14 +114,18 @@ const JackpotTipWin: React.FC = () => {
             <div className="flex items-center justify-center gap-3 mb-3">
               <Trophy className="h-7 w-7 text-[#E916D1]" />
               <span className="text-sm font-semibold uppercase tracking-[0.35em] text-white/70">
-                Current Jackpot
+                {example ? "Example Jackpot" : "Current Jackpot"}
               </span>
             </div>
-            <div className="bg-gradient-to-b from-white via-white to-[#E916D1] bg-clip-text text-6xl md:text-7xl font-black tracking-tight text-transparent tabular-nums">
-              {formatCurrency(jackpotAmount)}
+            <div
+              className={`bg-gradient-to-b from-white via-white to-[#E916D1] bg-clip-text text-[clamp(1.75rem,10vw,4.5rem)] leading-tight font-black tracking-tight text-transparent tabular-nums whitespace-nowrap transition-[filter] duration-500 ${
+                example && glow ? "drop-shadow-[0_0_18px_rgba(233,22,209,0.9)]" : ""
+              }`}
+            >
+              {formatCurrency(example ? exShown : jackpotAmount)}
             </div>
             <div className="mt-4 text-xs uppercase tracking-widest text-white/50">
-              Live pool · Updates in real time
+              {example ? "Example only · Real live jackpot disclosed inside" : "Live pool · Updates in real time"}
             </div>
           </div>
         </div>
