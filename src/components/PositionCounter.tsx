@@ -12,7 +12,7 @@ import TierSlideCard from "@/components/TierSlideCard";
 import { useMembershipStage } from "@/hooks/useMembershipStage";
 import eliteDimesA from "@/assets/tiers/elite-dimes.jpg.asset.json";
 import eliteLoungeA from "@/assets/tiers/elite-lounge.jpg.asset.json";
-import eliteSuit2A from "@/assets/tiers/elite-suit-3.jpg.asset.json";
+import eliteSuit2A from "@/assets/tiers/elite-suit-4.jpg.asset.json";
 import silverCreamDressA from "@/assets/tiers/silver-cream-dress.png.asset.json";
 import silverKnitDressA from "@/assets/tiers/silver-knit-dress.png.asset.json";
 import silverSuitManA from "@/assets/tiers/silver-suit-man.png.asset.json";
