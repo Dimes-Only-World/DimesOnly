@@ -77,7 +77,7 @@ const JoinChoiceModal: React.FC<{ onClose: () => void; onNew: () => void; refCod
             <h3 className="text-xl font-bold text-orange-500 mb-5">Welcome! Are you new or returning?</h3>
             <div className="flex flex-col gap-3">
               <button type="button" onClick={onNew} className={`${btn} bg-orange-500 hover:bg-orange-600`}>I&apos;m New</button>
-              <button type="button" onClick={() => setView("returning")} className="text-pink-400 underline text-sm font-semibold">I&apos;m Returning</button>
+              <button type="button" onClick={() => setView("returning")} className={`${btn} bg-orange-500 hover:bg-orange-600`}>I&apos;m Returning</button>
             </div>
           </>
         )}
