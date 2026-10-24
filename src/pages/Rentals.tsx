@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, BadgeDollarSign, CalendarDays, Car, Check, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
 import BannerVideo from "@/components/BannerVideo";
@@ -179,10 +180,6 @@ const Rentals: React.FC = () => {
             DIMES ONLY
           </Link>
           <ReferrerBadge />
-        </div>
-        <div className="rentals-wordmark hidden text-right text-2xl leading-[0.75] text-rental-foreground sm:text-5xl">
-          BEST
-          <span className="block text-rental-primary">RENTAL CARS</span>
         </div>
       </header>
 
