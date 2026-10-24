@@ -22,7 +22,7 @@ const TierSlideCard: React.FC<Props> = ({ audience, title, slides, remaining }) 
     const id = setInterval(() => setI((n) => (n + 1) % slides.length), 2000);
     return () => clearInterval(id);
   }, [slides.length]);
-  const s = slides[i];
+  const s = slides[i] ?? slides[0]!;
 
   return (
     <div className="relative h-[520px] w-full overflow-hidden border-y border-gray-800 bg-[#0b0b0b] lg:rounded-3xl lg:border">
