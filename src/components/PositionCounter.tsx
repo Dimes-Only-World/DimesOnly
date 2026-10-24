@@ -12,11 +12,11 @@ import eliteLoungeA from "@/assets/tiers/elite-lounge-2.jpg.asset.json";
 import eliteTattooA from "@/assets/tiers/elite-tattoo.png.asset.json";
 import silverCreamDressA from "@/assets/tiers/silver-cream-dress.png.asset.json";
 import silverKnitDressA from "@/assets/tiers/silver-female-new.jpg.asset.json";
-import silverSuitManA from "@/assets/tiers/silver-suit-man.png.asset.json";
+import silverCoupleA from "@/assets/tiers/silver-couple.png.asset.json";
 import diamondLeopardA from "@/assets/tiers/diamond-leopard-2.png.asset.json";
 import diamondPinkA from "@/assets/tiers/diamond-pink-2.png.asset.json";
 const eliteDimes = eliteDimesA.url, eliteLounge = eliteLoungeA.url, eliteTattoo = eliteTattooA.url;
-const silverCreamDress = silverCreamDressA.url, silverKnitDress = silverKnitDressA.url, silverSuitMan = silverSuitManA.url;
+const silverCreamDress = silverCreamDressA.url, silverKnitDress = silverKnitDressA.url, silverCouple = silverCoupleA.url;
 const diamondLeopard = diamondLeopardA.url, diamondPink = diamondPinkA.url;
 
 interface PositionCounterProps {
@@ -114,7 +114,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             slides={[
               { image: silverCreamDress, caption: "Tier 1: Up to $75,000 annually" },
               { image: silverKnitDress, caption: "Tier 2: $1,170,000 minimum" },
-              { image: silverSuitMan, caption: "This won't last.", emphasis: true },
+              { image: silverCouple, caption: "This won't last.", emphasis: true },
             ]}
             title="Silver Plus" remaining={left(silver)} audience="Normal Females & Males"
           />

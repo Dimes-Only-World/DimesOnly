@@ -41,8 +41,8 @@ const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining, fi
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
-      ([e]) => setInView(!!e && e.intersectionRatio >= 0.95),
-      { threshold: [0, 0.5, 0.95, 1] },
+      ([e]) => setInView(!!e && e.intersectionRatio >= 0.9),
+      { threshold: [0, 0.5, 0.9, 1] },
     );
     io.observe(el);
     return () => io.disconnect();
