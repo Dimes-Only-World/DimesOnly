@@ -99,7 +99,7 @@ const JackpotTipWin: React.FC<{ example?: boolean }> = ({ example = false }) => 
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 py-20 md:py-28">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 py-20 md:py-28">
         {/* Eyebrow */}
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#E916D1] backdrop-blur">
@@ -110,7 +110,7 @@ const JackpotTipWin: React.FC<{ example?: boolean }> = ({ example = false }) => 
 
         {/* Jackpot Card */}
         <div className="mx-auto max-w-2xl">
-          <div className="relative rounded-3xl border border-white/10 bg-white/5 p-8 md:p-10 text-center shadow-[0_25px_80px_-20px_rgba(233,22,209,0.5)] backdrop-blur-xl">
+          <div className="relative rounded-3xl border border-white/10 bg-white/5 px-4 py-8 sm:p-8 md:p-10 text-center shadow-[0_25px_80px_-20px_rgba(233,22,209,0.5)] backdrop-blur-xl">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Trophy className="h-7 w-7 text-[#E916D1]" />
               <span className="text-sm font-semibold uppercase tracking-[0.35em] text-white/70">
