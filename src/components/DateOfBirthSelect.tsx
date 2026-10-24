@@ -59,7 +59,7 @@ const DateOfBirthSelect: React.FC<Props> = ({ value, onChange, error }) => {
 
   const currentYear = new Date().getFullYear();
   const years: number[] = [];
-  for (let y = currentYear; y >= 1926; y--) years.push(y);
+  for (let y = currentYear - 18; y >= 1926; y--) years.push(y);
 
   const maxDay = yearNum && monthNum ? daysInMonth(yearNum, monthNum) : 31;
   const days: number[] = [];

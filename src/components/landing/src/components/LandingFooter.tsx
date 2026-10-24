@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import CookieSettingsDialog from "@/components/CookieSettingsDialog";
 
 const navLinks = [
-  { label: "Mens Clothing", href: "#" },
-  { label: "Buy a Car", href: "#" },
   { label: "Profit Sharing", href: "#" },
   { label: "Apply Online", href: "#" },
   { label: "Contact Us", href: "#" },
@@ -40,7 +38,7 @@ const LandingFooter = () => {
           />
         </nav>
         <p className="text-center text-muted-foreground text-xs">
-          © 2025 Dimes Only Network. All rights reserved.
+          © {new Date().getFullYear()} Dimes Only Network. All rights reserved.
         </p>
       </div>
 

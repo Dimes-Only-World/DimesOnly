@@ -162,7 +162,11 @@ export const Register: React.FC = () => {
         fullName?: string;
         phone?: string;
         dateOfBirth?: string;
+        visitorType?: string;
       };
+      const vt = parsed.visitorType || "";
+      const gender = vt === "male" ? "male" : vt === "business_owner" ? "business_owner" : ["exotic", "stripper", "normal_female"].includes(vt) ? "female" : "";
+      const userType = vt === "exotic" || vt === "stripper" ? vt : vt === "normal_female" ? "normal" : "";
       const parts = (parsed.fullName || "").trim().split(/\s+/);
       return {
         username: (parsed.username || "").trim().toLowerCase(),
@@ -170,6 +174,8 @@ export const Register: React.FC = () => {
         lastName: parsed.username ? "" : parts.slice(1).join(" ") || "",
         mobileNumber: parsed.phone || "",
         dateOfBirth: parsed.dateOfBirth || "",
+        gender,
+        userType,
       };
     } catch {
       return null;
@@ -188,8 +194,8 @@ export const Register: React.FC = () => {
     city: "",
     state: "",
     zip: "",
-    gender: "",
-    userType: "",
+    gender: agePrefill?.gender || "",
+    userType: agePrefill?.userType || "",
     dateOfBirth: agePrefill?.dateOfBirth || "",
     referredBy: getReferralUsername(searchParams) || getStoredRef(),
   });
