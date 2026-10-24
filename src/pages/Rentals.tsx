@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import BestLogoBanner from "@/components/rentals/BestLogoBanner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, BadgeDollarSign, CalendarDays, Car, Check, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
 import BannerVideo from "@/components/BannerVideo";
@@ -180,10 +181,6 @@ const Rentals: React.FC = () => {
           </Link>
           <ReferrerBadge />
         </div>
-        <div className="rentals-wordmark text-right text-2xl leading-[0.75] text-rental-foreground sm:text-5xl">
-          BEST
-          <span className="block text-rental-primary">RENTAL CARS</span>
-        </div>
       </header>
 
       <section className="relative min-h-[560px] overflow-hidden bg-rental-background sm:min-h-[680px]">
@@ -193,8 +190,9 @@ const Rentals: React.FC = () => {
           <div className="absolute inset-0 bg-rental-surface" />
         )}
         <div className="absolute inset-0 bg-rental-hero" />
-        <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-4 pb-12 pt-36 sm:min-h-[680px] sm:px-8 sm:pb-20 lg:px-12">
-          <div className="max-w-3xl">
+        <div className="relative mx-auto flex min-h-[560px] max-w-7xl flex-col px-4 pb-12 pt-16 sm:min-h-[680px] sm:px-8 sm:pb-20 sm:pt-20 lg:px-12">
+          <BestLogoBanner className="z-10" />
+          <div className="mt-auto max-w-3xl pt-8">
             <p className="mb-3 flex items-center gap-2 font-barlow text-xs font-semibold uppercase text-rental-primary">
               <span className="h-px w-8 bg-rental-primary" /> Dimes Only Rentals
             </p>
