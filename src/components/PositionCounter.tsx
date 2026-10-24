@@ -89,14 +89,14 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
         </motion.h2>
 
         {/* === CARDS === */}
-        <div className="-mx-11 grid grid-cols-1 gap-8 lg:mx-0 lg:grid-cols-1 lg:gap-6">
+        <div className="-mx-11 grid grid-cols-1 gap-8 lg:mx-0 lg:grid-cols-3 lg:gap-6">
           <TierSlideCard
             slides={[
               { image: diamondLeopard },
               { image: diamondPink },
               { image: nudeImg },
             ]}
-            title="Diamond Plus" audience="For Dimes" tier1="Up to $125,000 annually" tier2="$1,170,000 minimum"
+            title="Diamond Plus" audience="Exotic Females & Strippers" tier1="Up to $125,000 annually" tier2="$1,170,000 minimum"
           />
           <TierSlideCard
             slides={[
@@ -112,7 +112,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
               { image: silverKnitDress },
               { image: silverSuitMan },
             ]}
-            title="Silver Plus" audience="For Members" tier1="Up to $75,000 annually" tier2="$1,170,000 minimum"
+            title="Silver Plus" audience="Normal Females & Males" tier1="Up to $75,000 annually" tier2="$1,170,000 minimum"
           />
 
         </div>
