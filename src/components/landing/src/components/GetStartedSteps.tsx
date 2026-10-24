@@ -23,12 +23,18 @@ const AUDIENCES = [
   "Exotic Females",
 ];
 
+import dimesLogo from "@/assets/dimes-only-world-logo.png.asset.json";
 import JoinFreeButton from "@/components/JoinFreeButton";
 
 const GetStartedSteps = () => (
   <section className="py-24 bg-transparent relative z-10">
     <div className="container mx-auto px-4">
       <div className="max-w-3xl mx-auto text-center mb-16">
+        <img
+          src={dimesLogo.url}
+          alt="Dimes Only World"
+          className="mx-auto w-full max-w-xs sm:max-w-md h-auto object-contain mb-8"
+        />
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#E916D1]/40 bg-[#E916D1]/10 mb-6">
           <span className="h-1.5 w-1.5 rounded-full bg-[#E916D1] animate-pulse" />
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-white">
