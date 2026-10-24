@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 export interface TierSlide {
@@ -33,14 +33,27 @@ const WordFade: React.FC<{ text: string }> = ({ text }) => (
 
 const TierSlideCard: React.FC<Props> = ({ slides, title, audience, remaining }) => {
   const [i, setI] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
   useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([e]) => setInView(!!e && e.intersectionRatio >= 0.95),
+      { threshold: [0, 0.5, 0.95, 1] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!inView) return;
     const id = setInterval(() => setI((n) => (n + 1) % slides.length), 4000);
     return () => clearInterval(id);
-  }, [slides.length]);
+  }, [slides.length, inView]);
   const s = slides[i] ?? slides[0]!;
 
   return (
-    <div className="relative flex h-[500px] w-full flex-col justify-end overflow-hidden border-y border-gray-800 bg-[#0b0b0b] shadow-lg lg:rounded-3xl lg:border">
+    <div ref={ref} className="relative flex h-[500px] w-full flex-col justify-end overflow-hidden border-y border-gray-800 bg-[#0b0b0b] shadow-lg lg:rounded-3xl lg:border">
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence mode="sync">
           <motion.img
