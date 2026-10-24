@@ -16,8 +16,8 @@ import eliteDressA from "@/assets/tiers/u-elite-dress.jpg.asset.json";
 import silverTattooA from "@/assets/tiers/u-silver-tattoo.jpg.asset.json";
 import silverManA from "@/assets/tiers/u-silver-man.jpg.asset.json";
 import silverBeigeA from "@/assets/tiers/u-silver-beige.jpg.asset.json";
-import diamondLeopardA from "@/assets/tiers/u-diamond-leopard.jpg.asset.json";
-import diamondPinkA from "@/assets/tiers/u-diamond-pink.jpg.asset.json";
+import diamondLeopardA from "@/assets/tiers/diamond-leopard-2.png.asset.json";
+import diamondPinkA from "@/assets/tiers/diamond-pink-2.png.asset.json";
 const eliteSuit = eliteSuitA.url, eliteDesigner = eliteDesignerA.url, eliteDress = eliteDressA.url;
 const silverTattoo = silverTattooA.url, silverMan = silverManA.url, silverBeige = silverBeigeA.url;
 const diamondLeopard = diamondLeopardA.url, diamondPink = diamondPinkA.url;
@@ -163,7 +163,7 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             slides={[
               { image: diamondLeopard, eyebrow: "Tier 1", headline: "Up to", amount: "$125,000", note: "Max annual profit sharing" },
               { image: diamondPink, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
-              { image: diamondLeopard, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
+              { image: nudeImg, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
             ]}
           />
           <TierSlideCard
