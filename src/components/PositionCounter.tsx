@@ -10,12 +10,17 @@ import step2Img from "@/assets/step2.png";
 import step3Img from "@/assets/step3.png";
 import TierSlideCard from "@/components/TierSlideCard";
 import { useMembershipStage } from "@/hooks/useMembershipStage";
-import eliteSuit from "@/assets/tiers/elite-suit.png";
-import eliteDesigner from "@/assets/tiers/elite-designer.png";
-import eliteDress from "@/assets/tiers/elite-black-dress.png";
-import silverTattoo from "@/assets/tiers/silver-tattoo.png";
-import silverMan from "@/assets/tiers/silver-man.png";
-import silverBeige from "@/assets/tiers/silver-beige.png";
+import eliteSuitA from "@/assets/tiers/u-elite-suit.jpg.asset.json";
+import eliteDesignerA from "@/assets/tiers/u-elite-designer.jpg.asset.json";
+import eliteDressA from "@/assets/tiers/u-elite-dress.jpg.asset.json";
+import silverTattooA from "@/assets/tiers/u-silver-tattoo.jpg.asset.json";
+import silverManA from "@/assets/tiers/u-silver-man.jpg.asset.json";
+import silverBeigeA from "@/assets/tiers/u-silver-beige.jpg.asset.json";
+import diamondLeopardA from "@/assets/tiers/u-diamond-leopard.jpg.asset.json";
+import diamondPinkA from "@/assets/tiers/u-diamond-pink.jpg.asset.json";
+const eliteSuit = eliteSuitA.url, eliteDesigner = eliteDesignerA.url, eliteDress = eliteDressA.url;
+const silverTattoo = silverTattooA.url, silverMan = silverManA.url, silverBeige = silverBeigeA.url;
+const diamondLeopard = diamondLeopardA.url, diamondPink = diamondPinkA.url;
 
 interface PositionCounterProps {
   className?: string;
@@ -156,9 +161,9 @@ const PositionCounter: React.FC<PositionCounterProps> = ({ className = "" }) => 
             title="Diamond Plus"
             remaining={diamondPlusSpotsLeft}
             slides={[
-              { image: nudeImg, eyebrow: "Tier 1", headline: "Up to", amount: "$125,000", note: "Max annual profit sharing" },
-              { image: exoticImg, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
-              { image: nudeImg, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
+              { image: diamondLeopard, eyebrow: "Tier 1", headline: "Up to", amount: "$125,000", note: "Max annual profit sharing" },
+              { image: diamondPink, eyebrow: "Tier 2", headline: "Minimum", amount: "$1,170,000", note: "Tier 2 profit sharing" },
+              { image: diamondLeopard, eyebrow: "Act Fast", headline: "This won't last!", amount: "Limited", note: "Lifetime positions are going fast" },
             ]}
           />
           <TierSlideCard
