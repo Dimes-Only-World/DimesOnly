@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import placeholderLady from "../../../../assets/weo.png";
+import JoinFreeButton from "@/components/JoinFreeButton";
 
 const supabaseUrl = "https://qkcuykpndrolrewwnkwb.supabase.co";
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3V5a3BuZHJvbHJld3dua3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODIwNzAsImV4cCI6MjA2NDk1ODA3MH0.gamp40tIrDSMaI5_YMIrn3qCR-oVdx__YtvBl75yOJs";
@@ -77,6 +78,10 @@ const HeroBanner = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-white leading-tight [text-shadow:0_4px_16px_rgba(0,0,0,0.8)]">
+          Get Seen. Get Promoted. <span className="text-orange-500">Get Paid.</span>
+        </h1>
+        <div className="mt-8"><JoinFreeButton /></div>
       </div>
     </section>
   );
