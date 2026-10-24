@@ -79,15 +79,15 @@ const HeroBanner = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 pt-24">
-        <img
-          src={dimesLogo.url}
-          alt="Dimes Only World"
-          className="mx-auto w-full max-w-md sm:max-w-lg h-auto object-contain mb-8"
-        />
         <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-white leading-tight [text-shadow:0_4px_16px_rgba(0,0,0,0.8)]">
           Get Seen. Get Promoted. <span className="text-orange-500">Get Paid.</span>
         </h1>
-        <div className="mt-8"><JoinFreeButton /></div>
+        <img
+          src={dimesLogo.url}
+          alt="Dimes Only World"
+          className="mx-auto w-full max-w-md sm:max-w-lg h-auto object-contain mt-8 mb-6"
+        />
+        <div className="mt-2"><JoinFreeButton /></div>
       </div>
     </section>
   );
